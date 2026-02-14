@@ -85,9 +85,8 @@ function friendlyAuthError(err: unknown): Error {
   return err instanceof Error ? err : new Error(msg);
 }
 
-export async function ensureGuestSession(): Promise<AuthSession | null> {
+export async function getExistingSession(): Promise<AuthSession | null> {
   if (!supabase) return null;
-
   const { data: existing } = await supabase.auth.getSession();
   if (existing.session?.access_token && existing.session.user?.id) {
     return {
@@ -96,17 +95,29 @@ export async function ensureGuestSession(): Promise<AuthSession | null> {
       email: existing.session.user.email
     };
   }
+  return null;
+}
 
-  const { data, error } = await supabase.auth.signInAnonymously();
-  if (error || !data.session || !data.user) {
-    throw new Error(error?.message ?? "failed to sign in anonymously");
+export async function ensureGuestSession(): Promise<AuthSession | null> {
+  if (!supabase) return null;
+
+  const existing = await getExistingSession();
+  if (existing) return existing;
+
+  checkRateLimit();
+
+  try {
+    const { data, error } = await supabase.auth.signInAnonymously();
+    if (error) throw error;
+    if (!data.session || !data.user) throw new Error("Anonymous sign-in returned no session.");
+    return {
+      accessToken: data.session.access_token,
+      userId: data.user.id,
+      email: data.user.email
+    };
+  } catch (err) {
+    throw friendlyAuthError(err);
   }
-
-  return {
-    accessToken: data.session.access_token,
-    userId: data.user.id,
-    email: data.user.email
-  };
 }
 
 export async function signUpWithEmail(email: string, password: string): Promise<AuthSession> {

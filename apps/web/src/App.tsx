@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { io, type Socket } from "socket.io-client";
 import type { AdvicePayload, LobbyRoomSummary, TableState, TablePlayer, LegalActions } from "@cardpilot/shared-types";
-import { ensureGuestSession, signUpWithEmail, signInWithEmail, signOut, supabase, validateEmail, validatePassword, getRateLimitSecondsLeft, type AuthSession } from "./supabase";
+import { getExistingSession, ensureGuestSession, signUpWithEmail, signInWithEmail, signOut, supabase, validateEmail, validatePassword, getRateLimitSecondsLeft, type AuthSession } from "./supabase";
 import { preloadCardImages, getCardImagePath } from "./lib/card-images.js";
 
 const SERVER = import.meta.env.VITE_SERVER_URL || "http://127.0.0.1:4000";
@@ -44,10 +44,10 @@ export function App() {
 
   useEffect(() => { preloadCardImages(); }, []);
 
-  /* ── Check existing session on mount ── */
+  /* ── Check existing session on mount (no network call) ── */
   useEffect(() => {
     let alive = true;
-    ensureGuestSession()
+    getExistingSession()
       .then((session) => {
         if (!alive) return;
         if (session) {
