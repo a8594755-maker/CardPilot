@@ -31,6 +31,15 @@ export interface TablePlayer {
   streetCommitted: number;
 }
 
+export interface AllInPrompt {
+  actorSeat: number;
+  winRate: number;
+  recommendedRunCount: 1 | 2;
+  defaultRunCount: 1 | 2;
+  allowedRunCounts: Array<1 | 2>;
+  reason: string;
+}
+
 export interface HandAction {
   seat: number;
   street: Street;
@@ -58,6 +67,7 @@ export interface TableState {
   winners?: Array<{ seat: number; amount: number; handName?: string }>;
   /** Map of seat number → position label (BTN, SB, BB, UTG, etc.) */
   positions: Record<number, string>;
+  allInPrompt?: AllInPrompt;
 }
 
 // ===== Advice Types =====
@@ -89,6 +99,7 @@ export interface ActionSubmitPayload {
   handId: string;
   action: PlayerActionType;
   amount?: number;
+  runCount?: 1 | 2;
 }
 
 // ===== Lobby Types =====
@@ -145,6 +156,18 @@ export interface AdviceLogEntry {
 
 export type GameType = 'texas' | 'omaha';
 
+export type RunItTwiceMode = 'always' | 'ask_players' | 'off';
+
+export type ShowdownSpeed = 'fast' | 'normal' | 'slow';
+
+export type DoubleBoardMode = 'always' | 'bomb_pot' | 'off';
+
+export type DeckStyle = 'four_color' | 'two_color';
+
+export type ValuesDisplayStyle = 'big_blinds' | 'formatted' | 'none';
+
+export type RunItTwicePlayerPref = 'yes' | 'no' | 'ask';
+
 export type RoomVisibility = 'public' | 'private';
 
 export interface BlindStructureLevel {
@@ -168,14 +191,34 @@ export interface RoomSettings {
   addOnAllowed: boolean;
   straddleAllowed: boolean;
   runItTwice: boolean;
+  runItTwiceMode: RunItTwiceMode;         // Always / Ask Players / Off
   visibility: RoomVisibility;
   password: string | null;
   hostStartRequired: boolean;
-  actionTimerSeconds: number;    // per-action countdown (e.g. 15)
-  timeBankSeconds: number;       // extra time bank per player (e.g. 60)
-  timeBankRefillPerHand: number; // seconds refilled each hand (e.g. 5)
-  disconnectGracePeriod: number; // seconds to reconnect before auto-fold
-  maxConsecutiveTimeouts: number; // auto sit-out after N timeouts
+  actionTimerSeconds: number;              // per-action countdown (e.g. 15)
+  timeBankSeconds: number;                 // extra time bank per player (e.g. 60)
+  timeBankRefillPerHand: number;           // seconds refilled each hand (e.g. 5)
+  timeBankHandsToFill: number;             // number of played hands to fill time bank
+  thinkExtensionSecondsPerUse: number;     // extra seconds added when player requests extension
+  thinkExtensionQuotaPerHour: number;      // per-player max extension uses per hour
+  disconnectGracePeriod: number;           // seconds to reconnect before auto-fold
+  maxConsecutiveTimeouts: number;          // auto sit-out after N timeouts
+  // ── New PokerNow-style settings (Host-only) ──
+  useCentsValues: boolean;                 // display chip values as cents
+  rabbitHunting: boolean;                  // allow players to see undealt cards
+  autoStartNextHand: boolean;              // auto start the next hand
+  showdownSpeed: ShowdownSpeed;            // fast(3s) / normal(6s) / slow(9s)
+  dealToAwayPlayers: boolean;              // deal hands to players marked as away
+  revealAllAtShowdown: boolean;            // reveal all hands when no more action possible
+  bombPotEnabled: boolean;                 // enable bomb pots
+  bombPotFrequency: number;                // every N hands (0 = manual only)
+  doubleBoardMode: DoubleBoardMode;        // always / only on bomb pot / off
+  sevenTwoBounty: number;                  // 0 = off, >0 = bounty amount per player
+  simulatedFeeEnabled: boolean;            // simulated rake/fee
+  simulatedFeePercent: number;             // fee as % of pot (e.g. 5)
+  simulatedFeeCap: number;                 // max fee per hand
+  allowGuestChat: boolean;                 // allow guests to send chat messages
+  autoTrimExcessBets: boolean;             // auto trim bets exceeding pot/call
 }
 
 export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
@@ -192,14 +235,33 @@ export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
   addOnAllowed: false,
   straddleAllowed: false,
   runItTwice: false,
+  runItTwiceMode: 'off',
   visibility: 'public',
   password: null,
   hostStartRequired: false,
   actionTimerSeconds: 15,
   timeBankSeconds: 60,
   timeBankRefillPerHand: 5,
+  timeBankHandsToFill: 10,
+  thinkExtensionSecondsPerUse: 10,
+  thinkExtensionQuotaPerHour: 3,
   disconnectGracePeriod: 30,
   maxConsecutiveTimeouts: 3,
+  useCentsValues: false,
+  rabbitHunting: false,
+  autoStartNextHand: true,
+  showdownSpeed: 'normal',
+  dealToAwayPlayers: false,
+  revealAllAtShowdown: true,
+  bombPotEnabled: false,
+  bombPotFrequency: 0,
+  doubleBoardMode: 'off',
+  sevenTwoBounty: 0,
+  simulatedFeeEnabled: false,
+  simulatedFeePercent: 5,
+  simulatedFeeCap: 0,
+  allowGuestChat: true,
+  autoTrimExcessBets: true,
 };
 
 export interface RoomOwnership {
@@ -244,6 +306,14 @@ export interface TimerState {
   startedAt: number;         // timestamp when timer started
 }
 
+export interface ThinkExtensionUsageState {
+  used: number;
+  quota: number;
+  remaining: number;
+  windowStartedAt: number;
+  windowResetAt: number;
+}
+
 export interface RoomFullState {
   tableId: string;
   roomCode: string;
@@ -253,6 +323,7 @@ export interface RoomFullState {
   status: RoomStatus;
   banList: string[];         // banned userIds
   timer: TimerState | null;
+  thinkExtensionUsageByUser?: Record<string, ThinkExtensionUsageState>;
   log: RoomLogEntry[];
   emptySince: number | null; // timestamp when room became empty, null if occupied
 }

@@ -25,6 +25,7 @@ type MutableTableState = TableState & {
 
 export class GameTable {
   private state: MutableTableState;
+  private allInRunCount: 1 | 2 = 1;
 
   constructor(params: { tableId: string; smallBlind: number; bigBlind: number; mode?: TableMode }) {
     this.state = {
@@ -109,6 +110,7 @@ export class GameTable {
     this.state.holeCards.clear();
     this.state.deck = shuffledDeck();
     this.state.winners = undefined;
+    this.allInRunCount = 1;
 
     const sortedSeats = seated.map((p) => p.seat).sort((a, b) => a - b);
     this.state.buttonSeat = nextSeatCircular(this.state.buttonSeat, sortedSeats);
@@ -152,6 +154,10 @@ export class GameTable {
     this.state.actorSeat = this.nextActorFrom(bbSeat);
 
     return { handId };
+  }
+
+  setAllInRunCount(count: 1 | 2): void {
+    this.allInRunCount = count;
   }
 
   applyAction(seat: number, action: PlayerActionType, amount?: number): TableState {
@@ -369,8 +375,100 @@ export class GameTable {
     this.showdown();
   }
 
+  private runOutBoardTwice(): void {
+    const contenders = this.activePlayers();
+    if (contenders.length < 2) {
+      while (this.state.board.length < 5) {
+        if (this.state.board.length === 0) {
+          this.state.board.push(this.drawCard(), this.drawCard(), this.drawCard());
+          this.state.street = "FLOP";
+        } else if (this.state.board.length === 3) {
+          this.state.board.push(this.drawCard());
+          this.state.street = "TURN";
+        } else if (this.state.board.length === 4) {
+          this.state.board.push(this.drawCard());
+          this.state.street = "RIVER";
+        }
+      }
+      this.state.street = "SHOWDOWN";
+      this.showdown();
+      return;
+    }
+
+    const baseBoard = [...this.state.board];
+    const firstBoard = this.completeRunoutBoard(baseBoard);
+    const secondBoard = this.completeRunoutBoard(baseBoard);
+
+    const payouts = new Map<number, { amount: number; handName?: string }>();
+    const firstHalf = Math.floor(this.state.pot / 2);
+    const secondHalf = this.state.pot - firstHalf;
+
+    this.distributeRunPot(firstBoard, firstHalf, payouts);
+    this.distributeRunPot(secondBoard, secondHalf, payouts);
+
+    this.state.board = secondBoard;
+    this.state.street = "SHOWDOWN";
+    this.state.winners = [...payouts.entries()]
+      .map(([seat, v]) => ({ seat, amount: v.amount, handName: v.handName }))
+      .sort((a, b) => a.seat - b.seat);
+    this.state.actorSeat = null;
+    this.state.pendingToAct.clear();
+    this.allInRunCount = 1;
+  }
+
+  private completeRunoutBoard(baseBoard: string[]): string[] {
+    const board = [...baseBoard];
+    while (board.length < 5) {
+      board.push(this.drawCard());
+    }
+    return board;
+  }
+
+  private distributeRunPot(
+    board: string[],
+    potForRun: number,
+    payouts: Map<number, { amount: number; handName?: string }>
+  ): void {
+    if (potForRun <= 0) return;
+
+    const solved = this.activePlayers().map((p) => {
+      const cards = this.state.holeCards.get(p.seat) ?? ["2c", "7d"];
+      const hand = Hand.solve(toSolverCards([...cards, ...board]));
+      return { seat: p.seat, hand };
+    });
+
+    const winners = Hand.winners(solved.map((s) => s.hand));
+    const winnerSeats = solved
+      .filter((s) =>
+        winners.some((w: { descr: string; rank: number }) => w.descr === s.hand.descr && w.rank === s.hand.rank)
+      )
+      .map((s) => s.seat);
+
+    const share = Math.floor(potForRun / winnerSeats.length);
+    let remainder = potForRun - share * winnerSeats.length;
+
+    for (const seat of winnerSeats) {
+      const player = this.playerBySeat(seat);
+      const amt = share + (remainder > 0 ? 1 : 0);
+      player.stack += amt;
+      if (remainder > 0) remainder -= 1;
+
+      const solvedEntry = solved.find((s) => s.seat === seat);
+      const existing = payouts.get(seat);
+      payouts.set(seat, {
+        amount: (existing?.amount ?? 0) + amt,
+        handName: existing?.handName ?? solvedEntry?.hand.descr,
+      });
+    }
+  }
+
   /** Deal remaining community cards when all players are all-in */
   private runOutBoard(): void {
+    if (this.allInRunCount === 2) {
+      this.runOutBoardTwice();
+      return;
+    }
+
     while (this.state.board.length < 5) {
       if (this.state.board.length === 0) {
         this.state.board.push(this.drawCard(), this.drawCard(), this.drawCard());

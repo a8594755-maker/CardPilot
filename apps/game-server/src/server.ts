@@ -23,10 +23,11 @@ import { randomInt, randomUUID } from "node:crypto";
 import { Server } from "socket.io";
 import { GameTable } from "@cardpilot/game-engine";
 import { getPreflopAdvice, getPostflopAdvice, calculateDeviation } from "@cardpilot/advice-engine";
+import { calculateEquity, type Card } from "@cardpilot/poker-evaluator";
 import type {
   ActionSubmitPayload, AdvicePayload, LobbyRoomSummary, TableState,
   UpdateSettingsPayload, KickPlayerPayload, TransferOwnershipPayload,
-  SetCoHostPayload, GameControlPayload, JoinRoomWithPasswordPayload,
+  SetCoHostPayload, GameControlPayload, JoinRoomWithPasswordPayload, AllInPrompt,
   RoomFullState, TimerState,
 } from "@cardpilot/shared-types";
 import { SupabasePersistence, type RoomRecord, type VerifiedIdentity } from "./supabase";
@@ -67,6 +68,8 @@ const lastAdvice = new Map<string, AdvicePayload>(); // key: `${tableId}:${seat}
 // Pending seat requests: orderId -> request data
 type SeatRequest = { orderId: string; tableId: string; seat: number; buyIn: number; userId: string; userName: string; socketId: string };
 const pendingSeatRequests = new Map<string, SeatRequest>();
+const autoDealSchedule = new Map<string, ReturnType<typeof setTimeout>>();
+const pendingAllInPrompts = new Map<string, { handId: string; prompt: AllInPrompt }>();
 const supabase = new SupabasePersistence();
 
 // Room manager handles ownership, settings, timers, kick/ban, auto-close
@@ -334,15 +337,157 @@ function broadcastSnapshot(tableId: string) {
   const table = tables.get(tableId);
   if (!table) return;
   const snapshot = table.getPublicState();
+  const pendingPrompt = pendingAllInPrompts.get(tableId);
+  if (pendingPrompt && pendingPrompt.handId === snapshot.handId && pendingPrompt.prompt.actorSeat === snapshot.actorSeat) {
+    snapshot.allInPrompt = pendingPrompt.prompt;
+  } else if (pendingPrompt) {
+    pendingAllInPrompts.delete(tableId);
+  }
   io.to(tableId).emit("table_snapshot", snapshot);
   emitPresence(tableId);
   pushAdviceIfNeeded(tableId, snapshot);
+}
+
+function buildAllInPrompt(table: GameTable, actorSeat: number): AllInPrompt {
+  const state = table.getPublicState();
+  const heroCards = table.getHoleCards(actorSeat);
+  const opponentSeats = state.players
+    .filter((p) => p.inHand && !p.folded && p.seat !== actorSeat)
+    .map((p) => p.seat);
+
+  let winRate = 0.5;
+  if (heroCards && opponentSeats.length > 0) {
+    const villainHands = opponentSeats
+      .map((seat) => table.getHoleCards(seat))
+      .filter((cards): cards is [string, string] => Array.isArray(cards) && cards.length === 2)
+      .map((cards) => [cards[0], cards[1]] as [Card, Card]);
+
+    if (villainHands.length > 0) {
+      const equity = calculateEquity({
+        heroHand: [heroCards[0], heroCards[1]] as [Card, Card],
+        villainHands,
+        board: [...state.board] as Card[],
+        simulations: 1200,
+      });
+      winRate = equity.equity;
+    }
+  }
+
+  const roundedWinRate = Math.round(winRate * 1000) / 1000;
+  const isHighWinRate = roundedWinRate >= 0.55;
+
+  return {
+    actorSeat,
+    winRate: roundedWinRate,
+    recommendedRunCount: isHighWinRate ? 2 : 1,
+    defaultRunCount: isHighWinRate ? 2 : 1,
+    allowedRunCounts: [1, 2],
+    reason: isHighWinRate
+      ? "High win rate: recommend run it twice. If you disagree, run once."
+      : "Lower win rate: you may choose to run once or run twice.",
+  };
+}
+
+function clearAutoDealSchedule(tableId: string): void {
+  const handle = autoDealSchedule.get(tableId);
+  if (handle) {
+    clearTimeout(handle);
+    autoDealSchedule.delete(tableId);
+  }
+}
+
+function startHandFlow(tableId: string, actorUserId: string, source: "manual" | "auto"): string {
+  const room = roomsByTableId.get(tableId);
+  if (!room) {
+    throw new Error("Room not found");
+  }
+
+  if (roomManager.isPaused(tableId)) {
+    throw new Error("Game is paused");
+  }
+
+  const table = createTableIfNeeded(room);
+  const { handId } = table.startHand();
+  pendingAllInPrompts.delete(tableId);
+
+  roomManager.setHandActive(tableId, true);
+  const playerUserIds = bindingsByTable(tableId).map((b) => b.binding.userId);
+  roomManager.refillTimeBanks(tableId, playerUserIds);
+
+  io.to(tableId).emit("hand_started", { handId });
+
+  for (const { socketId, binding } of bindingsByTable(tableId)) {
+    const cards = table.getHoleCards(binding.seat);
+    if (cards) {
+      io.to(socketId).emit("hole_cards", { handId, cards, seat: binding.seat });
+    }
+  }
+
+  supabase.logEvent({
+    tableId,
+    eventType: "HAND_STARTED",
+    actorUserId,
+    handId,
+    payload: { buttonSeat: table.getPublicState().buttonSeat, source },
+  }).catch((e) => console.warn("startHandFlow: logEvent failed:", (e as Error).message));
+
+  touchLocalRoom(tableId);
+  broadcastSnapshot(tableId);
+  startTimerForActor(tableId);
+
+  return handId;
+}
+
+function scheduleAutoDealIfNeeded(tableId: string): void {
+  clearAutoDealSchedule(tableId);
+
+  const room = roomManager.getRoom(tableId);
+  if (!room) return;
+  if (!roomManager.isAutoDealEnabled(tableId)) return;
+  if (roomManager.isPaused(tableId)) return;
+  if (bindingsByTable(tableId).length < 2) return;
+
+  const handle = setTimeout(() => {
+    autoDealSchedule.delete(tableId);
+    const managed = roomManager.getRoom(tableId);
+    const table = tables.get(tableId);
+    if (!managed || !table) return;
+    if (!roomManager.isAutoDealEnabled(tableId) || roomManager.isPaused(tableId)) return;
+    if (table.isHandActive()) return;
+    if (bindingsByTable(tableId).length < 2) {
+      io.to(tableId).emit("system_message", { message: "Auto deal paused: need at least 2 seated players" });
+      return;
+    }
+
+    try {
+      startHandFlow(tableId, managed.ownership.ownerId, "auto");
+    } catch (err) {
+      io.to(tableId).emit("system_message", { message: `Auto deal paused: ${(err as Error).message}` });
+    }
+  }, 1800);
+
+  autoDealSchedule.set(tableId, handle);
+}
+
+function finalizeHandEnd(tableId: string, state: TableState): void {
+  pendingAllInPrompts.delete(tableId);
+  io.to(tableId).emit("hand_ended", {
+    board: state.board,
+    players: state.players,
+    pot: state.pot,
+    winners: state.winners,
+  });
+  roomManager.setHandActive(tableId, false);
+  touchLocalRoom(tableId);
+  broadcastSnapshot(tableId);
+  scheduleAutoDealIfNeeded(tableId);
 }
 
 function handleRoomAutoClose(tableId: string): void {
   const count = currentPlayerCount(tableId);
   const closed = roomManager.finalizeAutoClose(tableId, count);
   if (closed) {
+    clearAutoDealSchedule(tableId);
     io.to(tableId).emit("room_closed", { tableId, reason: "empty" });
     tables.delete(tableId);
     const room = roomsByTableId.get(tableId);
@@ -387,17 +532,10 @@ function startTimerForActor(tableId: string): void {
         });
         const newState = tbl.getPublicState();
         if (!newState.actorSeat) {
-          io.to(tableId).emit("hand_ended", {
-            board: newState.board,
-            players: newState.players,
-            pot: newState.pot,
-            winners: newState.winners,
-          });
-          roomManager.setHandActive(tableId, false);
-        }
-        broadcastSnapshot(tableId);
-        // Start timer for next actor
-        if (newState.actorSeat) {
+          finalizeHandEnd(tableId, newState);
+        } else {
+          touchLocalRoom(tableId);
+          broadcastSnapshot(tableId);
           startTimerForActor(tableId);
         }
       } catch (err) {
@@ -523,6 +661,12 @@ io.on("connection", (socket) => {
     async (payload: { roomName?: string; maxPlayers?: number; smallBlind?: number; bigBlind?: number; isPublic?: boolean; buyInMin?: number; buyInMax?: number; visibility?: "public" | "private" }) => {
       try {
         console.log("[CREATE_ROOM] Request from", identity.userId, identity.displayName, "payload:", payload);
+
+        const ownedRoom = roomManager.getActiveRoomOwnedBy(identity.userId);
+        if (ownedRoom) {
+          throw new Error(`You already own a room (${ownedRoom.roomCode}). Close it or transfer ownership first.`);
+        }
+
         const roomCode = await generateUniqueRoomCode();
         const tableId = `tbl_${randomUUID().replace(/-/g, "").slice(0, 10)}`;
         const room: RoomInfo = {
@@ -667,6 +811,11 @@ io.on("connection", (socket) => {
     const table = createTableIfNeeded(room);
     socket.join(payload.tableId);
 
+    // Cancel empty timer if someone joins the room
+    roomManager.checkRoomEmpty(payload.tableId, currentPlayerCount(payload.tableId) + 1, () => {
+      handleRoomAutoClose(payload.tableId);
+    });
+
     supabase.touchRoom(payload.tableId, "OPEN").catch((e) => console.warn("join_table: touchRoom failed:", (e as Error).message));
     supabase.logEvent({
       tableId: payload.tableId,
@@ -703,6 +852,9 @@ io.on("connection", (socket) => {
       // Validate buy-in against room settings
       const managed = roomManager.getRoom(payload.tableId);
       if (managed) {
+        if (payload.seat < 1 || payload.seat > managed.settings.maxPlayers) {
+          throw new Error(`Seat must be between 1 and ${managed.settings.maxPlayers}`);
+        }
         const { buyInMin, buyInMax } = managed.settings;
         console.log("[SIT_DOWN] Buy-in validation:", payload.buyIn, "range:", buyInMin, "-", buyInMax);
         if (payload.buyIn < buyInMin || payload.buyIn > buyInMax) {
@@ -762,6 +914,10 @@ io.on("connection", (socket) => {
       
       const managed = roomManager.getRoom(payload.tableId);
       if (!managed) throw new Error("Room not found");
+
+      if (payload.seat < 1 || payload.seat > managed.settings.maxPlayers) {
+        throw new Error(`Seat must be between 1 and ${managed.settings.maxPlayers}`);
+      }
 
       console.log("[SEAT_REQUEST] Room found, owner:", managed.ownership.ownerId);
 
@@ -829,6 +985,16 @@ io.on("connection", (socket) => {
       const room = roomsByTableId.get(payload.tableId);
       if (!room) throw new Error("Room not found");
       const table = createTableIfNeeded(room);
+      const managed = roomManager.getRoom(payload.tableId);
+      if (!managed) throw new Error("Room not found");
+
+      if (request.seat < 1 || request.seat > managed.settings.maxPlayers) {
+        throw new Error(`Seat must be between 1 and ${managed.settings.maxPlayers}`);
+      }
+
+      if (table.getPublicState().players.some((p) => p.seat === request.seat)) {
+        throw new Error("Seat already occupied");
+      }
 
       table.addPlayer({
         seat: request.seat,
@@ -898,54 +1064,22 @@ io.on("connection", (socket) => {
 
     touchLocalRoom(payload.tableId);
     broadcastSnapshot(payload.tableId);
+    roomManager.checkRoomEmpty(payload.tableId, currentPlayerCount(payload.tableId), () => {
+      handleRoomAutoClose(payload.tableId);
+    });
     void emitLobbySnapshot();
   });
 
   socket.on("start_hand", async (payload: { tableId: string }) => {
     try {
-      const room = await ensureRoomByTableId(payload.tableId);
-
-      // Check if game is paused
-      if (roomManager.isPaused(payload.tableId)) {
-        throw new Error("Game is paused");
+      await ensureRoomByTableId(payload.tableId);
+      if (!roomManager.isOwner(payload.tableId, identity.userId)) {
+        throw new Error("Only the host can start the game");
       }
 
-      // Check host-start-required
-      const managed = roomManager.getRoom(payload.tableId);
-      if (managed?.settings.hostStartRequired && !roomManager.isHostOrCoHost(payload.tableId, identity.userId)) {
-        throw new Error("Only the host can start the hand");
-      }
-
-      const table = createTableIfNeeded(room);
-      const { handId } = table.startHand();
-
-      // Mark hand active and refill time banks
-      roomManager.setHandActive(payload.tableId, true);
-      const playerUserIds = bindingsByTable(payload.tableId).map((b) => b.binding.userId);
-      roomManager.refillTimeBanks(payload.tableId, playerUserIds);
-
-      io.to(payload.tableId).emit("hand_started", { handId });
-
-      for (const { socketId, binding } of bindingsByTable(payload.tableId)) {
-        const cards = table.getHoleCards(binding.seat);
-        if (cards) {
-          io.to(socketId).emit("hole_cards", { handId, cards, seat: binding.seat });
-        }
-      }
-
-      supabase.logEvent({
-        tableId: payload.tableId,
-        eventType: "HAND_STARTED",
-        actorUserId: identity.userId,
-        handId,
-        payload: { buttonSeat: table.getPublicState().buttonSeat }
-      }).catch((e) => console.warn("start_hand: logEvent failed:", (e as Error).message));
-
-      touchLocalRoom(payload.tableId);
-      broadcastSnapshot(payload.tableId);
-
-      // Start action timer for first actor
-      startTimerForActor(payload.tableId);
+      roomManager.setAutoDeal(payload.tableId, true);
+      clearAutoDealSchedule(payload.tableId);
+      startHandFlow(payload.tableId, identity.userId, "manual");
     } catch (error) {
       socket.emit("error_event", { message: (error as Error).message });
     }
@@ -966,12 +1100,29 @@ io.on("connection", (socket) => {
         throw new Error("player seat not found");
       }
 
-      // Player acted in time — stop timer
-      roomManager.playerActedInTime(payload.tableId, identity.userId);
-
       // Check for stored advice to calculate deviation
       const adviceKey = `${payload.tableId}:${binding.seat}`;
       const storedAdvice = lastAdvice.get(adviceKey);
+
+      if (payload.action === "all_in") {
+        if (payload.runCount !== 1 && payload.runCount !== 2) {
+          const prompt = buildAllInPrompt(table, binding.seat);
+          pendingAllInPrompts.set(payload.tableId, {
+            handId: payload.handId,
+            prompt,
+          });
+          io.to(socket.id).emit("all_in_prompt", prompt);
+          broadcastSnapshot(payload.tableId);
+          return;
+        }
+        table.setAllInRunCount(payload.runCount);
+        pendingAllInPrompts.delete(payload.tableId);
+      } else {
+        pendingAllInPrompts.delete(payload.tableId);
+      }
+
+      // Player finalized an action in time — stop timer
+      roomManager.playerActedInTime(payload.tableId, identity.userId);
 
       const newState = table.applyAction(binding.seat, payload.action, payload.amount);
 
@@ -999,13 +1150,11 @@ io.on("connection", (socket) => {
       }
 
       if (!newState.actorSeat) {
-        io.to(payload.tableId).emit("hand_ended", {
-          board: newState.board,
-          players: newState.players,
-          pot: newState.pot,
-          winners: newState.winners
-        });
-        roomManager.setHandActive(payload.tableId, false);
+        finalizeHandEnd(payload.tableId, newState);
+      } else {
+        touchLocalRoom(payload.tableId);
+        broadcastSnapshot(payload.tableId);
+        startTimerForActor(payload.tableId);
       }
 
       supabase.logEvent({
@@ -1021,13 +1170,23 @@ io.on("connection", (socket) => {
         }
       }).catch((e) => console.warn("action_submit: logEvent failed:", (e as Error).message));
 
-      touchLocalRoom(payload.tableId);
-      broadcastSnapshot(payload.tableId);
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
 
-      // Start timer for next actor
-      if (newState.actorSeat) {
-        startTimerForActor(payload.tableId);
+  socket.on("request_think_extension", (payload: { tableId: string }) => {
+    try {
+      const result = roomManager.requestThinkExtension(payload.tableId, identity.userId);
+      if (!result.ok) {
+        socket.emit("error_event", { message: result.reason ?? "Failed to extend thinking time" });
+        return;
       }
+
+      socket.emit("think_extension_result", {
+        addedSeconds: result.addedSeconds ?? 0,
+        remainingUses: result.remainingUses ?? 0,
+      });
     } catch (error) {
       socket.emit("error_event", { message: (error as Error).message });
     }
@@ -1187,6 +1346,10 @@ io.on("connection", (socket) => {
           }
           break;
         case "end":
+          if (!roomManager.isOwner(payload.tableId, identity.userId)) {
+            throw new Error("Only the host can stop auto-deal");
+          }
+          clearAutoDealSchedule(payload.tableId);
           roomManager.endGame(payload.tableId, identity.userId, identity.displayName);
           break;
         case "start":
@@ -1194,6 +1357,10 @@ io.on("connection", (socket) => {
           socket.emit("error_event", { message: "Use start_hand event to start a hand" });
           return;
         case "restart":
+          if (!roomManager.isOwner(payload.tableId, identity.userId)) {
+            throw new Error("Only the host can restart the game");
+          }
+          clearAutoDealSchedule(payload.tableId);
           roomManager.endGame(payload.tableId, identity.userId, identity.displayName);
           // Client should call start_hand after restart
           break;
@@ -1233,14 +1400,12 @@ io.on("connection", (socket) => {
                   });
                   const newState = tbl.getPublicState();
                   if (!newState.actorSeat) {
-                    io.to(binding.tableId).emit("hand_ended", {
-                      board: newState.board, players: newState.players,
-                      pot: newState.pot, winners: newState.winners,
-                    });
-                    roomManager.setHandActive(binding.tableId, false);
+                    finalizeHandEnd(binding.tableId, newState);
+                  } else {
+                    touchLocalRoom(binding.tableId);
+                    broadcastSnapshot(binding.tableId);
+                    startTimerForActor(binding.tableId);
                   }
-                  broadcastSnapshot(binding.tableId);
-                  if (newState.actorSeat) startTimerForActor(binding.tableId);
                 } catch { /* already folded or hand ended */ }
               }
             }

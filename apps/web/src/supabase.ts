@@ -241,6 +241,21 @@ export async function signInWithEmail(email: string, password: string): Promise<
   }
 }
 
+export async function signInWithGoogle(): Promise<void> {
+  if (!supabase) throw new Error("Supabase not configured");
+
+  try {
+    const redirectTo = typeof window !== "undefined" ? window.location.origin : undefined;
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: redirectTo ? { redirectTo } : undefined,
+    });
+    if (error) throw error;
+  } catch (err) {
+    throw friendlyAuthError(err);
+  }
+}
+
 export async function signOut(): Promise<void> {
   if (supabase) {
     await supabase.auth.signOut();

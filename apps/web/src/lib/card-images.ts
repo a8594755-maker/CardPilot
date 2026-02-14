@@ -1,11 +1,12 @@
 // 扑克牌图片映射
 // 将牌面代码映射到 PNG 图片路径
 
-export const CARD_IMAGE_BASE = '/cards/2x';
+export const CARD_IMAGE_BASE = '/cards/PNG-cards-1.3';
+const CARD_FALLBACK_IMAGE = `${CARD_IMAGE_BASE}/red_joker.png`;
 
-// 牌面代码映射: A=1, 2=2, ..., T=10, J=11, Q=12, K=13
+// 牌面代码映射: A=ace, 2=2, ..., T=10, J=jack, Q=queen, K=king
 const RANK_MAP: Record<string, string> = {
-  'A': '1',
+  'A': 'ace',
   '2': '2',
   '3': '3',
   '4': '4',
@@ -20,12 +21,12 @@ const RANK_MAP: Record<string, string> = {
   'K': 'king',
 };
 
-// 花色映射: s=spade, h=heart, d=diamond, c=club
+// 花色映射: s=spades, h=hearts, d=diamonds, c=clubs
 const SUIT_MAP: Record<string, string> = {
-  's': 'spade',
-  'h': 'heart',
-  'd': 'diamond',
-  'c': 'club',
+  's': 'spades',
+  'h': 'hearts',
+  'd': 'diamonds',
+  'c': 'clubs',
 };
 
 /**
@@ -35,7 +36,7 @@ const SUIT_MAP: Record<string, string> = {
  */
 export function getCardImagePath(card: string): string {
   if (!card || card.length < 2) {
-    return `${CARD_IMAGE_BASE}/back.png`;
+    return CARD_FALLBACK_IMAGE;
   }
 
   const rank = card[0];
@@ -45,10 +46,10 @@ export function getCardImagePath(card: string): string {
   const suitName = SUIT_MAP[suit];
 
   if (!rankNum || !suitName) {
-    return `${CARD_IMAGE_BASE}/back.png`;
+    return CARD_FALLBACK_IMAGE;
   }
 
-  return `${CARD_IMAGE_BASE}/${suitName}_${rankNum}.png`;
+  return `${CARD_IMAGE_BASE}/${rankNum}_of_${suitName}.png`;
 }
 
 /**
@@ -56,13 +57,13 @@ export function getCardImagePath(card: string): string {
  */
 export function getCardBackPath(color: string = 'blue'): string {
   const colorMap: Record<string, string> = {
-    'blue': 'back-blue.png',
-    'red': 'back-red.png',
-    'black': 'back-black.png',
-    'green': 'back-green.png',
+    'blue': 'black_joker.png',
+    'red': 'red_joker.png',
+    'black': 'black_joker.png',
+    'green': 'black_joker.png',
   };
   
-  return `${CARD_IMAGE_BASE}/${colorMap[color] || 'back.png'}`;
+  return `${CARD_IMAGE_BASE}/${colorMap[color] || 'black_joker.png'}`;
 }
 
 /**

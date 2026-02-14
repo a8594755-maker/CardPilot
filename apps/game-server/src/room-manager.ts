@@ -25,18 +25,37 @@ const DEFAULTS: RoomSettings = {
   addOnAllowed: false,
   straddleAllowed: false,
   runItTwice: false,
+  runItTwiceMode: "off",
   visibility: "public",
   password: null,
   hostStartRequired: false,
   actionTimerSeconds: 15,
   timeBankSeconds: 60,
   timeBankRefillPerHand: 5,
+  timeBankHandsToFill: 10,
+  thinkExtensionSecondsPerUse: 10,
+  thinkExtensionQuotaPerHour: 3,
   disconnectGracePeriod: 30,
   maxConsecutiveTimeouts: 3,
+  useCentsValues: false,
+  rabbitHunting: false,
+  autoStartNextHand: true,
+  showdownSpeed: "normal",
+  dealToAwayPlayers: false,
+  revealAllAtShowdown: true,
+  bombPotEnabled: false,
+  bombPotFrequency: 0,
+  doubleBoardMode: "off",
+  sevenTwoBounty: 0,
+  simulatedFeeEnabled: false,
+  simulatedFeePercent: 5,
+  simulatedFeeCap: 0,
+  allowGuestChat: true,
+  autoTrimExcessBets: true,
 };
 
 const MAX_LOG_ENTRIES = 200;
-const ROOM_EMPTY_TTL_MS = 90_000; // 90 seconds before auto-destroy
+const ROOM_EMPTY_TTL_MS = 10 * 60_000; // 10 minutes before auto-destroy
 
 export interface ManagedRoom {
   tableId: string;
@@ -51,8 +70,13 @@ export interface ManagedRoom {
   // Timer state
   timer: TimerState | null;
   actionTimerHandle: ReturnType<typeof setTimeout> | null;
+  activeTimerUserId: string | null;
+  activeTimerSeat: number | null;
+  activeTimerOnTimeout: (() => void) | null;
   // Per-player time banks: userId -> remaining seconds
   timeBanks: Map<string, number>;
+  // Per-player think-extension usage window
+  thinkExtensionUsage: Map<string, { windowStartedAt: number; used: number }>;
   // Per-player consecutive timeout count: userId -> count
   timeoutCounts: Map<string, number>;
   // Disconnect grace: seatNumber -> { userId, handle, disconnectedAt }
@@ -61,6 +85,8 @@ export interface ManagedRoom {
   emptyTimerHandle: ReturnType<typeof setTimeout> | null;
   // Hand active?
   handActive: boolean;
+  // Auto-deal hands continuously after showdown while enabled by host
+  autoDealEnabled: boolean;
   // Paused?
   paused: boolean;
   // Created at
@@ -111,11 +137,16 @@ export class RoomManager {
       emptySince: null,
       timer: null,
       actionTimerHandle: null,
+      activeTimerUserId: null,
+      activeTimerSeat: null,
+      activeTimerOnTimeout: null,
       timeBanks: new Map(),
+      thinkExtensionUsage: new Map(),
       timeoutCounts: new Map(),
       disconnectGrace: new Map(),
       emptyTimerHandle: null,
       handActive: false,
+      autoDealEnabled: false,
       paused: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -133,6 +164,15 @@ export class RoomManager {
 
   getRoom(tableId: string): ManagedRoom | undefined {
     return this.rooms.get(tableId);
+  }
+
+  getActiveRoomOwnedBy(userId: string): ManagedRoom | null {
+    for (const room of this.rooms.values()) {
+      if (room.ownership.ownerId === userId && room.status !== "CLOSED") {
+        return room;
+      }
+    }
+    return null;
   }
 
   deleteRoom(tableId: string): void {
@@ -248,6 +288,8 @@ export class RoomManager {
     const alwaysEditable: Array<keyof RoomSettings> = [
       "spectatorAllowed", "visibility", "password", "hostStartRequired",
       "actionTimerSeconds", "timeBankSeconds", "timeBankRefillPerHand",
+      "timeBankHandsToFill",
+      "thinkExtensionSecondsPerUse", "thinkExtensionQuotaPerHour",
       "disconnectGracePeriod", "maxConsecutiveTimeouts",
     ];
 
@@ -255,7 +297,9 @@ export class RoomManager {
     const preGameOnly: Array<keyof RoomSettings> = [
       "gameType", "maxPlayers", "smallBlind", "bigBlind", "ante",
       "blindStructure", "buyInMin", "buyInMax", "rebuyAllowed", "addOnAllowed",
-      "straddleAllowed", "runItTwice",
+      "straddleAllowed", "runItTwice", "runItTwiceMode",
+      "bombPotEnabled", "bombPotFrequency", "doubleBoardMode",
+      "sevenTwoBounty",
     ];
 
     for (const key of alwaysEditable) {
@@ -280,6 +324,13 @@ export class RoomManager {
     if (room.settings.bigBlind <= room.settings.smallBlind) {
       room.settings.bigBlind = room.settings.smallBlind * 2;
     }
+
+    // Clamp timer-related settings
+    room.settings.actionTimerSeconds = Math.max(5, Math.min(120, Math.floor(room.settings.actionTimerSeconds)));
+    room.settings.timeBankSeconds = Math.max(0, Math.min(300, Math.floor(room.settings.timeBankSeconds)));
+    room.settings.timeBankRefillPerHand = Math.max(0, Math.min(60, Math.floor(room.settings.timeBankRefillPerHand)));
+    room.settings.thinkExtensionSecondsPerUse = Math.max(1, Math.min(60, Math.floor(room.settings.thinkExtensionSecondsPerUse)));
+    room.settings.thinkExtensionQuotaPerHour = Math.max(0, Math.min(20, Math.floor(room.settings.thinkExtensionQuotaPerHour)));
 
     const changedKeys = [...Object.keys(applied), ...Object.keys(deferred)];
     if (changedKeys.length > 0) {
@@ -370,6 +421,7 @@ export class RoomManager {
     const room = this.rooms.get(tableId);
     if (!room) return false;
     room.handActive = false;
+    room.autoDealEnabled = false;
     room.paused = false;
     room.status = "WAITING";
     this.clearActionTimer(tableId);
@@ -383,6 +435,17 @@ export class RoomManager {
 
   isPaused(tableId: string): boolean {
     return this.rooms.get(tableId)?.paused ?? false;
+  }
+
+  setAutoDeal(tableId: string, enabled: boolean): void {
+    const room = this.rooms.get(tableId);
+    if (!room) return;
+    room.autoDealEnabled = enabled;
+    room.updatedAt = new Date().toISOString();
+  }
+
+  isAutoDealEnabled(tableId: string): boolean {
+    return this.rooms.get(tableId)?.autoDealEnabled ?? false;
   }
 
   /* ═══════════ ACTION TIMER ═══════════ */
@@ -401,6 +464,10 @@ export class RoomManager {
     const timerSeconds = room.settings.actionTimerSeconds;
     const timeBankLeft = room.timeBanks.get(userId) ?? room.settings.timeBankSeconds;
 
+    room.activeTimerUserId = userId;
+    room.activeTimerSeat = seat;
+    room.activeTimerOnTimeout = onTimeout;
+
     const timerState: TimerState = {
       seat,
       remaining: timerSeconds,
@@ -410,42 +477,68 @@ export class RoomManager {
     };
     room.timer = timerState;
 
-    // Set main timer
-    room.actionTimerHandle = setTimeout(() => {
-      // Main timer expired, start time bank
-      if (timeBankLeft > 0) {
-        timerState.usingTimeBank = true;
-        timerState.remaining = 0;
-        this.emitTimerUpdate(room);
-
-        // Time bank timer
-        room.actionTimerHandle = setTimeout(() => {
-          // Time bank expired → timeout
-          room.timeBanks.set(userId, 0);
-          this.handleTimeout(room, seat, userId, onTimeout);
-        }, timeBankLeft * 1000);
-
-        // Deduct time bank in real-time (update every second)
-        const bankInterval = setInterval(() => {
-          if (!room.timer || !room.timer.usingTimeBank) {
-            clearInterval(bankInterval);
-            return;
-          }
-          room.timer.timeBankRemaining = Math.max(0, room.timer.timeBankRemaining - 1);
-          room.timeBanks.set(userId, room.timer.timeBankRemaining);
-          this.emitTimerUpdate(room);
-          if (room.timer.timeBankRemaining <= 0) {
-            clearInterval(bankInterval);
-          }
-        }, 1000);
-      } else {
-        // No time bank left → immediate timeout
-        this.handleTimeout(room, seat, userId, onTimeout);
-      }
-    }, timerSeconds * 1000);
+    this.armMainTimer(room, seat, userId, onTimeout, timerSeconds);
 
     this.emitTimerUpdate(room);
     return timerState;
+  }
+
+  requestThinkExtension(tableId: string, userId: string): { ok: boolean; reason?: string; remainingUses?: number; addedSeconds?: number } {
+    const room = this.rooms.get(tableId);
+    if (!room || !room.timer) {
+      return { ok: false, reason: "No active timer" };
+    }
+    if (room.activeTimerUserId !== userId || room.activeTimerSeat !== room.timer.seat) {
+      return { ok: false, reason: "Not your turn" };
+    }
+    if (room.timer.usingTimeBank) {
+      return { ok: false, reason: "Cannot extend while using time bank" };
+    }
+    if (!room.activeTimerOnTimeout) {
+      return { ok: false, reason: "Timer context missing" };
+    }
+
+    const quota = room.settings.thinkExtensionQuotaPerHour;
+    if (quota <= 0) {
+      return { ok: false, reason: "Think extension is disabled in this room" };
+    }
+
+    const usage = this.normalizeThinkExtensionWindow(room, userId);
+    if (usage.used >= quota) {
+      return { ok: false, reason: "Hourly think-extension quota reached", remainingUses: 0 };
+    }
+
+    const now = Date.now();
+    const elapsed = (now - room.timer.startedAt) / 1000;
+    const left = Math.max(0, room.timer.remaining - elapsed);
+    const addedSeconds = room.settings.thinkExtensionSecondsPerUse;
+    const newRemaining = left + addedSeconds;
+
+    usage.used += 1;
+    room.thinkExtensionUsage.set(userId, usage);
+
+    room.timer.remaining = newRemaining;
+    room.timer.startedAt = now;
+
+    if (room.actionTimerHandle) {
+      clearTimeout(room.actionTimerHandle);
+    }
+    room.actionTimerHandle = setTimeout(() => {
+      this.enterTimeBankOrTimeout(room, room.activeTimerSeat ?? room.timer!.seat, userId, room.activeTimerOnTimeout!);
+    }, newRemaining * 1000);
+
+    this.addLog(room, "SYSTEM_MESSAGE", {
+      targetId: userId,
+      message: `Player used think extension (+${addedSeconds}s)`,
+    });
+    this.emitTimerUpdate(room);
+    this.emitRoomUpdate(room);
+
+    return {
+      ok: true,
+      remainingUses: Math.max(0, quota - usage.used),
+      addedSeconds,
+    };
   }
 
   clearActionTimer(tableId: string): void {
@@ -456,6 +549,9 @@ export class RoomManager {
       room.actionTimerHandle = null;
     }
     room.timer = null;
+    room.activeTimerUserId = null;
+    room.activeTimerSeat = null;
+    room.activeTimerOnTimeout = null;
   }
 
   /** Called when player acts in time — stop timer and save remaining time bank */
@@ -465,7 +561,7 @@ export class RoomManager {
 
     // If they were using time bank, save remaining
     if (room.timer.usingTimeBank) {
-      const elapsed = (Date.now() - room.timer.startedAt) / 1000 - room.settings.actionTimerSeconds;
+      const elapsed = (Date.now() - room.timer.startedAt) / 1000;
       const used = Math.max(0, elapsed);
       const bankBefore = room.timeBanks.get(userId) ?? room.settings.timeBankSeconds;
       room.timeBanks.set(userId, Math.max(0, bankBefore - used));
@@ -508,8 +604,59 @@ export class RoomManager {
 
     room.timer = null;
     room.actionTimerHandle = null;
+    room.activeTimerUserId = null;
+    room.activeTimerSeat = null;
+    room.activeTimerOnTimeout = null;
     onTimeout();
     this.emitRoomUpdate(room);
+  }
+
+  private armMainTimer(room: ManagedRoom, seat: number, userId: string, onTimeout: () => void, mainSeconds: number): void {
+    room.actionTimerHandle = setTimeout(() => {
+      this.enterTimeBankOrTimeout(room, seat, userId, onTimeout);
+    }, mainSeconds * 1000);
+  }
+
+  private enterTimeBankOrTimeout(room: ManagedRoom, seat: number, userId: string, onTimeout: () => void): void {
+    const timeBankLeft = room.timeBanks.get(userId) ?? room.settings.timeBankSeconds;
+    if (timeBankLeft > 0 && room.timer) {
+      room.timer.usingTimeBank = true;
+      room.timer.remaining = 0;
+      room.timer.startedAt = Date.now();
+      this.emitTimerUpdate(room);
+
+      room.actionTimerHandle = setTimeout(() => {
+        room.timeBanks.set(userId, 0);
+        this.handleTimeout(room, seat, userId, onTimeout);
+      }, timeBankLeft * 1000);
+
+      const bankInterval = setInterval(() => {
+        if (!room.timer || !room.timer.usingTimeBank) {
+          clearInterval(bankInterval);
+          return;
+        }
+        room.timer.timeBankRemaining = Math.max(0, room.timer.timeBankRemaining - 1);
+        room.timeBanks.set(userId, room.timer.timeBankRemaining);
+        this.emitTimerUpdate(room);
+        if (room.timer.timeBankRemaining <= 0) {
+          clearInterval(bankInterval);
+        }
+      }, 1000);
+      return;
+    }
+
+    this.handleTimeout(room, seat, userId, onTimeout);
+  }
+
+  private normalizeThinkExtensionWindow(room: ManagedRoom, userId: string): { windowStartedAt: number; used: number } {
+    const now = Date.now();
+    const current = room.thinkExtensionUsage.get(userId);
+    if (!current || now - current.windowStartedAt >= 3_600_000) {
+      const reset = { windowStartedAt: now, used: 0 };
+      room.thinkExtensionUsage.set(userId, reset);
+      return reset;
+    }
+    return current;
   }
 
   /* ═══════════ DISCONNECT PROTECTION ═══════════ */
@@ -647,6 +794,19 @@ export class RoomManager {
       status: room.status,
       banList: [...room.banList],
       timer: room.timer ? { ...room.timer } : null,
+      thinkExtensionUsageByUser: Object.fromEntries(
+        [...room.thinkExtensionUsage.entries()].map(([userId, usage]) => {
+          const normalized = this.normalizeThinkExtensionWindow(room, userId);
+          const quota = room.settings.thinkExtensionQuotaPerHour;
+          return [userId, {
+            used: normalized.used,
+            quota,
+            remaining: Math.max(0, quota - normalized.used),
+            windowStartedAt: normalized.windowStartedAt,
+            windowResetAt: normalized.windowStartedAt + 3_600_000,
+          }];
+        })
+      ),
       log: room.log.slice(-50), // Send last 50 entries to client
       emptySince: room.emptySince,
     };

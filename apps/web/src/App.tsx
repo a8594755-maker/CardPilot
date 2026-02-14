@@ -1,22 +1,36 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { io, type Socket } from "socket.io-client";
-import type { AdvicePayload, LobbyRoomSummary, TableState, TablePlayer, LegalActions, RoomFullState, TimerState, RoomLogEntry } from "@cardpilot/shared-types";
-import { getExistingSession, ensureGuestSession, signUpWithEmail, signInWithEmail, signOut, supabase, validateEmail, validatePassword, getRateLimitSecondsLeft, type AuthSession } from "./supabase";
+import type { AdvicePayload, LobbyRoomSummary, TableState, TablePlayer, LegalActions, RoomFullState, TimerState, RoomLogEntry, AllInPrompt } from "@cardpilot/shared-types";
+import { getExistingSession, ensureGuestSession, signUpWithEmail, signInWithEmail, signInWithGoogle, signOut, supabase, validateEmail, validatePassword, getRateLimitSecondsLeft, type AuthSession } from "./supabase";
 import { preloadCardImages, getCardImagePath } from "./lib/card-images.js";
 import { getSuggestedPresets, userPresetsToButtons, type BetPreset } from "./lib/bet-sizing.js";
 import { saveHand, getHands, updateHand, autoTag, type HandRecord, type HandActionRecord, type GTOAnalysis, type StreetAnalysis } from "./lib/hand-history.js";
 
 const SERVER = import.meta.env.VITE_SERVER_URL || "http://127.0.0.1:4000";
+const DEBUG_LOGS_ENABLED = import.meta.env.DEV;
 
-/* 6-max seat positions (% from top-left of table image) */
-const SEAT_POSITIONS: Record<number, { top: string; left: string }> = {
-  1: { top: "78%", left: "25%" },
-  2: { top: "78%", left: "75%" },
-  3: { top: "42%", left: "95%" },
-  4: { top: "6%",  left: "75%" },
-  5: { top: "6%",  left: "25%" },
-  6: { top: "42%", left: "5%" },
+const debugLog = (...args: unknown[]) => {
+  if (DEBUG_LOGS_ENABLED) console.log(...args);
 };
+
+/** Compute evenly-spaced seat positions around an ellipse for the given player count.
+ *  Seat 1 starts at bottom-center and proceeds clockwise. */
+function getSeatLayout(n: number): Record<number, { top: string; left: string }> {
+  const cx = 50;   // ellipse center X (%)
+  const cy = 46;   // ellipse center Y (%) — slightly above visual center of table image
+  const rx = 43;   // horizontal radius (%)
+  const ry = 38;   // vertical radius (%)
+  const result: Record<number, { top: string; left: string }> = {};
+  for (let i = 0; i < n; i++) {
+    // π/2 = bottom in screen coords; subtract to go clockwise
+    const angle = Math.PI / 2 - (i * 2 * Math.PI) / n;
+    result[i + 1] = {
+      top:  `${(cy + ry * Math.sin(angle)).toFixed(1)}%`,
+      left: `${(cx + rx * Math.cos(angle)).toFixed(1)}%`,
+    };
+  }
+  return result;
+}
 
 /* ═══════════════════ MAIN APP ═══════════════════ */
 export function App() {
@@ -38,6 +52,7 @@ export function App() {
   const [raiseTo, setRaiseTo] = useState(300);
   const [message, setMessage] = useState("Initializing...");
   const [winners, setWinners] = useState<Array<{ seat: number; amount: number; handName?: string }> | null>(null);
+  const [allInPrompt, setAllInPrompt] = useState<AllInPrompt | null>(null);
 
   const [lobbyRooms, setLobbyRooms] = useState<LobbyRoomSummary[]>([]);
   const [newRoomSB, setNewRoomSB] = useState(1);
@@ -52,7 +67,6 @@ export function App() {
   const [pendingSitSeat, setPendingSitSeat] = useState(1);
   const [buyInAmount, setBuyInAmount] = useState(10000);
   const [currentRoomCode, setCurrentRoomCode] = useState("");
-  const [isRoomCreator, setIsRoomCreator] = useState(false);
   const [view, setView] = useState<"lobby" | "table" | "profile" | "history">("lobby");
 
   /* ── Room management state ── */
@@ -101,7 +115,7 @@ export function App() {
           usingTimeBank: left <= 0,
         });
       }
-    }, 200);
+    }, 500);
     return () => clearInterval(interval);
   }, [timerState]);
 
@@ -151,7 +165,7 @@ export function App() {
   /* ── Socket: connect only when authenticated ── */
   useEffect(() => {
     if (!socketAuthUserId) return;
-    console.log("[SOCKET] Connecting with userId:", socketAuthUserId);
+    debugLog("[SOCKET] Connecting with userId:", socketAuthUserId);
     const s = io(SERVER, { 
       auth: { 
         accessToken: socketAuthToken, 
@@ -172,43 +186,41 @@ export function App() {
       }
     });
     s.on("connected", (d: { userId: string; displayName?: string; supabaseEnabled: boolean }) => {
-      console.log("[client] connected, server userId:", d.userId, "client userId:", socketAuthUserId);
+      debugLog("[client] connected, server userId:", d.userId, "client userId:", socketAuthUserId);
       if (!d.supabaseEnabled) setMessage("Connected (no Supabase persistence)");
     });
     s.on("disconnect", () => { setSocketConnected(false); });
     s.on("lobby_snapshot", (d: { rooms: LobbyRoomSummary[] }) => setLobbyRooms(d.rooms ?? []));
     s.on("room_created", (d: { tableId: string; roomCode: string; roomName: string }) => {
-      console.log("[ROOM_CREATED] You are the room creator/host");
       setTableId(d.tableId); setCurrentRoomCode(d.roomCode);
-      setIsRoomCreator(true); // Mark as room creator immediately
       setMessage(`Room created: ${d.roomName} (${d.roomCode})`); setView("table");
     });
     s.on("room_joined", (d: { tableId: string; roomCode: string; roomName: string }) => {
-      console.log("[ROOM_JOINED] Joined existing room (not creator)");
       setTableId(d.tableId); setCurrentRoomCode(d.roomCode);
-      // Don't reset isRoomCreator if it's already true (e.g., after room_created)
-      setIsRoomCreator(prev => {
-        console.log("[ROOM_JOINED] Keeping isRoomCreator:", prev);
-        return prev; // Keep existing value, don't reset
-      });
       setMessage(`Joined room: ${d.roomName} (${d.roomCode})`); setView("table");
     });
     s.on("table_snapshot", (d: TableState) => {
       setSnapshot(d);
       if (d.winners) setWinners(d.winners);
+      if (d.allInPrompt && d.allInPrompt.actorSeat === seatRef.current) {
+        setAllInPrompt(d.allInPrompt);
+      } else {
+        setAllInPrompt(null);
+      }
     });
     s.on("hole_cards", (d: { cards: string[]; seat: number }) => {
       setHoleCards(d.cards);
       setSeat(d.seat);
     });
     s.on("hand_started", () => {
-      setAdvice(null); setDeviation(null); setWinners(null);
+      setAdvice(null); setDeviation(null); setWinners(null); setAllInPrompt(null);
     });
     s.on("advice_payload", (d: AdvicePayload) => setAdvice(d));
     s.on("advice_deviation", (d: AdvicePayload & { playerAction: string }) => {
       setDeviation({ deviation: d.deviation ?? 0, playerAction: d.playerAction });
     });
     s.on("hand_ended", (d: { winners?: Array<{ seat: number; amount: number; handName?: string }> }) => {
+      setAllInPrompt(null);
       if (d.winners) setWinners(d.winners);
       // Auto-record hand to history
       try {
@@ -239,11 +251,12 @@ export function App() {
       } catch { /* ignore recording errors */ }
     });
     s.on("error_event", (d: { message: string }) => setMessage(`Error: ${d.message}`));
+    s.on("all_in_prompt", (d: AllInPrompt) => setAllInPrompt(d));
 
     // Room management events
     s.on("room_state_update", (d: RoomFullState) => {
       if (!d) return;
-      console.log("[client] room_state_update received, owner:", d.ownership?.ownerId);
+      debugLog("[client] room_state_update received, owner:", d.ownership?.ownerId);
       setRoomState(d);
       if (d.log) setRoomLog(d.log);
     });
@@ -252,10 +265,13 @@ export function App() {
     s.on("kicked", (d: { reason: string; banned: boolean }) => {
       setKicked(d);
       setView("lobby");
+      setCurrentRoomCode("");
+      setRoomState(null);
       setMessage(`You were ${d.banned ? "banned" : "kicked"}: ${d.reason}`);
     });
     s.on("room_closed", () => {
       setView("lobby");
+      setCurrentRoomCode("");
       setMessage("Room was closed");
       setRoomState(null);
     });
@@ -263,6 +279,9 @@ export function App() {
     s.on("settings_updated", (d: { applied: Record<string, unknown>; deferred: Record<string, unknown> }) => {
       const keys = [...Object.keys(d.applied), ...Object.keys(d.deferred)];
       if (keys.length > 0) setMessage(`Settings updated: ${keys.join(", ")}`);
+    });
+    s.on("think_extension_result", (d: { addedSeconds: number; remainingUses: number }) => {
+      setMessage(`Extended +${d.addedSeconds}s · Remaining this hour: ${d.remainingUses}`);
     });
 
     // Seat request flow
@@ -277,7 +296,7 @@ export function App() {
       setMessage(`Seat request rejected: ${d.reason}`);
     });
     s.on("seat_request_pending", (d: { orderId: string; userId: string; userName: string; seat: number; buyIn: number }) => {
-      console.log("[SEAT_REQUEST] Received pending request:", d);
+      debugLog("[SEAT_REQUEST] Received pending request:", d);
       setSeatRequests((prev) => [...prev.filter(r => r.orderId !== d.orderId), { orderId: d.orderId, userId: d.userId, userName: d.userName, seat: d.seat, buyIn: d.buyIn }]);
     });
 
@@ -286,24 +305,53 @@ export function App() {
 
   const canAct = useMemo(() => snapshot?.actorSeat === seat && snapshot?.handId, [snapshot, seat]);
   const isConnected = socketConnected;
-  const isHost = useMemo(() => {
-    const result = roomState?.ownership.ownerId === authSession?.userId || isRoomCreator;
-    console.log("[OWNERSHIP] isHost:", result, "ownerId:", roomState?.ownership.ownerId, "userId:", authSession?.userId, "isRoomCreator:", isRoomCreator);
-    return result;
-  }, [roomState, authSession, isRoomCreator]);
+  const isHost = useMemo(() => roomState?.ownership.ownerId === authSession?.userId, [roomState, authSession]);
   const isCoHost = useMemo(() => roomState?.ownership.coHostIds.includes(authSession?.userId ?? "") ?? false, [roomState, authSession]);
   const isHostOrCoHost = isHost || isCoHost;
+  const myOwnedRoomCode = useMemo(
+    () => (roomState?.ownership.ownerId === authSession?.userId ? currentRoomCode : ""),
+    [roomState, authSession, currentRoomCode]
+  );
+  const myThinkExtensionUsage = useMemo(() => {
+    const uid = authSession?.userId;
+    if (!uid) return null;
+    return roomState?.thinkExtensionUsageByUser?.[uid] ?? null;
+  }, [roomState, authSession]);
+  const thinkExtensionRemainingUses = myThinkExtensionUsage?.remaining ?? roomState?.settings.thinkExtensionQuotaPerHour ?? 0;
+  const seatPositions = useMemo(() => getSeatLayout(roomState?.settings.maxPlayers ?? 6), [roomState?.settings.maxPlayers]);
   
   // Debug seat requests
   useEffect(() => {
-    console.log("[SEAT_REQUESTS] Current requests:", seatRequests.length, seatRequests);
-    console.log("[SEAT_REQUESTS] isHostOrCoHost:", isHostOrCoHost, "isHost:", isHost, "isCoHost:", isCoHost);
+    debugLog("[SEAT_REQUESTS] Current requests:", seatRequests.length, seatRequests);
+    debugLog("[SEAT_REQUESTS] isHostOrCoHost:", isHostOrCoHost, "isHost:", isHost, "isCoHost:", isCoHost);
   }, [seatRequests, isHostOrCoHost, isHost, isCoHost]);
 
   function copyCode() {
     if (!currentRoomCode) return;
     void navigator.clipboard.writeText(currentRoomCode);
     setMessage(`Copied room code: ${currentRoomCode}`);
+  }
+
+  function leaveRoom() {
+    if (socket && tableId) {
+      socket.emit("stand_up", { tableId, seat });
+      socket.emit("leave_table", { tableId });
+    }
+    setCurrentRoomCode("");
+    setRoomState(null);
+    setSnapshot(null);
+    setHoleCards([]);
+    setSeatRequests([]);
+    setShowSettings(false);
+    setShowRoomLog(false);
+    setKicked(null);
+    setWinners(null);
+    setAllInPrompt(null);
+    setAdvice(null);
+    setDeviation(null);
+    setView("lobby");
+    setMessage("Left room");
+    socket?.emit("request_lobby");
   }
 
   async function handleLogout() {
@@ -409,30 +457,56 @@ export function App() {
           /* ═══════ LOBBY ═══════ */
           <main className="flex-1 p-6 overflow-y-auto">
             <div className="max-w-3xl mx-auto space-y-6">
-              {/* Create / Join */}
+
+              {/* ── Current Room Banner ── */}
+              {currentRoomCode && (
+                <div className="glass-card p-5 border-amber-500/20 bg-gradient-to-r from-amber-500/5 to-transparent">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-400 text-lg">
+                        {myOwnedRoomCode ? "👑" : "🎴"}
+                      </div>
+                      <div>
+                        <div className="text-xs text-slate-400 uppercase tracking-wider mb-0.5">
+                          {myOwnedRoomCode ? "Your Room" : "Current Room"}
+                        </div>
+                        <div className="font-mono font-bold text-amber-400 text-xl tracking-[0.2em]">{currentRoomCode}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button onClick={copyCode} className="px-3 py-2 rounded-lg text-xs font-medium bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10 transition-all">Copy</button>
+                      <button onClick={() => setView("table")} className="px-4 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-900/30 hover:from-emerald-400 hover:to-emerald-500 transition-all">Go to Table</button>
+                      <button onClick={leaveRoom} className="px-3 py-2 rounded-lg text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all">Leave</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Create / Join ── */}
               <div className="glass-card p-6">
                 <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-lg font-bold text-white">Create or Join a Room</h2>
+                  <h2 className="text-lg font-bold text-white">
+                    {currentRoomCode ? "Switch Room" : "Create or Join a Room"}
+                  </h2>
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${socketConnected ? "bg-emerald-500 animate-pulse" : "bg-red-500"}`} />
                     <span className="text-xs text-slate-400">{socketConnected ? "Connected" : "Disconnected"}</span>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  {/* Create Room */}
                   <div className="space-y-3">
                     <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider">Create Room</label>
-                    {/* Blinds */}
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="block text-[10px] text-slate-500 mb-1">Small Blind</label>
-                        <input type="number" value={newRoomSB} min={1} onChange={(e) => { const v = Math.max(1, Number(e.target.value)); setNewRoomSB(v); setNewRoomBB(v * 3); setNewRoomBuyInMin(v * 40); setNewRoomBuyInMax(v * 300); }} className="input-field w-full text-xs !py-1.5 text-center" />
+                        <input type="number" value={newRoomSB} min={1} onChange={(e) => { const v = Math.max(1, Number(e.target.value)); setNewRoomSB(v); setNewRoomBB(Math.max(v + 1, v * 2)); setNewRoomBuyInMin(v * 40); setNewRoomBuyInMax(v * 300); }} className="input-field w-full text-xs !py-1.5 text-center" />
                       </div>
                       <div>
                         <label className="block text-[10px] text-slate-500 mb-1">Big Blind</label>
-                        <input type="number" value={newRoomBB} min={2} onChange={(e) => setNewRoomBB(Math.max(2, Number(e.target.value)))} className="input-field w-full text-xs !py-1.5 text-center" />
+                        <input type="number" value={newRoomBB} min={newRoomSB + 1} onChange={(e) => setNewRoomBB(Math.max(newRoomSB + 1, Number(e.target.value)))} className="input-field w-full text-xs !py-1.5 text-center" />
                       </div>
                     </div>
-                    {/* Buy-in range */}
                     <div className="grid grid-cols-2 gap-2">
                       <div>
                         <label className="block text-[10px] text-slate-500 mb-1">Buy-in Min</label>
@@ -440,59 +514,44 @@ export function App() {
                       </div>
                       <div>
                         <label className="block text-[10px] text-slate-500 mb-1">Buy-in Max</label>
-                        <input type="number" value={newRoomBuyInMax} min={1} onChange={(e) => setNewRoomBuyInMax(Math.max(1, Number(e.target.value)))} className="input-field w-full text-xs !py-1.5 text-center" />
+                        <input type="number" value={newRoomBuyInMax} min={newRoomBuyInMin} onChange={(e) => setNewRoomBuyInMax(Math.max(newRoomBuyInMin, Number(e.target.value)))} className="input-field w-full text-xs !py-1.5 text-center" />
                       </div>
                     </div>
-                    {/* Max players */}
-                    <div>
-                      <label className="block text-[10px] text-slate-500 mb-1">Max Players</label>
-                      <select value={newRoomMaxPlayers} onChange={(e) => setNewRoomMaxPlayers(Number(e.target.value))} className="input-field w-full text-xs !py-1.5">
-                        {[2,3,4,5,6,7,8,9].map(n => <option key={n} value={n}>{n} players</option>)}
-                      </select>
-                    </div>
-                    {/* Visibility */}
-                    <div>
-                      <label className="block text-[10px] text-slate-500 mb-1">Room Type</label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <button onClick={() => setNewRoomVisibility("public")}
-                          className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-                            newRoomVisibility === "public"
-                              ? "bg-emerald-500/20 text-emerald-400 border-2 border-emerald-500/40"
-                              : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/20"
-                          }`}>
-                          🌐 Public
-                        </button>
-                        <button onClick={() => setNewRoomVisibility("private")}
-                          className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-                            newRoomVisibility === "private"
-                              ? "bg-amber-500/20 text-amber-400 border-2 border-amber-500/40"
-                              : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/20"
-                          }`}>
-                          🔒 Private
-                        </button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] text-slate-500 mb-1">Max Players</label>
+                        <select value={newRoomMaxPlayers} onChange={(e) => setNewRoomMaxPlayers(Number(e.target.value))} className="input-field w-full text-xs !py-1.5">
+                          {[2,3,4,5,6,7,8,9].map(n => <option key={n} value={n}>{n} players</option>)}
+                        </select>
                       </div>
-                      <p className="text-[9px] text-slate-500 mt-1 text-center">
-                        {newRoomVisibility === "public" ? "Visible in lobby" : "Code required to join"}
-                      </p>
+                      <div>
+                        <label className="block text-[10px] text-slate-500 mb-1">Room Type</label>
+                        <div className="flex gap-1">
+                          <button onClick={() => setNewRoomVisibility("public")}
+                            className={`flex-1 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
+                              newRoomVisibility === "public"
+                                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
+                                : "bg-white/5 text-slate-400 border border-white/10"
+                            }`}>🌐 Public</button>
+                          <button onClick={() => setNewRoomVisibility("private")}
+                            className={`flex-1 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
+                              newRoomVisibility === "private"
+                                ? "bg-amber-500/20 text-amber-400 border border-amber-500/40"
+                                : "bg-white/5 text-slate-400 border border-white/10"
+                            }`}>🔒 Private</button>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-[10px] text-slate-500 text-center">
-                      Blinds {newRoomSB}/{newRoomBB} · Buy-in {newRoomBuyInMin.toLocaleString()}–{newRoomBuyInMax.toLocaleString()}
+                    <div className="text-[10px] text-slate-500 text-center py-1 rounded-lg bg-white/[0.02]">
+                      {newRoomMaxPlayers}-max · Blinds {newRoomSB}/{newRoomBB} · Buy-in {newRoomBuyInMin.toLocaleString()}–{newRoomBuyInMax.toLocaleString()}
                     </div>
+                    {newRoomBB <= newRoomSB && <p className="text-[10px] text-red-400 text-center">Big blind must be greater than small blind</p>}
+                    {newRoomBuyInMax < newRoomBuyInMin && <p className="text-[10px] text-red-400 text-center">Max buy-in must be ≥ min buy-in</p>}
                     <button 
                       onClick={() => {
-                        if (!socket) {
-                          setMessage("❌ Not connected to server");
-                          return;
-                        }
-                        console.log("[CREATE_ROOM] Creating room with settings:", {
-                          roomName: `${newRoomSB}/${newRoomBB} NLH`,
-                          maxPlayers: newRoomMaxPlayers,
-                          smallBlind: newRoomSB,
-                          bigBlind: newRoomBB,
-                          buyInMin: newRoomBuyInMin,
-                          buyInMax: newRoomBuyInMax,
-                          visibility: newRoomVisibility
-                        });
+                        if (!socket) { setMessage("Not connected to server"); return; }
+                        if (newRoomBB <= newRoomSB) { setMessage("Big blind must be greater than small blind"); return; }
+                        if (newRoomBuyInMax < newRoomBuyInMin) { setMessage("Max buy-in must be ≥ min buy-in"); return; }
                         socket.emit("create_room", {
                           roomName: `${newRoomSB}/${newRoomBB} NLH`,
                           maxPlayers: newRoomMaxPlayers,
@@ -500,31 +559,41 @@ export function App() {
                           bigBlind: newRoomBB,
                           buyInMin: newRoomBuyInMin,
                           buyInMax: newRoomBuyInMax,
-                          visibility: newRoomVisibility
+                          visibility: newRoomVisibility,
                         });
                         setMessage("Creating room...");
                       }} 
-                      disabled={!socket}
+                      disabled={!socket || newRoomBB <= newRoomSB || newRoomBuyInMax < newRoomBuyInMin}
                       className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed">
                       Create Room
                     </button>
                   </div>
+
+                  {/* Join by Code */}
                   <div className="space-y-3">
                     <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider">Join by Code</label>
-                    <input value={roomCodeInput} onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())} placeholder="Enter room code" className="input-field w-full uppercase tracking-widest text-center font-mono" />
-                    <button onClick={() => socket?.emit("join_room_code", { roomCode: roomCodeInput })} className="btn-success w-full">Join Room</button>
+                    <input
+                      value={roomCodeInput}
+                      onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
+                      onKeyDown={(e) => { if (e.key === "Enter" && roomCodeInput.length >= 4) { socket?.emit("join_room_code", { roomCode: roomCodeInput }); setMessage("Joining room..."); } }}
+                      placeholder="Enter room code"
+                      maxLength={8}
+                      className="input-field w-full uppercase tracking-[0.3em] text-center font-mono text-lg !py-3" />
+                    <button
+                      onClick={() => {
+                        if (!roomCodeInput.trim()) { setMessage("Please enter a room code"); return; }
+                        socket?.emit("join_room_code", { roomCode: roomCodeInput });
+                        setMessage("Joining room...");
+                      }}
+                      disabled={!socket || !roomCodeInput.trim()}
+                      className="btn-success w-full disabled:opacity-50 disabled:cursor-not-allowed">
+                      Join Room
+                    </button>
                   </div>
                 </div>
-                {currentRoomCode && (
-                  <div className="mt-4 flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                    <span className="text-sm text-amber-200">My Room Code:</span>
-                    <span className="font-mono font-bold text-amber-400 text-lg tracking-widest">{currentRoomCode}</span>
-                    <button onClick={copyCode} className="btn-ghost text-xs !py-1.5 !px-3">Copy</button>
-                  </div>
-                )}
               </div>
 
-              {/* Room List */}
+              {/* ── Room List ── */}
               <div className="glass-card p-6">
                 <div className="flex items-center justify-between mb-5">
                   <h2 className="text-lg font-bold text-white">Open Rooms</h2>
@@ -551,7 +620,7 @@ export function App() {
                             </div>
                           </div>
                         </div>
-                        <button onClick={() => { setRoomCodeInput(r.roomCode); socket?.emit("join_room_code", { roomCode: r.roomCode }); }} className="btn-primary text-xs !py-2 !px-4 opacity-70 group-hover:opacity-100">Join</button>
+                        <button onClick={() => { socket?.emit("join_room_code", { roomCode: r.roomCode }); setMessage("Joining room..."); }} className="btn-primary text-xs !py-2 !px-4 opacity-70 group-hover:opacity-100">Join</button>
                       </div>
                     ))}
                   </div>
@@ -582,30 +651,46 @@ export function App() {
               {/* ── Controls Strip ── */}
               <div className="px-3 py-1.5 flex flex-wrap items-center gap-2 border-b border-white/5 shrink-0">
                 <input value={name} onChange={(e) => setName(e.target.value)} className="input-field !py-1 !px-2 w-24 text-xs" placeholder="Name" />
-                <button disabled={!isConnected} onClick={() => { if ((snapshot?.players.length ?? 0) < 2) { setMessage("Need ≥2 players"); return; } socket?.emit("start_hand", { tableId }); }} className="text-[11px] px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30 disabled:opacity-40 transition-all">Deal</button>
-                <button disabled={!isConnected} onClick={() => socket?.emit("stand_up", { tableId, seat })} className="text-[11px] px-2.5 py-1 rounded-lg bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 disabled:opacity-40 transition-all">Leave</button>
+                <button
+                  disabled={!isConnected || !isHost}
+                  onClick={() => {
+                    if (!isHost) {
+                      setMessage("Only host can start and run auto-deal");
+                      return;
+                    }
+                    if ((snapshot?.players.length ?? 0) < 2) {
+                      setMessage("Need ≥2 players");
+                      return;
+                    }
+                    socket?.emit("start_hand", { tableId });
+                  }}
+                  className="text-[11px] px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30 disabled:opacity-40 transition-all"
+                  title={isHost ? "Start game (auto-deal continues until stopped)" : "Host only"}
+                >
+                  {isHost ? "Deal / Auto" : "Deal (Host)"}
+                </button>
+                <button disabled={!isConnected} onClick={() => socket?.emit("stand_up", { tableId, seat })} className="text-[11px] px-2.5 py-1 rounded-lg bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 disabled:opacity-40 transition-all" title="Stand up from seat">Stand</button>
+                <button onClick={leaveRoom} className="text-[11px] px-2.5 py-1 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all" title="Leave room entirely">Exit</button>
 
-                {/* Display mode toggle */}
                 <button onClick={() => setDisplayBB(!displayBB)}
                   className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all ${displayBB ? "bg-amber-500/15 text-amber-400 border-amber-500/30" : "bg-white/5 text-slate-400 border-white/10 hover:bg-white/10"}`}>
                   {displayBB ? "BB" : "$"}
                 </button>
 
-                {/* Rules chips */}
                 {roomState && (
                   <>
                     <div className="w-px h-4 bg-white/10" />
-                    <span className="text-[10px] text-slate-500">{roomState.settings.smallBlind}/{roomState.settings.bigBlind}</span>
-                    <span className="text-[10px] text-slate-500">{roomState.settings.maxPlayers}-max</span>
-                    <span className="text-[10px] text-slate-500">Buy-in {roomState.settings.buyInMin}–{roomState.settings.buyInMax}</span>
+                    <span className="text-[10px] text-slate-500">{roomState.settings.smallBlind}/{roomState.settings.bigBlind} · {roomState.settings.maxPlayers}-max</span>
+                    <span className="text-[10px] text-slate-500">Timer {roomState.settings.actionTimerSeconds}s</span>
                     {roomState.status === "PAUSED" && <span className="text-[10px] text-red-400 font-bold animate-pulse">PAUSED</span>}
                   </>
                 )}
 
                 {currentRoomCode && (
-                  <span className="ml-auto text-[10px] text-slate-500">
-                    {roomState?.settings.visibility === "private" && <span className="text-amber-400 mr-2">🔒 Private</span>}
-                    Code <span className="font-mono text-amber-400 font-bold">{currentRoomCode}</span>
+                  <span className="ml-auto flex items-center gap-2 text-[10px] text-slate-500">
+                    {roomState?.settings.visibility === "private" && <span className="text-amber-400">🔒</span>}
+                    <span className="font-mono text-amber-400 font-bold tracking-wider">{currentRoomCode}</span>
+                    <button onClick={copyCode} className="text-slate-500 hover:text-white transition-colors" title="Copy room code">📋</button>
                   </span>
                 )}
 
@@ -631,6 +716,7 @@ export function App() {
                     )}
                   </>
                 )}
+
               </div>
 
               {/* ── Buy-in Modal ── */}
@@ -644,8 +730,8 @@ export function App() {
                   const snapped = Math.round(value / buyInStep) * buyInStep;
                   return Math.min(biMax, Math.max(biMin, snapped));
                 };
-                console.log("[BUY_IN_MODAL] isHostOrCoHost:", isHostOrCoHost, "isHost:", isHost, "isCoHost:", isCoHost, "isRoomCreator:", isRoomCreator);
-                console.log("[BUY_IN_MODAL] roomState.ownership:", roomState?.ownership);
+                debugLog("[BUY_IN_MODAL] isHostOrCoHost:", isHostOrCoHost, "isHost:", isHost, "isCoHost:", isCoHost);
+                debugLog("[BUY_IN_MODAL] roomState.ownership:", roomState?.ownership);
                 return (
                   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowBuyInModal(false)}>
                     <div className="glass-card p-6 w-80 space-y-4" onClick={(e) => e.stopPropagation()}>
@@ -685,22 +771,21 @@ export function App() {
                         <button onClick={() => setShowBuyInModal(false)}
                           className="flex-1 py-2 rounded-lg text-xs font-medium bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 transition-all">Cancel</button>
                         <button onClick={() => {
-                          // Check if user is host/creator - use isRoomCreator as primary indicator
-                          const canSitDirectly = isRoomCreator || isHostOrCoHost;
-                          console.log("[BUY_IN_MODAL] Sit button clicked. canSitDirectly:", canSitDirectly, "isRoomCreator:", isRoomCreator, "isHostOrCoHost:", isHostOrCoHost);
+                          const canSitDirectly = isHostOrCoHost;
+                          debugLog("[BUY_IN_MODAL] Sit button clicked. canSitDirectly:", canSitDirectly, "isHostOrCoHost:", isHostOrCoHost);
                           
                           if (canSitDirectly) {
                             // Host/Creator auto-sits directly
-                            console.log("[BUY_IN_MODAL] Emitting sit_down (host)");
+                            debugLog("[BUY_IN_MODAL] Emitting sit_down (host)");
                             socket?.emit("sit_down", { tableId, seat: pendingSitSeat, buyIn: buyInAmount, name });
                           } else {
                             // Non-host sends a request for host approval
-                            console.log("[BUY_IN_MODAL] Emitting seat_request (guest)");
+                            debugLog("[BUY_IN_MODAL] Emitting seat_request (guest)");
                             socket?.emit("seat_request", { tableId, seat: pendingSitSeat, buyIn: buyInAmount, name });
                           }
                           setShowBuyInModal(false);
                         }} className="flex-1 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-900/30 hover:from-emerald-400 hover:to-emerald-500 transition-all">
-                          {isRoomCreator || isHostOrCoHost ? "Sit Down" : "Request Seat"}
+                          {isHostOrCoHost ? "Sit Down" : "Request Seat"}
                         </button>
                       </div>
                       <p className="text-[9px] text-slate-600 text-center">
@@ -762,7 +847,7 @@ export function App() {
 
               {/* Settings / Log panels (overlay-style, max-height constrained) */}
               {showSettings && isHostOrCoHost && roomState && (
-                <div className="mx-3 mt-1 max-h-48 overflow-y-auto shrink-0">
+                <div className="mx-3 mt-1 max-h-[70vh] overflow-y-auto shrink-0">
                   <RoomSettingsPanel
                     roomState={roomState}
                     isHost={!!isHost}
@@ -849,8 +934,8 @@ export function App() {
                     )}
 
                     {/* Player seats */}
-                    {[1, 2, 3, 4, 5, 6].map((seatNum) => {
-                      const pos = SEAT_POSITIONS[seatNum];
+                    {Array.from({ length: roomState?.settings.maxPlayers ?? 6 }, (_, i) => i + 1).map((seatNum) => {
+                      const pos = seatPositions[seatNum];
                       const player = snapshot?.players.find((p) => p.seat === seatNum);
                       const isActor = snapshot?.actorSeat === seatNum;
                       const isMe = seatNum === seat;
@@ -985,10 +1070,74 @@ export function App() {
                   heroStack={snapshot?.players.find((p) => p.seat === seat)?.stack ?? 10000}
                   numPlayers={snapshot?.players.filter((p) => p.inHand && !p.folded).length ?? 2}
                   advice={advice}
+                  thinkExtensionEnabled={(roomState?.settings.thinkExtensionQuotaPerHour ?? 0) > 0}
+                  thinkExtensionRemainingUses={thinkExtensionRemainingUses}
+                  onThinkExtension={() => socket?.emit("request_think_extension", { tableId })}
                   onAction={(action, amount) => {
-                    socket?.emit("action_submit", { tableId, handId: snapshot?.handId, action, amount });
+                    if (!snapshot?.handId) return;
+                    if (action === "all_in") {
+                      socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "all_in" });
+                      return;
+                    }
+                    socket?.emit("action_submit", { tableId, handId: snapshot.handId, action, amount });
                   }}
                 />
+
+                {allInPrompt && snapshot?.handId && canAct && allInPrompt.actorSeat === seat && (
+                  <div className="mt-2 p-3 rounded-xl border border-orange-500/30 bg-orange-500/10">
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div>
+                        <div className="text-[10px] uppercase tracking-wider text-orange-300">All-In Run Decision</div>
+                        <div className="text-xs text-slate-200">Win rate: <span className="font-mono text-orange-300 font-bold">{Math.round(allInPrompt.winRate * 100)}%</span></div>
+                      </div>
+                      <div className="text-[10px] text-slate-400 max-w-[60%] text-right">{allInPrompt.reason}</div>
+                    </div>
+
+                    {allInPrompt.winRate >= 0.55 ? (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "all_in", runCount: 2 });
+                            setAllInPrompt(null);
+                          }}
+                          className="btn-action flex-1 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600"
+                        >
+                          同意（Run 2）
+                        </button>
+                        <button
+                          onClick={() => {
+                            socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "all_in", runCount: 1 });
+                            setAllInPrompt(null);
+                          }}
+                          className="btn-action flex-1 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600"
+                        >
+                          不同意（Run 1）
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => {
+                            socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "all_in", runCount: 1 });
+                            setAllInPrompt(null);
+                          }}
+                          className="btn-action flex-1 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600"
+                        >
+                          Run 1
+                        </button>
+                        <button
+                          onClick={() => {
+                            socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "all_in", runCount: 2 });
+                            setAllInPrompt(null);
+                          }}
+                          className="btn-action flex-1 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600"
+                        >
+                          Run 2
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </main>
           </>
@@ -1445,7 +1594,7 @@ function generateSimpleAnalysis(hand: HandRecord): GTOAnalysis {
   };
 }
 
-/* ═══════════════════ ROOM SETTINGS PANEL ═══════════════════ */
+/* ═══════════════════ ROOM SETTINGS PANEL (Host-only) ═══════════════════ */
 function RoomSettingsPanel({ roomState, isHost, players, authUserId, onUpdateSettings, onKick, onTransfer, onSetCoHost, onClose }: {
   roomState: RoomFullState;
   isHost: boolean;
@@ -1457,7 +1606,7 @@ function RoomSettingsPanel({ roomState, isHost, players, authUserId, onUpdateSet
   onSetCoHost: (userId: string, add: boolean) => void;
   onClose: () => void;
 }) {
-  const [tab, setTab] = useState<"game" | "players" | "moderation">("game");
+  const [tab, setTab] = useState<"game" | "rules" | "special" | "players" | "moderation">("game");
   const [kickReason, setKickReason] = useState("");
 
   const s = roomState.settings;
@@ -1466,30 +1615,105 @@ function RoomSettingsPanel({ roomState, isHost, players, authUserId, onUpdateSet
     onUpdateSettings({ [key]: value });
   }
 
+  /* ── Blind structure helpers ── */
+  const [blindLevels, setBlindLevels] = useState(
+    s.blindStructure ?? [{ smallBlind: s.smallBlind, bigBlind: s.bigBlind, ante: s.ante, durationMinutes: 20 }]
+  );
+
+  function addBlindLevel() {
+    const last = blindLevels[blindLevels.length - 1];
+    const next = { smallBlind: last.smallBlind * 2, bigBlind: last.bigBlind * 2, ante: last.ante, durationMinutes: last.durationMinutes };
+    const updated = [...blindLevels, next];
+    setBlindLevels(updated);
+    updateField("blindStructure", updated);
+  }
+
+  function removeBlindLevel(idx: number) {
+    if (blindLevels.length <= 1) return;
+    const updated = blindLevels.filter((_, i) => i !== idx);
+    setBlindLevels(updated);
+    updateField("blindStructure", updated);
+  }
+
+  function updateBlindLevel(idx: number, field: string, value: number) {
+    const updated = blindLevels.map((lvl, i) => i === idx ? { ...lvl, [field]: value } : lvl);
+    setBlindLevels(updated);
+    updateField("blindStructure", updated);
+    if (idx === 0) {
+      if (field === "smallBlind") updateField("smallBlind", value);
+      if (field === "bigBlind") updateField("bigBlind", value);
+      if (field === "ante") updateField("ante", value);
+    }
+  }
+
+  const SectionTitle = ({ children }: { children: React.ReactNode }) => (
+    <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mt-2 mb-1">{children}</div>
+  );
+
+  const YesNo = ({ label, value, onChange, hint }: { label: string; value: boolean; onChange: (v: boolean) => void; hint?: string }) => (
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center gap-1.5 min-w-0">
+        <span className="text-xs text-slate-400 truncate">{label}</span>
+        {hint && <span className="text-[9px] text-slate-600 cursor-help" title={hint}>?</span>}
+      </div>
+      <div className="flex gap-1 shrink-0">
+        <button onClick={() => onChange(true)}
+          className={`text-xs px-3 py-1.5 rounded-l-md border transition-all ${value ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400 font-semibold" : "bg-white/5 border-white/10 text-slate-500"}`}>
+          Yes
+        </button>
+        <button onClick={() => onChange(false)}
+          className={`text-xs px-3 py-1.5 rounded-r-md border transition-all ${!value ? "bg-red-500/10 border-red-500/20 text-red-400 font-semibold" : "bg-white/5 border-white/10 text-slate-500"}`}>
+          No
+        </button>
+      </div>
+    </div>
+  );
+
+  const TriToggle = ({ label, value, options, onChange }: { label: string; value: string; options: { value: string; label: string }[]; onChange: (v: string) => void }) => (
+    <div className="space-y-1">
+      <span className="text-xs text-slate-400">{label}</span>
+      <div className="flex gap-1">
+        {options.map((opt) => (
+          <button key={opt.value} onClick={() => onChange(opt.value)}
+            className={`flex-1 text-xs px-3 py-2 rounded-md border transition-all ${value === opt.value ? "bg-white/10 border-white/20 text-white font-semibold" : "bg-white/5 border-white/10 text-slate-500"}`}>
+            {opt.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="glass-card p-5 space-y-4">
+    <div className="glass-card p-6 space-y-5">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold text-white">Room Settings</h3>
+        <h3 className="text-base font-bold text-white">Room Settings <span className="text-xs text-amber-400 font-normal ml-1">(Host Only)</span></h3>
         <button onClick={onClose} className="text-xs text-slate-500 hover:text-white transition-colors">✕</button>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-white/5 rounded-lg p-1">
-        {(["game", "players", "moderation"] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`flex-1 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${tab === t ? "bg-white/10 text-white" : "text-slate-400 hover:text-white"}`}>
-            {t === "game" ? "Game" : t === "players" ? "Players" : "Moderation"}
+      <div className="flex gap-1 bg-white/5 rounded-lg p-1 overflow-x-auto">
+        {([
+          { key: "game" as const, label: "Blinds" },
+          { key: "rules" as const, label: "Rules" },
+          { key: "special" as const, label: "Special" },
+          { key: "players" as const, label: "Players" },
+          { key: "moderation" as const, label: "Mod" },
+        ]).map((t) => (
+          <button key={t.key} onClick={() => setTab(t.key)}
+            className={`flex-1 px-3 py-2 rounded-md text-xs font-medium transition-all whitespace-nowrap ${tab === t.key ? "bg-white/10 text-white" : "text-slate-400 hover:text-white"}`}>
+            {t.label}
           </button>
         ))}
       </div>
 
-      {/* ── GAME SETTINGS TAB ── */}
+      {/* ══ BLINDS & STRUCTURE TAB ══ */}
       {tab === "game" && (
         <div className="space-y-3">
+          <SectionTitle>Poker Variant</SectionTitle>
           <SettingRow label="Game Type">
             <select value={s.gameType} onChange={(e) => updateField("gameType", e.target.value)} className="input-field text-xs !py-1.5">
-              <option value="texas">Texas Hold'em</option>
-              <option value="omaha">Omaha</option>
+              <option value="texas">No Limit Texas Hold'em</option>
+              <option value="omaha">Pot Limit Omaha</option>
             </select>
           </SettingRow>
           <SettingRow label="Max Players">
@@ -1497,44 +1721,124 @@ function RoomSettingsPanel({ roomState, isHost, players, authUserId, onUpdateSet
               {[2, 3, 4, 5, 6, 7, 8, 9].map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
           </SettingRow>
-          <div className="grid grid-cols-2 gap-3">
-            <SettingRow label="Small Blind">
-              <input type="number" value={s.smallBlind} onChange={(e) => updateField("smallBlind", Number(e.target.value))} className="input-field text-xs !py-1.5 w-full" />
-            </SettingRow>
-            <SettingRow label="Big Blind">
-              <input type="number" value={s.bigBlind} onChange={(e) => updateField("bigBlind", Number(e.target.value))} className="input-field text-xs !py-1.5 w-full" />
-            </SettingRow>
+
+          <SectionTitle>Blind Levels</SectionTitle>
+          <div className="space-y-2">
+            {/* Header row */}
+            <div className="grid grid-cols-[2rem_1fr_1fr_1fr_1fr_1.5rem] gap-1 text-[9px] text-slate-500 uppercase tracking-wider px-1">
+              <span>#</span><span>SB</span><span>BB</span><span>Ante</span><span>Min</span><span></span>
+            </div>
+            {blindLevels.map((lvl, i) => (
+              <div key={i} className="grid grid-cols-[2rem_1fr_1fr_1fr_1fr_1.5rem] gap-1 items-center">
+                <span className="text-[10px] text-slate-500 text-center">{i + 1}</span>
+                <input type="number" value={lvl.smallBlind} min={1}
+                  onChange={(e) => updateBlindLevel(i, "smallBlind", Number(e.target.value))}
+                  className="input-field text-[11px] !py-1 w-full text-center" />
+                <input type="number" value={lvl.bigBlind} min={2}
+                  onChange={(e) => updateBlindLevel(i, "bigBlind", Number(e.target.value))}
+                  className="input-field text-[11px] !py-1 w-full text-center" />
+                <input type="number" value={lvl.ante} min={0}
+                  onChange={(e) => updateBlindLevel(i, "ante", Number(e.target.value))}
+                  className="input-field text-[11px] !py-1 w-full text-center" />
+                <input type="number" value={lvl.durationMinutes} min={1}
+                  onChange={(e) => updateBlindLevel(i, "durationMinutes", Number(e.target.value))}
+                  className="input-field text-[11px] !py-1 w-full text-center" />
+                <button onClick={() => removeBlindLevel(i)}
+                  className="text-[10px] text-slate-600 hover:text-red-400 transition-colors text-center leading-none"
+                  title="Remove level">×</button>
+              </div>
+            ))}
+            <button onClick={addBlindLevel}
+              className="w-full text-[10px] py-1.5 rounded-md border border-dashed border-white/10 text-slate-400 hover:text-white hover:border-white/20 transition-all">
+              + Add Level
+            </button>
           </div>
-          <SettingRow label="Ante">
-            <input type="number" value={s.ante} onChange={(e) => updateField("ante", Number(e.target.value))} className="input-field text-xs !py-1.5 w-24" />
-          </SettingRow>
+
+          <SectionTitle>Buy-in</SectionTitle>
           <div className="grid grid-cols-2 gap-3">
-            <SettingRow label="Buy-in Min">
+            <SettingRow label="Min">
               <input type="number" value={s.buyInMin} onChange={(e) => updateField("buyInMin", Number(e.target.value))} className="input-field text-xs !py-1.5 w-full" />
             </SettingRow>
-            <SettingRow label="Buy-in Max">
+            <SettingRow label="Max">
               <input type="number" value={s.buyInMax} onChange={(e) => updateField("buyInMax", Number(e.target.value))} className="input-field text-xs !py-1.5 w-full" />
             </SettingRow>
           </div>
+        </div>
+      )}
+
+      {/* ══ GAME RULES TAB ══ */}
+      {tab === "rules" && (
+        <div className="space-y-3">
+          <SectionTitle>Gameplay</SectionTitle>
+          <TriToggle label="Allow Run It Twice?"
+            value={s.runItTwiceMode}
+            options={[
+              { value: "always", label: "Always" },
+              { value: "ask_players", label: "Ask Players" },
+              { value: "off", label: "No" },
+            ]}
+            onChange={(v) => { updateField("runItTwiceMode", v); updateField("runItTwice", v !== "off"); }}
+          />
+          <YesNo label="Allow UTG Straddle 2BB?" value={s.straddleAllowed} onChange={(v) => updateField("straddleAllowed", v)} />
+          <YesNo label="Rebuy allowed?" value={s.rebuyAllowed} onChange={(v) => updateField("rebuyAllowed", v)} />
+
+          <SectionTitle>Timers</SectionTitle>
           <div className="grid grid-cols-2 gap-3">
-            <SettingRow label="Action Timer (sec)">
+            <SettingRow label="Decision Time (sec)">
               <input type="number" value={s.actionTimerSeconds} onChange={(e) => updateField("actionTimerSeconds", Number(e.target.value))} className="input-field text-xs !py-1.5 w-full" min={5} max={120} />
             </SettingRow>
             <SettingRow label="Time Bank (sec)">
               <input type="number" value={s.timeBankSeconds} onChange={(e) => updateField("timeBankSeconds", Number(e.target.value))} className="input-field text-xs !py-1.5 w-full" min={0} max={300} />
             </SettingRow>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <ToggleSetting label="Rebuy" checked={s.rebuyAllowed} onChange={(v) => updateField("rebuyAllowed", v)} />
-            <ToggleSetting label="Straddle" checked={s.straddleAllowed} onChange={(v) => updateField("straddleAllowed", v)} />
-            <ToggleSetting label="Run It Twice" checked={s.runItTwice} onChange={(v) => updateField("runItTwice", v)} />
-            <ToggleSetting label="Spectators" checked={s.spectatorAllowed} onChange={(v) => updateField("spectatorAllowed", v)} />
-            <ToggleSetting label="Host Start Required" checked={s.hostStartRequired} onChange={(v) => updateField("hostStartRequired", v)} />
+          <SettingRow label="Hands to fill Time Bank">
+            <input type="number" value={s.timeBankHandsToFill} onChange={(e) => updateField("timeBankHandsToFill", Number(e.target.value))} className="input-field text-xs !py-1.5 w-24" min={1} max={50} />
+          </SettingRow>
+          <div className="grid grid-cols-2 gap-3">
+            <SettingRow label="Extension/Use (sec)">
+              <input type="number" value={s.thinkExtensionSecondsPerUse} onChange={(e) => updateField("thinkExtensionSecondsPerUse", Number(e.target.value))} className="input-field text-xs !py-1.5 w-full" min={1} max={60} />
+            </SettingRow>
+            <SettingRow label="Extension Quota (/hr)">
+              <input type="number" value={s.thinkExtensionQuotaPerHour} onChange={(e) => updateField("thinkExtensionQuotaPerHour", Number(e.target.value))} className="input-field text-xs !py-1.5 w-full" min={0} max={20} />
+            </SettingRow>
           </div>
         </div>
       )}
 
-      {/* ── PLAYERS TAB ── */}
+      {/* ══ SPECIAL FEATURES TAB ══ */}
+      {tab === "special" && (
+        <div className="space-y-3">
+          <SectionTitle>Bomb Pot</SectionTitle>
+          <YesNo label="Bomb Pot enabled?" value={s.bombPotEnabled} onChange={(v) => updateField("bombPotEnabled", v)}
+            hint="All players put in a set amount pre-flop with no betting" />
+          {s.bombPotEnabled && (
+            <SettingRow label="Frequency (every N hands, 0=manual)">
+              <input type="number" value={s.bombPotFrequency} onChange={(e) => updateField("bombPotFrequency", Number(e.target.value))} className="input-field text-xs !py-1.5 w-20" min={0} max={100} />
+            </SettingRow>
+          )}
+
+          <SectionTitle>Double Board</SectionTitle>
+          <TriToggle label="Double Board?"
+            value={s.doubleBoardMode}
+            options={[
+              { value: "always", label: "Always" },
+              { value: "bomb_pot", label: "Bomb Pot Only" },
+              { value: "off", label: "Off" },
+            ]}
+            onChange={(v) => updateField("doubleBoardMode", v)}
+          />
+
+          <SectionTitle>7-2 Bounty</SectionTitle>
+          <SettingRow label="Bounty amount (0 = off)">
+            <input type="number" value={s.sevenTwoBounty} onChange={(e) => updateField("sevenTwoBounty", Number(e.target.value))} className="input-field text-xs !py-1.5 w-24" min={0} />
+          </SettingRow>
+          {s.sevenTwoBounty > 0 && (
+            <p className="text-[10px] text-slate-500">Each player pays {s.sevenTwoBounty} to the winner holding 7-2</p>
+          )}
+        </div>
+      )}
+
+      {/* ══ PLAYERS TAB ══ */}
       {tab === "players" && (
         <div className="space-y-2">
           <p className="text-[10px] text-slate-500">Owner: <span className="text-amber-400 font-medium">{roomState.ownership.ownerName}</span></p>
@@ -1584,7 +1888,7 @@ function RoomSettingsPanel({ roomState, isHost, players, authUserId, onUpdateSet
         </div>
       )}
 
-      {/* ── MODERATION TAB ── */}
+      {/* ══ MODERATION TAB ══ */}
       {tab === "moderation" && (
         <div className="space-y-3">
           <SettingRow label="Room Visibility">
@@ -1649,57 +1953,15 @@ function ToggleSetting({ label, checked, onChange }: { label: string; checked: b
 
 /* ═══════════════════ ONBOARDING MODAL ═══════════════════ */
 function OnboardingModal({ onComplete }: { onComplete: () => void }) {
-  const [step, setStep] = useState(0);
-  const [blindLevel, setBlindLevel] = useState("1/3");
-
-  function handleFinish() {
-    const prefs = loadPrefs();
-    prefs.blindLevel = blindLevel;
-    savePrefs(prefs);
-    onComplete();
-  }
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
       <div className="glass-card p-8 w-full max-w-md mx-4 space-y-6">
-        {/* Progress dots */}
-        <div className="flex justify-center gap-2">
-          {[0, 1].map((i) => (
-            <div key={i} className={`w-2.5 h-2.5 rounded-full transition-all ${step === i ? "bg-amber-400 scale-125" : step > i ? "bg-emerald-400" : "bg-white/20"}`} />
-          ))}
+        <div className="space-y-5 text-center">
+          <div className="text-4xl">🚀</div>
+          <h2 className="text-xl font-bold text-white">You're All Set!</h2>
+          <p className="text-sm text-slate-400">Head to the lobby to create or join a room and start playing. The host will decide the table settings.</p>
+          <button onClick={onComplete} className="btn-success w-full !py-3 text-base font-bold">Start Playing</button>
         </div>
-
-        {step === 0 && (
-          <div className="space-y-5 text-center">
-            <div className="text-4xl">💰</div>
-            <h2 className="text-xl font-bold text-white">Select Default Blind Level</h2>
-            <p className="text-sm text-slate-400">Pick the stakes you usually play at. You can always change this later.</p>
-            <div className="grid grid-cols-3 gap-2">
-              {["1/3", "2/5", "5/10", "10/20", "25/50", "50/100"].map((b) => (
-                <button key={b} onClick={() => setBlindLevel(b)}
-                  className={`py-3 rounded-xl text-sm font-bold transition-all ${
-                    blindLevel === b ? "bg-amber-500 text-white shadow-lg shadow-amber-500/30" : "bg-white/5 text-slate-300 border border-white/10 hover:border-white/20"
-                  }`}>{b}</button>
-              ))}
-            </div>
-            <button onClick={() => setStep(1)} className="btn-primary w-full !py-3">Next</button>
-          </div>
-        )}
-
-        {step === 1 && (
-          <div className="space-y-5 text-center">
-            <div className="text-4xl">🚀</div>
-            <h2 className="text-xl font-bold text-white">You're All Set!</h2>
-            <p className="text-sm text-slate-400">Head to the lobby to create or join a room and start playing. The host will decide the table settings.</p>
-            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 text-left">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Default Blind Level</span>
-                <span className="text-white font-medium">{blindLevel}</span>
-              </div>
-            </div>
-            <button onClick={handleFinish} className="btn-success w-full !py-3 text-base font-bold">Start Playing</button>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -1771,6 +2033,18 @@ function AuthScreen({ onAuth }: { onAuth: (s: AuthSession) => void }) {
       const secs = getRateLimitSecondsLeft();
       if (secs > 0) setCooldown(secs);
     } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setError("");
+    setSuccessMsg("");
+    setLoading(true);
+    try {
+      await signInWithGoogle();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err));
       setLoading(false);
     }
   }
@@ -1865,6 +2139,18 @@ function AuthScreen({ onAuth }: { onAuth: (s: AuthSession) => void }) {
               className="btn-primary w-full !py-3 text-base font-semibold disabled:opacity-40">
               {loading ? "..." : cooldown > 0 ? `Wait ${cooldown}s` : mode === "login" ? "Log In" : "Create Account"}
             </button>
+
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={loading}
+              className="w-full !py-3 text-sm font-medium rounded-xl border border-white/15 bg-white text-slate-900 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.6 3.9-5.5 3.9-3.3 0-6-2.8-6-6.2s2.7-6.2 6-6.2c1.9 0 3.2.8 3.9 1.5l2.7-2.7C16.8 2.7 14.6 1.8 12 1.8 6.9 1.8 2.8 6.2 2.8 11.8S6.9 21.8 12 21.8c6.9 0 9.2-5 9.2-7.6 0-.5-.1-.9-.1-1.3H12z"/>
+              </svg>
+              Continue with Google
+            </button>
           </form>
 
           <div className="relative my-6">
@@ -1893,19 +2179,38 @@ function AuthScreen({ onAuth }: { onAuth: (s: AuthSession) => void }) {
 
 /* ═══════ ActionBar ═══════ */
 
-function ActionBar({ canAct, legal, pot, bigBlind, raiseTo, setRaiseTo, onAction, street, board, heroStack, numPlayers, advice }: {
+function ActionBar({
+  canAct,
+  legal,
+  pot,
+  bigBlind,
+  raiseTo,
+  setRaiseTo,
+  onAction,
+  street,
+  board,
+  heroStack,
+  numPlayers,
+  advice,
+  thinkExtensionEnabled,
+  thinkExtensionRemainingUses,
+  onThinkExtension,
+}: {
   canAct: boolean;
   legal: LegalActions | null;
   pot: number;
   bigBlind: number;
   raiseTo: number;
   setRaiseTo: (v: number) => void;
-  onAction: (action: string, amount?: number) => void;
+  onAction: (action: "fold" | "check" | "call" | "raise" | "all_in", amount?: number) => void;
   street: string;
   board: string[];
   heroStack: number;
   numPlayers: number;
   advice: AdvicePayload | null;
+  thinkExtensionEnabled?: boolean;
+  thinkExtensionRemainingUses?: number;
+  onThinkExtension?: () => void;
 }) {
   const min = legal?.minRaise ?? bigBlind * 2;
   const max = legal?.maxRaise ?? 10000;
@@ -1972,6 +2277,13 @@ function ActionBar({ canAct, legal, pot, bigBlind, raiseTo, setRaiseTo, onAction
           </button>
         )}
 
+        {legal?.canRaise && (
+          <button disabled={!canAct} onClick={() => { onAction("all_in"); setShowSuggest(false); }}
+            className="btn-action bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600 shadow-lg shadow-orange-900/30">
+            All-In
+          </button>
+        )}
+
         {/* AI Suggest button */}
         {canAct && advice && (
           <button onClick={() => setShowSuggest(!showSuggest)}
@@ -1981,6 +2293,16 @@ function ActionBar({ canAct, legal, pot, bigBlind, raiseTo, setRaiseTo, onAction
                 : "bg-gradient-to-r from-amber-600/30 to-orange-700/30 text-amber-400 border border-amber-500/30 hover:from-amber-500/40 hover:to-orange-600/40"
             }`}>
             AI Suggest
+          </button>
+        )}
+
+        {canAct && thinkExtensionEnabled && (
+          <button
+            onClick={() => onThinkExtension?.()}
+            disabled={(thinkExtensionRemainingUses ?? 0) <= 0}
+            className="btn-action text-sm !px-4 !py-3 bg-gradient-to-r from-violet-600/40 to-fuchsia-700/40 text-violet-300 border border-violet-500/30 hover:from-violet-500/50 hover:to-fuchsia-600/50 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Extend ({Math.max(0, thinkExtensionRemainingUses ?? 0)} left)
           </button>
         )}
       </div>
