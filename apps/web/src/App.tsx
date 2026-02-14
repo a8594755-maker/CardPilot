@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { io, type Socket } from "socket.io-client";
-import type { AdvicePayload, LobbyRoomSummary, TableState, TablePlayer } from "@cardpilot/shared-types";
-import { ensureGuestSession, signUpWithEmail, signInWithEmail, signOut, supabase, type AuthSession } from "./supabase";
+import type { AdvicePayload, LobbyRoomSummary, TableState, TablePlayer, LegalActions } from "@cardpilot/shared-types";
+import { ensureGuestSession, signUpWithEmail, signInWithEmail, signOut, supabase, validateEmail, validatePassword, getRateLimitSecondsLeft, type AuthSession } from "./supabase";
 import { preloadCardImages, getCardImagePath } from "./lib/card-images.js";
 
 const SERVER = import.meta.env.VITE_SERVER_URL || "http://127.0.0.1:4000";
@@ -31,8 +31,10 @@ export function App() {
   const [snapshot, setSnapshot] = useState<TableState | null>(null);
   const [holeCards, setHoleCards] = useState<string[]>([]);
   const [advice, setAdvice] = useState<AdvicePayload | null>(null);
+  const [deviation, setDeviation] = useState<{ deviation: number; playerAction: string } | null>(null);
   const [raiseTo, setRaiseTo] = useState(300);
   const [message, setMessage] = useState("Initializing...");
+  const [winners, setWinners] = useState<Array<{ seat: number; amount: number; handName?: string }> | null>(null);
 
   const [lobbyRooms, setLobbyRooms] = useState<LobbyRoomSummary[]>([]);
   const [newRoomName, setNewRoomName] = useState("Training Room");
@@ -97,11 +99,23 @@ export function App() {
       setTableId(d.tableId); setCurrentRoomCode(d.roomCode);
       setMessage(`Joined room: ${d.roomName} (${d.roomCode})`); setView("table");
     });
-    s.on("table_snapshot", (d: TableState) => setSnapshot(d));
+    s.on("table_snapshot", (d: TableState) => {
+      setSnapshot(d);
+      if (d.winners) setWinners(d.winners);
+    });
     s.on("hole_cards", (d: { cards: string[]; seat: number }) => {
       if (d.seat === seat) setHoleCards(d.cards);
     });
+    s.on("hand_started", () => {
+      setAdvice(null); setDeviation(null); setWinners(null);
+    });
     s.on("advice_payload", (d: AdvicePayload) => setAdvice(d));
+    s.on("advice_deviation", (d: AdvicePayload & { playerAction: string }) => {
+      setDeviation({ deviation: d.deviation ?? 0, playerAction: d.playerAction });
+    });
+    s.on("hand_ended", (d: { winners?: Array<{ seat: number; amount: number; handName?: string }> }) => {
+      if (d.winners) setWinners(d.winners);
+    });
     s.on("error_event", (d: { message: string }) => setMessage(`Error: ${d.message}`));
     s.on("disconnect", () => setMessage("Disconnected"));
 
@@ -323,22 +337,37 @@ export function App() {
                 )}
               </div>
 
-              {/* ── ACTIONS ── */}
-              <div className="glass-card p-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <button disabled={!canAct} onClick={() => socket?.emit("action_submit", { tableId, handId: snapshot?.handId, action: "fold" })}
-                    className="btn-action bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 shadow-lg shadow-slate-900/30">Fold</button>
-                  <button disabled={!canAct} onClick={() => socket?.emit("action_submit", { tableId, handId: snapshot?.handId, action: "check" })}
-                    className="btn-action bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-lg shadow-blue-900/30">Check</button>
-                  <button disabled={!canAct} onClick={() => socket?.emit("action_submit", { tableId, handId: snapshot?.handId, action: "call" })}
-                    className="btn-action bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-500 hover:to-sky-600 shadow-lg shadow-sky-900/30">Call</button>
-                  <div className="flex items-center gap-2">
-                    <input type="number" value={raiseTo} onChange={(e) => setRaiseTo(Number(e.target.value))} className="input-field w-24 text-center font-mono text-sm" />
-                    <button disabled={!canAct} onClick={() => socket?.emit("action_submit", { tableId, handId: snapshot?.handId, action: "raise", amount: raiseTo })}
-                      className="btn-action bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 shadow-lg shadow-red-900/30">Raise</button>
+              {/* ── WINNERS BANNER ── */}
+              {winners && winners.length > 0 && (
+                <div className="glass-card p-4">
+                  <div className="flex items-center justify-center gap-4">
+                    <span className="text-amber-400 text-lg font-bold">Winner{winners.length > 1 ? "s" : ""}:</span>
+                    {winners.map((w) => {
+                      const p = snapshot?.players.find((pl) => pl.seat === w.seat);
+                      return (
+                        <div key={w.seat} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                          <span className="text-white font-semibold">{p?.name ?? `Seat ${w.seat}`}</span>
+                          <span className="text-amber-400 font-bold">+{w.amount.toLocaleString()}</span>
+                          {w.handName && <span className="text-xs text-slate-400">({w.handName})</span>}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-              </div>
+              )}
+
+              {/* ── ACTIONS ── */}
+              <ActionBar
+                canAct={!!canAct}
+                legal={snapshot?.legalActions ?? null}
+                pot={snapshot?.pot ?? 0}
+                bigBlind={snapshot?.bigBlind ?? 100}
+                raiseTo={raiseTo}
+                setRaiseTo={setRaiseTo}
+                onAction={(action, amount) => {
+                  socket?.emit("action_submit", { tableId, handId: snapshot?.handId, action, amount });
+                }}
+              />
             </main>
 
             {/* ── GTO SIDEBAR ── */}
@@ -355,12 +384,47 @@ export function App() {
                       <span className="text-xs text-slate-500">Hand</span>
                       <span className="text-xl font-extrabold text-white tracking-wide">{advice.heroHand}</span>
                     </div>
+
+                    {/* Recommended action */}
+                    {advice.recommended && (
+                      <div className={`p-3 rounded-xl border text-center ${
+                        advice.recommended === "raise" ? "bg-red-500/10 border-red-500/30 text-red-400"
+                        : advice.recommended === "call" ? "bg-blue-500/10 border-blue-500/30 text-blue-400"
+                        : "bg-slate-500/10 border-slate-500/30 text-slate-400"
+                      }`}>
+                        <div className="text-[10px] uppercase tracking-wider opacity-70 mb-1">GTO 建議本次</div>
+                        <div className="text-lg font-extrabold uppercase">{advice.recommended}</div>
+                        {advice.randomSeed !== undefined && (
+                          <div className="text-[10px] opacity-50 mt-1">隨機種子: {advice.randomSeed}</div>
+                        )}
+                      </div>
+                    )}
+
                     <div className="space-y-2">
                       <Bar label="Raise" pct={advice.mix.raise} color="from-red-500 to-red-600" />
                       <Bar label="Call" pct={advice.mix.call} color="from-blue-500 to-blue-600" />
                       <Bar label="Fold" pct={advice.mix.fold} color="from-slate-500 to-slate-600" />
                     </div>
                     <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 text-sm text-slate-300 leading-relaxed">{advice.explanation}</div>
+
+                    {/* Deviation feedback */}
+                    {deviation && (
+                      <div className={`p-3 rounded-xl border ${
+                        deviation.deviation <= 0.2 ? "bg-emerald-500/10 border-emerald-500/30"
+                        : deviation.deviation <= 0.5 ? "bg-amber-500/10 border-amber-500/30"
+                        : "bg-red-500/10 border-red-500/30"
+                      }`}>
+                        <div className="text-[10px] uppercase tracking-wider text-slate-400 mb-1">偏離分析</div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-white">你選了 <span className="font-bold uppercase">{deviation.playerAction}</span></span>
+                          <span className={`text-lg font-extrabold ${
+                            deviation.deviation <= 0.2 ? "text-emerald-400"
+                            : deviation.deviation <= 0.5 ? "text-amber-400"
+                            : "text-red-400"
+                          }`}>{deviation.deviation <= 0.2 ? "GTO ✓" : `偏離 ${Math.round(deviation.deviation * 100)}%`}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-16">
@@ -382,13 +446,45 @@ function AuthScreen({ onAuth }: { onAuth: (s: AuthSession) => void }) {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPw, setConfirmPw] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+  const [cooldown, setCooldown] = useState(0);
+
+  /* Cooldown countdown timer */
+  useEffect(() => {
+    const secs = getRateLimitSecondsLeft();
+    if (secs > 0) setCooldown(secs);
+    if (cooldown <= 0) return;
+    const t = setInterval(() => {
+      const left = getRateLimitSecondsLeft();
+      setCooldown(left);
+      if (left <= 0) clearInterval(t);
+    }, 1000);
+    return () => clearInterval(t);
+  }, [cooldown]);
+
+  /* Real-time validation hints */
+  const emailHint = email ? validateEmail(email) : null;
+  const pwHint = password ? validatePassword(password) : null;
+  const confirmHint = mode === "signup" && confirmPw && confirmPw !== password ? "Passwords do not match." : null;
+
+  const formValid =
+    !emailHint && !pwHint && !confirmHint &&
+    email.length > 0 && password.length > 0 &&
+    (mode === "login" || confirmPw === password);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(""); setSuccessMsg(""); setLoading(true);
+    setError(""); setSuccessMsg("");
+
+    if (!formValid) {
+      setError(emailHint || pwHint || confirmHint || "Please fill in all fields correctly.");
+      return;
+    }
+
+    setLoading(true);
     try {
       if (mode === "signup") {
         const session = await signUpWithEmail(email, password);
@@ -404,6 +500,9 @@ function AuthScreen({ onAuth }: { onAuth: (s: AuthSession) => void }) {
       } else {
         setError(msg);
       }
+      /* Refresh cooldown in case rate limiter kicked in */
+      const secs = getRateLimitSecondsLeft();
+      if (secs > 0) setCooldown(secs);
     } finally {
       setLoading(false);
     }
@@ -422,6 +521,8 @@ function AuthScreen({ onAuth }: { onAuth: (s: AuthSession) => void }) {
     }
   }
 
+  const isDisabled = loading || cooldown > 0;
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -437,7 +538,7 @@ function AuthScreen({ onAuth }: { onAuth: (s: AuthSession) => void }) {
           {/* Tab switcher */}
           <div className="flex gap-1 bg-white/5 rounded-xl p-1 mb-6">
             {(["login", "signup"] as const).map((m) => (
-              <button key={m} onClick={() => { setMode(m); setError(""); setSuccessMsg(""); }}
+              <button key={m} onClick={() => { setMode(m); setError(""); setSuccessMsg(""); setConfirmPw(""); }}
                 className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${mode === m ? "bg-white/10 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
                 {m === "login" ? "Log In" : "Sign Up"}
               </button>
@@ -450,13 +551,25 @@ function AuthScreen({ onAuth }: { onAuth: (s: AuthSession) => void }) {
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
                 placeholder="you@example.com"
                 className="input-field w-full" />
+              {emailHint && <p className="text-xs text-amber-400 mt-1">{emailHint}</p>}
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Password</label>
               <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required
                 placeholder="Min 6 characters" minLength={6}
                 className="input-field w-full" />
+              {pwHint && <p className="text-xs text-amber-400 mt-1">{pwHint}</p>}
             </div>
+
+            {mode === "signup" && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Confirm Password</label>
+                <input type="password" value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} required
+                  placeholder="Re-enter password" minLength={6}
+                  className="input-field w-full" />
+                {confirmHint && <p className="text-xs text-red-400 mt-1">{confirmHint}</p>}
+              </div>
+            )}
 
             {error && (
               <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">{error}</div>
@@ -465,9 +578,15 @@ function AuthScreen({ onAuth }: { onAuth: (s: AuthSession) => void }) {
               <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-400">{successMsg}</div>
             )}
 
-            <button type="submit" disabled={loading}
-              className="btn-primary w-full !py-3 text-base font-semibold">
-              {loading ? "..." : mode === "login" ? "Log In" : "Create Account"}
+            {cooldown > 0 && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-sm text-amber-400 text-center">
+                Rate limited — please wait {cooldown}s
+              </div>
+            )}
+
+            <button type="submit" disabled={isDisabled || !formValid}
+              className="btn-primary w-full !py-3 text-base font-semibold disabled:opacity-40">
+              {loading ? "..." : cooldown > 0 ? `Wait ${cooldown}s` : mode === "login" ? "Log In" : "Create Account"}
             </button>
           </form>
 
@@ -476,7 +595,7 @@ function AuthScreen({ onAuth }: { onAuth: (s: AuthSession) => void }) {
             <div className="relative flex justify-center"><span className="bg-[#0f1724] px-3 text-xs text-slate-500">or</span></div>
           </div>
 
-          <button onClick={handleGuest} disabled={loading}
+          <button onClick={handleGuest} disabled={isDisabled}
             className="btn-ghost w-full !py-3 text-sm">
             Continue as Guest
           </button>
@@ -486,6 +605,91 @@ function AuthScreen({ onAuth }: { onAuth: (s: AuthSession) => void }) {
           By continuing, you agree to our Terms of Service
         </p>
       </div>
+    </div>
+  );
+}
+
+/* ═══════ ActionBar ═══════ */
+
+function ActionBar({ canAct, legal, pot, bigBlind, raiseTo, setRaiseTo, onAction }: {
+  canAct: boolean;
+  legal: LegalActions | null;
+  pot: number;
+  bigBlind: number;
+  raiseTo: number;
+  setRaiseTo: (v: number) => void;
+  onAction: (action: string, amount?: number) => void;
+}) {
+  const min = legal?.minRaise ?? bigBlind * 2;
+  const max = legal?.maxRaise ?? 10000;
+  const callAmt = legal?.callAmount ?? 0;
+
+  const quickSizes = useMemo(() => {
+    if (!legal?.canRaise) return [];
+    const sizes: Array<{ label: string; value: number }> = [];
+    const third = Math.max(min, Math.round(pot / 3));
+    const half = Math.max(min, Math.round(pot / 2));
+    const full = Math.max(min, pot);
+    if (third <= max) sizes.push({ label: "1/3", value: third });
+    if (half <= max && half !== third) sizes.push({ label: "1/2", value: half });
+    if (full <= max && full !== half) sizes.push({ label: "Pot", value: full });
+    if (max > full) sizes.push({ label: "All-In", value: max });
+    return sizes;
+  }, [legal, pot, min, max]);
+
+  return (
+    <div className="glass-card p-4 space-y-3">
+      {/* Main action buttons */}
+      <div className="flex flex-wrap items-center gap-2">
+        <button disabled={!canAct || !legal?.canFold} onClick={() => onAction("fold")}
+          className="btn-action bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 shadow-lg shadow-slate-900/30">Fold</button>
+
+        {legal?.canCheck && (
+          <button disabled={!canAct} onClick={() => onAction("check")}
+            className="btn-action bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-lg shadow-blue-900/30">Check</button>
+        )}
+
+        {legal?.canCall && (
+          <button disabled={!canAct} onClick={() => onAction("call")}
+            className="btn-action bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-500 hover:to-sky-600 shadow-lg shadow-sky-900/30">
+            Call {callAmt > 0 && <span className="ml-1 font-mono text-sm opacity-80">{callAmt.toLocaleString()}</span>}
+          </button>
+        )}
+
+        {legal?.canRaise && (
+          <button disabled={!canAct} onClick={() => onAction("raise", raiseTo)}
+            className="btn-action bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 shadow-lg shadow-red-900/30">
+            Raise to <span className="ml-1 font-mono text-sm">{raiseTo.toLocaleString()}</span>
+          </button>
+        )}
+      </div>
+
+      {/* Raise slider + quick buttons */}
+      {legal?.canRaise && canAct && (
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] text-slate-500 w-14 text-right font-mono">{min.toLocaleString()}</span>
+          <input
+            type="range"
+            min={min}
+            max={max}
+            step={bigBlind}
+            value={raiseTo}
+            onChange={(e) => setRaiseTo(Number(e.target.value))}
+            className="flex-1 h-2 rounded-full appearance-none bg-white/10 accent-red-500 cursor-pointer"
+          />
+          <span className="text-[10px] text-slate-500 w-14 font-mono">{max.toLocaleString()}</span>
+          <div className="flex gap-1">
+            {quickSizes.map((qs) => (
+              <button key={qs.label} onClick={() => { setRaiseTo(qs.value); }}
+                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                  raiseTo === qs.value
+                    ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                    : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/20 hover:text-white"
+                }`}>{qs.label}</button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

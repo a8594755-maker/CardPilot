@@ -4,8 +4,8 @@ import { createServer } from "node:http";
 import { randomInt, randomUUID } from "node:crypto";
 import { Server } from "socket.io";
 import { GameTable } from "@cardpilot/game-engine";
-import { getPreflopAdvice } from "@cardpilot/advice-engine";
-import type { ActionSubmitPayload, LobbyRoomSummary, TableState } from "@cardpilot/shared-types";
+import { getPreflopAdvice, calculateDeviation } from "@cardpilot/advice-engine";
+import type { ActionSubmitPayload, AdvicePayload, LobbyRoomSummary, TableState } from "@cardpilot/shared-types";
 import { SupabasePersistence, type RoomRecord, type VerifiedIdentity } from "./supabase";
 
 const app = express();
@@ -38,6 +38,7 @@ const roomsByTableId = new Map<string, RoomInfo>();
 const roomCodeToTableId = new Map<string, string>();
 const socketSeat = new Map<string, SeatBinding>();
 const socketIdentity = new Map<string, VerifiedIdentity>();
+const lastAdvice = new Map<string, AdvicePayload>(); // key: `${tableId}:${seat}`
 const supabase = new SupabasePersistence();
 
 io.use(async (socket, next) => {
@@ -117,17 +118,31 @@ function hasVoluntaryPreflopAction(state: TableState): boolean {
 function pushAdviceIfNeeded(tableId: string, state: TableState) {
   if (!state.handId || state.street !== "PREFLOP" || !state.actorSeat) return;
 
+  const table = tables.get(tableId);
+  if (!table) return;
+
+  // Only push advice in COACH mode immediately; REVIEW mode waits until hand end
+  if (table.getMode() === "REVIEW") return;
+
   const seat = state.actorSeat;
   const binding = bindingsByTable(tableId).find((entry) => entry.binding.seat === seat)?.binding;
   if (!binding) return;
 
-  const table = tables.get(tableId);
-  if (!table) return;
-
   const heroPos = table.getPosition(seat);
-  const villainPos = heroPos === "BTN" ? "BB" : "BTN";
   const line = hasVoluntaryPreflopAction(state) ? "facing_open" : "unopened";
   const heroHand = table.getHeroHandCode(seat);
+
+  // For unopened pots, villain doesn't matter; for facing open, find the opener's position
+  let villainPos = "BB";
+  if (line === "facing_open") {
+    // Find the first raiser's position
+    for (const action of state.actions) {
+      if (action.street === "PREFLOP" && action.type === "raise" && action.seat !== seat) {
+        villainPos = table.getPosition(action.seat);
+        break;
+      }
+    }
+  }
 
   const advice = getPreflopAdvice({
     tableId,
@@ -138,6 +153,9 @@ function pushAdviceIfNeeded(tableId: string, state: TableState) {
     line,
     heroHand
   });
+
+  // Store for deviation calc
+  lastAdvice.set(`${tableId}:${seat}`, advice);
 
   io.to(socketIdBySeat(tableId, seat)).emit("advice_payload", advice);
 }
@@ -544,6 +562,10 @@ io.on("connection", (socket) => {
         throw new Error("player seat not found");
       }
 
+      // Check for stored advice to calculate deviation
+      const adviceKey = `${payload.tableId}:${binding.seat}`;
+      const storedAdvice = lastAdvice.get(adviceKey);
+
       const newState = table.applyAction(binding.seat, payload.action, payload.amount);
 
       io.to(payload.tableId).emit("action_applied", {
@@ -553,12 +575,29 @@ io.on("connection", (socket) => {
         pot: newState.pot
       });
 
+      // Send deviation feedback if we had advice for this spot
+      if (storedAdvice && storedAdvice.handId === payload.handId) {
+        const deviation = calculateDeviation(storedAdvice.mix, payload.action);
+        const deviationPayload = {
+          ...storedAdvice,
+          deviation,
+          playerAction: payload.action
+        };
+        io.to(socketIdBySeat(payload.tableId, binding.seat)).emit("advice_deviation", deviationPayload);
+        lastAdvice.delete(adviceKey);
+      }
+
       if (newState.street !== "PREFLOP") {
         io.to(payload.tableId).emit("street_advanced", { street: newState.street, board: newState.board });
       }
 
       if (!newState.actorSeat) {
-        io.to(payload.tableId).emit("hand_ended", { board: newState.board, players: newState.players, pot: newState.pot });
+        io.to(payload.tableId).emit("hand_ended", {
+          board: newState.board,
+          players: newState.players,
+          pot: newState.pot,
+          winners: newState.winners
+        });
       }
 
       await supabase.logEvent({

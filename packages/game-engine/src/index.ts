@@ -1,7 +1,7 @@
 import { randomInt } from "node:crypto";
 import { v4 as uuidv4 } from "uuid";
 import pokersolver from "pokersolver";
-import type { HandAction, PlayerActionType, Street, TablePlayer, TableState } from "@cardpilot/shared-types";
+import type { HandAction, LegalActions, PlayerActionType, Street, TablePlayer, TableState } from "@cardpilot/shared-types";
 
 const RANKS = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"];
 const SUITS = ["s", "h", "d", "c"];
@@ -12,7 +12,10 @@ const { Hand } = pokersolver as unknown as {
   };
 };
 
-const POSITIONS = ["SB", "BB", "UTG", "HJ", "CO", "BTN"] as const;
+const POSITIONS_6MAX = ["SB", "BB", "UTG", "HJ", "CO", "BTN"] as const;
+const POSITIONS_HU = ["SB", "BB"] as const;
+
+type TableMode = 'COACH' | 'REVIEW' | 'CASUAL';
 
 type MutableTableState = TableState & {
   pendingToAct: Set<number>;
@@ -23,7 +26,7 @@ type MutableTableState = TableState & {
 export class GameTable {
   private state: MutableTableState;
 
-  constructor(params: { tableId: string; smallBlind: number; bigBlind: number }) {
+  constructor(params: { tableId: string; smallBlind: number; bigBlind: number; mode?: TableMode }) {
     this.state = {
       tableId: params.tableId,
       smallBlind: params.smallBlind,
@@ -38,6 +41,8 @@ export class GameTable {
       handId: null,
       players: [],
       actions: [],
+      legalActions: null,
+      mode: params.mode ?? "COACH",
       pendingToAct: new Set<number>(),
       deck: [],
       holeCards: new Map()
@@ -45,8 +50,10 @@ export class GameTable {
   }
 
   getPublicState(): TableState {
-    const { pendingToAct: _pending, deck: _deck, holeCards: _holes, ...publicState } = this.state;
-    return publicState;
+    const { pendingToAct: _pending, deck: _deck, holeCards: _holes, ...rest } = this.state;
+    // Compute legalActions for current actor
+    const legal = this.computeLegalActions();
+    return { ...rest, legalActions: legal };
   }
 
   getHoleCards(seat: number): [string, string] | null {
@@ -93,6 +100,7 @@ export class GameTable {
     this.state.pendingToAct = new Set<number>();
     this.state.holeCards.clear();
     this.state.deck = shuffledDeck();
+    this.state.winners = undefined;
 
     const sortedSeats = seated.map((p) => p.seat).sort((a, b) => a - b);
     this.state.buttonSeat = nextSeatCircular(this.state.buttonSeat, sortedSeats);
@@ -113,8 +121,8 @@ export class GameTable {
 
     const sbSeat = this.getRelativeSeat(1);
     const bbSeat = this.getRelativeSeat(2);
-    this.commitBlind(sbSeat, this.state.smallBlind, "POST_SB");
-    this.commitBlind(bbSeat, this.state.bigBlind, "POST_BB");
+    this.commitBlind(sbSeat, this.state.smallBlind, "post_sb");
+    this.commitBlind(bbSeat, this.state.bigBlind, "post_bb");
 
     this.state.pendingToAct = new Set(
       this.activePlayers()
@@ -141,6 +149,7 @@ export class GameTable {
 
     const toCall = Math.max(0, this.state.currentBet - player.streetCommitted);
 
+    // Validate action legality
     if (action === "check" && toCall > 0) {
       throw new Error("cannot check when facing a bet");
     }
@@ -151,7 +160,7 @@ export class GameTable {
       if (amount === undefined) {
         throw new Error("raise amount required");
       }
-      if (amount < this.state.minRaiseTo) {
+      if (amount < this.state.minRaiseTo && amount < player.stack + player.streetCommitted) {
         throw new Error(`raise must be at least ${this.state.minRaiseTo}`);
       }
       if (amount <= this.state.currentBet) {
@@ -162,7 +171,14 @@ export class GameTable {
         throw new Error("insufficient chips for raise");
       }
     }
+    if (action === "all_in") {
+      // all_in is always legal if player has chips
+      if (player.stack <= 0) {
+        throw new Error("no chips to go all-in");
+      }
+    }
 
+    // Apply action
     if (action === "fold") {
       player.folded = true;
       player.inHand = false;
@@ -189,13 +205,34 @@ export class GameTable {
           .filter((p) => p.seat !== seat && !p.allIn)
           .map((p) => p.seat)
       );
+    } else if (action === "all_in") {
+      const commit = player.stack;
+      const newTotal = player.streetCommitted + commit;
+      player.stack = 0;
+      player.streetCommitted = newTotal;
+      this.state.pot += commit;
+      player.allIn = true;
+
+      if (newTotal > this.state.currentBet) {
+        // This is a raise all-in
+        const raiseSize = newTotal - this.state.currentBet;
+        if (raiseSize >= (this.state.minRaiseTo - this.state.currentBet)) {
+          this.state.minRaiseTo = newTotal + raiseSize;
+        }
+        this.state.currentBet = newTotal;
+        this.state.pendingToAct = new Set(
+          this.activePlayers()
+            .filter((p) => p.seat !== seat && !p.allIn)
+            .map((p) => p.seat)
+        );
+      }
     }
 
     this.logAction({
       seat,
       street: this.state.street,
       type: action,
-      amount: amount ?? (action === "call" ? toCall : 0),
+      amount: action === "all_in" ? (player.streetCommitted) : (amount ?? (action === "call" ? toCall : 0)),
       at: Date.now()
     });
 
@@ -204,6 +241,13 @@ export class GameTable {
     const remaining = this.activePlayers();
     if (remaining.length <= 1) {
       this.finishNoShowdown();
+      return this.getPublicState();
+    }
+
+    // Check if all remaining active players are all-in (no more betting possible)
+    const canStillAct = remaining.filter((p) => !p.allIn);
+    if (canStillAct.length <= 1 && this.state.pendingToAct.size === 0) {
+      this.runOutBoard();
       return this.getPublicState();
     }
 
@@ -236,9 +280,49 @@ export class GameTable {
   getPosition(seat: number): string {
     const activeSeats = this.activePlayers().map((p) => p.seat).sort((a, b) => a - b);
     const order = orderedFromButton(this.state.buttonSeat, activeSeats);
-    const labelOrder = POSITIONS.slice(6 - order.length);
+    const positions = activeSeats.length <= 2 ? POSITIONS_HU : POSITIONS_6MAX;
+    const labelOrder = positions.slice(positions.length - order.length);
     const idx = order.indexOf(seat);
     return idx >= 0 ? labelOrder[idx] : "UNKNOWN";
+  }
+
+  isHandActive(): boolean {
+    return this.state.handId !== null && this.state.actorSeat !== null;
+  }
+
+  getMode(): TableMode {
+    return this.state.mode;
+  }
+
+  setMode(mode: TableMode): void {
+    this.state.mode = mode;
+  }
+
+  private computeLegalActions(): LegalActions | null {
+    if (!this.state.actorSeat || !this.state.handId) return null;
+
+    const player = this.state.players.find((p) => p.seat === this.state.actorSeat);
+    if (!player || !player.inHand || player.folded || player.allIn) return null;
+
+    const toCall = Math.max(0, this.state.currentBet - player.streetCommitted);
+    const canCheck = toCall === 0;
+    const canCall = toCall > 0;
+    const callAmount = Math.min(toCall, player.stack);
+
+    // Can raise if player has enough chips above the call
+    const canRaise = player.stack > toCall;
+    const minRaise = Math.min(this.state.minRaiseTo, player.stack + player.streetCommitted);
+    const maxRaise = player.stack + player.streetCommitted;
+
+    return {
+      canFold: true,
+      canCheck,
+      canCall,
+      callAmount,
+      canRaise,
+      minRaise,
+      maxRaise
+    };
   }
 
   private advanceStreetOrShowdown(): void {
@@ -265,6 +349,24 @@ export class GameTable {
     this.showdown();
   }
 
+  /** Deal remaining community cards when all players are all-in */
+  private runOutBoard(): void {
+    while (this.state.board.length < 5) {
+      if (this.state.board.length === 0) {
+        this.state.board.push(this.drawCard(), this.drawCard(), this.drawCard());
+        this.state.street = "FLOP";
+      } else if (this.state.board.length === 3) {
+        this.state.board.push(this.drawCard());
+        this.state.street = "TURN";
+      } else if (this.state.board.length === 4) {
+        this.state.board.push(this.drawCard());
+        this.state.street = "RIVER";
+      }
+    }
+    this.state.street = "SHOWDOWN";
+    this.showdown();
+  }
+
   private prepareNextStreet(): void {
     this.state.currentBet = 0;
     this.state.minRaiseTo = this.state.bigBlind;
@@ -279,6 +381,13 @@ export class GameTable {
 
     const first = this.nextActorFrom(this.getRelativeSeat(1));
     this.state.actorSeat = first;
+
+    // If only one or zero players can act (rest are all-in), run out board
+    if (this.state.pendingToAct.size <= 1 && this.activePlayers().filter(p => !p.allIn).length <= 1) {
+      if (this.state.pendingToAct.size === 0) {
+        this.runOutBoard();
+      }
+    }
   }
 
   private showdown(): void {
@@ -301,15 +410,23 @@ export class GameTable {
     const share = Math.floor(this.state.pot / winnerSeats.length);
     let remainder = this.state.pot - share * winnerSeats.length;
 
+    const winnersResult: Array<{ seat: number; amount: number; handName?: string }> = [];
+
     for (const seat of winnerSeats) {
       const player = this.playerBySeat(seat);
-      player.stack += share;
-      if (remainder > 0) {
-        player.stack += 1;
-        remainder -= 1;
-      }
+      const amt = share + (remainder > 0 ? 1 : 0);
+      player.stack += amt;
+      if (remainder > 0) remainder -= 1;
+
+      const solvedEntry = solved.find(s => s.seat === seat);
+      winnersResult.push({
+        seat,
+        amount: amt,
+        handName: solvedEntry?.hand.descr
+      });
     }
 
+    this.state.winners = winnersResult;
     this.state.actorSeat = null;
     this.state.pendingToAct.clear();
   }
@@ -317,12 +434,13 @@ export class GameTable {
   private finishNoShowdown(): void {
     const winner = this.activePlayers()[0];
     winner.stack += this.state.pot;
+    this.state.winners = [{ seat: winner.seat, amount: this.state.pot }];
     this.state.street = "SHOWDOWN";
     this.state.actorSeat = null;
     this.state.pendingToAct.clear();
   }
 
-  private commitBlind(seat: number, amount: number, type: "POST_SB" | "POST_BB") {
+  private commitBlind(seat: number, amount: number, type: "post_sb" | "post_bb") {
     const player = this.playerBySeat(seat);
     const commit = Math.min(player.stack, amount);
     player.stack -= commit;
@@ -331,7 +449,7 @@ export class GameTable {
     if (player.stack === 0) {
       player.allIn = true;
     }
-    this.logAction({ seat, street: "PREFLOP", type: type === "POST_SB" ? "raise" : "call", amount: commit, at: Date.now() });
+    this.logAction({ seat, street: "PREFLOP", type: type as unknown as PlayerActionType, amount: commit, at: Date.now() });
   }
 
   private playerBySeat(seat: number): TablePlayer {
