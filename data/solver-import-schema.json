@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Poker Solver Data Import Schema",
+  "description": "Schema for importing GTO solver data (PioSolver, GTO+, etc.)",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version"
+    },
+    "solver": {
+      "type": "string",
+      "enum": ["piosolver", "gto+", "gtowizard", "simple_postflop", "monker", "custom"],
+      "description": "Source solver tool"
+    },
+    "format": {
+      "type": "string",
+      "description": "Game format (cash_6max_100bb, cash_9max_100bb, etc.)"
+    },
+    "spots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["spot", "hands"],
+        "properties": {
+          "spot": {
+            "type": "string",
+            "description": "Spot identifier (e.g., BTN_vs_BB_unopened_open2.5x)"
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable spot description"
+          },
+          "sizing": {
+            "type": "string",
+            "enum": ["open2.5x", "open3x", "open4x", "pot", "half_pot", "2x_pot", "all_in"],
+            "description": "Bet sizing category"
+          },
+          "hands": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["hand", "strategy"],
+              "properties": {
+                "hand": {
+                  "type": "string",
+                  "pattern": "^[AKQJT98765432]{2}[so]?$",
+                  "description": "Hand notation (e.g., AKs, 72o, AA)"
+                },
+                "strategy": {
+                  "type": "object",
+                  "required": ["raise", "call", "fold"],
+                  "properties": {
+                    "raise": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "call": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "fold": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "check": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "For postflop scenarios"
+                    },
+                    "bet_sizes": {
+                      "type": "object",
+                      "description": "Frequencies for different bet sizes when raising",
+                      "properties": {
+                        "small": { "type": "number" },
+                        "medium": { "type": "number" },
+                        "large": { "type": "number" },
+                        "all_in": { "type": "number" }
+                      }
+                    }
+                  }
+                },
+                "ev": {
+                  "type": "number",
+                  "description": "Expected value in big blinds"
+                },
+                "equity": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "Hand equity vs opponent range"
+                },
+                "tags": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Strategic tags (e.g., VALUE_BET, BLUFF, POLARIZED)"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": ["version", "solver", "format", "spots"]
+}

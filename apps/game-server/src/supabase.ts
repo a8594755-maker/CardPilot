@@ -42,6 +42,7 @@ export class SupabasePersistence {
 
     this.admin = url && serviceKey ? createClient(url, serviceKey, { auth: { persistSession: false } }) : null;
     this.authClient = url && anonKey ? createClient(url, anonKey, { auth: { persistSession: false } }) : null;
+    console.log(`[supabase] admin=${!!this.admin} authClient=${!!this.authClient} url=${url ? "set" : "missing"} anonKey=${anonKey ? "set" : "missing"}`);
   }
 
   enabled(): boolean {
@@ -227,6 +228,7 @@ export class SupabasePersistence {
       smallBlind: Number(row.small_blind ?? 50),
       bigBlind: Number(row.big_blind ?? 100),
       playerCount: seatCounts.get(String(row.id)) ?? 0,
+      visibility: "public" as const,
       updatedAt: String(row.updated_at ?? new Date().toISOString())
     }));
   }

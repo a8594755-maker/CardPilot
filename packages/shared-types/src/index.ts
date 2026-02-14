@@ -56,6 +56,8 @@ export interface TableState {
   legalActions: LegalActions | null;
   mode: 'COACH' | 'REVIEW' | 'CASUAL';
   winners?: Array<{ seat: number; amount: number; handName?: string }>;
+  /** Map of seat number → position label (BTN, SB, BB, UTG, etc.) */
+  positions: Record<number, string>;
 }
 
 // ===== Advice Types =====
@@ -100,6 +102,7 @@ export interface LobbyRoomSummary {
   maxPlayers: number;
   playerCount: number;
   status: 'OPEN' | 'CLOSED';
+  visibility: RoomVisibility;
   updatedAt: string;
 }
 
@@ -136,6 +139,157 @@ export interface AdviceLogEntry {
   actualAction: PlayerActionType;
   deviation: number; // 0 = perfect, 1 = completely wrong
   timestamp: Date;
+}
+
+// ===== Room Management Types =====
+
+export type GameType = 'texas' | 'omaha';
+
+export type RoomVisibility = 'public' | 'private';
+
+export interface BlindStructureLevel {
+  smallBlind: number;
+  bigBlind: number;
+  ante: number;
+  durationMinutes: number;
+}
+
+export interface RoomSettings {
+  gameType: GameType;
+  maxPlayers: number;
+  spectatorAllowed: boolean;
+  smallBlind: number;
+  bigBlind: number;
+  ante: number;
+  blindStructure: BlindStructureLevel[] | null; // null = no blind increases
+  buyInMin: number;
+  buyInMax: number;
+  rebuyAllowed: boolean;
+  addOnAllowed: boolean;
+  straddleAllowed: boolean;
+  runItTwice: boolean;
+  visibility: RoomVisibility;
+  password: string | null;
+  hostStartRequired: boolean;
+  actionTimerSeconds: number;    // per-action countdown (e.g. 15)
+  timeBankSeconds: number;       // extra time bank per player (e.g. 60)
+  timeBankRefillPerHand: number; // seconds refilled each hand (e.g. 5)
+  disconnectGracePeriod: number; // seconds to reconnect before auto-fold
+  maxConsecutiveTimeouts: number; // auto sit-out after N timeouts
+}
+
+export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
+  gameType: 'texas',
+  maxPlayers: 6,
+  spectatorAllowed: true,
+  smallBlind: 50,
+  bigBlind: 100,
+  ante: 0,
+  blindStructure: null,
+  buyInMin: 2000,
+  buyInMax: 20000,
+  rebuyAllowed: true,
+  addOnAllowed: false,
+  straddleAllowed: false,
+  runItTwice: false,
+  visibility: 'public',
+  password: null,
+  hostStartRequired: false,
+  actionTimerSeconds: 15,
+  timeBankSeconds: 60,
+  timeBankRefillPerHand: 5,
+  disconnectGracePeriod: 30,
+  maxConsecutiveTimeouts: 3,
+};
+
+export interface RoomOwnership {
+  ownerId: string;
+  ownerName: string;
+  coHostIds: string[];
+}
+
+export type RoomStatus = 'WAITING' | 'PLAYING' | 'PAUSED' | 'CLOSED';
+
+export type RoomLogEventType =
+  | 'OWNER_CHANGED'
+  | 'SETTINGS_CHANGED'
+  | 'PLAYER_KICKED'
+  | 'PLAYER_BANNED'
+  | 'PLAYER_TIMED_OUT'
+  | 'PLAYER_SAT_OUT'
+  | 'GAME_STARTED'
+  | 'GAME_PAUSED'
+  | 'GAME_RESUMED'
+  | 'GAME_ENDED'
+  | 'CHAT_MESSAGE'
+  | 'SYSTEM_MESSAGE';
+
+export interface RoomLogEntry {
+  id: string;
+  timestamp: number;
+  type: RoomLogEventType;
+  actorId?: string;
+  actorName?: string;
+  targetId?: string;
+  targetName?: string;
+  message: string;
+  payload?: Record<string, unknown>;
+}
+
+export interface TimerState {
+  seat: number;
+  remaining: number;        // seconds left on action timer
+  timeBankRemaining: number; // seconds left in time bank
+  usingTimeBank: boolean;
+  startedAt: number;         // timestamp when timer started
+}
+
+export interface RoomFullState {
+  tableId: string;
+  roomCode: string;
+  roomName: string;
+  settings: RoomSettings;
+  ownership: RoomOwnership;
+  status: RoomStatus;
+  banList: string[];         // banned userIds
+  timer: TimerState | null;
+  log: RoomLogEntry[];
+  emptySince: number | null; // timestamp when room became empty, null if occupied
+}
+
+// ===== Room Management Payloads =====
+
+export interface UpdateSettingsPayload {
+  tableId: string;
+  settings: Partial<RoomSettings>;
+}
+
+export interface KickPlayerPayload {
+  tableId: string;
+  targetUserId: string;
+  reason?: string;
+  ban?: boolean;
+}
+
+export interface TransferOwnershipPayload {
+  tableId: string;
+  newOwnerId: string;
+}
+
+export interface SetCoHostPayload {
+  tableId: string;
+  userId: string;
+  add: boolean; // true = add co-host, false = remove
+}
+
+export interface GameControlPayload {
+  tableId: string;
+  action: 'start' | 'pause' | 'resume' | 'end' | 'restart';
+}
+
+export interface JoinRoomWithPasswordPayload {
+  roomCode: string;
+  password?: string;
 }
 
 // Re-export socket events

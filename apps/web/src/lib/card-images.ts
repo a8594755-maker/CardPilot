@@ -15,9 +15,9 @@ const RANK_MAP: Record<string, string> = {
   '8': '8',
   '9': '9',
   'T': '10',
-  'J': '11',
-  'Q': '12',
-  'K': '13',
+  'J': 'jack',
+  'Q': 'queen',
+  'K': 'king',
 };
 
 // 花色映射: s=spade, h=heart, d=diamond, c=club

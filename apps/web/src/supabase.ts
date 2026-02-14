@@ -1,7 +1,59 @@
 import { createClient } from "@supabase/supabase-js";
 
+export type AuthSession = { accessToken: string; userId: string; email?: string | null; displayName?: string | null };
+
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+const GUEST_SESSION_STORAGE_KEY = "cardpilot_guest_session";
+
+function generateGuestId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return `guest-${crypto.randomUUID().slice(0, 8)}`;
+  }
+  return `guest-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function getStoredGuestSession(): AuthSession | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(GUEST_SESSION_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<AuthSession>;
+    if (parsed?.accessToken && parsed?.userId) {
+      return { accessToken: parsed.accessToken, userId: parsed.userId, email: parsed.email ?? null, displayName: parsed.displayName ?? null };
+    }
+    window.localStorage.removeItem(GUEST_SESSION_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function persistGuestSession(session: AuthSession): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(GUEST_SESSION_STORAGE_KEY, JSON.stringify(session));
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function clearGuestSession(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(GUEST_SESSION_STORAGE_KEY);
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function createLocalGuestSession(displayName?: string): AuthSession {
+  const guestId = generateGuestId();
+  const session: AuthSession = { accessToken: guestId, userId: guestId, email: null, displayName: displayName || "Guest" };
+  persistGuestSession(session);
+  return session;
+}
 
 export const supabase =
   supabaseUrl && supabaseAnonKey
@@ -14,7 +66,27 @@ export const supabase =
       })
     : null;
 
-export type AuthSession = { accessToken: string; userId: string; email?: string | null };
+async function getSupabaseSession(): Promise<AuthSession | null> {
+  if (!supabase) return null;
+  const { data: existing } = await supabase.auth.getSession();
+  if (existing.session?.access_token && existing.session.user?.id) {
+    clearGuestSession();
+    const meta = existing.session.user.user_metadata;
+    const dn = (typeof meta?.display_name === "string" && meta.display_name) || (typeof meta?.name === "string" && meta.name) || null;
+    return {
+      accessToken: existing.session.access_token,
+      userId: existing.session.user.id,
+      email: existing.session.user.email,
+      displayName: dn,
+    };
+  }
+  return null;
+}
+
+function isAnonDisabledError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return msg.toLowerCase().includes("anonymous sign-ins are disabled");
+}
 
 /* ── Client-side rate limiter ── */
 const authAttempts: { timestamps: number[]; lockedUntil: number } = {
@@ -86,41 +158,44 @@ function friendlyAuthError(err: unknown): Error {
 }
 
 export async function getExistingSession(): Promise<AuthSession | null> {
-  if (!supabase) return null;
-  const { data: existing } = await supabase.auth.getSession();
-  if (existing.session?.access_token && existing.session.user?.id) {
-    return {
-      accessToken: existing.session.access_token,
-      userId: existing.session.user.id,
-      email: existing.session.user.email
-    };
-  }
-  return null;
+  const cached = getStoredGuestSession();
+  if (cached) return cached;
+  return await getSupabaseSession();
 }
 
-export async function ensureGuestSession(): Promise<AuthSession | null> {
-  if (!supabase) return null;
+export async function ensureGuestSession(displayName?: string): Promise<AuthSession | null> {
+  const cached = getStoredGuestSession();
+  if (cached) return cached;
 
-  const existing = await getExistingSession();
-  if (existing) return existing;
+  const supabaseSession = await getSupabaseSession();
+  if (supabaseSession) return supabaseSession;
 
   checkRateLimit();
+
+  if (!supabase) {
+    return createLocalGuestSession(displayName);
+  }
 
   try {
     const { data, error } = await supabase.auth.signInAnonymously();
     if (error) throw error;
     if (!data.session || !data.user) throw new Error("Anonymous sign-in returned no session.");
+    clearGuestSession();
     return {
       accessToken: data.session.access_token,
       userId: data.user.id,
-      email: data.user.email
+      email: data.user.email,
+      displayName: displayName || "Guest",
     };
   } catch (err) {
+    if (isAnonDisabledError(err)) {
+      return createLocalGuestSession(displayName);
+    }
     throw friendlyAuthError(err);
   }
 }
 
-export async function signUpWithEmail(email: string, password: string): Promise<AuthSession> {
+export async function signUpWithEmail(email: string, password: string, displayName?: string): Promise<AuthSession> {
   if (!supabase) throw new Error("Supabase not configured");
 
   const emailErr = validateEmail(email);
@@ -131,10 +206,14 @@ export async function signUpWithEmail(email: string, password: string): Promise<
   checkRateLimit();
 
   try {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: displayName ? { data: { display_name: displayName } } : undefined,
+    });
     if (error) throw error;
     if (!data.session || !data.user) throw new Error("Sign up succeeded but no session returned. Check your email for confirmation.");
-    return { accessToken: data.session.access_token, userId: data.user.id, email: data.user.email };
+    return { accessToken: data.session.access_token, userId: data.user.id, email: data.user.email, displayName: displayName || null };
   } catch (err) {
     throw friendlyAuthError(err);
   }
@@ -154,13 +233,17 @@ export async function signInWithEmail(email: string, password: string): Promise<
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
     if (!data.session || !data.user) throw new Error("Sign in failed");
-    return { accessToken: data.session.access_token, userId: data.user.id, email: data.user.email };
+    const meta = data.user.user_metadata;
+    const dn = (typeof meta?.display_name === "string" && meta.display_name) || (typeof meta?.name === "string" && meta.name) || null;
+    return { accessToken: data.session.access_token, userId: data.user.id, email: data.user.email, displayName: dn };
   } catch (err) {
     throw friendlyAuthError(err);
   }
 }
 
 export async function signOut(): Promise<void> {
-  if (!supabase) return;
-  await supabase.auth.signOut();
+  if (supabase) {
+    await supabase.auth.signOut();
+  }
+  clearGuestSession();
 }

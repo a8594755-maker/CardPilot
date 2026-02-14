@@ -43,6 +43,7 @@ export class GameTable {
       actions: [],
       legalActions: null,
       mode: params.mode ?? "COACH",
+      positions: {},
       pendingToAct: new Set<number>(),
       deck: [],
       holeCards: new Map()
@@ -53,7 +54,14 @@ export class GameTable {
     const { pendingToAct: _pending, deck: _deck, holeCards: _holes, ...rest } = this.state;
     // Compute legalActions for current actor
     const legal = this.computeLegalActions();
-    return { ...rest, legalActions: legal };
+    // Compute positions for all active players
+    const positions: Record<number, string> = {};
+    if (this.state.handId) {
+      for (const p of this.state.players) {
+        if (p.inHand) positions[p.seat] = this.getPosition(p.seat);
+      }
+    }
+    return { ...rest, legalActions: legal, positions };
   }
 
   getHoleCards(seat: number): [string, string] | null {
@@ -119,8 +127,18 @@ export class GameTable {
       this.state.holeCards.set(seat, [card1, card2]);
     }
 
-    const sbSeat = this.getRelativeSeat(1);
-    const bbSeat = this.getRelativeSeat(2);
+    // Determine blind seats — HU is a special case (button = SB)
+    const isHeadsUp = sortedSeats.length === 2;
+    let sbSeat: number;
+    let bbSeat: number;
+    if (isHeadsUp) {
+      sbSeat = this.state.buttonSeat;
+      bbSeat = sortedSeats.find((s) => s !== sbSeat)!;
+    } else {
+      // Multi-way: SB = first after button (index 0), BB = second (index 1)
+      sbSeat = this.getRelativeSeat(0);
+      bbSeat = this.getRelativeSeat(1);
+    }
     this.commitBlind(sbSeat, this.state.smallBlind, "post_sb");
     this.commitBlind(bbSeat, this.state.bigBlind, "post_bb");
 
@@ -129,7 +147,9 @@ export class GameTable {
         .filter((p) => !p.allIn)
         .map((p) => p.seat)
     );
-    this.state.actorSeat = this.nextActorFrom(this.getRelativeSeat(3));
+    // First to act preflop: next pending player after BB
+    // Multi-way: finds UTG; HU: wraps to SB/button
+    this.state.actorSeat = this.nextActorFrom(bbSeat);
 
     return { handId };
   }
@@ -379,7 +399,8 @@ export class GameTable {
         .map((p) => p.seat)
     );
 
-    const first = this.nextActorFrom(this.getRelativeSeat(1));
+    // Post-flop: first active player clockwise of button
+    const first = this.nextActorFrom(this.state.buttonSeat);
     this.state.actorSeat = first;
 
     // If only one or zero players can act (rest are all-in), run out board
