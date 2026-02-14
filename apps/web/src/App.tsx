@@ -639,6 +639,11 @@ export function App() {
                 const biMin = settings?.buyInMin ?? 2000;
                 const biMax = settings?.buyInMax ?? 20000;
                 const bb = settings?.bigBlind ?? 100;
+                const buyInStep = Math.max(100, bb);
+                const snapBuyIn = (value: number) => {
+                  const snapped = Math.round(value / buyInStep) * buyInStep;
+                  return Math.min(biMax, Math.max(biMin, snapped));
+                };
                 console.log("[BUY_IN_MODAL] isHostOrCoHost:", isHostOrCoHost, "isHost:", isHost, "isCoHost:", isCoHost, "isRoomCreator:", isRoomCreator);
                 console.log("[BUY_IN_MODAL] roomState.ownership:", roomState?.ownership);
                 return (
@@ -649,8 +654,8 @@ export function App() {
                         <span className="text-3xl font-bold text-amber-400 font-mono">{buyInAmount.toLocaleString()}</span>
                         <div className="text-[10px] text-slate-500 mt-1">{(buyInAmount / bb).toFixed(0)} BB</div>
                       </div>
-                      <input type="range" min={biMin} max={biMax} step={bb} value={buyInAmount}
-                        onChange={(e) => setBuyInAmount(Number(e.target.value))}
+                      <input type="range" min={biMin} max={biMax} step={buyInStep} value={buyInAmount}
+                        onChange={(e) => setBuyInAmount(snapBuyIn(Number(e.target.value)))}
                         className="w-full h-2 rounded-full appearance-none bg-white/10 accent-amber-500 cursor-pointer" />
                       <div className="flex justify-between text-[10px] text-slate-500">
                         <span>{biMin.toLocaleString()}</span>
@@ -659,13 +664,13 @@ export function App() {
                       {/* Quick presets */}
                       <div className="flex gap-1.5 justify-center flex-wrap">
                         {(() => {
-                          const presets = [
-                            biMin,
-                            Math.round(biMin + (biMax - biMin) * 0.25),
-                            Math.round((biMin + biMax) / 2),
-                            Math.round(biMin + (biMax - biMin) * 0.75),
-                            biMax
-                          ];
+                          const presets = Array.from(new Set([
+                            snapBuyIn(biMin),
+                            snapBuyIn(biMin + (biMax - biMin) * 0.25),
+                            snapBuyIn((biMin + biMax) / 2),
+                            snapBuyIn(biMin + (biMax - biMin) * 0.75),
+                            snapBuyIn(biMax)
+                          ]));
                           return presets.map((v) => (
                             <button key={v} onClick={() => setBuyInAmount(v)}
                               className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
@@ -863,7 +868,10 @@ export function App() {
                               const settings = roomState?.settings;
                               const min = settings?.buyInMin ?? 40;
                               const max = settings?.buyInMax ?? 300;
-                              setBuyInAmount(Math.min(max, Math.max(min, Math.round((min + max) / 2))));
+                              const step = Math.max(100, settings?.bigBlind ?? 100);
+                              const mid = (min + max) / 2;
+                              const snapped = Math.round(mid / step) * step;
+                              setBuyInAmount(Math.min(max, Math.max(min, snapped)));
                               setPendingSitSeat(seatNum);
                               setShowBuyInModal(true);
                             }} />
