@@ -606,8 +606,13 @@ io.on("connection", (socket) => {
 
   socket.on("join_room_code", async (payload: { roomCode: string; password?: string }) => {
     try {
+      console.log("[JOIN_ROOM_CODE] Request from", identity.userId, "payload:", payload);
+      
       const room = await ensureRoomByCode(payload.roomCode);
+      console.log("[JOIN_ROOM_CODE] Room found:", room ? `${room.roomName} (${room.roomCode})` : "null");
+      
       if (!room || room.status !== "OPEN") {
+        console.log("[JOIN_ROOM_CODE] Room not found or closed");
         throw new Error("Room not found or closed");
       }
 
@@ -640,6 +645,7 @@ io.on("connection", (socket) => {
         payload: { roomCode: room.roomCode }
       }).catch((e) => console.warn("join_room_code: logEvent failed:", (e as Error).message));
 
+      console.log("[JOIN_ROOM_CODE] Emitting room_joined event");
       socket.emit("room_joined", {
         tableId: room.tableId,
         roomCode: room.roomCode,
@@ -649,7 +655,9 @@ io.on("connection", (socket) => {
       socket.emit("room_state_update", roomManager.getFullState(room.tableId));
       emitPresence(room.tableId);
       void emitLobbySnapshot();
+      console.log("[JOIN_ROOM_CODE] Successfully joined room");
     } catch (error) {
+      console.log("[JOIN_ROOM_CODE] Error:", (error as Error).message);
       socket.emit("error_event", { message: (error as Error).message });
     }
   });
