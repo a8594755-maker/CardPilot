@@ -49,10 +49,12 @@ export function App() {
   const [holeCards, setHoleCards] = useState<string[]>([]);
   const [advice, setAdvice] = useState<AdvicePayload | null>(null);
   const [deviation, setDeviation] = useState<{ deviation: number; playerAction: string } | null>(null);
-  const [raiseTo, setRaiseTo] = useState(300);
+  const [raiseTo, setRaiseTo] = useState(0);
   const [message, setMessage] = useState("Initializing...");
+  const actionPendingRef = useRef(false);
   const [winners, setWinners] = useState<Array<{ seat: number; amount: number; handName?: string }> | null>(null);
   const [allInPrompt, setAllInPrompt] = useState<AllInPrompt | null>(null);
+  const [boardReveal, setBoardReveal] = useState<{ street: string; equities: Array<{ seat: number; winRate: number; tieRate: number }> } | null>(null);
 
   const [lobbyRooms, setLobbyRooms] = useState<LobbyRoomSummary[]>([]);
   const [newRoomSB, setNewRoomSB] = useState(1);
@@ -213,7 +215,16 @@ export function App() {
       setSeat(d.seat);
     });
     s.on("hand_started", () => {
-      setAdvice(null); setDeviation(null); setWinners(null); setAllInPrompt(null);
+      setAdvice(null); setDeviation(null); setWinners(null); setAllInPrompt(null); setBoardReveal(null);
+    });
+    s.on("board_reveal", (d: { handId: string; street: string; newCards: string[]; board: string[]; equities: Array<{ seat: number; winRate: number; tieRate: number }> }) => {
+      setBoardReveal({ street: d.street, equities: d.equities });
+    });
+    s.on("run_count_chosen", () => {
+      setAllInPrompt(null);
+    });
+    s.on("stood_up", (d: { seat: number; reason: string }) => {
+      setMessage(d.reason);
     });
     s.on("advice_payload", (d: AdvicePayload) => setAdvice(d));
     s.on("advice_deviation", (d: AdvicePayload & { playerAction: string }) => {
@@ -221,6 +232,7 @@ export function App() {
     });
     s.on("hand_ended", (d: { winners?: Array<{ seat: number; amount: number; handName?: string }> }) => {
       setAllInPrompt(null);
+      setBoardReveal(null);
       if (d.winners) setWinners(d.winners);
       // Auto-record hand to history
       try {
@@ -304,6 +316,15 @@ export function App() {
   }, [socketAuthUserId, socketAuthToken, displayName]);
 
   const canAct = useMemo(() => snapshot?.actorSeat === seat && snapshot?.handId, [snapshot, seat]);
+
+  // Reset raiseTo to minRaise whenever legal actions change
+  useEffect(() => {
+    const minR = snapshot?.legalActions?.minRaise;
+    if (minR && minR > 0) setRaiseTo(minR);
+  }, [snapshot?.legalActions?.minRaise]);
+
+  // Reset action guard when actor changes (new turn)
+  useEffect(() => { actionPendingRef.current = false; }, [snapshot?.actorSeat]);
   const isConnected = socketConnected;
   const isHost = useMemo(() => roomState?.ownership.ownerId === authSession?.userId, [roomState, authSession]);
   const isCoHost = useMemo(() => roomState?.ownership.coHostIds.includes(authSession?.userId ?? "") ?? false, [roomState, authSession]);
@@ -944,11 +965,13 @@ export function App() {
                       const seatTimer = isActor && timerDisplay?.seat === seatNum ? timerDisplay : null;
                       const posLabel = snapshot?.positions?.[seatNum] ?? "";
                       const isButton = snapshot?.buttonSeat === seatNum && !!snapshot?.handId;
+                      const equity = boardReveal?.equities.find((e) => e.seat === seatNum) ?? null;
                       return (
                         <div key={seatNum} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ top: pos.top, left: pos.left }}>
                           <SeatChip player={player} seatNum={seatNum} isActor={isActor} isMe={isMe}
                             isOwner={!!isOwner} isCoHost={!!isCo} timer={seatTimer}
                             posLabel={posLabel} isButton={isButton} displayBB={displayBB} bigBlind={snapshot?.bigBlind ?? 3}
+                            equity={equity}
                             onClickEmpty={() => {
                               const settings = roomState?.settings;
                               const min = settings?.buyInMin ?? 40;
@@ -1056,7 +1079,8 @@ export function App() {
                 </aside>
               </div>
 
-              {/* ── ACTIONS (pinned to bottom) ── */}
+              {/* ── ACTIONS (pinned to bottom) — only when seated & hand active ── */}
+              {snapshot?.handId && snapshot.players.some((p) => p.seat === seat) && (
               <div className="shrink-0 px-3 pb-2">
                 <ActionBar
                   canAct={!!canAct}
@@ -1075,6 +1099,8 @@ export function App() {
                   onThinkExtension={() => socket?.emit("request_think_extension", { tableId })}
                   onAction={(action, amount) => {
                     if (!snapshot?.handId) return;
+                    if (actionPendingRef.current) return;
+                    actionPendingRef.current = true;
                     if (action === "all_in") {
                       socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "all_in" });
                       return;
@@ -1083,62 +1109,40 @@ export function App() {
                   }}
                 />
 
-                {allInPrompt && snapshot?.handId && canAct && allInPrompt.actorSeat === seat && (
+                {allInPrompt && snapshot?.handId && allInPrompt.actorSeat === seat && (
                   <div className="mt-2 p-3 rounded-xl border border-orange-500/30 bg-orange-500/10">
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <div>
-                        <div className="text-[10px] uppercase tracking-wider text-orange-300">All-In Run Decision</div>
-                        <div className="text-xs text-slate-200">Win rate: <span className="font-mono text-orange-300 font-bold">{Math.round(allInPrompt.winRate * 100)}%</span></div>
+                        <div className="text-[10px] uppercase tracking-wider text-orange-300">All-In 發牌選擇</div>
+                        <div className="text-xs text-slate-200">你的勝率: <span className="font-mono text-orange-300 font-bold">{Math.round(allInPrompt.winRate * 100)}%</span></div>
                       </div>
                       <div className="text-[10px] text-slate-400 max-w-[60%] text-right">{allInPrompt.reason}</div>
                     </div>
 
-                    {allInPrompt.winRate >= 0.55 ? (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => {
-                            socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "all_in", runCount: 2 });
-                            setAllInPrompt(null);
-                          }}
-                          className="btn-action flex-1 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600"
-                        >
-                          同意（Run 2）
-                        </button>
-                        <button
-                          onClick={() => {
-                            socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "all_in", runCount: 1 });
-                            setAllInPrompt(null);
-                          }}
-                          className="btn-action flex-1 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600"
-                        >
-                          不同意（Run 1）
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => {
-                            socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "all_in", runCount: 1 });
-                            setAllInPrompt(null);
-                          }}
-                          className="btn-action flex-1 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600"
-                        >
-                          Run 1
-                        </button>
-                        <button
-                          onClick={() => {
-                            socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "all_in", runCount: 2 });
-                            setAllInPrompt(null);
-                          }}
-                          className="btn-action flex-1 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600"
-                        >
-                          Run 2
-                        </button>
-                      </div>
-                    )}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          socket?.emit("run_count_submit", { tableId, handId: snapshot.handId, runCount: 1 });
+                          setAllInPrompt(null);
+                        }}
+                        className="btn-action flex-1 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600"
+                      >
+                        發一次
+                      </button>
+                      <button
+                        onClick={() => {
+                          socket?.emit("run_count_submit", { tableId, handId: snapshot.handId, runCount: 2 });
+                          setAllInPrompt(null);
+                        }}
+                        className="btn-action flex-1 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600"
+                      >
+                        發兩次
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
+              )}
             </main>
           </>
         )}
@@ -2246,51 +2250,50 @@ function ActionBar({
   const confidenceLabel = confidence > 0.7 ? "High confidence" : confidence > 0.5 ? "Mixed spot" : "Marginal";
 
   return (
-    <div className="glass-card p-2.5 space-y-2">
-      {/* Main action buttons + AI Suggest */}
-      <div className="flex flex-wrap items-center gap-1.5">
+    <div className="glass-card p-2 space-y-1.5">
+      {/* Main action buttons row */}
+      <div className="flex items-center gap-1.5">
         <button disabled={!canAct} onClick={() => { onAction("fold"); setShowSuggest(false); }}
-          className="btn-action bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 shadow-lg shadow-slate-900/30">Fold</button>
+          className="btn-action !py-2 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600">Fold</button>
 
         {legal?.canCheck && (
           <button disabled={!canAct} onClick={() => { onAction("check"); setShowSuggest(false); }}
-            className={`btn-action bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-lg shadow-blue-900/30 ${
+            className={`btn-action !py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 ${
               showSuggest && recommendedAction === "fold" ? "ring-2 ring-amber-400 ring-offset-1 ring-offset-slate-900" : ""
             }`}>Check</button>
         )}
 
         {legal?.canCall && (
           <button disabled={!canAct} onClick={() => { onAction("call"); setShowSuggest(false); }}
-            className={`btn-action bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-500 hover:to-sky-600 shadow-lg shadow-sky-900/30 ${
+            className={`btn-action !py-2 bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-500 hover:to-sky-600 ${
               showSuggest && recommendedAction === "call" ? "ring-2 ring-amber-400 ring-offset-1 ring-offset-slate-900" : ""
             }`}>
-            Call {callAmt > 0 && <span className="ml-1 font-mono text-sm opacity-80">{callAmt.toLocaleString()}</span>}
+            Call <span className="ml-1 font-mono text-xs opacity-80">{callAmt.toLocaleString()}</span>
           </button>
         )}
 
         {legal?.canRaise && (
           <button disabled={!canAct} onClick={() => { onAction("raise", raiseTo); setShowSuggest(false); }}
-            className={`btn-action bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 shadow-lg shadow-red-900/30 ${
+            className={`btn-action !py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 ${
               showSuggest && recommendedAction === "raise" ? "ring-2 ring-amber-400 ring-offset-1 ring-offset-slate-900" : ""
             }`}>
-            Raise to <span className="ml-1 font-mono text-sm">{raiseTo.toLocaleString()}</span>
+            Raise to <span className="ml-1 font-mono text-xs">{raiseTo.toLocaleString()}</span>
           </button>
         )}
 
         {legal?.canRaise && (
           <button disabled={!canAct} onClick={() => { onAction("all_in"); setShowSuggest(false); }}
-            className="btn-action bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600 shadow-lg shadow-orange-900/30">
+            className="btn-action !py-2 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600">
             All-In
           </button>
         )}
 
-        {/* AI Suggest button */}
         {canAct && advice && (
           <button onClick={() => setShowSuggest(!showSuggest)}
-            className={`btn-action text-sm !px-4 !py-3 ${
+            className={`btn-action !py-2 text-xs ${
               showSuggest
-                ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-900/30"
-                : "bg-gradient-to-r from-amber-600/30 to-orange-700/30 text-amber-400 border border-amber-500/30 hover:from-amber-500/40 hover:to-orange-600/40"
+                ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white"
+                : "bg-gradient-to-r from-amber-600/30 to-orange-700/30 text-amber-400 border border-amber-500/30"
             }`}>
             AI Suggest
           </button>
@@ -2300,56 +2303,36 @@ function ActionBar({
           <button
             onClick={() => onThinkExtension?.()}
             disabled={(thinkExtensionRemainingUses ?? 0) <= 0}
-            className="btn-action text-sm !px-4 !py-3 bg-gradient-to-r from-violet-600/40 to-fuchsia-700/40 text-violet-300 border border-violet-500/30 hover:from-violet-500/50 hover:to-fuchsia-600/50 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="btn-action !py-2 text-xs bg-gradient-to-r from-violet-600/40 to-fuchsia-700/40 text-violet-300 border border-violet-500/30 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Extend ({Math.max(0, thinkExtensionRemainingUses ?? 0)} left)
           </button>
         )}
       </div>
 
-      {/* AI Suggestion tooltip */}
+      {/* AI Suggestion tooltip — collapsible */}
       {showSuggest && advice && (
-        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-semibold uppercase">Educational Mode</span>
-              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                confidence > 0.7 ? "bg-emerald-500/20 text-emerald-400" : confidence > 0.5 ? "bg-amber-500/20 text-amber-400" : "bg-slate-500/20 text-slate-400"
-              }`}>{confidenceLabel}</span>
-            </div>
-            {recommendedAction && (
-              <button onClick={() => {
-                if (recommendedAction === "raise" && suggestedPresets.length > 0) {
-                  setRaiseTo(presetToChips(suggestedPresets[1]?.pctOfPot ?? 66));
-                }
-                onAction(recommendedAction, recommendedAction === "raise" ? raiseTo : undefined);
-                setShowSuggest(false); // Hide suggestion panel after applying
-              }} className="text-[11px] text-amber-400 hover:text-amber-300 font-semibold">
-                Apply Suggestion
-              </button>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-bold text-white uppercase">{recommendedAction ?? "—"}</span>
-            {recommendedAction === "raise" && suggestedPresets.length > 0 && (
-              <span className="text-xs text-slate-400">Suggested: {suggestedPresets.map(p => p.label).join(" / ")}</span>
-            )}
-          </div>
-          <p className="text-xs text-slate-300 leading-relaxed">{advice.explanation}</p>
-          {/* Alternatives */}
-          <div className="flex gap-3 text-[11px]">
-            <span className="text-red-400">Raise {Math.round(advice.mix.raise * 100)}%</span>
-            <span className="text-blue-400">Call {Math.round(advice.mix.call * 100)}%</span>
-            <span className="text-slate-400">Fold {Math.round(advice.mix.fold * 100)}%</span>
-          </div>
+        <div className="px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center gap-3 text-xs">
+          <span className="font-bold text-white uppercase">{recommendedAction ?? "—"}</span>
+          <span className="text-slate-300 flex-1 truncate">{advice.explanation}</span>
+          <span className="text-red-400 shrink-0">R {Math.round(advice.mix.raise * 100)}%</span>
+          <span className="text-blue-400 shrink-0">C {Math.round(advice.mix.call * 100)}%</span>
+          <span className="text-slate-500 shrink-0">F {Math.round(advice.mix.fold * 100)}%</span>
+          {recommendedAction && (
+            <button onClick={() => {
+              onAction(recommendedAction, recommendedAction === "raise" ? raiseTo : undefined);
+              setShowSuggest(false);
+            }} className="text-amber-400 hover:text-amber-300 font-semibold shrink-0">Apply</button>
+          )}
         </div>
       )}
 
-      {/* Raise slider + sizing presets */}
+      {/* Raise slider + sizing presets — compact single row each */}
       {legal?.canRaise && canAct && (
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] text-slate-500 w-14 text-right font-mono">{min.toLocaleString()}</span>
+        <div className="space-y-1">
+          {/* Slider row */}
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] text-slate-500 w-10 text-right font-mono shrink-0">{min.toLocaleString()}</span>
             <input
               type="range"
               min={min}
@@ -2357,68 +2340,52 @@ function ActionBar({
               step={bigBlind}
               value={raiseTo}
               onChange={(e) => setRaiseTo(Number(e.target.value))}
-              className="flex-1 h-2 rounded-full appearance-none bg-white/10 accent-red-500 cursor-pointer"
+              className="flex-1 h-1.5 rounded-full appearance-none bg-white/10 accent-red-500 cursor-pointer"
             />
-            <span className="text-[10px] text-slate-500 w-14 font-mono">{max.toLocaleString()}</span>
+            <span className="text-[9px] text-slate-500 w-10 font-mono shrink-0">{max.toLocaleString()}</span>
           </div>
-          {/* Suggested presets - show BB multipliers if no pot (preflop) or only raise available */}
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-slate-500 w-16 shrink-0">Suggested</span>
-            <div className="flex gap-1 flex-wrap">
-              {(() => {
-                // Show BB multipliers when pot is small or only fold/raise available (typical preflop)
-                const showBBMultipliers = pot <= bigBlind * 2 || (!legal?.canCheck && !legal?.canCall);
-                if (showBBMultipliers) {
-                  const bbMultipliers = [2, 2.5, 3, 3.5, 4];
-                  return bbMultipliers.map((mult) => {
-                    const chips = Math.max(min, Math.min(max, Math.round(bigBlind * mult)));
-                    return (
-                      <button key={mult} onClick={() => setRaiseTo(chips)}
-                        className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                          raiseTo === chips
-                            ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                            : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/20 hover:text-white"
-                        }`}>{mult}x BB</button>
-                    );
-                  });
-                } else {
-                  return suggestedPresets.map((p) => {
-                    const chips = presetToChips(p.pctOfPot);
-                    return (
-                      <button key={p.label} onClick={() => setRaiseTo(chips)}
-                        className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                          raiseTo === chips
-                            ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                            : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/20 hover:text-white"
-                        }`}>{p.label}</button>
-                    );
-                  });
-                }
-              })()}
-            </div>
-          </div>
-          {/* User custom presets */}
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-slate-500 w-16 shrink-0">My Presets</span>
-            <div className="flex gap-1 flex-wrap">
-              {customPresets.map((p) => {
-                const chips = presetToChips(p.pctOfPot);
-                return (
-                  <button key={p.label} onClick={() => setRaiseTo(chips)}
-                    className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                      raiseTo === chips
-                        ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                        : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/20 hover:text-white"
-                    }`}>{p.label}</button>
-                );
-              })}
-              <button onClick={() => setRaiseTo(max)}
-                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                  raiseTo === max
-                    ? "bg-orange-500/20 text-orange-400 border border-orange-500/30"
-                    : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/20 hover:text-white"
-                }`}>All-In</button>
-            </div>
+          {/* Presets row — suggested + custom combined */}
+          <div className="flex items-center gap-1 flex-wrap">
+            <span className="text-[9px] text-slate-600 mr-1">Suggested</span>
+            {(() => {
+              const showBBMultipliers = pot <= bigBlind * 2 || (!legal?.canCheck && !legal?.canCall);
+              if (showBBMultipliers) {
+                return [2, 2.5, 3, 3.5, 4].map((mult) => {
+                  const chips = Math.max(min, Math.min(max, Math.round(bigBlind * mult)));
+                  return (
+                    <button key={mult} onClick={() => setRaiseTo(chips)}
+                      className={`px-2 py-1 rounded text-[10px] font-semibold transition-all ${
+                        raiseTo === chips ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:text-white"
+                      }`}>{mult}x BB</button>
+                  );
+                });
+              } else {
+                return suggestedPresets.map((p) => {
+                  const chips = presetToChips(p.pctOfPot);
+                  return (
+                    <button key={p.label} onClick={() => setRaiseTo(chips)}
+                      className={`px-2 py-1 rounded text-[10px] font-semibold transition-all ${
+                        raiseTo === chips ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:text-white"
+                      }`}>{p.label}</button>
+                  );
+                });
+              }
+            })()}
+            <div className="w-px h-4 bg-white/10 mx-0.5" />
+            <span className="text-[9px] text-slate-600 mr-1">My Presets</span>
+            {customPresets.map((p) => {
+              const chips = presetToChips(p.pctOfPot);
+              return (
+                <button key={p.label} onClick={() => setRaiseTo(chips)}
+                  className={`px-2 py-1 rounded text-[10px] font-semibold transition-all ${
+                    raiseTo === chips ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:text-white"
+                  }`}>{p.label}</button>
+              );
+            })}
+            <button onClick={() => setRaiseTo(max)}
+              className={`px-2 py-1 rounded text-[10px] font-semibold transition-all ${
+                raiseTo === max ? "bg-orange-500/20 text-orange-400 border border-orange-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:text-white"
+              }`}>All-In</button>
           </div>
         </div>
       )}
@@ -2446,10 +2413,12 @@ function InfoCell({ label, value, highlight, cyan }: { label: string; value: str
   );
 }
 
-function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, onClickEmpty }: {
+function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, equity, onClickEmpty }: {
   player?: TablePlayer; seatNum: number; isActor: boolean; isMe: boolean;
   isOwner?: boolean; isCoHost?: boolean; timer?: TimerState | null;
-  posLabel?: string; isButton?: boolean; displayBB?: boolean; bigBlind?: number; onClickEmpty?: () => void;
+  posLabel?: string; isButton?: boolean; displayBB?: boolean; bigBlind?: number; 
+  equity?: { winRate: number; tieRate: number } | null;
+  onClickEmpty?: () => void;
 }) {
   const bb = bigBlind || 1;
   const fmt = (v: number) => displayBB ? `${(v / bb).toFixed(1)}bb` : v.toLocaleString();
@@ -2519,7 +2488,13 @@ function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, po
         <div className="text-[10px] font-semibold text-white truncate mt-0.5">{player.name}</div>
         <div className="text-[10px] font-mono text-amber-400">{fmt(player.stack)}</div>
         {player.folded && <div className="text-[8px] text-red-400 font-semibold">FOLDED</div>}
-        {player.allIn && <div className="text-[8px] text-orange-400 font-bold">ALL-IN</div>}
+        {player.allIn && !equity && <div className="text-[8px] text-orange-400 font-bold">ALL-IN</div>}
+        {/* Show equity when available */}
+        {equity && player.allIn && (
+          <div className="text-[8px] font-bold text-emerald-400 animate-pulse">
+            {Math.round(equity.winRate * 100)}%
+          </div>
+        )}
         {/* Timer countdown */}
         {timer && (
           <div className={`text-[8px] font-bold tabular-nums ${timerUrgent ? "text-red-400 animate-pulse" : timer.usingTimeBank ? "text-amber-400" : "text-emerald-400"}`}>

@@ -40,6 +40,20 @@ export interface AllInPrompt {
   reason: string;
 }
 
+export interface PlayerEquity {
+  seat: number;
+  winRate: number;
+  tieRate: number;
+}
+
+export interface BoardRevealEvent {
+  handId: string;
+  street: Street;
+  newCards: string[];
+  board: string[];
+  equities: PlayerEquity[];
+}
+
 export interface HandAction {
   seat: number;
   street: Street;

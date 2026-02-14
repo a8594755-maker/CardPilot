@@ -70,6 +70,7 @@ type SeatRequest = { orderId: string; tableId: string; seat: number; buyIn: numb
 const pendingSeatRequests = new Map<string, SeatRequest>();
 const autoDealSchedule = new Map<string, ReturnType<typeof setTimeout>>();
 const pendingAllInPrompts = new Map<string, { handId: string; prompt: AllInPrompt }>();
+const pendingRunCountTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 const supabase = new SupabasePersistence();
 
 // Room manager handles ownership, settings, timers, kick/ban, auto-close
@@ -338,10 +339,8 @@ function broadcastSnapshot(tableId: string) {
   if (!table) return;
   const snapshot = table.getPublicState();
   const pendingPrompt = pendingAllInPrompts.get(tableId);
-  if (pendingPrompt && pendingPrompt.handId === snapshot.handId && pendingPrompt.prompt.actorSeat === snapshot.actorSeat) {
+  if (pendingPrompt && pendingPrompt.handId === snapshot.handId) {
     snapshot.allInPrompt = pendingPrompt.prompt;
-  } else if (pendingPrompt) {
-    pendingAllInPrompts.delete(tableId);
   }
   io.to(tableId).emit("table_snapshot", snapshot);
   emitPresence(tableId);
@@ -388,6 +387,94 @@ function buildAllInPrompt(table: GameTable, actorSeat: number): AllInPrompt {
   };
 }
 
+function calculateAllPlayersEquity(table: GameTable, board: Card[]): Array<{ seat: number; winRate: number; tieRate: number }> {
+  const state = table.getPublicState();
+  const activeSeats = state.players
+    .filter((p) => p.inHand && !p.folded)
+    .map((p) => p.seat);
+
+  const equities: Array<{ seat: number; winRate: number; tieRate: number }> = [];
+
+  for (const seat of activeSeats) {
+    const heroCards = table.getHoleCards(seat);
+    const opponentSeats = activeSeats.filter((s) => s !== seat);
+
+    if (!heroCards || opponentSeats.length === 0) {
+      equities.push({ seat, winRate: 0.5, tieRate: 0 });
+      continue;
+    }
+
+    const villainHands = opponentSeats
+      .map((s) => table.getHoleCards(s))
+      .filter((cards): cards is [string, string] => Array.isArray(cards) && cards.length === 2)
+      .map((cards) => [cards[0], cards[1]] as [Card, Card]);
+
+    if (villainHands.length === 0) {
+      equities.push({ seat, winRate: 1.0, tieRate: 0 });
+      continue;
+    }
+
+    const equity = calculateEquity({
+      heroHand: [heroCards[0], heroCards[1]] as [Card, Card],
+      villainHands,
+      board,
+      simulations: 1200,
+    });
+
+    equities.push({
+      seat,
+      winRate: Math.round(equity.win * 1000) / 1000,
+      tieRate: Math.round(equity.tie * 1000) / 1000,
+    });
+  }
+
+  return equities;
+}
+
+async function handleSequentialRunout(tableId: string, table: GameTable): Promise<void> {
+  // For run-it-twice, use the engine's built-in method (not sequential)
+  if (table.getAllInRunCount() === 2) {
+    table.performRunout();
+    const state = table.getPublicState();
+    finalizeHandEnd(tableId, state);
+    return;
+  }
+
+  const delays: Record<string, number> = { PREFLOP: 0, FLOP: 1500, TURN: 2000, RIVER: 2000, SHOWDOWN: 1500 };
+
+  const revealNextStreetWithDelay = async (): Promise<void> => {
+    const result = table.revealNextStreet();
+    if (!result) return;
+
+    const { street, newCards } = result;
+    const state = table.getPublicState();
+
+    if (street === "SHOWDOWN") {
+      finalizeHandEnd(tableId, state);
+      return;
+    }
+
+    const equities = calculateAllPlayersEquity(table, [...state.board] as Card[]);
+
+    io.to(tableId).emit("board_reveal", {
+      handId: state.handId,
+      street,
+      newCards,
+      board: state.board,
+      equities,
+    });
+
+    broadcastSnapshot(tableId);
+
+    const delay = delays[street] || 1500;
+    await new Promise((resolve) => setTimeout(resolve, delay));
+
+    await revealNextStreetWithDelay();
+  };
+
+  await revealNextStreetWithDelay();
+}
+
 function clearAutoDealSchedule(tableId: string): void {
   const handle = autoDealSchedule.get(tableId);
   if (handle) {
@@ -409,6 +496,8 @@ function startHandFlow(tableId: string, actorUserId: string, source: "manual" | 
   const table = createTableIfNeeded(room);
   const { handId } = table.startHand();
   pendingAllInPrompts.delete(tableId);
+  const rcTimeout = pendingRunCountTimeouts.get(tableId);
+  if (rcTimeout) { clearTimeout(rcTimeout); pendingRunCountTimeouts.delete(tableId); }
 
   roomManager.setHandActive(tableId, true);
   const playerUserIds = bindingsByTable(tableId).map((b) => b.binding.userId);
@@ -471,6 +560,8 @@ function scheduleAutoDealIfNeeded(tableId: string): void {
 
 function finalizeHandEnd(tableId: string, state: TableState): void {
   pendingAllInPrompts.delete(tableId);
+  const rcTimeout = pendingRunCountTimeouts.get(tableId);
+  if (rcTimeout) { clearTimeout(rcTimeout); pendingRunCountTimeouts.delete(tableId); }
   io.to(tableId).emit("hand_ended", {
     board: state.board,
     players: state.players,
@@ -515,34 +606,134 @@ function startTimerForActor(tableId: string): void {
     state.actorSeat,
     actorBinding.binding.userId,
     () => {
-      // Timeout: auto-fold or auto-check
+      // Timeout: always auto-fold, then stand the player up
       const tbl = tables.get(tableId);
       if (!tbl) return;
       const s = tbl.getPublicState();
       if (!s.actorSeat || !s.legalActions) return;
-      const autoAction = s.legalActions.canCheck ? "check" : "fold";
+      const timedOutSeat = s.actorSeat;
       try {
-        tbl.applyAction(s.actorSeat, autoAction as any);
+        const newState = tbl.applyAction(timedOutSeat, "fold");
         io.to(tableId).emit("action_applied", {
-          seat: s.actorSeat,
-          action: autoAction,
+          seat: timedOutSeat,
+          action: "fold",
           amount: 0,
-          pot: tbl.getPublicState().pot,
+          pot: newState.pot,
           auto: true,
         });
-        const newState = tbl.getPublicState();
-        if (!newState.actorSeat) {
-          finalizeHandEnd(tableId, newState);
-        } else {
-          touchLocalRoom(tableId);
-          broadcastSnapshot(tableId);
-          startTimerForActor(tableId);
-        }
+
+        // Stand the timed-out player up (remove from table)
+        standUpPlayer(tableId, timedOutSeat, "Timed out — auto-folded and stood up");
+
+        // Continue the hand
+        handlePostAction(tableId, tbl, newState);
       } catch (err) {
         console.warn("auto-action on timeout failed:", (err as Error).message);
       }
     }
   );
+}
+
+/** Remove a player from their seat and clean up bindings */
+function standUpPlayer(tableId: string, seatNum: number, reason: string): void {
+  const table = tables.get(tableId);
+  if (!table) return;
+
+  // Find and remove socket binding
+  let removedSocketId = "";
+  let removedUserId = "";
+  for (const [sid, binding] of socketSeat.entries()) {
+    if (binding.tableId === tableId && binding.seat === seatNum) {
+      removedSocketId = sid;
+      removedUserId = binding.userId;
+      socketSeat.delete(sid);
+      break;
+    }
+  }
+
+  table.removePlayer(seatNum);
+
+  io.to(tableId).emit("system_message", { message: `Seat ${seatNum}: ${reason}` });
+  if (removedSocketId) {
+    io.to(removedSocketId).emit("stood_up", { seat: seatNum, reason });
+  }
+
+  supabase.removeSeat(tableId, seatNum).catch((e) => console.warn("standUpPlayer: removeSeat failed:", (e as Error).message));
+  supabase.logEvent({
+    tableId,
+    eventType: "STAND_UP",
+    actorUserId: removedUserId || "system",
+    payload: { seat: seatNum, reason }
+  }).catch((e) => console.warn("standUpPlayer: logEvent failed:", (e as Error).message));
+
+  touchLocalRoom(tableId);
+  broadcastSnapshot(tableId);
+  roomManager.checkRoomEmpty(tableId, currentPlayerCount(tableId), () => {
+    handleRoomAutoClose(tableId);
+  });
+  void emitLobbySnapshot();
+}
+
+/** Common post-action logic: check runout, finalize, or continue */
+function handlePostAction(tableId: string, table: GameTable, newState: TableState): void {
+  if (!newState.actorSeat) {
+    if (table.isRunoutPending()) {
+      initiateRunoutFlow(tableId, table);
+    } else {
+      finalizeHandEnd(tableId, newState);
+    }
+  } else {
+    touchLocalRoom(tableId);
+    broadcastSnapshot(tableId);
+    startTimerForActor(tableId);
+  }
+}
+
+/** When all-in runout is needed: decide whether to prompt for run count or just deal */
+function initiateRunoutFlow(tableId: string, table: GameTable): void {
+  const state = table.getPublicState();
+
+  if (table.isEveryoneAllIn()) {
+    // All players are truly all-in → calculate equities, prompt the underdog for run count
+    const equities = calculateAllPlayersEquity(table, [...state.board] as Card[]);
+    const lowestEquity = equities.reduce((min, e) => e.winRate < min.winRate ? e : min);
+
+    const prompt: AllInPrompt = {
+      actorSeat: lowestEquity.seat,
+      winRate: lowestEquity.winRate,
+      recommendedRunCount: 1,
+      defaultRunCount: 1,
+      allowedRunCounts: [1, 2],
+      reason: `勝率 ${Math.round(lowestEquity.winRate * 100)}%，你可以選擇發一次或兩次`,
+    };
+
+    pendingAllInPrompts.set(tableId, { handId: state.handId!, prompt });
+
+    // Send prompt to the underdog player
+    io.to(socketIdBySeat(tableId, lowestEquity.seat)).emit("all_in_prompt", prompt);
+
+    // Also broadcast so the table knows we're waiting
+    broadcastSnapshot(tableId);
+
+    // Auto-default to run 1 after 15 seconds if no response
+    const timeout = setTimeout(() => {
+      pendingRunCountTimeouts.delete(tableId);
+      const pending = pendingAllInPrompts.get(tableId);
+      if (!pending || pending.handId !== state.handId) return;
+      pendingAllInPrompts.delete(tableId);
+      console.log(`[ALL_IN] Run count timeout for ${tableId}, defaulting to run 1`);
+      table.setAllInRunCount(1);
+      void handleSequentialRunout(tableId, table);
+    }, 15000);
+    pendingRunCountTimeouts.set(tableId, timeout);
+  } else {
+    // Not everyone is all-in (one player has chips but no one to bet against)
+    // Skip prompt, just do sequential runout with run=1
+    table.setAllInRunCount(1);
+    touchLocalRoom(tableId);
+    broadcastSnapshot(tableId);
+    void handleSequentialRunout(tableId, table);
+  }
 }
 
 function normalizeRoomCode(roomCode: string): string {
@@ -1090,7 +1281,6 @@ io.on("connection", (socket) => {
       const table = tables.get(payload.tableId);
       if (!table) throw new Error("table not found");
 
-      // Check if game is paused
       if (roomManager.isPaused(payload.tableId)) {
         throw new Error("Game is paused");
       }
@@ -1103,24 +1293,6 @@ io.on("connection", (socket) => {
       // Check for stored advice to calculate deviation
       const adviceKey = `${payload.tableId}:${binding.seat}`;
       const storedAdvice = lastAdvice.get(adviceKey);
-
-      if (payload.action === "all_in") {
-        if (payload.runCount !== 1 && payload.runCount !== 2) {
-          const prompt = buildAllInPrompt(table, binding.seat);
-          pendingAllInPrompts.set(payload.tableId, {
-            handId: payload.handId,
-            prompt,
-          });
-          roomManager.playerActedInTime(payload.tableId, identity.userId);
-          io.to(socket.id).emit("all_in_prompt", prompt);
-          broadcastSnapshot(payload.tableId);
-          return;
-        }
-        table.setAllInRunCount(payload.runCount);
-        pendingAllInPrompts.delete(payload.tableId);
-      } else {
-        pendingAllInPrompts.delete(payload.tableId);
-      }
 
       // Player finalized an action in time — stop timer
       roomManager.playerActedInTime(payload.tableId, identity.userId);
@@ -1150,13 +1322,8 @@ io.on("connection", (socket) => {
         io.to(payload.tableId).emit("street_advanced", { street: newState.street, board: newState.board });
       }
 
-      if (!newState.actorSeat) {
-        finalizeHandEnd(payload.tableId, newState);
-      } else {
-        touchLocalRoom(payload.tableId);
-        broadcastSnapshot(payload.tableId);
-        startTimerForActor(payload.tableId);
-      }
+      // Use shared post-action logic (handles runout, finalize, or next actor)
+      handlePostAction(payload.tableId, table, newState);
 
       supabase.logEvent({
         tableId: payload.tableId,
@@ -1171,6 +1338,43 @@ io.on("connection", (socket) => {
         }
       }).catch((e) => console.warn("action_submit: logEvent failed:", (e as Error).message));
 
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
+  // Run count decision: sent by the underdog player after all-in situation is confirmed
+  socket.on("run_count_submit", (payload: { tableId: string; handId: string; runCount: 1 | 2 }) => {
+    try {
+      const table = tables.get(payload.tableId);
+      if (!table) throw new Error("table not found");
+
+      const pending = pendingAllInPrompts.get(payload.tableId);
+      if (!pending || pending.handId !== payload.handId) {
+        throw new Error("no pending run count decision");
+      }
+
+      // Verify the submitter is the correct player (the underdog)
+      const binding = socketSeat.get(socket.id);
+      if (!binding || binding.seat !== pending.prompt.actorSeat) {
+        throw new Error("not the designated player for run count decision");
+      }
+
+      // Clear timeout and pending prompt
+      const timeout = pendingRunCountTimeouts.get(payload.tableId);
+      if (timeout) {
+        clearTimeout(timeout);
+        pendingRunCountTimeouts.delete(payload.tableId);
+      }
+      pendingAllInPrompts.delete(payload.tableId);
+
+      // Apply run count choice and begin sequential runout
+      const runCount = payload.runCount === 2 ? 2 : 1;
+      table.setAllInRunCount(runCount);
+      console.log(`[ALL_IN] Player chose run ${runCount} for ${payload.tableId}`);
+
+      io.to(payload.tableId).emit("run_count_chosen", { runCount, seat: binding.seat });
+      void handleSequentialRunout(payload.tableId, table);
     } catch (error) {
       socket.emit("error_event", { message: (error as Error).message });
     }

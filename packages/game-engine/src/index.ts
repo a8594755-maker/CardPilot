@@ -26,6 +26,7 @@ type MutableTableState = TableState & {
 export class GameTable {
   private state: MutableTableState;
   private allInRunCount: 1 | 2 = 1;
+  private runoutPending = false;
 
   constructor(params: { tableId: string; smallBlind: number; bigBlind: number; mode?: TableMode }) {
     this.state = {
@@ -111,6 +112,7 @@ export class GameTable {
     this.state.deck = shuffledDeck();
     this.state.winners = undefined;
     this.allInRunCount = 1;
+    this.runoutPending = false;
 
     const sortedSeats = seated.map((p) => p.seat).sort((a, b) => a - b);
     this.state.buttonSeat = nextSeatCircular(this.state.buttonSeat, sortedSeats);
@@ -158,6 +160,10 @@ export class GameTable {
 
   setAllInRunCount(count: 1 | 2): void {
     this.allInRunCount = count;
+  }
+
+  getAllInRunCount(): 1 | 2 {
+    return this.allInRunCount;
   }
 
   applyAction(seat: number, action: PlayerActionType, amount?: number): TableState {
@@ -273,7 +279,10 @@ export class GameTable {
     // Check if all remaining active players are all-in (no more betting possible)
     const canStillAct = remaining.filter((p) => !p.allIn);
     if (canStillAct.length <= 1 && this.state.pendingToAct.size === 0) {
-      this.runOutBoard();
+      // Signal runout needed — server will handle sequential dealing & run-count prompt
+      this.runoutPending = true;
+      this.state.actorSeat = null;
+      this.state.pendingToAct.clear();
       return this.getPublicState();
     }
 
@@ -313,7 +322,7 @@ export class GameTable {
   }
 
   isHandActive(): boolean {
-    return this.state.handId !== null && this.state.actorSeat !== null;
+    return this.state.handId !== null && (this.state.actorSeat !== null || this.runoutPending);
   }
 
   getMode(): TableMode {
@@ -469,6 +478,7 @@ export class GameTable {
       return;
     }
 
+    // Deal all remaining cards at once (will be revealed step by step by server)
     while (this.state.board.length < 5) {
       if (this.state.board.length === 0) {
         this.state.board.push(this.drawCard(), this.drawCard(), this.drawCard());
@@ -483,6 +493,61 @@ export class GameTable {
     }
     this.state.street = "SHOWDOWN";
     this.showdown();
+  }
+
+  /** True when applyAction detected an all-in runout situation */
+  isRunoutPending(): boolean {
+    return this.runoutPending;
+  }
+
+  /** Check if EVERY active player is all-in (for run-count prompt eligibility) */
+  isEveryoneAllIn(): boolean {
+    const remaining = this.activePlayers();
+    return remaining.length >= 2 && remaining.every((p) => p.allIn);
+  }
+
+  /** Execute the full runout (used for run-it-twice which isn't sequential) */
+  performRunout(): void {
+    this.runoutPending = false;
+    this.runOutBoard();
+  }
+
+  /** Get the next street to reveal in sequential runout */
+  getNextRevealStreet(): Street | null {
+    if (this.state.board.length === 0) return "FLOP";
+    if (this.state.board.length === 3) return "TURN";
+    if (this.state.board.length === 4) return "RIVER";
+    if (this.state.board.length === 5) return "SHOWDOWN";
+    return null;
+  }
+
+  /** Reveal next street cards (for sequential all-in runout) */
+  revealNextStreet(): { street: Street; newCards: string[] } | null {
+    const nextStreet = this.getNextRevealStreet();
+    if (!nextStreet) return null;
+
+    const newCards: string[] = [];
+    if (nextStreet === "FLOP" && this.state.board.length === 0) {
+      newCards.push(this.drawCard(), this.drawCard(), this.drawCard());
+      this.state.board.push(...newCards);
+      this.state.street = "FLOP";
+    } else if (nextStreet === "TURN" && this.state.board.length === 3) {
+      const card = this.drawCard();
+      newCards.push(card);
+      this.state.board.push(card);
+      this.state.street = "TURN";
+    } else if (nextStreet === "RIVER" && this.state.board.length === 4) {
+      const card = this.drawCard();
+      newCards.push(card);
+      this.state.board.push(card);
+      this.state.street = "RIVER";
+    } else if (nextStreet === "SHOWDOWN" && this.state.board.length === 5) {
+      this.state.street = "SHOWDOWN";
+      this.showdown();
+      return { street: "SHOWDOWN", newCards: [] };
+    }
+
+    return { street: nextStreet, newCards };
   }
 
   private prepareNextStreet(): void {
@@ -501,10 +566,12 @@ export class GameTable {
     const first = this.nextActorFrom(this.state.buttonSeat);
     this.state.actorSeat = first;
 
-    // If only one or zero players can act (rest are all-in), run out board
+    // If only one or zero players can act (rest are all-in), signal runout
     if (this.state.pendingToAct.size <= 1 && this.activePlayers().filter(p => !p.allIn).length <= 1) {
       if (this.state.pendingToAct.size === 0) {
-        this.runOutBoard();
+        this.runoutPending = true;
+        this.state.actorSeat = null;
+        this.state.pendingToAct.clear();
       }
     }
   }
