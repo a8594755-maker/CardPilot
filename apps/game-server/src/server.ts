@@ -78,11 +78,21 @@ io.use(async (socket, next) => {
   const auth = (socket.handshake.auth ?? {}) as {
     accessToken?: string;
     displayName?: string;
+    userId?: string; // Accept userId from client
   };
 
   try {
     const identity = await supabase.verifyAccessToken(auth.accessToken, auth.displayName);
-    socketIdentity.set(socket.id, identity);
+    // If client sends userId and server uses guest fallback, use client's userId instead
+    if (auth.userId && identity.userId.startsWith('guest-')) {
+      console.log("[AUTH] Using client-provided userId instead of guest ID:", auth.userId);
+      socketIdentity.set(socket.id, {
+        userId: auth.userId,
+        displayName: identity.displayName
+      });
+    } else {
+      socketIdentity.set(socket.id, identity);
+    }
     next();
   } catch {
     next(new Error("unauthorized"));
@@ -669,10 +679,16 @@ io.on("connection", (socket) => {
 
   socket.on("sit_down", async (payload: { tableId: string; seat: number; buyIn: number; name?: string }) => {
     try {
+      console.log("[SIT_DOWN] Request from", identity.userId, "payload:", payload);
+      
       const room = await ensureRoomByTableId(payload.tableId);
       const table = createTableIfNeeded(room);
+      
+      console.log("[SIT_DOWN] Current players:", table.getPublicState().players.map(p => ({ seat: p.seat, name: p.name })));
+      
       const existing = bindingByUser(payload.tableId, identity.userId);
       if (existing && existing.seat !== payload.seat) {
+        console.log("[SIT_DOWN] User already seated at", existing.seat);
         throw new Error("You are already seated at this table. Stand up first to switch seats.");
       }
 
@@ -680,18 +696,23 @@ io.on("connection", (socket) => {
       const managed = roomManager.getRoom(payload.tableId);
       if (managed) {
         const { buyInMin, buyInMax } = managed.settings;
+        console.log("[SIT_DOWN] Buy-in validation:", payload.buyIn, "range:", buyInMin, "-", buyInMax);
         if (payload.buyIn < buyInMin || payload.buyIn > buyInMax) {
           throw new Error(`Buy-in must be between ${buyInMin} and ${buyInMax}`);
         }
       }
 
       const name = payload.name?.slice(0, 32) || identity.displayName;
+      console.log("[SIT_DOWN] Adding player:", { seat: payload.seat, userId: identity.userId, name, stack: payload.buyIn });
+      
       table.addPlayer({
         seat: payload.seat,
         userId: identity.userId,
         name,
         stack: payload.buyIn
       });
+      
+      console.log("[SIT_DOWN] Player added successfully");
 
       socketSeat.set(socket.id, {
         tableId: payload.tableId,

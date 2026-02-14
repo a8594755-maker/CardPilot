@@ -146,7 +146,14 @@ export function App() {
   /* ── Socket: connect only when authenticated ── */
   useEffect(() => {
     if (!authSession) return;
-    const s = io(SERVER, { auth: { accessToken: authSession.accessToken, displayName } });
+    console.log("[SOCKET] Connecting with userId:", authSession.userId);
+    const s = io(SERVER, { 
+      auth: { 
+        accessToken: authSession.accessToken, 
+        displayName,
+        userId: authSession.userId // Send userId to server
+      } 
+    });
     setSocket(s);
 
     s.on("connect", () => { setSocketConnected(true); setMessage("Connected"); s.emit("request_lobby"); });
@@ -163,9 +170,13 @@ export function App() {
       setMessage(`Room created: ${d.roomName} (${d.roomCode})`); setView("table");
     });
     s.on("room_joined", (d: { tableId: string; roomCode: string; roomName: string }) => {
-      console.log("[ROOM_JOINED] You joined an existing room (not creator)");
+      console.log("[ROOM_JOINED] Joined existing room (not creator)");
       setTableId(d.tableId); setCurrentRoomCode(d.roomCode);
-      setIsRoomCreator(false); // Not the creator when joining
+      // Don't reset isRoomCreator if it's already true (e.g., after room_created)
+      setIsRoomCreator(prev => {
+        console.log("[ROOM_JOINED] Keeping isRoomCreator:", prev);
+        return prev; // Keep existing value, don't reset
+      });
       setMessage(`Joined room: ${d.roomName} (${d.roomCode})`); setView("table");
     });
     s.on("table_snapshot", (d: TableState) => {
@@ -632,15 +643,24 @@ export function App() {
                         <span>{biMax.toLocaleString()}</span>
                       </div>
                       {/* Quick presets */}
-                      <div className="flex gap-1.5 justify-center">
-                        {[biMin, Math.round((biMin + biMax) / 2), biMax].map((v) => (
-                          <button key={v} onClick={() => setBuyInAmount(v)}
-                            className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                              buyInAmount === v
-                                ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                                : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/20"
-                            }`}>{v.toLocaleString()}</button>
-                        ))}
+                      <div className="flex gap-1.5 justify-center flex-wrap">
+                        {(() => {
+                          const presets = [
+                            biMin,
+                            Math.round(biMin + (biMax - biMin) * 0.25),
+                            Math.round((biMin + biMax) / 2),
+                            Math.round(biMin + (biMax - biMin) * 0.75),
+                            biMax
+                          ];
+                          return presets.map((v) => (
+                            <button key={v} onClick={() => setBuyInAmount(v)}
+                              className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                                buyInAmount === v
+                                  ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                                  : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/20"
+                              }`}>{v.toLocaleString()}</button>
+                          ));
+                        })()}
                       </div>
                       <div className="flex gap-2">
                         <button onClick={() => setShowBuyInModal(false)}
@@ -1089,17 +1109,7 @@ function ProfilePage({ displayName, setDisplayName, email, authSession }: {
                 ))}
               </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Table Type</label>
-              <div className="flex gap-1 bg-white/5 rounded-xl p-1">
-                {(["6-max", "9-max"] as const).map((t) => (
-                  <button key={t} onClick={() => updatePref("tableType", t)}
-                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${prefs.tableType === t ? "bg-white/10 text-white" : "text-slate-400 hover:text-slate-200"}`}>
-                    {t}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Table Type removed - host decides this when creating room */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Blind Level</label>
               <select value={prefs.blindLevel} onChange={(e) => updatePref("blindLevel", e.target.value)} className="input-field w-full">
@@ -1618,12 +1628,10 @@ function ToggleSetting({ label, checked, onChange }: { label: string; checked: b
 /* ═══════════════════ ONBOARDING MODAL ═══════════════════ */
 function OnboardingModal({ onComplete }: { onComplete: () => void }) {
   const [step, setStep] = useState(0);
-  const [tableType, setTableType] = useState<"6-max" | "9-max">("6-max");
-  const [blindLevel, setBlindLevel] = useState("50/100");
+  const [blindLevel, setBlindLevel] = useState("1/3");
 
   function handleFinish() {
     const prefs = loadPrefs();
-    prefs.tableType = tableType;
     prefs.blindLevel = blindLevel;
     savePrefs(prefs);
     onComplete();
@@ -1634,22 +1642,22 @@ function OnboardingModal({ onComplete }: { onComplete: () => void }) {
       <div className="glass-card p-8 w-full max-w-md mx-4 space-y-6">
         {/* Progress dots */}
         <div className="flex justify-center gap-2">
-          {[0, 1, 2].map((i) => (
+          {[0, 1].map((i) => (
             <div key={i} className={`w-2.5 h-2.5 rounded-full transition-all ${step === i ? "bg-amber-400 scale-125" : step > i ? "bg-emerald-400" : "bg-white/20"}`} />
           ))}
         </div>
 
         {step === 0 && (
           <div className="space-y-5 text-center">
-            <div className="text-4xl">🎯</div>
-            <h2 className="text-xl font-bold text-white">Choose Your Table Type</h2>
-            <p className="text-sm text-slate-400">This sets your default preference. You can always change it later in Profile.</p>
-            <div className="flex gap-3 justify-center">
-              {(["6-max", "9-max"] as const).map((t) => (
-                <button key={t} onClick={() => setTableType(t)}
-                  className={`px-8 py-4 rounded-xl text-lg font-bold transition-all ${
-                    tableType === t ? "bg-amber-500 text-white shadow-lg shadow-amber-500/30" : "bg-white/5 text-slate-300 border border-white/10 hover:border-white/20"
-                  }`}>{t}</button>
+            <div className="text-4xl">💰</div>
+            <h2 className="text-xl font-bold text-white">Select Default Blind Level</h2>
+            <p className="text-sm text-slate-400">Pick the stakes you usually play at. You can always change this later.</p>
+            <div className="grid grid-cols-3 gap-2">
+              {["1/3", "2/5", "5/10", "10/20", "25/50", "50/100"].map((b) => (
+                <button key={b} onClick={() => setBlindLevel(b)}
+                  className={`py-3 rounded-xl text-sm font-bold transition-all ${
+                    blindLevel === b ? "bg-amber-500 text-white shadow-lg shadow-amber-500/30" : "bg-white/5 text-slate-300 border border-white/10 hover:border-white/20"
+                  }`}>{b}</button>
               ))}
             </div>
             <button onClick={() => setStep(1)} className="btn-primary w-full !py-3">Next</button>
@@ -1658,36 +1666,12 @@ function OnboardingModal({ onComplete }: { onComplete: () => void }) {
 
         {step === 1 && (
           <div className="space-y-5 text-center">
-            <div className="text-4xl">💰</div>
-            <h2 className="text-xl font-bold text-white">Select Default Blind Level</h2>
-            <p className="text-sm text-slate-400">Pick the stakes you usually play at.</p>
-            <div className="grid grid-cols-3 gap-2">
-              {["1/2", "2/5", "5/10", "10/20", "25/50", "50/100"].map((b) => (
-                <button key={b} onClick={() => setBlindLevel(b)}
-                  className={`py-3 rounded-xl text-sm font-bold transition-all ${
-                    blindLevel === b ? "bg-amber-500 text-white shadow-lg shadow-amber-500/30" : "bg-white/5 text-slate-300 border border-white/10 hover:border-white/20"
-                  }`}>{b}</button>
-              ))}
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => setStep(0)} className="btn-ghost flex-1 !py-3">Back</button>
-              <button onClick={() => setStep(2)} className="btn-primary flex-1 !py-3">Next</button>
-            </div>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="space-y-5 text-center">
             <div className="text-4xl">🚀</div>
             <h2 className="text-xl font-bold text-white">You're All Set!</h2>
-            <p className="text-sm text-slate-400">Your preferences are saved. Head to the lobby to create or join a room and start playing.</p>
-            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 text-left space-y-2">
+            <p className="text-sm text-slate-400">Head to the lobby to create or join a room and start playing. The host will decide the table settings.</p>
+            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 text-left">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Table Type</span>
-                <span className="text-white font-medium">{tableType}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-400">Blind Level</span>
+                <span className="text-slate-400">Default Blind Level</span>
                 <span className="text-white font-medium">{blindLevel}</span>
               </div>
             </div>
@@ -1938,20 +1922,18 @@ function ActionBar({ canAct, legal, pot, bigBlind, raiseTo, setRaiseTo, onAction
     <div className="glass-card p-2.5 space-y-2">
       {/* Main action buttons + AI Suggest */}
       <div className="flex flex-wrap items-center gap-1.5">
-        <button disabled={!canAct || !legal?.canFold} onClick={() => onAction("fold")}
-          className={`btn-action bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 shadow-lg shadow-slate-900/30 ${
-            showSuggest && recommendedAction === "fold" ? "ring-2 ring-amber-400 ring-offset-1 ring-offset-slate-900" : ""
-          }`}>Fold</button>
+        <button disabled={!canAct} onClick={() => { onAction("fold"); setShowSuggest(false); }}
+          className="btn-action bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 shadow-lg shadow-slate-900/30">Fold</button>
 
         {legal?.canCheck && (
-          <button disabled={!canAct} onClick={() => onAction("check")}
+          <button disabled={!canAct} onClick={() => { onAction("check"); setShowSuggest(false); }}
             className={`btn-action bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-lg shadow-blue-900/30 ${
               showSuggest && recommendedAction === "fold" ? "ring-2 ring-amber-400 ring-offset-1 ring-offset-slate-900" : ""
             }`}>Check</button>
         )}
 
         {legal?.canCall && (
-          <button disabled={!canAct} onClick={() => onAction("call")}
+          <button disabled={!canAct} onClick={() => { onAction("call"); setShowSuggest(false); }}
             className={`btn-action bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-500 hover:to-sky-600 shadow-lg shadow-sky-900/30 ${
               showSuggest && recommendedAction === "call" ? "ring-2 ring-amber-400 ring-offset-1 ring-offset-slate-900" : ""
             }`}>
@@ -1960,7 +1942,7 @@ function ActionBar({ canAct, legal, pot, bigBlind, raiseTo, setRaiseTo, onAction
         )}
 
         {legal?.canRaise && (
-          <button disabled={!canAct} onClick={() => onAction("raise", raiseTo)}
+          <button disabled={!canAct} onClick={() => { onAction("raise", raiseTo); setShowSuggest(false); }}
             className={`btn-action bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 shadow-lg shadow-red-900/30 ${
               showSuggest && recommendedAction === "raise" ? "ring-2 ring-amber-400 ring-offset-1 ring-offset-slate-900" : ""
             }`}>
@@ -1997,6 +1979,7 @@ function ActionBar({ canAct, legal, pot, bigBlind, raiseTo, setRaiseTo, onAction
                   setRaiseTo(presetToChips(suggestedPresets[1]?.pctOfPot ?? 66));
                 }
                 onAction(recommendedAction, recommendedAction === "raise" ? raiseTo : undefined);
+                setShowSuggest(false); // Hide suggestion panel after applying
               }} className="text-[11px] text-amber-400 hover:text-amber-300 font-semibold">
                 Apply Suggestion
               </button>
@@ -2034,21 +2017,40 @@ function ActionBar({ canAct, legal, pot, bigBlind, raiseTo, setRaiseTo, onAction
             />
             <span className="text-[10px] text-slate-500 w-14 font-mono">{max.toLocaleString()}</span>
           </div>
-          {/* Suggested presets */}
+          {/* Suggested presets - show BB multipliers if no pot (preflop) or only raise available */}
           <div className="flex items-center gap-2">
             <span className="text-[10px] text-slate-500 w-16 shrink-0">Suggested</span>
             <div className="flex gap-1 flex-wrap">
-              {suggestedPresets.map((p) => {
-                const chips = presetToChips(p.pctOfPot);
-                return (
-                  <button key={p.label} onClick={() => setRaiseTo(chips)}
-                    className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                      raiseTo === chips
-                        ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                        : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/20 hover:text-white"
-                    }`}>{p.label}</button>
-                );
-              })}
+              {(() => {
+                // Show BB multipliers when pot is small or only fold/raise available (typical preflop)
+                const showBBMultipliers = pot <= bigBlind * 2 || (!legal?.canCheck && !legal?.canCall);
+                if (showBBMultipliers) {
+                  const bbMultipliers = [2, 2.5, 3, 3.5, 4];
+                  return bbMultipliers.map((mult) => {
+                    const chips = Math.max(min, Math.min(max, Math.round(bigBlind * mult)));
+                    return (
+                      <button key={mult} onClick={() => setRaiseTo(chips)}
+                        className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                          raiseTo === chips
+                            ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                            : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/20 hover:text-white"
+                        }`}>{mult}x BB</button>
+                    );
+                  });
+                } else {
+                  return suggestedPresets.map((p) => {
+                    const chips = presetToChips(p.pctOfPot);
+                    return (
+                      <button key={p.label} onClick={() => setRaiseTo(chips)}
+                        className={`px-2.5 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                          raiseTo === chips
+                            ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                            : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/20 hover:text-white"
+                        }`}>{p.label}</button>
+                    );
+                  });
+                }
+              })()}
             </div>
           </div>
           {/* User custom presets */}
