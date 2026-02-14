@@ -1,0 +1,181 @@
+@import "tailwindcss";
+
+@theme {
+  --color-felt-900: #0a1f14;
+  --color-felt-800: #0d2e1c;
+  --color-felt-700: #145a32;
+  --color-felt-600: #1a7a44;
+  --color-gold-400: #f5c842;
+  --color-gold-500: #d4a017;
+  --color-chip-red: #dc2626;
+  --color-chip-blue: #2563eb;
+  --color-chip-green: #16a34a;
+  --font-sans: "Inter", "Noto Sans TC", system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0a0f1a 0%, #111827 50%, #0a0f1a 100%);
+    color: #e2e8f0;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 3px;
+  }
+}
+
+@layer components {
+  .glass-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.8));
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  .glass-card-hover {
+    transition: all 0.2s ease;
+  }
+  .glass-card-hover:hover {
+    border-color: rgba(148, 163, 184, 0.25);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+  }
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6);
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-success {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+  }
+  .btn-success:hover {
+    background: linear-gradient(135deg, #4ade80, #22c55e);
+    box-shadow: 0 4px 16px rgba(22, 163, 74, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+  }
+  .btn-danger:hover {
+    background: linear-gradient(135deg, #f87171, #ef4444);
+    box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-ghost {
+    background: rgba(51, 65, 85, 0.5);
+    color: #cbd5e1;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(100, 116, 139, 0.3);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-ghost:hover {
+    background: rgba(71, 85, 105, 0.6);
+    border-color: rgba(148, 163, 184, 0.4);
+  }
+
+  .btn-action {
+    padding: 14px 28px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .btn-action:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .input-field {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(100, 116, 139, 0.3);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #e2e8f0;
+    font-size: 14px;
+    transition: border-color 0.15s ease;
+    outline: none;
+  }
+  .input-field:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  }
+  .input-field::placeholder {
+    color: #64748b;
+  }
+
+  .poker-table-surface {
+    background: radial-gradient(ellipse at center, #1a6b3c 0%, #145a32 40%, #0d4526 70%, #0a3a1f 100%);
+    border: 10px solid #5c3a1e;
+    box-shadow:
+      inset 0 0 60px rgba(0, 0, 0, 0.4),
+      0 0 0 4px #3d2510,
+      0 0 0 8px #2a1a0c,
+      0 20px 60px rgba(0, 0, 0, 0.5);
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .status-dot-online {
+    background: #22c55e;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+  }
+  .status-dot-offline {
+    background: #64748b;
+  }
+}
