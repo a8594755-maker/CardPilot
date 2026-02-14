@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { AdvicePayload } from "@cardpilot/shared-types";
+import type { AdvicePayload, PlayerActionType, StrategyMix } from "@cardpilot/shared-types";
 
 type Mix = { raise: number; call: number; fold: number };
 
@@ -16,29 +16,40 @@ type ChartRow = {
 const EXPLANATIONS: Record<string, string> = {
   IP_ADVANTAGE: "你在位置上有優勢，翻牌後更容易實現權益。",
   A_BLOCKER: "A blocker 會降低對手拿到強 Ax 組合的機率。",
+  K_BLOCKER: "K blocker 降低對手持有 KK/AK 的可能。",
   WHEEL_PLAYABILITY: "這手牌有 wheel 順子潛力，可玩性不錯。",
+  SUITED_PLAYABILITY: "同花牌的後門花/順延展性使其更容易實現權益。",
+  CONNECTED: "連牌結構使翻牌後的順子潛力更高。",
   BROADWAY_STRENGTH: "Broadway 組合在高牌面有不錯的命中率。",
-  DEFEND_RANGE: "面對小尺寸 open，需要用部分 suited Ax 防守。",
-  LOW_PLAYABILITY: "可玩性與實現權益都偏低，理論上以棄牌為主。"
+  DEFEND_RANGE: "面對小尺寸 open，需要用足夠的牌防守以避免被過度偷盲。",
+  FOLD_EQUITY: "位置優勢帶來的棄牌權益，使較弱的牌也值得進攻。",
+  LOW_PLAYABILITY: "可玩性與實現權益都偏低，理論上以棄牌為主。",
+  DOMINATION_RISK: "容易被更強的同類牌支配（domination），需要小心。",
+  PAIR_VALUE: "口袋對子有固定的 set value，適合看翻牌。",
+  PREMIUM_PAIR: "頂級口袋對子，是 preflop 最強手牌之一。"
 };
 
 const chartPath = resolveChartPath();
 const chartRows: ChartRow[] = JSON.parse(readFileSync(chartPath, "utf-8"));
+console.log(`[advice-engine] loaded ${chartRows.length} chart rows from ${chartPath}`);
 
 function resolveChartPath(): string {
   const fromEnv = process.env.CARDPILOT_CHART_PATH;
   if (fromEnv) return fromEnv;
 
-  const localCwdPath = join(process.cwd(), "data", "preflop_charts.sample.json");
-  try {
-    readFileSync(localCwdPath, "utf-8");
-    return localCwdPath;
-  } catch {
-    // fall through
+  // Try full chart first, then sample
+  for (const filename of ["preflop_charts.json", "preflop_charts.sample.json"]) {
+    const localCwdPath = join(process.cwd(), "data", filename);
+    try {
+      readFileSync(localCwdPath, "utf-8");
+      return localCwdPath;
+    } catch {
+      // fall through
+    }
   }
 
   const thisDir = fileURLToPath(new URL(".", import.meta.url));
-  return join(thisDir, "../../../data/preflop_charts.sample.json");
+  return join(thisDir, "../../../data/preflop_charts.json");
 }
 
 export function buildSpotKey(params: {
@@ -48,7 +59,7 @@ export function buildSpotKey(params: {
   size: "open2.5x";
 }): string {
   if (params.line === "unopened") {
-    return `${params.heroPos}_vs_${params.villainPos}_unopened_${params.size}`;
+    return `${params.heroPos}_unopened_${params.size}`;
   }
   return `${params.heroPos}_vs_${params.villainPos}_facing_${params.size}`;
 }
@@ -80,6 +91,10 @@ export function getPreflopAdvice(input: {
   const tags = row?.notes ?? ["LOW_PLAYABILITY"];
   const explanation = tags.map((t) => EXPLANATIONS[t] ?? t).join(" ");
 
+  // Randomized recommendation (§6.4)
+  const rand = Math.random();
+  const recommended = pickByMix(mix, rand);
+
   return {
     tableId: input.tableId,
     handId: input.handId,
@@ -88,8 +103,45 @@ export function getPreflopAdvice(input: {
     heroHand: input.heroHand,
     mix,
     tags,
-    explanation
+    explanation,
+    recommended,
+    randomSeed: Math.round(rand * 100) / 100
   };
+}
+
+/**
+ * Pick action by cumulative distribution of mix frequencies.
+ * r ∈ [0,1) → action with matching probability band.
+ */
+function pickByMix(mix: Mix, r: number): "raise" | "call" | "fold" {
+  if (r < mix.raise) return "raise";
+  if (r < mix.raise + mix.call) return "call";
+  return "fold";
+}
+
+/**
+ * Calculate deviation score between player action and GTO mix.
+ * 0 = perfect (chose the highest-frequency action), 1 = worst possible.
+ */
+export function calculateDeviation(
+  mix: StrategyMix,
+  playerAction: PlayerActionType
+): number {
+  const actionMap: Record<string, keyof StrategyMix> = {
+    fold: "fold",
+    check: "fold", // check ≈ passive / fold equivalent for preflop
+    call: "call",
+    raise: "raise",
+    all_in: "raise"
+  };
+
+  const key = actionMap[playerAction] ?? "fold";
+  const chosenFreq = mix[key];
+
+  // Deviation = 1 − chosen_frequency
+  // If GTO says raise 100% and you fold, deviation = 1.0
+  // If GTO says raise 65% / fold 35% and you fold, deviation = 0.65
+  return Math.round((1 - chosenFreq) * 10000) / 10000;
 }
 
 function fallbackMix(hand: string, line: "unopened" | "facing_open"): Mix {

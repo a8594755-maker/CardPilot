@@ -4,6 +4,18 @@ export type Street = 'PREFLOP' | 'FLOP' | 'TURN' | 'RIVER' | 'SHOWDOWN';
 
 export type PlayerActionType = 'fold' | 'check' | 'call' | 'raise' | 'all_in';
 
+export type BlindActionType = 'post_sb' | 'post_bb';
+
+export interface LegalActions {
+  canFold: boolean;
+  canCheck: boolean;
+  canCall: boolean;
+  callAmount: number;
+  canRaise: boolean;
+  minRaise: number;
+  maxRaise: number;
+}
+
 export type Position = 'SB' | 'BB' | 'UTG' | 'MP' | 'HJ' | 'CO' | 'BTN';
 
 // ===== Player & Table Types =====
@@ -41,6 +53,9 @@ export interface TableState {
   handId: string | null;
   players: TablePlayer[];
   actions: HandAction[];
+  legalActions: LegalActions | null;
+  mode: 'COACH' | 'REVIEW' | 'CASUAL';
+  winners?: Array<{ seat: number; amount: number; handName?: string }>;
 }
 
 // ===== Advice Types =====
@@ -60,6 +75,9 @@ export interface AdvicePayload {
   mix: StrategyMix;
   tags: string[];
   explanation: string;
+  recommended?: 'raise' | 'call' | 'fold';
+  randomSeed?: number;
+  deviation?: number;
 }
 
 // ===== Action Types =====
