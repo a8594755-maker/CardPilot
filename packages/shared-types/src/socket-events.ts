@@ -1,7 +1,10 @@
 // WebSocket Event Types for CardPilot
 // Namespace: /poker
 
-import type { Street, PlayerActionType } from './index.js';
+import type { Street, PlayerActionType, AdvicePayload as AdvicePayloadFromIndex, LobbyRoomSummary as LobbyRoomSummaryFromIndex } from './index.js';
+
+// Re-export types from index.ts for convenience
+export type { AdvicePayloadFromIndex as AdvicePayload, LobbyRoomSummaryFromIndex as LobbyRoomSummary };
 
 // ===== Client → Server Events =====
 
@@ -120,24 +123,7 @@ export interface AdviceContext {
   toCall: number;
 }
 
-export interface AdvicePayload {
-  handId: string;
-  spotKey: string; // "6m_100bb_BTN_vs_UTG_open"
-  handCards: string; // "A5s"
-  
-  // GTO 頻率
-  strategy: StrategyMix;
-  sizing?: string; // "3x", "all_in"
-  
-  // AI 解釋
-  explanation: AdviceExplanation;
-  
-  // 情境資訊
-  context: AdviceContext;
-  
-  // 偏離警告（執行動作後）
-  deviation?: number;
-}
+// Note: AdvicePayload is defined in index.ts to avoid duplication
 
 export interface WinnerInfo {
   seatIndex: number;
@@ -166,20 +152,10 @@ export interface RoomJoinedPayload {
   roomName: string;
 }
 
-export interface LobbyRoomSummary {
-  roomId: string;
-  roomCode: string;
-  roomName: string;
-  smallBlind: number;
-  bigBlind: number;
-  maxSeats: number;
-  playerCount: number;
-  status: 'WAITING' | 'PLAYING' | 'CLOSED';
-  updatedAt: string;
-}
+// Note: LobbyRoomSummary is defined in index.ts to avoid duplication
 
 export interface LobbySnapshotPayload {
-  rooms: LobbyRoomSummary[];
+  rooms: LobbyRoomSummaryFromIndex[];
 }
 
 export interface ErrorPayload {
@@ -216,7 +192,7 @@ export interface ServerToClientEvents {
   'hand:result': (payload: HandResultPayload) => void;
   'hand:ended': (payload: HandResultPayload) => void;
   
-  'advice:recommendation': (payload: AdvicePayload) => void;
+  'advice:recommendation': (payload: AdvicePayloadFromIndex) => void;
   
   'room:created': (payload: RoomCreatedPayload) => void;
   'room:joined': (payload: RoomJoinedPayload) => void;

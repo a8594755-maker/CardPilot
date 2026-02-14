@@ -18,7 +18,7 @@ export function Table({ snapshot, mySeatIndex, holeCards, onSeatClick }: TablePr
     );
   }
 
-  const { seats, currentHand, pot, smallBlind, bigBlind } = snapshot;
+  const { seats, currentHand, smallBlind, bigBlind } = snapshot;
 
   return (
     <div className="w-full max-w-4xl">
