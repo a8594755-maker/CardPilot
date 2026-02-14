@@ -71,10 +71,12 @@ export function App() {
   const snapshotRef = useRef(snapshot);
   const holeCardsRef = useRef(holeCards);
   const seatRef = useRef(seat);
+  const currentRoomCodeRef = useRef(currentRoomCode);
   useEffect(() => { setName(displayName); }, [displayName]);
   useEffect(() => { snapshotRef.current = snapshot; }, [snapshot]);
   useEffect(() => { holeCardsRef.current = holeCards; }, [holeCards]);
   useEffect(() => { seatRef.current = seat; }, [seat]);
+  useEffect(() => { currentRoomCodeRef.current = currentRoomCode; }, [currentRoomCode]);
 
   /* ── Client-side timer tick: count down remaining every second ── */
   const [timerDisplay, setTimerDisplay] = useState<TimerState | null>(null);
@@ -143,22 +145,34 @@ export function App() {
     return () => { data.subscription.unsubscribe(); };
   }, []);
 
+  const socketAuthUserId = authSession?.userId;
+  const socketAuthToken = authSession?.accessToken;
+
   /* ── Socket: connect only when authenticated ── */
   useEffect(() => {
-    if (!authSession) return;
-    console.log("[SOCKET] Connecting with userId:", authSession.userId);
+    if (!socketAuthUserId) return;
+    console.log("[SOCKET] Connecting with userId:", socketAuthUserId);
     const s = io(SERVER, { 
       auth: { 
-        accessToken: authSession.accessToken, 
+        accessToken: socketAuthToken, 
         displayName,
-        userId: authSession.userId // Send userId to server
+        userId: socketAuthUserId // Send userId to server
       } 
     });
     setSocket(s);
 
-    s.on("connect", () => { setSocketConnected(true); setMessage("Connected"); s.emit("request_lobby"); });
+    s.on("connect", () => {
+      setSocketConnected(true);
+      setMessage("Connected");
+      s.emit("request_lobby");
+
+      const roomCode = currentRoomCodeRef.current;
+      if (roomCode) {
+        s.emit("join_room_code", { roomCode });
+      }
+    });
     s.on("connected", (d: { userId: string; displayName?: string; supabaseEnabled: boolean }) => {
-      console.log("[client] connected, server userId:", d.userId, "client userId:", authSession?.userId);
+      console.log("[client] connected, server userId:", d.userId, "client userId:", socketAuthUserId);
       if (!d.supabaseEnabled) setMessage("Connected (no Supabase persistence)");
     });
     s.on("disconnect", () => { setSocketConnected(false); });
@@ -268,7 +282,7 @@ export function App() {
     });
 
     return () => { s.disconnect(); };
-  }, [authSession]);
+  }, [socketAuthUserId, socketAuthToken, displayName]);
 
   const canAct = useMemo(() => snapshot?.actorSeat === seat && snapshot?.handId, [snapshot, seat]);
   const isConnected = socketConnected;
