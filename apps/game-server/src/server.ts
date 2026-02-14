@@ -1111,6 +1111,7 @@ io.on("connection", (socket) => {
             handId: payload.handId,
             prompt,
           });
+          roomManager.playerActedInTime(payload.tableId, identity.userId);
           io.to(socket.id).emit("all_in_prompt", prompt);
           broadcastSnapshot(payload.tableId);
           return;
