@@ -36,6 +36,13 @@ import { RoomManager } from "./room-manager";
 const app = express();
 app.use(cors());
 app.get("/health", (_req, res) => res.json({ ok: true }));
+const DEPLOY_COMMIT_REF =
+  process.env.RAILWAY_GIT_COMMIT_SHA ||
+  process.env.COMMIT_REF ||
+  process.env.GIT_COMMIT ||
+  process.env.VERCEL_GIT_COMMIT_SHA ||
+  "";
+app.get("/version", (_req, res) => res.json({ ok: true, commit: DEPLOY_COMMIT_REF || null }));
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
