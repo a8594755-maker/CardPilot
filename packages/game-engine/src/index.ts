@@ -495,6 +495,41 @@ export class GameTable {
     this.showdown();
   }
 
+  /** Abort the current hand: return all bets to players, reset state.
+   *  Used when idle timeout triggers a mid-hand reset. */
+  abortHand(): void {
+    if (!this.state.handId) return;
+    // Return pot to players proportional to their contribution
+    // Simple: return each player's streetCommitted back
+    for (const p of this.state.players) {
+      if (p.inHand) {
+        // Sum all their bets across streets from actions
+        let totalBet = 0;
+        for (const a of this.state.actions) {
+          if (a.seat === p.seat && (a.type === "call" || a.type === "raise" || a.type === "all_in" || (a.type as string) === "post_sb" || (a.type as string) === "post_bb")) {
+            totalBet += a.amount;
+          }
+        }
+        p.stack += totalBet;
+      }
+      p.inHand = false;
+      p.folded = false;
+      p.allIn = false;
+      p.streetCommitted = 0;
+    }
+    this.state.handId = null;
+    this.state.street = "SHOWDOWN";
+    this.state.board = [];
+    this.state.pot = 0;
+    this.state.currentBet = 0;
+    this.state.actorSeat = null;
+    this.state.actions = [];
+    this.state.winners = undefined;
+    this.state.pendingToAct.clear();
+    this.state.holeCards.clear();
+    this.runoutPending = false;
+  }
+
   /** True when applyAction detected an all-in runout situation */
   isRunoutPending(): boolean {
     return this.runoutPending;

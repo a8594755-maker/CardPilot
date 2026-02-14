@@ -8,6 +8,8 @@ import { saveHand, getHands, updateHand, autoTag, type HandRecord, type HandActi
 
 const SERVER = import.meta.env.VITE_SERVER_URL || "http://127.0.0.1:4000";
 const DEBUG_LOGS_ENABLED = import.meta.env.DEV;
+const APP_VERSION = "v0.4.0";
+const BUILD_TIME = new Date().toISOString().slice(0, 16).replace("T", " ");
 
 const debugLog = (...args: unknown[]) => {
   if (DEBUG_LOGS_ENABLED) console.log(...args);
@@ -226,6 +228,13 @@ export function App() {
     s.on("stood_up", (d: { seat: number; reason: string }) => {
       setMessage(d.reason);
     });
+    s.on("action_applied", (d: { seat: number; action: string; amount: number; pot: number; auto?: boolean }) => {
+      // Show action confirmation for the local player
+      if (d.seat === seatRef.current && !d.auto) {
+        const actionLabel = d.action === "fold" ? "棄牌" : d.action === "check" ? "過牌" : d.action === "call" ? `跟注 ${d.amount.toLocaleString()}` : d.action === "raise" ? `加注到 ${d.amount.toLocaleString()}` : d.action === "all_in" ? "All-In" : d.action;
+        setMessage(`你: ${actionLabel} · Pot: ${d.pot.toLocaleString()}`);
+      }
+    });
     s.on("advice_payload", (d: AdvicePayload) => setAdvice(d));
     s.on("advice_deviation", (d: AdvicePayload & { playerAction: string }) => {
       setDeviation({ deviation: d.deviation ?? 0, playerAction: d.playerAction });
@@ -281,11 +290,30 @@ export function App() {
       setRoomState(null);
       setMessage(`You were ${d.banned ? "banned" : "kicked"}: ${d.reason}`);
     });
-    s.on("room_closed", () => {
+    s.on("room_closed", (d?: { reason?: string }) => {
       setView("lobby");
       setCurrentRoomCode("");
-      setMessage("Room was closed");
       setRoomState(null);
+      setSnapshot(null);
+      setHoleCards([]);
+      setSeatRequests([]);
+      setWinners(null);
+      setAllInPrompt(null);
+      setAdvice(null);
+      setDeviation(null);
+      setBoardReveal(null);
+      setShowSettings(false);
+      setShowRoomLog(false);
+      setMessage(d?.reason ?? "房間已關閉，已返回大廳");
+    });
+    s.on("hand_aborted", (d: { reason: string }) => {
+      setHoleCards([]);
+      setWinners(null);
+      setAllInPrompt(null);
+      setAdvice(null);
+      setDeviation(null);
+      setBoardReveal(null);
+      setMessage(d.reason);
     });
     s.on("system_message", (d: { message: string }) => setMessage(d.message));
     s.on("settings_updated", (d: { applied: Record<string, unknown>; deferred: Record<string, unknown> }) => {
@@ -488,6 +516,7 @@ export function App() {
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-[11px] font-bold text-white uppercase">{displayName[0]}</div>
           <span className="text-xs text-slate-200 font-medium max-w-[140px] truncate">Hi, {displayName}</span>
           <button onClick={handleLogout} className="text-xs text-slate-500 hover:text-red-400 transition-colors px-2 py-1 rounded-lg hover:bg-white/5">Sign Out</button>
+          <span className="text-[8px] text-slate-600 font-mono" title={`Build: ${BUILD_TIME}`}>{APP_VERSION}</span>
         </div>
       </header>
 
@@ -762,7 +791,13 @@ export function App() {
                     ) : (
                       <button onClick={() => socket?.emit("game_control", { tableId, action: "pause" })} className="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20">⏸</button>
                     )}
-                    <button onClick={() => socket?.emit("game_control", { tableId, action: "end" })} className="text-[10px] px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20">■</button>
+                    <button onClick={() => socket?.emit("game_control", { tableId, action: "end" })} className="text-[10px] px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20" title="Stop auto-deal">■</button>
+                    {isHost && (
+                      <button onClick={() => { if (confirm("確定要關閉房間嗎？所有玩家將被送回大廳。")) { socket?.emit("close_room", { tableId }); } }}
+                        className="text-[10px] px-2 py-0.5 rounded bg-red-600/20 text-red-300 border border-red-500/30 hover:bg-red-600/30 font-semibold" title="Close room permanently">
+                        關閉房間
+                      </button>
+                    )}
                     <button onClick={() => setShowSettings(!showSettings)} className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10">⚙</button>
                     <button onClick={() => setShowRoomLog(!showRoomLog)} className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10">📋</button>
                     {seatRequests.length > 0 ? (
@@ -959,11 +994,27 @@ export function App() {
                       <div className="w-px h-5 bg-white/10" />
                       <InfoCell label="Street" value={snapshot?.street ?? "—"} highlight />
                       <div className="w-px h-5 bg-white/10" />
-                      <InfoCell label="Action" value={snapshot?.actorSeat ? `Seat ${snapshot.actorSeat}` : "—"} cyan />
+                      <InfoCell label="Action" value={
+                        snapshot?.actorSeat
+                          ? (snapshot.actorSeat === seat ? "▶ 你的回合" : `Seat ${snapshot.actorSeat} (${snapshot.players.find(p => p.seat === snapshot.actorSeat)?.name ?? "?"})`)
+                          : "—"
+                      } cyan />
                     </div>
-                    <div className="text-right">
-                      <span className="text-[9px] text-slate-500 uppercase tracking-wider">Pot</span>
-                      <div className="text-lg font-extrabold text-amber-400">{displayBB ? `${((snapshot?.pot ?? 0) / (snapshot?.bigBlind ?? 3)).toFixed(1)}bb` : (snapshot?.pot ?? 0).toLocaleString()}</div>
+                    <div className="flex items-center gap-4">
+                      {/* Hero bet this street */}
+                      {snapshot?.handId && (() => {
+                        const me = snapshot.players.find(p => p.seat === seat);
+                        return me && me.streetCommitted > 0 ? (
+                          <div className="text-right">
+                            <span className="text-[9px] text-slate-500 uppercase tracking-wider">You Bet</span>
+                            <div className="text-sm font-bold text-sky-400">{displayBB ? `${(me.streetCommitted / (snapshot.bigBlind ?? 3)).toFixed(1)}bb` : me.streetCommitted.toLocaleString()}</div>
+                          </div>
+                        ) : null;
+                      })()}
+                      <div className="text-right">
+                        <span className="text-[9px] text-slate-500 uppercase tracking-wider">Pot</span>
+                        <div className="text-lg font-extrabold text-amber-400">{displayBB ? `${((snapshot?.pot ?? 0) / (snapshot?.bigBlind ?? 3)).toFixed(1)}bb` : (snapshot?.pot ?? 0).toLocaleString()}</div>
+                      </div>
                     </div>
                   </div>
 
@@ -995,10 +1046,11 @@ export function App() {
                     {seatElements}
                   </div>
 
-                  {/* Hole cards — overlaid at bottom of table so they don't get blocked */}
+                  {/* Hole cards — rendered in normal flow below the table image to avoid overlapping timer/buttons */}
                   {holeCards.length > 0 && (
-                    <div className="absolute bottom-[6%] left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 pointer-events-none">
-                      {holeCards.map((c, i) => <CardImg key={i} card={c} className="w-12 rounded shadow-lg pointer-events-auto" />)}
+                    <div className="flex items-center justify-center gap-1.5 py-1">
+                      <span className="text-[9px] text-slate-500 uppercase tracking-wider mr-1">Your Hand</span>
+                      {holeCards.map((c, i) => <CardImg key={i} card={c} className="w-14 rounded-lg shadow-lg border border-white/10" />)}
                     </div>
                   )}
 
@@ -1101,6 +1153,7 @@ export function App() {
                   thinkExtensionEnabled={(roomState?.settings.thinkExtensionQuotaPerHour ?? 0) > 0}
                   thinkExtensionRemainingUses={thinkExtensionRemainingUses}
                   onThinkExtension={() => socket?.emit("request_think_extension", { tableId })}
+                  actionPending={actionPendingRef.current}
                   onAction={(action, amount) => {
                     if (!snapshot?.handId) return;
                     if (actionPendingRef.current) return;
@@ -2203,6 +2256,7 @@ function ActionBar({
   thinkExtensionEnabled,
   thinkExtensionRemainingUses,
   onThinkExtension,
+  actionPending,
 }: {
   canAct: boolean;
   legal: LegalActions | null;
@@ -2219,6 +2273,7 @@ function ActionBar({
   thinkExtensionEnabled?: boolean;
   thinkExtensionRemainingUses?: number;
   onThinkExtension?: () => void;
+  actionPending?: boolean;
 }) {
   const min = legal?.minRaise ?? bigBlind * 2;
   const max = legal?.maxRaise ?? 10000;
@@ -2253,11 +2308,34 @@ function ActionBar({
   const confidence = advice ? Math.max(advice.mix.raise, advice.mix.call, advice.mix.fold) : 0;
   const confidenceLabel = confidence > 0.7 ? "High confidence" : confidence > 0.5 ? "Mixed spot" : "Marginal";
 
+  // Debug: log legal actions whenever they change so missing Call can be diagnosed
+  useEffect(() => {
+    if (canAct && legal) {
+      console.log("[ActionBar] Legal actions:", JSON.stringify(legal), "| canAct:", canAct);
+    }
+  }, [canAct, legal]);
+
+  // Determine the status hint: why is Call/Check shown or hidden?
+  const statusHint = useMemo(() => {
+    if (!canAct || !legal) return "";
+    if (legal.canCheck) return "已跟上，可以 Check";
+    if (legal.canCall) return `需跟注 ${callAmt.toLocaleString()}`;
+    return "";
+  }, [canAct, legal, callAmt]);
+
   return (
     <div className="glass-card p-2 space-y-1.5">
+      {/* Status hint — explains why Check or Call is available */}
+      {canAct && statusHint && (
+        <div className="text-[9px] text-slate-500 px-1 truncate">{statusHint}</div>
+      )}
+      {/* Processing indicator */}
+      {actionPending && canAct && (
+        <div className="text-[9px] text-amber-400 px-1 animate-pulse">處理中…</div>
+      )}
       {/* Main action buttons row */}
-      <div className="flex items-center gap-1.5">
-        <button disabled={!canAct} onClick={() => { onAction("fold"); setShowSuggest(false); }}
+      <div className={`flex items-center gap-1.5 ${actionPending ? 'opacity-50 pointer-events-none' : ''}`}>
+        <button disabled={!canAct || actionPending} onClick={() => { onAction("fold"); setShowSuggest(false); }}
           className="btn-action !py-2 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600">Fold</button>
 
         {legal?.canCheck && (

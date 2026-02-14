@@ -71,6 +71,8 @@ const pendingSeatRequests = new Map<string, SeatRequest>();
 const autoDealSchedule = new Map<string, ReturnType<typeof setTimeout>>();
 const pendingAllInPrompts = new Map<string, { handId: string; prompt: AllInPrompt }>();
 const pendingRunCountTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
+const handIdleWatchdogs = new Map<string, ReturnType<typeof setTimeout>>();
+const HAND_IDLE_TIMEOUT_MS = 60_000; // 60s with no seated players → abort hand
 const supabase = new SupabasePersistence();
 
 // Room manager handles ownership, settings, timers, kick/ban, auto-close
@@ -344,7 +346,14 @@ function broadcastSnapshot(tableId: string) {
   }
   io.to(tableId).emit("table_snapshot", snapshot);
   emitPresence(tableId);
-  pushAdviceIfNeeded(tableId, snapshot);
+  // Defer advice computation so it never blocks snapshot delivery or timer updates
+  setImmediate(() => {
+    try {
+      pushAdviceIfNeeded(tableId, snapshot);
+    } catch (err) {
+      console.warn("[advice] deferred push error:", (err as Error).message);
+    }
+  });
 }
 
 function buildAllInPrompt(table: GameTable, actorSeat: number): AllInPrompt {
@@ -483,6 +492,54 @@ function clearAutoDealSchedule(tableId: string): void {
   }
 }
 
+/** Start/reset the idle watchdog for an active hand.
+ *  If no seated players remain connected for HAND_IDLE_TIMEOUT_MS, abort the hand. */
+function resetHandIdleWatchdog(tableId: string): void {
+  const existing = handIdleWatchdogs.get(tableId);
+  if (existing) clearTimeout(existing);
+
+  const table = tables.get(tableId);
+  if (!table || !table.isHandActive()) return;
+
+  // Only arm if there are fewer than 2 connected players for this table
+  const connectedCount = bindingsByTable(tableId).length;
+  if (connectedCount >= 2) {
+    // Enough players — no need for idle watchdog; just clear
+    handIdleWatchdogs.delete(tableId);
+    return;
+  }
+
+  const handle = setTimeout(() => {
+    handIdleWatchdogs.delete(tableId);
+    const tbl = tables.get(tableId);
+    if (!tbl || !tbl.isHandActive()) return;
+
+    // Check again: if players reconnected, don't abort
+    if (bindingsByTable(tableId).length >= 2) return;
+
+    console.log(`[IDLE_WATCHDOG] Aborting stale hand for ${tableId} (no connected players for ${HAND_IDLE_TIMEOUT_MS / 1000}s)`);
+    tbl.abortHand();
+    roomManager.setHandActive(tableId, false);
+    roomManager.clearActionTimer(tableId);
+    clearAutoDealSchedule(tableId);
+
+    io.to(tableId).emit("hand_aborted", { reason: "Hand aborted: table idle too long" });
+    io.to(tableId).emit("system_message", { message: "手牌因長時間無操作已取消，下注已退回" });
+    touchLocalRoom(tableId);
+    broadcastSnapshot(tableId);
+  }, HAND_IDLE_TIMEOUT_MS);
+
+  handIdleWatchdogs.set(tableId, handle);
+}
+
+function clearHandIdleWatchdog(tableId: string): void {
+  const handle = handIdleWatchdogs.get(tableId);
+  if (handle) {
+    clearTimeout(handle);
+    handIdleWatchdogs.delete(tableId);
+  }
+}
+
 function startHandFlow(tableId: string, actorUserId: string, source: "manual" | "auto"): string {
   const room = roomsByTableId.get(tableId);
   if (!room) {
@@ -523,6 +580,7 @@ function startHandFlow(tableId: string, actorUserId: string, source: "manual" | 
   touchLocalRoom(tableId);
   broadcastSnapshot(tableId);
   startTimerForActor(tableId);
+  clearHandIdleWatchdog(tableId); // Hand started with players — no idle concern
 
   return handId;
 }
@@ -1577,6 +1635,64 @@ io.on("connection", (socket) => {
     }
   });
 
+  /* ═══════════ CLOSE ROOM (Host only) ═══════════ */
+
+  socket.on("close_room", (payload: { tableId: string }) => {
+    try {
+      if (!roomManager.isOwner(payload.tableId, identity.userId)) {
+        throw new Error("Only the host can close the room");
+      }
+
+      console.log("[CLOSE_ROOM] Host", identity.userId, "closing room", payload.tableId);
+
+      // Stop auto-deal and timers
+      clearAutoDealSchedule(payload.tableId);
+      roomManager.endGame(payload.tableId, identity.userId, identity.displayName);
+
+      // Notify all players and send them back to lobby
+      io.to(payload.tableId).emit("room_closed", { tableId: payload.tableId, reason: "Host closed the room" });
+
+      // Remove all players from the table and clean up bindings
+      const table = tables.get(payload.tableId);
+      if (table) {
+        const state = table.getPublicState();
+        for (const player of state.players) {
+          table.removePlayer(player.seat);
+        }
+      }
+
+      // Clean up all socket bindings for this table
+      for (const [sid, binding] of socketSeat.entries()) {
+        if (binding.tableId === payload.tableId) {
+          socketSeat.delete(sid);
+          const sock = io.sockets.sockets.get(sid);
+          if (sock) sock.leave(payload.tableId);
+        }
+      }
+
+      // Remove room from all maps
+      const room = roomsByTableId.get(payload.tableId);
+      if (room) {
+        roomCodeToTableId.delete(room.roomCode);
+        roomsByTableId.delete(payload.tableId);
+      }
+      tables.delete(payload.tableId);
+      roomManager.deleteRoom(payload.tableId);
+
+      supabase.touchRoom(payload.tableId, "CLOSED").catch(() => {});
+      supabase.logEvent({
+        tableId: payload.tableId,
+        eventType: "ROOM_CLOSED",
+        actorUserId: identity.userId,
+        payload: { reason: "host_closed" },
+      }).catch(() => {});
+
+      void emitLobbySnapshot();
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
   /* ═══════════ DISCONNECT ═══════════ */
 
   socket.on("disconnect", async () => {
@@ -1630,6 +1746,8 @@ io.on("connection", (socket) => {
         );
         // Mark disconnected in Supabase but keep seat for grace period
         supabase.setDisconnected(binding.tableId, binding.seat).catch((e) => console.warn("disconnect: setDisconnected failed:", (e as Error).message));
+        // Arm idle watchdog in case all players disconnect
+        resetHandIdleWatchdog(binding.tableId);
       } else {
         // No active hand — remove player immediately
         if (table) {
