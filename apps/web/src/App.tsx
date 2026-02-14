@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef, memo } from "react";
 import { io, type Socket } from "socket.io-client";
 import type { AdvicePayload, LobbyRoomSummary, TableState, TablePlayer, LegalActions, RoomFullState, TimerState, RoomLogEntry, AllInPrompt } from "@cardpilot/shared-types";
 import { getExistingSession, ensureGuestSession, signUpWithEmail, signInWithEmail, signInWithGoogle, signOut, supabase, validateEmail, validatePassword, getRateLimitSecondsLeft, type AuthSession } from "./supabase";
@@ -340,7 +340,44 @@ export function App() {
   }, [roomState, authSession]);
   const thinkExtensionRemainingUses = myThinkExtensionUsage?.remaining ?? roomState?.settings.thinkExtensionQuotaPerHour ?? 0;
   const seatPositions = useMemo(() => getSeatLayout(roomState?.settings.maxPlayers ?? 6), [roomState?.settings.maxPlayers]);
-  
+
+  const handleSeatClick = useCallback((seatNum: number) => {
+    const settings = roomState?.settings;
+    const min = settings?.buyInMin ?? 40;
+    const max = settings?.buyInMax ?? 300;
+    const step = Math.max(100, settings?.bigBlind ?? 100);
+    const mid = (min + max) / 2;
+    const snapped = Math.round(mid / step) * step;
+    setBuyInAmount(Math.min(max, Math.max(min, snapped)));
+    setPendingSitSeat(seatNum);
+    setShowBuyInModal(true);
+  }, [roomState?.settings]);
+
+  const seatElements = useMemo(() => {
+    const maxP = roomState?.settings.maxPlayers ?? 6;
+    return Array.from({ length: maxP }, (_, i) => i + 1).map((seatNum) => {
+      const pos = seatPositions[seatNum];
+      const player = snapshot?.players.find((p) => p.seat === seatNum);
+      const isActor = snapshot?.actorSeat === seatNum;
+      const isMe = seatNum === seat;
+      const isOwner = player && roomState?.ownership.ownerId === player.userId;
+      const isCo = player && roomState?.ownership.coHostIds.includes(player.userId);
+      const seatTimer = isActor && timerDisplay?.seat === seatNum ? timerDisplay : null;
+      const posLabel = snapshot?.positions?.[seatNum] ?? "";
+      const isButton = snapshot?.buttonSeat === seatNum && !!snapshot?.handId;
+      const equity = boardReveal?.equities.find((e) => e.seat === seatNum) ?? null;
+      return (
+        <div key={seatNum} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ top: pos.top, left: pos.left }}>
+          <SeatChip player={player} seatNum={seatNum} isActor={isActor} isMe={isMe}
+            isOwner={!!isOwner} isCoHost={!!isCo} timer={seatTimer}
+            posLabel={posLabel} isButton={isButton} displayBB={displayBB} bigBlind={snapshot?.bigBlind ?? 3}
+            equity={equity}
+            onClickEmpty={handleSeatClick} />
+        </div>
+      );
+    });
+  }, [snapshot, seat, roomState, timerDisplay, boardReveal, displayBB, seatPositions, handleSeatClick]);
+
   // Debug seat requests
   useEffect(() => {
     debugLog("[SEAT_REQUESTS] Current requests:", seatRequests.length, seatRequests);
@@ -936,11 +973,11 @@ export function App() {
 
                     {/* Community cards — centered on table */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ top: "-2%" }}>
-                      <div className="flex gap-1 pointer-events-auto" style={{ width: "42%" }}>
+                      <div className="flex gap-1 pointer-events-auto" style={{ width: "32%" }}>
                         {snapshot?.board && snapshot.board.length > 0
-                          ? snapshot.board.map((c, i) => <CardImg key={i} card={c} className="flex-1 min-w-0 rounded shadow-lg" />)
+                          ? snapshot.board.map((c, i) => <CardImg key={i} card={c} className="flex-1 min-w-0 max-w-[56px] rounded shadow-lg" />)
                           : Array.from({ length: 5 }).map((_, i) => (
-                              <div key={i} className="flex-1 min-w-0 aspect-[2.5/3.5] rounded border border-dashed border-white/15 bg-white/[0.04]" />
+                              <div key={i} className="flex-1 min-w-0 max-w-[56px] aspect-[2.5/3.5] rounded border border-dashed border-white/15 bg-white/[0.04]" />
                             ))}
                       </div>
                     </div>
@@ -948,72 +985,39 @@ export function App() {
                     {/* Pot chip on table */}
                     {(snapshot?.pot ?? 0) > 0 && (
                       <div className="absolute top-[32%] left-1/2 -translate-x-1/2 pointer-events-none">
-                        <div className="bg-black/70 backdrop-blur-sm px-2 py-0.5 rounded-full text-amber-400 font-bold text-[10px] shadow-lg">
+                        <div className="bg-black/70 px-2 py-0.5 rounded-full text-amber-400 font-bold text-[10px] shadow-lg">
                           {displayBB ? `${((snapshot?.pot ?? 0) / (snapshot?.bigBlind ?? 3)).toFixed(1)}bb` : (snapshot?.pot ?? 0).toLocaleString()}
                         </div>
                       </div>
                     )}
 
                     {/* Player seats */}
-                    {Array.from({ length: roomState?.settings.maxPlayers ?? 6 }, (_, i) => i + 1).map((seatNum) => {
-                      const pos = seatPositions[seatNum];
-                      const player = snapshot?.players.find((p) => p.seat === seatNum);
-                      const isActor = snapshot?.actorSeat === seatNum;
-                      const isMe = seatNum === seat;
-                      const isOwner = player && roomState?.ownership.ownerId === player.userId;
-                      const isCo = player && roomState?.ownership.coHostIds.includes(player.userId);
-                      const seatTimer = isActor && timerDisplay?.seat === seatNum ? timerDisplay : null;
-                      const posLabel = snapshot?.positions?.[seatNum] ?? "";
-                      const isButton = snapshot?.buttonSeat === seatNum && !!snapshot?.handId;
-                      const equity = boardReveal?.equities.find((e) => e.seat === seatNum) ?? null;
-                      return (
-                        <div key={seatNum} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ top: pos.top, left: pos.left }}>
-                          <SeatChip player={player} seatNum={seatNum} isActor={isActor} isMe={isMe}
-                            isOwner={!!isOwner} isCoHost={!!isCo} timer={seatTimer}
-                            posLabel={posLabel} isButton={isButton} displayBB={displayBB} bigBlind={snapshot?.bigBlind ?? 3}
-                            equity={equity}
-                            onClickEmpty={() => {
-                              const settings = roomState?.settings;
-                              const min = settings?.buyInMin ?? 40;
-                              const max = settings?.buyInMax ?? 300;
-                              const step = Math.max(100, settings?.bigBlind ?? 100);
-                              const mid = (min + max) / 2;
-                              const snapped = Math.round(mid / step) * step;
-                              setBuyInAmount(Math.min(max, Math.max(min, snapped)));
-                              setPendingSitSeat(seatNum);
-                              setShowBuyInModal(true);
-                            }} />
-                        </div>
-                      );
-                    })}
+                    {seatElements}
                   </div>
 
-                  {/* Hole cards + winners — compact row below table */}
-                  <div className="w-full max-w-2xl flex items-center justify-center gap-4 mt-1 shrink-0">
-                    {holeCards.length > 0 && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-[9px] text-slate-500 uppercase tracking-wider">Hand</span>
-                        <div className="flex gap-1">
-                          {holeCards.map((c, i) => <CardImg key={i} card={c} className="w-11 rounded shadow-lg hover:scale-110 transition-transform" />)}
-                        </div>
-                      </div>
-                    )}
-                    {winners && winners.length > 0 && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-amber-400 text-xs font-bold">Winner{winners.length > 1 ? "s" : ""}:</span>
-                        {winners.map((w) => {
-                          const p = snapshot?.players.find((pl) => pl.seat === w.seat);
-                          return (
-                            <span key={w.seat} className="text-xs px-2 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                              <span className="text-white font-semibold">{p?.name ?? `S${w.seat}`}</span>
-                              <span className="text-amber-400 font-bold ml-1">+{w.amount.toLocaleString()}</span>
-                              {w.handName && <span className="text-slate-400 ml-1">({w.handName})</span>}
-                            </span>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
+                  {/* Hole cards — overlaid at bottom of table so they don't get blocked */}
+                  {holeCards.length > 0 && (
+                    <div className="absolute bottom-[6%] left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 pointer-events-none">
+                      {holeCards.map((c, i) => <CardImg key={i} card={c} className="w-12 rounded shadow-lg pointer-events-auto" />)}
+                    </div>
+                  )}
+
+                  {/* Winners — compact row below table */}
+                  {winners && winners.length > 0 && (
+                    <div className="w-full max-w-2xl flex items-center justify-center gap-2 mt-1 shrink-0">
+                      <span className="text-amber-400 text-xs font-bold">Winner{winners.length > 1 ? "s" : ""}:</span>
+                      {winners.map((w) => {
+                        const p = snapshot?.players.find((pl) => pl.seat === w.seat);
+                        return (
+                          <span key={w.seat} className="text-xs px-2 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                            <span className="text-white font-semibold">{p?.name ?? `S${w.seat}`}</span>
+                            <span className="text-amber-400 font-bold ml-1">+{w.amount.toLocaleString()}</span>
+                            {w.handName && <span className="text-slate-400 ml-1">({w.handName})</span>}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* ── GTO SIDEBAR ── */}
@@ -2413,20 +2417,20 @@ function InfoCell({ label, value, highlight, cyan }: { label: string; value: str
   );
 }
 
-function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, equity, onClickEmpty }: {
+const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, equity, onClickEmpty }: {
   player?: TablePlayer; seatNum: number; isActor: boolean; isMe: boolean;
   isOwner?: boolean; isCoHost?: boolean; timer?: TimerState | null;
   posLabel?: string; isButton?: boolean; displayBB?: boolean; bigBlind?: number; 
   equity?: { winRate: number; tieRate: number } | null;
-  onClickEmpty?: () => void;
+  onClickEmpty?: (seatNum: number) => void;
 }) {
   const bb = bigBlind || 1;
   const fmt = (v: number) => displayBB ? `${(v / bb).toFixed(1)}bb` : v.toLocaleString();
 
   if (!player) {
     return (
-      <div onClick={onClickEmpty}
-        className="w-16 h-16 md:w-18 md:h-18 rounded-full bg-black/40 backdrop-blur-sm border border-dashed border-white/15 flex items-center justify-center cursor-pointer hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-all group">
+      <div onClick={() => onClickEmpty?.(seatNum)}
+        className="w-16 h-16 md:w-18 md:h-18 rounded-full bg-black/50 border border-dashed border-white/15 flex items-center justify-center cursor-pointer hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-colors group">
         <span className="text-[9px] text-slate-500 group-hover:text-emerald-400">+Sit</span>
       </div>
     );
@@ -2469,7 +2473,7 @@ function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, po
       <div className={`relative z-10 w-18 md:w-22 rounded-xl p-1 text-center transition-all ${
         isActor ? "bg-amber-500/20 border-2 border-amber-400 shadow-[0_0_16px_rgba(245,158,11,0.3)]"
         : isMe ? "bg-cyan-500/10 border-2 border-cyan-400/50"
-        : "bg-black/50 backdrop-blur-sm border border-white/10"
+        : "bg-black/60 border border-white/10"
       }`}>
         {/* Position label */}
         {posLabel && (
@@ -2491,7 +2495,7 @@ function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, po
         {player.allIn && !equity && <div className="text-[8px] text-orange-400 font-bold">ALL-IN</div>}
         {/* Show equity when available */}
         {equity && player.allIn && (
-          <div className="text-[8px] font-bold text-emerald-400 animate-pulse">
+          <div className="text-[8px] font-bold text-emerald-400">
             {Math.round(equity.winRate * 100)}%
           </div>
         )}
@@ -2504,20 +2508,20 @@ function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, po
       </div>
       {/* Street bet amount — shown below the chip */}
       {player.streetCommitted > 0 && !player.folded && (
-        <div className="bg-black/70 backdrop-blur-sm px-1.5 py-0.5 rounded-full text-[9px] font-bold text-sky-400 shadow-sm border border-sky-500/20">
+        <div className="bg-black/70 px-1.5 py-0.5 rounded-full text-[9px] font-bold text-sky-400 shadow-sm border border-sky-500/20">
           {fmt(player.streetCommitted)}
         </div>
       )}
     </div>
   );
-}
+});
 
-function CardImg({ card, className }: { card: string; className?: string }) {
+const CardImg = memo(function CardImg({ card, className }: { card: string; className?: string }) {
   return (
     <img src={getCardImagePath(card)} alt={card} className={className}
       onError={(e) => { (e.target as HTMLImageElement).src = getCardImagePath(""); }} />
   );
-}
+});
 
 function Bar({ label, pct, color }: { label: string; pct: number; color: string }) {
   const p = Math.round(pct * 100);
