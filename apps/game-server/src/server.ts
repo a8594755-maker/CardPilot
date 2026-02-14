@@ -245,8 +245,14 @@ async function generateUniqueRoomCode(): Promise<string> {
   for (let i = 0; i < 30; i += 1) {
     const candidate = randomRoomCode(6);
     if (roomCodeToTableId.has(candidate)) continue;
-    const existing = await supabase.findRoomByCode(candidate);
-    if (!existing) return candidate;
+    try {
+      const existing = await supabase.findRoomByCode(candidate);
+      if (!existing) return candidate;
+    } catch (err) {
+      // Supabase unavailable or table missing — fall back to in-memory uniqueness only
+      console.warn("generateUniqueRoomCode: Supabase check failed, using in-memory only:", (err as Error).message);
+      return candidate;
+    }
   }
   throw new Error("cannot generate unique room code");
 }
@@ -355,8 +361,9 @@ io.on("connection", (socket) => {
         const table = createTableIfNeeded(room);
         socket.join(room.tableId);
 
-        await supabase.upsertRoom(room);
-        await supabase.logEvent({
+        // Persist to Supabase in background — don't block room creation
+        supabase.upsertRoom(room).catch((e) => console.warn("create_room: upsertRoom failed:", (e as Error).message));
+        supabase.logEvent({
           tableId: room.tableId,
           eventType: "CREATE_ROOM",
           actorUserId: identity.userId,
@@ -367,7 +374,7 @@ io.on("connection", (socket) => {
             smallBlind: room.smallBlind,
             bigBlind: room.bigBlind
           }
-        });
+        }).catch((e) => console.warn("create_room: logEvent failed:", (e as Error).message));
 
         socket.emit("room_created", {
           tableId: room.tableId,
@@ -402,13 +409,13 @@ io.on("connection", (socket) => {
       socket.join(room.tableId);
       const table = createTableIfNeeded(room);
 
-      await supabase.touchRoom(room.tableId, "OPEN");
-      await supabase.logEvent({
+      supabase.touchRoom(room.tableId, "OPEN").catch((e) => console.warn("join_room_code: touchRoom failed:", (e as Error).message));
+      supabase.logEvent({
         tableId: room.tableId,
         eventType: "JOIN_BY_CODE",
         actorUserId: identity.userId,
         payload: { roomCode: room.roomCode }
-      });
+      }).catch((e) => console.warn("join_room_code: logEvent failed:", (e as Error).message));
 
       socket.emit("room_joined", {
         tableId: room.tableId,
@@ -428,13 +435,13 @@ io.on("connection", (socket) => {
     const table = createTableIfNeeded(room);
     socket.join(payload.tableId);
 
-    await supabase.touchRoom(payload.tableId, "OPEN");
-    await supabase.logEvent({
+    supabase.touchRoom(payload.tableId, "OPEN").catch((e) => console.warn("join_table: touchRoom failed:", (e as Error).message));
+    supabase.logEvent({
       tableId: payload.tableId,
       eventType: "JOIN_TABLE",
       actorUserId: identity.userId,
       payload: { socketId: socket.id }
-    });
+    }).catch((e) => console.warn("join_table: logEvent failed:", (e as Error).message));
 
     socket.emit("room_joined", {
       tableId: room.tableId,
@@ -470,22 +477,22 @@ io.on("connection", (socket) => {
         name
       });
 
-      await supabase.upsertSeat({
+      supabase.upsertSeat({
         table_id: payload.tableId,
         seat_no: payload.seat,
         user_id: identity.userId,
         display_name: name,
         stack: payload.buyIn,
         is_connected: true
-      });
+      }).catch((e) => console.warn("sit_down: upsertSeat failed:", (e as Error).message));
 
-      await supabase.touchRoom(payload.tableId, "OPEN");
-      await supabase.logEvent({
+      supabase.touchRoom(payload.tableId, "OPEN").catch((e) => console.warn("sit_down: touchRoom failed:", (e as Error).message));
+      supabase.logEvent({
         tableId: payload.tableId,
         eventType: "SIT_DOWN",
         actorUserId: identity.userId,
         payload: { seat: payload.seat, buyIn: payload.buyIn }
-      });
+      }).catch((e) => console.warn("sit_down: logEvent failed:", (e as Error).message));
 
       touchLocalRoom(payload.tableId);
       broadcastSnapshot(payload.tableId);
@@ -508,14 +515,14 @@ io.on("connection", (socket) => {
     table.removePlayer(payload.seat);
     socketSeat.delete(socket.id);
 
-    await supabase.removeSeat(payload.tableId, payload.seat);
-    await supabase.touchRoom(payload.tableId, "OPEN");
-    await supabase.logEvent({
+    supabase.removeSeat(payload.tableId, payload.seat).catch((e) => console.warn("stand_up: removeSeat failed:", (e as Error).message));
+    supabase.touchRoom(payload.tableId, "OPEN").catch((e) => console.warn("stand_up: touchRoom failed:", (e as Error).message));
+    supabase.logEvent({
       tableId: payload.tableId,
       eventType: "STAND_UP",
       actorUserId: identity.userId,
       payload: { seat: payload.seat }
-    });
+    }).catch((e) => console.warn("stand_up: logEvent failed:", (e as Error).message));
 
     touchLocalRoom(payload.tableId);
     broadcastSnapshot(payload.tableId);
@@ -537,13 +544,13 @@ io.on("connection", (socket) => {
         }
       }
 
-      await supabase.logEvent({
+      supabase.logEvent({
         tableId: payload.tableId,
         eventType: "HAND_STARTED",
         actorUserId: identity.userId,
         handId,
         payload: { buttonSeat: table.getPublicState().buttonSeat }
-      });
+      }).catch((e) => console.warn("start_hand: logEvent failed:", (e as Error).message));
 
       touchLocalRoom(payload.tableId);
       broadcastSnapshot(payload.tableId);
@@ -600,7 +607,7 @@ io.on("connection", (socket) => {
         });
       }
 
-      await supabase.logEvent({
+      supabase.logEvent({
         tableId: payload.tableId,
         eventType: "ACTION_SUBMIT",
         actorUserId: identity.userId,
@@ -611,7 +618,7 @@ io.on("connection", (socket) => {
           amount: payload.amount ?? 0,
           pot: newState.pot
         }
-      });
+      }).catch((e) => console.warn("action_submit: logEvent failed:", (e as Error).message));
 
       touchLocalRoom(payload.tableId);
       broadcastSnapshot(payload.tableId);
@@ -622,12 +629,12 @@ io.on("connection", (socket) => {
 
   socket.on("leave_table", async (payload: { tableId: string }) => {
     socket.leave(payload.tableId);
-    await supabase.logEvent({
+    supabase.logEvent({
       tableId: payload.tableId,
       eventType: "LEAVE_TABLE",
       actorUserId: identity.userId,
       payload: { socketId: socket.id }
-    });
+    }).catch((e) => console.warn("leave_table: logEvent failed:", (e as Error).message));
     socket.emit("left_table", { tableId: payload.tableId });
     void emitLobbySnapshot();
   });
@@ -640,14 +647,14 @@ io.on("connection", (socket) => {
         table.removePlayer(binding.seat);
         broadcastSnapshot(binding.tableId);
       }
-      await supabase.setDisconnected(binding.tableId, binding.seat);
-      await supabase.touchRoom(binding.tableId, "OPEN");
-      await supabase.logEvent({
+      supabase.setDisconnected(binding.tableId, binding.seat).catch((e) => console.warn("disconnect: setDisconnected failed:", (e as Error).message));
+      supabase.touchRoom(binding.tableId, "OPEN").catch((e) => console.warn("disconnect: touchRoom failed:", (e as Error).message));
+      supabase.logEvent({
         tableId: binding.tableId,
         eventType: "SOCKET_DISCONNECT",
         actorUserId: identity.userId,
         payload: { seat: binding.seat }
-      });
+      }).catch((e) => console.warn("disconnect: logEvent failed:", (e as Error).message));
       socketSeat.delete(socket.id);
       touchLocalRoom(binding.tableId);
       void emitLobbySnapshot();
