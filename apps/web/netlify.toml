@@ -1,6 +1,9 @@
 [build]
-  command = "npx vite build"
+  command = "echo NETLIFY_COMMIT_REF=$COMMIT_REF && echo NETLIFY_DEPLOY_ID=$DEPLOY_ID && VITE_NETLIFY_COMMIT_REF=$COMMIT_REF VITE_NETLIFY_DEPLOY_ID=$DEPLOY_ID npx vite build"
   publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
 
 [[redirects]]
   from = "/*"

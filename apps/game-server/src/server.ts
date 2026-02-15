@@ -618,7 +618,7 @@ function scheduleAutoDealIfNeeded(tableId: string): void {
     } catch (err) {
       io.to(tableId).emit("system_message", { message: `Auto deal paused: ${(err as Error).message}` });
     }
-  }, 1800);
+  }, 5000);
 
   autoDealSchedule.set(tableId, handle);
 }

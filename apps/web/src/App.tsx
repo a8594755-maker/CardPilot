@@ -8,7 +8,7 @@ import { saveHand, getHands, updateHand, autoTag, type HandRecord, type HandActi
 
 const SERVER = import.meta.env.VITE_SERVER_URL || "http://127.0.0.1:4000";
 const DEBUG_LOGS_ENABLED = import.meta.env.DEV;
-const APP_VERSION = "v0.4.0";
+const APP_VERSION = "v0.4.1";
 const NETLIFY_COMMIT_REF = import.meta.env.VITE_NETLIFY_COMMIT_REF || "";
 const NETLIFY_DEPLOY_ID = import.meta.env.VITE_NETLIFY_DEPLOY_ID || "";
 const BUILD_TIME = new Date().toISOString().slice(0, 16).replace("T", " ");
@@ -1056,20 +1056,40 @@ export function App() {
                     </div>
                   )}
 
-                  {/* Winners — compact row below table */}
+                  {/* Winners — prominent overlay */}
                   {winners && winners.length > 0 && (
-                    <div className="w-full max-w-2xl flex items-center justify-center gap-2 mt-1 shrink-0">
-                      <span className="text-amber-400 text-xs font-bold">Winner{winners.length > 1 ? "s" : ""}:</span>
-                      {winners.map((w) => {
-                        const p = snapshot?.players.find((pl) => pl.seat === w.seat);
-                        return (
-                          <span key={w.seat} className="text-xs px-2 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                            <span className="text-white font-semibold">{p?.name ?? `S${w.seat}`}</span>
-                            <span className="text-amber-400 font-bold ml-1">+{w.amount.toLocaleString()}</span>
-                            {w.handName && <span className="text-slate-400 ml-1">({w.handName})</span>}
+                    <div className="w-full max-w-2xl mt-2 shrink-0 animate-[fadeSlideUp_0.5s_ease-out]">
+                      <div className="relative rounded-2xl border border-amber-500/30 bg-gradient-to-b from-amber-500/10 via-black/60 to-black/80 backdrop-blur-md px-6 py-4 shadow-[0_0_30px_rgba(245,158,11,0.15)]">
+                        <div className="flex items-center justify-center gap-2 mb-3">
+                          <span className="text-2xl">🏆</span>
+                          <span className="text-amber-400 text-lg font-extrabold tracking-wide uppercase">
+                            {winners.length > 1 ? "Winners" : "Winner"}
                           </span>
-                        );
-                      })}
+                          <span className="text-2xl">🏆</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-2">
+                          {winners.map((w) => {
+                            const p = snapshot?.players.find((pl) => pl.seat === w.seat);
+                            return (
+                              <div key={w.seat} className="flex items-center gap-3 px-5 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 animate-[fadeSlideUp_0.6s_ease-out]">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-sm font-extrabold text-slate-900 shadow-lg">
+                                  {(p?.name ?? `S${w.seat}`)[0].toUpperCase()}
+                                </div>
+                                <div className="flex flex-col">
+                                  <span className="text-white font-bold text-sm">{p?.name ?? `Seat ${w.seat}`}</span>
+                                  {w.handName && <span className="text-slate-400 text-xs">{w.handName}</span>}
+                                </div>
+                                <span className="text-amber-400 font-extrabold text-xl ml-2 animate-[pulse_1.5s_ease-in-out_infinite]">
+                                  +{w.amount.toLocaleString()}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div className="text-center mt-3">
+                          <span className="text-[10px] text-slate-500">Next hand in a few seconds...</span>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
