@@ -79,6 +79,7 @@ export type RuntimeConfig = {
   handIdleTimeoutMs: number;
   showdownDecisionTimeoutMs: number;
   runCountDecisionTimeoutMs: number;
+  tableBalanceRejoinWindowMs: number;
   roomEmptyTtlMs: number;
   roomCodeLength: number;
   roomCodeAlphabet: string;
@@ -196,6 +197,7 @@ function buildConfig(): RuntimeConfig {
   const handIdleSeconds = parsePositiveInt("HAND_IDLE_TIMEOUT_SECONDS", 60);
   const showdownDecisionSeconds = parsePositiveInt("SHOWDOWN_DECISION_TIMEOUT_SECONDS", 4);
   const runCountDecisionSeconds = parsePositiveInt("RUN_COUNT_DECISION_TIMEOUT_SECONDS", 15);
+  const tableBalanceRejoinWindowMinutes = parsePositiveInt("TABLE_BALANCE_REJOIN_WINDOW_MINUTES", 360);
   const roomEmptyTtlMinutes = parsePositiveInt("ROOM_EMPTY_TTL_MINUTES", 10);
 
   const port = parsePositiveInt("PORT", 4000);
@@ -208,6 +210,7 @@ function buildConfig(): RuntimeConfig {
     handIdleTimeoutMs: handIdleSeconds * 1_000,
     showdownDecisionTimeoutMs: showdownDecisionSeconds * 1_000,
     runCountDecisionTimeoutMs: runCountDecisionSeconds * 1_000,
+    tableBalanceRejoinWindowMs: tableBalanceRejoinWindowMinutes * 60_000,
     roomEmptyTtlMs: roomEmptyTtlMinutes * 60_000,
     roomCodeLength: ROOM_CODE_LENGTH,
     roomCodeAlphabet: ROOM_CODE_ALPHABET,

@@ -1,8 +1,8 @@
 // ===== Core Poker Types =====
 
-export type Street = 'PREFLOP' | 'FLOP' | 'TURN' | 'RIVER' | 'SHOWDOWN';
+export type Street = 'PREFLOP' | 'FLOP' | 'TURN' | 'RIVER' | 'SHOWDOWN' | 'RUN_IT_TWICE_PROMPT';
 
-export type PlayerActionType = 'fold' | 'check' | 'call' | 'raise' | 'all_in';
+export type PlayerActionType = 'fold' | 'check' | 'call' | 'raise' | 'all_in' | 'vote_rit';
 
 export type BlindActionType = 'post_sb' | 'post_bb' | 'post_dead_blind';
 
@@ -25,6 +25,20 @@ export type Position = 'SB' | 'BB' | 'UTG' | 'MP' | 'HJ' | 'CO' | 'BTN';
 // ===== Player & Table Types =====
 
 export type PlayerStatus = 'active' | 'sitting_out';
+
+/**
+ * Canonical clockwise order helper.
+ *
+ * Returns seats in clockwise order starting from the seat immediately left of button
+ * (i.e. first seat after button in clockwise direction).
+ */
+export function getClockwiseSeatsFromButton(buttonSeat: number, seats: number[]): number[] {
+  if (seats.length === 0) return [];
+  const uniq = [...new Set(seats)].sort((a, b) => a - b);
+  const gt = uniq.filter((s) => s > buttonSeat);
+  const lte = uniq.filter((s) => s <= buttonSeat);
+  return [...gt, ...lte];
+}
 
 export interface TablePlayer {
   seat: number;
@@ -123,6 +137,7 @@ export interface TableState {
   tableId: string;
   smallBlind: number;
   bigBlind: number;
+  ante?: number;
   buttonSeat: number;
   street: Street;
   board: string[];
@@ -164,6 +179,12 @@ export interface TableState {
   muckedSeats?: number[];
   /** Showdown reveal state used by clients to render SHOW/MUCK actions */
   showdownPhase?: "none" | "decision";
+  /** Run-it-twice prompt votes keyed by seat while in RUN_IT_TWICE_PROMPT street. */
+  ritVotes?: Record<number, boolean | null>;
+  /** Feature flag for run-it-twice negotiation at all-in closures. */
+  runItTwiceEnabled?: boolean;
+  /** Blind level already scheduled and to be applied on next startHand(). */
+  nextBlindLevel?: { smallBlind: number; bigBlind: number; ante: number } | null;
 }
 
 // ===== Advice Types =====
@@ -249,6 +270,7 @@ export interface ActionSubmitPayload {
   handId: string;
   action: PlayerActionType;
   amount?: number;
+  ritVote?: 'yes' | 'no';
   runCount?: 1 | 2;
 }
 
@@ -598,3 +620,7 @@ export interface JoinRoomWithPasswordPayload {
 
 // Re-export socket events
 export * from './socket-events.js';
+
+// Re-export club types and events
+export * from './club-types.js';
+export * from './club-events.js';

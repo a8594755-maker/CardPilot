@@ -12,6 +12,7 @@ import type {
   TablePlayer,
   TableState,
 } from "@cardpilot/shared-types";
+import { getClockwiseSeatsFromButton as canonicalClockwiseSeats } from "@cardpilot/shared-types";
 
 const RANKS = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"];
 const SUITS = ["s", "h", "d", "c"];
@@ -50,14 +51,18 @@ type MutableTableState = TableState & {
   lastReopenBet: number;
   /** Seats that have voluntarily acted since the most recent FULL raise level. */
   actedSinceLastFullRaise: Set<number>;
+  ritVotes: Record<number, boolean | null>;
 };
 
 export class GameTable {
   private state: MutableTableState;
-  private readonly ante: number;
+  private ante: number;
   private readonly rakeEnabled: boolean;
   private readonly rakePercent: number;
   private readonly rakeCap: number;
+  private readonly runItTwiceEnabled: boolean;
+  private pendingBlindLevel: { smallBlind: number; bigBlind: number; ante: number } | null = null;
+  private consecutiveTimeouts = new Map<number, number>();
   private allInRunCount: 1 | 2 = 1;
   private runoutPending = false;
   private collectedFee = 0;
@@ -70,11 +75,13 @@ export class GameTable {
     bigBlind: number;
     mode?: TableMode;
     ante?: number;
+    runItTwiceEnabled?: boolean;
     rakeEnabled?: boolean;
     rakePercent?: number;
     rakeCap?: number;
   }) {
     this.ante = Math.max(0, params.ante ?? 0);
+    this.runItTwiceEnabled = params.runItTwiceEnabled ?? false;
     this.rakePercent = Math.max(0, params.rakePercent ?? 0);
     this.rakeEnabled = params.rakeEnabled ?? this.rakePercent > 0;
     // rakeCap<=0 means uncapped rake
@@ -86,6 +93,7 @@ export class GameTable {
       tableId: params.tableId,
       smallBlind: params.smallBlind,
       bigBlind: params.bigBlind,
+      ante: this.ante,
       buttonSeat: 1,
       street: "SHOWDOWN",
       board: [],
@@ -106,6 +114,9 @@ export class GameTable {
       revealedHoles: {},
       muckedSeats: [],
       showdownPhase: "none",
+      ritVotes: {},
+      runItTwiceEnabled: this.runItTwiceEnabled,
+      nextBlindLevel: null,
       pendingToAct: new Set<number>(),
       deck: [],
       holeCards: new Map(),
@@ -116,6 +127,36 @@ export class GameTable {
       lastReopenBet: 0,
       actedSinceLastFullRaise: new Set<number>()
     };
+  }
+
+  handleTimeout(seat: number): { state: TableState; action: PlayerActionType; autoSatOut: boolean } {
+    if (this.state.handId === null) {
+      throw new Error("no active hand");
+    }
+
+    if (this.state.street === "RUN_IT_TWICE_PROMPT") {
+      const state = this.applyAction(seat, "vote_rit", undefined, false);
+      const timeoutCount = (this.consecutiveTimeouts.get(seat) ?? 0) + 1;
+      this.consecutiveTimeouts.set(seat, timeoutCount);
+      const autoSatOut = this.applyTimeoutSitOutIfNeeded(seat, timeoutCount);
+      return { state, action: "vote_rit", autoSatOut };
+    }
+
+    if (this.state.actorSeat !== seat) {
+      throw new Error("not your turn");
+    }
+
+    const legal = this.computeLegalActions();
+    if (!legal) {
+      throw new Error("no legal actions for timeout");
+    }
+
+    const fallbackAction: PlayerActionType = legal.canCheck ? "check" : "fold";
+    const state = this.applyAction(seat, fallbackAction);
+    const timeoutCount = (this.consecutiveTimeouts.get(seat) ?? 0) + 1;
+    this.consecutiveTimeouts.set(seat, timeoutCount);
+    const autoSatOut = this.applyTimeoutSitOutIfNeeded(seat, timeoutCount);
+    return { state, action: fallbackAction, autoSatOut };
   }
 
   getPublicState(): TableState {
@@ -232,6 +273,7 @@ export class GameTable {
       status: player.status ?? 'active',
       isNewPlayer: player.isNewPlayer ?? false,
     });
+    this.consecutiveTimeouts.set(player.seat, 0);
     this.state.players.sort((a, b) => a.seat - b.seat);
   }
 
@@ -252,11 +294,21 @@ export class GameTable {
     this.state.pendingDeadBlinds.delete(seat);
     this.state.pendingDeadBlindActions = this.state.pendingDeadBlindActions.filter((action) => action.seat !== seat);
     this.state.holeCards.delete(seat);
+    this.consecutiveTimeouts.delete(seat);
   }
 
   startHand(): { handId: string } {
     if (this.isHandActive()) {
       throw new Error("hand already active");
+    }
+
+    if (this.pendingBlindLevel) {
+      this.state.smallBlind = this.pendingBlindLevel.smallBlind;
+      this.state.bigBlind = this.pendingBlindLevel.bigBlind;
+      this.ante = this.pendingBlindLevel.ante;
+      this.state.ante = this.pendingBlindLevel.ante;
+      this.pendingBlindLevel = null;
+      this.state.nextBlindLevel = null;
     }
 
     const seated = this.state.players.filter(
@@ -292,6 +344,7 @@ export class GameTable {
     this.state.winners = undefined;
     this.state.runoutBoards = undefined;
     this.state.runoutPayouts = undefined;
+    this.state.ritVotes = {};
     this.state.shownCards = {};
     this.state.shownHands = {};
     this.state.revealedHoles = {};
@@ -368,13 +421,36 @@ export class GameTable {
     this.allInRunCount = count;
   }
 
+  updateBlindStructure(smallBlind: number, bigBlind: number, ante: number): void {
+    if (smallBlind <= 0 || bigBlind <= 0) {
+      throw new Error("blinds must be greater than 0");
+    }
+    if (smallBlind >= bigBlind) {
+      throw new Error("small blind must be less than big blind");
+    }
+    if (ante < 0) {
+      throw new Error("ante cannot be negative");
+    }
+
+    const next = { smallBlind, bigBlind, ante };
+    this.pendingBlindLevel = next;
+    this.state.nextBlindLevel = next;
+  }
+
   getAllInRunCount(): 1 | 2 {
     return this.allInRunCount;
   }
 
-  applyAction(seat: number, action: PlayerActionType, amount?: number): TableState {
+  applyAction(seat: number, action: PlayerActionType, amount?: number, ritVote?: boolean): TableState {
+    if (action === "vote_rit") {
+      return this.applyRitVote(seat, ritVote);
+    }
+
     if (this.state.handId === null || this.state.actorSeat === null) {
       throw new Error("no active hand");
+    }
+    if (this.state.street === "RUN_IT_TWICE_PROMPT") {
+      throw new Error("waiting for run-it-twice votes");
     }
     if (this.state.actorSeat !== seat) {
       throw new Error("not your turn");
@@ -384,6 +460,8 @@ export class GameTable {
     if (!player.inHand || player.folded || player.allIn) {
       throw new Error("player cannot act");
     }
+
+    this.consecutiveTimeouts.set(seat, 0);
 
     const toCall = Math.max(0, this.state.currentBet - player.streetCommitted);
     const pendingBeforeAction = new Set(this.state.pendingToAct);
@@ -538,10 +616,13 @@ export class GameTable {
     // Check if all remaining active players are all-in (no more betting possible)
     const canStillAct = remaining.filter((p) => !p.allIn);
     if (canStillAct.length <= 1 && this.state.pendingToAct.size === 0) {
-      // Signal runout needed — server will handle sequential dealing & run-count prompt
-      this.runoutPending = true;
       this.state.actorSeat = null;
       this.state.pendingToAct.clear();
+      if (this.shouldPromptRunItTwice()) {
+        this.enterRunItTwicePrompt();
+      } else {
+        this.runoutPending = true;
+      }
       return this.getPublicState();
     }
 
@@ -581,7 +662,14 @@ export class GameTable {
   }
 
   isHandActive(): boolean {
-    return this.handInProgress && this.state.handId !== null && (this.state.actorSeat !== null || this.runoutPending || this.state.showdownPhase === "decision");
+    return this.handInProgress
+      && this.state.handId !== null
+      && (
+        this.state.actorSeat !== null
+        || this.runoutPending
+        || this.state.street === "RUN_IT_TWICE_PROMPT"
+        || this.state.showdownPhase === "decision"
+      );
   }
 
   /** Called by the server after finalizeHandEnd to cleanly mark the hand as done.
@@ -630,6 +718,7 @@ export class GameTable {
     this.state.pot += amount;
     player.status = 'active';
     player.isNewPlayer = false;
+    this.consecutiveTimeouts.set(seat, 0);
   }
 
   /** Replace the deck after startHand() for deterministic testing.
@@ -1007,9 +1096,13 @@ export class GameTable {
     // If only one or zero players can act (rest are all-in), signal runout
     if (this.state.pendingToAct.size <= 1 && this.activePlayers().filter(p => !p.allIn).length <= 1) {
       if (this.state.pendingToAct.size === 0) {
-        this.runoutPending = true;
         this.state.actorSeat = null;
         this.state.pendingToAct.clear();
+        if (this.shouldPromptRunItTwice()) {
+          this.enterRunItTwicePrompt();
+        } else {
+          this.runoutPending = true;
+        }
       }
     }
   }
@@ -1050,6 +1143,7 @@ export class GameTable {
     winner.stack += won;
     this.state.winners = [{ seat: winner.seat, amount: won }];
     this.state.runoutPayouts = undefined;
+    this.state.ritVotes = {};
     this.state.shownCards = {};
     this.state.shownHands = {};
     this.state.pot = 0;
@@ -1121,7 +1215,7 @@ export class GameTable {
     for (const contender of contenders) {
       if (contender.allIn) required.add(contender.seat);
     }
-    return [...required].sort((a, b) => a - b);
+    return this.sortSeatsClockwiseFromButtonLeft([...required]);
   }
 
   private sortSeatsClockwiseFromButtonLeft(seats: number[]): number[] {
@@ -1254,6 +1348,69 @@ export class GameTable {
 
   private logAction(action: HandAction): void {
     this.state.actions.push(action);
+  }
+
+  private shouldPromptRunItTwice(): boolean {
+    return this.runItTwiceEnabled && this.isEveryoneAllIn();
+  }
+
+  private enterRunItTwicePrompt(): void {
+    const contenders = this.activePlayers().map((p) => p.seat);
+    this.state.street = "RUN_IT_TWICE_PROMPT";
+    this.state.ritVotes = {};
+    for (const seat of contenders) {
+      this.state.ritVotes[seat] = null;
+    }
+    this.state.actorSeat = null;
+    this.state.pendingToAct.clear();
+    this.runoutPending = false;
+  }
+
+  private applyRitVote(seat: number, ritVote?: boolean): TableState {
+    if (this.state.handId === null) {
+      throw new Error("no active hand");
+    }
+    if (this.state.street !== "RUN_IT_TWICE_PROMPT") {
+      throw new Error("run-it-twice vote not expected");
+    }
+    if (typeof ritVote !== "boolean") {
+      throw new Error("run-it-twice vote required");
+    }
+
+    const contender = this.activePlayers().some((p) => p.seat === seat);
+    if (!contender) {
+      throw new Error("seat is not eligible to vote");
+    }
+
+    this.state.ritVotes[seat] = ritVote;
+    this.logAction({
+      seat,
+      street: "RUN_IT_TWICE_PROMPT",
+      type: "vote_rit",
+      amount: 0,
+      at: Date.now(),
+    });
+
+    const votes = Object.values(this.state.ritVotes);
+    const anyNo = votes.some((v) => v === false);
+    const allYes = votes.length > 0 && votes.every((v) => v === true);
+
+    if (!anyNo && !allYes) {
+      return this.getPublicState();
+    }
+
+    this.state.ritVotes = {};
+    this.allInRunCount = allYes ? 2 : 1;
+    this.runoutPending = false;
+    this.runOutBoard();
+    return this.getPublicState();
+  }
+
+  private applyTimeoutSitOutIfNeeded(seat: number, timeoutCount: number): boolean {
+    if (timeoutCount < 2) return false;
+    const player = this.playerBySeat(seat);
+    player.status = "sitting_out";
+    return true;
   }
 
   private enterShowdownDecisionState(contenderSeats: number[]): void {
@@ -1435,10 +1592,7 @@ function nextSeatCircular(currentSeat: number, orderedSeats: number[], offset = 
 }
 
 function orderedFromButton(buttonSeat: number, seats: number[]): number[] {
-  if (seats.length === 0) return [];
-  const gt = seats.filter((s) => s > buttonSeat);
-  const lte = seats.filter((s) => s <= buttonSeat);
-  return [...gt, ...lte];
+  return canonicalClockwiseSeats(buttonSeat, seats);
 }
 
 function toSolverCards(cards: string[]): string[] {

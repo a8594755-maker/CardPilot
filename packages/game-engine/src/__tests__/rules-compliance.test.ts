@@ -475,6 +475,43 @@ describe("Full Raise Rule: short all-in does NOT reopen betting", () => {
       t.clearHand();
     }
   });
+
+  it("run-it-twice split is deterministic: run1 gets ceil(totalPaid/2), run2 gets floor(totalPaid/2)", () => {
+    const t = new GameTable({ tableId: "rit_deterministic_split", smallBlind: 1, bigBlind: 2 });
+    t.addPlayer({ seat: 1, userId: "u1", name: "A", stack: 3 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "B", stack: 4 });
+    t.addPlayer({ seat: 3, userId: "u3", name: "C", stack: 6 });
+    const initial = 13;
+
+    t.startHand();
+
+    for (let i = 0; i < 20; i++) {
+      const s = t.getPublicState();
+      if (!s.handId || s.actorSeat === null || t.isRunoutPending()) break;
+      t.applyAction(s.actorSeat, "all_in");
+    }
+
+    assert.equal(t.isRunoutPending(), true, "all-in sequence should lead to runout pending");
+    t.setAllInRunCount(2);
+    t.performRunout();
+
+    const s = t.getPublicState();
+    if (s.showdownPhase === "decision") {
+      t.finalizeShowdownReveals({ autoMuckLosingHands: true });
+    }
+
+    const sr = t.getSettlementResult();
+    assert.ok(sr, "settlement should exist");
+    assert.equal(sr!.runCount, 2, "run-it-twice settlement must report two runs");
+    assert.ok(sr!.payoutsBySeatByRun, "per-run payouts should be present");
+
+    const run1Total = Object.values(sr!.payoutsBySeatByRun![0]).reduce((sum, amount) => sum + amount, 0);
+    const run2Total = Object.values(sr!.payoutsBySeatByRun![1]).reduce((sum, amount) => sum + amount, 0);
+
+    assert.equal(run1Total, Math.ceil(sr!.totalPaid / 2), "Run 1 should get ceil(totalPaid/2)");
+    assert.equal(run2Total, Math.floor(sr!.totalPaid / 2), "Run 2 should get floor(totalPaid/2)");
+    assert.equal(finalStacks(t), initial, "chip conservation must hold");
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════

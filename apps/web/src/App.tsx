@@ -16,11 +16,14 @@ import type {
   TableState,
   TimerState
 } from "@cardpilot/shared-types";
+import { getClockwiseSeatsFromButton } from "@cardpilot/shared-types";
 import { getExistingSession, ensureGuestSession, signUpWithEmail, signInWithEmail, signInWithGoogle, signOut, supabase, validateEmail, validatePassword, getRateLimitSecondsLeft, isUuid, type AuthSession } from "./supabase";
 import { preloadCardImages, getCardImagePath } from "./lib/card-images.js";
 import { SettlementOverlay } from "./components/SettlementOverlay";
 import { getSuggestedPresets, userPresetsToButtons, type BetPreset } from "./lib/bet-sizing.js";
 import { AppComplianceFooter } from "./legal-pages";
+import { ClubsPage } from "./pages/clubs/ClubsPage";
+import type { ClubListItem, ClubDetailPayload } from "@cardpilot/shared-types";
 import { saveHand, getHands, autoTag, type HandRecord, type HandActionRecord } from "./lib/hand-history.js";
 
 const SERVER = import.meta.env.VITE_SERVER_URL || "http://127.0.0.1:4000";
@@ -93,14 +96,19 @@ export function App() {
   const [pendingSitSeat, setPendingSitSeat] = useState(1);
   const [buyInAmount, setBuyInAmount] = useState(10000);
   const [currentRoomCode, setCurrentRoomCode] = useState("");
-  const [view, setView] = useState<"lobby" | "table" | "profile" | "history">(() => {
+  const [view, setView] = useState<"lobby" | "table" | "profile" | "history" | "clubs">(() => {
     if (typeof window === "undefined") return "lobby";
     const param = new URLSearchParams(window.location.search).get("view");
-    if (param === "lobby" || param === "table" || param === "profile" || param === "history") {
+    if (param === "lobby" || param === "table" || param === "profile" || param === "history" || param === "clubs") {
       return param;
     }
     return "lobby";
   });
+
+  /* ── Clubs state ── */
+  const [clubList, setClubList] = useState<ClubListItem[]>([]);
+  const [clubDetail, setClubDetail] = useState<ClubDetailPayload | null>(null);
+  const [selectedClubId, setSelectedClubId] = useState<string>("");
 
   /* ── Room management state ── */
   const [roomState, setRoomState] = useState<RoomFullState | null>(null);
@@ -111,12 +119,14 @@ export function App() {
   const [seatRequests, setSeatRequests] = useState<Array<{ orderId: string; userId: string; userName: string; seat: number; buyIn: number }>>([]);
   const [showRoomLog, setShowRoomLog] = useState(false);
   const [showSessionStats, setShowSessionStats] = useState(false);
-  type SessionStatsEntry = { seat: number | null; userId: string; name: string; totalBuyIn: number; currentStack: number; net: number; handsPlayed: number };
+  type SessionStatsEntry = { seat: number | null; userId: string; name: string; totalBuyIn: number; currentStack: number; net: number; handsPlayed: number; preservedBalance: number };
   const [sessionStatsData, setSessionStatsData] = useState<SessionStatsEntry[]>([]);
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [depositAmount, setDepositAmount] = useState(0);
   type DepositNotification = { orderId: string; userId: string; userName: string; seat: number; amount: number };
   const [depositNotifications, setDepositNotifications] = useState<DepositNotification[]>([]);
+  const [rejoinStackInfo, setRejoinStackInfo] = useState<{ tableId: string; stack: number | null; loading: boolean } | null>(null);
+  const [revealedZoom, setRevealedZoom] = useState<{ seat: number; name: string; cards: [string, string]; handName?: string } | null>(null);
   const [socketConnected, setSocketConnected] = useState(false);
   const [supabaseEnabled, setSupabaseEnabled] = useState(true);
   const [showGtoSidebar, setShowGtoSidebar] = useState(() => {
@@ -359,6 +369,7 @@ export function App() {
             position: heroPos,
             heroCards: [cards[0], cards[1]],
             board: st.board,
+            runoutBoards: st.runoutBoards,
             actions: actionRecords,
             potSize: d.settlement.totalPot,
             stackSize: heroLedger?.endStack ?? 0,
@@ -377,8 +388,11 @@ export function App() {
       showToast(`Error: ${d.message}`);
     });
     s.on("all_in_prompt", (d: AllInPrompt) => setAllInPrompt(d));
-    s.on("session_stats", (d: { tableId: string; entries: Array<{ seat: number | null; userId: string; name: string; totalBuyIn: number; currentStack: number; net: number; handsPlayed: number }> }) => {
+    s.on("session_stats", (d: { tableId: string; entries: Array<{ seat: number | null; userId: string; name: string; totalBuyIn: number; currentStack: number; net: number; handsPlayed: number; preservedBalance: number }> }) => {
       setSessionStatsData(d.entries);
+    });
+    s.on("rejoin_stack_info", (d: { tableId: string; stack: number | null }) => {
+      setRejoinStackInfo({ tableId: d.tableId, stack: d.stack, loading: false });
     });
     s.on("deposit_request_pending", (d: { orderId: string; userId: string; userName: string; seat: number; amount: number }) => {
       setDepositNotifications((prev) => [...prev, d]);
@@ -452,6 +466,34 @@ export function App() {
     s.on("seat_request_pending", (d: { orderId: string; userId: string; userName: string; seat: number; buyIn: number }) => {
       debugLog("[SEAT_REQUEST] Received pending request:", d);
       setSeatRequests((prev) => [...prev.filter(r => r.orderId !== d.orderId), { orderId: d.orderId, userId: d.userId, userName: d.userName, seat: d.seat, buyIn: d.buyIn }]);
+    });
+
+    // ── Club events ──
+    s.on("club_list", (d: { clubs: ClubListItem[] }) => {
+      setClubList(d.clubs ?? []);
+    });
+    s.on("club_detail", (d: ClubDetailPayload) => {
+      setClubDetail(d);
+    });
+    s.on("club_created", (d: { club: unknown }) => {
+      showToast("Club created!");
+      s.emit("club_list_my_clubs");
+    });
+    s.on("club_updated", () => {
+      showToast("Club updated");
+    });
+    s.on("club_join_result", (d: { clubId: string; status: string; message: string }) => {
+      showToast(d.message);
+      if (d.status === "joined") s.emit("club_list_my_clubs");
+    });
+    s.on("club_member_update", () => {
+      // Refresh detail if viewing a club
+    });
+    s.on("club_table_created", (d: { clubId: string; roomCode: string }) => {
+      showToast("Club table created!");
+    });
+    s.on("club_error", (d: { code: string; message: string }) => {
+      showToast(`Error: ${d.message}`);
     });
 
     return () => { s.disconnect(); };
@@ -580,6 +622,10 @@ export function App() {
   const seatPositions = useMemo(() => getSeatLayout(roomState?.settings.maxPlayers ?? 6), [roomState?.settings.maxPlayers]);
 
   const handleSeatClick = useCallback((seatNum: number) => {
+    if (socket && tableId) {
+      setRejoinStackInfo({ tableId, stack: null, loading: true });
+      socket.emit("request_rejoin_stack", { tableId });
+    }
     const settings = roomState?.settings;
     const min = settings?.buyInMin ?? 40;
     const max = settings?.buyInMax ?? 300;
@@ -597,7 +643,7 @@ export function App() {
     setBuyInAmount(Math.min(max, Math.max(min, snapped)));
     setPendingSitSeat(seatNum);
     setShowBuyInModal(true);
-  }, [roomState?.settings, currentRoomCode]);
+  }, [roomState?.settings, currentRoomCode, socket, tableId]);
 
   const seatElements = useMemo(() => {
     const maxP = roomState?.settings.maxPlayers ?? 6;
@@ -615,12 +661,21 @@ export function App() {
       const isPendingLeave = snapshot?.pendingStandUp?.includes(seatNum) ?? false;
       const revealedCards = snapshot?.revealedHoles?.[seatNum] as [string, string] | undefined;
       const isMucked = snapshot?.muckedSeats?.includes(seatNum) ?? false;
+      const revealedHandName = snapshot?.winners?.find((w) => w.seat === seatNum)?.handName;
       return (
         <div key={seatNum} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ top: pos.top, left: pos.left }}>
           <SeatChip player={player} seatNum={seatNum} isActor={isActor} isMe={isMe}
             isOwner={!!isOwner} isCoHost={!!isCo} timer={seatTimer}
             posLabel={posLabel} isButton={isButton} displayBB={displayBB} bigBlind={snapshot?.bigBlind ?? 3}
-            equity={equity} pendingLeave={isPendingLeave} revealedCards={revealedCards} isMucked={isMucked}
+            equity={equity} pendingLeave={isPendingLeave} revealedCards={revealedCards} revealedHandName={revealedHandName} isMucked={isMucked}
+            onClickRevealed={revealedCards ? () => {
+              setRevealedZoom({
+                seat: seatNum,
+                name: player?.name ?? `Seat ${seatNum}`,
+                cards: revealedCards,
+                handName: revealedHandName,
+              });
+            } : undefined}
             onClickEmpty={handleSeatClick} />
         </div>
       );
@@ -724,10 +779,13 @@ export function App() {
           <h1 className="text-base font-bold tracking-tight text-white">Card<span className="text-amber-400">Pilot</span></h1>
         </div>
         <nav className="flex items-center gap-1 bg-white/5 rounded-xl p-1">
-          {(["lobby", "table", "history", "profile"] as const).map((v) => (
-            <button key={v} onClick={() => setView(v)}
+          {(["lobby", "clubs", "table", "history", "profile"] as const).map((v) => (
+            <button key={v} onClick={() => {
+              setView(v);
+              if (v === "clubs" && socket) { socket.emit("club_list_my_clubs"); }
+            }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === v ? "bg-white/10 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
-              {v === "lobby" ? "Lobby" : v === "table" ? "Table" : v === "history" ? "History" : "Profile"}
+              {v === "lobby" ? "Lobby" : v === "clubs" ? "Clubs" : v === "table" ? "Table" : v === "history" ? "History" : "Profile"}
             </button>
           ))}
         </nav>
@@ -765,7 +823,36 @@ export function App() {
           />
         ) : view === "history" ? (
           /* ═══════ HISTORY ═══════ */
-          <HistoryPage socket={socket} isConnected={socketConnected} userId={authSession.userId} supabaseEnabled={supabaseEnabled} />
+          <HistoryPage
+            socket={socket}
+            isConnected={isConnected}
+            userId={authSession?.userId ?? ""}
+            supabaseEnabled={supabaseEnabled}
+          />
+        ) : view === "clubs" ? (
+          /* ═══════ CLUBS ═══════ */
+          <ClubsPage
+            socket={socket}
+            isConnected={isConnected}
+            userId={authSession?.userId ?? ""}
+            clubs={clubList}
+            clubDetail={selectedClubId ? clubDetail : null}
+            onSelectClub={(clubId) => {
+              setSelectedClubId(clubId);
+              if (clubId && socket) {
+                socket.emit("club_get_detail", { clubId });
+              } else {
+                setClubDetail(null);
+              }
+            }}
+            onJoinClubTable={(roomCode) => {
+              if (socket) {
+                socket.emit("join_room_code", { roomCode });
+                setView("table");
+              }
+            }}
+            showToast={showToast}
+          />
         ) : view === "lobby" ? (
           /* ═══════ LOBBY ═══════ */
           <main className="flex-1 p-6 overflow-y-auto">
@@ -1110,37 +1197,48 @@ export function App() {
                   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowBuyInModal(false)}>
                     <div className="glass-card p-6 w-80 space-y-4" onClick={(e) => e.stopPropagation()}>
                       <h3 className="text-sm font-bold text-white text-center">Choose Buy-in</h3>
+                      {rejoinStackInfo?.tableId === tableId && rejoinStackInfo.stack != null && (
+                        <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-2 text-center">
+                          <div className="text-[10px] uppercase tracking-wider text-cyan-300">Returning Stack</div>
+                          <div className="text-lg font-bold text-cyan-200 font-mono">{rejoinStackInfo.stack.toLocaleString()}</div>
+                          <div className="text-[9px] text-cyan-400/80">Same room-session balance (anti-ratholing)</div>
+                        </div>
+                      )}
                       <div className="text-center">
-                        <span className="text-3xl font-bold text-amber-400 font-mono">{buyInAmount.toLocaleString()}</span>
-                        <div className="text-[10px] text-slate-500 mt-1">{(buyInAmount / bb).toFixed(0)} BB</div>
+                        <span className="text-3xl font-bold text-amber-400 font-mono">{(rejoinStackInfo?.tableId === tableId && rejoinStackInfo.stack != null ? rejoinStackInfo.stack : buyInAmount).toLocaleString()}</span>
+                        <div className="text-[10px] text-slate-500 mt-1">{((rejoinStackInfo?.tableId === tableId && rejoinStackInfo.stack != null ? rejoinStackInfo.stack : buyInAmount) / bb).toFixed(0)} BB</div>
                       </div>
-                      <input type="range" min={biMin} max={biMax} step={buyInStep} value={buyInAmount}
-                        onChange={(e) => setBuyInAmount(snapBuyIn(Number(e.target.value)))}
-                        className="w-full h-2 rounded-full appearance-none bg-white/10 accent-amber-500 cursor-pointer" />
+                      {!(rejoinStackInfo?.tableId === tableId && rejoinStackInfo.stack != null) && (
+                        <input type="range" min={biMin} max={biMax} step={buyInStep} value={buyInAmount}
+                          onChange={(e) => setBuyInAmount(snapBuyIn(Number(e.target.value)))}
+                          className="w-full h-2 rounded-full appearance-none bg-white/10 accent-amber-500 cursor-pointer" />
+                      )}
                       <div className="flex justify-between text-[10px] text-slate-500">
                         <span>{biMin.toLocaleString()}</span>
                         <span>{biMax.toLocaleString()}</span>
                       </div>
                       {/* Quick presets */}
-                      <div className="flex gap-1.5 justify-center flex-wrap">
-                        {(() => {
-                          const presets = Array.from(new Set([
-                            snapBuyIn(biMin),
-                            snapBuyIn(biMin + (biMax - biMin) * 0.25),
-                            snapBuyIn((biMin + biMax) / 2),
-                            snapBuyIn(biMin + (biMax - biMin) * 0.75),
-                            snapBuyIn(biMax)
-                          ]));
-                          return presets.map((v) => (
-                            <button key={v} onClick={() => setBuyInAmount(v)}
-                              className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                                buyInAmount === v
-                                  ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                                  : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/20"
-                              }`}>{v.toLocaleString()}</button>
-                          ));
-                        })()}
-                      </div>
+                      {!(rejoinStackInfo?.tableId === tableId && rejoinStackInfo.stack != null) && (
+                        <div className="flex gap-1.5 justify-center flex-wrap">
+                          {(() => {
+                            const presets = Array.from(new Set([
+                              snapBuyIn(biMin),
+                              snapBuyIn(biMin + (biMax - biMin) * 0.25),
+                              snapBuyIn((biMin + biMax) / 2),
+                              snapBuyIn(biMin + (biMax - biMin) * 0.75),
+                              snapBuyIn(biMax)
+                            ]));
+                            return presets.map((v) => (
+                              <button key={v} onClick={() => setBuyInAmount(v)}
+                                className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                                  buyInAmount === v
+                                    ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                                    : "bg-white/5 text-slate-400 border border-white/10 hover:border-white/20"
+                                }`}>{v.toLocaleString()}</button>
+                            ));
+                          })()}
+                        </div>
+                      )}
                       <div className="flex gap-2">
                         <button onClick={() => setShowBuyInModal(false)}
                           className="flex-1 py-2 rounded-lg text-xs font-medium bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 transition-all">Cancel</button>
@@ -1151,11 +1249,11 @@ export function App() {
                           if (canSitDirectly) {
                             // Host/Creator auto-sits directly
                             debugLog("[BUY_IN_MODAL] Emitting sit_down (host)");
-                            socket?.emit("sit_down", { tableId, seat: pendingSitSeat, buyIn: buyInAmount, name });
+                            socket?.emit("sit_down", { tableId, seat: pendingSitSeat, buyIn: (rejoinStackInfo?.tableId === tableId && rejoinStackInfo.stack != null ? rejoinStackInfo.stack : buyInAmount), name });
                           } else {
                             // Non-host sends a request for host approval
                             debugLog("[BUY_IN_MODAL] Emitting seat_request (guest)");
-                            socket?.emit("seat_request", { tableId, seat: pendingSitSeat, buyIn: buyInAmount, name });
+                            socket?.emit("seat_request", { tableId, seat: pendingSitSeat, buyIn: (rejoinStackInfo?.tableId === tableId && rejoinStackInfo.stack != null ? rejoinStackInfo.stack : buyInAmount), name });
                           }
                           // Sticky rebuy: remember buy-in per room
                           try { if (currentRoomCode) localStorage.setItem(`cardpilot_buyin_${currentRoomCode}`, String(buyInAmount)); } catch { /* ignore */ }
@@ -1352,6 +1450,7 @@ export function App() {
                           <th className="text-left py-1 font-medium">Player</th>
                           <th className="text-right py-1 font-medium">Deposited</th>
                           <th className="text-right py-1 font-medium">Stack</th>
+                          <th className="text-right py-1 font-medium">Preserved</th>
                           <th className="text-right py-1 font-medium">Net</th>
                           <th className="text-right py-1 font-medium">Hands</th>
                         </tr>
@@ -1363,6 +1462,7 @@ export function App() {
                             <td className="py-1 text-slate-200 font-medium truncate max-w-[100px]">{e.name}</td>
                             <td className="py-1 text-right text-slate-400 font-mono">{e.totalBuyIn.toLocaleString()}</td>
                             <td className="py-1 text-right text-slate-300 font-mono">{e.currentStack.toLocaleString()}</td>
+                            <td className="py-1 text-right text-cyan-300 font-mono">{e.preservedBalance.toLocaleString()}</td>
                             <td className={`py-1 text-right font-mono font-semibold ${e.net > 0 ? "text-emerald-400" : e.net < 0 ? "text-red-400" : "text-slate-400"}`}>
                               {e.net > 0 ? "+" : ""}{e.net.toLocaleString()}
                             </td>
@@ -1444,6 +1544,12 @@ export function App() {
                       )}
                     </div>
 
+                    {boardReveal ? (
+                      <div className="absolute left-1/2 -translate-x-1/2 top-[33%] z-20 px-2 py-0.5 rounded-full bg-black/65 border border-cyan-500/30 text-[10px] font-semibold text-cyan-300 tracking-wide">
+                        Runout: {boardReveal.street}
+                      </div>
+                    ) : null}
+
                     {/* Pot chip on table */}
                     {(snapshot?.pot ?? 0) > 0 && (
                       <div className="absolute top-[32%] left-1/2 -translate-x-1/2 pointer-events-none">
@@ -1523,7 +1629,10 @@ export function App() {
                           <span className="text-2xl">🏆</span>
                         </div>
                         <div className="flex flex-col items-center gap-2">
-                          {winners.map((w) => {
+                          {[...winners].sort((a, b) => {
+                            const order = getClockwiseSeatsFromButton(snapshot?.buttonSeat ?? 0, winners.map((x) => x.seat));
+                            return order.indexOf(a.seat) - order.indexOf(b.seat);
+                          }).map((w) => {
                             const p = snapshot?.players.find((pl) => pl.seat === w.seat);
                             return (
                               <div key={w.seat} className="flex items-center gap-3 px-5 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 animate-[fadeSlideUp_0.6s_ease-out]">
@@ -1614,6 +1723,28 @@ export function App() {
                     </div>
                   )}
                 </aside>
+
+                {revealedZoom && (
+                  <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-end md:items-center justify-center" onClick={() => setRevealedZoom(null)}>
+                    <div
+                      className="w-full md:w-auto md:min-w-[360px] rounded-t-2xl md:rounded-2xl border border-white/15 bg-slate-900/95 p-4 md:p-6"
+                      style={{ paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <div className="text-sm font-semibold text-white">{revealedZoom.name}</div>
+                          <div className="text-xs text-slate-400">Seat {revealedZoom.seat}{revealedZoom.handName ? ` · ${revealedZoom.handName}` : " · Revealed hand"}</div>
+                        </div>
+                        <button className="text-slate-400 hover:text-white" onClick={() => setRevealedZoom(null)}>✕</button>
+                      </div>
+                      <div className="flex items-center justify-center gap-2">
+                        <CardImg card={revealedZoom.cards[0]} className="w-24 md:w-28 rounded-xl shadow-xl border border-emerald-400/40" />
+                        <CardImg card={revealedZoom.cards[1]} className="w-24 md:w-28 rounded-xl shadow-xl border border-emerald-400/40" />
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* ── Mobile GTO Pill + Drawer (visible on < lg only) ── */}
                 <div className="lg:hidden">
@@ -1728,10 +1859,30 @@ export function App() {
                     if (!snapshot?.handId) return;
                     if (actionPending) return;
                     setActionPending(true);
+
+                    const legal = snapshot.legalActions;
                     if (action === "all_in") {
                       socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "all_in" });
                       return;
                     }
+                    if (action === "raise") {
+                      if (!legal?.canRaise) {
+                        setActionPending(false);
+                        return;
+                      }
+                      const minRaise = legal.minRaise;
+                      const maxRaise = legal.maxRaise;
+                      const requested = typeof amount === "number" ? amount : minRaise;
+                      const normalized = Math.max(minRaise, Math.min(maxRaise, Math.round(requested)));
+                      socket?.emit("action_submit", {
+                        tableId,
+                        handId: snapshot.handId,
+                        action: "raise",
+                        amount: normalized,
+                      });
+                      return;
+                    }
+
                     socket?.emit("action_submit", { tableId, handId: snapshot.handId, action, amount });
                   }}
                 />
@@ -3862,14 +4013,16 @@ function InfoCell({ label, value, highlight, cyan }: { label: string; value: str
   );
 }
 
-const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, equity, pendingLeave, revealedCards, isMucked, onClickEmpty }: {
+const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, equity, pendingLeave, revealedCards, revealedHandName, isMucked, onClickRevealed, onClickEmpty }: {
   player?: TablePlayer; seatNum: number; isActor: boolean; isMe: boolean;
   isOwner?: boolean; isCoHost?: boolean; timer?: TimerState | null;
   posLabel?: string; isButton?: boolean; displayBB?: boolean; bigBlind?: number;
   equity?: { winRate: number; tieRate: number } | null;
   pendingLeave?: boolean;
   revealedCards?: [string, string];
+  revealedHandName?: string;
   isMucked?: boolean;
+  onClickRevealed?: () => void;
   onClickEmpty?: (seatNum: number) => void;
 }) {
   const bb = bigBlind || 1;
@@ -3946,10 +4099,13 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
         )}
       </div>
       {revealedCards && (
-        <div className="flex items-center gap-0.5">
-          <CardImg card={revealedCards[0]} className="w-5 h-7 rounded shadow border border-emerald-500/30" />
-          <CardImg card={revealedCards[1]} className="w-5 h-7 rounded shadow border border-emerald-500/30" />
-        </div>
+        <button onClick={onClickRevealed} className="flex flex-col items-center gap-0.5" title="Tap to zoom revealed hand">
+          <div className="flex items-center gap-1">
+            <CardImg card={revealedCards[0]} className="w-7 h-10 rounded shadow border border-emerald-500/40" />
+            <CardImg card={revealedCards[1]} className="w-7 h-10 rounded shadow border border-emerald-500/40" />
+          </div>
+          <div className="text-[8px] text-emerald-300 max-w-[72px] truncate">{revealedHandName ?? "Revealed"}</div>
+        </button>
       )}
       {!revealedCards && isMucked && (
         <div className="text-[7px] uppercase tracking-wider text-slate-500">Mucked</div>

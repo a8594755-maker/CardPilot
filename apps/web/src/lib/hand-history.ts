@@ -10,6 +10,7 @@ export interface HandRecord {
   position: string;
   heroCards: [string, string];
   board: string[];
+  runoutBoards?: string[][];
   actions: HandActionRecord[];
   potSize: number;
   stackSize: number;

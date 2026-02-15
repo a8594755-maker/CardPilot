@@ -17,6 +17,26 @@ import { getRuntimeConfig } from "./config";
 import { logError, logInfo, logWarn } from "./logger";
 import { SupabasePersistence, type PersistHandHistoryPayload, type RoomRecord, type SessionContextMetadata, type VerifiedIdentity } from "./supabase";
 import { RoomManager } from "./room-manager";
+import { ClubManager } from "./club-manager";
+import type {
+  ClubCreatePayload,
+  ClubUpdatePayload,
+  ClubJoinRequestPayload,
+  ClubJoinDecisionPayload,
+  ClubInviteCreatePayload,
+  ClubInviteRevokePayload,
+  ClubMemberUpdateRolePayload,
+  ClubMemberKickPayload,
+  ClubMemberBanPayload,
+  ClubMemberUnbanPayload,
+  ClubRulesetCreatePayload,
+  ClubRulesetUpdatePayload,
+  ClubRulesetSetDefaultPayload,
+  ClubTableCreatePayload,
+  ClubTableClosePayload,
+  ClubTablePausePayload,
+  ClubRules,
+} from "@cardpilot/shared-types";
 
 const runtimeConfig = getRuntimeConfig();
 const app = express();
@@ -74,7 +94,14 @@ const pendingTableLeaves = new Map<string, Set<string>>(); // tableId -> socketI
 const pendingPause = new Map<string, { userId: string; displayName: string }>(); // tableId → who requested
 
 // Session stats: persisted per roomCode+userId for the life of the room
-type PlayerSessionEntry = { userId: string; name: string; totalBuyIn: number; handsPlayed: number; lastStack: number };
+type PlayerSessionEntry = {
+  userId: string;
+  name: string;
+  totalBuyIn: number;
+  handsPlayed: number;
+  lastStack: number;
+  lastStackUpdatedAt: number;
+};
 const sessionStatsByRoomCode = new Map<string, Map<string, PlayerSessionEntry>>(); // roomCode -> userId -> entry
 
 // Deposit requests: seated player asks for more chips, host approves, credited at next hand start
@@ -106,6 +133,9 @@ app.get("/healthz", (_req, res) => {
 const roomManager = new RoomManager((tableId, event, data) => {
   io.to(tableId).emit(event, data);
 });
+
+// Club manager handles club lifecycle, membership, permissions, rulesets
+const clubManager = new ClubManager();
 
 io.use(async (socket, next) => {
   const auth = (socket.handshake.auth ?? {}) as {
@@ -204,8 +234,6 @@ function getRoomSessionStats(tableId: string, create = false): Map<string, Playe
 }
 
 function recordSessionBuyIn(tableId: string, userId: string, name: string, amount: number): void {
-  const room = roomManager.getRoom(tableId);
-  if (!room?.settings.roomFundsTracking) return;
   const roomStats = getRoomSessionStats(tableId, true);
   if (!roomStats) return;
   const existing = roomStats.get(userId);
@@ -213,37 +241,57 @@ function recordSessionBuyIn(tableId: string, userId: string, name: string, amoun
     existing.totalBuyIn += amount;
     existing.name = name;
   } else {
-    roomStats.set(userId, { userId, name, totalBuyIn: amount, handsPlayed: 0, lastStack: 0 });
+    roomStats.set(userId, {
+      userId,
+      name,
+      totalBuyIn: amount,
+      handsPlayed: 0,
+      lastStack: 0,
+      lastStackUpdatedAt: 0,
+    });
   }
 }
 
 function setSessionLastStack(tableId: string, userId: string, name: string, stack: number): void {
-  const room = roomManager.getRoom(tableId);
-  if (!room?.settings.roomFundsTracking) return;
   const roomStats = getRoomSessionStats(tableId, true);
   if (!roomStats) return;
   const existing = roomStats.get(userId);
+  const updatedAt = Date.now();
   if (existing) {
     existing.lastStack = stack;
     existing.name = name;
+    existing.lastStackUpdatedAt = updatedAt;
     return;
   }
-  roomStats.set(userId, { userId, name, totalBuyIn: 0, handsPlayed: 0, lastStack: stack });
+  roomStats.set(userId, {
+    userId,
+    name,
+    totalBuyIn: 0,
+    handsPlayed: 0,
+    lastStack: stack,
+    lastStackUpdatedAt: updatedAt,
+  });
 }
 
 function getRestorableStack(tableId: string, userId: string): number | null {
   const room = roomManager.getRoom(tableId);
   if (!room?.settings.roomFundsTracking) return null;
+
   const roomStats = getRoomSessionStats(tableId, false);
   if (!roomStats) return null;
   const existing = roomStats.get(userId);
   if (!existing) return null;
-  return existing.lastStack > 0 ? existing.lastStack : null;
+
+  if (existing.lastStack <= 0) return null;
+  if (existing.lastStackUpdatedAt <= 0) return null;
+
+  const ageMs = Date.now() - existing.lastStackUpdatedAt;
+  if (ageMs > runtimeConfig.tableBalanceRejoinWindowMs) return null;
+
+  return existing.lastStack;
 }
 
 function incrementHandsPlayed(tableId: string, playerUserIds: string[]): void {
-  const room = roomManager.getRoom(tableId);
-  if (!room?.settings.roomFundsTracking) return;
   const roomStats = getRoomSessionStats(tableId, false);
   if (!roomStats) return;
   for (const uid of playerUserIds) {
@@ -253,8 +301,6 @@ function incrementHandsPlayed(tableId: string, playerUserIds: string[]): void {
 }
 
 function syncSessionStacksFromState(tableId: string, state: TableState): void {
-  const room = roomManager.getRoom(tableId);
-  if (!room?.settings.roomFundsTracking) return;
   for (const player of state.players) {
     setSessionLastStack(tableId, player.userId, player.name, player.stack);
   }
@@ -325,7 +371,7 @@ function hasVoluntaryPreflopAction(state: TableState): boolean {
   return false;
 }
 
-function pushAdviceIfNeeded(tableId: string, state: TableState) {
+async function pushAdviceIfNeeded(tableId: string, state: TableState): Promise<void> {
   if (!state.handId || state.actorSeat == null) return;
 
   const table = tables.get(tableId);
@@ -381,7 +427,7 @@ function pushAdviceIfNeeded(tableId: string, state: TableState) {
     if (!context) return;
 
     try {
-      advice = getPostflopAdvice(context);
+      advice = await getPostflopAdvice(context);
     } catch (error) {
       console.error(`[advice] postflop error for ${tableId}:${seat}:`, error);
       return;
@@ -435,6 +481,25 @@ function buildPostflopContext(tableId: string, state: TableState, seat: number, 
     p.inHand && !p.folded && p.seat !== seat
   ).length;
 
+  let preflopAggressorSeat: number | null = null;
+  for (const action of state.actions) {
+    if (
+      action.street === "PREFLOP"
+      && (action.type === "raise" || action.type === "all_in")
+    ) {
+      preflopAggressorSeat = action.seat;
+    }
+  }
+
+  const preflopAggressor: "hero" | "villain" | "none" = preflopAggressorSeat == null
+    ? "none"
+    : preflopAggressorSeat === seat
+      ? "hero"
+      : "villain";
+
+  const villainPosForIp = villainSeat != null ? table.getPosition(villainSeat) : villainPos;
+  const heroInPosition = comparePositionOrder(heroPos, villainPosForIp) > 0;
+
   // Calculate pot size and amount to call
   const potSize = state.pot;
   const toCall = Math.max(0, state.currentBet - (state.players.find(p => p.seat === seat)?.streetCommitted ?? 0));
@@ -455,9 +520,27 @@ function buildPostflopContext(tableId: string, state: TableState, seat: number, 
     effectiveStack,
     effectiveStackBb,
     aggressor,
+    preflopAggressor,
+    heroInPosition,
     numVillains,
     actionHistory: state.actions
   };
+}
+
+function comparePositionOrder(heroPos: string, villainPos: string): number {
+  const order: Record<string, number> = {
+    SB: 0,
+    BB: 1,
+    UTG: 2,
+    MP: 3,
+    HJ: 4,
+    CO: 5,
+    BTN: 6,
+  };
+
+  const heroRank = order[heroPos] ?? 0;
+  const villainRank = order[villainPos] ?? 0;
+  return heroRank - villainRank;
 }
 
 function calculateEffectiveStackBb(state: TableState, heroSeat: number, villainSeat?: number | null): number {
@@ -570,11 +653,9 @@ function broadcastSnapshot(tableId: string) {
   emitPresence(tableId);
   // Defer advice computation so it never blocks snapshot delivery or timer updates
   setImmediate(() => {
-    try {
-      pushAdviceIfNeeded(tableId, snapshot);
-    } catch (err) {
+    void pushAdviceIfNeeded(tableId, snapshot).catch((err) => {
       console.warn("[advice] deferred push error:", (err as Error).message);
-    }
+    });
   });
 }
 
@@ -732,6 +813,10 @@ function beginShowdownDecision(tableId: string, table: GameTable, state: TableSt
       table.revealPublicHand(seat);
     }
     state = table.getPublicState();
+    if (state.showdownPhase !== "decision") {
+      finalizeHandEnd(tableId, state);
+      return;
+    }
   }
 
   clearShowdownDecisionTimeout(tableId);
@@ -773,84 +858,101 @@ function maybeAutoRevealRunoutHands(tableId: string, table: GameTable): void {
 }
 
 async function handleSequentialRunout(tableId: string, table: GameTable): Promise<void> {
-  // For run-it-twice: engine deals both boards atomically, then we reveal street-by-street
-  if (table.getAllInRunCount() === 2) {
-    const boardBefore = [...table.getPublicState().board];
-    table.performRunout(); // deals both boards, computes payouts, sets runoutBoards
-    const finalState = table.getPublicState();
-    const boards = finalState.runoutBoards; // [board1, board2], each length 5
+  try {
+    // For run-it-twice: engine deals both boards atomically, then we reveal street-by-street
+    if (table.getAllInRunCount() === 2) {
+      const boardBefore = [...table.getPublicState().board];
+      table.performRunout(); // deals both boards, computes payouts, sets runoutBoards
+      const finalState = table.getPublicState();
+      const boards = finalState.runoutBoards; // [board1, board2], each length 5
 
-    if (boards && boards.length === 2) {
-      // Determine how many cards were already on the board before runout
-      const alreadyDealt = boardBefore.length; // 0, 3, or 4
+      if (boards && boards.length === 2) {
+        // Determine how many cards were already on the board before runout
+        const alreadyDealt = boardBefore.length; // 0, 3, or 4
 
-      // Build reveal steps: each step shows new cards for that street on both boards
-      type RevealStep = { street: string; boardSlice: [number, number]; delay: number };
-      const steps: RevealStep[] = [];
-      if (alreadyDealt < 3) steps.push({ street: "FLOP", boardSlice: [0, 3], delay: 1500 });
-      if (alreadyDealt < 4) steps.push({ street: "TURN", boardSlice: [3, 4], delay: 2000 });
-      if (alreadyDealt < 5) steps.push({ street: "RIVER", boardSlice: [4, 5], delay: 2000 });
+        // Build reveal steps: each step shows new cards for that street on both boards
+        type RevealStep = { street: string; boardSlice: [number, number]; delay: number };
+        const steps: RevealStep[] = [];
+        if (alreadyDealt < 3) steps.push({ street: "FLOP", boardSlice: [0, 3], delay: 1500 });
+        if (alreadyDealt < 4) steps.push({ street: "TURN", boardSlice: [3, 4], delay: 2000 });
+        if (alreadyDealt < 5) steps.push({ street: "RIVER", boardSlice: [4, 5], delay: 2000 });
 
-      for (let i = 0; i < steps.length; i++) {
-        const step = steps[i];
-        const newCardsR1 = boards[0].slice(step.boardSlice[0], step.boardSlice[1]);
-        const newCardsR2 = boards[1].slice(step.boardSlice[0], step.boardSlice[1]);
-        const partialBoard1 = boards[0].slice(0, step.boardSlice[1]);
-        const partialBoard2 = boards[1].slice(0, step.boardSlice[1]);
+        for (let i = 0; i < steps.length; i++) {
+          const step = steps[i];
+          const newCardsR1 = boards[0].slice(step.boardSlice[0], step.boardSlice[1]);
+          const newCardsR2 = boards[1].slice(step.boardSlice[0], step.boardSlice[1]);
+          const partialBoard1 = boards[0].slice(0, step.boardSlice[1]);
+          const partialBoard2 = boards[1].slice(0, step.boardSlice[1]);
 
-        io.to(tableId).emit("run_twice_reveal", {
-          handId: finalState.handId,
-          street: step.street,
-          run1: { newCards: newCardsR1, board: partialBoard1 },
-          run2: { newCards: newCardsR2, board: partialBoard2 },
-        });
+          io.to(tableId).emit("run_twice_reveal", {
+            handId: finalState.handId,
+            street: step.street,
+            run1: { newCards: newCardsR1, board: partialBoard1 },
+            run2: { newCards: newCardsR2, board: partialBoard2 },
+          });
 
-        if (i < steps.length - 1) {
-          await new Promise((resolve) => setTimeout(resolve, step.delay));
+          if (i < steps.length - 1) {
+            await new Promise((resolve) => setTimeout(resolve, step.delay));
+          }
         }
+
+        // Final showdown after last reveal delay
+        await new Promise((resolve) => setTimeout(resolve, 1500));
       }
 
-      // Final showdown after last reveal delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-    }
-
-    beginShowdownDecision(tableId, table, finalState);
-    return;
-  }
-
-  const delays: Record<string, number> = { PREFLOP: 0, FLOP: 1500, TURN: 2000, RIVER: 2000, SHOWDOWN: 1500 };
-
-  const revealNextStreetWithDelay = async (): Promise<void> => {
-    const result = table.revealNextStreet();
-    if (!result) return;
-
-    const { street, newCards } = result;
-    const state = table.getPublicState();
-
-    if (street === "SHOWDOWN") {
-      beginShowdownDecision(tableId, table, state);
+      beginShowdownDecision(tableId, table, finalState);
       return;
     }
 
-    const equities = calculateAllPlayersEquity(table, [...state.board] as Card[]);
+    const delays: Record<string, number> = { PREFLOP: 0, FLOP: 1500, TURN: 2000, RIVER: 2000, SHOWDOWN: 1500 };
 
-    io.to(tableId).emit("board_reveal", {
-      handId: state.handId,
-      street,
-      newCards,
-      board: state.board,
-      equities,
-    });
+    const revealNextStreetWithDelay = async (): Promise<void> => {
+      const result = table.revealNextStreet();
+      if (!result) return;
 
-    broadcastSnapshot(tableId);
+      const { street, newCards } = result;
+      const state = table.getPublicState();
 
-    const delay = delays[street] || 1500;
-    await new Promise((resolve) => setTimeout(resolve, delay));
+      if (street === "SHOWDOWN") {
+        beginShowdownDecision(tableId, table, state);
+        return;
+      }
+
+      const equities = calculateAllPlayersEquity(table, [...state.board] as Card[]);
+
+      io.to(tableId).emit("board_reveal", {
+        handId: state.handId,
+        street,
+        newCards,
+        board: state.board,
+        equities,
+      });
+
+      broadcastSnapshot(tableId);
+
+      const delay = delays[street] || 1500;
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
+      await revealNextStreetWithDelay();
+    };
 
     await revealNextStreetWithDelay();
-  };
+  } catch (error) {
+    const state = table.getPublicState();
+    logWarn({
+      event: "runout.sequence.failed",
+      tableId,
+      handId: state.handId ?? undefined,
+      message: (error as Error).message,
+    });
 
-  await revealNextStreetWithDelay();
+    if (!state.handId) return;
+    if (state.showdownPhase === "decision") {
+      settleShowdownDecision(tableId, table, state.handId);
+      return;
+    }
+    finalizeHandEnd(tableId, state);
+  }
 }
 
 function clearAutoDealSchedule(tableId: string): void {
@@ -1914,6 +2016,17 @@ io.on("connection", (socket) => {
         throw new Error("You are already seated at this table. Stand up first to switch seats.");
       }
 
+      // Club membership gate: if the room belongs to a club, only active members can sit
+      const roomCode = roomCodeForTable(payload.tableId);
+      if (roomCode) {
+        const clubInfo = clubManager.getClubForTable(roomCode);
+        if (clubInfo) {
+          if (!clubManager.isActiveMember(clubInfo.clubId, identity.userId)) {
+            throw new Error("Only active club members can sit at this table");
+          }
+        }
+      }
+
       // Validate buy-in against room settings
       const managed = roomManager.getRoom(payload.tableId);
       if (managed) {
@@ -1924,15 +2037,19 @@ io.on("connection", (socket) => {
 
       const name = payload.name?.slice(0, 32) || identity.displayName;
       const restoredStack = getRestorableStack(payload.tableId, identity.userId);
-      const stackToSeat = restoredStack ?? payload.buyIn;
       const isRestore = restoredStack != null;
-      if (managed && !isRestore) {
+      if (isRestore) {
+        if (payload.buyIn < restoredStack) {
+          throw new Error(`Table balance requires at least ${restoredStack} chips to rejoin this room`);
+        }
+      } else if (managed) {
         const { buyInMin, buyInMax } = managed.settings;
         console.log("[SIT_DOWN] Buy-in validation:", payload.buyIn, "range:", buyInMin, "-", buyInMax);
         if (payload.buyIn < buyInMin || payload.buyIn > buyInMax) {
           throw new Error(`Buy-in must be between ${buyInMin} and ${buyInMax}`);
         }
       }
+      const stackToSeat = payload.buyIn;
 
       console.log("[SIT_DOWN] Adding player:", { seat: payload.seat, userId: identity.userId, name, stack: stackToSeat, isRestore });
       
@@ -1999,17 +2116,30 @@ io.on("connection", (socket) => {
         throw new Error(`Seat must be between 1 and ${managed.settings.maxPlayers}`);
       }
 
+      // Club membership gate
+      const seatReqRoomCode = roomCodeForTable(payload.tableId);
+      if (seatReqRoomCode) {
+        const clubInfo = clubManager.getClubForTable(seatReqRoomCode);
+        if (clubInfo && !clubManager.isActiveMember(clubInfo.clubId, identity.userId)) {
+          throw new Error("Only active club members can request seats at this table");
+        }
+      }
+
       console.log("[SEAT_REQUEST] Room found, owner:", managed.ownership.ownerId);
 
       const restoredStack = getRestorableStack(payload.tableId, identity.userId);
-      const requestedStack = restoredStack ?? payload.buyIn;
       const isRestore = restoredStack != null;
-      if (!isRestore) {
+      if (isRestore) {
+        if (payload.buyIn < restoredStack) {
+          throw new Error(`Table balance requires at least ${restoredStack} chips to rejoin this room`);
+        }
+      } else {
         const { buyInMin, buyInMax } = managed.settings;
         if (payload.buyIn < buyInMin || payload.buyIn > buyInMax) {
           throw new Error(`Buy-in must be between ${buyInMin} and ${buyInMax}`);
         }
       }
+      const requestedStack = payload.buyIn;
 
       // Check seat availability
       const table = tables.get(payload.tableId);
@@ -2492,13 +2622,10 @@ io.on("connection", (socket) => {
       }
       const room = roomManager.getRoom(payload.tableId);
       if (!room) throw new Error("Room not found");
-      if (!room.settings.roomFundsTracking) {
-        throw new Error("Room funds tracking is disabled");
-      }
       const table = tables.get(payload.tableId);
       const currentPlayers = table ? table.getPublicState().players : [];
       const roomStats = getRoomSessionStats(payload.tableId, false);
-      const entries: Array<{ seat: number | null; userId: string; name: string; totalBuyIn: number; currentStack: number; net: number; handsPlayed: number }> = [];
+      const entries: Array<{ seat: number | null; userId: string; name: string; totalBuyIn: number; currentStack: number; net: number; handsPlayed: number; preservedBalance: number }> = [];
 
       if (roomStats) {
         for (const [uid, entry] of roomStats.entries()) {
@@ -2512,11 +2639,23 @@ io.on("connection", (socket) => {
             currentStack,
             net: currentStack - entry.totalBuyIn,
             handsPlayed: entry.handsPlayed,
+            preservedBalance: entry.lastStack,
           });
         }
       }
 
       socket.emit("session_stats", { tableId: payload.tableId, entries });
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
+  socket.on("request_rejoin_stack", (payload: { tableId: string }) => {
+    try {
+      const room = roomManager.getRoom(payload.tableId);
+      if (!room) throw new Error("Room not found");
+      const stack = getRestorableStack(payload.tableId, identity.userId);
+      socket.emit("rejoin_stack_info", { tableId: payload.tableId, stack });
     } catch (error) {
       socket.emit("error_event", { message: (error as Error).message });
     }
@@ -2813,6 +2952,401 @@ io.on("connection", (socket) => {
       void emitLobbySnapshot();
     } catch (error) {
       socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
+  /* ═══════════ CLUBS ═══════════ */
+
+  socket.on("club_create", (payload: ClubCreatePayload) => {
+    try {
+      const club = clubManager.createClub({
+        ownerUserId: identity.userId,
+        ownerDisplayName: identity.displayName,
+        name: payload.name,
+        description: payload.description,
+        visibility: payload.visibility,
+        requireApprovalToJoin: payload.requireApprovalToJoin,
+        badgeColor: payload.badgeColor,
+      });
+      socket.emit("club_created", { club });
+      // Refresh club list for the user
+      socket.emit("club_list", { clubs: clubManager.listMyClubs(identity.userId) });
+    } catch (error) {
+      socket.emit("club_error", { code: "CREATE_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_update", (payload: ClubUpdatePayload) => {
+    try {
+      const club = clubManager.updateClub(payload.clubId, identity.userId, {
+        name: payload.name,
+        description: payload.description,
+        visibility: payload.visibility,
+        requireApprovalToJoin: payload.requireApprovalToJoin,
+        badgeColor: payload.badgeColor,
+        logoUrl: payload.logoUrl,
+      });
+      if (!club) {
+        socket.emit("club_error", { code: "UPDATE_DENIED", message: "Cannot update club — insufficient permissions or club not found" });
+        return;
+      }
+      socket.emit("club_updated", { club });
+    } catch (error) {
+      socket.emit("club_error", { code: "UPDATE_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_list_my_clubs", () => {
+    try {
+      const clubs = clubManager.listMyClubs(identity.userId);
+      socket.emit("club_list", { clubs });
+    } catch (error) {
+      socket.emit("club_error", { code: "LIST_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_get_detail", (payload: { clubId: string }) => {
+    try {
+      const result = clubManager.getClubDetail(payload.clubId, identity.userId);
+      if (!result) {
+        socket.emit("club_error", { code: "DETAIL_DENIED", message: "Club not found or you are not a member" });
+        return;
+      }
+      socket.emit("club_detail", result);
+    } catch (error) {
+      socket.emit("club_error", { code: "DETAIL_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_join_request", (payload: ClubJoinRequestPayload) => {
+    try {
+      const result = clubManager.requestJoin(
+        payload.clubCode,
+        identity.userId,
+        identity.displayName,
+        payload.inviteCode,
+      );
+      socket.emit("club_join_result", {
+        clubId: result.clubId ?? "",
+        status: result.status,
+        message: result.message,
+      });
+      if (result.status === "joined") {
+        socket.emit("club_list", { clubs: clubManager.listMyClubs(identity.userId) });
+      }
+    } catch (error) {
+      socket.emit("club_error", { code: "JOIN_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_join_approve", (payload: ClubJoinDecisionPayload) => {
+    try {
+      const member = clubManager.approveJoin(payload.clubId, identity.userId, payload.userId);
+      if (!member) {
+        socket.emit("club_error", { code: "APPROVE_DENIED", message: "Cannot approve — insufficient permissions or member not found" });
+        return;
+      }
+      socket.emit("club_member_update", { clubId: payload.clubId, member });
+      // Notify the approved user if they're online
+      for (const [sid, ident] of socketIdentity.entries()) {
+        if (ident.userId === payload.userId) {
+          io.to(sid).emit("club_join_result", { clubId: payload.clubId, status: "joined", message: "Your join request has been approved!" });
+          io.to(sid).emit("club_list", { clubs: clubManager.listMyClubs(payload.userId) });
+        }
+      }
+    } catch (error) {
+      socket.emit("club_error", { code: "APPROVE_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_join_reject", (payload: ClubJoinDecisionPayload) => {
+    try {
+      const ok = clubManager.rejectJoin(payload.clubId, identity.userId, payload.userId);
+      if (!ok) {
+        socket.emit("club_error", { code: "REJECT_DENIED", message: "Cannot reject — insufficient permissions or member not found" });
+        return;
+      }
+      // Notify the rejected user if they're online
+      for (const [sid, ident] of socketIdentity.entries()) {
+        if (ident.userId === payload.userId) {
+          io.to(sid).emit("club_join_result", { clubId: payload.clubId, status: "error", message: "Your join request was rejected" });
+        }
+      }
+      // Refresh detail for admin
+      const detail = clubManager.getClubDetail(payload.clubId, identity.userId);
+      if (detail) socket.emit("club_detail", detail);
+    } catch (error) {
+      socket.emit("club_error", { code: "REJECT_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_invite_create", (payload: ClubInviteCreatePayload) => {
+    try {
+      const invite = clubManager.createInvite(payload.clubId, identity.userId, payload.maxUses, payload.expiresInHours);
+      if (!invite) {
+        socket.emit("club_error", { code: "INVITE_DENIED", message: "Cannot create invite — insufficient permissions" });
+        return;
+      }
+      const detail = clubManager.getClubDetail(payload.clubId, identity.userId);
+      if (detail) socket.emit("club_detail", detail);
+    } catch (error) {
+      socket.emit("club_error", { code: "INVITE_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_invite_revoke", (payload: ClubInviteRevokePayload) => {
+    try {
+      const ok = clubManager.revokeInvite(payload.clubId, identity.userId, payload.inviteId);
+      if (!ok) {
+        socket.emit("club_error", { code: "REVOKE_DENIED", message: "Cannot revoke invite" });
+        return;
+      }
+      const detail = clubManager.getClubDetail(payload.clubId, identity.userId);
+      if (detail) socket.emit("club_detail", detail);
+    } catch (error) {
+      socket.emit("club_error", { code: "REVOKE_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_member_update_role", (payload: ClubMemberUpdateRolePayload) => {
+    try {
+      const member = clubManager.updateMemberRole(payload.clubId, identity.userId, payload.userId, payload.newRole);
+      if (!member) {
+        socket.emit("club_error", { code: "ROLE_DENIED", message: "Cannot update role — insufficient permissions" });
+        return;
+      }
+      socket.emit("club_member_update", { clubId: payload.clubId, member });
+    } catch (error) {
+      socket.emit("club_error", { code: "ROLE_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_member_kick", (payload: ClubMemberKickPayload) => {
+    try {
+      const ok = clubManager.kickMember(payload.clubId, identity.userId, payload.userId);
+      if (!ok) {
+        socket.emit("club_error", { code: "KICK_DENIED", message: "Cannot kick member" });
+        return;
+      }
+      const detail = clubManager.getClubDetail(payload.clubId, identity.userId);
+      if (detail) socket.emit("club_detail", detail);
+    } catch (error) {
+      socket.emit("club_error", { code: "KICK_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_member_ban", (payload: ClubMemberBanPayload) => {
+    try {
+      const ok = clubManager.banMember(payload.clubId, identity.userId, payload.userId, payload.reason, payload.expiresInHours);
+      if (!ok) {
+        socket.emit("club_error", { code: "BAN_DENIED", message: "Cannot ban member" });
+        return;
+      }
+      const detail = clubManager.getClubDetail(payload.clubId, identity.userId);
+      if (detail) socket.emit("club_detail", detail);
+    } catch (error) {
+      socket.emit("club_error", { code: "BAN_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_member_unban", (payload: ClubMemberUnbanPayload) => {
+    try {
+      const ok = clubManager.unbanMember(payload.clubId, identity.userId, payload.userId);
+      if (!ok) {
+        socket.emit("club_error", { code: "UNBAN_DENIED", message: "Cannot unban member" });
+        return;
+      }
+      const detail = clubManager.getClubDetail(payload.clubId, identity.userId);
+      if (detail) socket.emit("club_detail", detail);
+    } catch (error) {
+      socket.emit("club_error", { code: "UNBAN_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_ruleset_create", (payload: ClubRulesetCreatePayload) => {
+    try {
+      const ruleset = clubManager.createRuleset(payload.clubId, identity.userId, payload.name, payload.rules, payload.isDefault);
+      if (!ruleset) {
+        socket.emit("club_error", { code: "RULESET_DENIED", message: "Cannot create ruleset — insufficient permissions" });
+        return;
+      }
+      const detail = clubManager.getClubDetail(payload.clubId, identity.userId);
+      if (detail) socket.emit("club_detail", detail);
+    } catch (error) {
+      socket.emit("club_error", { code: "RULESET_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_ruleset_update", (payload: ClubRulesetUpdatePayload) => {
+    try {
+      const ruleset = clubManager.updateRuleset(payload.clubId, identity.userId, payload.rulesetId, {
+        name: payload.name,
+        rules: payload.rules,
+      });
+      if (!ruleset) {
+        socket.emit("club_error", { code: "RULESET_UPDATE_DENIED", message: "Cannot update ruleset" });
+        return;
+      }
+      const detail = clubManager.getClubDetail(payload.clubId, identity.userId);
+      if (detail) socket.emit("club_detail", detail);
+    } catch (error) {
+      socket.emit("club_error", { code: "RULESET_UPDATE_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_ruleset_set_default", (payload: ClubRulesetSetDefaultPayload) => {
+    try {
+      const ok = clubManager.setDefaultRuleset(payload.clubId, identity.userId, payload.rulesetId);
+      if (!ok) {
+        socket.emit("club_error", { code: "RULESET_DEFAULT_DENIED", message: "Cannot set default ruleset" });
+        return;
+      }
+      const detail = clubManager.getClubDetail(payload.clubId, identity.userId);
+      if (detail) socket.emit("club_detail", detail);
+    } catch (error) {
+      socket.emit("club_error", { code: "RULESET_DEFAULT_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_table_create", async (payload: ClubTableCreatePayload) => {
+    try {
+      const result = clubManager.createTable(payload.clubId, identity.userId, payload.name, payload.rulesetId);
+      if (!result) {
+        socket.emit("club_error", { code: "TABLE_DENIED", message: "Cannot create table — insufficient permissions" });
+        return;
+      }
+
+      const { clubTable, rules } = result;
+      const club = clubManager.getClub(payload.clubId);
+
+      // Create the actual game room using the club rules
+      const roomCode = await generateUniqueRoomCode();
+      const tableId = `tbl_${randomUUID().replace(/-/g, "").slice(0, 10)}`;
+      const room: RoomInfo = {
+        tableId,
+        roomCode,
+        roomName: `${club?.name ?? "Club"} — ${clubTable.name}`,
+        maxPlayers: rules.maxSeats,
+        smallBlind: rules.stakes.smallBlind,
+        bigBlind: rules.stakes.bigBlind,
+        status: "OPEN",
+        isPublic: false, // Club tables are always private
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: identity.userId,
+      };
+
+      registerRoom(room);
+      createTableIfNeeded(room);
+
+      // Register with room manager using club rules
+      roomManager.createRoom({
+        tableId: room.tableId,
+        roomCode: room.roomCode,
+        roomName: room.roomName,
+        ownerId: identity.userId,
+        ownerName: identity.displayName,
+        settings: {
+          maxPlayers: rules.maxSeats,
+          smallBlind: rules.stakes.smallBlind,
+          bigBlind: rules.stakes.bigBlind,
+          buyInMin: rules.buyIn.minBuyIn,
+          buyInMax: rules.buyIn.maxBuyIn,
+          actionTimerSeconds: rules.time.actionTimeSec,
+          timeBankSeconds: rules.time.timeBankSec,
+          disconnectGracePeriod: rules.time.disconnectGraceSec,
+          autoStartNextHand: rules.dealing.autoDealEnabled,
+          spectatorAllowed: rules.moderation.allowSpectators,
+          runItTwice: rules.runit.allowRunItTwice,
+          runItTwiceMode: rules.runit.allowRunItTwice ? "ask_players" : "off",
+          straddleAllowed: rules.extras.straddleAllowed,
+          bombPotEnabled: rules.extras.bombPotEnabled,
+          rabbitHunting: rules.extras.rabbitHuntEnabled,
+          visibility: "private",
+        },
+      });
+
+      // Link back to club
+      clubManager.setTableRoomCode(payload.clubId, clubTable.id, roomCode);
+
+      // Persist to Supabase
+      supabase.upsertRoom(room).catch((e) => logWarn({
+        event: "club_table.create.persist_failed",
+        tableId: room.tableId,
+        message: (e as Error).message,
+      }));
+
+      socket.emit("club_table_created", {
+        clubId: payload.clubId,
+        table: { ...clubTable, roomCode },
+        roomCode,
+      });
+
+      // Refresh club detail
+      const detail = clubManager.getClubDetail(payload.clubId, identity.userId);
+      if (detail) socket.emit("club_detail", detail);
+      void emitLobbySnapshot();
+    } catch (error) {
+      socket.emit("club_error", { code: "TABLE_CREATE_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_table_list", (payload: { clubId: string }) => {
+    try {
+      const detail = clubManager.getClubDetail(payload.clubId, identity.userId);
+      if (!detail) {
+        socket.emit("club_error", { code: "TABLE_LIST_DENIED", message: "Not a member" });
+        return;
+      }
+      // Enrich tables with live player counts
+      const enrichedTables = detail.tables.map((t) => {
+        if (t.roomCode) {
+          const tid = roomCodeToTableId.get(t.roomCode);
+          if (tid) {
+            const tbl = tables.get(tid);
+            const managed = roomManager.getRoom(tid);
+            if (tbl) {
+              const state = tbl.getPublicState();
+              t.playerCount = state.players.length;
+              t.maxPlayers = managed?.settings.maxPlayers ?? 6;
+              t.stakes = `${state.smallBlind}/${state.bigBlind}`;
+            }
+          }
+        }
+        return t;
+      });
+      socket.emit("club_detail", { ...detail, tables: enrichedTables });
+    } catch (error) {
+      socket.emit("club_error", { code: "TABLE_LIST_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_table_close", (payload: ClubTableClosePayload) => {
+    try {
+      const ok = clubManager.closeTable(payload.clubId, identity.userId, payload.tableId);
+      if (!ok) {
+        socket.emit("club_error", { code: "TABLE_CLOSE_DENIED", message: "Cannot close table" });
+        return;
+      }
+      const detail = clubManager.getClubDetail(payload.clubId, identity.userId);
+      if (detail) socket.emit("club_detail", detail);
+    } catch (error) {
+      socket.emit("club_error", { code: "TABLE_CLOSE_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_table_pause", (payload: ClubTablePausePayload) => {
+    try {
+      // Pause is deferred until hand end (enforced by rules)
+      const ok = clubManager.pauseTable(payload.clubId, identity.userId, payload.tableId);
+      if (!ok) {
+        socket.emit("club_error", { code: "TABLE_PAUSE_DENIED", message: "Cannot pause table" });
+        return;
+      }
+      const detail = clubManager.getClubDetail(payload.clubId, identity.userId);
+      if (detail) socket.emit("club_detail", detail);
+    } catch (error) {
+      socket.emit("club_error", { code: "TABLE_PAUSE_FAILED", message: (error as Error).message });
     }
   });
 

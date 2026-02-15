@@ -34,5 +34,20 @@ describe("Server round-flow regressions", () => {
     assert.match(source, /if \(p\.stack <= 0\)/);
     assert.match(source, /queueLeaveTableAfterHand\(payload\.tableId, socket\.id\)/);
   });
+
+  it("has runout/showdown fail-safe finalization paths to prevent stalled hands", () => {
+    assert.match(source, /async function handleSequentialRunout\(tableId: string, table: GameTable\): Promise<void> \{[\s\S]*try \{/);
+    assert.match(source, /event: "runout\.sequence\.failed"/);
+    assert.match(source, /if \(state\.showdownPhase === "decision"\) \{[\s\S]*settleShowdownDecision\(tableId, table, state\.handId\);/);
+    assert.match(source, /finalizeHandEnd\(tableId, state\);/);
+    assert.match(source, /if \(state\.showdownPhase !== "decision"\) \{[\s\S]*finalizeHandEnd\(tableId, state\);/);
+  });
+
+  it("enforces room-funds table-balance restoration window and minimum rejoin stack", () => {
+    assert.match(source, /if \(!room\?\.settings\.roomFundsTracking\) return null;/);
+    assert.match(source, /if \(ageMs > runtimeConfig\.tableBalanceRejoinWindowMs\) return null;/);
+    assert.match(source, /if \(payload\.buyIn < restoredStack\) \{/);
+    assert.match(source, /Table balance requires at least \$\{restoredStack\} chips to rejoin this room/);
+  });
 });
 

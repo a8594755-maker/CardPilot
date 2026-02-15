@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { classifyHandOnBoard, type Card } from "@cardpilot/poker-evaluator";
+import { classifyHandOnBoard, type Card, type EquityResult } from "@cardpilot/poker-evaluator";
 import type {
   AdvicePayload,
   BoardTextureProfile,
@@ -13,8 +13,23 @@ import type {
 } from "@cardpilot/shared-types";
 import { BoardAnalyzer } from "./board-analyzer.js";
 import { MathEngine } from "./math-engine.js";
+import { RangeEstimator, type HandRange } from "./range-estimator.js";
+import { WorkerService } from "./WorkerService.js";
 
 const EPSILON = 1e-6;
+const ONE_HOUR_MS = 60 * 60 * 1000;
+const MAX_EQUITY_CACHE_ENTRIES = 2000;
+const DEFAULT_POSTFLOP_SIMULATIONS = 300;
+
+const equityCache = createTimedLruCache<string, EquityResult>(MAX_EQUITY_CACHE_ENTRIES, ONE_HOUR_MS);
+const rangeEstimator = new RangeEstimator();
+let workerService: WorkerService | null = null;
+
+process.once("beforeExit", () => {
+  if (workerService) {
+    void workerService.destroy();
+  }
+});
 
 export interface PostflopContext {
   tableId: string;
@@ -30,9 +45,211 @@ export interface PostflopContext {
   effectiveStack: number;
   effectiveStackBb?: number;
   aggressor: "hero" | "villain" | "none";
+  preflopAggressor: "hero" | "villain" | "none";
+  heroInPosition: boolean;
   numVillains: number;
   actionHistory?: HandAction[];
   potType?: "SRP" | "3BP" | "4BP";
+}
+
+type PreflopChartRow = {
+  format: string;
+  spot: string;
+  hand: string;
+  mix: { raise: number; call: number; fold: number };
+};
+
+let preflopChartRowsCache: PreflopChartRow[] | null = null;
+
+async function resolvePostflopEquity(input: {
+  context: PostflopContext;
+  handClass: ReturnType<typeof classifyHandOnBoard>;
+}): Promise<{ result: EquityResult; villainRangeHash: string }> {
+  const { context, handClass } = input;
+  const deadCards = new Set([...context.heroHand, ...context.board]);
+
+  const chartAnchoredRange = buildVillainRangeFromCharts(context);
+  const baseRange = chartAnchoredRange.size > 0
+    ? chartAnchoredRange
+    : rangeEstimator.buildPreflopRange(
+      context.villainPosition,
+      context.preflopAggressor === "villain" ? "raise" : "call",
+      context.heroPosition
+    );
+
+  const narrowedByHistory = narrowVillainRangeByHistory(baseRange, context);
+  const adjustedRange = rangeEstimator.adjustForMultiway(narrowedByHistory, context.numVillains);
+  const sampledVillains = rangeEstimator.sampleHandsFromRange(adjustedRange, 16);
+
+  const villainHands = sampledVillains
+    .map((combo) => [combo[0] as Card, combo[1] as Card] as [Card, Card])
+    .filter(([cardA, cardB]) => {
+      if (deadCards.has(cardA) || deadCards.has(cardB) || cardA === cardB) {
+        return false;
+      }
+      deadCards.add(cardA);
+      deadCards.add(cardB);
+      return true;
+    });
+
+  const villainRangeHash = hashRange(villainHands);
+  const cacheKey = buildEquityCacheKey(context.heroHand, context.board, villainRangeHash);
+  const cached = equityCache.get(cacheKey);
+  if (cached) {
+    return { result: cached, villainRangeHash };
+  }
+
+  if (villainHands.length === 0) {
+    const fallback = {
+      win: 0,
+      tie: 0,
+      lose: 0,
+      equity: fallbackEquityFromClass(handClass),
+      simulations: 0,
+    } satisfies EquityResult;
+    return { result: fallback, villainRangeHash };
+  }
+
+  const result = await getWorkerService().calculateEquity({
+    heroHand: context.heroHand,
+    villainHands,
+    board: context.board,
+    simulations: DEFAULT_POSTFLOP_SIMULATIONS,
+  });
+
+  equityCache.set(cacheKey, result);
+  return { result, villainRangeHash };
+}
+
+function blendFrequency(
+  baseline: PostflopFrequency,
+  solved: PostflopFrequency,
+  baselineWeight: number
+): PostflopFrequency {
+  const baselineShare = clamp01(baselineWeight);
+  const solvedShare = 1 - baselineShare;
+
+  return normalizeFrequency({
+    check: baseline.check * baselineShare + solved.check * solvedShare,
+    betSmall: baseline.betSmall * baselineShare + solved.betSmall * solvedShare,
+    betBig: baseline.betBig * baselineShare + solved.betBig * solvedShare,
+  });
+}
+
+function buildEquityCacheKey(heroHand: [Card, Card], board: Card[], villainRangeHash: string): string {
+  const hero = `${heroHand[0]}${heroHand[1]}`;
+  const boardKey = [...board].sort().join("");
+  return `${hero}-${boardKey}-${villainRangeHash}`;
+}
+
+function hashRange(villainHands: Array<[Card, Card]>): string {
+  const canonical = villainHands
+    .map(([a, b]) => [a, b].sort().join(""))
+    .sort()
+    .join("|");
+  return stableHash(canonical || "empty");
+}
+
+function stableHash(seed: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(16);
+}
+
+function fallbackEquityFromClass(handClass: ReturnType<typeof classifyHandOnBoard>): number {
+  if (handClass.type === "made_hand") {
+    if (handClass.strength === "strong") return 0.72;
+    if (handClass.strength === "medium") return 0.56;
+    return 0.4;
+  }
+  if (handClass.type === "draw") return 0.38;
+  return 0.2;
+}
+
+function textureToAggressionScore(boardTexture: BoardTextureProfile): number {
+  if (boardTexture.wetness === "wet") return 0.72;
+  if (boardTexture.wetness === "dry") return 0.38;
+  return 0.55;
+}
+
+function showdownValueScore(handClass: ReturnType<typeof classifyHandOnBoard>): number {
+  if (handClass.type === "made_hand") {
+    if (handClass.strength === "strong") return 0.9;
+    if (handClass.strength === "medium") return 0.65;
+    return 0.35;
+  }
+  if (handClass.type === "draw") return 0.45;
+  return 0.1;
+}
+
+function deriveNutAdvantage(
+  handClass: ReturnType<typeof classifyHandOnBoard>,
+  boardTexture: BoardTextureProfile
+): number {
+  const classBoost = handClass.type === "made_hand" && handClass.strength === "strong"
+    ? 0.85
+    : handClass.type === "draw"
+      ? 0.55
+      : 0.25;
+
+  if (boardTexture.wetness === "wet") return clamp01(classBoost + 0.1);
+  return clamp01(classBoost - 0.05);
+}
+
+function deriveFoldEquity(context: PostflopContext, boardTexture: BoardTextureProfile): number {
+  let score = 0.4;
+  if (context.aggressor === "hero") score += 0.2;
+  if (context.numVillains > 1) score -= 0.15;
+  if (context.toCall > 0) score -= 0.1;
+  if (boardTexture.wetness === "dry") score += 0.1;
+  return clamp01(score);
+}
+
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value));
+}
+
+function createTimedLruCache<K, V>(maxEntries: number, ttlMs: number): {
+  get: (key: K) => V | undefined;
+  set: (key: K, value: V) => void;
+} {
+  const store = new Map<K, { value: V; expiresAt: number }>();
+
+  return {
+    get(key: K): V | undefined {
+      const entry = store.get(key);
+      if (!entry) return undefined;
+
+      if (entry.expiresAt <= Date.now()) {
+        store.delete(key);
+        return undefined;
+      }
+
+      store.delete(key);
+      store.set(key, entry);
+      return entry.value;
+    },
+    set(key: K, value: V): void {
+      if (store.has(key)) {
+        store.delete(key);
+      }
+
+      store.set(key, {
+        value,
+        expiresAt: Date.now() + ttlMs,
+      });
+
+      if (store.size > maxEntries) {
+        const oldestKey = store.keys().next().value;
+        if (typeof oldestKey !== "undefined") {
+          store.delete(oldestKey);
+        }
+      }
+    },
+  };
 }
 
 export interface PostflopBucketStrategy {
@@ -47,10 +264,38 @@ export interface PostflopAdvice extends AdvicePayload {
   postflop: NonNullable<AdvicePayload["postflop"]>;
 }
 
+export interface StrategyConfig {
+  baseRaiseRate: number;
+  weights: {
+    EquityScore: number;
+    TextureScore: number;
+    ShowdownValue: number;
+  };
+  aggressionFactors: {
+    nutAdvantage: number;
+    foldEquity: number;
+  };
+}
+
+const DEFAULT_STRATEGY_CONFIG: StrategyConfig = {
+  baseRaiseRate: 0.12,
+  weights: {
+    EquityScore: 0.5,
+    TextureScore: 0.15,
+    ShowdownValue: 0.25,
+  },
+  aggressionFactors: {
+    nutAdvantage: 0.2,
+    foldEquity: 0.3,
+  },
+};
+
 export class PostflopEngine {
   private readonly bucketIndex = new Map<string, PostflopBucketStrategy>();
+  private readonly strategyConfig: StrategyConfig;
 
-  constructor(rows?: PostflopBucketStrategy[]) {
+  constructor(rows?: PostflopBucketStrategy[], strategyConfig: StrategyConfig = DEFAULT_STRATEGY_CONFIG) {
+    this.strategyConfig = strategyConfig;
     const parsedRows = rows ?? loadPostflopRowsFromDisk();
     for (const row of parsedRows) {
       this.bucketIndex.set(row.bucketKey, row);
@@ -62,7 +307,7 @@ export class PostflopEngine {
     }
   }
 
-  getAdvice(context: PostflopContext): PostflopAdvice {
+  async getAdvice(context: PostflopContext): Promise<PostflopAdvice> {
     const boardTexture = BoardAnalyzer.analyze(context.board);
     const textureBucket = BoardAnalyzer.toTextureBucket(boardTexture);
     const line = resolveLineToken(context);
@@ -91,14 +336,24 @@ export class PostflopEngine {
       effectiveStack: context.effectiveStack,
     });
 
+    const { result: equityResult, villainRangeHash } = await resolvePostflopEquity({
+      context,
+      handClass,
+    });
+
+    const solvedFrequency = buildFrequencyFromScores({
+      context,
+      boardTexture,
+      handClass,
+      math,
+      equity: equityResult.equity,
+      strategyConfig: this.strategyConfig,
+    });
+
     const frequency = normalizeFrequency(
       bucket?.frequency
-      ?? fallbackFrequency({
-        context,
-        boardTexture,
-        handClass,
-        math,
-      })
+        ? blendFrequency(bucket.frequency, solvedFrequency, 0.65)
+        : solvedFrequency
     );
 
     const preferredAction = bucket?.preferredAction ?? derivePreferredAction(frequency);
@@ -106,14 +361,16 @@ export class PostflopEngine {
       toLegacyMix({
         frequency,
         toCall: context.toCall,
-        handClassType: handClass.type,
-        equityRequired: math.equityRequired ?? 0,
       })
     );
 
     const seed = `${context.tableId}|${context.handId}|${context.seat}|${baseKey}|${context.heroHand[0]}${context.heroHand[1]}`;
     const random = hashToUnitInterval(seed);
-    const recommended = pickByMix(mix, random);
+    const recommended = enforceLegalRecommendedAction(
+      pickByMix(mix, random),
+      context.toCall,
+      context.effectiveStack
+    );
     const frequencyText = formatFrequency(frequency, context.toCall);
     const rationale = buildRationale({
       bucketTemplate: bucket?.rationaleTemplate,
@@ -123,6 +380,9 @@ export class PostflopEngine {
       math,
       handClassDescription: handClass.description,
       frequencyText,
+      equity: equityResult.equity,
+      simulations: equityResult.simulations,
+      villainRangeHash,
     });
 
     const tags = [...new Set([
@@ -132,6 +392,7 @@ export class PostflopEngine {
       `POT_${potType}`,
       context.numVillains > 1 ? "MULTIWAY" : "HEADS_UP",
       math.isLowSpr ? "LOW_SPR" : "NORMAL_SPR",
+      `EQUITY_${Math.round(equityResult.equity * 100)}`,
     ])];
 
     return {
@@ -184,7 +445,7 @@ export class PostflopEngine {
 
 const postflopEngine = new PostflopEngine();
 
-export function getPostflopAdvice(context: PostflopContext): PostflopAdvice {
+export async function getPostflopAdvice(context: PostflopContext): Promise<PostflopAdvice> {
   return postflopEngine.getAdvice(context);
 }
 
@@ -241,9 +502,25 @@ function inferPotType(actions?: HandAction[]): "SRP" | "3BP" | "4BP" {
 }
 
 function resolveLineToken(context: PostflopContext): "CBET" | "VS_BET" | "BARREL" | "PROBE" {
-  if (context.toCall > 0) return "VS_BET";
-  if (context.street === "FLOP" && context.aggressor !== "hero") return "CBET";
-  if (context.aggressor === "hero") return "BARREL";
+  if (context.toCall > 0) {
+    return "VS_BET";
+  }
+
+  if (context.aggressor === "hero") {
+    return context.street === "FLOP" ? "CBET" : "BARREL";
+  }
+
+  if (context.street === "FLOP") {
+    if (context.preflopAggressor === "hero") {
+      return "CBET";
+    }
+    return context.heroInPosition ? "PROBE" : "VS_BET";
+  }
+
+  if (context.preflopAggressor === "hero" && context.heroInPosition) {
+    return "BARREL";
+  }
+
   return "PROBE";
 }
 
@@ -258,37 +535,79 @@ function buildBucketKey(params: {
   return `${params.potType}_${params.heroPosition}_vs_${params.villainPosition}_${params.street}_${params.line}_${params.textureBucket}`;
 }
 
-function fallbackFrequency(input: {
+function buildFrequencyFromScores(input: {
   context: PostflopContext;
   boardTexture: BoardTextureProfile;
   handClass: ReturnType<typeof classifyHandOnBoard>;
   math: MathBreakdown;
+  equity: number;
+  strategyConfig: StrategyConfig;
 }): PostflopFrequency {
-  const { context, boardTexture, handClass, math } = input;
+  const {
+    context,
+    boardTexture,
+    handClass,
+    math,
+    equity,
+    strategyConfig,
+  } = input;
 
-  if (context.toCall > 0) {
-    if (math.isLowSpr && handClass.type === "made_hand" && handClass.strength !== "weak") {
-      return { check: 0.45, betSmall: 0.15, betBig: 0.3 };
-    }
+  const textureScore = textureToAggressionScore(boardTexture);
+  const showdownValue = showdownValueScore(handClass);
+  const nutAdvantage = deriveNutAdvantage(handClass, boardTexture);
+  const foldEquity = deriveFoldEquity(context, boardTexture);
 
-    if (handClass.type === "draw") {
-      if ((math.equityRequired ?? 1) <= 0.25) return { check: 0.65, betSmall: 0.1, betBig: 0.1 };
-      if ((math.equityRequired ?? 1) <= 0.33) return { check: 0.5, betSmall: 0.1, betBig: 0.05 };
-      return { check: 0.3, betSmall: 0.05, betBig: 0.05 };
-    }
+  const raiseSignal =
+    strategyConfig.baseRaiseRate
+    + equity * strategyConfig.weights.EquityScore
+    + textureScore * strategyConfig.weights.TextureScore
+    + showdownValue * strategyConfig.weights.ShowdownValue
+    + nutAdvantage * strategyConfig.aggressionFactors.nutAdvantage
+    + foldEquity * strategyConfig.aggressionFactors.foldEquity;
 
-    if (handClass.type === "made_hand") {
-      return handClass.strength === "strong"
-        ? { check: 0.55, betSmall: 0.15, betBig: 0.2 }
-        : { check: 0.45, betSmall: 0.1, betBig: 0.1 };
-    }
+  const raiseFreq = clamp01(raiseSignal);
+  const betBigShare = clamp01(
+    0.25
+    + textureScore * 0.3
+    + nutAdvantage * 0.35
+    + Math.max(0, equity - 0.5) * 0.2
+  );
 
-    return { check: 0.3, betSmall: 0.05, betBig: 0.05 };
+  if (context.toCall <= 0) {
+    const betBig = round4(raiseFreq * betBigShare);
+    const betSmall = round4(Math.max(0, raiseFreq - betBig));
+    const check = round4(Math.max(0, 1 - raiseFreq));
+    return normalizeFrequency({ check, betSmall, betBig });
   }
 
-  if (boardTexture.wetness === "wet") return { check: 0.35, betSmall: 0.2, betBig: 0.45 };
-  if (boardTexture.wetness === "dry") return { check: 0.3, betSmall: 0.55, betBig: 0.15 };
-  return { check: 0.4, betSmall: 0.4, betBig: 0.2 };
+  const equityRequired = math.equityRequired ?? 0;
+  const bluffCatchScore = clamp01(showdownValue * 0.6 + equity * 0.4);
+  const foldPressure = clamp01((equityRequired - equity) + (1 - bluffCatchScore) * 0.35);
+  const fold = clamp01(foldPressure);
+  const call = clamp01(Math.max(0, 1 - raiseFreq - fold));
+  const scale = Math.max(EPSILON, raiseFreq + call + fold);
+
+  const normalizedRaise = raiseFreq / scale;
+  const normalizedCall = call / scale;
+  const betBig = round4(normalizedRaise * betBigShare);
+  const betSmall = round4(Math.max(0, normalizedRaise - betBig));
+
+  const equityEdge = equity - equityRequired;
+  if (equityEdge < -0.04) {
+    const tightenedRaise = clamp01(normalizedRaise * 0.65);
+    const tightenedCall = clamp01(normalizedCall * 0.85);
+    return normalizeFrequency({
+      check: tightenedCall,
+      betSmall: tightenedRaise * (1 - betBigShare),
+      betBig: tightenedRaise * betBigShare,
+    });
+  }
+
+  return normalizeFrequency({
+    check: normalizedCall,
+    betSmall,
+    betBig,
+  });
 }
 
 function normalizeFrequency(frequency: PostflopFrequency): PostflopFrequency {
@@ -329,17 +648,10 @@ function derivePreferredAction(frequency: PostflopFrequency): PostflopPreferredA
 function toLegacyMix(input: {
   frequency: PostflopFrequency;
   toCall: number;
-  handClassType: "made_hand" | "draw" | "air";
-  equityRequired: number;
 }): StrategyMix {
   const raise = input.frequency.betSmall + input.frequency.betBig;
-  let call = input.frequency.check;
-  let fold = input.toCall > 0 ? Math.max(0, 1 - raise - call) : 0;
-
-  if (input.toCall > 0 && input.handClassType === "air" && input.equityRequired > 0.33 && fold < 0.2) {
-    fold = 0.2;
-    call = Math.max(0, call - 0.2);
-  }
+  const call = input.frequency.check;
+  const fold = input.toCall > 0 ? Math.max(0, 1 - raise - call) : 0;
 
   return { raise, call, fold };
 }
@@ -363,6 +675,26 @@ function pickByMix(mix: StrategyMix, random: number): "raise" | "call" | "fold" 
   return "fold";
 }
 
+function enforceLegalRecommendedAction(
+  action: "raise" | "call" | "fold",
+  toCall: number,
+  effectiveStack: number
+): "raise" | "call" | "fold" {
+  if (effectiveStack <= 0) {
+    return toCall > 0 ? "fold" : "call";
+  }
+
+  if (toCall <= 0 && action === "fold") {
+    return "call";
+  }
+
+  if (toCall > effectiveStack && action === "call") {
+    return "raise";
+  }
+
+  return action;
+}
+
 function formatFrequency(frequency: PostflopFrequency, toCall: number): string {
   const passive = toCall > 0 ? "Call" : "Check";
   return `Mix: ${pct(frequency.check)} ${passive}, ${pct(frequency.betSmall)} Bet Small, ${pct(frequency.betBig)} Bet Big.`;
@@ -376,11 +708,16 @@ function buildRationale(input: {
   math: MathBreakdown;
   handClassDescription: string;
   frequencyText: string;
+  equity: number;
+  simulations: number;
+  villainRangeHash: string;
 }): string {
   const parts: string[] = [];
   if (input.bucketTemplate) parts.push(input.bucketTemplate);
   parts.push(`Board: ${input.boardTextureDescription}.`);
   parts.push(`Hand class: ${input.handClassDescription}.`);
+  parts.push(`Equity model: ${pct(input.equity)} over ${input.simulations} sims.`);
+  parts.push(`Range hash: ${input.villainRangeHash.slice(0, 10)}.`);
 
   if (input.toCall > 0) {
     const callAmount = round2(input.math.callAmount ?? 0);
@@ -425,3 +762,136 @@ function round2(value: number): number {
 function round4(value: number): number {
   return Math.round(value * 10_000) / 10_000;
 }
+
+function buildVillainRangeFromCharts(context: PostflopContext): HandRange {
+  const chartRows = loadPreflopChartRows();
+  if (chartRows.length === 0) return new Map<string, number>();
+
+  const effectiveBb = context.effectiveStackBb ?? 100;
+  const targetDepth = effectiveBb < 40 ? 40 : effectiveBb <= 80 ? 60 : effectiveBb > 150 ? 150 : 100;
+  const formatCandidates = [`cash_6max_${targetDepth}bb`, "cash_6max_100bb"];
+
+  const primarySpot = context.preflopAggressor === "villain"
+    ? `${context.villainPosition}_unopened_open2.5x`
+    : `${context.villainPosition}_vs_${context.heroPosition}_facing_open2.5x`;
+
+  const fallbackSpots = [
+    `${context.villainPosition}_unopened_open2.5x`,
+    `${context.villainPosition}_vs_${context.heroPosition}_facing_open2.5x`,
+  ];
+
+  const spotCandidates = [primarySpot, ...fallbackSpots.filter((spot) => spot !== primarySpot)];
+
+  const range = new Map<string, number>();
+
+  for (const format of formatCandidates) {
+    for (const spot of spotCandidates) {
+      const rows = chartRows.filter((row) => row.format === format && row.spot === spot);
+      if (rows.length === 0) continue;
+
+      for (const row of rows) {
+        const actionWeight = context.preflopAggressor === "villain"
+          ? row.mix.raise
+          : row.mix.call + row.mix.raise * 0.2;
+        if (actionWeight <= 0) continue;
+        range.set(row.hand, actionWeight);
+      }
+
+      if (range.size > 0) {
+        return normalizeRangeWeights(range);
+      }
+    }
+  }
+
+  return range;
+}
+
+function narrowVillainRangeByHistory(baseRange: HandRange, context: PostflopContext): HandRange {
+  let current = new Map(baseRange);
+  if (!context.actionHistory || context.actionHistory.length === 0) return current;
+
+  const villainActions = context.actionHistory.filter((action) => action.seat !== context.seat);
+
+  for (const action of villainActions) {
+    if (action.street === "PREFLOP" || action.street === "SHOWDOWN" || action.street === "RUN_IT_TWICE_PROMPT") {
+      continue;
+    }
+
+    if (action.type !== "check" && action.type !== "call" && action.type !== "raise" && action.type !== "all_in") {
+      continue;
+    }
+
+    const sizingBucket = context.potSize > EPSILON ? action.amount / context.potSize : undefined;
+    current = rangeEstimator.narrowRangePostflop(
+      current,
+      action.type,
+      action.street,
+      context.board,
+      sizingBucket
+    );
+  }
+
+  return normalizeRangeWeights(current);
+}
+
+function loadPreflopChartRows(): PreflopChartRow[] {
+  if (preflopChartRowsCache) return preflopChartRowsCache;
+
+  try {
+    const path = resolvePreflopChartPath();
+    const parsed = JSON.parse(readFileSync(path, "utf-8")) as PreflopChartRow[];
+    preflopChartRowsCache = Array.isArray(parsed) ? parsed : [];
+  } catch {
+    preflopChartRowsCache = [];
+  }
+
+  return preflopChartRowsCache;
+}
+
+function resolvePreflopChartPath(): string {
+  const fromEnv = process.env.CARDPILOT_CHART_PATH;
+  if (fromEnv) return fromEnv;
+
+  const candidates = [
+    join(process.cwd(), "data", "preflop_charts.json"),
+    join(process.cwd(), "data", "preflop_charts.sample.json"),
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      readFileSync(candidate, "utf-8");
+      return candidate;
+    } catch {
+      // continue
+    }
+  }
+
+  const thisDir = fileURLToPath(new URL(".", import.meta.url));
+  return join(thisDir, "../../../data/preflop_charts.json");
+}
+
+function normalizeRangeWeights(range: HandRange): HandRange {
+  const total = [...range.values()].reduce((sum, value) => sum + Math.max(0, value), 0);
+  if (total <= EPSILON) return range;
+
+  const normalized = new Map<string, number>();
+  for (const [hand, weight] of range) {
+    normalized.set(hand, Math.max(0, weight) / total);
+  }
+  return normalized;
+}
+
+function getWorkerService(): WorkerService {
+  if (!workerService) {
+    workerService = new WorkerService();
+  }
+  return workerService;
+}
+
+export const __test__ = {
+  resolveLineToken,
+  buildFrequencyFromScores,
+  enforceLegalRecommendedAction,
+  toNormalizedMixForTesting: (frequency: PostflopFrequency, toCall: number) =>
+    normalizeMix(toLegacyMix({ frequency, toCall })),
+};
