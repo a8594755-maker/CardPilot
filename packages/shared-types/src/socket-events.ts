@@ -13,6 +13,8 @@ import type {
   HistorySessionSummary,
   HistoryHandSummary,
   HistoryHandDetail,
+  HistoryGTOHandRecord,
+  HistoryGTOAnalysis,
 } from './index.js';
 
 // Re-export types from index.ts for convenience
@@ -209,7 +211,8 @@ export const SOCKET_EVENT_NAMES = {
     'request_history_rooms',
     'request_history_sessions',
     'request_history_hands',
-    'request_history_hand_detail'
+    'request_history_hand_detail',
+    'history_gto_analyze'
   ] as const,
   serverToClient: [
     'connected',
@@ -250,7 +253,8 @@ export const SOCKET_EVENT_NAMES = {
     'history_rooms',
     'history_sessions',
     'history_hands',
-    'history_hand_detail'
+    'history_hand_detail',
+    'history_gto_result'
   ] as const,
 };
 
@@ -295,6 +299,7 @@ export interface ClientToServerEvents {
   request_history_sessions: (payload: { roomId: string; limit?: number }) => void;
   request_history_hands: (payload: { roomSessionId: string; limit?: number; beforeEndedAt?: string }) => void;
   request_history_hand_detail: (payload: { handHistoryId: string }) => void;
+  history_gto_analyze: (payload: { handId: string; handRecord: HistoryGTOHandRecord; precision: 'fast' | 'deep' }) => void;
 }
 
 export interface ServerToClientEvents {
@@ -352,4 +357,5 @@ export interface ServerToClientEvents {
   history_sessions: (payload: { roomId: string; sessions: HistorySessionSummary[] }) => void;
   history_hands: (payload: { roomSessionId: string; hands: HistoryHandSummary[]; hasMore: boolean; nextCursor?: string }) => void;
   history_hand_detail: (payload: { handHistoryId: string; hand: HistoryHandDetail | null }) => void;
+  history_gto_result: (payload: { handId: string; gtoAnalysis: HistoryGTOAnalysis | null; error?: string }) => void;
 }

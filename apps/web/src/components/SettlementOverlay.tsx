@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, memo } from "react";
+import { createPortal } from "react-dom";
 import type { SettlementResult, TablePlayer } from "@cardpilot/shared-types";
 import { PokerCard } from "./PokerCard";
 import { CardZoomModal } from "./CardZoomModal";
@@ -61,11 +62,23 @@ export const SettlementOverlay = memo(function SettlementOverlay({
   const countdownExpired = countdownSeconds <= 0;
   const showWaitingFallback = autoStartScheduled && countdownExpired;
 
-  return (
-    <div className="w-full max-w-2xl mt-2 shrink-0 animate-[fadeSlideUp_0.35s_ease-out]">
-      <div className="relative rounded-2xl border border-amber-500/25 bg-gradient-to-b from-amber-500/8 via-black/70 to-black/85 backdrop-blur-sm px-5 py-4 shadow-lg shadow-black/30 max-h-[80vh] overflow-y-auto overflow-x-hidden">
+  const overlay = (
+    <div
+      className="fixed inset-0 z-[90] flex items-end sm:items-center justify-center"
+      style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + var(--app-footer-h, 0px) + 12px)", paddingTop: "calc(var(--topbar-h, 0px) + 12px)" }}
+      onClick={onDismiss}
+    >
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" />
+
+      {/* Modal */}
+      <div
+        className="relative w-full max-w-2xl mx-3 rounded-2xl border border-amber-500/25 bg-gradient-to-b from-amber-500/8 via-black/70 to-black/85 backdrop-blur-sm shadow-lg shadow-black/30 animate-[fadeSlideUp_0.35s_ease-out] flex flex-col"
+        style={{ maxHeight: "calc(100vh - var(--topbar-h, 0px) - var(--app-footer-h, 0px) - 24px - env(safe-area-inset-bottom, 0px))" }}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Sticky header */}
-        <div className="sticky top-0 z-10 -mx-5 px-5 pb-2 bg-gradient-to-b from-black/90 to-transparent">
+        <div className="sticky top-0 z-10 px-5 pb-2 pt-4 bg-gradient-to-b from-black/90 to-transparent rounded-t-2xl shrink-0">
           {/* Close button */}
           <button
             onClick={onDismiss}
@@ -105,6 +118,8 @@ export const SettlementOverlay = memo(function SettlementOverlay({
           </div>
         </div>
 
+        {/* Scrollable body */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-5 min-h-0">
         {/* Run-it-twice: show per-run results */}
         {settlement.runCount === 2 ? (
           <div className="space-y-2 mb-3 mt-2">
@@ -277,7 +292,7 @@ export const SettlementOverlay = memo(function SettlementOverlay({
         )}
 
         {/* Action buttons row */}
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-2 pb-1">
           <button
             onClick={() => setShowDrawer(!showDrawer)}
             className="text-[11px] px-3 py-1.5 rounded-lg bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10 transition-all min-h-[44px]"
@@ -299,7 +314,8 @@ export const SettlementOverlay = memo(function SettlementOverlay({
             playerName={playerName}
           />
         )}
-      </div>
+        </div>{/* end scrollable body */}
+      </div>{/* end modal */}
 
       {/* Card zoom modal */}
       {zoomCards && (
@@ -312,6 +328,8 @@ export const SettlementOverlay = memo(function SettlementOverlay({
       )}
     </div>
   );
+
+  return createPortal(overlay, document.body);
 });
 
 /* ── Winner Row ── */

@@ -1,7 +1,9 @@
-import { useMemo, useState } from "react";
-import type { HandActionRecord, HandRecord } from "../../lib/hand-history.js";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { HandActionRecord, HandRecord, GTOAnalysis } from "../../lib/hand-history.js";
 import { formatHandAsPokerStars } from "../../lib/hand-history.js";
 import { PokerCard } from "../../components/PokerCard.js";
+import type { Socket } from "socket.io-client";
+import type { HistoryGTOAnalysis } from "@cardpilot/shared-types";
 
 const STREETS = ["PREFLOP", "FLOP", "TURN", "RIVER"];
 const EDITABLE_TAGS = ["SRP", "3bet_pot", "4bet_pot", "all_in"];
@@ -33,19 +35,94 @@ function computeRunningPot(actions: HandActionRecord[], upToIndex: number): numb
   return pot;
 }
 
+type GtoState = "idle" | "loading" | "success" | "error";
+
+function mapServerToLocal(server: HistoryGTOAnalysis): GTOAnalysis {
+  return {
+    overallScore: server.overallScore,
+    streets: server.spots.map((s) => ({
+      street: s.street,
+      action: s.heroAction,
+      gtoAction: s.recommended.action,
+      evDiff: s.deviationScore,
+      accuracy: s.deviationScore <= 20 ? "good" : s.deviationScore <= 50 ? "ok" : "bad",
+    })),
+    analyzedAt: server.computedAt,
+  };
+}
+
 export function HandDetail2({
   hand,
   onCopy,
   onDownload,
   onToggleTag,
+  socket,
+  onSaveAnalysis,
 }: {
   hand: HandRecord | null;
   onCopy: (text: string) => Promise<void>;
   onDownload: (hand: HandRecord) => void;
   onToggleTag: (tag: string) => void;
+  socket?: Socket | null;
+  onSaveAnalysis?: (handId: string, analysis: GTOAnalysis) => void;
 }) {
   const [customTag, setCustomTag] = useState("");
   const [copied, setCopied] = useState<"hh" | "json" | null>(null);
+  const [gtoState, setGtoState] = useState<GtoState>("idle");
+  const [gtoResult, setGtoResult] = useState<HistoryGTOAnalysis | null>(null);
+  const [gtoError, setGtoError] = useState<string | null>(null);
+
+  // Reset GTO state when hand changes; restore from local cache if available
+  useEffect(() => {
+    setGtoState(hand?.gtoAnalysis ? "success" : "idle");
+    setGtoResult(null);
+    setGtoError(null);
+  }, [hand?.id]);
+
+  // Listen for GTO result from server
+  useEffect(() => {
+    if (!socket || !hand) return;
+    const handler = (payload: { handId: string; gtoAnalysis: HistoryGTOAnalysis | null; error?: string }) => {
+      if (payload.handId !== hand.id) return;
+      if (payload.error || !payload.gtoAnalysis) {
+        setGtoState("error");
+        setGtoError(payload.error ?? "Analysis failed");
+        return;
+      }
+      setGtoResult(payload.gtoAnalysis);
+      setGtoState("success");
+      // Persist to localStorage
+      const localAnalysis = mapServerToLocal(payload.gtoAnalysis);
+      onSaveAnalysis?.(hand.id, localAnalysis);
+    };
+    socket.on("history_gto_result" as string, handler);
+    return () => { socket.off("history_gto_result" as string, handler); };
+  }, [socket, hand?.id, onSaveAnalysis]);
+
+  const requestAnalysis = useCallback((precision: "fast" | "deep") => {
+    if (!socket || !hand) return;
+    setGtoState("loading");
+    setGtoError(null);
+    setGtoResult(null);
+    socket.emit("history_gto_analyze" as string, {
+      handId: hand.id,
+      handRecord: {
+        heroCards: hand.heroCards,
+        board: hand.board,
+        heroSeat: hand.heroSeat ?? 0,
+        heroPosition: hand.position,
+        stakes: hand.stakes,
+        tableSize: hand.tableSize,
+        potSize: hand.potSize,
+        stackSize: hand.stackSize,
+        actions: hand.actions,
+        smallBlind: hand.smallBlind,
+        bigBlind: hand.bigBlind,
+        playerNames: hand.playerNames,
+      },
+      precision,
+    });
+  }, [socket, hand]);
 
   const groupedActions = useMemo(() => (hand ? streetGroups(hand.actions) : []), [hand]);
 
@@ -125,12 +202,59 @@ export function HandDetail2({
         </div>
       </div>
 
+      {/* GTO Analysis */}
+      <div className="rounded-xl bg-slate-800/40 border border-white/[0.06] p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">GTO Analysis</div>
+          <div className="flex items-center gap-2">
+            {socket && gtoState !== "loading" && (
+              <>
+                <button
+                  onClick={() => requestAnalysis("deep")}
+                  className="text-[10px] px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-600/80 to-indigo-600/80 text-white font-semibold border border-purple-500/30 hover:from-purple-500/90 hover:to-indigo-500/90 transition-all"
+                >
+                  Analyze (Deep)
+                </button>
+                <button
+                  onClick={() => requestAnalysis("fast")}
+                  className="text-[10px] px-3 py-1.5 rounded-lg bg-slate-700/50 text-slate-300 border border-white/[0.08] hover:bg-slate-700/70 transition-all"
+                >
+                  Fast
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {gtoState === "loading" && (
+          <div className="flex items-center gap-2 py-4">
+            <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+            <span className="text-xs text-slate-400">Running deep analysis...</span>
+          </div>
+        )}
+
+        {gtoState === "error" && (
+          <div className="text-xs text-red-400 py-2">{gtoError ?? "Analysis failed"}</div>
+        )}
+
+        {gtoState === "success" && (gtoResult || hand.gtoAnalysis) && (
+          <GtoResultView result={gtoResult} localAnalysis={hand.gtoAnalysis} />
+        )}
+
+        {gtoState === "idle" && !hand.gtoAnalysis && !socket && (
+          <div className="text-xs text-slate-500 py-2">Connect to server to run GTO analysis.</div>
+        )}
+        {gtoState === "idle" && !hand.gtoAnalysis && socket && (
+          <div className="text-xs text-slate-500 py-2">Press Analyze to evaluate this hand against GTO strategy.</div>
+        )}
+      </div>
+
       {/* Hero Cards */}
       <div>
         <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-2">Hero Cards</div>
         <div className="flex gap-1.5">
           {hand.heroCards.map((c) => (
-            <PokerCard key={c} card={c} variant="table" />
+            <PokerCard key={c} card={c} variant="seat" />
           ))}
         </div>
       </div>
@@ -157,7 +281,7 @@ export function HandDetail2({
                     <div className="text-[9px] text-slate-500 uppercase mb-1">Flop</div>
                     <div className="flex gap-0.5">
                       {split.flop.map((c, i) => (
-                        <PokerCard key={`f${i}`} card={c} variant="seat" />
+                        <PokerCard key={`f${i}`} card={c} variant="mini" />
                       ))}
                     </div>
                   </div>
@@ -168,7 +292,7 @@ export function HandDetail2({
                     <div className="text-[9px] text-slate-500 uppercase mb-1">Turn</div>
                     <div className="flex gap-0.5">
                       {split.turn.map((c, i) => (
-                        <PokerCard key={`t${i}`} card={c} variant="seat" />
+                        <PokerCard key={`t${i}`} card={c} variant="mini" />
                       ))}
                     </div>
                   </div>
@@ -179,7 +303,7 @@ export function HandDetail2({
                     <div className="text-[9px] text-slate-500 uppercase mb-1">River</div>
                     <div className="flex gap-0.5">
                       {split.river.map((c, i) => (
-                        <PokerCard key={`r${i}`} card={c} variant="seat" />
+                        <PokerCard key={`r${i}`} card={c} variant="mini" />
                       ))}
                     </div>
                   </div>
@@ -217,7 +341,7 @@ export function HandDetail2({
                   ) : (
                     <div className="flex gap-0.5">
                       {cards.map((c) => (
-                        <PokerCard key={c} card={c} variant="mini" />
+                        <PokerCard key={c} card={c} variant="seat" />
                       ))}
                     </div>
                   )}
@@ -335,6 +459,146 @@ export function HandDetail2({
           ⬇ Export JSON
         </button>
       </div>
+    </div>
+  );
+}
+
+// ── GTO Result View ──
+
+function scoreColor(score: number): string {
+  if (score >= 80) return "text-emerald-400";
+  if (score >= 50) return "text-amber-400";
+  return "text-red-400";
+}
+
+function scoreBg(score: number): string {
+  if (score >= 80) return "bg-emerald-500";
+  if (score >= 50) return "bg-amber-500";
+  return "bg-red-500";
+}
+
+function deviationBadge(score: number): { label: string; cls: string } {
+  if (score <= 20) return { label: "Good", cls: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" };
+  if (score <= 50) return { label: "OK", cls: "bg-amber-500/20 text-amber-300 border-amber-500/30" };
+  return { label: "Miss", cls: "bg-red-500/20 text-red-300 border-red-500/30" };
+}
+
+function GtoResultView({
+  result,
+  localAnalysis,
+}: {
+  result: HistoryGTOAnalysis | null;
+  localAnalysis?: GTOAnalysis | null;
+}) {
+  // Prefer server result, fall back to persisted local analysis
+  const overallScore = result?.overallScore ?? localAnalysis?.overallScore ?? 0;
+  const streetScores = result?.streetScores ?? null;
+  const spots = result?.spots ?? [];
+  const precision = result?.precision ?? "cached";
+  const computedAt = result?.computedAt ?? localAnalysis?.analyzedAt ?? 0;
+
+  return (
+    <div className="space-y-3">
+      {/* Overall score */}
+      <div className="flex items-center gap-4">
+        <div className={`text-3xl font-extrabold tabular-nums ${scoreColor(overallScore)}`}>
+          {Math.round(overallScore)}
+        </div>
+        <div className="flex-1">
+          <div className="text-[10px] text-slate-500 mb-1">Overall GTO Score</div>
+          <div className="h-2 rounded-full bg-slate-700/60 overflow-hidden">
+            <div className={`h-full rounded-full ${scoreBg(overallScore)} transition-all`} style={{ width: `${overallScore}%` }} />
+          </div>
+        </div>
+        <div className="text-[9px] text-slate-600 text-right shrink-0">
+          {precision !== "cached" && <div>{precision} mode</div>}
+          {computedAt > 0 && <div>{new Date(computedAt).toLocaleTimeString()}</div>}
+        </div>
+      </div>
+
+      {/* Street breakdown */}
+      {streetScores && (
+        <div className="flex items-center gap-3">
+          {(["flop", "turn", "river"] as const).map((s) => {
+            const val = streetScores[s];
+            if (val === null) return null;
+            return (
+              <div key={s} className="flex-1 min-w-0">
+                <div className="text-[9px] text-slate-500 uppercase mb-1">{s}</div>
+                <div className="h-1.5 rounded-full bg-slate-700/60 overflow-hidden">
+                  <div className={`h-full rounded-full ${scoreBg(val)} transition-all`} style={{ width: `${val}%` }} />
+                </div>
+                <div className={`text-[10px] font-bold tabular-nums mt-0.5 ${scoreColor(val)}`}>{Math.round(val)}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Spots list */}
+      {spots.length > 0 && (
+        <div className="space-y-1.5 max-h-[280px] overflow-auto">
+          {spots.map((spot, idx) => {
+            const badge = deviationBadge(spot.deviationScore);
+            return (
+              <div key={idx} className="rounded-lg border border-white/[0.06] bg-slate-800/30 p-2.5">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-[10px] font-bold text-cyan-400 uppercase">{spot.street}</span>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${badge.cls}`}>{badge.label}</span>
+                  <span className="ml-auto text-[10px] text-slate-500 tabular-nums">pot {spot.pot.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center gap-3 text-[11px]">
+                  <div>
+                    <span className="text-slate-500">You: </span>
+                    <span className="text-white font-semibold uppercase">{spot.heroAction}</span>
+                    {spot.heroAmount > 0 && <span className="text-slate-400 ml-1">{spot.heroAmount.toLocaleString()}</span>}
+                  </div>
+                  <div>
+                    <span className="text-slate-500">GTO: </span>
+                    <span className="text-purple-300 font-semibold uppercase">{spot.recommended.action}</span>
+                    <span className="text-slate-500 ml-1 text-[10px]">
+                      (R{Math.round(spot.recommended.mix.raise * 100)}
+                      /C{Math.round(spot.recommended.mix.call * 100)}
+                      /F{Math.round(spot.recommended.mix.fold * 100)})
+                    </span>
+                  </div>
+                </div>
+                {spot.alpha > 0 && (
+                  <div className="flex items-center gap-3 mt-1 text-[10px] text-slate-500">
+                    <span>Alpha: {Math.round(spot.alpha * 100)}%</span>
+                    <span>MDF: {Math.round(spot.mdf * 100)}%</span>
+                    <span>Eq: {Math.round(spot.equity * 100)}%</span>
+                  </div>
+                )}
+                <div className="text-[10px] text-slate-400 mt-1">{spot.note}</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Local-only fallback (when server result is not available but local analysis exists) */}
+      {spots.length === 0 && localAnalysis && localAnalysis.streets.length > 0 && (
+        <div className="space-y-1.5">
+          {localAnalysis.streets.map((s, idx) => {
+            const badge = deviationBadge(s.evDiff);
+            return (
+              <div key={idx} className="rounded-lg border border-white/[0.06] bg-slate-800/30 p-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-cyan-400 uppercase">{s.street}</span>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${badge.cls}`}>{badge.label}</span>
+                </div>
+                <div className="text-[11px] mt-1">
+                  <span className="text-slate-500">You: </span>
+                  <span className="text-white font-semibold uppercase">{s.action}</span>
+                  <span className="text-slate-500 mx-1">vs GTO:</span>
+                  <span className="text-purple-300 font-semibold uppercase">{s.gtoAction}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

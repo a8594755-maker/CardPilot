@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useRef, useEffect, useCallback, type ReactNode } from "react";
 
 type LegalRoute = "privacy" | "terms";
 
@@ -45,8 +45,27 @@ export function LegalStandalonePage({ route }: { route: LegalRoute }) {
 }
 
 export function AppComplianceFooter() {
+  const footerRef = useRef<HTMLElement>(null);
+
+  const syncHeight = useCallback(() => {
+    const h = footerRef.current?.getBoundingClientRect().height ?? 0;
+    document.documentElement.style.setProperty("--app-footer-h", `${h}px`);
+  }, []);
+
+  useEffect(() => {
+    const el = footerRef.current;
+    if (!el) return;
+    syncHeight();
+    const ro = new ResizeObserver(syncHeight);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      document.documentElement.style.setProperty("--app-footer-h", "0px");
+    };
+  }, [syncHeight]);
+
   return (
-    <footer className="shrink-0 border-t border-white/5 px-4 py-2 bg-[#0a0f1a]/80 backdrop-blur-sm" style={{ paddingBottom: "max(8px, env(safe-area-inset-bottom))" }}>
+    <footer ref={footerRef} className="shrink-0 border-t border-white/5 px-4 py-2 bg-[#0a0f1a]/80 backdrop-blur-sm" style={{ paddingBottom: "max(8px, env(safe-area-inset-bottom))" }}>
       <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-[11px] text-amber-300/90">
           Responsible play: CardPilot is a play-money training product, not a real-money gambling platform.

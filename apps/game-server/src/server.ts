@@ -5,7 +5,6 @@ import { randomInt, randomUUID } from "node:crypto";
 import { Server } from "socket.io";
 import { GameTable } from "@cardpilot/game-engine";
 import { getPreflopAdvice, getPostflopAdvice, calculateDeviation } from "@cardpilot/advice-engine";
-import { analyzeHandGTO } from "./services/gto-analyzer";
 import { calculateEquity, type Card } from "@cardpilot/poker-evaluator";
 import { SHOWDOWN_SPEED_DELAYS_MS } from "@cardpilot/shared-types";
 import type {
@@ -13,6 +12,7 @@ import type {
   UpdateSettingsPayload, KickPlayerPayload, TransferOwnershipPayload,
   SetCoHostPayload, GameControlPayload, JoinRoomWithPasswordPayload, AllInPrompt,
   RoomFullState, TimerState, HistoryHandDetailCore, HistoryHandPlayerSummary, HistoryHandSummaryCore,
+  HistoryGTOHandRecord,
 } from "@cardpilot/shared-types";
 import { getRuntimeConfig } from "./config";
 import { logError, logInfo, logWarn } from "./logger";
@@ -41,6 +41,33 @@ import type {
 } from "@cardpilot/shared-types";
 
 const runtimeConfig = getRuntimeConfig();
+
+type AnalyzeHandGTOFn = (
+  handRecord: HistoryGTOHandRecord,
+  precision?: "fast" | "deep"
+) => Promise<unknown>;
+
+let analyzeHandGTOFn: AnalyzeHandGTOFn | null = null;
+let gtoAnalyzerLoadAttempted = false;
+
+async function getAnalyzeHandGTO(): Promise<AnalyzeHandGTOFn | null> {
+  if (analyzeHandGTOFn) return analyzeHandGTOFn;
+  if (gtoAnalyzerLoadAttempted) return null;
+
+  gtoAnalyzerLoadAttempted = true;
+  try {
+    const mod = await import("./services/gto-analyzer");
+    analyzeHandGTOFn = mod.analyzeHandGTO as AnalyzeHandGTOFn;
+    return analyzeHandGTOFn;
+  } catch (error) {
+    logWarn({
+      event: "gto_analyzer.unavailable",
+      message: `GTO analyzer module unavailable: ${(error as Error).message}`,
+    });
+    return null;
+  }
+}
+
 const app = express();
 app.use(cors({ origin: runtimeConfig.corsOrigin, credentials: true }));
 app.get("/health", (_req, res) => res.json({ ok: true }));
@@ -1925,6 +1952,10 @@ io.on("connection", (socket) => {
     try {
       if (!payload?.handId || !payload?.handRecord) {
         throw new Error("handId and handRecord are required");
+      }
+      const analyzeHandGTO = await getAnalyzeHandGTO();
+      if (!analyzeHandGTO) {
+        throw new Error("GTO analysis is temporarily unavailable on this server");
       }
       const precision = payload.precision === "deep" ? "deep" : "fast";
       const gtoAnalysis = await analyzeHandGTO(payload.handRecord as Parameters<typeof analyzeHandGTO>[0], precision);

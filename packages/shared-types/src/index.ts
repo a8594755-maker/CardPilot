@@ -260,6 +260,9 @@ export interface AdvicePayload {
     frequencyText: string;
     rationale: string;
     boardTexture: BoardTextureProfile;
+    alpha?: number;
+    mdf?: number;
+    isStandardNode?: boolean;
   };
 }
 
@@ -356,6 +359,57 @@ export interface HistoryHandSummary {
 
 export interface HistoryHandDetail extends HistoryHandSummary {
   detail: HistoryHandDetailCore;
+}
+
+// ===== History GTO Analysis Types =====
+
+export interface HistoryGTOHandRecord {
+  heroCards: [string, string];
+  board: string[];
+  heroSeat: number;
+  heroPosition: string;
+  stakes: string;
+  tableSize: number;
+  potSize: number;
+  stackSize: number;
+  actions: Array<{
+    seat: number;
+    street: string;
+    type: string;
+    amount: number;
+  }>;
+  smallBlind?: number;
+  bigBlind?: number;
+  playerNames?: Record<number, string>;
+}
+
+export interface HistoryGTOSpotAnalysis {
+  street: string;
+  board: string[];
+  pot: number;
+  heroAction: string;
+  heroAmount: number;
+  recommended: {
+    action: string;
+    mix: StrategyMix;
+  };
+  deviationScore: number;
+  alpha: number;
+  mdf: number;
+  equity: number;
+  note: string;
+}
+
+export interface HistoryGTOAnalysis {
+  overallScore: number;
+  streetScores: {
+    flop: number | null;
+    turn: number | null;
+    river: number | null;
+  };
+  spots: HistoryGTOSpotAnalysis[];
+  computedAt: number;
+  precision: 'fast' | 'deep';
 }
 
 // ===== New Types (Coach Mode) =====

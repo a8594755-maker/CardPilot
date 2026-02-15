@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { HandRecord } from "../../lib/hand-history.js";
 import { PokerCard } from "../../components/PokerCard.js";
 
-const ROW_HEIGHT = 108;
+const ROW_HEIGHT = 132;
 const OVERSCAN = 6;
 
 function formatShortDate(ts: number) {
@@ -77,7 +77,7 @@ export function HandList2({
     return (
       <div className="flex-1 p-2 space-y-2">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="history-row-skeleton h-[100px]" />
+          <div key={i} className="history-row-skeleton h-[124px]" />
         ))}
       </div>
     );
@@ -136,7 +136,7 @@ export function HandList2({
               <button
                 key={hand.id}
                 onClick={() => onSelect(hand.id)}
-                className={`absolute left-2 right-2 rounded-xl border p-2.5 text-left transition-all ${
+                className={`absolute left-2 right-2 rounded-xl border p-2.5 text-left transition-all overflow-hidden ${
                   selectedId === hand.id
                     ? "border-sky-500/60 bg-sky-500/10 shadow-lg shadow-sky-900/20"
                     : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.12]"
@@ -167,7 +167,7 @@ export function HandList2({
                   {/* Hero cards */}
                   <div className="flex gap-0.5 shrink-0">
                     {hand.heroCards.map((c) => (
-                      <PokerCard key={c} card={c} variant="seat" />
+                      <PokerCard key={c} card={c} variant="mini" />
                     ))}
                   </div>
                   {/* Board preview (first 3 cards) */}
@@ -180,14 +180,19 @@ export function HandList2({
                   )}
                   <span className="text-[10px] text-slate-500 ml-auto shrink-0">Pot {hand.potSize.toLocaleString()}</span>
                 </div>
-                {/* Row 3: tags */}
+                {/* Row 3: tags — single line, no wrap, +N overflow pill */}
                 {hand.tags.length > 0 && (
-                  <div className="flex items-center gap-1 mt-1.5">
-                    {hand.tags.slice(0, 4).map((t) => (
-                      <span key={t} className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-700/40 text-slate-400 border border-white/[0.06]">
+                  <div className="flex items-center gap-1 mt-1.5 overflow-hidden flex-nowrap">
+                    {hand.tags.slice(0, 3).map((t) => (
+                      <span key={t} className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-700/40 text-slate-400 border border-white/[0.06] whitespace-nowrap shrink-0">
                         {t}
                       </span>
                     ))}
+                    {hand.tags.length > 3 && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-700/40 text-slate-400 border border-white/[0.06] whitespace-nowrap shrink-0">
+                        +{hand.tags.length - 3}
+                      </span>
+                    )}
                   </div>
                 )}
               </button>

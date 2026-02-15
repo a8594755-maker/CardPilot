@@ -1,6 +1,7 @@
 export {
   PostflopEngine,
   getPostflopAdvice,
+  type AdvicePrecision,
   type PostflopAdvice,
   type PostflopBucketStrategy,
   type PostflopContext,

@@ -21,6 +21,13 @@ const ONE_HOUR_MS = 60 * 60 * 1000;
 const MAX_EQUITY_CACHE_ENTRIES = 2000;
 const DEFAULT_POSTFLOP_SIMULATIONS = 300;
 
+export type AdvicePrecision = 'fast' | 'deep';
+
+const PRECISION_SIMULATIONS: Record<AdvicePrecision, number> = {
+  fast: 800,
+  deep: 7000,
+};
+
 const equityCache = createTimedLruCache<string, EquityResult>(MAX_EQUITY_CACHE_ENTRIES, ONE_HOUR_MS);
 const rangeEstimator = new RangeEstimator();
 let workerService: WorkerService | null = null;
@@ -64,8 +71,10 @@ let preflopChartRowsCache: PreflopChartRow[] | null = null;
 async function resolvePostflopEquity(input: {
   context: PostflopContext;
   handClass: ReturnType<typeof classifyHandOnBoard>;
+  precision?: AdvicePrecision;
 }): Promise<{ result: EquityResult; villainRangeHash: string }> {
-  const { context, handClass } = input;
+  const { context, handClass, precision } = input;
+  const simulations = precision ? PRECISION_SIMULATIONS[precision] : DEFAULT_POSTFLOP_SIMULATIONS;
   const deadCards = new Set([...context.heroHand, ...context.board]);
 
   const chartAnchoredRange = buildVillainRangeFromCharts(context);
@@ -93,7 +102,8 @@ async function resolvePostflopEquity(input: {
     });
 
   const villainRangeHash = hashRange(villainHands);
-  const cacheKey = buildEquityCacheKey(context.heroHand, context.board, villainRangeHash);
+  const precisionTag = precision ?? 'default';
+  const cacheKey = buildEquityCacheKey(context.heroHand, context.board, villainRangeHash) + `|${precisionTag}`;
   const cached = equityCache.get(cacheKey);
   if (cached) {
     return { result: cached, villainRangeHash };
@@ -114,7 +124,7 @@ async function resolvePostflopEquity(input: {
     heroHand: context.heroHand,
     villainHands,
     board: context.board,
-    simulations: DEFAULT_POSTFLOP_SIMULATIONS,
+    simulations,
   });
 
   equityCache.set(cacheKey, result);
@@ -307,7 +317,7 @@ export class PostflopEngine {
     }
   }
 
-  async getAdvice(context: PostflopContext): Promise<PostflopAdvice> {
+  async getAdvice(context: PostflopContext, precision?: AdvicePrecision): Promise<PostflopAdvice> {
     const boardTexture = BoardAnalyzer.analyze(context.board);
     const textureBucket = BoardAnalyzer.toTextureBucket(boardTexture);
     const line = resolveLineToken(context);
@@ -339,6 +349,7 @@ export class PostflopEngine {
     const { result: equityResult, villainRangeHash } = await resolvePostflopEquity({
       context,
       handClass,
+      precision,
     });
 
     const solvedFrequency = buildFrequencyFromScores({
@@ -395,6 +406,12 @@ export class PostflopEngine {
       `EQUITY_${Math.round(equityResult.equity * 100)}`,
     ])];
 
+    const alpha = context.toCall > 0 && context.potSize > 0
+      ? round4(context.toCall / (context.potSize + context.toCall))
+      : 0;
+    const mdf = round4(1 - alpha);
+    const isStandardNode = Boolean(bucket);
+
     return {
       tableId: context.tableId,
       handId: context.handId,
@@ -415,6 +432,9 @@ export class PostflopEngine {
         frequencyText,
         rationale,
         boardTexture,
+        alpha,
+        mdf,
+        isStandardNode,
       },
     };
   }
@@ -445,8 +465,8 @@ export class PostflopEngine {
 
 const postflopEngine = new PostflopEngine();
 
-export async function getPostflopAdvice(context: PostflopContext): Promise<PostflopAdvice> {
-  return postflopEngine.getAdvice(context);
+export async function getPostflopAdvice(context: PostflopContext, precision?: AdvicePrecision): Promise<PostflopAdvice> {
+  return postflopEngine.getAdvice(context, precision);
 }
 
 function loadPostflopRowsFromDisk(): PostflopBucketStrategy[] {

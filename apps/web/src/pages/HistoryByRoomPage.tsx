@@ -4,7 +4,9 @@ import {
   updateHand,
   type HandRecord,
   type LocalRoomSummary,
+  type GTOAnalysis,
 } from "../lib/hand-history.js";
+import type { Socket } from "socket.io-client";
 import { RoomList } from "./history/RoomList";
 import { HandList2, type HandSort } from "./history/HandList2";
 import { HandDetail2 } from "./history/HandDetail2";
@@ -27,7 +29,7 @@ const QUICK_FILTERS: { key: QuickFilter; label: string }[] = [
 type MobilePane = "rooms" | "hands" | "detail";
 
 export function HistoryByRoomPage(_props: {
-  socket?: unknown;
+  socket?: Socket | null;
   isConnected?: boolean;
   userId?: string;
   supabaseEnabled?: boolean;
@@ -180,6 +182,17 @@ export function HistoryByRoomPage(_props: {
     URL.revokeObjectURL(url);
   };
 
+  const onSaveAnalysis = useCallback((handId: string, analysis: GTOAnalysis) => {
+    updateHand(handId, { gtoAnalysis: analysis });
+    setHandsByRoom((prev) => {
+      const room = selectedRoom ?? "_local";
+      const updated = (prev[room] ?? []).map((h) =>
+        h.id === handId ? { ...h, gtoAnalysis: analysis } : h
+      );
+      return { ...prev, [room]: updated };
+    });
+  }, [selectedRoom]);
+
   // Mobile back handler
   const handleMobileBack = () => {
     if (mobilePane === "detail") setMobilePane("hands");
@@ -322,6 +335,8 @@ export function HistoryByRoomPage(_props: {
               onCopy={onCopy}
               onDownload={onDownload}
               onToggleTag={onToggleTag}
+              socket={_props.socket}
+              onSaveAnalysis={onSaveAnalysis}
             />
           ) : (
             <HandReplay2 hand={selectedHand} />
