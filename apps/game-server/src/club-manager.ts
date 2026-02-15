@@ -155,6 +155,7 @@ export class ClubManager {
       role: "owner",
       status: "active",
       nicknameInClub: null,
+      balance: 0,
       createdAt: now,
       lastSeenAt: now,
       displayName: params.ownerDisplayName,
@@ -281,6 +282,7 @@ export class ClubManager {
       role: "member",
       status: skipApproval ? "active" : "pending",
       nicknameInClub: null,
+      balance: 0,
       createdAt: now,
       lastSeenAt: now,
       displayName,
@@ -839,6 +841,83 @@ export class ClubManager {
       pendingMembers: canPerformClubAction(member.role, "approve_joins") ? pendingMembers : [],
       auditLog,
     };
+  }
+
+  // ═══════════════ VIRTUAL CREDITS ═══════════════
+
+  grantCredits(
+    clubId: string,
+    actorUserId: string,
+    targetUserId: string,
+    amount: number,
+    reason?: string,
+  ): { success: boolean; newBalance: number; message: string } {
+    const state = this.clubs.get(clubId);
+    if (!state) return { success: false, newBalance: 0, message: "Club not found" };
+
+    const actor = state.members.get(actorUserId);
+    if (!actor || actor.status !== "active" || !hasClubPermission(actor.role, "admin")) {
+      return { success: false, newBalance: 0, message: "Only admin/owner can grant credits" };
+    }
+
+    const target = state.members.get(targetUserId);
+    if (!target || target.status !== "active") {
+      return { success: false, newBalance: 0, message: "Target is not an active member" };
+    }
+
+    if (amount <= 0) return { success: false, newBalance: target.balance, message: "Amount must be positive" };
+
+    target.balance += amount;
+    this.writeAudit(clubId, actorUserId, "credits_granted", {
+      targetUserId,
+      targetName: target.displayName,
+      amount,
+      newBalance: target.balance,
+      reason: reason ?? "",
+    });
+    this.repo?.upsertMember(target).catch((e) => logWarn({ event: "club_repo.persist.grantCredits", message: (e as Error).message }));
+
+    logInfo({ event: "club.credits_granted", clubId, actor: actorUserId, target: targetUserId, amount, newBalance: target.balance });
+    return { success: true, newBalance: target.balance, message: `Granted ${amount} credits` };
+  }
+
+  deductCredits(
+    clubId: string,
+    actorUserId: string,
+    targetUserId: string,
+    amount: number,
+    reason?: string,
+  ): { success: boolean; newBalance: number; message: string } {
+    const state = this.clubs.get(clubId);
+    if (!state) return { success: false, newBalance: 0, message: "Club not found" };
+
+    const actor = state.members.get(actorUserId);
+    if (!actor || actor.status !== "active" || !hasClubPermission(actor.role, "admin")) {
+      return { success: false, newBalance: 0, message: "Only admin/owner can deduct credits" };
+    }
+
+    const target = state.members.get(targetUserId);
+    if (!target || target.status !== "active") {
+      return { success: false, newBalance: 0, message: "Target is not an active member" };
+    }
+
+    if (amount <= 0) return { success: false, newBalance: target.balance, message: "Amount must be positive" };
+    if (target.balance < amount) return { success: false, newBalance: target.balance, message: "Insufficient balance" };
+
+    target.balance -= amount;
+    this.writeAudit(clubId, actorUserId, "credits_deducted", {
+      targetUserId,
+      targetName: target.displayName,
+      amount,
+      newBalance: target.balance,
+      reason: reason ?? "",
+    });
+    this.repo?.upsertMember(target).catch((e) => logWarn({ event: "club_repo.persist.deductCredits", message: (e as Error).message }));
+    return { success: true, newBalance: target.balance, message: `Deducted ${amount} credits` };
+  }
+
+  getMemberBalance(clubId: string, userId: string): number {
+    return this.getMember(clubId, userId)?.balance ?? 0;
   }
 
   // ═══════════════ INTERNALS ═══════════════

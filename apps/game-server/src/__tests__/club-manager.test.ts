@@ -117,7 +117,13 @@ describe("Club membership gates — server integration contracts", () => {
   });
 
   it("public lobby snapshot contract excludes private/club tables", () => {
-    const source = readFileSync(resolve(process.cwd(), "src/server.ts"), "utf-8");
+    // Try both possible paths (depends on cwd when running tests)
+    let source: string;
+    try {
+      source = readFileSync(resolve(process.cwd(), "src/server.ts"), "utf-8");
+    } catch {
+      source = readFileSync(resolve(process.cwd(), "apps/game-server/src/server.ts"), "utf-8");
+    }
     assert.match(source, /\.filter\(\(room\) => room\.status === "OPEN" && room\.visibility === "public"\)/);
   });
 });
@@ -738,6 +744,122 @@ describe("ClubManager — hydrate/persist interface", () => {
     });
     assert.ok(club.id);
     assert.ok(club.code);
+  });
+});
+
+describe("ClubManager — create→list persistence contract", () => {
+  it("create club → listMyClubs immediately includes it (no rehydrate needed)", () => {
+    const mgr = new ClubManager();
+    const club = mgr.createClub({
+      ownerUserId: "u1",
+      ownerDisplayName: "Alice",
+      name: "Persist Club",
+    });
+
+    const list = mgr.listMyClubs("u1");
+    assert.equal(list.length, 1);
+    assert.equal(list[0].id, club.id);
+    assert.equal(list[0].name, "Persist Club");
+    assert.equal(list[0].myRole, "owner");
+    assert.equal(list[0].myStatus, "active");
+  });
+
+  it("create club → join → listMyClubs includes club for joiner", () => {
+    const mgr = new ClubManager();
+    const club = mgr.createClub({
+      ownerUserId: "u1",
+      ownerDisplayName: "Alice",
+      name: "Join Test Club",
+      requireApprovalToJoin: false,
+    });
+
+    mgr.requestJoin(club.code, "u2", "Bob");
+
+    const ownerList = mgr.listMyClubs("u1");
+    const memberList = mgr.listMyClubs("u2");
+    assert.equal(ownerList.length, 1);
+    assert.equal(memberList.length, 1);
+    assert.equal(memberList[0].myRole, "member");
+  });
+
+  it("rehydrate from mock repo restores clubs and memberships", async () => {
+    const now = new Date().toISOString();
+    const mockClub = {
+      id: "c1",
+      code: "TEST01",
+      name: "Rehydrated Club",
+      description: "",
+      ownerUserId: "u1",
+      visibility: "private" as const,
+      defaultRulesetId: null,
+      isArchived: false,
+      requireApprovalToJoin: true,
+      badgeColor: null,
+      logoUrl: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    const mockMember = {
+      clubId: "c1",
+      userId: "u1",
+      role: "owner" as const,
+      status: "active" as const,
+      nicknameInClub: null,
+      balance: 0,
+      createdAt: now,
+      lastSeenAt: now,
+      displayName: "Alice",
+    };
+    const mockRepo = {
+      enabled: () => true,
+      hydrateAll: async () => ({
+        clubs: [mockClub],
+        members: [mockMember],
+        invites: [],
+        rulesets: [],
+        tables: [],
+      }),
+      createClub: async () => {},
+      upsertMember: async () => {},
+      appendAudit: async () => {},
+    } as any;
+
+    const mgr = new ClubManager();
+    mgr.setRepo(mockRepo);
+    await mgr.hydrate();
+
+    const list = mgr.listMyClubs("u1");
+    assert.equal(list.length, 1);
+    assert.equal(list[0].id, "c1");
+    assert.equal(list[0].name, "Rehydrated Club");
+    assert.equal(list[0].myRole, "owner");
+
+    // Club detail should also work
+    const detail = mgr.getClubDetail("c1", "u1");
+    assert.ok(detail);
+    assert.equal(detail!.detail.club.name, "Rehydrated Club");
+  });
+
+  it("create club with disabled repo still works in-memory", () => {
+    const mgr = new ClubManager();
+    const mockRepo = {
+      enabled: () => false,
+      hydrateAll: async () => ({ clubs: [], members: [], invites: [], rulesets: [], tables: [] }),
+      createClub: async () => {},
+      upsertMember: async () => {},
+      appendAudit: async () => {},
+    } as any;
+    mgr.setRepo(mockRepo);
+
+    const club = mgr.createClub({
+      ownerUserId: "u1",
+      ownerDisplayName: "Alice",
+      name: "No DB Club",
+    });
+
+    const list = mgr.listMyClubs("u1");
+    assert.equal(list.length, 1);
+    assert.equal(list[0].id, club.id);
   });
 });
 

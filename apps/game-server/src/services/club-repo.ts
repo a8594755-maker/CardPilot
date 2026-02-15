@@ -49,6 +49,7 @@ function rowToMember(r: Record<string, unknown>): ClubMember {
     role: (r.role as ClubRole) ?? "member",
     status: (r.status as ClubMemberStatus) ?? "active",
     nicknameInClub: r.nickname_in_club ? String(r.nickname_in_club) : null,
+    balance: Number(r.balance ?? 0),
     createdAt: String(r.created_at),
     lastSeenAt: String(r.last_seen_at),
     displayName: r.display_name ? String(r.display_name) : undefined,

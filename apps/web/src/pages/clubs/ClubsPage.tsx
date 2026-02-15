@@ -19,8 +19,10 @@ interface ClubsPageProps {
   isConnected: boolean;
   userId: string;
   clubs: ClubListItem[];
+  clubsLoading: boolean;
   clubDetail: ClubDetailPayload | null;
   onSelectClub: (clubId: string) => void;
+  onRefreshClubs: () => void;
   onJoinClubTable: (roomCode: string) => void;
   showToast: (msg: string) => void;
 }
@@ -30,8 +32,10 @@ export function ClubsPage({
   isConnected,
   userId,
   clubs,
+  clubsLoading,
   clubDetail,
   onSelectClub,
+  onRefreshClubs,
   onJoinClubTable,
   showToast,
 }: ClubsPageProps) {
@@ -96,6 +100,14 @@ export function ClubsPage({
           <h2 className="text-xl font-bold text-white">My Clubs</h2>
           <div className="flex gap-2">
             <button
+              onClick={onRefreshClubs}
+              disabled={!isConnected || clubsLoading}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 transition-all disabled:opacity-50"
+              title="Refresh clubs"
+            >
+              {clubsLoading ? "Syncing\u2026" : "\u21bb Refresh"}
+            </button>
+            <button
               onClick={() => setShowCreate(true)}
               disabled={!isConnected}
               className="btn-primary text-sm"
@@ -136,7 +148,25 @@ export function ClubsPage({
         </div>
 
         {/* Club List */}
-        {clubs.length === 0 ? (
+        {clubsLoading && clubs.length === 0 ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="glass-card p-4 animate-pulse">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/10" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-32 rounded bg-white/10" />
+                    <div className="h-3 w-48 rounded bg-white/5" />
+                  </div>
+                  <div className="space-y-1 text-right">
+                    <div className="h-3 w-16 rounded bg-white/5" />
+                    <div className="h-3 w-12 rounded bg-white/5" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : clubs.length === 0 ? (
           <div className="glass-card p-8 text-center">
             <p className="text-slate-400 text-sm mb-2">You haven't joined any clubs yet.</p>
             <p className="text-slate-500 text-xs">Create one or join using a club code above.</p>

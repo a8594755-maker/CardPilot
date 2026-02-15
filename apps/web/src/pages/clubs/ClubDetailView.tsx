@@ -1,13 +1,15 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import type { Socket } from "socket.io-client";
 import type {
   ClubDetailPayload,
   ClubRole,
   ClubRules,
+  ClubVisibility,
 } from "@cardpilot/shared-types";
+import { DEFAULT_CLUB_RULES } from "@cardpilot/shared-types";
 import { canPerformClubAction } from "@cardpilot/shared-types";
 
-type Tab = "overview" | "members" | "tables" | "rulesets" | "invites" | "audit";
+type Tab = "overview" | "members" | "tables" | "rulesets" | "invites" | "audit" | "settings";
 
 /** Consider a member "recently online" if lastSeenAt is within this many minutes */
 const ONLINE_THRESHOLD_MIN = 15;
@@ -68,10 +70,34 @@ export function ClubDetailView({
   const [tab, setTab] = useState<Tab>("overview");
   const [showCreateTable, setShowCreateTable] = useState(false);
   const [newTableName, setNewTableName] = useState("");
+  const [newTableRulesetId, setNewTableRulesetId] = useState<string>("");
   const [showCreateInvite, setShowCreateInvite] = useState(false);
+  const [showCreateRuleset, setShowCreateRuleset] = useState(false);
+  const [rsName, setRsName] = useState("");
+  const [rsSB, setRsSB] = useState(1);
+  const [rsBB, setRsBB] = useState(2);
+  const [rsSeats, setRsSeats] = useState(6);
+  const [rsBuyMin, setRsBuyMin] = useState(40);
+  const [rsBuyMax, setRsBuyMax] = useState(200);
+  const [rsTimer, setRsTimer] = useState(15);
+  const [rsTimeBank, setRsTimeBank] = useState(60);
+  const [rsRIT, setRsRIT] = useState(false);
+  const [rsIsDefault, setRsIsDefault] = useState(false);
 
   const { club, myMembership } = detail.detail;
   const myRole = myMembership?.role ?? "member";
+
+  // Settings form state
+  const [editName, setEditName] = useState(club.name);
+  const [editDesc, setEditDesc] = useState(club.description);
+  const [editApproval, setEditApproval] = useState(club.requireApprovalToJoin);
+  const [editColor, setEditColor] = useState(club.badgeColor ?? "#6366f1");
+  useEffect(() => {
+    setEditName(club.name);
+    setEditDesc(club.description);
+    setEditApproval(club.requireApprovalToJoin);
+    setEditColor(club.badgeColor ?? "#6366f1");
+  }, [club.name, club.description, club.requireApprovalToJoin, club.badgeColor]);
 
   const canManageMembers = canPerformClubAction(myRole, "manage_members");
   const canApproveJoins = canPerformClubAction(myRole, "approve_joins");
@@ -79,6 +105,8 @@ export function ClubDetailView({
   const canManageRulesets = canPerformClubAction(myRole, "manage_rulesets");
   const canCreateInvite = canPerformClubAction(myRole, "create_invite");
   const canViewAudit = canPerformClubAction(myRole, "view_audit_log");
+  const canManageTables = canPerformClubAction(myRole, "manage_tables");
+  const isAdmin = canManageMembers;
 
   const onlineMembers = useMemo(() =>
     detail.members.filter((m) => isRecentlyOnline(m.lastSeenAt)),
@@ -95,11 +123,46 @@ export function ClubDetailView({
     socket.emit("club_table_create", {
       clubId: club.id,
       name: newTableName.trim(),
+      rulesetId: newTableRulesetId || undefined,
     });
     setShowCreateTable(false);
     setNewTableName("");
+    setNewTableRulesetId("");
     showToast("Creating table...");
-  }, [socket, club.id, newTableName, showToast]);
+  }, [socket, club.id, newTableName, newTableRulesetId, showToast]);
+
+  const handleCreateRuleset = useCallback(() => {
+    if (!socket || !rsName.trim()) return;
+    const rules: ClubRules = {
+      ...DEFAULT_CLUB_RULES,
+      stakes: { smallBlind: rsSB, bigBlind: rsBB },
+      maxSeats: rsSeats,
+      buyIn: { minBuyIn: rsBuyMin, maxBuyIn: rsBuyMax, defaultBuyIn: Math.round((rsBuyMin + rsBuyMax) / 2) },
+      time: { ...DEFAULT_CLUB_RULES.time, actionTimeSec: rsTimer, timeBankSec: rsTimeBank },
+      runit: { ...DEFAULT_CLUB_RULES.runit, allowRunItTwice: rsRIT },
+    };
+    socket.emit("club_ruleset_create", { clubId: club.id, name: rsName.trim(), rules, isDefault: rsIsDefault });
+    setShowCreateRuleset(false);
+    setRsName("");
+    showToast("Creating ruleset...");
+  }, [socket, club.id, rsName, rsSB, rsBB, rsSeats, rsBuyMin, rsBuyMax, rsTimer, rsTimeBank, rsRIT, rsIsDefault, showToast]);
+
+  const handleUpdateClub = useCallback(() => {
+    if (!socket) return;
+    socket.emit("club_update", {
+      clubId: club.id,
+      name: editName.trim(),
+      description: editDesc.trim(),
+      requireApprovalToJoin: editApproval,
+      badgeColor: editColor,
+    });
+    showToast("Saving settings...");
+  }, [socket, club.id, editName, editDesc, editApproval, editColor, showToast]);
+
+  const copyToClipboard = useCallback((text: string, label: string) => {
+    void navigator.clipboard.writeText(text);
+    showToast(`Copied ${label}: ${text}`);
+  }, [showToast]);
 
   const handleApprove = useCallback((targetUserId: string) => {
     if (!socket) return;
@@ -157,6 +220,7 @@ export function ClubDetailView({
     { id: "rulesets", label: "Rulesets", show: canManageRulesets },
     { id: "invites", label: "Invites", show: canCreateInvite },
     { id: "audit", label: "Activity", show: canViewAudit },
+    { id: "settings", label: "Settings", show: isAdmin },
   ];
 
   return (
@@ -417,26 +481,44 @@ export function ClubDetailView({
                           {online ? <span className="text-emerald-400 ml-2">● online</span> : <span className="ml-2">last seen {new Date(m.lastSeenAt).toLocaleDateString()}</span>}
                         </div>
                       </div>
-                      {canManageMembers && m.userId !== userId && m.role !== "owner" && (
-                        <div className="flex gap-1 items-center">
-                          <select
-                            value={m.role}
-                            onChange={(e) => handleRoleChange(m.userId, e.target.value as ClubRole)}
-                            className="text-[10px] bg-white/5 border border-white/10 rounded px-1.5 py-1 text-slate-300 cursor-pointer"
-                          >
-                            <option value="member">member</option>
-                            <option value="mod">mod</option>
-                            <option value="host">host</option>
-                            <option value="admin">admin</option>
-                          </select>
-                          <button onClick={() => { if (confirm(`Remove ${m.displayName ?? m.userId.slice(0, 8)} from club?`)) handleKick(m.userId); }}
-                            className="text-[10px] text-red-400 hover:text-red-300 px-1.5 py-1 rounded hover:bg-red-500/10 transition-colors">
-                            Kick
+                      {/* Virtual credits balance */}
+                      <div className="text-right shrink-0 mr-1">
+                        <div className="text-xs font-mono font-semibold text-amber-400">{(m.balance ?? 0).toLocaleString()}</div>
+                        <div className="text-[9px] text-slate-500">credits</div>
+                      </div>
+                      {canManageMembers && m.role !== "owner" && (
+                        <div className="flex gap-1 items-center shrink-0">
+                          {m.userId !== userId && (
+                            <select
+                              value={m.role}
+                              onChange={(e) => handleRoleChange(m.userId, e.target.value as ClubRole)}
+                              className="text-[10px] bg-white/5 border border-white/10 rounded px-1.5 py-1 text-slate-300 cursor-pointer"
+                            >
+                              <option value="member">member</option>
+                              <option value="mod">mod</option>
+                              <option value="host">host</option>
+                              <option value="admin">admin</option>
+                            </select>
+                          )}
+                          <button onClick={() => {
+                            const amt = prompt(`Grant credits to ${m.displayName ?? m.userId.slice(0, 8)}:`, "1000");
+                            if (amt && Number(amt) > 0) socket?.emit("club_grant_credits", { clubId: club.id, userId: m.userId, amount: Number(amt) });
+                          }}
+                            className="text-[10px] text-emerald-400 hover:text-emerald-300 px-1.5 py-1 rounded hover:bg-emerald-500/10 transition-colors" title="Grant credits">
+                            +$
                           </button>
-                          <button onClick={() => { if (confirm(`Ban ${m.displayName ?? m.userId.slice(0, 8)}?`)) handleBan(m.userId); }}
-                            className="text-[10px] text-red-400 hover:text-red-300 px-1.5 py-1 rounded hover:bg-red-500/10 transition-colors">
-                            Ban
-                          </button>
+                          {m.userId !== userId && (
+                            <>
+                              <button onClick={() => { if (confirm(`Remove ${m.displayName ?? m.userId.slice(0, 8)} from club?`)) handleKick(m.userId); }}
+                                className="text-[10px] text-red-400 hover:text-red-300 px-1.5 py-1 rounded hover:bg-red-500/10 transition-colors">
+                                Kick
+                              </button>
+                              <button onClick={() => { if (confirm(`Ban ${m.displayName ?? m.userId.slice(0, 8)}?`)) handleBan(m.userId); }}
+                                className="text-[10px] text-red-400 hover:text-red-300 px-1.5 py-1 rounded hover:bg-red-500/10 transition-colors">
+                                Ban
+                              </button>
+                            </>
+                          )}
                         </div>
                       )}
                     </div>
@@ -448,25 +530,40 @@ export function ClubDetailView({
           {tab === "tables" && (
             <div className="space-y-3">
               {canCreateTable && (
-                <div className="flex gap-2">
+                <div className="space-y-2">
                   {showCreateTable ? (
-                    <>
+                    <div className="p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5 space-y-2">
+                      <h4 className="text-xs font-semibold text-emerald-300">Create Table</h4>
                       <input
                         type="text"
                         placeholder="Table name"
                         value={newTableName}
                         onChange={(e) => setNewTableName(e.target.value)}
-                        className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                        className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
                         maxLength={80}
                         autoFocus
                       />
-                      <button onClick={handleCreateTable} disabled={!newTableName.trim()} className="btn-primary text-xs disabled:opacity-50">
-                        Create
-                      </button>
-                      <button onClick={() => setShowCreateTable(false)} className="btn-ghost text-xs">
-                        Cancel
-                      </button>
-                    </>
+                      {detail.rulesets.length > 0 && (
+                        <div>
+                          <label className="block text-[10px] text-slate-400 mb-0.5">Ruleset</label>
+                          <select value={newTableRulesetId} onChange={(e) => setNewTableRulesetId(e.target.value)}
+                            className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-indigo-500">
+                            <option value="">Default</option>
+                            {detail.rulesets.map((rs) => (
+                              <option key={rs.id} value={rs.id}>{rs.name} ({rs.rulesJson.stakes.smallBlind}/{rs.rulesJson.stakes.bigBlind})</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                      <div className="flex gap-2">
+                        <button onClick={handleCreateTable} disabled={!newTableName.trim()} className="btn-primary text-xs disabled:opacity-50">
+                          Create
+                        </button>
+                        <button onClick={() => setShowCreateTable(false)} className="btn-ghost text-xs">
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
                   ) : (
                     <button onClick={() => setShowCreateTable(true)} className="btn-primary text-xs">
                       + New Table
@@ -522,10 +619,81 @@ export function ClubDetailView({
 
           {tab === "rulesets" && (
             <div className="space-y-3">
-              <p className="text-xs text-slate-500">
-                Rulesets define table rules. The default ruleset is used when creating tables without specifying one.
-              </p>
-              {detail.rulesets.length === 0 ? (
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-slate-500">
+                  Rulesets define table rules. The default ruleset is used when creating tables without specifying one.
+                </p>
+                {canManageRulesets && !showCreateRuleset && (
+                  <button onClick={() => setShowCreateRuleset(true)} className="btn-primary text-xs shrink-0">+ New Ruleset</button>
+                )}
+              </div>
+
+              {/* Ruleset creation form */}
+              {showCreateRuleset && canManageRulesets && (
+                <div className="p-4 rounded-xl border border-indigo-500/30 bg-indigo-500/5 space-y-3">
+                  <h4 className="text-sm font-semibold text-indigo-300">Create Ruleset</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="col-span-2">
+                      <label className="block text-[10px] text-slate-400 mb-0.5">Name</label>
+                      <input type="text" value={rsName} onChange={(e) => setRsName(e.target.value)} placeholder="e.g. 1/2 NLH Deep"
+                        className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-indigo-500" maxLength={80} autoFocus />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-400 mb-0.5">Small Blind</label>
+                      <input type="number" value={rsSB} onChange={(e) => setRsSB(Number(e.target.value))} min={1}
+                        className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-indigo-500" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-400 mb-0.5">Big Blind</label>
+                      <input type="number" value={rsBB} onChange={(e) => setRsBB(Number(e.target.value))} min={1}
+                        className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-indigo-500" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-400 mb-0.5">Max Seats</label>
+                      <select value={rsSeats} onChange={(e) => setRsSeats(Number(e.target.value))}
+                        className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-indigo-500">
+                        {[2, 3, 4, 5, 6, 7, 8, 9].map((n) => <option key={n} value={n}>{n}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-400 mb-0.5">Action Timer (sec)</label>
+                      <input type="number" value={rsTimer} onChange={(e) => setRsTimer(Number(e.target.value))} min={5} max={120}
+                        className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-indigo-500" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-400 mb-0.5">Min Buy-In</label>
+                      <input type="number" value={rsBuyMin} onChange={(e) => setRsBuyMin(Number(e.target.value))} min={1}
+                        className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-indigo-500" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-400 mb-0.5">Max Buy-In</label>
+                      <input type="number" value={rsBuyMax} onChange={(e) => setRsBuyMax(Number(e.target.value))} min={1}
+                        className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-indigo-500" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-400 mb-0.5">Time Bank (sec)</label>
+                      <input type="number" value={rsTimeBank} onChange={(e) => setRsTimeBank(Number(e.target.value))} min={0}
+                        className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-indigo-500" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer">
+                      <input type="checkbox" checked={rsRIT} onChange={(e) => setRsRIT(e.target.checked)} className="rounded" />
+                      Run-it-twice
+                    </label>
+                    <label className="flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer">
+                      <input type="checkbox" checked={rsIsDefault} onChange={(e) => setRsIsDefault(e.target.checked)} className="rounded" />
+                      Set as default
+                    </label>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={handleCreateRuleset} disabled={!rsName.trim()} className="btn-primary text-xs disabled:opacity-50">Create</button>
+                    <button onClick={() => setShowCreateRuleset(false)} className="btn-ghost text-xs">Cancel</button>
+                  </div>
+                </div>
+              )}
+
+              {detail.rulesets.length === 0 && !showCreateRuleset ? (
                 <p className="text-sm text-slate-400 text-center py-4">No rulesets configured. Tables will use default rules.</p>
               ) : (
                 detail.rulesets.map((rs) => (
@@ -595,6 +763,70 @@ export function ClubDetailView({
                   </div>
                 ))
               )}
+            </div>
+          )}
+
+          {tab === "settings" && isAdmin && (
+            <div className="space-y-6">
+              {/* Club Profile */}
+              <div>
+                <h3 className="text-sm font-semibold text-white mb-3">Club Profile</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Club Name</label>
+                    <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
+                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500" maxLength={80} />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Description / Announcements</label>
+                    <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)}
+                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500" rows={3} maxLength={500} />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Badge Color</label>
+                    <div className="flex gap-2">
+                      {["#6366f1", "#ef4444", "#22c55e", "#f59e0b", "#06b6d4", "#ec4899", "#8b5cf6", "#14b8a6"].map((c) => (
+                        <button key={c} onClick={() => setEditColor(c)}
+                          className={`w-7 h-7 rounded-lg transition-transform ${editColor === c ? "ring-2 ring-white scale-110" : "opacity-60 hover:opacity-100"}`}
+                          style={{ backgroundColor: c }} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Join Policy */}
+              <div>
+                <h3 className="text-sm font-semibold text-white mb-3">Join Policy</h3>
+                <label className="flex items-center gap-2 text-sm text-slate-300 cursor-pointer">
+                  <input type="checkbox" checked={editApproval} onChange={(e) => setEditApproval(e.target.checked)} className="rounded" />
+                  Require admin approval for new members
+                </label>
+                <p className="text-[10px] text-slate-500 mt-1">When disabled, anyone with the club code can join instantly.</p>
+              </div>
+
+              {/* Club Code & Invite */}
+              <div>
+                <h3 className="text-sm font-semibold text-white mb-3">Share Club</h3>
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5">
+                  <div>
+                    <div className="text-[10px] text-slate-500 uppercase">Club Code</div>
+                    <code className="text-lg font-mono font-bold text-amber-400 tracking-wider">{club.code}</code>
+                  </div>
+                  <button onClick={() => copyToClipboard(club.code, "club code")}
+                    className="ml-auto text-xs text-slate-400 hover:text-white px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 transition-all">
+                    Copy Code
+                  </button>
+                </div>
+              </div>
+
+              {/* Save */}
+              <div className="flex gap-2 pt-2">
+                <button onClick={handleUpdateClub} disabled={!editName.trim()}
+                  className="btn-primary text-sm disabled:opacity-50">
+                  Save Settings
+                </button>
+              </div>
             </div>
           )}
 

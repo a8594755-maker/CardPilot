@@ -5,6 +5,7 @@ import { randomInt, randomUUID } from "node:crypto";
 import { Server } from "socket.io";
 import { GameTable } from "@cardpilot/game-engine";
 import { getPreflopAdvice, getPostflopAdvice, calculateDeviation } from "@cardpilot/advice-engine";
+import { analyzeHandGTO } from "./services/gto-analyzer";
 import { calculateEquity, type Card } from "@cardpilot/poker-evaluator";
 import { SHOWDOWN_SPEED_DELAYS_MS } from "@cardpilot/shared-types";
 import type {
@@ -138,9 +139,21 @@ const roomManager = new RoomManager((tableId, event, data) => {
 // Club manager handles club lifecycle, membership, permissions, rulesets
 const clubRepo = new ClubRepo();
 const clubManager = new ClubManager();
-clubManager.setRepo(clubRepo);
-// Hydrate clubs from DB at startup (async, non-blocking)
-clubManager.hydrate().catch((e) => logWarn({ event: "club_manager.hydrate.failed", message: (e as Error).message }));
+if (clubRepo.enabled()) {
+  clubManager.setRepo(clubRepo);
+} else {
+  // Fallback: JSON file persistence for dev mode
+  import("./services/club-repo-json").then(({ ClubRepoJson }) => {
+    const jsonRepo = new ClubRepoJson();
+    clubManager.setRepo(jsonRepo as unknown as ClubRepo);
+    logInfo({ event: "club_persistence.fallback", message: "Using JSON file fallback for club persistence (dev mode)" });
+    clubManager.hydrate().catch((e) => logWarn({ event: "club_manager.hydrate.failed", message: (e as Error).message }));
+  }).catch((e) => logWarn({ event: "club_persistence.fallback.failed", message: (e as Error).message }));
+}
+// Hydrate clubs from DB at startup (async, non-blocking) — only if Supabase is enabled
+if (clubRepo.enabled()) {
+  clubManager.hydrate().catch((e) => logWarn({ event: "club_manager.hydrate.failed", message: (e as Error).message }));
+}
 
 io.use(async (socket, next) => {
   const auth = (socket.handshake.auth ?? {}) as {
@@ -1908,6 +1921,20 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("history_gto_analyze", async (payload: { handId: string; handRecord: unknown; precision: "fast" | "deep" }) => {
+    try {
+      if (!payload?.handId || !payload?.handRecord) {
+        throw new Error("handId and handRecord are required");
+      }
+      const precision = payload.precision === "deep" ? "deep" : "fast";
+      const gtoAnalysis = await analyzeHandGTO(payload.handRecord as Parameters<typeof analyzeHandGTO>[0], precision);
+      socket.emit("history_gto_result", { handId: payload.handId, gtoAnalysis });
+    } catch (error) {
+      logWarn({ event: "history_gto_analyze.failed", message: (error as Error).message });
+      socket.emit("history_gto_result", { handId: payload?.handId ?? "", gtoAnalysis: null, error: (error as Error).message });
+    }
+  });
+
   socket.on("join_room_code", async (payload: { roomCode: string; password?: string }) => {
     try {
       console.log("[JOIN_ROOM_CODE] Request from", identity.userId, "payload:", payload);
@@ -3059,6 +3086,7 @@ io.on("connection", (socket) => {
 
   socket.on("club_create", (payload: ClubCreatePayload) => {
     try {
+      logInfo({ event: "club_create.start", userId: identity.userId, name: payload.name });
       const club = clubManager.createClub({
         ownerUserId: identity.userId,
         ownerDisplayName: identity.displayName,
@@ -3068,10 +3096,12 @@ io.on("connection", (socket) => {
         requireApprovalToJoin: payload.requireApprovalToJoin,
         badgeColor: payload.badgeColor,
       });
+      logInfo({ event: "club_create.success", clubId: club.id, code: club.code, userId: identity.userId });
       socket.emit("club_created", { club });
       // Refresh club list for the user
       socket.emit("club_list", { clubs: clubManager.listMyClubs(identity.userId) });
     } catch (error) {
+      logError({ event: "club_create.failed", userId: identity.userId, message: (error as Error).message });
       socket.emit("club_error", { code: "CREATE_FAILED", message: (error as Error).message });
     }
   });
@@ -3447,6 +3477,86 @@ io.on("connection", (socket) => {
       if (detail) socket.emit("club_detail", detail);
     } catch (error) {
       socket.emit("club_error", { code: "TABLE_PAUSE_FAILED", message: (error as Error).message });
+    }
+  });
+
+  /* ═══════════ CLUB CREDITS ═══════════ */
+
+  socket.on("club_grant_credits", (payload: { clubId: string; userId: string; amount: number; reason?: string }) => {
+    try {
+      const result = clubManager.grantCredits(payload.clubId, identity.userId, payload.userId, payload.amount, payload.reason);
+      if (!result.success) {
+        socket.emit("club_error", { code: "GRANT_DENIED", message: result.message });
+        return;
+      }
+      socket.emit("club_credits_updated", { clubId: payload.clubId, userId: payload.userId, newBalance: result.newBalance });
+      // Refresh detail for admin
+      const detail = clubManager.getClubDetail(payload.clubId, identity.userId);
+      if (detail) socket.emit("club_detail", detail);
+      // Notify target if online
+      for (const [sid, ident] of socketIdentity.entries()) {
+        if (ident.userId === payload.userId) {
+          io.to(sid).emit("club_credits_updated", { clubId: payload.clubId, userId: payload.userId, newBalance: result.newBalance });
+          io.to(sid).emit("system_message", { message: `You received ${payload.amount} virtual credits in club` });
+        }
+      }
+    } catch (error) {
+      socket.emit("club_error", { code: "GRANT_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_deduct_credits", (payload: { clubId: string; userId: string; amount: number; reason?: string }) => {
+    try {
+      const result = clubManager.deductCredits(payload.clubId, identity.userId, payload.userId, payload.amount, payload.reason);
+      if (!result.success) {
+        socket.emit("club_error", { code: "DEDUCT_DENIED", message: result.message });
+        return;
+      }
+      socket.emit("club_credits_updated", { clubId: payload.clubId, userId: payload.userId, newBalance: result.newBalance });
+      const detail = clubManager.getClubDetail(payload.clubId, identity.userId);
+      if (detail) socket.emit("club_detail", detail);
+    } catch (error) {
+      socket.emit("club_error", { code: "DEDUCT_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_request_addon", (payload: { clubId: string; amount: number }) => {
+    try {
+      if (!clubManager.isActiveMember(payload.clubId, identity.userId)) {
+        socket.emit("club_error", { code: "ADDON_DENIED", message: "Not a club member" });
+        return;
+      }
+      // Check if requester is admin/owner — auto-approve
+      const role = clubManager.getMemberRole(payload.clubId, identity.userId);
+      if (role === "owner" || role === "admin") {
+        const result = clubManager.grantCredits(payload.clubId, identity.userId, identity.userId, payload.amount, "Self add-on");
+        if (!result.success) {
+          socket.emit("club_error", { code: "ADDON_FAILED", message: result.message });
+          return;
+        }
+        socket.emit("club_credits_updated", { clubId: payload.clubId, userId: identity.userId, newBalance: result.newBalance });
+        socket.emit("system_message", { message: `Add-on of ${payload.amount} credits auto-approved` });
+        const detail = clubManager.getClubDetail(payload.clubId, identity.userId);
+        if (detail) socket.emit("club_detail", detail);
+        return;
+      }
+      // Otherwise notify admins/owners
+      const clubDetail = clubManager.getClubDetail(payload.clubId, identity.userId);
+      if (!clubDetail) return;
+      for (const [sid, ident] of socketIdentity.entries()) {
+        const memberRole = clubManager.getMemberRole(payload.clubId, ident.userId);
+        if (memberRole === "owner" || memberRole === "admin") {
+          io.to(sid).emit("club_addon_request", {
+            clubId: payload.clubId,
+            userId: identity.userId,
+            userName: identity.displayName,
+            amount: payload.amount,
+          });
+        }
+      }
+      socket.emit("system_message", { message: `Add-on request of ${payload.amount} sent to club admins for approval` });
+    } catch (error) {
+      socket.emit("club_error", { code: "ADDON_FAILED", message: (error as Error).message });
     }
   });
 

@@ -143,6 +143,7 @@ export interface ClubMember {
   role: ClubRole;
   status: ClubMemberStatus;
   nicknameInClub: string | null;
+  balance: number; // virtual credits balance
   createdAt: string;
   lastSeenAt: string;
   displayName?: string; // populated from player_profiles join

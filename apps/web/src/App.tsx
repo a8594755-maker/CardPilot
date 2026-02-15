@@ -118,6 +118,9 @@ export function App() {
   const [clubList, setClubList] = useState<ClubListItem[]>([]);
   const [clubDetail, setClubDetail] = useState<ClubDetailPayload | null>(null);
   const [selectedClubId, setSelectedClubId] = useState<string>("");
+  const [clubsLoading, setClubsLoading] = useState(false);
+  const selectedClubIdRef = useRef(selectedClubId);
+  useEffect(() => { selectedClubIdRef.current = selectedClubId; }, [selectedClubId]);
 
   /* ── Room management state ── */
   const [roomState, setRoomState] = useState<RoomFullState | null>(null);
@@ -302,6 +305,8 @@ export function App() {
       setSocketConnected(true);
       showToast("Connected");
       s.emit("request_lobby");
+      setClubsLoading(true);
+      s.emit("club_list_my_clubs");
 
       const roomCode = currentRoomCodeRef.current;
       if (roomCode) {
@@ -556,6 +561,7 @@ export function App() {
     // ── Club events ──
     s.on("club_list", (d: { clubs: ClubListItem[] }) => {
       setClubList(d.clubs ?? []);
+      setClubsLoading(false);
     });
     s.on("club_detail", (d: ClubDetailPayload) => {
       setClubDetail(d);
@@ -573,6 +579,8 @@ export function App() {
     });
     s.on("club_member_update", () => {
       // Refresh detail if viewing a club
+      const cid = selectedClubIdRef.current;
+      if (cid) s.emit("club_get_detail", { clubId: cid });
     });
     s.on("club_table_created", (d: { clubId: string; roomCode: string }) => {
       showToast("Club table created!");
@@ -925,6 +933,7 @@ export function App() {
             isConnected={isConnected}
             userId={authSession?.userId ?? ""}
             clubs={clubList}
+            clubsLoading={clubsLoading}
             clubDetail={selectedClubId ? clubDetail : null}
             onSelectClub={(clubId) => {
               setSelectedClubId(clubId);
@@ -932,6 +941,12 @@ export function App() {
                 socket.emit("club_get_detail", { clubId });
               } else {
                 setClubDetail(null);
+              }
+            }}
+            onRefreshClubs={() => {
+              if (socket) {
+                setClubsLoading(true);
+                socket.emit("club_list_my_clubs");
               }
             }}
             onJoinClubTable={(roomCode) => {
