@@ -186,11 +186,55 @@ export function ClubDetailView({
         {/* Tab Content */}
         <div className="glass-card p-5">
           {tab === "overview" && (
-            <div className="space-y-4">
+            <div className="space-y-5">
+              {/* Club Home: quick stats strip */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-xl bg-indigo-500/10 border border-indigo-500/20 p-3 text-center">
+                  <div className="text-lg font-bold text-indigo-300">{detail.detail.memberCount}</div>
+                  <div className="text-[10px] text-slate-400 uppercase tracking-wider">Members</div>
+                </div>
+                <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-3 text-center">
+                  <div className="text-lg font-bold text-emerald-300">{detail.tables.filter((t) => t.status === "open").length}</div>
+                  <div className="text-[10px] text-slate-400 uppercase tracking-wider">Active Tables</div>
+                </div>
+                <div className="rounded-xl bg-amber-500/10 border border-amber-500/20 p-3 text-center">
+                  <div className="text-lg font-bold text-amber-300">{detail.detail.tableCount}</div>
+                  <div className="text-[10px] text-slate-400 uppercase tracking-wider">Total Tables</div>
+                </div>
+              </div>
+
+              {/* Active tables quick-join */}
+              {detail.tables.filter((t) => t.status === "open").length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-300 mb-2">Active Tables</h3>
+                  <div className="space-y-2">
+                    {detail.tables.filter((t) => t.status === "open").map((t) => (
+                      <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+                        <div className="w-9 h-9 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-sm font-bold">
+                          {t.playerCount ?? 0}
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-white">{t.name}</div>
+                          <div className="text-[10px] text-slate-400">{t.stakes ?? "—"} · {t.playerCount ?? 0}/{t.maxPlayers ?? "?"} players</div>
+                        </div>
+                        {t.roomCode && (
+                          <button onClick={() => onJoinTable(t.roomCode!)} className="btn-success text-xs !py-1.5 !px-4">
+                            Quick Join
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Description */}
               <div>
-                <h3 className="text-sm font-semibold text-slate-300 mb-1">Description</h3>
+                <h3 className="text-sm font-semibold text-slate-300 mb-1">About</h3>
                 <p className="text-sm text-slate-400">{club.description || "No description set."}</p>
               </div>
+
+              {/* Club info grid */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-slate-500">Visibility:</span>{" "}

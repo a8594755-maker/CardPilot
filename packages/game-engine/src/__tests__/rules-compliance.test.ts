@@ -704,6 +704,70 @@ describe("Odd Chip Distribution", () => {
 });
 
 // ═══════════════════════════════════════════════════════════════
+// SIT OUT EXCLUDES FROM DEALING
+// ═══════════════════════════════════════════════════════════════
+
+describe("sit out excludes player from dealing", () => {
+  it("sitting_out player is not dealt into the hand", () => {
+    const t = new GameTable({ tableId: "sitout1", smallBlind: 5, bigBlind: 10 });
+    t.addPlayer({ seat: 1, userId: "u1", name: "A", stack: 1000 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "B", stack: 1000 });
+    t.addPlayer({ seat: 3, userId: "u3", name: "C", stack: 1000 });
+
+    // Sit out seat 3
+    t.setPlayerStatus(3, "sitting_out");
+    const before = t.getPublicState();
+    assert.equal(before.players.find((p) => p.seat === 3)!.status, "sitting_out");
+
+    t.startHand();
+    const s = t.getPublicState();
+
+    // Seat 3 should NOT be in the hand
+    const p3 = s.players.find((p) => p.seat === 3);
+    assert.ok(p3, "sitting out player should still be at the table");
+    assert.equal(p3!.inHand, false, "sitting_out player must not be dealt in");
+    assert.equal(p3!.status, "sitting_out");
+
+    // Seats 1 and 2 should be in the hand
+    assert.equal(s.players.find((p) => p.seat === 1)!.inHand, true);
+    assert.equal(s.players.find((p) => p.seat === 2)!.inHand, true);
+  });
+
+  it("toggleSitOut throws if player is in an active hand", () => {
+    const t = new GameTable({ tableId: "sitout2", smallBlind: 5, bigBlind: 10 });
+    t.addPlayer({ seat: 1, userId: "u1", name: "A", stack: 1000 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "B", stack: 1000 });
+    t.startHand();
+
+    assert.throws(() => t.toggleSitOut(1), /Cannot change sit-out status during an active hand/);
+  });
+
+  it("sit in allows player to be dealt next hand", () => {
+    const t = new GameTable({ tableId: "sitout3", smallBlind: 5, bigBlind: 10 });
+    t.addPlayer({ seat: 1, userId: "u1", name: "A", stack: 1000 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "B", stack: 1000 });
+    t.addPlayer({ seat: 3, userId: "u3", name: "C", stack: 1000 });
+
+    // Sit out, then sit back in
+    t.setPlayerStatus(3, "sitting_out");
+    t.setPlayerStatus(3, "active");
+
+    t.startHand();
+    const s = t.getPublicState();
+    assert.equal(s.players.find((p) => p.seat === 3)!.inHand, true, "re-activated player should be dealt in");
+  });
+
+  it("startHand fails if all players sitting out except one", () => {
+    const t = new GameTable({ tableId: "sitout4", smallBlind: 5, bigBlind: 10 });
+    t.addPlayer({ seat: 1, userId: "u1", name: "A", stack: 1000 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "B", stack: 1000 });
+
+    t.setPlayerStatus(2, "sitting_out");
+    assert.throws(() => t.startHand(), /Need at least 2/i);
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
 // LASTFULLRAISESIZE IN PUBLIC STATE
 // ═══════════════════════════════════════════════════════════════
 

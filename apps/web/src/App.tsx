@@ -1192,6 +1192,19 @@ export function App() {
                   {isHost ? "Deal" : "Deal (Host)"}
                 </button>
                 <button disabled={!isConnected} onClick={() => socket?.emit("stand_up", { tableId, seat })} className="text-[11px] px-2.5 py-1 rounded-lg bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 disabled:opacity-40 transition-all" title="Stand up from seat">Stand</button>
+                {myPlayer && (
+                  myPlayer.status === "sitting_out" ? (
+                    <button disabled={!isConnected} onClick={() => socket?.emit("sit_in", { tableId })}
+                      className="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30 disabled:opacity-40 transition-all animate-pulse" title="Return to active play">
+                      Sit In
+                    </button>
+                  ) : (
+                    <button disabled={!isConnected} onClick={() => socket?.emit("sit_out", { tableId })}
+                      className="text-[11px] px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500/20 disabled:opacity-40 transition-all" title="Sit out next hand">
+                      Sit Out
+                    </button>
+                  )
+                )}
                 <button onClick={leaveRoom} className="text-[11px] px-2.5 py-1 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all" title="Leave room entirely">Exit</button>
                 {roomState?.settings.rebuyAllowed && (
                   <button disabled={!isConnected} onClick={() => {
@@ -1231,6 +1244,17 @@ export function App() {
                     {roomState?.settings.visibility === "private" && <span className="text-amber-400">🔒</span>}
                     <span className="font-mono text-amber-400 font-bold tracking-wider">{currentRoomCode}</span>
                     <button onClick={copyCode} className="text-slate-500 hover:text-white transition-colors" title="Copy room code">📋</button>
+                    <button onClick={() => {
+                      if (handInProgress) {
+                        if (!confirm("A hand is in progress. Leave after this hand?")) return;
+                        // Defer stand-up
+                        socket?.emit("stand_up", { tableId, seat });
+                      }
+                      socket?.emit("request_lobby");
+                      setView("lobby");
+                    }} className="text-[10px] px-2 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20 transition-all" title="Browse other tables">
+                      Change Table
+                    </button>
                   </span>
                 )}
 
@@ -1392,10 +1416,10 @@ export function App() {
                           socket?.emit("deposit_request", { tableId, amount: depositAmount });
                           setShowDepositModal(false);
                         }} className="flex-1 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-900/30 hover:from-emerald-400 hover:to-emerald-500 transition-all disabled:opacity-40">
-                          Request
+                          {isHostOrCoHost ? "Top Up" : "Request"}
                         </button>
                       </div>
-                      <p className="text-[9px] text-slate-600 text-center">Host must approve · Credited at next hand start</p>
+                      <p className="text-[9px] text-slate-600 text-center">{isHostOrCoHost ? "Auto-approved · Credited at next hand start" : "Host must approve · Credited at next hand start"}</p>
                     </div>
                   </div>
                 );
@@ -1602,9 +1626,9 @@ export function App() {
                     </div>
                   </div>
 
-                  {/* Table image + overlays — constrained size */}
-                  <div ref={tableContainerRef} className="relative w-full max-w-2xl select-none shrink" style={{ background: "#111827" }}>
-                    <img src="/poker-table.png" alt="Table" className="w-full h-auto" style={{ mixBlendMode: "lighten" }} draggable={false} />
+                  {/* Table surface + overlays — CSS green felt */}
+                  <div ref={tableContainerRef} className="relative w-full max-w-2xl select-none shrink">
+                    <div className="aspect-[16/9] rounded-[50%] poker-table-surface" />
 
                     {/* Community cards — centered on table (supports run-it-twice dual boards) */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ top: "-2%" }}>
@@ -2061,7 +2085,7 @@ export function App() {
           </>
         )}
       </div>
-      <AppComplianceFooter />
+      {view !== "table" && <AppComplianceFooter />}
     </div>
   );
 }
@@ -4175,7 +4199,8 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
         )}
         <div className="text-[10px] font-semibold text-white truncate mt-0.5">{player.name}</div>
         <div className="text-[10px] font-mono text-amber-400">{fmt(player.stack)}</div>
-        {player.folded && <div className="text-[8px] text-red-400 font-semibold">FOLDED</div>}
+        {player.status === "sitting_out" && <div className="text-[8px] text-orange-400 font-bold uppercase">Sit Out</div>}
+        {player.folded && player.status !== "sitting_out" && <div className="text-[8px] text-red-400 font-semibold">FOLDED</div>}
         {player.allIn && !equity && <div className="text-[8px] text-orange-400 font-bold">ALL-IN</div>}
         {/* Show equity when available */}
         {equity && player.allIn && (

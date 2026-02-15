@@ -2330,19 +2330,27 @@ io.on("connection", (socket) => {
       };
       pendingDeposits.set(orderId, deposit);
 
-      // Notify host/co-hosts in room (seated or spectating)
-      const roomSockets = io.sockets.adapter.rooms.get(payload.tableId) ?? new Set<string>();
-      for (const sid of roomSockets) {
-        const id = socketIdentity.get(sid);
-        if (!id) continue;
-        if (!roomManager.isHostOrCoHost(payload.tableId, id.userId)) continue;
-        io.to(sid).emit("deposit_request_pending", {
-          orderId, userId: identity.userId, userName: identity.displayName,
-          seat: binding.seat, amount: payload.amount,
+      // Auto-approve if requester is host or co-host (self-rebuy)
+      if (roomManager.isHostOrCoHost(payload.tableId, identity.userId)) {
+        deposit.approved = true;
+        socket.emit("system_message", { message: `Rebuy of ${payload.amount} auto-approved — credits at next hand start.` });
+        io.to(payload.tableId).emit("system_message", {
+          message: `${identity.displayName} (Seat ${binding.seat}) rebuy approved: ${payload.amount} (auto)`,
         });
+      } else {
+        // Notify host/co-hosts in room (seated or spectating)
+        const roomSockets = io.sockets.adapter.rooms.get(payload.tableId) ?? new Set<string>();
+        for (const sid of roomSockets) {
+          const id = socketIdentity.get(sid);
+          if (!id) continue;
+          if (!roomManager.isHostOrCoHost(payload.tableId, id.userId)) continue;
+          io.to(sid).emit("deposit_request_pending", {
+            orderId, userId: identity.userId, userName: identity.displayName,
+            seat: binding.seat, amount: payload.amount,
+          });
+        }
+        socket.emit("system_message", { message: `Deposit request of ${payload.amount} sent to host for approval` });
       }
-
-      socket.emit("system_message", { message: `Deposit request of ${payload.amount} sent to host for approval` });
       broadcastSnapshot(payload.tableId);
     } catch (error) {
       socket.emit("error_event", { message: (error as Error).message });
@@ -2401,6 +2409,66 @@ io.on("connection", (socket) => {
     }
 
     standUpPlayer(payload.tableId, payload.seat, "Stood up");
+  });
+
+  /* ═══════════ SIT OUT / SIT IN ═══════════ */
+
+  socket.on("sit_out", (payload: { tableId: string }) => {
+    try {
+      const table = tables.get(payload.tableId);
+      if (!table) throw new Error("Table not found");
+      const binding = socketSeat.get(socket.id);
+      if (!binding || binding.tableId !== payload.tableId) throw new Error("Not seated at this table");
+
+      const state = table.getPublicState();
+      const player = state.players.find((p) => p.seat === binding.seat);
+      if (!player) throw new Error("Player not found");
+      if (player.status === "sitting_out") throw new Error("Already sitting out");
+
+      // If hand is active and player is in the hand, defer until hand ends
+      if (table.isHandActive() && player.inHand) {
+        // Mark as pending sit-out via player status change at hand boundary
+        table.setPlayerStatus(binding.seat, "sitting_out");
+        socket.emit("system_message", { message: "You will sit out after this hand." });
+      } else {
+        table.setPlayerStatus(binding.seat, "sitting_out");
+        socket.emit("system_message", { message: "You are now sitting out." });
+        io.to(payload.tableId).emit("system_message", { message: `${identity.displayName} is sitting out.` });
+      }
+
+      const room = roomManager.getRoom(payload.tableId);
+      if (room) {
+        roomManager.addLog(room, "PLAYER_SAT_OUT", {
+          actorId: identity.userId,
+          actorName: identity.displayName,
+          message: `${identity.displayName} sat out`,
+        });
+      }
+      broadcastSnapshot(payload.tableId);
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
+  socket.on("sit_in", (payload: { tableId: string }) => {
+    try {
+      const table = tables.get(payload.tableId);
+      if (!table) throw new Error("Table not found");
+      const binding = socketSeat.get(socket.id);
+      if (!binding || binding.tableId !== payload.tableId) throw new Error("Not seated at this table");
+
+      const state = table.getPublicState();
+      const player = state.players.find((p) => p.seat === binding.seat);
+      if (!player) throw new Error("Player not found");
+      if (player.status === "active") throw new Error("Already active");
+
+      table.setPlayerStatus(binding.seat, "active");
+      socket.emit("system_message", { message: "You are back in the game." });
+      io.to(payload.tableId).emit("system_message", { message: `${identity.displayName} is back.` });
+      broadcastSnapshot(payload.tableId);
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
   });
 
   socket.on("start_hand", async (payload: { tableId: string }) => {

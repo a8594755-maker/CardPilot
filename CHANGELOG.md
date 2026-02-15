@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Sit Out / Sit In**: Players can toggle sit-out status from the table controls. Sitting-out players keep their seat and stack but are excluded from dealing. Server enforces hand-boundary deferral. "SIT OUT" badge shown on seat chip.
+- **Host Self-Rebuy**: Hosts and co-hosts can rebuy themselves without waiting for approval. Deposit requests are auto-approved server-side; UI shows "Top Up" instead of "Request".
+- **Table Switching**: "Change Table" button in table header navigates to lobby. Confirms and defers stand-up if a hand is in progress.
+- **Club V2 UX**: Club overview tab upgraded with stats strip (members, active tables, total tables), active-table quick-join cards, and restructured layout.
+- 4 new sit-out regression tests in `rules-compliance.test.ts`.
+
+### Changed
+- **Footer**: `AppComplianceFooter` hidden during table view to prevent overlap with action bar. Rendered once at app shell level on all other views.
+- **Green Felt Table**: Replaced 5 MB `poker-table.png` with CSS-drawn `.poker-table-surface` ellipse (radial gradient + subtle felt noise texture + wood border/shadow).
+- Enhanced `.poker-table-surface` CSS with inner glow and refined box-shadow.
+
+### Fixed
+- Host self-rebuy deadlock: hosts no longer get stuck with infinite pending deposits when they are the only admin online.
+
+---
+
+### Added (previous)
 - Runtime config module with validation for server environment and operational timeouts.
 - `/healthz` endpoint for operational health reporting.
 - Graceful shutdown handling for `SIGINT`/`SIGTERM`.
