@@ -13,7 +13,7 @@ export function Table({ snapshot, mySeatIndex, holeCards, onSeatClick }: TablePr
   if (!snapshot) {
     return (
       <div className="w-full max-w-4xl aspect-[16/10] bg-slate-800 rounded-3xl flex items-center justify-center">
-        <p className="text-slate-400">載入中...</p>
+        <p className="text-slate-400">Loading...</p>
       </div>
     );
   }

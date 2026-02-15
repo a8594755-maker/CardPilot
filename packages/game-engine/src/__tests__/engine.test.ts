@@ -117,6 +117,18 @@ describe("Legal actions", () => {
     // UTG faces currentBet=100 and has streetCommitted=0 → cannot check
     assert.throws(() => t.applyAction(actor, "check"), /cannot check/);
   });
+
+  it("should treat seat 0 as a valid actor (no falsy guard bug)", () => {
+    const t = new GameTable({ tableId: "seat0", smallBlind: 50, bigBlind: 100 });
+    t.addPlayer({ seat: 0, userId: "u0", name: "Zero", stack: 10000 });
+    t.addPlayer({ seat: 1, userId: "u1", name: "One", stack: 10000 });
+    t.startHand();
+    const s = t.getPublicState();
+
+    // If actorSeat were checked with a falsy guard, legalActions would incorrectly be null.
+    assert.equal(typeof s.actorSeat, "number");
+    assert.ok(s.legalActions, "legalActions must exist even when actorSeat can be 0");
+  });
 });
 
 // ────────── Actions ──────────
@@ -298,8 +310,8 @@ describe("Pot invariants", () => {
     const final = t.applyAction(s.actorSeat!, "check");
     const totalStacks = final.players.reduce((sum, p) => sum + p.stack, 0);
     // After showdown, pot is awarded so total stacks should equal total buy-in
-    // pot may still be in state but was already distributed
     assert.equal(totalStacks, totalBuyIn, `after showdown stacks should equal buy-in`);
+    assert.equal(final.pot, 0, "pot must be zero after showdown settlement");
   });
 
   it("stack should never go negative", () => {
@@ -325,6 +337,31 @@ describe("Pot invariants", () => {
     const result = t.applyAction(s.actorSeat!, "fold");
     assert.ok(result.pot >= 0);
   });
+
+  it("abortHand should refund exactly committed chips and preserve total chips", () => {
+    const t = makeTable(50, 100);
+    const initialTotal = 20000;
+    t.startHand();
+    let s = t.getPublicState();
+
+    // Build a non-trivial preflop: call -> raise -> all-in
+    t.applyAction(s.actorSeat!, "call");
+    s = t.getPublicState();
+
+    t.applyAction(s.actorSeat!, "raise", 500);
+    s = t.getPublicState();
+
+    t.applyAction(s.actorSeat!, "all_in");
+
+    // Abort hand mid-action and verify conservation
+    t.abortHand();
+    const afterAbort = t.getPublicState();
+    const totalStacks = afterAbort.players.reduce((sum, p) => sum + p.stack, 0);
+
+    assert.equal(totalStacks, initialTotal, "total chips must be preserved after abort refund");
+    assert.equal(afterAbort.pot, 0, "pot must reset to 0 after abort");
+    assert.equal(afterAbort.handId, null, "hand must be cleared after abort");
+  });
 });
 
 // ────────── Turn enforcement ──────────
@@ -341,6 +378,32 @@ describe("Turn enforcement", () => {
   it("should reject action when no hand is active", () => {
     const t = makeTable();
     assert.throws(() => t.applyAction(1, "fold"), /no active hand/);
+  });
+
+  it("should always finish a heads-up hand within a bounded number of actions", () => {
+    const t = makeTable(50, 100);
+    t.startHand();
+
+    // Keep choosing legal non-fold actions to stress turn/street progression.
+    for (let i = 0; i < 40; i++) {
+      const s = t.getPublicState();
+      if (!s.handId || s.actorSeat === null) {
+        assert.equal(s.street, "SHOWDOWN");
+        return;
+      }
+      const legal = s.legalActions;
+      assert.ok(legal, "legal actions must exist while hand is active");
+
+      if (legal!.canCheck) {
+        t.applyAction(s.actorSeat, "check");
+      } else if (legal!.canCall) {
+        t.applyAction(s.actorSeat, "call");
+      } else {
+        t.applyAction(s.actorSeat, "fold");
+      }
+    }
+
+    assert.fail("hand did not terminate within bounded action count (possible turn loop)");
   });
 });
 

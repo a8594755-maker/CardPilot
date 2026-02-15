@@ -54,8 +54,8 @@ export function App() {
   const [advice, setAdvice] = useState<AdvicePayload | null>(null);
   const [deviation, setDeviation] = useState<{ deviation: number; playerAction: string } | null>(null);
   const [raiseTo, setRaiseTo] = useState(0);
-  const [message, setMessage] = useState("Initializing...");
-  const actionPendingRef = useRef(false);
+  // message state removed — replaced by toast system (showToast)
+  const [actionPending, setActionPending] = useState(false);
   const [winners, setWinners] = useState<Array<{ seat: number; amount: number; handName?: string }> | null>(null);
   const [allInPrompt, setAllInPrompt] = useState<AllInPrompt | null>(null);
   const [boardReveal, setBoardReveal] = useState<{ street: string; equities: Array<{ seat: number; winRate: number; tieRate: number }> } | null>(null);
@@ -84,9 +84,38 @@ export function App() {
   const [seatRequests, setSeatRequests] = useState<Array<{ orderId: string; userId: string; userName: string; seat: number; buyIn: number }>>([]);
   const [showRoomLog, setShowRoomLog] = useState(false);
   const [socketConnected, setSocketConnected] = useState(false);
-  const [showGtoSidebar, setShowGtoSidebar] = useState(true);
+  const [showGtoSidebar, setShowGtoSidebar] = useState(() => {
+    try { return localStorage.getItem("cardpilot_show_gto") !== "false"; } catch { return true; }
+  });
+  const [showMobileGto, setShowMobileGto] = useState(false);
+
+  /* ── Toast state (replaces permanent status bar) ── */
+  const [toast, setToast] = useState<{ text: string; isError: boolean; id: number } | null>(null);
+  const [toastExiting, setToastExiting] = useState(false);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showToast = useCallback((text: string) => {
+    if (!text) return;
+    const isError = /^error:/i.test(text) || /fail|denied|kicked|banned/i.test(text);
+    // Clear previous dismiss timer
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToastExiting(false);
+    setToast({ text, isError, id: Date.now() });
+    // Auto-dismiss non-error toasts after 5s
+    if (!isError) {
+      toastTimerRef.current = setTimeout(() => {
+        setToastExiting(true);
+        setTimeout(() => setToast(null), 250);
+      }, 5000);
+    }
+  }, []);
 
   useEffect(() => { preloadCardImages(); }, []);
+
+  // Persist GTO sidebar preference
+  useEffect(() => {
+    try { localStorage.setItem("cardpilot_show_gto", String(showGtoSidebar)); } catch {}
+  }, [showGtoSidebar]);
 
   /* ── Refs for latest state (avoid stale closures in socket handlers) ── */
   const snapshotRef = useRef(snapshot);
@@ -108,10 +137,11 @@ export function App() {
     const interval = setInterval(() => {
       const elapsed = (Date.now() - timerState.startedAt) / 1000;
       if (timerState.usingTimeBank) {
+        const bankLeft = Math.max(0, timerState.timeBankRemaining - elapsed);
         setTimerDisplay({
           ...timerState,
           remaining: 0,
-          timeBankRemaining: Math.max(0, timerState.timeBankRemaining),
+          timeBankRemaining: bankLeft,
           usingTimeBank: true,
         });
       } else {
@@ -126,6 +156,13 @@ export function App() {
     return () => clearInterval(interval);
   }, [timerState]);
 
+  // Defensive clear: if no active hand/actor, hide local timer immediately
+  useEffect(() => {
+    if (!snapshot?.handId || snapshot.actorSeat == null) {
+      setTimerState(null);
+    }
+  }, [snapshot?.handId, snapshot?.actorSeat]);
+
   /* ── Check existing session on mount (no network call) ── */
   useEffect(() => {
     let alive = true;
@@ -136,7 +173,7 @@ export function App() {
           setAuthSession(session);
           setUserEmail(session.email ?? null);
           setDisplayName(session.displayName || session.email?.split("@")[0] || "Guest");
-          setMessage("Signed in");
+          showToast("Signed in");
         }
         setAuthLoading(false);
       })
@@ -184,7 +221,7 @@ export function App() {
 
     s.on("connect", () => {
       setSocketConnected(true);
-      setMessage("Connected");
+      showToast("Connected");
       s.emit("request_lobby");
 
       const roomCode = currentRoomCodeRef.current;
@@ -194,17 +231,17 @@ export function App() {
     });
     s.on("connected", (d: { userId: string; displayName?: string; supabaseEnabled: boolean }) => {
       debugLog("[client] connected, server userId:", d.userId, "client userId:", socketAuthUserId);
-      if (!d.supabaseEnabled) setMessage("Connected (no Supabase persistence)");
+      if (!d.supabaseEnabled) showToast("Connected (no Supabase persistence)");
     });
     s.on("disconnect", () => { setSocketConnected(false); });
     s.on("lobby_snapshot", (d: { rooms: LobbyRoomSummary[] }) => setLobbyRooms(d.rooms ?? []));
     s.on("room_created", (d: { tableId: string; roomCode: string; roomName: string }) => {
       setTableId(d.tableId); setCurrentRoomCode(d.roomCode);
-      setMessage(`Room created: ${d.roomName} (${d.roomCode})`); setView("table");
+      showToast(`Room created: ${d.roomName} (${d.roomCode})`); setView("table");
     });
     s.on("room_joined", (d: { tableId: string; roomCode: string; roomName: string }) => {
       setTableId(d.tableId); setCurrentRoomCode(d.roomCode);
-      setMessage(`Joined room: ${d.roomName} (${d.roomCode})`); setView("table");
+      showToast(`Joined room: ${d.roomName} (${d.roomCode})`); setView("table");
     });
     s.on("table_snapshot", (d: TableState) => {
       setSnapshot(d);
@@ -220,6 +257,7 @@ export function App() {
       setSeat(d.seat);
     });
     s.on("hand_started", () => {
+      setActionPending(false);
       setAdvice(null); setDeviation(null); setWinners(null); setAllInPrompt(null); setBoardReveal(null); setHoleCards([]);
     });
     s.on("board_reveal", (d: { handId: string; street: string; newCards: string[]; board: string[]; equities: Array<{ seat: number; winRate: number; tieRate: number }> }) => {
@@ -229,26 +267,29 @@ export function App() {
       setAllInPrompt(null);
     });
     s.on("stood_up", (d: { seat: number; reason: string }) => {
-      setMessage(d.reason);
+      showToast(d.reason);
     });
     s.on("action_applied", (d: { seat: number; action: string; amount: number; pot: number; auto?: boolean }) => {
+      if (d.seat === seatRef.current) setActionPending(false);
       // Show action confirmation for the local player
       if (d.seat === seatRef.current && !d.auto) {
-        const actionLabel = d.action === "fold" ? "棄牌" : d.action === "check" ? "過牌" : d.action === "call" ? `跟注 ${d.amount.toLocaleString()}` : d.action === "raise" ? `加注到 ${d.amount.toLocaleString()}` : d.action === "all_in" ? "All-In" : d.action;
-        setMessage(`你: ${actionLabel} · Pot: ${d.pot.toLocaleString()}`);
+        const actionLabel = d.action === "fold" ? "Fold" : d.action === "check" ? "Check" : d.action === "call" ? `Call ${d.amount.toLocaleString()}` : d.action === "raise" ? `Raise to ${d.amount.toLocaleString()}` : d.action === "all_in" ? "All-In" : d.action;
+        showToast(`You: ${actionLabel} · Pot: ${d.pot.toLocaleString()}`);
       }
     });
     s.on("advice_payload", (d: AdvicePayload) => setAdvice(d));
     s.on("advice_deviation", (d: AdvicePayload & { playerAction: string }) => {
       setDeviation({ deviation: d.deviation ?? 0, playerAction: d.playerAction });
     });
-    s.on("hand_ended", (d: { winners?: Array<{ seat: number; amount: number; handName?: string }> }) => {
+    s.on("hand_ended", (d: { handId?: string; finalState?: TableState; winners?: Array<{ seat: number; amount: number; handName?: string }> }) => {
+      setActionPending(false);
       setAllInPrompt(null);
       setBoardReveal(null);
       if (d.winners) setWinners(d.winners);
+      if (d.finalState) setSnapshot(d.finalState);
       // Auto-record hand to history
       try {
-        const snap = snapshotRef.current;
+        const snap = d.finalState ?? snapshotRef.current;
         const cards = holeCardsRef.current;
         const mySeat = seatRef.current;
         if (snap && cards && cards.length === 2) {
@@ -275,7 +316,10 @@ export function App() {
       } catch { /* ignore recording errors */ }
       setTimeout(() => setHoleCards([]), 800);
     });
-    s.on("error_event", (d: { message: string }) => setMessage(`Error: ${d.message}`));
+    s.on("error_event", (d: { message: string }) => {
+      setActionPending(false);
+      showToast(`Error: ${d.message}`);
+    });
     s.on("all_in_prompt", (d: AllInPrompt) => setAllInPrompt(d));
 
     // Room management events
@@ -292,9 +336,10 @@ export function App() {
       setView("lobby");
       setCurrentRoomCode("");
       setRoomState(null);
-      setMessage(`You were ${d.banned ? "banned" : "kicked"}: ${d.reason}`);
+      showToast(`You were ${d.banned ? "banned" : "kicked"}: ${d.reason}`);
     });
     s.on("room_closed", (d?: { reason?: string }) => {
+      setActionPending(false);
       setView("lobby");
       setCurrentRoomCode("");
       setRoomState(null);
@@ -308,36 +353,37 @@ export function App() {
       setBoardReveal(null);
       setShowSettings(false);
       setShowRoomLog(false);
-      setMessage(d?.reason ?? "房間已關閉，已返回大廳");
+      showToast(d?.reason ?? "Room closed. Returned to lobby.");
     });
     s.on("hand_aborted", (d: { reason: string }) => {
+      setActionPending(false);
       setHoleCards([]);
       setWinners(null);
       setAllInPrompt(null);
       setAdvice(null);
       setDeviation(null);
       setBoardReveal(null);
-      setMessage(d.reason);
+      showToast(d.reason);
     });
-    s.on("system_message", (d: { message: string }) => setMessage(d.message));
+    s.on("system_message", (d: { message: string }) => showToast(d.message));
     s.on("settings_updated", (d: { applied: Record<string, unknown>; deferred: Record<string, unknown> }) => {
       const keys = [...Object.keys(d.applied), ...Object.keys(d.deferred)];
-      if (keys.length > 0) setMessage(`Settings updated: ${keys.join(", ")}`);
+      if (keys.length > 0) showToast(`Settings updated: ${keys.join(", ")}`);
     });
     s.on("think_extension_result", (d: { addedSeconds: number; remainingUses: number }) => {
-      setMessage(`Extended +${d.addedSeconds}s · Remaining this hour: ${d.remainingUses}`);
+      showToast(`Extended +${d.addedSeconds}s · Remaining this hour: ${d.remainingUses}`);
     });
 
     // Seat request flow
     s.on("seat_request_sent", (d: { orderId: string; seat: number }) => {
-      setMessage(`Seat request sent for seat #${d.seat} — waiting for host approval…`);
+      showToast(`Seat request sent for seat #${d.seat} — waiting for host approval…`);
     });
     s.on("seat_approved", (d: { seat: number; buyIn: number }) => {
       setSeat(d.seat);
-      setMessage(`Seat #${d.seat} approved! You're in with ${d.buyIn.toLocaleString()}`);
+      showToast(`Seat #${d.seat} approved! You're in with ${d.buyIn.toLocaleString()}`);
     });
     s.on("seat_rejected", (d: { seat: number; reason: string }) => {
-      setMessage(`Seat request rejected: ${d.reason}`);
+      showToast(`Seat request rejected: ${d.reason}`);
     });
     s.on("seat_request_pending", (d: { orderId: string; userId: string; userName: string; seat: number; buyIn: number }) => {
       debugLog("[SEAT_REQUEST] Received pending request:", d);
@@ -355,8 +401,8 @@ export function App() {
     if (minR && minR > 0) setRaiseTo(minR);
   }, [snapshot?.legalActions?.minRaise]);
 
-  // Reset action guard when turn/street/hand changes
-  useEffect(() => { actionPendingRef.current = false; }, [snapshot?.actorSeat, snapshot?.street, snapshot?.handId]);
+  // Reset action pending when turn/street/hand changes
+  useEffect(() => { setActionPending(false); }, [snapshot?.actorSeat, snapshot?.street, snapshot?.handId]);
   const isConnected = socketConnected;
   const isHost = useMemo(() => roomState?.ownership.ownerId === authSession?.userId, [roomState, authSession]);
   const isCoHost = useMemo(() => roomState?.ownership.coHostIds.includes(authSession?.userId ?? "") ?? false, [roomState, authSession]);
@@ -419,7 +465,7 @@ export function App() {
   function copyCode() {
     if (!currentRoomCode) return;
     void navigator.clipboard.writeText(currentRoomCode);
-    setMessage(`Copied room code: ${currentRoomCode}`);
+    showToast(`Copied room code: ${currentRoomCode}`);
   }
 
   function leaveRoom() {
@@ -440,7 +486,7 @@ export function App() {
     setAdvice(null);
     setDeviation(null);
     setView("lobby");
-    setMessage("Left room");
+    showToast("Left room");
     socket?.emit("request_lobby");
   }
 
@@ -454,7 +500,7 @@ export function App() {
     setSnapshot(null);
     setHoleCards([]);
     setView("lobby");
-    setMessage("Signed out");
+    showToast("Signed out");
   }
 
   /* ── Onboarding state ── */
@@ -486,7 +532,7 @@ export function App() {
       const dn = s.displayName || s.email?.split("@")[0] || "Guest";
       setDisplayName(dn);
       setName(dn);
-      setMessage("Signed in");
+      showToast("Signed in");
     }} />;
   }
 
@@ -524,10 +570,13 @@ export function App() {
         </div>
       </header>
 
-      {/* ── Status ── */}
-      {message && (
-        <div className="px-4 py-1 bg-white/[0.02] border-b border-white/5 shrink-0">
-          <p className="text-[10px] text-slate-500 truncate">{message}</p>
+      {/* ── Toast overlay (replaces old status bar — no layout shift) ── */}
+      {toast && (
+        <div className="fixed bottom-4 left-4 z-[100] pointer-events-none lg:bottom-4 lg:left-4 max-lg:bottom-auto max-lg:top-14 max-lg:left-1/2 max-lg:-translate-x-1/2"
+          role="status" aria-live="polite">
+          <div className={`toast ${toast.isError ? "toast-error" : "toast-info"} ${toastExiting ? "toast-exit" : ""}`}>
+            {toast.text}
+          </div>
         </div>
       )}
 
@@ -548,6 +597,50 @@ export function App() {
           /* ═══════ LOBBY ═══════ */
           <main className="flex-1 p-6 overflow-y-auto">
             <div className="max-w-3xl mx-auto space-y-6">
+
+              {/* ── Play Now Quick-Match ── */}
+              {!currentRoomCode && (
+                <div className="glass-card p-6 bg-gradient-to-r from-emerald-500/5 via-transparent to-amber-500/5 border-emerald-500/20">
+                  <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <div className="flex-1 text-center sm:text-left">
+                      <h2 className="text-xl font-bold text-white mb-1">Ready to play?</h2>
+                      <p className="text-sm text-slate-400">Jump into a table instantly — no setup needed.</p>
+                    </div>
+                    <button
+                      disabled={!socket || !socketConnected}
+                      onClick={() => {
+                        if (!socket) { showToast("Not connected to server"); return; }
+                        // Try to join the first open public room with available seats
+                        const openRoom = lobbyRooms.find(r => r.status === "OPEN" && r.playerCount < r.maxPlayers);
+                        if (openRoom) {
+                          socket.emit("join_room_code", { roomCode: openRoom.roomCode });
+                          showToast("Quick-matching into room...");
+                        } else {
+                          // No open rooms — create a default one
+                          socket.emit("create_room", {
+                            roomName: "1/2 NLH",
+                            maxPlayers: 6,
+                            smallBlind: 1,
+                            bigBlind: 2,
+                            buyInMin: 40,
+                            buyInMax: 200,
+                            visibility: "public",
+                          });
+                          showToast("Creating a new table...");
+                        }
+                      }}
+                      className="btn-success !py-4 !px-8 text-lg font-bold whitespace-nowrap shadow-xl shadow-emerald-900/40 hover:shadow-emerald-900/60 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
+                    >
+                      ▶ Play Now
+                    </button>
+                  </div>
+                  {lobbyRooms.length > 0 && (
+                    <p className="text-[10px] text-slate-500 text-center sm:text-left mt-2">
+                      {lobbyRooms.filter(r => r.status === "OPEN" && r.playerCount < r.maxPlayers).length} open table{lobbyRooms.filter(r => r.status === "OPEN" && r.playerCount < r.maxPlayers).length !== 1 ? "s" : ""} available
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* ── Current Room Banner ── */}
               {currentRoomCode && (
@@ -640,9 +733,9 @@ export function App() {
                     {newRoomBuyInMax < newRoomBuyInMin && <p className="text-[10px] text-red-400 text-center">Max buy-in must be ≥ min buy-in</p>}
                     <button 
                       onClick={() => {
-                        if (!socket) { setMessage("Not connected to server"); return; }
-                        if (newRoomBB <= newRoomSB) { setMessage("Big blind must be greater than small blind"); return; }
-                        if (newRoomBuyInMax < newRoomBuyInMin) { setMessage("Max buy-in must be ≥ min buy-in"); return; }
+                        if (!socket) { showToast("Not connected to server"); return; }
+                        if (newRoomBB <= newRoomSB) { showToast("Big blind must be greater than small blind"); return; }
+                        if (newRoomBuyInMax < newRoomBuyInMin) { showToast("Max buy-in must be ≥ min buy-in"); return; }
                         socket.emit("create_room", {
                           roomName: `${newRoomSB}/${newRoomBB} NLH`,
                           maxPlayers: newRoomMaxPlayers,
@@ -652,7 +745,7 @@ export function App() {
                           buyInMax: newRoomBuyInMax,
                           visibility: newRoomVisibility,
                         });
-                        setMessage("Creating room...");
+                        showToast("Creating room...");
                       }} 
                       disabled={!socket || newRoomBB <= newRoomSB || newRoomBuyInMax < newRoomBuyInMin}
                       className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed">
@@ -666,15 +759,15 @@ export function App() {
                     <input
                       value={roomCodeInput}
                       onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
-                      onKeyDown={(e) => { if (e.key === "Enter" && roomCodeInput.length >= 4) { socket?.emit("join_room_code", { roomCode: roomCodeInput }); setMessage("Joining room..."); } }}
+                      onKeyDown={(e) => { if (e.key === "Enter" && roomCodeInput.length >= 4) { socket?.emit("join_room_code", { roomCode: roomCodeInput }); showToast("Joining room..."); } }}
                       placeholder="Enter room code"
                       maxLength={8}
                       className="input-field w-full uppercase tracking-[0.3em] text-center font-mono text-lg !py-3" />
                     <button
                       onClick={() => {
-                        if (!roomCodeInput.trim()) { setMessage("Please enter a room code"); return; }
+                        if (!roomCodeInput.trim()) { showToast("Please enter a room code"); return; }
                         socket?.emit("join_room_code", { roomCode: roomCodeInput });
-                        setMessage("Joining room...");
+                        showToast("Joining room...");
                       }}
                       disabled={!socket || !roomCodeInput.trim()}
                       className="btn-success w-full disabled:opacity-50 disabled:cursor-not-allowed">
@@ -711,7 +804,7 @@ export function App() {
                             </div>
                           </div>
                         </div>
-                        <button onClick={() => { socket?.emit("join_room_code", { roomCode: r.roomCode }); setMessage("Joining room..."); }} className="btn-primary text-xs !py-2 !px-4 opacity-70 group-hover:opacity-100">Join</button>
+                        <button onClick={() => { socket?.emit("join_room_code", { roomCode: r.roomCode }); showToast("Joining room..."); }} className="btn-primary text-xs !py-2 !px-4 opacity-70 group-hover:opacity-100">Join</button>
                       </div>
                     ))}
                   </div>
@@ -746,11 +839,11 @@ export function App() {
                   disabled={!isConnected || !isHost}
                   onClick={() => {
                     if (!isHost) {
-                      setMessage("Only host can start and run auto-deal");
+                      showToast("Only host can start and run auto-deal");
                       return;
                     }
                     if ((snapshot?.players.length ?? 0) < 2) {
-                      setMessage("Need ≥2 players");
+                      showToast("Need ≥2 players");
                       return;
                     }
                     socket?.emit("start_hand", { tableId });
@@ -797,9 +890,9 @@ export function App() {
                     )}
                     <button onClick={() => socket?.emit("game_control", { tableId, action: "end" })} className="text-[10px] px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20" title="Stop auto-deal">■</button>
                     {isHost && (
-                      <button onClick={() => { if (confirm("確定要關閉房間嗎？所有玩家將被送回大廳。")) { socket?.emit("close_room", { tableId }); } }}
+                      <button onClick={() => { if (confirm("Are you sure you want to close the room? All players will be returned to the lobby.")) { socket?.emit("close_room", { tableId }); } }}
                         className="text-[10px] px-2 py-0.5 rounded bg-red-600/20 text-red-300 border border-red-500/30 hover:bg-red-600/30 font-semibold" title="Close room permanently">
-                        關閉房間
+                        Close Room
                       </button>
                     )}
                     <button onClick={() => setShowSettings(!showSettings)} className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10">⚙</button>
@@ -999,8 +1092,8 @@ export function App() {
                       <InfoCell label="Street" value={snapshot?.street ?? "—"} highlight />
                       <div className="w-px h-5 bg-white/10" />
                       <InfoCell label="Action" value={
-                        snapshot?.actorSeat
-                          ? (snapshot.actorSeat === seat ? "▶ 你的回合" : `Seat ${snapshot.actorSeat} (${snapshot.players.find(p => p.seat === snapshot.actorSeat)?.name ?? "?"})`)
+                        snapshot?.actorSeat != null
+                          ? (snapshot.actorSeat === seat ? "▶ Your turn" : `Seat ${snapshot.actorSeat} (${snapshot.players.find(p => p.seat === snapshot.actorSeat)?.name ?? "?"})`)
                           : "—"
                       } cyan />
                     </div>
@@ -1097,10 +1190,13 @@ export function App() {
                 </div>
 
                 {/* ── GTO SIDEBAR — collapsible ── */}
-                <aside className={`border-l border-white/5 overflow-y-auto hidden lg:flex flex-col shrink-0 transition-all duration-200 ${showGtoSidebar ? "w-56 p-2" : "w-8 p-1"}`}>
-                  <button onClick={() => setShowGtoSidebar(!showGtoSidebar)} className="flex items-center gap-1 mb-1 hover:opacity-80 transition-opacity" title={showGtoSidebar ? "Collapse" : "Expand GTO Coach"}>
+                <aside className={`border-l border-white/5 overflow-y-auto hidden lg:flex flex-col shrink-0 transition-all duration-200 ${showGtoSidebar ? "w-72 xl:w-80 p-2" : "w-8 p-1"}`}>
+                  <button onClick={() => setShowGtoSidebar(!showGtoSidebar)}
+                    className="flex items-center gap-1.5 mb-1 hover:opacity-80 transition-opacity"
+                    aria-label={showGtoSidebar ? "Collapse GTO panel" : "Expand GTO panel"}
+                    title={showGtoSidebar ? "Collapse" : "Expand GTO Coach"}>
                     <div className="w-5 h-5 rounded-md bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[9px] font-extrabold text-slate-900 shrink-0">G</div>
-                    {showGtoSidebar && <h2 className="text-[10px] font-bold text-white uppercase tracking-wider">GTO</h2>}
+                    {showGtoSidebar && <h2 className="text-[10px] font-bold text-white uppercase tracking-wider">GTO Coach</h2>}
                     <span className="text-[10px] text-slate-500 ml-auto">{showGtoSidebar ? "◂" : "▸"}</span>
                   </button>
                   {showGtoSidebar && (
@@ -1158,11 +1254,99 @@ export function App() {
                     </div>
                   )}
                 </aside>
+
+                {/* ── Mobile GTO Pill + Drawer (visible on < lg only) ── */}
+                <div className="lg:hidden">
+                  {/* Floating GTO pill */}
+                  {!showMobileGto && (
+                    <button
+                      onClick={() => setShowMobileGto(true)}
+                      aria-label="Open GTO Coach"
+                      className={`fixed bottom-24 right-3 z-40 flex items-center gap-1.5 px-3 py-2 rounded-full shadow-lg transition-all ${
+                        advice ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white animate-[pulse_2s_ease-in-out_infinite]" : "bg-slate-800 text-slate-400 border border-white/10"
+                      }`}
+                    >
+                      <div className="w-5 h-5 rounded-md bg-white/20 flex items-center justify-center text-[9px] font-extrabold shrink-0">G</div>
+                      <span className="text-xs font-semibold">GTO</span>
+                      {advice?.recommended && <span className="text-[10px] font-bold uppercase bg-white/20 px-1.5 py-0.5 rounded-full">{advice.recommended}</span>}
+                    </button>
+                  )}
+
+                  {/* Slide-in drawer from right */}
+                  {showMobileGto && (
+                    <div className="fixed inset-0 z-50 flex justify-end" onClick={() => setShowMobileGto(false)}>
+                      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+                      <div
+                        className="gto-drawer relative w-72 max-w-[85vw] bg-[#0f1724] border-l border-white/10 p-4 overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-xs font-extrabold text-slate-900">G</div>
+                            <h3 className="text-sm font-bold text-white">GTO Coach</h3>
+                          </div>
+                          <button onClick={() => setShowMobileGto(false)} className="text-slate-400 hover:text-white text-sm px-2 py-1">✕</button>
+                        </div>
+
+                        {advice ? (
+                          <div className="space-y-3">
+                            <div className="text-[10px] text-slate-500 font-mono truncate">{advice.spotKey}</div>
+                            <div className="flex items-center gap-2 py-2 px-3 rounded-xl bg-white/[0.05]">
+                              <span className="text-xs text-slate-400">Hand</span>
+                              <span className="text-lg font-extrabold text-white tracking-wide">{advice.heroHand}</span>
+                            </div>
+
+                            {advice.recommended && (
+                              <div className={`p-3 rounded-xl border text-center ${
+                                advice.recommended === "raise" ? "bg-red-500/10 border-red-500/30 text-red-400"
+                                : advice.recommended === "call" ? "bg-blue-500/10 border-blue-500/30 text-blue-400"
+                                : "bg-slate-500/10 border-slate-500/30 text-slate-400"
+                              }`}>
+                                <div className="text-[10px] uppercase tracking-wider opacity-70 mb-1">Recommendation</div>
+                                <div className="text-xl font-extrabold uppercase">{advice.recommended}</div>
+                              </div>
+                            )}
+
+                            <div className="space-y-1.5">
+                              <Bar label="Raise" pct={advice.mix.raise} color="from-red-500 to-red-600" />
+                              <Bar label="Call" pct={advice.mix.call} color="from-blue-500 to-blue-600" />
+                              <Bar label="Fold" pct={advice.mix.fold} color="from-slate-500 to-slate-600" />
+                            </div>
+                            <div className="p-3 rounded-xl bg-white/[0.03] border border-white/5 text-xs text-slate-300 leading-relaxed">{advice.explanation}</div>
+
+                            {deviation && (
+                              <div className={`p-3 rounded-xl border ${
+                                deviation.deviation <= 0.2 ? "bg-emerald-500/10 border-emerald-500/30"
+                                : deviation.deviation <= 0.5 ? "bg-amber-500/10 border-amber-500/30"
+                                : "bg-red-500/10 border-red-500/30"
+                              }`}>
+                                <div className="text-[10px] uppercase tracking-wider text-slate-400 mb-1">Deviation</div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs text-white">You: <span className="font-bold uppercase">{deviation.playerAction}</span></span>
+                                  <span className={`text-sm font-extrabold ${
+                                    deviation.deviation <= 0.2 ? "text-emerald-400"
+                                    : deviation.deviation <= 0.5 ? "text-amber-400"
+                                    : "text-red-400"
+                                  }`}>{deviation.deviation <= 0.2 ? "GTO ✓" : `${Math.round(deviation.deviation * 100)}%`}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8">
+                            <div className="text-3xl mb-2 opacity-20">🎯</div>
+                            <p className="text-slate-400 text-sm">GTO advice will appear on your turn</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* ── ACTIONS (pinned to bottom) — only when seated & hand active ── */}
+              {/* ── ACTIONS (pinned to bottom, compact) — only when seated & hand active ── */}
               {snapshot?.handId && snapshot.players.some((p) => p.seat === seat) && (
-              <div className="shrink-0 px-3 pb-2">
+              <div className="shrink-0 px-3 pb-1.5 pt-1">
                 <ActionBar
                   canAct={!!canAct}
                   legal={snapshot?.legalActions ?? null}
@@ -1178,11 +1362,11 @@ export function App() {
                   thinkExtensionEnabled={(roomState?.settings.thinkExtensionQuotaPerHour ?? 0) > 0}
                   thinkExtensionRemainingUses={thinkExtensionRemainingUses}
                   onThinkExtension={() => socket?.emit("request_think_extension", { tableId })}
-                  actionPending={actionPendingRef.current}
+                  actionPending={actionPending}
                   onAction={(action, amount) => {
                     if (!snapshot?.handId) return;
-                    if (actionPendingRef.current) return;
-                    actionPendingRef.current = true;
+                    if (actionPending) return;
+                    setActionPending(true);
                     if (action === "all_in") {
                       socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "all_in" });
                       return;
@@ -1195,8 +1379,8 @@ export function App() {
                   <div className="mt-2 p-3 rounded-xl border border-orange-500/30 bg-orange-500/10">
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <div>
-                        <div className="text-[10px] uppercase tracking-wider text-orange-300">All-In 發牌選擇</div>
-                        <div className="text-xs text-slate-200">你的勝率: <span className="font-mono text-orange-300 font-bold">{Math.round(allInPrompt.winRate * 100)}%</span></div>
+                        <div className="text-[10px] uppercase tracking-wider text-orange-300">All-In Runout Choice</div>
+                        <div className="text-xs text-slate-200">Your equity: <span className="font-mono text-orange-300 font-bold">{Math.round(allInPrompt.winRate * 100)}%</span></div>
                       </div>
                       <div className="text-[10px] text-slate-400 max-w-[60%] text-right">{allInPrompt.reason}</div>
                     </div>
@@ -1209,7 +1393,7 @@ export function App() {
                         }}
                         className="btn-action flex-1 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600"
                       >
-                        發一次
+                        Run Once
                       </button>
                       <button
                         onClick={() => {
@@ -1218,7 +1402,7 @@ export function App() {
                         }}
                         className="btn-action flex-1 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600"
                       >
-                        發兩次
+                        Run Twice
                       </button>
                     </div>
                   </div>
@@ -2343,114 +2527,135 @@ function ActionBar({
   // Determine the status hint: why is Call/Check shown or hidden?
   const statusHint = useMemo(() => {
     if (!canAct || !legal) return "";
-    if (legal.canCheck) return "已跟上，可以 Check";
-    if (legal.canCall) return `需跟注 ${callAmt.toLocaleString()}`;
+    if (legal.canCheck) return "You are caught up. You can check.";
+    if (legal.canCall) return `Call required: ${callAmt.toLocaleString()}`;
     return "";
   }, [canAct, legal, callAmt]);
 
+  const [allInConfirm, setAllInConfirm] = useState(false);
+  useEffect(() => { if (!canAct) setAllInConfirm(false); }, [canAct]);
+
+  const btnBase = "btn-action min-h-[38px] py-1.5 px-3 text-xs font-semibold rounded-lg active:scale-95 transition-transform focus:outline-none focus:ring-2 focus:ring-white/20";
+
   return (
-    <div className="glass-card px-2 py-1.5 space-y-1">
-      {/* Row 1: action buttons — compact */}
+    <div className="glass-card px-2.5 py-1.5 space-y-1.5" style={{ maxHeight: 140 }}>
+      {/* Row A: primary action buttons */}
       <div className={`flex items-center gap-1 flex-wrap ${actionPending ? 'opacity-50 pointer-events-none' : ''}`}>
         {actionPending && canAct && (
-          <span className="text-[9px] text-amber-400 animate-pulse mr-1">處理中…</span>
+          <span className="text-[10px] text-amber-400 animate-pulse mr-0.5">Processing…</span>
         )}
         <button disabled={!canAct || actionPending} onClick={() => { onAction("fold"); setShowSuggest(false); }}
-          className="btn-action !py-1.5 !px-3 !text-[11px] bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600">Fold</button>
+          aria-label="Fold" className={`${btnBase} bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600`}>Fold</button>
 
         {legal?.canCheck && (
           <button disabled={!canAct || actionPending} onClick={() => { onAction("check"); setShowSuggest(false); }}
-            className="btn-action !py-1.5 !px-3 !text-[11px] bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600">Check</button>
+            aria-label="Check" className={`${btnBase} bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600`}>Check</button>
         )}
 
         {legal?.canCall && (
           <button disabled={!canAct || actionPending} onClick={() => { onAction("call"); setShowSuggest(false); }}
-            className="btn-action !py-1.5 !px-3 !text-[11px] bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-500 hover:to-sky-600">
+            aria-label={`Call ${callAmt}`} className={`${btnBase} bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-500 hover:to-sky-600`}>
             Call {callAmt.toLocaleString()}
           </button>
         )}
 
         {legal?.canRaise && (
           <button disabled={!canAct || actionPending} onClick={() => { onAction("raise", raiseTo); setShowSuggest(false); }}
-            className="btn-action !py-1.5 !px-3 !text-[11px] bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600">
+            aria-label={`Raise to ${raiseTo}`} className={`${btnBase} bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600`}>
             Raise {raiseTo.toLocaleString()}
           </button>
         )}
 
-        {legal?.canRaise && (
-          <button disabled={!canAct || actionPending} onClick={() => { onAction("all_in"); setShowSuggest(false); }}
-            className="btn-action !py-1.5 !px-3 !text-[11px] bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600">All-In</button>
+        {legal?.canRaise && !allInConfirm && (
+          <button disabled={!canAct || actionPending} onClick={() => setAllInConfirm(true)}
+            aria-label="All-In" className={`${btnBase} bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600`}>All-In</button>
+        )}
+        {legal?.canRaise && allInConfirm && (
+          <div className="flex items-center gap-1 animate-[fadeSlideUp_0.2s_ease-out]">
+            <button disabled={!canAct || actionPending} onClick={() => { onAction("all_in"); setShowSuggest(false); setAllInConfirm(false); }}
+              aria-label="Confirm All-In" className={`${btnBase} font-bold bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-400 hover:to-orange-500 ring-2 ring-red-400/50 animate-pulse`}>Confirm All-In</button>
+            <button onClick={() => setAllInConfirm(false)}
+              className="min-h-[38px] py-1.5 px-2 text-[10px] rounded-lg bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10">✕</button>
+          </div>
         )}
 
         {canAct && advice && (
           <button onClick={() => setShowSuggest(!showSuggest)}
-            className={`btn-action !py-1.5 !px-2 !text-[10px] ${
+            aria-label="AI suggestion"
+            className={`${btnBase} ${
               showSuggest ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white" : "bg-white/5 text-amber-400 border border-amber-500/30"
             }`}>AI</button>
         )}
 
         {canAct && thinkExtensionEnabled && (thinkExtensionRemainingUses ?? 0) > 0 && (
-          <button onClick={() => onThinkExtension?.()} className="btn-action !py-1.5 !px-2 !text-[10px] bg-white/5 text-violet-300 border border-violet-500/30">
+          <button onClick={() => onThinkExtension?.()} aria-label="Think extension"
+            className={`${btnBase} bg-white/5 text-violet-300 border border-violet-500/30`}>
             +T({thinkExtensionRemainingUses})
           </button>
         )}
       </div>
 
-      {/* Row 2: raise slider + presets (single compact row) */}
+      {/* Row B: raise sizing (slider + input + presets) — only when raise is legal */}
       {legal?.canRaise && canAct && (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5 flex-wrap">
           <input type="range" min={min} max={max} step={bigBlind} value={raiseTo}
             onChange={(e) => setRaiseTo(Number(e.target.value))}
-            className="w-24 h-1 rounded-full appearance-none bg-white/10 accent-red-500 cursor-pointer shrink-0" />
-          <div className="flex items-center gap-0.5 flex-wrap flex-1 min-w-0">
-            {(() => {
-              const showBBMultipliers = pot <= bigBlind * 2 || (!legal?.canCheck && !legal?.canCall);
-              if (showBBMultipliers) {
-                return [2, 3, 4].map((mult) => {
-                  const chips = Math.max(min, Math.min(max, Math.round(bigBlind * mult)));
-                  return (
-                    <button key={mult} onClick={() => setRaiseTo(chips)}
-                      className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
-                        raiseTo === chips ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-white/5 text-slate-400 border border-white/10"
-                      }`}>{mult}x</button>
-                  );
-                });
-              } else {
-                return suggestedPresets.slice(0, 3).map((p) => {
-                  const chips = presetToChips(p.pctOfPot);
-                  return (
-                    <button key={p.label} onClick={() => setRaiseTo(chips)}
-                      className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
-                        raiseTo === chips ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-white/5 text-slate-400 border border-white/10"
-                      }`}>{p.label}</button>
-                  );
-                });
-              }
-            })()}
-            <div className="w-px h-3 bg-white/10" />
-            {customPresets.slice(0, 3).map((p) => {
-              const chips = presetToChips(p.pctOfPot);
-              return (
-                <button key={p.label} onClick={() => setRaiseTo(chips)}
-                  className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
-                    raiseTo === chips ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" : "bg-white/5 text-slate-400 border border-white/10"
-                  }`}>{p.label}</button>
-              );
-            })}
-          </div>
+            aria-label="Bet size slider"
+            className="flex-1 min-w-[100px] h-1.5 rounded-full appearance-none bg-white/10 accent-red-500 cursor-pointer" />
+          <input type="number" min={min} max={max} step={bigBlind} value={raiseTo}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              if (!isNaN(v)) setRaiseTo(Math.max(min, Math.min(max, v)));
+            }}
+            aria-label="Bet size input"
+            className="w-16 text-center text-xs font-mono font-semibold text-white bg-white/5 border border-white/10 rounded-lg py-1 focus:border-red-500/50 focus:outline-none" />
+          <div className="w-px h-4 bg-white/10" />
+          {(() => {
+            const showBBMultipliers = pot <= bigBlind * 2 || (!legal?.canCheck && !legal?.canCall);
+            if (showBBMultipliers) {
+              return [2, 3, 4].map((mult) => {
+                const chips = Math.max(min, Math.min(max, Math.round(bigBlind * mult)));
+                return (
+                  <button key={mult} onClick={() => setRaiseTo(chips)}
+                    className={`min-h-[30px] px-2 py-1 rounded-md text-[10px] font-semibold transition-all ${
+                      raiseTo === chips ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"
+                    }`}>{mult}x</button>
+                );
+              });
+            } else {
+              return suggestedPresets.slice(0, 3).map((p) => {
+                const chips = presetToChips(p.pctOfPot);
+                return (
+                  <button key={p.label} onClick={() => setRaiseTo(chips)}
+                    className={`min-h-[30px] px-2 py-1 rounded-md text-[10px] font-semibold transition-all ${
+                      raiseTo === chips ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"
+                    }`}>{p.label}</button>
+                );
+              });
+            }
+          })()}
+          {customPresets.slice(0, 3).map((p) => {
+            const chips = presetToChips(p.pctOfPot);
+            return (
+              <button key={p.label} onClick={() => setRaiseTo(chips)}
+                className={`min-h-[30px] px-2 py-1 rounded-md text-[10px] font-semibold transition-all ${
+                  raiseTo === chips ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"
+                }`}>{p.label}</button>
+            );
+          })}
         </div>
       )}
 
       {/* AI Suggestion — inline compact */}
       {showSuggest && advice && (
-        <div className="px-2 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center gap-2 text-[10px]">
+        <div className="px-2 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center gap-1.5 text-[10px]">
           <span className="font-bold text-white uppercase">{recommendedAction ?? "—"}</span>
           <span className="text-slate-300 flex-1 truncate">{advice.explanation}</span>
           <span className="text-red-400">R{Math.round(advice.mix.raise * 100)}%</span>
           <span className="text-blue-400">C{Math.round(advice.mix.call * 100)}%</span>
           {recommendedAction && (
             <button onClick={() => { onAction(recommendedAction, recommendedAction === "raise" ? raiseTo : undefined); setShowSuggest(false); }}
-              className="text-amber-400 hover:text-amber-300 font-semibold">Apply</button>
+              className="text-amber-400 hover:text-amber-300 font-semibold min-h-[30px] px-2 rounded-md bg-amber-500/10">Apply</button>
           )}
         </div>
       )}

@@ -1,10 +1,10 @@
-// 扑克牌图片映射
-// 将牌面代码映射到 PNG 图片路径
+// Poker card image mapping
+// Map card codes to PNG image paths
 
 export const CARD_IMAGE_BASE = '/cards/PNG-cards-1.3';
 const CARD_FALLBACK_IMAGE = `${CARD_IMAGE_BASE}/red_joker.png`;
 
-// 牌面代码映射: A=ace, 2=2, ..., T=10, J=jack, Q=queen, K=king
+// Rank mapping: A=ace, 2=2, ..., T=10, J=jack, Q=queen, K=king
 const RANK_MAP: Record<string, string> = {
   'A': 'ace',
   '2': '2',
@@ -21,7 +21,7 @@ const RANK_MAP: Record<string, string> = {
   'K': 'king',
 };
 
-// 花色映射: s=spades, h=hearts, d=diamonds, c=clubs
+// Suit mapping: s=spades, h=hearts, d=diamonds, c=clubs
 const SUIT_MAP: Record<string, string> = {
   's': 'spades',
   'h': 'hearts',
@@ -30,9 +30,9 @@ const SUIT_MAP: Record<string, string> = {
 };
 
 /**
- * 获取扑克牌图片路径
- * @param card 牌面代码, e.g., "Ah", "Ks", "Td", "2c"
- * @returns 图片路径
+ * Get poker card image path
+ * @param card Card code, e.g., "Ah", "Ks", "Td", "2c"
+ * @returns Image path
  */
 export function getCardImagePath(card: string): string {
   if (!card || card.length < 2) {
@@ -53,7 +53,7 @@ export function getCardImagePath(card: string): string {
 }
 
 /**
- * 获取牌背图片路径
+ * Get card back image path
  */
 export function getCardBackPath(color: string = 'blue'): string {
   const colorMap: Record<string, string> = {
@@ -67,7 +67,7 @@ export function getCardBackPath(color: string = 'blue'): string {
 }
 
 /**
- * 预加载牌面图片
+ * Preload card face images
  */
 export function preloadCardImages(): void {
   const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K'];

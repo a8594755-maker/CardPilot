@@ -21,6 +21,7 @@ type MutableTableState = TableState & {
   pendingToAct: Set<number>;
   deck: string[];
   holeCards: Map<number, [string, string]>;
+  contributed: Map<number, number>;
 };
 
 export class GameTable {
@@ -48,12 +49,13 @@ export class GameTable {
       positions: {},
       pendingToAct: new Set<number>(),
       deck: [],
-      holeCards: new Map()
+      holeCards: new Map(),
+      contributed: new Map()
     };
   }
 
   getPublicState(): TableState {
-    const { pendingToAct: _pending, deck: _deck, holeCards: _holes, ...rest } = this.state;
+    const { pendingToAct: _pending, deck: _deck, holeCards: _holes, contributed: _contrib, ...rest } = this.state;
     // Compute legalActions for current actor
     const legal = this.computeLegalActions();
     // Compute positions for all active players
@@ -109,6 +111,7 @@ export class GameTable {
     this.state.minRaiseTo = this.state.bigBlind * 2;
     this.state.pendingToAct = new Set<number>();
     this.state.holeCards.clear();
+    this.state.contributed.clear();
     this.state.deck = shuffledDeck();
     this.state.winners = undefined;
     this.allInRunCount = 1;
@@ -123,6 +126,7 @@ export class GameTable {
       player.folded = !active;
       player.allIn = false;
       player.streetCommitted = 0;
+      this.state.contributed.set(player.seat, 0);
     }
 
     for (const seat of sortedSeats) {
@@ -180,6 +184,7 @@ export class GameTable {
     }
 
     const toCall = Math.max(0, this.state.currentBet - player.streetCommitted);
+    let actionAmount = 0;
 
     // Validate action legality
     if (action === "check" && toCall > 0) {
@@ -221,6 +226,7 @@ export class GameTable {
       player.stack -= commit;
       player.streetCommitted += commit;
       this.state.pot += commit;
+      actionAmount = commit;
       if (player.stack === 0) player.allIn = true;
     } else if (action === "raise") {
       const raiseTo = amount as number;
@@ -228,6 +234,7 @@ export class GameTable {
       player.stack -= commit;
       player.streetCommitted = raiseTo;
       this.state.pot += commit;
+      actionAmount = commit;
       this.state.minRaiseTo = raiseTo + (raiseTo - this.state.currentBet);
       this.state.currentBet = raiseTo;
       if (player.stack === 0) player.allIn = true;
@@ -243,6 +250,7 @@ export class GameTable {
       player.stack = 0;
       player.streetCommitted = newTotal;
       this.state.pot += commit;
+      actionAmount = commit;
       player.allIn = true;
 
       if (newTotal > this.state.currentBet) {
@@ -260,11 +268,15 @@ export class GameTable {
       }
     }
 
+    if (actionAmount > 0) {
+      this.state.contributed.set(seat, (this.state.contributed.get(seat) ?? 0) + actionAmount);
+    }
+
     this.logAction({
       seat,
       street: this.state.street,
       type: action,
-      amount: action === "all_in" ? (player.streetCommitted) : (amount ?? (action === "call" ? toCall : 0)),
+      amount: actionAmount,
       at: Date.now()
     });
 
@@ -334,7 +346,7 @@ export class GameTable {
   }
 
   private computeLegalActions(): LegalActions | null {
-    if (!this.state.actorSeat || !this.state.handId) return null;
+    if (this.state.actorSeat == null || !this.state.handId) return null;
 
     const player = this.state.players.find((p) => p.seat === this.state.actorSeat);
     if (!player || !player.inHand || player.folded || player.allIn) return null;
@@ -409,17 +421,23 @@ export class GameTable {
     const secondBoard = this.completeRunoutBoard(baseBoard);
 
     const payouts = new Map<number, { amount: number; handName?: string }>();
-    const firstHalf = Math.floor(this.state.pot / 2);
-    const secondHalf = this.state.pot - firstHalf;
+    const sidePots = this.buildSidePots(contenders);
+    const solvedFirst = this.solveContenders(contenders, firstBoard);
+    const solvedSecond = this.solveContenders(contenders, secondBoard);
 
-    this.distributeRunPot(firstBoard, firstHalf, payouts);
-    this.distributeRunPot(secondBoard, secondHalf, payouts);
+    for (const sidePot of sidePots) {
+      const firstHalf = Math.floor(sidePot.amount / 2);
+      const secondHalf = sidePot.amount - firstHalf;
+      this.distributeSolvedPot(firstHalf, solvedFirst, sidePot.eligibleSeats, payouts);
+      this.distributeSolvedPot(secondHalf, solvedSecond, sidePot.eligibleSeats, payouts);
+    }
 
     this.state.board = secondBoard;
     this.state.street = "SHOWDOWN";
     this.state.winners = [...payouts.entries()]
       .map(([seat, v]) => ({ seat, amount: v.amount, handName: v.handName }))
       .sort((a, b) => a.seat - b.seat);
+    this.state.pot = 0;
     this.state.actorSeat = null;
     this.state.pendingToAct.clear();
     this.allInRunCount = 1;
@@ -433,28 +451,38 @@ export class GameTable {
     return board;
   }
 
-  private distributeRunPot(
-    board: string[],
-    potForRun: number,
-    payouts: Map<number, { amount: number; handName?: string }>
-  ): void {
-    if (potForRun <= 0) return;
-
-    const solved = this.activePlayers().map((p) => {
+  private solveContenders(contenders: TablePlayer[], board: string[]): Array<{ seat: number; hand: { descr: string; rank: number } }> {
+    return contenders.map((p) => {
       const cards = this.state.holeCards.get(p.seat) ?? ["2c", "7d"];
       const hand = Hand.solve(toSolverCards([...cards, ...board]));
       return { seat: p.seat, hand };
     });
+  }
 
-    const winners = Hand.winners(solved.map((s) => s.hand));
-    const winnerSeats = solved
-      .filter((s) =>
-        winners.some((w: { descr: string; rank: number }) => w.descr === s.hand.descr && w.rank === s.hand.rank)
-      )
+  private resolveWinnerSeats(
+    solved: Array<{ seat: number; hand: { descr: string; rank: number } }>,
+    eligibleSeats: number[]
+  ): number[] {
+    const eligible = solved.filter((s) => eligibleSeats.includes(s.seat));
+    if (eligible.length === 0) return [];
+    const winners = Hand.winners(eligible.map((s) => s.hand));
+    return eligible
+      .filter((s) => winners.some((w: { descr: string; rank: number }) => w.descr === s.hand.descr && w.rank === s.hand.rank))
       .map((s) => s.seat);
+  }
 
-    const share = Math.floor(potForRun / winnerSeats.length);
-    let remainder = potForRun - share * winnerSeats.length;
+  private distributeSolvedPot(
+    potAmount: number,
+    solved: Array<{ seat: number; hand: { descr: string; rank: number } }>,
+    eligibleSeats: number[],
+    payouts: Map<number, { amount: number; handName?: string }>
+  ): void {
+    if (potAmount <= 0) return;
+    const winnerSeats = this.resolveWinnerSeats(solved, eligibleSeats);
+    if (winnerSeats.length === 0) return;
+
+    const share = Math.floor(potAmount / winnerSeats.length);
+    let remainder = potAmount - share * winnerSeats.length;
 
     for (const seat of winnerSeats) {
       const player = this.playerBySeat(seat);
@@ -469,6 +497,34 @@ export class GameTable {
         handName: existing?.handName ?? solvedEntry?.hand.descr,
       });
     }
+  }
+
+  private buildSidePots(contenders: TablePlayer[]): Array<{ amount: number; eligibleSeats: number[] }> {
+    const contributors = this.state.players
+      .map((p) => ({ seat: p.seat, contributed: this.state.contributed.get(p.seat) ?? 0 }))
+      .filter((c) => c.contributed > 0)
+      .sort((a, b) => a.contributed - b.contributed);
+
+    if (contributors.length === 0) return [];
+
+    const levels = [...new Set(contributors.map((c) => c.contributed).filter((v) => v > 0))].sort((a, b) => a - b);
+    const sidePots: Array<{ amount: number; eligibleSeats: number[] }> = [];
+
+    let prevLevel = 0;
+    for (const level of levels) {
+      const participants = contributors.filter((c) => c.contributed >= level);
+      const potAmount = (level - prevLevel) * participants.length;
+      const eligibleSeats = contenders
+        .filter((p) => (this.state.contributed.get(p.seat) ?? 0) >= level)
+        .map((p) => p.seat);
+
+      if (potAmount > 0 && eligibleSeats.length > 0) {
+        sidePots.push({ amount: potAmount, eligibleSeats });
+      }
+      prevLevel = level;
+    }
+
+    return sidePots;
   }
 
   /** Deal remaining community cards when all players are all-in */
@@ -499,23 +555,14 @@ export class GameTable {
    *  Used when idle timeout triggers a mid-hand reset. */
   abortHand(): void {
     if (!this.state.handId) return;
-    // Return pot to players proportional to their contribution
-    // Simple: return each player's streetCommitted back
+    // Return all committed chips to each player based on tracked contribution deltas.
     for (const p of this.state.players) {
-      if (p.inHand) {
-        // Sum all their bets across streets from actions
-        let totalBet = 0;
-        for (const a of this.state.actions) {
-          if (a.seat === p.seat && (a.type === "call" || a.type === "raise" || a.type === "all_in" || (a.type as string) === "post_sb" || (a.type as string) === "post_bb")) {
-            totalBet += a.amount;
-          }
-        }
-        p.stack += totalBet;
-      }
+      p.stack += this.state.contributed.get(p.seat) ?? 0;
       p.inHand = false;
       p.folded = false;
       p.allIn = false;
       p.streetCommitted = 0;
+      this.state.contributed.set(p.seat, 0);
     }
     this.state.handId = null;
     this.state.street = "SHOWDOWN";
@@ -527,6 +574,7 @@ export class GameTable {
     this.state.winners = undefined;
     this.state.pendingToAct.clear();
     this.state.holeCards.clear();
+    this.state.contributed.clear();
     this.runoutPending = false;
   }
 
@@ -614,48 +662,30 @@ export class GameTable {
   private showdown(): void {
     const contenders = this.activePlayers();
     const board = this.state.board;
+    const solved = this.solveContenders(contenders, board);
+    const sidePots = this.buildSidePots(contenders);
+    const payouts = new Map<number, { amount: number; handName?: string }>();
 
-    const solved = contenders.map((p) => {
-      const cards = this.state.holeCards.get(p.seat) ?? ["2c", "7d"];
-      const hand = Hand.solve(toSolverCards([...cards, ...board]));
-      return { seat: p.seat, hand };
-    });
-
-    const winners = Hand.winners(solved.map((s) => s.hand));
-    const winnerSeats = solved
-      .filter((s) =>
-        winners.some((w: { descr: string; rank: number }) => w.descr === s.hand.descr && w.rank === s.hand.rank)
-      )
-      .map((s) => s.seat);
-
-    const share = Math.floor(this.state.pot / winnerSeats.length);
-    let remainder = this.state.pot - share * winnerSeats.length;
-
-    const winnersResult: Array<{ seat: number; amount: number; handName?: string }> = [];
-
-    for (const seat of winnerSeats) {
-      const player = this.playerBySeat(seat);
-      const amt = share + (remainder > 0 ? 1 : 0);
-      player.stack += amt;
-      if (remainder > 0) remainder -= 1;
-
-      const solvedEntry = solved.find(s => s.seat === seat);
-      winnersResult.push({
-        seat,
-        amount: amt,
-        handName: solvedEntry?.hand.descr
-      });
+    if (sidePots.length > 0) {
+      for (const sidePot of sidePots) {
+        this.distributeSolvedPot(sidePot.amount, solved, sidePot.eligibleSeats, payouts);
+      }
     }
 
-    this.state.winners = winnersResult;
+    this.state.winners = [...payouts.entries()]
+      .map(([seat, v]) => ({ seat, amount: v.amount, handName: v.handName }))
+      .sort((a, b) => a.seat - b.seat);
+    this.state.pot = 0;
     this.state.actorSeat = null;
     this.state.pendingToAct.clear();
   }
 
   private finishNoShowdown(): void {
     const winner = this.activePlayers()[0];
-    winner.stack += this.state.pot;
-    this.state.winners = [{ seat: winner.seat, amount: this.state.pot }];
+    const won = this.state.pot;
+    winner.stack += won;
+    this.state.winners = [{ seat: winner.seat, amount: won }];
+    this.state.pot = 0;
     this.state.street = "SHOWDOWN";
     this.state.actorSeat = null;
     this.state.pendingToAct.clear();
@@ -667,6 +697,7 @@ export class GameTable {
     player.stack -= commit;
     player.streetCommitted += commit;
     this.state.pot += commit;
+    this.state.contributed.set(seat, (this.state.contributed.get(seat) ?? 0) + commit);
     if (player.stack === 0) {
       player.allIn = true;
     }

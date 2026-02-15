@@ -3,10 +3,9 @@ import { io, type Socket } from 'socket.io-client';
 import type { 
   ClientToServerEvents, 
   ServerToClientEvents,
-  TableSnapshotPayload,
+  TableState,
   AdvicePayload,
-  LobbyRoomSummary,
-  RoomJoinedPayload
+  LobbyRoomSummary
 } from '@cardpilot/shared-types';
 
 type TypedSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -20,11 +19,11 @@ interface UseSocketOptions {
 interface UseSocketReturn {
   socket: TypedSocket | null;
   isConnected: boolean;
-  tableSnapshot: TableSnapshotPayload | null;
+  tableSnapshot: TableState | null;
   advice: AdvicePayload | null;
   lobbyRooms: LobbyRoomSummary[];
   holeCards: [string, string] | null;
-  currentRoom: RoomJoinedPayload | null;
+  currentRoom: { tableId: string; roomCode: string; roomName: string } | null;
   error: string | null;
   
   // Actions
@@ -40,16 +39,16 @@ interface UseSocketReturn {
 export function useSocket({ serverUrl, userId, nickname }: UseSocketOptions): UseSocketReturn {
   const socketRef = useRef<TypedSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [tableSnapshot, setTableSnapshot] = useState<TableSnapshotPayload | null>(null);
+  const [tableSnapshot, setTableSnapshot] = useState<TableState | null>(null);
   const [advice, setAdvice] = useState<AdvicePayload | null>(null);
   const [lobbyRooms, setLobbyRooms] = useState<LobbyRoomSummary[]>([]);
   const [holeCards, setHoleCards] = useState<[string, string] | null>(null);
-  const [currentRoom, setCurrentRoom] = useState<RoomJoinedPayload | null>(null);
+  const [currentRoom, setCurrentRoom] = useState<{ tableId: string; roomCode: string; roomName: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const socket: TypedSocket = io(`${serverUrl}/poker`, {
-      auth: { userId, nickname },
+    const socket: TypedSocket = io(serverUrl, {
+      auth: { userId, displayName: nickname },
     });
 
     socketRef.current = socket;
@@ -63,45 +62,52 @@ export function useSocket({ serverUrl, userId, nickname }: UseSocketOptions): Us
       setIsConnected(false);
     });
 
-    socket.on('connection:established', () => {
-      // Connection established
-    });
+    socket.on('connected', () => {});
 
-    socket.on('table:snapshot', (snapshot) => {
+    socket.on('table_snapshot', (snapshot) => {
       setTableSnapshot(snapshot);
     });
 
-    socket.on('hand:deal', (data) => {
-      setHoleCards(data.holeCards);
+    socket.on('hole_cards', (data) => {
+      if (Array.isArray(data.cards) && data.cards.length === 2) {
+        setHoleCards([data.cards[0], data.cards[1]]);
+      }
     });
 
-    socket.on('advice:recommendation', (adviceData) => {
+    socket.on('advice_payload', (adviceData) => {
       setAdvice(adviceData);
     });
 
-    socket.on('lobby:snapshot', (data) => {
+    socket.on('lobby_snapshot', (data) => {
       setLobbyRooms(data.rooms);
     });
 
-    socket.on('room:joined', (room) => {
+    socket.on('room_joined', (room) => {
       setCurrentRoom(room);
       setHoleCards(null);
       setAdvice(null);
     });
 
-    socket.on('room:left', () => {
+    socket.on('left_table', () => {
       setCurrentRoom(null);
       setTableSnapshot(null);
       setHoleCards(null);
       setAdvice(null);
     });
 
-    socket.on('hand:ended', () => {
+    socket.on('room_closed', () => {
+      setCurrentRoom(null);
+      setTableSnapshot(null);
       setHoleCards(null);
       setAdvice(null);
     });
 
-    socket.on('error', (err) => {
+    socket.on('hand_ended', () => {
+      setHoleCards(null);
+      setAdvice(null);
+    });
+
+    socket.on('error_event', (err) => {
       setError(err.message);
     });
 
@@ -111,13 +117,13 @@ export function useSocket({ serverUrl, userId, nickname }: UseSocketOptions): Us
   }, [serverUrl, userId, nickname]);
 
   const joinRoom = useCallback((roomCode: string) => {
-    socketRef.current?.emit('room:join_code', { roomCode });
+    socketRef.current?.emit('join_room_code', { roomCode });
   }, []);
 
   const createRoom = useCallback((name: string) => {
-    socketRef.current?.emit('room:create', { 
+    socketRef.current?.emit('create_room', { 
       roomName: name,
-      maxSeats: 6,
+      maxPlayers: 6,
       smallBlind: 1,
       bigBlind: 2,
       isPublic: true,
@@ -125,30 +131,34 @@ export function useSocket({ serverUrl, userId, nickname }: UseSocketOptions): Us
   }, []);
 
   const sitDown = useCallback((seatIndex: number, buyIn: number) => {
-    socketRef.current?.emit('seat:sit', { seatIndex, buyIn });
-  }, []);
+    if (!currentRoom) return;
+    socketRef.current?.emit('sit_down', { tableId: currentRoom.tableId, seat: seatIndex, buyIn });
+  }, [currentRoom]);
 
   const standUp = useCallback((seatIndex: number) => {
-    socketRef.current?.emit('seat:stand', { seatIndex });
-  }, []);
+    if (!currentRoom) return;
+    socketRef.current?.emit('stand_up', { tableId: currentRoom.tableId, seat: seatIndex });
+  }, [currentRoom]);
 
   const startHand = useCallback(() => {
-    socketRef.current?.emit('hand:start');
-  }, []);
+    if (!currentRoom) return;
+    socketRef.current?.emit('start_hand', { tableId: currentRoom.tableId });
+  }, [currentRoom]);
 
   const submitAction = useCallback((action: 'fold' | 'check' | 'call' | 'raise' | 'all_in', amount?: number) => {
-    const handId = tableSnapshot?.currentHand?.handId;
-    if (!handId) return;
+    const handId = tableSnapshot?.handId;
+    if (!handId || !currentRoom) return;
 
-    socketRef.current?.emit('hand:action', {
+    socketRef.current?.emit('action_submit', {
+      tableId: currentRoom.tableId,
       handId,
       action,
       amount,
     });
-  }, [tableSnapshot]);
+  }, [currentRoom, tableSnapshot]);
 
   const refreshLobby = useCallback(() => {
-    socketRef.current?.emit('lobby:refresh');
+    socketRef.current?.emit('request_lobby');
   }, []);
 
   return {

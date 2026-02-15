@@ -172,7 +172,7 @@ function hasVoluntaryPreflopAction(state: TableState): boolean {
 }
 
 function pushAdviceIfNeeded(tableId: string, state: TableState) {
-  if (!state.handId || !state.actorSeat) return;
+  if (!state.handId || state.actorSeat == null) return;
 
   const table = tables.get(tableId);
   if (!table) return;
@@ -531,7 +531,7 @@ function resetHandIdleWatchdog(tableId: string): void {
     clearAutoDealSchedule(tableId);
 
     io.to(tableId).emit("hand_aborted", { reason: "Hand aborted: table idle too long" });
-    io.to(tableId).emit("system_message", { message: "手牌因長時間無操作已取消，下注已退回" });
+    io.to(tableId).emit("system_message", { message: "Hand cancelled due to long inactivity. Bets have been refunded." });
     touchLocalRoom(tableId);
     broadcastSnapshot(tableId);
   }, HAND_IDLE_TIMEOUT_MS);
@@ -628,11 +628,14 @@ function finalizeHandEnd(tableId: string, state: TableState): void {
   const rcTimeout = pendingRunCountTimeouts.get(tableId);
   if (rcTimeout) { clearTimeout(rcTimeout); pendingRunCountTimeouts.delete(tableId); }
   io.to(tableId).emit("hand_ended", {
+    handId: state.handId,
+    finalState: state,
     board: state.board,
     players: state.players,
     pot: state.pot,
     winners: state.winners,
   });
+  roomManager.clearActionTimer(tableId);
   roomManager.setHandActive(tableId, false);
   touchLocalRoom(tableId);
   broadcastSnapshot(tableId);
@@ -661,7 +664,10 @@ function startTimerForActor(tableId: string): void {
   const table = tables.get(tableId);
   if (!table) return;
   const state = table.getPublicState();
-  if (!state.actorSeat || !state.handId) return;
+  if (state.actorSeat == null || !state.handId) return;
+
+  const expectedHandId = state.handId;
+  const expectedSeat = state.actorSeat;
 
   const actorBinding = bindingsByTable(tableId).find((e) => e.binding.seat === state.actorSeat);
   if (!actorBinding) return;
@@ -675,7 +681,8 @@ function startTimerForActor(tableId: string): void {
       const tbl = tables.get(tableId);
       if (!tbl) return;
       const s = tbl.getPublicState();
-      if (!s.actorSeat || !s.legalActions) return;
+      if (!s.handId || s.handId !== expectedHandId) return;
+      if (s.actorSeat == null || s.actorSeat !== expectedSeat || !s.legalActions) return;
       const timedOutSeat = s.actorSeat;
       try {
         const newState = tbl.applyAction(timedOutSeat, "fold");
@@ -741,7 +748,8 @@ function standUpPlayer(tableId: string, seatNum: number, reason: string): void {
 
 /** Common post-action logic: check runout, finalize, or continue */
 function handlePostAction(tableId: string, table: GameTable, newState: TableState): void {
-  if (!newState.actorSeat) {
+  if (newState.actorSeat == null) {
+    roomManager.clearActionTimer(tableId);
     if (table.isRunoutPending()) {
       initiateRunoutFlow(tableId, table);
     } else {
@@ -769,7 +777,7 @@ function initiateRunoutFlow(tableId: string, table: GameTable): void {
       recommendedRunCount: 1,
       defaultRunCount: 1,
       allowedRunCounts: [1, 2],
-      reason: `勝率 ${Math.round(lowestEquity.winRate * 100)}%，你可以選擇發一次或兩次`,
+      reason: `Win rate ${Math.round(lowestEquity.winRate * 100)}%. You can choose to run it once or twice.`,
     };
 
     pendingAllInPrompts.set(tableId, { handId: state.handId!, prompt });
@@ -1206,18 +1214,19 @@ io.on("connection", (socket) => {
       pendingSeatRequests.set(orderId, request);
       console.log("[SEAT_REQUEST] Stored request:", orderId);
 
-      // Notify host/co-hosts
-      const hostBindings = bindingsByTable(payload.tableId).filter(({ binding: b }) =>
-        roomManager.isHostOrCoHost(payload.tableId, b.userId)
-      );
-      console.log("[SEAT_REQUEST] Found", hostBindings.length, "host/co-host bindings");
-      
-      for (const { socketId: sid } of hostBindings) {
-        console.log("[SEAT_REQUEST] Notifying host socket:", sid);
+      // Notify host/co-hosts currently in the room (whether seated or spectating)
+      const roomSockets = io.sockets.adapter.rooms.get(payload.tableId) ?? new Set<string>();
+      let notified = 0;
+      for (const sid of roomSockets) {
+        const id = socketIdentity.get(sid);
+        if (!id) continue;
+        if (!roomManager.isHostOrCoHost(payload.tableId, id.userId)) continue;
         io.to(sid).emit("seat_request_pending", {
           orderId, userId: identity.userId, userName, seat: payload.seat, buyIn: payload.buyIn,
         });
+        notified += 1;
       }
+      console.log("[SEAT_REQUEST] Notified", notified, "host/co-host sockets");
 
       socket.emit("seat_request_sent", { orderId, seat: payload.seat });
     } catch (error) {
@@ -1300,6 +1309,11 @@ io.on("connection", (socket) => {
     const table = tables.get(payload.tableId);
     if (!table) return;
 
+    if (table.isHandActive()) {
+      socket.emit("error_event", { message: "Cannot stand up during an active hand" });
+      return;
+    }
+
     const binding = socketSeat.get(socket.id);
     if (!binding || binding.tableId !== payload.tableId || binding.seat !== payload.seat) {
       socket.emit("error_event", { message: "You can only stand up from your own seat" });
@@ -1345,6 +1359,11 @@ io.on("connection", (socket) => {
     try {
       const table = tables.get(payload.tableId);
       if (!table) throw new Error("table not found");
+      const prevState = table.getPublicState();
+
+      if (!prevState.handId || payload.handId !== prevState.handId) {
+        throw new Error("stale or invalid handId");
+      }
 
       if (roomManager.isPaused(payload.tableId)) {
         throw new Error("Game is paused");
@@ -1383,7 +1402,7 @@ io.on("connection", (socket) => {
         lastAdvice.delete(adviceKey);
       }
 
-      if (newState.street !== "PREFLOP") {
+      if (prevState.street !== newState.street) {
         io.to(payload.tableId).emit("street_advanced", { street: newState.street, board: newState.board });
       }
 
@@ -1421,7 +1440,7 @@ io.on("connection", (socket) => {
 
       // Verify the submitter is the correct player (the underdog)
       const binding = socketSeat.get(socket.id);
-      if (!binding || binding.seat !== pending.prompt.actorSeat) {
+      if (!binding || binding.tableId !== payload.tableId || binding.seat !== pending.prompt.actorSeat) {
         throw new Error("not the designated player for run count decision");
       }
 
@@ -1515,6 +1534,10 @@ io.on("connection", (socket) => {
       if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId)) {
         throw new Error("Only the host or co-host can kick players");
       }
+      const table = tables.get(payload.tableId);
+      if (table?.isHandActive()) {
+        throw new Error("Cannot kick players during an active hand");
+      }
       // Cannot kick yourself
       if (payload.targetUserId === identity.userId) {
         throw new Error("Cannot kick yourself");
@@ -1538,7 +1561,6 @@ io.on("connection", (socket) => {
       );
 
       if (targetSocketId) {
-        const table = tables.get(payload.tableId);
         const targetBinding = socketSeat.get(targetSocketId);
         if (table && targetBinding) {
           table.removePlayer(targetBinding.seat);
@@ -1727,7 +1749,7 @@ io.on("connection", (socket) => {
                     pot: tbl.getPublicState().pot, auto: true,
                   });
                   const newState = tbl.getPublicState();
-                  if (!newState.actorSeat) {
+                  if (newState.actorSeat == null) {
                     finalizeHandEnd(binding.tableId, newState);
                   } else {
                     touchLocalRoom(binding.tableId);

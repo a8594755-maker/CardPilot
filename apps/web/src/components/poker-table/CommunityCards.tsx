@@ -14,7 +14,7 @@ export function CommunityCards({ cards }: CommunityCardsProps) {
           alt={card}
           className="w-16 h-auto rounded-lg shadow-xl hover:scale-105 transition-transform"
           onError={(e) => {
-            // 如果图片加载失败，显示备用文字
+            // If image loading fails, show fallback text
             const target = e.target as HTMLImageElement;
             target.style.display = 'none';
             const parent = target.parentElement;

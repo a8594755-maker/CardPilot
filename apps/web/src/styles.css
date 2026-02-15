@@ -190,3 +190,58 @@
     transform: translateY(0) scale(1);
   }
 }
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* ── Toast notification ── */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(8px) scale(0.95); }
+}
+
+@layer components {
+  .toast {
+    pointer-events: auto;
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+    max-width: 360px;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    animation: toastIn 0.25s ease-out;
+  }
+  .toast-exit {
+    animation: toastOut 0.25s ease-in forwards;
+  }
+  .toast-info {
+    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid rgba(148, 163, 184, 0.15);
+    color: #cbd5e1;
+  }
+  .toast-error {
+    background: rgba(127, 29, 29, 0.85);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+  }
+
+  /* ── GTO Sidebar drawer overlay (mobile) ── */
+  @keyframes drawerSlideIn {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(0); }
+  }
+  .gto-drawer {
+    animation: drawerSlideIn 0.25s ease-out;
+  }
+}

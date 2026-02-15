@@ -94,7 +94,7 @@ function PlayingCard({ card }: PlayingCardProps) {
       alt={card}
       className="w-12 h-auto rounded shadow-md hover:scale-105 transition-transform"
       onError={(e) => {
-        // 如果图片加载失败，显示备用文字
+        // If image loading fails, show fallback text
         const target = e.target as HTMLImageElement;
         target.style.display = 'none';
         const parent = target.parentElement;
@@ -113,7 +113,7 @@ function CardBack() {
       alt="Card Back"
       className="w-12 h-auto rounded shadow-md"
       onError={(e) => {
-        // 如果图片加载失败，显示备用样式
+        // If image loading fails, show fallback style
         const target = e.target as HTMLImageElement;
         target.style.display = 'none';
         const parent = target.parentElement;
