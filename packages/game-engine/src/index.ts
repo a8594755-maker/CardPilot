@@ -1,7 +1,15 @@
 import { randomInt } from "node:crypto";
 import { v4 as uuidv4 } from "uuid";
 import pokersolver from "pokersolver";
-import type { HandAction, LegalActions, PlayerActionType, Street, TablePlayer, TableState } from "@cardpilot/shared-types";
+import type {
+  HandAction,
+  LegalActions,
+  PlayerActionType,
+  SettlementResult,
+  Street,
+  TablePlayer,
+  TableState,
+} from "@cardpilot/shared-types";
 
 const RANKS = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"];
 const SUITS = ["s", "h", "d", "c"];
@@ -22,12 +30,17 @@ type MutableTableState = TableState & {
   deck: string[];
   holeCards: Map<number, [string, string]>;
   contributed: Map<number, number>;
+  handStartStacks: Map<number, number>;
+  revealedHoles: Record<number, [string, string]>;
+  muckedSeats: number[];
+  showdownPhase: "none" | "decision";
 };
 
 export class GameTable {
   private state: MutableTableState;
   private allInRunCount: 1 | 2 = 1;
   private runoutPending = false;
+  private settlementResult: SettlementResult | null = null;
 
   constructor(params: { tableId: string; smallBlind: number; bigBlind: number; mode?: TableMode }) {
     this.state = {
@@ -47,9 +60,13 @@ export class GameTable {
       legalActions: null,
       mode: params.mode ?? "COACH",
       positions: {},
+      revealedHoles: {},
+      muckedSeats: [],
+      showdownPhase: "none",
       pendingToAct: new Set<number>(),
       deck: [],
       holeCards: new Map(),
+      handStartStacks: new Map(),
       contributed: new Map()
     };
   }
@@ -72,9 +89,66 @@ export class GameTable {
     return this.state.holeCards.get(seat) ?? null;
   }
 
+  isSeatFolded(seat: number): boolean {
+    const player = this.state.players.find((p) => p.seat === seat);
+    return player?.folded ?? false;
+  }
+
+  getShowdownContenderSeats(): number[] {
+    return this.state.players
+      .filter((p) => p.inHand && !p.folded && this.state.holeCards.has(p.seat))
+      .map((p) => p.seat)
+      .sort((a, b) => a - b);
+  }
+
+  revealPublicHand(seat: number): boolean {
+    const cards = this.state.holeCards.get(seat);
+    if (!cards) return false;
+    this.state.revealedHoles[seat] = [cards[0], cards[1]];
+    this.state.muckedSeats = this.state.muckedSeats.filter((s) => s !== seat);
+    return true;
+  }
+
+  muckPublicHand(seat: number): boolean {
+    if (!this.state.holeCards.has(seat)) return false;
+    if (this.state.revealedHoles[seat]) {
+      const next = { ...this.state.revealedHoles };
+      delete next[seat];
+      this.state.revealedHoles = next;
+    }
+    if (!this.state.muckedSeats.includes(seat)) {
+      this.state.muckedSeats = [...this.state.muckedSeats, seat].sort((a, b) => a - b);
+    }
+    return true;
+  }
+
+  finalizeShowdownReveals(params?: { autoMuckLosingHands?: boolean }): void {
+    if (this.state.showdownPhase !== "decision") return;
+    const winners = new Set((this.state.winners ?? []).map((w) => w.seat));
+    const contenders = this.getShowdownContenderSeats();
+    const autoMuckLosingHands = params?.autoMuckLosingHands ?? true;
+
+    for (const seat of winners) {
+      this.revealPublicHand(seat);
+    }
+
+    if (autoMuckLosingHands) {
+      for (const seat of contenders) {
+        if (winners.has(seat)) continue;
+        if (this.state.revealedHoles[seat]) continue;
+        this.muckPublicHand(seat);
+      }
+    }
+
+    this.state.showdownPhase = "none";
+  }
+
   addPlayer(player: { seat: number; userId: string; name: string; stack: number }): void {
     if (this.state.players.some((p) => p.seat === player.seat)) {
       throw new Error("seat already occupied");
+    }
+    if (player.stack <= 0) {
+      throw new Error("stack must be greater than 0");
     }
     this.state.players.push({
       seat: player.seat,
@@ -102,6 +176,10 @@ export class GameTable {
   }
 
   startHand(): { handId: string } {
+    if (this.isHandActive()) {
+      throw new Error("hand already active");
+    }
+
     const seated = this.state.players.filter((p) => p.stack > 0);
     if (seated.length < 2) {
       throw new Error("need at least 2 players with chips");
@@ -118,17 +196,24 @@ export class GameTable {
     this.state.pendingToAct = new Set<number>();
     this.state.holeCards.clear();
     this.state.contributed.clear();
+    this.state.handStartStacks.clear();
     this.state.deck = shuffledDeck();
     this.state.winners = undefined;
     this.state.runoutBoards = undefined;
+    this.state.runoutPayouts = undefined;
+    this.state.revealedHoles = {};
+    this.state.muckedSeats = [];
+    this.state.showdownPhase = "none";
     this.allInRunCount = 1;
     this.runoutPending = false;
+    this.settlementResult = null;
 
     const sortedSeats = seated.map((p) => p.seat).sort((a, b) => a - b);
     this.state.buttonSeat = nextSeatCircular(this.state.buttonSeat, sortedSeats);
 
     for (const player of this.state.players) {
       const active = sortedSeats.includes(player.seat);
+      this.state.handStartStacks.set(player.seat, player.stack);
       player.inHand = active;
       player.folded = !active;
       player.allIn = false;
@@ -341,7 +426,7 @@ export class GameTable {
   }
 
   isHandActive(): boolean {
-    return this.state.handId !== null && (this.state.actorSeat !== null || this.runoutPending);
+    return this.state.handId !== null && (this.state.actorSeat !== null || this.runoutPending || this.state.showdownPhase === "decision");
   }
 
   getMode(): TableMode {
@@ -427,7 +512,8 @@ export class GameTable {
     const firstBoard = this.completeRunoutBoard(baseBoard);
     const secondBoard = this.completeRunoutBoard(baseBoard);
 
-    const payouts = new Map<number, { amount: number; handName?: string }>();
+    const payoutsRun1 = new Map<number, { amount: number; handName?: string }>();
+    const payoutsRun2 = new Map<number, { amount: number; handName?: string }>();
     const sidePots = this.buildSidePots(contenders);
     const solvedFirst = this.solveContenders(contenders, firstBoard);
     const solvedSecond = this.solveContenders(contenders, secondBoard);
@@ -435,20 +521,25 @@ export class GameTable {
     for (const sidePot of sidePots) {
       const firstHalf = Math.floor(sidePot.amount / 2);
       const secondHalf = sidePot.amount - firstHalf;
-      this.distributeSolvedPot(firstHalf, solvedFirst, sidePot.eligibleSeats, payouts);
-      this.distributeSolvedPot(secondHalf, solvedSecond, sidePot.eligibleSeats, payouts);
+      this.distributeSolvedPot(firstHalf, solvedFirst, sidePot.eligibleSeats, payoutsRun1);
+      this.distributeSolvedPot(secondHalf, solvedSecond, sidePot.eligibleSeats, payoutsRun2);
     }
 
+    const payouts = this.mergePayoutMaps(payoutsRun1, payoutsRun2);
     // Store both boards for client visualization
     this.state.runoutBoards = [firstBoard, secondBoard];
+    this.state.runoutPayouts = [
+      { run: 1, board: firstBoard, winners: this.mapPayoutsToWinners(payoutsRun1) },
+      { run: 2, board: secondBoard, winners: this.mapPayoutsToWinners(payoutsRun2) },
+    ];
     this.state.board = secondBoard;
     this.state.street = "SHOWDOWN";
-    this.state.winners = [...payouts.entries()]
-      .map(([seat, v]) => ({ seat, amount: v.amount, handName: v.handName }))
-      .sort((a, b) => a.seat - b.seat);
+    this.state.winners = this.mapPayoutsToWinners(payouts);
     this.state.pot = 0;
     this.state.actorSeat = null;
     this.state.pendingToAct.clear();
+    this.enterShowdownDecisionState(contenders.map((p) => p.seat));
+    this.settlementResult = this.createSettlementResult(true);
     this.allInRunCount = 1;
   }
 
@@ -582,10 +673,16 @@ export class GameTable {
     this.state.actions = [];
     this.state.winners = undefined;
     this.state.runoutBoards = undefined;
+    this.state.runoutPayouts = undefined;
+    this.state.revealedHoles = {};
+    this.state.muckedSeats = [];
+    this.state.showdownPhase = "none";
     this.state.pendingToAct.clear();
     this.state.holeCards.clear();
     this.state.contributed.clear();
+    this.state.handStartStacks.clear();
     this.runoutPending = false;
+    this.settlementResult = null;
   }
 
   /** True when applyAction detected an all-in runout situation */
@@ -685,9 +782,12 @@ export class GameTable {
     this.state.winners = [...payouts.entries()]
       .map(([seat, v]) => ({ seat, amount: v.amount, handName: v.handName }))
       .sort((a, b) => a.seat - b.seat);
+    this.state.runoutPayouts = undefined;
     this.state.pot = 0;
     this.state.actorSeat = null;
     this.state.pendingToAct.clear();
+    this.enterShowdownDecisionState(contenders.map((p) => p.seat));
+    this.settlementResult = this.createSettlementResult(true);
   }
 
   private finishNoShowdown(): void {
@@ -695,10 +795,14 @@ export class GameTable {
     const won = this.state.pot;
     winner.stack += won;
     this.state.winners = [{ seat: winner.seat, amount: won }];
+    this.state.runoutPayouts = undefined;
     this.state.pot = 0;
     this.state.street = "SHOWDOWN";
     this.state.actorSeat = null;
     this.state.pendingToAct.clear();
+    this.state.showdownPhase = "none";
+    this.state.muckedSeats = [];
+    this.settlementResult = this.createSettlementResult(false);
   }
 
   private commitBlind(seat: number, amount: number, type: "post_sb" | "post_bb") {
@@ -755,6 +859,17 @@ export class GameTable {
 
   private logAction(action: HandAction): void {
     this.state.actions.push(action);
+  }
+
+  private enterShowdownDecisionState(contenderSeats: number[]): void {
+    if (contenderSeats.length < 2) {
+      this.state.showdownPhase = "none";
+      this.state.muckedSeats = [];
+      return;
+    }
+
+    this.state.showdownPhase = "decision";
+    this.state.muckedSeats = [];
   }
 }
 

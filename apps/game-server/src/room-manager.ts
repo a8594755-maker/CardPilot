@@ -43,6 +43,11 @@ const DEFAULTS: RoomSettings = {
   showdownSpeed: "normal",
   dealToAwayPlayers: false,
   revealAllAtShowdown: true,
+  autoRevealOnAllInCall: true,
+  autoRevealWinningHands: true,
+  autoMuckLosingHands: true,
+  allowShowAfterFold: false,
+  allowShowCalledHandRequest: false,
   bombPotEnabled: false,
   bombPotFrequency: 0,
   doubleBoardMode: "off",
@@ -52,6 +57,7 @@ const DEFAULTS: RoomSettings = {
   simulatedFeeCap: 0,
   allowGuestChat: true,
   autoTrimExcessBets: true,
+  roomFundsTracking: false,
 };
 
 const MAX_LOG_ENTRIES = 200;
@@ -291,6 +297,8 @@ export class RoomManager {
       "timeBankHandsToFill",
       "thinkExtensionSecondsPerUse", "thinkExtensionQuotaPerHour",
       "disconnectGracePeriod", "maxConsecutiveTimeouts",
+      "autoRevealOnAllInCall", "autoRevealWinningHands", "autoMuckLosingHands",
+      "allowShowAfterFold", "allowShowCalledHandRequest",
     ];
 
     // Fields that can only change pre-game or apply next hand

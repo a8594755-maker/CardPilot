@@ -78,6 +78,7 @@ const pendingSeatRequests = new Map<string, SeatRequest>();
 const autoDealSchedule = new Map<string, ReturnType<typeof setTimeout>>();
 const pendingAllInPrompts = new Map<string, { handId: string; prompt: AllInPrompt }>();
 const pendingRunCountTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
+const pendingShowdownTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 const handIdleWatchdogs = new Map<string, ReturnType<typeof setTimeout>>();
 const HAND_IDLE_TIMEOUT_MS = 60_000; // 60s with no seated players → abort hand
 
@@ -522,6 +523,85 @@ function calculateAllPlayersEquity(table: GameTable, board: Card[]): Array<{ sea
   return equities;
 }
 
+function clearShowdownDecisionTimeout(tableId: string): void {
+  const timeout = pendingShowdownTimeouts.get(tableId);
+  if (timeout) {
+    clearTimeout(timeout);
+    pendingShowdownTimeouts.delete(tableId);
+  }
+}
+
+function settleShowdownDecision(tableId: string, table: GameTable, expectedHandId: string): void {
+  const state = table.getPublicState();
+  if (!state.handId || state.handId !== expectedHandId) return;
+
+  if (state.showdownPhase === "decision") {
+    const settings = roomManager.getRoom(tableId)?.settings;
+    table.finalizeShowdownReveals({
+      autoMuckLosingHands: settings?.autoMuckLosingHands ?? true,
+    });
+  }
+
+  finalizeHandEnd(tableId, table.getPublicState());
+}
+
+function maybeFinalizeShowdownDecision(tableId: string, table: GameTable): void {
+  const state = table.getPublicState();
+  if (state.showdownPhase !== "decision" || !state.handId) return;
+
+  const contenders = table.getShowdownContenderSeats();
+  if (contenders.length === 0) return;
+
+  const revealed = state.revealedHoles ?? {};
+  const mucked = new Set(state.muckedSeats ?? []);
+  const allDecided = contenders.every((seat) => Boolean(revealed[seat]) || mucked.has(seat));
+  if (!allDecided) return;
+
+  clearShowdownDecisionTimeout(tableId);
+  settleShowdownDecision(tableId, table, state.handId);
+}
+
+function beginShowdownDecision(tableId: string, table: GameTable, state: TableState): void {
+  if (state.showdownPhase !== "decision" || !state.handId) {
+    finalizeHandEnd(tableId, state);
+    return;
+  }
+
+  clearShowdownDecisionTimeout(tableId);
+  touchLocalRoom(tableId);
+  broadcastSnapshot(tableId);
+
+  const expectedHandId = state.handId;
+  const timeout = setTimeout(() => {
+    pendingShowdownTimeouts.delete(tableId);
+    const liveTable = tables.get(tableId);
+    if (!liveTable) return;
+    settleShowdownDecision(tableId, liveTable, expectedHandId);
+  }, 4000);
+
+  pendingShowdownTimeouts.set(tableId, timeout);
+}
+
+function maybeAutoRevealRunoutHands(tableId: string, table: GameTable): void {
+  const settings = roomManager.getRoom(tableId)?.settings;
+  if ((settings?.autoRevealOnAllInCall ?? true) !== true) return;
+
+  const state = table.getPublicState();
+  const seatsToReveal = state.players
+    .filter((p) => p.inHand && !p.folded)
+    .map((p) => p.seat);
+
+  let changed = false;
+  for (const seat of seatsToReveal) {
+    changed = table.revealPublicHand(seat) || changed;
+  }
+
+  if (changed) {
+    touchLocalRoom(tableId);
+    broadcastSnapshot(tableId);
+  }
+}
+
 async function handleSequentialRunout(tableId: string, table: GameTable): Promise<void> {
   // For run-it-twice: engine deals both boards atomically, then we reveal street-by-street
   if (table.getAllInRunCount() === 2) {
@@ -564,7 +644,7 @@ async function handleSequentialRunout(tableId: string, table: GameTable): Promis
       await new Promise((resolve) => setTimeout(resolve, 1500));
     }
 
-    finalizeHandEnd(tableId, finalState);
+    beginShowdownDecision(tableId, table, finalState);
     return;
   }
 
@@ -578,7 +658,7 @@ async function handleSequentialRunout(tableId: string, table: GameTable): Promis
     const state = table.getPublicState();
 
     if (street === "SHOWDOWN") {
-      finalizeHandEnd(tableId, state);
+      beginShowdownDecision(tableId, table, state);
       return;
     }
 
@@ -641,6 +721,7 @@ function resetHandIdleWatchdog(tableId: string): void {
     roomManager.setHandActive(tableId, false);
     roomManager.clearActionTimer(tableId);
     clearAutoDealSchedule(tableId);
+    clearShowdownDecisionTimeout(tableId);
 
     io.to(tableId).emit("hand_aborted", { reason: "Hand aborted: table idle too long" });
     io.to(tableId).emit("system_message", { message: "Hand cancelled due to long inactivity. Bets have been refunded." });
@@ -680,6 +761,7 @@ function startHandFlow(tableId: string, actorUserId: string, source: "manual" | 
   pendingAllInPrompts.delete(tableId);
   const rcTimeout = pendingRunCountTimeouts.get(tableId);
   if (rcTimeout) { clearTimeout(rcTimeout); pendingRunCountTimeouts.delete(tableId); }
+  clearShowdownDecisionTimeout(tableId);
 
   roomManager.setHandActive(tableId, true);
   const playerUserIds = bindingsByTable(tableId).map((b) => b.binding.userId);
@@ -745,6 +827,7 @@ function finalizeHandEnd(tableId: string, state: TableState): void {
   pendingAllInPrompts.delete(tableId);
   const rcTimeout = pendingRunCountTimeouts.get(tableId);
   if (rcTimeout) { clearTimeout(rcTimeout); pendingRunCountTimeouts.delete(tableId); }
+  clearShowdownDecisionTimeout(tableId);
   io.to(tableId).emit("hand_ended", {
     handId: state.handId,
     finalState: state,
@@ -800,6 +883,7 @@ function handleRoomAutoClose(tableId: string): void {
   const closed = roomManager.finalizeAutoClose(tableId, count);
   if (closed) {
     clearAutoDealSchedule(tableId);
+    clearShowdownDecisionTimeout(tableId);
     io.to(tableId).emit("room_closed", { tableId, reason: "empty" });
     tables.delete(tableId);
     const room = roomsByTableId.get(tableId);
@@ -905,6 +989,8 @@ function handlePostAction(tableId: string, table: GameTable, newState: TableStat
     roomManager.clearActionTimer(tableId);
     if (table.isRunoutPending()) {
       initiateRunoutFlow(tableId, table);
+    } else if (newState.showdownPhase === "decision") {
+      beginShowdownDecision(tableId, table, newState);
     } else {
       finalizeHandEnd(tableId, newState);
     }
@@ -917,6 +1003,7 @@ function handlePostAction(tableId: string, table: GameTable, newState: TableStat
 
 /** When all-in runout is needed: decide whether to prompt for run count or just deal */
 function initiateRunoutFlow(tableId: string, table: GameTable): void {
+  maybeAutoRevealRunoutHands(tableId, table);
   const state = table.getPublicState();
 
   if (table.isEveryoneAllIn()) {
@@ -1671,6 +1758,88 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("show_hand", (payload: { tableId: string; handId: string; seat: number; scope: "table" }) => {
+    try {
+      const table = tables.get(payload.tableId);
+      if (!table) throw new Error("table not found");
+      if (payload.scope !== "table") throw new Error("unsupported show scope");
+
+      const binding = socketSeat.get(socket.id);
+      if (!binding || binding.tableId !== payload.tableId || binding.seat !== payload.seat) {
+        throw new Error("You can only show your own hand");
+      }
+
+      const room = roomManager.getRoom(payload.tableId);
+      if (!room?.handActive) throw new Error("hand already ended");
+
+      const state = table.getPublicState();
+      if (!state.handId || state.handId !== payload.handId) {
+        throw new Error("stale or invalid handId");
+      }
+
+      const player = state.players.find((p) => p.seat === payload.seat);
+      if (!player) throw new Error("player not found");
+
+      const inShowdownDecision = state.showdownPhase === "decision";
+      const canShowInShowdown = inShowdownDecision && player.inHand && !player.folded;
+      const canShowAfterFold = (room.settings.allowShowAfterFold ?? false) && player.folded;
+      if (!canShowInShowdown && !canShowAfterFold) {
+        throw new Error("show hand is not allowed right now");
+      }
+
+      if (!table.revealPublicHand(payload.seat)) {
+        throw new Error("cannot reveal hand");
+      }
+
+      touchLocalRoom(payload.tableId);
+      broadcastSnapshot(payload.tableId);
+
+      if (state.showdownPhase === "decision") {
+        maybeFinalizeShowdownDecision(payload.tableId, table);
+      }
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
+  socket.on("muck_hand", (payload: { tableId: string; handId: string; seat: number }) => {
+    try {
+      const table = tables.get(payload.tableId);
+      if (!table) throw new Error("table not found");
+
+      const binding = socketSeat.get(socket.id);
+      if (!binding || binding.tableId !== payload.tableId || binding.seat !== payload.seat) {
+        throw new Error("You can only muck your own hand");
+      }
+
+      const room = roomManager.getRoom(payload.tableId);
+      if (!room?.handActive) throw new Error("hand already ended");
+
+      const state = table.getPublicState();
+      if (!state.handId || state.handId !== payload.handId) {
+        throw new Error("stale or invalid handId");
+      }
+      if (state.showdownPhase !== "decision") {
+        throw new Error("muck is only available during showdown");
+      }
+
+      const player = state.players.find((p) => p.seat === payload.seat);
+      if (!player || !player.inHand || player.folded) {
+        throw new Error("only live showdown hands can muck");
+      }
+
+      if (!table.muckPublicHand(payload.seat)) {
+        throw new Error("cannot muck hand");
+      }
+
+      touchLocalRoom(payload.tableId);
+      broadcastSnapshot(payload.tableId);
+      maybeFinalizeShowdownDecision(payload.tableId, table);
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
   // Run count decision: sent by the underdog player after all-in situation is confirmed
   socket.on("run_count_submit", (payload: { tableId: string; handId: string; runCount: 1 | 2 }) => {
     try {
@@ -1927,6 +2096,7 @@ io.on("connection", (socket) => {
             throw new Error("Only the host can stop auto-deal");
           }
           clearAutoDealSchedule(payload.tableId);
+          clearShowdownDecisionTimeout(payload.tableId);
           roomManager.endGame(payload.tableId, identity.userId, identity.displayName);
           break;
         case "start":
@@ -1938,6 +2108,7 @@ io.on("connection", (socket) => {
             throw new Error("Only the host can restart the game");
           }
           clearAutoDealSchedule(payload.tableId);
+          clearShowdownDecisionTimeout(payload.tableId);
           roomManager.endGame(payload.tableId, identity.userId, identity.displayName);
           // Client should call start_hand after restart
           break;
@@ -1961,6 +2132,7 @@ io.on("connection", (socket) => {
 
       // Stop auto-deal and timers
       clearAutoDealSchedule(payload.tableId);
+      clearShowdownDecisionTimeout(payload.tableId);
       roomManager.endGame(payload.tableId, identity.userId, identity.displayName);
 
       // Notify all players and send them back to lobby
@@ -2034,13 +2206,7 @@ io.on("connection", (socket) => {
                     pot: tbl.getPublicState().pot, auto: true,
                   });
                   const newState = tbl.getPublicState();
-                  if (newState.actorSeat == null) {
-                    finalizeHandEnd(binding.tableId, newState);
-                  } else {
-                    touchLocalRoom(binding.tableId);
-                    broadcastSnapshot(binding.tableId);
-                    startTimerForActor(binding.tableId);
-                  }
+                  handlePostAction(binding.tableId, tbl, newState);
                 } catch { /* already folded or hand ended */ }
               }
             }

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState, useCallback, useRef, memo } from "react";
 import { io, type Socket } from "socket.io-client";
-import type { AdvicePayload, LobbyRoomSummary, TableState, TablePlayer, LegalActions, RoomFullState, TimerState, RoomLogEntry, AllInPrompt } from "@cardpilot/shared-types";
+import type { AdvicePayload, LobbyRoomSummary, TableState, TablePlayer, LegalActions, RoomFullState, TimerState, RoomLogEntry, AllInPrompt, SettlementResult } from "@cardpilot/shared-types";
 import { getExistingSession, ensureGuestSession, signUpWithEmail, signInWithEmail, signInWithGoogle, signOut, supabase, validateEmail, validatePassword, getRateLimitSecondsLeft, type AuthSession } from "./supabase";
 import { preloadCardImages, getCardImagePath } from "./lib/card-images.js";
+import { SettlementOverlay } from "./components/SettlementOverlay";
 import { getSuggestedPresets, userPresetsToButtons, type BetPreset } from "./lib/bet-sizing.js";
 import { saveHand, getHands, updateHand, autoTag, type HandRecord, type HandActionRecord, type GTOAnalysis, type StreetAnalysis } from "./lib/hand-history.js";
 
@@ -57,8 +58,12 @@ export function App() {
   // message state removed — replaced by toast system (showToast)
   const [actionPending, setActionPending] = useState(false);
   const [winners, setWinners] = useState<Array<{ seat: number; amount: number; handName?: string }> | null>(null);
+  const [settlement, setSettlement] = useState<SettlementResult | null>(null);
+  const [settlementCountdown, setSettlementCountdown] = useState(0);
+  const [settlementHistory, setSettlementHistory] = useState<SettlementResult[]>([]);
   const [allInPrompt, setAllInPrompt] = useState<AllInPrompt | null>(null);
   const [boardReveal, setBoardReveal] = useState<{ street: string; equities: Array<{ seat: number; winRate: number; tieRate: number }> } | null>(null);
+  const [showHandConfirm, setShowHandConfirm] = useState(false);
 
   const [lobbyRooms, setLobbyRooms] = useState<LobbyRoomSummary[]>([]);
   const [newRoomSB, setNewRoomSB] = useState(1);
@@ -266,6 +271,7 @@ export function App() {
     s.on("hand_started", () => {
       setActionPending(false);
       setAdvice(null); setDeviation(null); setWinners(null); setAllInPrompt(null); setBoardReveal(null); setHoleCards([]);
+      setSettlement(null); setSettlementCountdown(0);
     });
     s.on("board_reveal", (d: { handId: string; street: string; newCards: string[]; board: string[]; equities: Array<{ seat: number; winRate: number; tieRate: number }> }) => {
       setBoardReveal({ street: d.street, equities: d.equities });
@@ -288,12 +294,20 @@ export function App() {
     s.on("advice_deviation", (d: AdvicePayload & { playerAction: string }) => {
       setDeviation({ deviation: d.deviation ?? 0, playerAction: d.playerAction });
     });
-    s.on("hand_ended", (d: { handId?: string; finalState?: TableState; winners?: Array<{ seat: number; amount: number; handName?: string }> }) => {
+    s.on("hand_ended", (d: { handId?: string; finalState?: TableState; winners?: Array<{ seat: number; amount: number; handName?: string }>; settlement?: SettlementResult }) => {
       setActionPending(false);
       setAllInPrompt(null);
       setBoardReveal(null);
       if (d.winners) setWinners(d.winners);
       if (d.finalState) setSnapshot(d.finalState);
+
+      // Settlement overlay: capture settlement data and start countdown
+      if (d.settlement) {
+        setSettlement(d.settlement);
+        setSettlementCountdown(6);
+        setSettlementHistory((prev) => [...prev.slice(-99), d.settlement!]);
+      }
+
       // Auto-record hand to history
       try {
         const snap = d.finalState ?? snapshotRef.current;
@@ -372,6 +386,8 @@ export function App() {
       setActionPending(false);
       setHoleCards([]);
       setWinners(null);
+      setSettlement(null);
+      setSettlementCountdown(0);
       setAllInPrompt(null);
       setAdvice(null);
       setDeviation(null);
@@ -407,7 +423,6 @@ export function App() {
   }, [socketAuthUserId, socketAuthToken, displayName]);
 
   const canAct = useMemo(() => snapshot?.actorSeat === seat && snapshot?.handId, [snapshot, seat]);
-
   // Reset raiseTo to minRaise whenever legal actions change
   useEffect(() => {
     const minR = snapshot?.legalActions?.minRaise;
@@ -430,6 +445,69 @@ export function App() {
     return roomState?.thinkExtensionUsageByUser?.[uid] ?? null;
   }, [roomState, authSession]);
   const thinkExtensionRemainingUses = myThinkExtensionUsage?.remaining ?? roomState?.settings.thinkExtensionQuotaPerHour ?? 0;
+  const myPlayer = useMemo(
+    () => snapshot?.players.find((p) => p.seat === seat) ?? null,
+    [snapshot?.players, seat]
+  );
+  const myRevealedCards = (snapshot?.revealedHoles?.[seat] as [string, string] | undefined) ?? undefined;
+  const myIsMucked = snapshot?.muckedSeats?.includes(seat) ?? false;
+  const myIsWinner = snapshot?.winners?.some((w) => w.seat === seat) ?? false;
+  const isMyShowdownDecision = useMemo(() => {
+    if (snapshot?.showdownPhase !== "decision") return false;
+    if (!myPlayer) return false;
+    return myPlayer.inHand && !myPlayer.folded;
+  }, [snapshot?.showdownPhase, myPlayer]);
+  const canVoluntaryShow = useMemo(() => {
+    if (!snapshot?.handId || !myPlayer || holeCards.length !== 2) return false;
+    if (snapshot.showdownPhase === "decision" && myPlayer.inHand && !myPlayer.folded) return true;
+    if (roomState?.settings.allowShowAfterFold !== true) return false;
+    if (roomState?.status !== "PLAYING") return false;
+    return myPlayer.folded;
+  }, [snapshot?.handId, snapshot?.showdownPhase, myPlayer, holeCards.length, roomState?.settings.allowShowAfterFold, roomState?.status]);
+  useEffect(() => {
+    if (!canVoluntaryShow) setShowHandConfirm(false);
+  }, [canVoluntaryShow]);
+  useEffect(() => {
+    if (!socket || !snapshot?.handId) return;
+    if (!isMyShowdownDecision) return;
+    if (myIsWinner) return;
+    if (myRevealedCards || myIsMucked) return;
+    if ((roomState?.settings.autoMuckLosingHands ?? true) !== true) return;
+
+    const timeout = setTimeout(() => {
+      socket.emit("muck_hand", { tableId, handId: snapshot.handId, seat });
+    }, 4000);
+    return () => clearTimeout(timeout);
+  }, [
+    socket,
+    tableId,
+    seat,
+    snapshot?.handId,
+    isMyShowdownDecision,
+    myIsWinner,
+    myRevealedCards,
+    myIsMucked,
+    roomState?.settings.autoMuckLosingHands,
+  ]);
+  // Settlement overlay countdown timer
+  useEffect(() => {
+    if (!settlement || settlementCountdown <= 0) return;
+    const timer = setTimeout(() => {
+      setSettlementCountdown((prev) => Math.max(0, prev - 1));
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [settlement, settlementCountdown]);
+
+  // Compute auto-start block reason for settlement overlay
+  const autoStartBlockReason = useMemo(() => {
+    if (!settlement) return null;
+    if (roomState?.status === "PAUSED") return "Game is paused by host.";
+    if (!roomState?.settings.autoStartNextHand) return "Auto-start is off.";
+    const eligibleCount = snapshot?.players.filter((p) => p.stack > 0).length ?? 0;
+    if (eligibleCount < 2) return `Waiting for 2+ eligible players (currently ${eligibleCount}).`;
+    return null;
+  }, [settlement, roomState, snapshot?.players]);
+
   const seatPositions = useMemo(() => getSeatLayout(roomState?.settings.maxPlayers ?? 6), [roomState?.settings.maxPlayers]);
 
   const handleSeatClick = useCallback((seatNum: number) => {
@@ -466,12 +544,14 @@ export function App() {
       const isButton = snapshot?.buttonSeat === seatNum && !!snapshot?.handId;
       const equity = boardReveal?.equities.find((e) => e.seat === seatNum) ?? null;
       const isPendingLeave = snapshot?.pendingStandUp?.includes(seatNum) ?? false;
+      const revealedCards = snapshot?.revealedHoles?.[seatNum] as [string, string] | undefined;
+      const isMucked = snapshot?.muckedSeats?.includes(seatNum) ?? false;
       return (
         <div key={seatNum} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ top: pos.top, left: pos.left }}>
           <SeatChip player={player} seatNum={seatNum} isActor={isActor} isMe={isMe}
             isOwner={!!isOwner} isCoHost={!!isCo} timer={seatTimer}
             posLabel={posLabel} isButton={isButton} displayBB={displayBB} bigBlind={snapshot?.bigBlind ?? 3}
-            equity={equity} pendingLeave={isPendingLeave}
+            equity={equity} pendingLeave={isPendingLeave} revealedCards={revealedCards} isMucked={isMucked}
             onClickEmpty={handleSeatClick} />
         </div>
       );
@@ -504,6 +584,8 @@ export function App() {
     setShowRoomLog(false);
     setKicked(null);
     setWinners(null);
+    setSettlement(null);
+    setSettlementCountdown(0);
     setAllInPrompt(null);
     setAdvice(null);
     setDeviation(null);
@@ -1312,14 +1394,60 @@ export function App() {
 
                   {/* Hole cards — rendered in normal flow below the table image to avoid overlapping timer/buttons */}
                   {holeCards.length > 0 && (
-                    <div className="flex items-center justify-center gap-1.5 py-1">
+                    <div className="flex items-center justify-center gap-1.5 py-1 flex-wrap">
                       <span className="text-[9px] text-slate-500 uppercase tracking-wider mr-1">Your Hand</span>
+                      {canVoluntaryShow && !myRevealedCards && !showHandConfirm && (
+                        <button
+                          onClick={() => setShowHandConfirm(true)}
+                          className="text-[10px] px-2 py-1 rounded-md bg-white/5 text-amber-300 border border-amber-500/30 hover:bg-amber-500/15"
+                          title="Show your hand to the entire table"
+                        >
+                          👁 SHOW
+                        </button>
+                      )}
+                      {canVoluntaryShow && !myRevealedCards && showHandConfirm && (
+                        <>
+                          <button
+                            onClick={() => {
+                              if (!snapshot?.handId) return;
+                              socket?.emit("show_hand", { tableId, handId: snapshot.handId, seat, scope: "table" });
+                              setShowHandConfirm(false);
+                            }}
+                            className="text-[10px] px-2 py-1 rounded-md bg-amber-500/20 text-amber-200 border border-amber-500/40 hover:bg-amber-500/30"
+                          >
+                            Confirm
+                          </button>
+                          <button
+                            onClick={() => setShowHandConfirm(false)}
+                            className="text-[10px] px-2 py-1 rounded-md bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      )}
+                      {myRevealedCards && (
+                        <span className="text-[9px] px-2 py-1 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 uppercase tracking-wider">
+                          Revealed
+                        </span>
+                      )}
                       {holeCards.map((c, i) => <CardImg key={i} card={c} className="w-14 rounded-lg shadow-lg border border-white/10" />)}
                     </div>
                   )}
 
-                  {/* Winners — prominent overlay */}
-                  {winners && winners.length > 0 && (
+                  {/* Settlement Overlay (replaces old winners overlay) */}
+                  {settlement ? (
+                    <SettlementOverlay
+                      settlement={settlement}
+                      players={snapshot?.players ?? []}
+                      autoStartScheduled={!autoStartBlockReason && (roomState?.settings.autoStartNextHand ?? true)}
+                      autoStartBlockReason={autoStartBlockReason}
+                      countdownSeconds={settlementCountdown}
+                      onDismiss={() => { setSettlement(null); setWinners(null); }}
+                      onDealNow={isHost ? () => { socket?.emit("start_hand", { tableId }); setSettlement(null); setWinners(null); } : undefined}
+                      isHost={!!isHost}
+                      getCardImagePath={getCardImagePath}
+                    />
+                  ) : winners && winners.length > 0 && (
                     <div className="w-full max-w-2xl mt-2 shrink-0 animate-[fadeSlideUp_0.5s_ease-out]">
                       <div className="relative rounded-2xl border border-amber-500/30 bg-gradient-to-b from-amber-500/10 via-black/60 to-black/80 backdrop-blur-md px-6 py-4 shadow-[0_0_30px_rgba(245,158,11,0.15)]">
                         <div className="flex items-center justify-center gap-2 mb-3">
@@ -1542,6 +1670,37 @@ export function App() {
                     socket?.emit("action_submit", { tableId, handId: snapshot.handId, action, amount });
                   }}
                 />
+
+                {isMyShowdownDecision && snapshot?.handId && (
+                  <div className="mt-2 p-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10">
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="text-[10px] uppercase tracking-wider text-indigo-200">Showdown Decision</div>
+                      {!myIsWinner && (roomState?.settings.autoMuckLosingHands ?? true) && !myRevealedCards && !myIsMucked && (
+                        <div className="text-[10px] text-slate-300">Auto-muck in ~4s</div>
+                      )}
+                    </div>
+                    {myRevealedCards ? (
+                      <div className="text-xs text-emerald-300">Your hand is revealed to the table.</div>
+                    ) : myIsMucked ? (
+                      <div className="text-xs text-slate-300">You mucked your hand.</div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => socket?.emit("show_hand", { tableId, handId: snapshot.handId!, seat, scope: "table" })}
+                          className="btn-action flex-1 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600"
+                        >
+                          SHOW
+                        </button>
+                        <button
+                          onClick={() => socket?.emit("muck_hand", { tableId, handId: snapshot.handId!, seat })}
+                          className="btn-action flex-1 bg-white/10 border border-white/20 text-slate-200 hover:bg-white/15"
+                        >
+                          MUCK
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {allInPrompt && snapshot?.handId && allInPrompt.actorSeat === seat && (
                   <div className="mt-2 p-3 rounded-xl border border-orange-500/30 bg-orange-500/10">
@@ -2226,6 +2385,18 @@ function RoomSettingsPanel({ roomState, isHost, players, authUserId, onUpdateSet
             ]}
             onChange={(v) => { updateField("runItTwiceMode", v); updateField("runItTwice", v !== "off"); }}
           />
+          <YesNo
+            label="Auto reveal on all-in + called?"
+            value={s.autoRevealOnAllInCall}
+            onChange={(v) => updateField("autoRevealOnAllInCall", v)}
+            hint="Reveal live players' hole cards when no more betting decisions remain"
+          />
+          <YesNo
+            label="Allow show after fold?"
+            value={s.allowShowAfterFold}
+            onChange={(v) => updateField("allowShowAfterFold", v)}
+            hint="Folded players may voluntarily reveal before hand end"
+          />
           <YesNo label="Allow UTG Straddle 2BB?" value={s.straddleAllowed} onChange={(v) => updateField("straddleAllowed", v)} />
           <YesNo label="Rebuy allowed?" value={s.rebuyAllowed} onChange={(v) => updateField("rebuyAllowed", v)} />
 
@@ -2873,12 +3044,14 @@ function InfoCell({ label, value, highlight, cyan }: { label: string; value: str
   );
 }
 
-const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, equity, pendingLeave, onClickEmpty }: {
+const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, equity, pendingLeave, revealedCards, isMucked, onClickEmpty }: {
   player?: TablePlayer; seatNum: number; isActor: boolean; isMe: boolean;
   isOwner?: boolean; isCoHost?: boolean; timer?: TimerState | null;
   posLabel?: string; isButton?: boolean; displayBB?: boolean; bigBlind?: number;
   equity?: { winRate: number; tieRate: number } | null;
   pendingLeave?: boolean;
+  revealedCards?: [string, string];
+  isMucked?: boolean;
   onClickEmpty?: (seatNum: number) => void;
 }) {
   const bb = bigBlind || 1;
@@ -2954,6 +3127,15 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
           <div className="text-[7px] text-slate-400 italic">Leaving…</div>
         )}
       </div>
+      {revealedCards && (
+        <div className="flex items-center gap-0.5">
+          <CardImg card={revealedCards[0]} className="w-5 h-7 rounded shadow border border-emerald-500/30" />
+          <CardImg card={revealedCards[1]} className="w-5 h-7 rounded shadow border border-emerald-500/30" />
+        </div>
+      )}
+      {!revealedCards && isMucked && (
+        <div className="text-[7px] uppercase tracking-wider text-slate-500">Mucked</div>
+      )}
       {/* Street bet amount — shown below the chip */}
       {player.streetCommitted > 0 && !player.folded && (
         <div className="bg-black/70 px-1.5 py-0.5 rounded-full text-[9px] font-bold text-sky-400 shadow-sm border border-sky-500/20">
