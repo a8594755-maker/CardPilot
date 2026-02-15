@@ -81,6 +81,12 @@ const sessionStatsByRoomCode = new Map<string, Map<string, PlayerSessionEntry>>(
 type DepositRequest = { orderId: string; tableId: string; seat: number; userId: string; userName: string; amount: number; approved: boolean };
 const pendingDeposits = new Map<string, DepositRequest>(); // orderId → request
 const supabase = new SupabasePersistence();
+if (!supabase.enabled()) {
+  logWarn({
+    event: "supabase.disabled",
+    message: "Supabase persistence is DISABLED — hand history, room persistence, and player profiles will not be saved. Set SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY to enable.",
+  });
+}
 
 app.get("/healthz", (_req, res) => {
   res.status(200).json({
@@ -1741,10 +1747,14 @@ io.on("connection", (socket) => {
 
   socket.on("request_history_rooms", async (payload?: { limit?: number }) => {
     try {
+      if (!supabase.enabled()) {
+        socket.emit("history_rooms", { rooms: [], error: "Supabase persistence is not enabled on this server." });
+        return;
+      }
       const rooms = await supabase.listHistoryRooms(identity.userId, payload?.limit ?? 50);
       socket.emit("history_rooms", { rooms });
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit("history_rooms", { rooms: [], error: (error as Error).message });
     }
   });
 

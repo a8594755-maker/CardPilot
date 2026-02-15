@@ -7,6 +7,11 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 const GUEST_SESSION_STORAGE_KEY = "cardpilot_guest_session";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+export function isUuid(value: string): boolean {
+  return UUID_RE.test(value);
+}
+
 function generateGuestId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return `guest-${crypto.randomUUID().slice(0, 8)}`;
@@ -158,41 +163,69 @@ function friendlyAuthError(err: unknown): Error {
 }
 
 export async function getExistingSession(): Promise<AuthSession | null> {
+  // Always prefer a real Supabase session (UUID-based) over a local guest
+  const sbSession = await getSupabaseSession();
+  if (sbSession) return sbSession;
+
   const cached = getStoredGuestSession();
-  if (cached) return cached;
-  return await getSupabaseSession();
+  if (!cached) return null;
+
+  // If Supabase is available and the cached session is a local guest (non-UUID),
+  // try to upgrade to an anonymous Supabase session for history persistence.
+  if (supabase && !isUuid(cached.userId)) {
+    try {
+      const { data, error } = await supabase.auth.signInAnonymously();
+      if (!error && data.session && data.user) {
+        clearGuestSession();
+        return {
+          accessToken: data.session.access_token,
+          userId: data.user.id,
+          email: data.user.email,
+          displayName: cached.displayName || "Guest",
+        };
+      }
+    } catch {
+      // Fall through to return the local guest session
+    }
+  }
+
+  return cached;
 }
 
 export async function ensureGuestSession(displayName?: string): Promise<AuthSession | null> {
-  const cached = getStoredGuestSession();
-  if (cached) return cached;
-
+  // Always prefer a real Supabase session (UUID-based) over a local guest
   const supabaseSession = await getSupabaseSession();
   if (supabaseSession) return supabaseSession;
 
-  checkRateLimit();
+  const cached = getStoredGuestSession();
+  // If cached guest is already a UUID (from a previous anon sign-in), return it
+  if (cached && isUuid(cached.userId)) return cached;
 
-  if (!supabase) {
-    return createLocalGuestSession(displayName);
-  }
-
-  try {
-    const { data, error } = await supabase.auth.signInAnonymously();
-    if (error) throw error;
-    if (!data.session || !data.user) throw new Error("Anonymous sign-in returned no session.");
-    clearGuestSession();
-    return {
-      accessToken: data.session.access_token,
-      userId: data.user.id,
-      email: data.user.email,
-      displayName: displayName || "Guest",
-    };
-  } catch (err) {
-    if (isAnonDisabledError(err)) {
-      return createLocalGuestSession(displayName);
+  // Try Supabase anonymous sign-in (even if we have a local guest — upgrade it)
+  if (supabase) {
+    checkRateLimit();
+    try {
+      const { data, error } = await supabase.auth.signInAnonymously();
+      if (error) throw error;
+      if (!data.session || !data.user) throw new Error("Anonymous sign-in returned no session.");
+      clearGuestSession();
+      return {
+        accessToken: data.session.access_token,
+        userId: data.user.id,
+        email: data.user.email,
+        displayName: displayName || cached?.displayName || "Guest",
+      };
+    } catch (err) {
+      if (!isAnonDisabledError(err)) {
+        throw friendlyAuthError(err);
+      }
+      // Anonymous sign-ins disabled — fall through to local guest
     }
-    throw friendlyAuthError(err);
   }
+
+  // Fallback: return existing local guest or create a new one
+  if (cached) return cached;
+  return createLocalGuestSession(displayName);
 }
 
 export async function signUpWithEmail(email: string, password: string, displayName?: string): Promise<AuthSession> {

@@ -16,7 +16,7 @@ import type {
   TableState,
   TimerState
 } from "@cardpilot/shared-types";
-import { getExistingSession, ensureGuestSession, signUpWithEmail, signInWithEmail, signInWithGoogle, signOut, supabase, validateEmail, validatePassword, getRateLimitSecondsLeft, type AuthSession } from "./supabase";
+import { getExistingSession, ensureGuestSession, signUpWithEmail, signInWithEmail, signInWithGoogle, signOut, supabase, validateEmail, validatePassword, getRateLimitSecondsLeft, isUuid, type AuthSession } from "./supabase";
 import { preloadCardImages, getCardImagePath } from "./lib/card-images.js";
 import { SettlementOverlay } from "./components/SettlementOverlay";
 import { getSuggestedPresets, userPresetsToButtons, type BetPreset } from "./lib/bet-sizing.js";
@@ -117,6 +117,7 @@ export function App() {
   type DepositNotification = { orderId: string; userId: string; userName: string; seat: number; amount: number };
   const [depositNotifications, setDepositNotifications] = useState<DepositNotification[]>([]);
   const [socketConnected, setSocketConnected] = useState(false);
+  const [supabaseEnabled, setSupabaseEnabled] = useState(true);
   const [showGtoSidebar, setShowGtoSidebar] = useState(() => {
     try { return localStorage.getItem("cardpilot_show_gto") !== "false"; } catch { return true; }
   });
@@ -260,6 +261,7 @@ export function App() {
     });
     s.on("connected", (d: { userId: string; displayName?: string; supabaseEnabled: boolean }) => {
       debugLog("[client] connected, server userId:", d.userId, "client userId:", socketAuthUserId);
+      setSupabaseEnabled(d.supabaseEnabled);
       if (!d.supabaseEnabled) showToast("Connected (no Supabase persistence)");
     });
     s.on("disconnect", () => { setSocketConnected(false); });
@@ -725,7 +727,7 @@ export function App() {
           />
         ) : view === "history" ? (
           /* ═══════ HISTORY ═══════ */
-          <HistoryPage socket={socket} isConnected={socketConnected} userId={authSession.userId} />
+          <HistoryPage socket={socket} isConnected={socketConnected} userId={authSession.userId} supabaseEnabled={supabaseEnabled} />
         ) : view === "lobby" ? (
           /* ═══════ LOBBY ═══════ */
           <main className="flex-1 p-6 overflow-y-auto">
@@ -2039,7 +2041,7 @@ function useIsMobileViewport(): boolean {
   return isMobile;
 }
 
-function HistoryPage({ socket, isConnected, userId }: { socket: Socket | null; isConnected: boolean; userId: string }) {
+function HistoryPage({ socket, isConnected, userId, supabaseEnabled }: { socket: Socket | null; isConnected: boolean; userId: string; supabaseEnabled: boolean }) {
   const initialRouteRef = useRef<HistoryRouteState>(readHistoryRouteFromUrl());
 
   const [rooms, setRooms] = useState<HistoryRoomSummary[]>([]);
@@ -2138,8 +2140,11 @@ function HistoryPage({ socket, isConnected, userId }: { socket: Socket | null; i
   useEffect(() => {
     if (!socket) return;
 
-    const onHistoryRooms = (payload: { rooms: HistoryRoomSummary[] }) => {
+    const onHistoryRooms = (payload: { rooms: HistoryRoomSummary[]; error?: string }) => {
       setLoadingRooms(false);
+      if (payload.error) {
+        debugLog("[history] rooms error:", payload.error);
+      }
       const nextRooms = payload.rooms ?? [];
       setRooms(nextRooms);
       if (selectedRoomRef.current && !nextRooms.some((room) => room.roomId === selectedRoomRef.current)) {
@@ -2444,6 +2449,27 @@ function HistoryPage({ socket, isConnected, userId }: { socket: Socket | null; i
 
         {!isConnected || !socket ? (
           <div className="glass-card p-8 text-center text-slate-400 text-sm">Connect to the game server to load hand history.</div>
+        ) : !supabaseEnabled || !isUuid(userId) ? (
+          <div className="glass-card p-6 sm:p-8 text-center space-y-3">
+            <div className="text-3xl opacity-40">🔒</div>
+            <h3 className="text-base font-semibold text-white">Hand History Unavailable</h3>
+            {!supabaseEnabled ? (
+              <p className="text-sm text-slate-400 max-w-md mx-auto">
+                The server does not have Supabase persistence enabled. Hand history requires a database connection.
+                Ask the server admin to configure <code className="text-xs bg-white/10 px-1.5 py-0.5 rounded">SUPABASE_SERVICE_ROLE_KEY</code>.
+              </p>
+            ) : (
+              <p className="text-sm text-slate-400 max-w-md mx-auto">
+                Your session is using a local guest ID (<code className="text-xs bg-white/10 px-1.5 py-0.5 rounded">{userId.slice(0, 16)}…</code>) which cannot store history.
+                Sign in with email or Google to get a persistent session with hand history.
+              </p>
+            )}
+            <p className="text-xs text-slate-500">
+              {!supabaseEnabled
+                ? "Server env: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY must both be set."
+                : "Go to Profile → Sign Out, then sign in with email or Google."}
+            </p>
+          </div>
         ) : (
           <>
             <div className="lg:hidden min-h-0 flex-1">
