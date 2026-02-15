@@ -355,8 +355,8 @@ export function App() {
     if (minR && minR > 0) setRaiseTo(minR);
   }, [snapshot?.legalActions?.minRaise]);
 
-  // Reset action guard when actor changes (new turn)
-  useEffect(() => { actionPendingRef.current = false; }, [snapshot?.actorSeat]);
+  // Reset action guard when turn/street/hand changes
+  useEffect(() => { actionPendingRef.current = false; }, [snapshot?.actorSeat, snapshot?.street, snapshot?.handId]);
   const isConnected = socketConnected;
   const isHost = useMemo(() => roomState?.ownership.ownerId === authSession?.userId, [roomState, authSession]);
   const isCoHost = useMemo(() => roomState?.ownership.coHostIds.includes(authSession?.userId ?? "") ?? false, [roomState, authSession]);
@@ -2349,151 +2349,109 @@ function ActionBar({
   }, [canAct, legal, callAmt]);
 
   return (
-    <div className="glass-card p-2 space-y-1.5">
-      {/* Status hint — explains why Check or Call is available */}
-      {canAct && statusHint && (
-        <div className="text-[9px] text-slate-500 px-1 truncate">{statusHint}</div>
-      )}
-      {/* Processing indicator */}
-      {actionPending && canAct && (
-        <div className="text-[9px] text-amber-400 px-1 animate-pulse">處理中…</div>
-      )}
-      {/* Main action buttons row */}
-      <div className={`flex items-center gap-1.5 ${actionPending ? 'opacity-50 pointer-events-none' : ''}`}>
+    <div className="glass-card px-2 py-1.5 space-y-1">
+      {/* Row 1: action buttons — compact */}
+      <div className={`flex items-center gap-1 flex-wrap ${actionPending ? 'opacity-50 pointer-events-none' : ''}`}>
+        {actionPending && canAct && (
+          <span className="text-[9px] text-amber-400 animate-pulse mr-1">處理中…</span>
+        )}
         <button disabled={!canAct || actionPending} onClick={() => { onAction("fold"); setShowSuggest(false); }}
-          className="btn-action !py-2 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600">Fold</button>
+          className="btn-action !py-1.5 !px-3 !text-[11px] bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600">Fold</button>
 
         {legal?.canCheck && (
-          <button disabled={!canAct} onClick={() => { onAction("check"); setShowSuggest(false); }}
-            className={`btn-action !py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 ${
-              showSuggest && recommendedAction === "fold" ? "ring-2 ring-amber-400 ring-offset-1 ring-offset-slate-900" : ""
-            }`}>Check</button>
+          <button disabled={!canAct || actionPending} onClick={() => { onAction("check"); setShowSuggest(false); }}
+            className="btn-action !py-1.5 !px-3 !text-[11px] bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600">Check</button>
         )}
 
         {legal?.canCall && (
-          <button disabled={!canAct} onClick={() => { onAction("call"); setShowSuggest(false); }}
-            className={`btn-action !py-2 bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-500 hover:to-sky-600 ${
-              showSuggest && recommendedAction === "call" ? "ring-2 ring-amber-400 ring-offset-1 ring-offset-slate-900" : ""
-            }`}>
-            Call <span className="ml-1 font-mono text-xs opacity-80">{callAmt.toLocaleString()}</span>
+          <button disabled={!canAct || actionPending} onClick={() => { onAction("call"); setShowSuggest(false); }}
+            className="btn-action !py-1.5 !px-3 !text-[11px] bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-500 hover:to-sky-600">
+            Call {callAmt.toLocaleString()}
           </button>
         )}
 
         {legal?.canRaise && (
-          <button disabled={!canAct} onClick={() => { onAction("raise", raiseTo); setShowSuggest(false); }}
-            className={`btn-action !py-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 ${
-              showSuggest && recommendedAction === "raise" ? "ring-2 ring-amber-400 ring-offset-1 ring-offset-slate-900" : ""
-            }`}>
-            Raise to <span className="ml-1 font-mono text-xs">{raiseTo.toLocaleString()}</span>
+          <button disabled={!canAct || actionPending} onClick={() => { onAction("raise", raiseTo); setShowSuggest(false); }}
+            className="btn-action !py-1.5 !px-3 !text-[11px] bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600">
+            Raise {raiseTo.toLocaleString()}
           </button>
         )}
 
         {legal?.canRaise && (
-          <button disabled={!canAct} onClick={() => { onAction("all_in"); setShowSuggest(false); }}
-            className="btn-action !py-2 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600">
-            All-In
-          </button>
+          <button disabled={!canAct || actionPending} onClick={() => { onAction("all_in"); setShowSuggest(false); }}
+            className="btn-action !py-1.5 !px-3 !text-[11px] bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600">All-In</button>
         )}
 
         {canAct && advice && (
           <button onClick={() => setShowSuggest(!showSuggest)}
-            className={`btn-action !py-2 text-xs ${
-              showSuggest
-                ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white"
-                : "bg-gradient-to-r from-amber-600/30 to-orange-700/30 text-amber-400 border border-amber-500/30"
-            }`}>
-            AI Suggest
-          </button>
+            className={`btn-action !py-1.5 !px-2 !text-[10px] ${
+              showSuggest ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white" : "bg-white/5 text-amber-400 border border-amber-500/30"
+            }`}>AI</button>
         )}
 
-        {canAct && thinkExtensionEnabled && (
-          <button
-            onClick={() => onThinkExtension?.()}
-            disabled={(thinkExtensionRemainingUses ?? 0) <= 0}
-            className="btn-action !py-2 text-xs bg-gradient-to-r from-violet-600/40 to-fuchsia-700/40 text-violet-300 border border-violet-500/30 disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            Extend ({Math.max(0, thinkExtensionRemainingUses ?? 0)} left)
+        {canAct && thinkExtensionEnabled && (thinkExtensionRemainingUses ?? 0) > 0 && (
+          <button onClick={() => onThinkExtension?.()} className="btn-action !py-1.5 !px-2 !text-[10px] bg-white/5 text-violet-300 border border-violet-500/30">
+            +T({thinkExtensionRemainingUses})
           </button>
         )}
       </div>
 
-      {/* AI Suggestion tooltip — collapsible */}
-      {showSuggest && advice && (
-        <div className="px-3 py-2 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center gap-3 text-xs">
-          <span className="font-bold text-white uppercase">{recommendedAction ?? "—"}</span>
-          <span className="text-slate-300 flex-1 truncate">{advice.explanation}</span>
-          <span className="text-red-400 shrink-0">R {Math.round(advice.mix.raise * 100)}%</span>
-          <span className="text-blue-400 shrink-0">C {Math.round(advice.mix.call * 100)}%</span>
-          <span className="text-slate-500 shrink-0">F {Math.round(advice.mix.fold * 100)}%</span>
-          {recommendedAction && (
-            <button onClick={() => {
-              onAction(recommendedAction, recommendedAction === "raise" ? raiseTo : undefined);
-              setShowSuggest(false);
-            }} className="text-amber-400 hover:text-amber-300 font-semibold shrink-0">Apply</button>
-          )}
-        </div>
-      )}
-
-      {/* Raise slider + sizing presets — compact single row each */}
+      {/* Row 2: raise slider + presets (single compact row) */}
       {legal?.canRaise && canAct && (
-        <div className="space-y-1">
-          {/* Slider row */}
-          <div className="flex items-center gap-2">
-            <span className="text-[9px] text-slate-500 w-10 text-right font-mono shrink-0">{min.toLocaleString()}</span>
-            <input
-              type="range"
-              min={min}
-              max={max}
-              step={bigBlind}
-              value={raiseTo}
-              onChange={(e) => setRaiseTo(Number(e.target.value))}
-              className="flex-1 h-1.5 rounded-full appearance-none bg-white/10 accent-red-500 cursor-pointer"
-            />
-            <span className="text-[9px] text-slate-500 w-10 font-mono shrink-0">{max.toLocaleString()}</span>
-          </div>
-          {/* Presets row — suggested + custom combined */}
-          <div className="flex items-center gap-1 flex-wrap">
-            <span className="text-[9px] text-slate-600 mr-1">Suggested</span>
+        <div className="flex items-center gap-1">
+          <input type="range" min={min} max={max} step={bigBlind} value={raiseTo}
+            onChange={(e) => setRaiseTo(Number(e.target.value))}
+            className="w-24 h-1 rounded-full appearance-none bg-white/10 accent-red-500 cursor-pointer shrink-0" />
+          <div className="flex items-center gap-0.5 flex-wrap flex-1 min-w-0">
             {(() => {
               const showBBMultipliers = pot <= bigBlind * 2 || (!legal?.canCheck && !legal?.canCall);
               if (showBBMultipliers) {
-                return [2, 2.5, 3, 3.5, 4].map((mult) => {
+                return [2, 3, 4].map((mult) => {
                   const chips = Math.max(min, Math.min(max, Math.round(bigBlind * mult)));
                   return (
                     <button key={mult} onClick={() => setRaiseTo(chips)}
-                      className={`px-2 py-1 rounded text-[10px] font-semibold transition-all ${
-                        raiseTo === chips ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:text-white"
-                      }`}>{mult}x BB</button>
+                      className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
+                        raiseTo === chips ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-white/5 text-slate-400 border border-white/10"
+                      }`}>{mult}x</button>
                   );
                 });
               } else {
-                return suggestedPresets.map((p) => {
+                return suggestedPresets.slice(0, 3).map((p) => {
                   const chips = presetToChips(p.pctOfPot);
                   return (
                     <button key={p.label} onClick={() => setRaiseTo(chips)}
-                      className={`px-2 py-1 rounded text-[10px] font-semibold transition-all ${
-                        raiseTo === chips ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:text-white"
+                      className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
+                        raiseTo === chips ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-white/5 text-slate-400 border border-white/10"
                       }`}>{p.label}</button>
                   );
                 });
               }
             })()}
-            <div className="w-px h-4 bg-white/10 mx-0.5" />
-            <span className="text-[9px] text-slate-600 mr-1">My Presets</span>
-            {customPresets.map((p) => {
+            <div className="w-px h-3 bg-white/10" />
+            {customPresets.slice(0, 3).map((p) => {
               const chips = presetToChips(p.pctOfPot);
               return (
                 <button key={p.label} onClick={() => setRaiseTo(chips)}
-                  className={`px-2 py-1 rounded text-[10px] font-semibold transition-all ${
-                    raiseTo === chips ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:text-white"
+                  className={`px-1.5 py-0.5 rounded text-[9px] font-semibold ${
+                    raiseTo === chips ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" : "bg-white/5 text-slate-400 border border-white/10"
                   }`}>{p.label}</button>
               );
             })}
-            <button onClick={() => setRaiseTo(max)}
-              className={`px-2 py-1 rounded text-[10px] font-semibold transition-all ${
-                raiseTo === max ? "bg-orange-500/20 text-orange-400 border border-orange-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:text-white"
-              }`}>All-In</button>
           </div>
+        </div>
+      )}
+
+      {/* AI Suggestion — inline compact */}
+      {showSuggest && advice && (
+        <div className="px-2 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center gap-2 text-[10px]">
+          <span className="font-bold text-white uppercase">{recommendedAction ?? "—"}</span>
+          <span className="text-slate-300 flex-1 truncate">{advice.explanation}</span>
+          <span className="text-red-400">R{Math.round(advice.mix.raise * 100)}%</span>
+          <span className="text-blue-400">C{Math.round(advice.mix.call * 100)}%</span>
+          {recommendedAction && (
+            <button onClick={() => { onAction(recommendedAction, recommendedAction === "raise" ? raiseTo : undefined); setShowSuggest(false); }}
+              className="text-amber-400 hover:text-amber-300 font-semibold">Apply</button>
+          )}
         </div>
       )}
     </div>
