@@ -60,6 +60,11 @@ export function Seat({ seat, isMySeat, holeCards, isActor, onClick }: SeatProps)
             </div>
           </div>
 
+          {/* Sit Out badge */}
+          {seat.status === 'sitting_out' && (
+            <div className="text-center text-[10px] text-orange-400 font-bold uppercase mb-1">Sit Out</div>
+          )}
+
           {/* Hole Cards */}
           {holeCards ? (
             <div className="flex justify-center gap-1">
@@ -68,7 +73,10 @@ export function Seat({ seat, isMySeat, holeCards, isActor, onClick }: SeatProps)
               ))}
             </div>
           ) : seat.status === 'sitting_out' ? (
-            <div className="text-center text-xs text-red-400">Folded</div>
+            <div className="flex justify-center gap-1 opacity-30">
+              <PokerCard faceDown variant="seat" />
+              <PokerCard faceDown variant="seat" />
+            </div>
           ) : (
             <div className="flex justify-center gap-1">
               <PokerCard faceDown variant="seat" />

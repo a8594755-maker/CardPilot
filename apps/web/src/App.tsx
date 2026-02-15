@@ -143,6 +143,12 @@ export function App() {
   });
   const [showMobileGto, setShowMobileGto] = useState(false);
 
+  /* ── Table theme ── */
+  type TableTheme = "green" | "blue";
+  const [tableTheme, setTableTheme] = useState<TableTheme>(() => {
+    try { const v = localStorage.getItem("cardpilot_table_theme"); return v === "blue" ? "blue" : "green"; } catch { return "green"; }
+  });
+
   /* ── Chip animation state ── */
   const [chipAnimSpeed, setChipAnimSpeed] = useState<AnimationSpeed>(loadAnimationSpeed);
   const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -894,6 +900,7 @@ export function App() {
       )}
 
       {/* ── CONTENT ── */}
+      <div className="flex-1 flex flex-col overflow-hidden">
       <div className="flex-1 flex overflow-hidden">
         {view === "profile" ? (
           /* ═══════ PROFILE ═══════ */
@@ -1227,6 +1234,16 @@ export function App() {
                   className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all ${chipAnimSpeed === "off" ? "bg-white/5 text-slate-500 border-white/10" : chipAnimSpeed === "slow" ? "bg-amber-500/15 text-amber-400 border-amber-500/30" : "bg-purple-500/15 text-purple-400 border-purple-500/30"}`}
                   title={`Chip animations: ${chipAnimSpeed} (click to cycle)`}>
                   {chipAnimSpeed === "off" ? "Anim Off" : chipAnimSpeed === "slow" ? "Anim Slow" : "Anim"}
+                </button>
+
+                <button onClick={() => {
+                  const next: TableTheme = tableTheme === "green" ? "blue" : "green";
+                  setTableTheme(next);
+                  try { localStorage.setItem("cardpilot_table_theme", next); } catch {}
+                }}
+                  className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all ${tableTheme === "green" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" : "bg-blue-500/15 text-blue-400 border-blue-500/30"}`}
+                  title={`Table theme: ${tableTheme === "green" ? "Classic Green" : "Dark Blue"} (click to switch)`}>
+                  {tableTheme === "green" ? "🟢 Felt" : "🔵 Felt"}
                 </button>
 
                 {roomState && (
@@ -1628,7 +1645,7 @@ export function App() {
 
                   {/* Table surface + overlays — CSS green felt */}
                   <div ref={tableContainerRef} className="relative w-full max-w-2xl select-none shrink">
-                    <div className="aspect-[16/9] rounded-[50%] poker-table-surface" />
+                    <div className={`aspect-[16/9] rounded-[50%] ${tableTheme === "blue" ? "poker-table-surface-blue" : "poker-table-surface"}`} />
 
                     {/* Community cards — centered on table (supports run-it-twice dual boards) */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ top: "-2%" }}>
@@ -2086,6 +2103,7 @@ export function App() {
         )}
       </div>
       {view !== "table" && <AppComplianceFooter />}
+      </div>
     </div>
   );
 }

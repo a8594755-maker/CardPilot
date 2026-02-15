@@ -46,7 +46,7 @@ export function LegalStandalonePage({ route }: { route: LegalRoute }) {
 
 export function AppComplianceFooter() {
   return (
-    <footer className="shrink-0 border-t border-white/5 px-4 py-2.5">
+    <footer className="shrink-0 border-t border-white/5 px-4 py-2 bg-[#0a0f1a]/80 backdrop-blur-sm" style={{ paddingBottom: "max(8px, env(safe-area-inset-bottom))" }}>
       <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-[11px] text-amber-300/90">
           Responsible play: CardPilot is a play-money training product, not a real-money gambling platform.

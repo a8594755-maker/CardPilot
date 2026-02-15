@@ -39,9 +39,7 @@ export function Table({ snapshot, mySeatIndex, holeCards, onSeatClick }: TablePr
       </div>
 
       {/* Table Surface */}
-      <div className="relative aspect-[16/10] bg-green-800 rounded-[50%] border-8 border-amber-900 shadow-2xl">
-        {/* Felt texture overlay */}
-        <div className="absolute inset-0 rounded-[50%] bg-gradient-to-br from-green-700/50 to-green-900/50" />
+      <div className="relative aspect-[16/10] rounded-[50%] poker-table-surface">
         
         {/* Community Cards - Center */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">

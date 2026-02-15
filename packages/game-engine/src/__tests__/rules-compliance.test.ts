@@ -794,3 +794,63 @@ describe("lastFullRaiseSize in public state", () => {
     }
   });
 });
+
+// ═══════════════════════════════════════════════════════════════
+// HOST SELF-REBUY (addStack at hand boundary)
+// ═══════════════════════════════════════════════════════════════
+
+describe("host self-rebuy via addStack", () => {
+  it("addStack credits chips between hands (not mid-hand)", () => {
+    const t = new GameTable({ tableId: "rebuy1", smallBlind: 5, bigBlind: 10 });
+    t.addPlayer({ seat: 1, userId: "host", name: "Host", stack: 500 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "B", stack: 1000 });
+
+    // Rebuy before hand starts — should work
+    t.addStack(1, 500);
+    const s = t.getPublicState();
+    assert.equal(s.players.find(p => p.seat === 1)!.stack, 1000, "stack should increase by rebuy amount");
+  });
+
+  it("addStack does not deadlock when host rebuys themselves", () => {
+    const t = new GameTable({ tableId: "rebuy2", smallBlind: 5, bigBlind: 10 });
+    t.addPlayer({ seat: 1, userId: "host", name: "Host", stack: 200 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "B", stack: 1000 });
+
+    // Apply rebuy, then start a hand — no deadlock
+    t.addStack(1, 300);
+    t.startHand();
+    const s = t.getPublicState();
+    assert.equal(s.players.find(p => p.seat === 1)!.inHand, true, "host should be dealt in after rebuy");
+    assert.ok(s.handId, "hand should start successfully after rebuy");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// SIT OUT REGRESSION: multi-hand persistence
+// ═══════════════════════════════════════════════════════════════
+
+describe("sit out persists across multiple hands", () => {
+  it("sitting_out player stays out for consecutive hands", () => {
+    const t = new GameTable({ tableId: "sitout_multi", smallBlind: 5, bigBlind: 10 });
+    t.addPlayer({ seat: 1, userId: "u1", name: "A", stack: 1000 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "B", stack: 1000 });
+    t.addPlayer({ seat: 3, userId: "u3", name: "C", stack: 1000 });
+
+    t.setPlayerStatus(3, "sitting_out");
+
+    // Hand 1
+    t.startHand();
+    let s = t.getPublicState();
+    assert.equal(s.players.find(p => p.seat === 3)!.inHand, false);
+    assert.equal(s.players.find(p => p.seat === 3)!.status, "sitting_out");
+
+    // Fold both active players to end hand quickly
+    t.applyAction(s.actorSeat!, "fold");
+
+    // Hand 2
+    t.startHand();
+    s = t.getPublicState();
+    assert.equal(s.players.find(p => p.seat === 3)!.inHand, false, "still sitting out in hand 2");
+    assert.equal(s.players.find(p => p.seat === 3)!.status, "sitting_out", "status persists");
+  });
+});
