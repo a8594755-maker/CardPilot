@@ -20,6 +20,7 @@ import { getExistingSession, ensureGuestSession, signUpWithEmail, signInWithEmai
 import { preloadCardImages, getCardImagePath } from "./lib/card-images.js";
 import { SettlementOverlay } from "./components/SettlementOverlay";
 import { getSuggestedPresets, userPresetsToButtons, type BetPreset } from "./lib/bet-sizing.js";
+import { AppComplianceFooter } from "./legal-pages";
 
 const SERVER = import.meta.env.VITE_SERVER_URL || "http://127.0.0.1:4000";
 const DEBUG_LOGS_ENABLED = import.meta.env.DEV;
@@ -1766,6 +1767,7 @@ export function App() {
           </>
         )}
       </div>
+      <AppComplianceFooter />
     </div>
   );
 }

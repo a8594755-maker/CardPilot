@@ -1,0 +1,74 @@
+name: Bug report
+description: Report a reproducible defect in CardPilot.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One sentence describing the bug.
+      placeholder: "When ..., then ... instead of ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction Steps
+      description: Exact steps and data needed to reproduce.
+      placeholder: |
+        1. Open room ...
+        2. Sit at seat ...
+        3. Click ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Result
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Result
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Console Output
+      description: Paste relevant client/server logs (sanitize secrets).
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / Video
+      description: Attach images/video showing the issue.
+
+  - type: input
+    id: commit
+    attributes:
+      label: Commit / Branch
+      placeholder: "main @ abc1234"
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - web
+        - game-server
+        - game-engine
+        - shared-types
+        - infra/ci
+    validations:
+      required: true

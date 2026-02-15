@@ -7,61 +7,14 @@ import type {
   RoomFullState,
   RoomStatus,
   TimerState,
-  DEFAULT_ROOM_SETTINGS,
 } from "@cardpilot/shared-types";
+import { getRuntimeConfig } from "./config";
 
-// Re-define default here to avoid runtime import issues with const exports
-const DEFAULTS: RoomSettings = {
-  gameType: "texas",
-  maxPlayers: 6,
-  spectatorAllowed: true,
-  smallBlind: 50,
-  bigBlind: 100,
-  ante: 0,
-  blindStructure: null,
-  buyInMin: 2000,
-  buyInMax: 20000,
-  rebuyAllowed: true,
-  addOnAllowed: false,
-  straddleAllowed: false,
-  runItTwice: false,
-  runItTwiceMode: "off",
-  visibility: "public",
-  password: null,
-  hostStartRequired: false,
-  actionTimerSeconds: 15,
-  timeBankSeconds: 60,
-  timeBankRefillPerHand: 5,
-  timeBankHandsToFill: 10,
-  thinkExtensionSecondsPerUse: 10,
-  thinkExtensionQuotaPerHour: 3,
-  disconnectGracePeriod: 30,
-  maxConsecutiveTimeouts: 3,
-  useCentsValues: false,
-  rabbitHunting: false,
-  autoStartNextHand: true,
-  showdownSpeed: "normal",
-  dealToAwayPlayers: false,
-  revealAllAtShowdown: true,
-  autoRevealOnAllInCall: true,
-  autoRevealWinningHands: true,
-  autoMuckLosingHands: true,
-  allowShowAfterFold: false,
-  allowShowCalledHandRequest: false,
-  bombPotEnabled: false,
-  bombPotFrequency: 0,
-  doubleBoardMode: "off",
-  sevenTwoBounty: 0,
-  simulatedFeeEnabled: false,
-  simulatedFeePercent: 5,
-  simulatedFeeCap: 0,
-  allowGuestChat: true,
-  autoTrimExcessBets: true,
-  roomFundsTracking: false,
-};
+const runtimeConfig = getRuntimeConfig();
+const DEFAULTS: RoomSettings = { ...runtimeConfig.defaultRoomSettings };
 
 const MAX_LOG_ENTRIES = 200;
-const ROOM_EMPTY_TTL_MS = 10 * 60_000; // 10 minutes before auto-destroy
+const ROOM_EMPTY_TTL_MS = runtimeConfig.roomEmptyTtlMs;
 
 export interface ManagedRoom {
   tableId: string;
@@ -123,7 +76,7 @@ export class RoomManager {
     if (settings.bigBlind <= settings.smallBlind) {
       settings.bigBlind = settings.smallBlind * 2;
     }
-    settings.maxPlayers = Math.min(9, Math.max(2, settings.maxPlayers));
+    settings.maxPlayers = Math.min(runtimeConfig.maxPlayers, Math.max(runtimeConfig.minPlayers, settings.maxPlayers));
 
     const room: ManagedRoom = {
       tableId: params.tableId,
@@ -333,6 +286,7 @@ export class RoomManager {
     }
 
     // Clamp timer-related settings
+    room.settings.maxPlayers = Math.min(runtimeConfig.maxPlayers, Math.max(runtimeConfig.minPlayers, Math.floor(room.settings.maxPlayers)));
     room.settings.actionTimerSeconds = Math.max(5, Math.min(120, Math.floor(room.settings.actionTimerSeconds)));
     room.settings.timeBankSeconds = Math.max(0, Math.min(300, Math.floor(room.settings.timeBankSeconds)));
     room.settings.timeBankRefillPerHand = Math.max(0, Math.min(60, Math.floor(room.settings.timeBankRefillPerHand)));

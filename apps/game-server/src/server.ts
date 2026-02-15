@@ -1,21 +1,3 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-
-// Load .env.local from project root (Vite does this for the frontend; we do it manually for the server)
-try {
-  const envPath = resolve(process.cwd(), ".env.local");
-  const envContent = readFileSync(envPath, "utf-8");
-  for (const line of envContent.split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const eqIdx = trimmed.indexOf("=");
-    if (eqIdx < 0) continue;
-    const key = trimmed.slice(0, eqIdx).trim();
-    const value = trimmed.slice(eqIdx + 1).trim();
-    if (!process.env[key]) process.env[key] = value;
-  }
-} catch { /* .env.local not found — that's OK */ }
-
 import express from "express";
 import cors from "cors";
 import { createServer } from "node:http";
@@ -31,11 +13,14 @@ import type {
   SetCoHostPayload, GameControlPayload, JoinRoomWithPasswordPayload, AllInPrompt,
   RoomFullState, TimerState, HistoryHandDetailCore, HistoryHandPlayerSummary, HistoryHandSummaryCore,
 } from "@cardpilot/shared-types";
+import { getRuntimeConfig } from "./config";
+import { logError, logInfo, logWarn } from "./logger";
 import { SupabasePersistence, type PersistHandHistoryPayload, type RoomRecord, type SessionContextMetadata, type VerifiedIdentity } from "./supabase";
 import { RoomManager } from "./room-manager";
 
+const runtimeConfig = getRuntimeConfig();
 const app = express();
-app.use(cors());
+app.use(cors({ origin: runtimeConfig.corsOrigin, credentials: true }));
 app.get("/health", (_req, res) => res.json({ ok: true }));
 const DEPLOY_COMMIT_REF =
   process.env.RAILWAY_GIT_COMMIT_SHA ||
@@ -48,7 +33,7 @@ app.get("/version", (_req, res) => res.json({ ok: true, commit: DEPLOY_COMMIT_RE
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CORS_ORIGIN?.split(",") || true,
+    origin: runtimeConfig.corsOrigin,
     credentials: true
   }
 });
@@ -64,7 +49,7 @@ type RoomInfo = RoomRecord & {
   createdAt: string;
 };
 
-const ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const ROOM_CODE_CHARS = runtimeConfig.roomCodeAlphabet;
 
 const tables = new Map<string, GameTable>();
 const roomsByTableId = new Map<string, RoomInfo>();
@@ -81,7 +66,7 @@ const pendingAllInPrompts = new Map<string, { handId: string; prompt: AllInPromp
 const pendingRunCountTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 const pendingShowdownTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 const handIdleWatchdogs = new Map<string, ReturnType<typeof setTimeout>>();
-const HAND_IDLE_TIMEOUT_MS = 60_000; // 60s with no seated players → abort hand
+const HAND_IDLE_TIMEOUT_MS = runtimeConfig.handIdleTimeoutMs;
 
 // Deferred actions: stand-up seats and pause requests that wait for hand to end
 const pendingStandUps = new Map<string, Set<number>>(); // tableId → set of seats
@@ -96,6 +81,20 @@ const sessionStatsByRoomCode = new Map<string, Map<string, PlayerSessionEntry>>(
 type DepositRequest = { orderId: string; tableId: string; seat: number; userId: string; userName: string; amount: number; approved: boolean };
 const pendingDeposits = new Map<string, DepositRequest>(); // orderId → request
 const supabase = new SupabasePersistence();
+
+app.get("/healthz", (_req, res) => {
+  res.status(200).json({
+    ok: true,
+    service: "cardpilot-game-server",
+    configVersion: runtimeConfig.version,
+    env: runtimeConfig.envName,
+    uptimeSec: Math.floor(process.uptime()),
+    commit: DEPLOY_COMMIT_REF || null,
+    supabaseEnabled: supabase.enabled(),
+    activeTables: tables.size,
+    activeRooms: roomsByTableId.size,
+  });
+});
 
 // Room manager handles ownership, settings, timers, kick/ban, auto-close
 const roomManager = new RoomManager((tableId, event, data) => {
@@ -113,7 +112,11 @@ io.use(async (socket, next) => {
     const identity = await supabase.verifyAccessToken(auth.accessToken, auth.displayName);
     // If client sends userId and server uses guest fallback, use client's userId instead
     if (auth.userId && identity.userId.startsWith('guest-')) {
-      console.log("[AUTH] Using client-provided userId instead of guest ID:", auth.userId);
+      logInfo({
+        event: "auth.identity.override_guest",
+        userId: auth.userId,
+        message: "Using client-provided userId in guest fallback mode.",
+      });
       socketIdentity.set(socket.id, {
         userId: auth.userId,
         displayName: identity.displayName
@@ -736,7 +739,7 @@ function beginShowdownDecision(tableId: string, table: GameTable, state: TableSt
     const liveTable = tables.get(tableId);
     if (!liveTable) return;
     settleShowdownDecision(tableId, liveTable, handIdForTimeout);
-  }, 4000);
+  }, runtimeConfig.showdownDecisionTimeoutMs);
 
   pendingShowdownTimeouts.set(tableId, timeout);
 }
@@ -876,7 +879,11 @@ function resetHandIdleWatchdog(tableId: string): void {
     // Check again: if players reconnected, don't abort
     if (bindingsByTable(tableId).length >= 2) return;
 
-    console.log(`[IDLE_WATCHDOG] Aborting stale hand for ${tableId} (no connected players for ${HAND_IDLE_TIMEOUT_MS / 1000}s)`);
+    logWarn({
+      event: "hand.idle_watchdog.abort",
+      tableId,
+      message: `No connected players for ${HAND_IDLE_TIMEOUT_MS / 1000}s; aborting stale hand.`,
+    });
     tbl.abortHand();
     roomManager.setHandActive(tableId, false);
     roomManager.clearActionTimer(tableId);
@@ -1007,7 +1014,11 @@ function startHandFlow(tableId: string, actorUserId: string, source: "manual" | 
     throw new Error(validationError);
   }
 
-  openRoomSessionIfNeeded(tableId, "start_hand").catch((e) => console.warn("startHandFlow: openRoomSession failed:", (e as Error).message));
+  openRoomSessionIfNeeded(tableId, "start_hand").catch((e) => logWarn({
+    event: "session.open.failed",
+    tableId,
+    message: (e as Error).message,
+  }));
   applyApprovedDeposits(tableId);
 
   const { handId } = table.startHand();
@@ -1019,6 +1030,14 @@ function startHandFlow(tableId: string, actorUserId: string, source: "manual" | 
   roomManager.setHandActive(tableId, true);
   const playerUserIds = bindingsByTable(tableId).map((b) => b.binding.userId);
   roomManager.refillTimeBanks(tableId, playerUserIds);
+  logInfo({
+    event: "hand.started",
+    tableId,
+    handId,
+    userId: actorUserId,
+    source,
+    seatedPlayers: playerUserIds.length,
+  });
 
   io.to(tableId).emit("hand_started", { handId });
 
@@ -1035,7 +1054,12 @@ function startHandFlow(tableId: string, actorUserId: string, source: "manual" | 
     actorUserId,
     handId,
     payload: { buttonSeat: table.getPublicState().buttonSeat, source },
-  }).catch((e) => console.warn("startHandFlow: logEvent failed:", (e as Error).message));
+  }).catch((e) => logWarn({
+    event: "supabase.log_event.failed",
+    tableId,
+    handId,
+    message: (e as Error).message,
+  }));
 
   touchLocalRoom(tableId);
   broadcastSnapshot(tableId);
@@ -1089,7 +1113,19 @@ function finalizeHandEnd(tableId: string, state: TableState): void {
   clearShowdownDecisionTimeout(tableId);
   const table = tables.get(tableId);
   const settlement = table?.getSettlementResult() ?? null;
-  persistHandHistory(tableId, state, settlement).catch((e) => console.warn("finalizeHandEnd: persistHandHistory failed:", (e as Error).message));
+  logInfo({
+    event: "hand.ended",
+    tableId,
+    handId: state.handId,
+    winners: (state.winners ?? []).length,
+    totalPot: settlement?.totalPot ?? state.pot,
+  });
+  persistHandHistory(tableId, state, settlement).catch((e) => logWarn({
+    event: "hand_history.persist.failed",
+    tableId,
+    handId: state.handId,
+    message: (e as Error).message,
+  }));
   io.to(tableId).emit("hand_ended", {
     handId: state.handId,
     finalState: state,
@@ -1338,11 +1374,16 @@ function initiateRunoutFlow(tableId: string, table: GameTable): void {
       const pending = pendingAllInPrompts.get(tableId);
       if (!pending || pending.handId !== state.handId) return;
       pendingAllInPrompts.delete(tableId);
-      console.log(`[ALL_IN] Run count timeout for ${tableId}, defaulting to run 1`);
+      logInfo({
+        event: "all_in.run_count.timeout_default",
+        tableId,
+        handId: state.handId,
+        message: "Run-count decision timed out; defaulting to run once.",
+      });
       table.setAllInRunCount(1);
       io.to(tableId).emit("run_count_chosen", { runCount: 1, seat: lowestEquity.seat, auto: true });
       void handleSequentialRunout(tableId, table);
-    }, 15000);
+    }, runtimeConfig.runCountDecisionTimeoutMs);
     pendingRunCountTimeouts.set(tableId, timeout);
   } else {
     // Not everyone is all-in (one player has chips but no one to bet against)
@@ -1359,12 +1400,12 @@ function normalizeRoomCode(roomCode: string): string {
 }
 
 function sanitizeRoomName(name?: string): string {
-  const trimmed = (name ?? "Training Room").trim();
-  if (trimmed.length === 0) return "Training Room";
+  const trimmed = (name ?? runtimeConfig.defaultRoomName).trim();
+  if (trimmed.length === 0) return runtimeConfig.defaultRoomName;
   return trimmed.slice(0, 48);
 }
 
-function randomRoomCode(length = 6): string {
+function randomRoomCode(length = runtimeConfig.roomCodeLength): string {
   let code = "";
   for (let i = 0; i < length; i += 1) {
     code += ROOM_CODE_CHARS[randomInt(ROOM_CODE_CHARS.length)];
@@ -1374,14 +1415,17 @@ function randomRoomCode(length = 6): string {
 
 async function generateUniqueRoomCode(): Promise<string> {
   for (let i = 0; i < 30; i += 1) {
-    const candidate = randomRoomCode(6);
+    const candidate = randomRoomCode(runtimeConfig.roomCodeLength);
     if (roomCodeToTableId.has(candidate)) continue;
     try {
       const existing = await supabase.findRoomByCode(candidate);
       if (!existing) return candidate;
     } catch (err) {
       // Supabase unavailable or table missing — fall back to in-memory uniqueness only
-      console.warn("generateUniqueRoomCode: Supabase check failed, using in-memory only:", (err as Error).message);
+      logWarn({
+        event: "room_code.generate.fallback_in_memory",
+        message: (err as Error).message,
+      });
       return candidate;
     }
   }
@@ -1408,9 +1452,9 @@ async function ensureRoomByTableId(tableId: string): Promise<RoomInfo> {
     tableId,
     roomCode: await generateUniqueRoomCode(),
     roomName: `Table ${tableId.slice(0, 6)}`,
-    maxPlayers: 6,
-    smallBlind: 50,
-    bigBlind: 100,
+    maxPlayers: runtimeConfig.defaultCreateRoom.maxPlayers,
+    smallBlind: runtimeConfig.defaultCreateRoom.smallBlind,
+    bigBlind: runtimeConfig.defaultCreateRoom.bigBlind,
     status: "OPEN",
     isPublic: true,
     createdAt: new Date().toISOString(),
@@ -1588,7 +1632,12 @@ io.on("connection", (socket) => {
     "create_room",
     async (payload: { roomName?: string; maxPlayers?: number; smallBlind?: number; bigBlind?: number; isPublic?: boolean; buyInMin?: number; buyInMax?: number; visibility?: "public" | "private" }) => {
       try {
-        console.log("[CREATE_ROOM] Request from", identity.userId, identity.displayName, "payload:", payload);
+        logInfo({
+          event: "room.create.requested",
+          userId: identity.userId,
+          message: identity.displayName,
+          payload,
+        });
 
         const ownedRoom = roomManager.getActiveRoomOwnedBy(identity.userId);
         if (ownedRoom) {
@@ -1601,9 +1650,9 @@ io.on("connection", (socket) => {
           tableId,
           roomCode,
           roomName: sanitizeRoomName(payload.roomName),
-          maxPlayers: Math.min(9, Math.max(2, Number(payload.maxPlayers ?? 6))),
-          smallBlind: Math.max(1, Number(payload.smallBlind ?? 50)),
-          bigBlind: Math.max(2, Number(payload.bigBlind ?? 100)),
+          maxPlayers: Math.min(runtimeConfig.maxPlayers, Math.max(runtimeConfig.minPlayers, Number(payload.maxPlayers ?? runtimeConfig.defaultCreateRoom.maxPlayers))),
+          smallBlind: Math.max(1, Number(payload.smallBlind ?? runtimeConfig.defaultCreateRoom.smallBlind)),
+          bigBlind: Math.max(2, Number(payload.bigBlind ?? runtimeConfig.defaultCreateRoom.bigBlind)),
           status: "OPEN",
           isPublic: payload.isPublic ?? true,
           createdAt: new Date().toISOString(),
@@ -1630,15 +1679,23 @@ io.on("connection", (socket) => {
             maxPlayers: room.maxPlayers,
             smallBlind: room.smallBlind,
             bigBlind: room.bigBlind,
-            buyInMin: Math.max(1, Number(payload.buyInMin ?? room.bigBlind * 20)),
-            buyInMax: Math.max(1, Number(payload.buyInMax ?? room.bigBlind * 200)),
+            buyInMin: Math.max(1, Number(payload.buyInMin ?? room.bigBlind * runtimeConfig.defaultCreateRoom.buyInMinMultiplierBb)),
+            buyInMax: Math.max(1, Number(payload.buyInMax ?? room.bigBlind * runtimeConfig.defaultCreateRoom.buyInMaxMultiplierBb)),
             visibility: payload.visibility ?? (payload.isPublic === false ? "private" : "public"),
           },
         });
 
         // Persist to Supabase in background — don't block room creation
-        supabase.upsertRoom(room).catch((e) => console.warn("create_room: upsertRoom failed:", (e as Error).message));
-        openRoomSessionIfNeeded(room.tableId, "create_room").catch((e) => console.warn("create_room: openRoomSession failed:", (e as Error).message));
+        supabase.upsertRoom(room).catch((e) => logWarn({
+          event: "room.create.persist_failed",
+          tableId: room.tableId,
+          message: (e as Error).message,
+        }));
+        openRoomSessionIfNeeded(room.tableId, "create_room").catch((e) => logWarn({
+          event: "session.open.failed",
+          tableId: room.tableId,
+          message: (e as Error).message,
+        }));
         supabase.logEvent({
           tableId: room.tableId,
           eventType: "CREATE_ROOM",
@@ -1650,7 +1707,11 @@ io.on("connection", (socket) => {
             smallBlind: room.smallBlind,
             bigBlind: room.bigBlind
           }
-        }).catch((e) => console.warn("create_room: logEvent failed:", (e as Error).message));
+        }).catch((e) => logWarn({
+          event: "supabase.log_event.failed",
+          tableId: room.tableId,
+          message: (e as Error).message,
+        }));
 
         socket.emit("room_created", {
           tableId: room.tableId,
@@ -1664,7 +1725,6 @@ io.on("connection", (socket) => {
         });
         socket.emit("table_snapshot", table.getPublicState());
         const fullState = roomManager.getFullState(room.tableId);
-        console.log("[create_room] room_state_update:", fullState ? `owner=${fullState.ownership.ownerId}` : "NULL");
         if (fullState) socket.emit("room_state_update", fullState);
         emitPresence(room.tableId);
         void emitLobbySnapshot();
@@ -2211,6 +2271,16 @@ io.on("connection", (socket) => {
       roomManager.playerActedInTime(payload.tableId, identity.userId);
 
       const newState = table.applyAction(binding.seat, payload.action, payload.amount);
+      logInfo({
+        event: "hand.action_applied",
+        tableId: payload.tableId,
+        handId: payload.handId,
+        seat: binding.seat,
+        userId: identity.userId,
+        action: payload.action,
+        amount: payload.amount ?? 0,
+        street: newState.street,
+      });
 
       io.to(payload.tableId).emit("action_applied", {
         seat: binding.seat,
@@ -2249,7 +2319,13 @@ io.on("connection", (socket) => {
           amount: payload.amount ?? 0,
           pot: newState.pot
         }
-      }).catch((e) => console.warn("action_submit: logEvent failed:", (e as Error).message));
+      }).catch((e) => logWarn({
+        event: "supabase.log_event.failed",
+        tableId: payload.tableId,
+        handId: payload.handId,
+        seat: binding.seat,
+        message: (e as Error).message,
+      }));
 
     } catch (error) {
       socket.emit("error_event", { message: (error as Error).message });
@@ -2366,7 +2442,13 @@ io.on("connection", (socket) => {
       // Apply run count choice and begin sequential runout
       const runCount = payload.runCount === 2 ? 2 : 1;
       table.setAllInRunCount(runCount);
-      console.log(`[ALL_IN] Player chose run ${runCount} for ${payload.tableId}`);
+      logInfo({
+        event: "all_in.run_count.selected",
+        tableId: payload.tableId,
+        handId: payload.handId,
+        seat: binding.seat,
+        runCount,
+      });
 
       io.to(payload.tableId).emit("run_count_chosen", { runCount, seat: binding.seat });
       void handleSequentialRunout(payload.tableId, table);
@@ -2650,7 +2732,12 @@ io.on("connection", (socket) => {
         throw new Error("Only the host can close the room");
       }
 
-      console.log("[CLOSE_ROOM] Host", identity.userId, "closing room", payload.tableId);
+      logInfo({
+        event: "room.close.requested",
+        tableId: payload.tableId,
+        userId: identity.userId,
+        message: identity.displayName,
+      });
 
       // Stop auto-deal and timers
       clearAutoDealSchedule(payload.tableId);
@@ -2817,8 +2904,95 @@ io.on("connection", (socket) => {
   });
 });
 
-const port = Number(process.env.PORT || 4000);
+const port = runtimeConfig.port;
+let shutdownInProgress = false;
+let forceExitTimer: ReturnType<typeof setTimeout> | null = null;
+
+async function gracefulShutdown(signal: NodeJS.Signals): Promise<void> {
+  if (shutdownInProgress) return;
+  shutdownInProgress = true;
+
+  logInfo({
+    event: "server.shutdown.start",
+    message: signal,
+    activeTables: tables.size,
+    activeRooms: roomsByTableId.size,
+  });
+
+  if (forceExitTimer) {
+    clearTimeout(forceExitTimer);
+  }
+  forceExitTimer = setTimeout(() => {
+    logError({
+      event: "server.shutdown.timeout",
+      message: "Forcing process exit after 12s timeout.",
+    });
+    process.exit(1);
+  }, 12_000);
+
+  try {
+    const tableIds = [...roomsByTableId.keys()];
+    for (const tableId of tableIds) {
+      clearAutoDealSchedule(tableId);
+      clearShowdownDecisionTimeout(tableId);
+      clearHandIdleWatchdog(tableId);
+      const runCountTimeout = pendingRunCountTimeouts.get(tableId);
+      if (runCountTimeout) {
+        clearTimeout(runCountTimeout);
+      }
+    }
+    pendingRunCountTimeouts.clear();
+    pendingAllInPrompts.clear();
+    pendingStandUps.clear();
+    pendingTableLeaves.clear();
+    pendingPause.clear();
+    pendingSeatRequests.clear();
+    pendingDeposits.clear();
+
+    await Promise.allSettled(tableIds.map((tableId) => closeRoomSessionIfOpen(tableId, "server_shutdown")));
+
+    await new Promise<void>((resolve) => io.close(() => resolve()));
+    await new Promise<void>((resolve, reject) => {
+      httpServer.close((err) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve();
+      });
+    });
+
+    if (forceExitTimer) {
+      clearTimeout(forceExitTimer);
+      forceExitTimer = null;
+    }
+
+    logInfo({ event: "server.shutdown.complete" });
+    process.exit(0);
+  } catch (error) {
+    if (forceExitTimer) {
+      clearTimeout(forceExitTimer);
+      forceExitTimer = null;
+    }
+    logError({
+      event: "server.shutdown.failed",
+      message: (error as Error).message,
+    });
+    process.exit(1);
+  }
+}
+
+for (const signal of ["SIGINT", "SIGTERM"] as const) {
+  process.on(signal, () => {
+    void gracefulShutdown(signal);
+  });
+}
+
 httpServer.listen(port, () => {
-  console.log(`game-server listening on http://localhost:${port}`);
-  console.log(`supabase persistence: ${supabase.enabled() ? "enabled" : "disabled (env missing)"}`);
+  logInfo({
+    event: "server.started",
+    message: `http://localhost:${port}`,
+    supabaseEnabled: supabase.enabled(),
+    configVersion: runtimeConfig.version,
+  });
 });
