@@ -10,6 +10,7 @@ const SERVER = import.meta.env.VITE_SERVER_URL || "http://127.0.0.1:4000";
 const DEBUG_LOGS_ENABLED = import.meta.env.DEV;
 const APP_VERSION = "v0.4.0";
 const NETLIFY_COMMIT_REF = import.meta.env.VITE_NETLIFY_COMMIT_REF || "";
+const NETLIFY_DEPLOY_ID = import.meta.env.VITE_NETLIFY_DEPLOY_ID || "";
 const BUILD_TIME = new Date().toISOString().slice(0, 16).replace("T", " ");
 
 const debugLog = (...args: unknown[]) => {
@@ -517,7 +518,7 @@ export function App() {
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-[11px] font-bold text-white uppercase">{displayName[0]}</div>
           <span className="text-xs text-slate-200 font-medium max-w-[140px] truncate">Hi, {displayName}</span>
           <button onClick={handleLogout} className="text-xs text-slate-500 hover:text-red-400 transition-colors px-2 py-1 rounded-lg hover:bg-white/5">Sign Out</button>
-          <span className="text-[8px] text-slate-600 font-mono" title={`Build: ${BUILD_TIME}`}>{APP_VERSION}{NETLIFY_COMMIT_REF ? `@${NETLIFY_COMMIT_REF.slice(0, 7)}` : ""}</span>
+          <span className="text-[8px] text-slate-600 font-mono" title={`Build: ${BUILD_TIME}`}>{APP_VERSION}{NETLIFY_COMMIT_REF ? `@${NETLIFY_COMMIT_REF.slice(0, 7)}` : ""}{NETLIFY_DEPLOY_ID ? `#${NETLIFY_DEPLOY_ID.slice(0, 6)}` : ""}</span>
         </div>
       </header>
 
