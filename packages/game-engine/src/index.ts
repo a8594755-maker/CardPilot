@@ -72,7 +72,14 @@ export class GameTable {
   }
 
   getPublicState(): TableState {
-    const { pendingToAct: _pending, deck: _deck, holeCards: _holes, contributed: _contrib, ...rest } = this.state;
+    const {
+      pendingToAct: _pending,
+      deck: _deck,
+      holeCards: _holes,
+      contributed: _contrib,
+      handStartStacks: _handStartStacks,
+      ...rest
+    } = this.state;
     // Compute legalActions for current actor
     const legal = this.computeLegalActions();
     // Compute positions for all active players
@@ -519,10 +526,10 @@ export class GameTable {
     const solvedSecond = this.solveContenders(contenders, secondBoard);
 
     for (const sidePot of sidePots) {
-      const firstHalf = Math.floor(sidePot.amount / 2);
-      const secondHalf = sidePot.amount - firstHalf;
-      this.distributeSolvedPot(firstHalf, solvedFirst, sidePot.eligibleSeats, payoutsRun1);
-      this.distributeSolvedPot(secondHalf, solvedSecond, sidePot.eligibleSeats, payoutsRun2);
+      const run1Amount = Math.ceil(sidePot.amount / 2);
+      const run2Amount = Math.floor(sidePot.amount / 2);
+      this.distributeSolvedPot(run1Amount, solvedFirst, sidePot.eligibleSeats, payoutsRun1);
+      this.distributeSolvedPot(run2Amount, solvedSecond, sidePot.eligibleSeats, payoutsRun2);
     }
 
     const payouts = this.mergePayoutMaps(payoutsRun1, payoutsRun2);
@@ -584,7 +591,14 @@ export class GameTable {
     const share = Math.floor(potAmount / winnerSeats.length);
     let remainder = potAmount - share * winnerSeats.length;
 
-    for (const seat of winnerSeats) {
+    // Odd-chip-to-button rule: order winners by proximity to button clockwise
+    const allSeats = this.state.players.map((p) => p.seat).sort((a, b) => a - b);
+    const orderedFromBtn = orderedFromButton(this.state.buttonSeat, allSeats);
+    const sortedWinners = [...winnerSeats].sort(
+      (a, b) => orderedFromBtn.indexOf(a) - orderedFromBtn.indexOf(b)
+    );
+
+    for (const seat of sortedWinners) {
       const player = this.playerBySeat(seat);
       const amt = share + (remainder > 0 ? 1 : 0);
       player.stack += amt;
@@ -870,6 +884,130 @@ export class GameTable {
 
     this.state.showdownPhase = "decision";
     this.state.muckedSeats = [];
+  }
+
+  getSettlementResult(): SettlementResult | null {
+    return this.settlementResult;
+  }
+
+  private mapPayoutsToWinners(payouts: Map<number, { amount: number; handName?: string }>): Array<{ seat: number; amount: number; handName?: string }> {
+    return [...payouts.entries()]
+      .map(([seat, payout]) => ({ seat, amount: payout.amount, handName: payout.handName }))
+      .sort((a, b) => a.seat - b.seat);
+  }
+
+  private mergePayoutMaps(
+    map1: Map<number, { amount: number; handName?: string }>,
+    map2: Map<number, { amount: number; handName?: string }>
+  ): Map<number, { amount: number; handName?: string }> {
+    const merged = new Map<number, { amount: number; handName?: string }>();
+
+    for (const [seat, payout] of map1.entries()) {
+      merged.set(seat, { ...payout });
+    }
+    for (const [seat, payout] of map2.entries()) {
+      const existing = merged.get(seat);
+      merged.set(seat, {
+        amount: (existing?.amount ?? 0) + payout.amount,
+        handName: existing?.handName ?? payout.handName,
+      });
+    }
+
+    return merged;
+  }
+
+  private buildPotLayers(): Array<{ label: string; amount: number; eligibleSeats: number[] }> {
+    const contenders = this.state.players.filter((p) => p.inHand && !p.folded);
+    const contendersForPots = contenders.length > 0
+      ? contenders
+      : this.state.players.filter((p) => (this.state.contributed.get(p.seat) ?? 0) > 0);
+
+    const sidePots = this.buildSidePots(contendersForPots);
+    if (sidePots.length > 0) {
+      return sidePots.map((sidePot, index) => ({
+        label: index === 0 ? "Main Pot" : `Side Pot ${index}`,
+        amount: sidePot.amount,
+        eligibleSeats: [...sidePot.eligibleSeats],
+      }));
+    }
+
+    const total = [...this.state.contributed.values()].reduce((sum, amount) => sum + amount, 0);
+    if (total <= 0) return [];
+    return [{
+      label: "Main Pot",
+      amount: total,
+      eligibleSeats: [...new Set((this.state.winners ?? []).map((winner) => winner.seat))],
+    }];
+  }
+
+  private createSettlementResult(showdown: boolean): SettlementResult {
+    const contributions: Record<number, number> = {};
+    for (const player of this.state.players) {
+      contributions[player.seat] = this.state.contributed.get(player.seat) ?? 0;
+    }
+
+    const totalPot = Object.values(contributions).reduce((sum, amount) => sum + amount, 0);
+    const runCount = this.state.runoutPayouts?.length === 2 ? 2 : 1;
+    const winnersByRun = runCount === 2
+      ? this.state.runoutPayouts!.map((run) => ({ run: run.run, board: [...run.board], winners: [...run.winners] }))
+      : [{
+          run: 1 as const,
+          board: [...this.state.board],
+          winners: [...(this.state.winners ?? [])],
+        }];
+
+    const payoutsBySeat: Record<number, number> = {};
+    for (const winner of this.state.winners ?? []) {
+      payoutsBySeat[winner.seat] = (payoutsBySeat[winner.seat] ?? 0) + winner.amount;
+    }
+    const totalPaid = Object.values(payoutsBySeat).reduce((sum, amount) => sum + amount, 0);
+
+    const payoutsBySeatByRun = runCount === 2
+      ? winnersByRun.map((run) => {
+          const bySeat: Record<number, number> = {};
+          for (const winner of run.winners) {
+            bySeat[winner.seat] = (bySeat[winner.seat] ?? 0) + winner.amount;
+          }
+          return bySeat;
+        })
+      : undefined;
+
+    const ledger = this.state.players
+      .map((player) => {
+        const startStack = this.state.handStartStacks.get(player.seat) ?? player.stack;
+        const invested = contributions[player.seat] ?? 0;
+        const endStack = player.stack;
+        const won = Math.max(0, endStack - startStack + invested);
+        const net = endStack - startStack;
+        return {
+          seat: player.seat,
+          playerName: player.name,
+          startStack,
+          invested,
+          won,
+          endStack,
+          net,
+        };
+      })
+      .sort((a, b) => a.seat - b.seat);
+
+    return {
+      handId: this.state.handId ?? "",
+      totalPot,
+      rake: 0,
+      totalPaid,
+      runCount,
+      boards: runCount === 2 ? [...(this.state.runoutBoards ?? [])] : [[...this.state.board]],
+      potLayers: this.buildPotLayers(),
+      winnersByRun,
+      payoutsBySeat,
+      payoutsBySeatByRun,
+      ledger,
+      contributions,
+      showdown,
+      buttonSeat: this.state.buttonSeat,
+      timestamp: Date.now(),
+    };
   }
 }
 

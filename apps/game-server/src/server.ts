@@ -24,6 +24,7 @@ import { Server } from "socket.io";
 import { GameTable } from "@cardpilot/game-engine";
 import { getPreflopAdvice, getPostflopAdvice, calculateDeviation } from "@cardpilot/advice-engine";
 import { calculateEquity, type Card } from "@cardpilot/poker-evaluator";
+import { SHOWDOWN_SPEED_DELAYS_MS } from "@cardpilot/shared-types";
 import type {
   ActionSubmitPayload, AdvicePayload, LobbyRoomSummary, TableState,
   UpdateSettingsPayload, KickPlayerPayload, TransferOwnershipPayload,
@@ -84,13 +85,14 @@ const HAND_IDLE_TIMEOUT_MS = 60_000; // 60s with no seated players → abort han
 
 // Deferred actions: stand-up seats and pause requests that wait for hand to end
 const pendingStandUps = new Map<string, Set<number>>(); // tableId → set of seats
+const pendingTableLeaves = new Map<string, Set<string>>(); // tableId -> socketIds that leave once hand ends
 const pendingPause = new Map<string, { userId: string; displayName: string }>(); // tableId → who requested
 
-// Session stats: per-room, per-player cumulative buy-in tracking
-type PlayerSessionEntry = { userId: string; name: string; totalBuyIn: number; handsPlayed: number };
-const sessionStats = new Map<string, Map<string, PlayerSessionEntry>>(); // tableId → userId → entry
+// Session stats: persisted per roomCode+userId for the life of the room
+type PlayerSessionEntry = { userId: string; name: string; totalBuyIn: number; handsPlayed: number; lastStack: number };
+const sessionStatsByRoomCode = new Map<string, Map<string, PlayerSessionEntry>>(); // roomCode -> userId -> entry
 
-// Deposit requests: seated player asks for more chips, host approves, credited at hand boundary
+// Deposit requests: seated player asks for more chips, host approves, credited at next hand start
 type DepositRequest = { orderId: string; tableId: string; seat: number; userId: string; userName: string; amount: number; approved: boolean };
 const pendingDeposits = new Map<string, DepositRequest>(); // orderId → request
 const supabase = new SupabasePersistence();
@@ -169,20 +171,64 @@ function socketIdBySeat(tableId: string, seat: number): string {
   return "";
 }
 
+function roomCodeForTable(tableId: string): string | null {
+  return roomsByTableId.get(tableId)?.roomCode ?? null;
+}
+
+function getRoomSessionStats(tableId: string, create = false): Map<string, PlayerSessionEntry> | undefined {
+  const roomCode = roomCodeForTable(tableId);
+  if (!roomCode) return undefined;
+  if (!create) return sessionStatsByRoomCode.get(roomCode);
+  let stats = sessionStatsByRoomCode.get(roomCode);
+  if (!stats) {
+    stats = new Map<string, PlayerSessionEntry>();
+    sessionStatsByRoomCode.set(roomCode, stats);
+  }
+  return stats;
+}
+
 function recordSessionBuyIn(tableId: string, userId: string, name: string, amount: number): void {
-  let roomStats = sessionStats.get(tableId);
-  if (!roomStats) { roomStats = new Map(); sessionStats.set(tableId, roomStats); }
+  const room = roomManager.getRoom(tableId);
+  if (!room?.settings.roomFundsTracking) return;
+  const roomStats = getRoomSessionStats(tableId, true);
+  if (!roomStats) return;
   const existing = roomStats.get(userId);
   if (existing) {
     existing.totalBuyIn += amount;
-    existing.name = name; // keep name up-to-date
+    existing.name = name;
   } else {
-    roomStats.set(userId, { userId, name, totalBuyIn: amount, handsPlayed: 0 });
+    roomStats.set(userId, { userId, name, totalBuyIn: amount, handsPlayed: 0, lastStack: 0 });
   }
 }
 
+function setSessionLastStack(tableId: string, userId: string, name: string, stack: number): void {
+  const room = roomManager.getRoom(tableId);
+  if (!room?.settings.roomFundsTracking) return;
+  const roomStats = getRoomSessionStats(tableId, true);
+  if (!roomStats) return;
+  const existing = roomStats.get(userId);
+  if (existing) {
+    existing.lastStack = stack;
+    existing.name = name;
+    return;
+  }
+  roomStats.set(userId, { userId, name, totalBuyIn: 0, handsPlayed: 0, lastStack: stack });
+}
+
+function getRestorableStack(tableId: string, userId: string): number | null {
+  const room = roomManager.getRoom(tableId);
+  if (!room?.settings.roomFundsTracking) return null;
+  const roomStats = getRoomSessionStats(tableId, false);
+  if (!roomStats) return null;
+  const existing = roomStats.get(userId);
+  if (!existing) return null;
+  return existing.lastStack > 0 ? existing.lastStack : null;
+}
+
 function incrementHandsPlayed(tableId: string, playerUserIds: string[]): void {
-  const roomStats = sessionStats.get(tableId);
+  const room = roomManager.getRoom(tableId);
+  if (!room?.settings.roomFundsTracking) return;
+  const roomStats = getRoomSessionStats(tableId, false);
   if (!roomStats) return;
   for (const uid of playerUserIds) {
     const entry = roomStats.get(uid);
@@ -190,18 +236,46 @@ function incrementHandsPlayed(tableId: string, playerUserIds: string[]): void {
   }
 }
 
+function syncSessionStacksFromState(tableId: string, state: TableState): void {
+  const room = roomManager.getRoom(tableId);
+  if (!room?.settings.roomFundsTracking) return;
+  for (const player of state.players) {
+    setSessionLastStack(tableId, player.userId, player.name, player.stack);
+  }
+}
+
 function applyApprovedDeposits(tableId: string): void {
   const table = tables.get(tableId);
   if (!table) return;
+  const room = roomManager.getRoom(tableId);
+  if (!room) return;
   const toRemove: string[] = [];
+  const stateBefore = table.getPublicState();
+  const stackBySeatBefore = new Map<number, number>(stateBefore.players.map((player) => [player.seat, player.stack]));
   for (const [orderId, deposit] of pendingDeposits.entries()) {
     if (deposit.tableId !== tableId || !deposit.approved) continue;
     try {
+      const currentStack = stackBySeatBefore.get(deposit.seat);
+      if (currentStack == null) {
+        toRemove.push(orderId);
+        continue;
+      }
+      if (currentStack + deposit.amount > room.settings.buyInMax) {
+        const seatSocket = socketIdBySeat(tableId, deposit.seat);
+        if (seatSocket) {
+          io.to(seatSocket).emit("system_message", { message: "Rebuy approval skipped: exceeds max buy-in for next hand." });
+        }
+        io.to(tableId).emit("system_message", { message: `Rebuy approval for ${deposit.userName} skipped (exceeds max buy-in).` });
+        toRemove.push(orderId);
+        continue;
+      }
       table.addStack(deposit.seat, deposit.amount);
       recordSessionBuyIn(tableId, deposit.userId, deposit.userName, deposit.amount);
+      setSessionLastStack(tableId, deposit.userId, deposit.userName, currentStack + deposit.amount);
       const sid = socketIdBySeat(tableId, deposit.seat);
-      if (sid) io.to(sid).emit("system_message", { message: `Deposit of ${deposit.amount} credited to your stack` });
-      io.to(tableId).emit("system_message", { message: `${deposit.userName} (Seat ${deposit.seat}) deposited ${deposit.amount}` });
+      if (sid) io.to(sid).emit("system_message", { message: `Rebuy of ${deposit.amount} credited for this hand.` });
+      io.to(tableId).emit("system_message", { message: `${deposit.userName} (Seat ${deposit.seat}) rebuy credited: ${deposit.amount}` });
+      stackBySeatBefore.set(deposit.seat, currentStack + deposit.amount);
     } catch (err) {
       console.warn("applyApprovedDeposits: addStack failed:", (err as Error).message);
     }
@@ -740,23 +814,97 @@ function clearHandIdleWatchdog(tableId: string): void {
   }
 }
 
+function queueLeaveTableAfterHand(tableId: string, socketId: string): void {
+  let pending = pendingTableLeaves.get(tableId);
+  if (!pending) {
+    pending = new Set<string>();
+    pendingTableLeaves.set(tableId, pending);
+  }
+  pending.add(socketId);
+}
+
+function processQueuedTableLeaves(tableId: string): void {
+  const pending = pendingTableLeaves.get(tableId);
+  if (!pending || pending.size === 0) return;
+  for (const socketId of pending) {
+    const seatBinding = socketSeat.get(socketId);
+    if (seatBinding && seatBinding.tableId === tableId) {
+      standUpPlayer(tableId, seatBinding.seat, "Left after hand ended");
+    }
+    const sock = io.sockets.sockets.get(socketId);
+    if (sock) sock.leave(tableId);
+    io.to(socketId).emit("left_table", { tableId });
+  }
+  pendingTableLeaves.delete(tableId);
+}
+
+function getEligibleSeatNumbersForDeal(tableId: string): number[] {
+  const table = tables.get(tableId);
+  if (!table) return [];
+  const room = roomManager.getRoom(tableId);
+  if (!room) return [];
+
+  const connectedSeats = new Set(bindingsByTable(tableId).map(({ binding }) => binding.seat));
+  return table.getPublicState().players
+    .filter((player) => player.stack > 0)
+    .filter((player) => room.settings.dealToAwayPlayers || connectedSeats.has(player.seat))
+    .map((player) => player.seat);
+}
+
+function getHandStartValidationMessage(tableId: string): string | null {
+  const room = roomManager.getRoom(tableId);
+  if (!room) return "Room not found";
+  if (roomManager.isPaused(tableId)) return "Game is paused";
+
+  const table = tables.get(tableId);
+  if (table?.isHandActive()) return "Hand in progress";
+
+  const eligibleSeats = getEligibleSeatNumbersForDeal(tableId);
+  if (eligibleSeats.length < 2) {
+    return `Need at least 2 eligible players to deal (currently ${eligibleSeats.length})`;
+  }
+  return null;
+}
+
+function getAutoStartSkipMessage(tableId: string): string | null {
+  const room = roomManager.getRoom(tableId);
+  if (!room) return null;
+  if (!room.settings.autoStartNextHand) return "Auto-start skipped: disabled in room settings.";
+  if (roomManager.isPaused(tableId)) return "Auto-start skipped: game is paused.";
+
+  const table = tables.get(tableId);
+  if (!table) return "Auto-start skipped: table not ready.";
+  if (table.isHandActive()) return "Auto-start skipped: hand still active.";
+
+  const eligibleSeats = getEligibleSeatNumbersForDeal(tableId);
+  if (eligibleSeats.length < 2) {
+    const awayHint = room.settings.dealToAwayPlayers
+      ? ""
+      : " (away players are excluded; enable \"Deal to away players\" to include them)";
+    return `Auto-start skipped: need at least 2 eligible players (currently ${eligibleSeats.length})${awayHint}.`;
+  }
+  return null;
+}
+
 function startHandFlow(tableId: string, actorUserId: string, source: "manual" | "auto"): string {
   const room = roomsByTableId.get(tableId);
   if (!room) {
     throw new Error("Room not found");
   }
 
-  if (roomManager.isPaused(tableId)) {
-    throw new Error("Game is paused");
-  }
-
-  // Guard: reject deal if a hand is already active
   const existingTable = tables.get(tableId);
-  if (existingTable && existingTable.isHandActive()) {
+  if (existingTable?.isHandActive()) {
     throw new Error("Hand in progress");
   }
 
   const table = createTableIfNeeded(room);
+  applyApprovedDeposits(tableId);
+
+  const validationError = getHandStartValidationMessage(tableId);
+  if (validationError) {
+    throw new Error(validationError);
+  }
+
   const { handId } = table.startHand();
   pendingAllInPrompts.delete(tableId);
   const rcTimeout = pendingRunCountTimeouts.get(tableId);
@@ -797,28 +945,34 @@ function scheduleAutoDealIfNeeded(tableId: string): void {
 
   const room = roomManager.getRoom(tableId);
   if (!room) return;
-  if (!roomManager.isAutoDealEnabled(tableId)) return;
-  if (roomManager.isPaused(tableId)) return;
-  if (bindingsByTable(tableId).length < 2) return;
+  const table = tables.get(tableId);
+  if (!table) return;
+
+  const immediateSkip = getAutoStartSkipMessage(tableId);
+  if (immediateSkip) {
+    io.to(tableId).emit("system_message", { message: immediateSkip });
+    return;
+  }
+
+  const delayMs = SHOWDOWN_SPEED_DELAYS_MS[room.settings.showdownSpeed] ?? SHOWDOWN_SPEED_DELAYS_MS.normal;
 
   const handle = setTimeout(() => {
     autoDealSchedule.delete(tableId);
     const managed = roomManager.getRoom(tableId);
-    const table = tables.get(tableId);
-    if (!managed || !table) return;
-    if (!roomManager.isAutoDealEnabled(tableId) || roomManager.isPaused(tableId)) return;
-    if (table.isHandActive()) return;
-    if (bindingsByTable(tableId).length < 2) {
-      io.to(tableId).emit("system_message", { message: "Auto deal paused: need at least 2 seated players" });
+    if (!managed) return;
+
+    const skipReason = getAutoStartSkipMessage(tableId);
+    if (skipReason) {
+      io.to(tableId).emit("system_message", { message: skipReason });
       return;
     }
 
     try {
       startHandFlow(tableId, managed.ownership.ownerId, "auto");
     } catch (err) {
-      io.to(tableId).emit("system_message", { message: `Auto deal paused: ${(err as Error).message}` });
+      io.to(tableId).emit("system_message", { message: `Auto-start skipped: ${(err as Error).message}` });
     }
-  }, 5000);
+  }, delayMs);
 
   autoDealSchedule.set(tableId, handle);
 }
@@ -833,24 +987,27 @@ function finalizeHandEnd(tableId: string, state: TableState): void {
     finalState: state,
     board: state.board,
     runoutBoards: state.runoutBoards,
+    runoutPayouts: state.runoutPayouts,
     players: state.players,
     pot: state.pot,
     winners: state.winners,
+    settlement: tables.get(tableId)?.getSettlementResult() ?? undefined,
   });
   roomManager.clearActionTimer(tableId);
   roomManager.setHandActive(tableId, false);
 
   // Increment hands played for session stats
   incrementHandsPlayed(tableId, state.players.filter((p) => p.inHand).map((p) => p.userId));
+  syncSessionStacksFromState(tableId, state);
 
-  // Bust-out auto-stand: players with stack=0 after hand ends
+  // Bust-out auto-stand: players with no chips after hand ends
   for (const p of state.players) {
-    if (p.stack === 0 && p.inHand) {
+    if (p.stack <= 0) {
       const sid = socketIdBySeat(tableId, p.seat);
       if (sid) {
-        io.to(sid).emit("system_message", { message: "You busted — stood up. Rebuy to continue." });
+        io.to(sid).emit("system_message", { message: "You busted out and were stood up. Rebuy to continue." });
       }
-      standUpPlayer(tableId, p.seat, "Busted out (stack = 0)");
+      standUpPlayer(tableId, p.seat, "Busted out");
     }
   }
 
@@ -870,8 +1027,7 @@ function finalizeHandEnd(tableId: string, state: TableState): void {
     roomManager.pauseGame(tableId, deferredPause.userId, deferredPause.displayName);
   }
 
-  // Credit approved deposits at hand boundary
-  applyApprovedDeposits(tableId);
+  processQueuedTableLeaves(tableId);
 
   touchLocalRoom(tableId);
   broadcastSnapshot(tableId);
@@ -884,11 +1040,14 @@ function handleRoomAutoClose(tableId: string): void {
   if (closed) {
     clearAutoDealSchedule(tableId);
     clearShowdownDecisionTimeout(tableId);
+    pendingStandUps.delete(tableId);
+    pendingTableLeaves.delete(tableId);
     io.to(tableId).emit("room_closed", { tableId, reason: "empty" });
     tables.delete(tableId);
     const room = roomsByTableId.get(tableId);
     if (room) {
       roomCodeToTableId.delete(room.roomCode);
+      sessionStatsByRoomCode.delete(room.roomCode);
       roomsByTableId.delete(tableId);
       supabase.touchRoom(tableId, "CLOSED").catch(() => {});
     }
@@ -947,6 +1106,9 @@ function startTimerForActor(tableId: string): void {
 function standUpPlayer(tableId: string, seatNum: number, reason: string): void {
   const table = tables.get(tableId);
   if (!table) return;
+  const state = table.getPublicState();
+  const leavingPlayer = state.players.find((player) => player.seat === seatNum);
+  if (!leavingPlayer) return;
 
   // Find and remove socket binding
   let removedSocketId = "";
@@ -961,6 +1123,7 @@ function standUpPlayer(tableId: string, seatNum: number, reason: string): void {
   }
 
   table.removePlayer(seatNum);
+  setSessionLastStack(tableId, leavingPlayer.userId, leavingPlayer.name, leavingPlayer.stack);
 
   io.to(tableId).emit("system_message", { message: `Seat ${seatNum}: ${reason}` });
   if (removedSocketId) {
