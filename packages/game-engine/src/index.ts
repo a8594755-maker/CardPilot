@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import pokersolver from "pokersolver";
 import type {
   HandAction,
+  HandActionType,
   LegalActions,
   PlayerActionType,
   PlayerStatus,
@@ -21,8 +22,13 @@ const { Hand } = pokersolver as unknown as {
   };
 };
 
-const POSITIONS_6MAX = ["SB", "BB", "UTG", "HJ", "CO", "BTN"] as const;
-const POSITIONS_HU = ["SB", "BB"] as const;
+const POSITION_LABELS_BY_COUNT: Record<number, readonly string[]> = {
+  2: ["SB", "BB"],
+  3: ["SB", "BB", "BTN"],
+  4: ["SB", "BB", "UTG", "BTN"],
+  5: ["SB", "BB", "UTG", "CO", "BTN"],
+  6: ["SB", "BB", "UTG", "HJ", "CO", "BTN"],
+};
 
 type TableMode = 'COACH' | 'REVIEW' | 'CASUAL';
 
@@ -32,19 +38,24 @@ type MutableTableState = TableState & {
   holeCards: Map<number, [string, string]>;
   contributed: Map<number, number>;
   handStartStacks: Map<number, number>;
+  pendingDeadBlinds: Map<number, number>;
+  pendingDeadBlindActions: HandAction[];
+  shownCards: Record<number, [string, string]>;
+  /** Backward-compatible alias for shownCards. */
   shownHands: Record<number, [string, string]>;
   revealedHoles: Record<number, [string, string]>;
   muckedSeats: number[];
   showdownPhase: "none" | "decision";
-  /** The currentBet value at which the last FULL raise occurred.
-   *  Players who have streetCommitted >= this value have already acted
-   *  at the full-raise level and cannot re-raise after a short all-in. */
+  /** The currentBet value at which the last FULL bet/raise occurred. */
   lastReopenBet: number;
+  /** Seats that have voluntarily acted since the most recent FULL raise level. */
+  actedSinceLastFullRaise: Set<number>;
 };
 
 export class GameTable {
   private state: MutableTableState;
   private readonly ante: number;
+  private readonly rakeEnabled: boolean;
   private readonly rakePercent: number;
   private readonly rakeCap: number;
   private allInRunCount: 1 | 2 = 1;
@@ -59,11 +70,13 @@ export class GameTable {
     bigBlind: number;
     mode?: TableMode;
     ante?: number;
+    rakeEnabled?: boolean;
     rakePercent?: number;
     rakeCap?: number;
   }) {
     this.ante = Math.max(0, params.ante ?? 0);
     this.rakePercent = Math.max(0, params.rakePercent ?? 0);
+    this.rakeEnabled = params.rakeEnabled ?? this.rakePercent > 0;
     // rakeCap<=0 means uncapped rake
     this.rakeCap = params.rakeCap != null && params.rakeCap > 0
       ? params.rakeCap
@@ -80,6 +93,7 @@ export class GameTable {
       currentBet: 0,
       minRaiseTo: params.bigBlind * 2,
       lastFullRaiseSize: params.bigBlind,
+      lastFullBet: 0,
       actorSeat: null,
       handId: null,
       players: [],
@@ -87,6 +101,7 @@ export class GameTable {
       legalActions: null,
       mode: params.mode ?? "COACH",
       positions: {},
+      shownCards: {},
       shownHands: {},
       revealedHoles: {},
       muckedSeats: [],
@@ -96,7 +111,10 @@ export class GameTable {
       holeCards: new Map(),
       handStartStacks: new Map(),
       contributed: new Map(),
-      lastReopenBet: 0
+      pendingDeadBlinds: new Map(),
+      pendingDeadBlindActions: [],
+      lastReopenBet: 0,
+      actedSinceLastFullRaise: new Set<number>()
     };
   }
 
@@ -107,7 +125,10 @@ export class GameTable {
       holeCards: _holes,
       contributed: _contrib,
       handStartStacks: _handStartStacks,
+      pendingDeadBlinds: _pendingDeadBlinds,
+      pendingDeadBlindActions: _pendingDeadBlindActions,
       lastReopenBet: _lastReopenBet,
+      actedSinceLastFullRaise: _actedSinceLastFullRaise,
       ...rest
     } = this.state;
     // Compute legalActions for current actor
@@ -141,6 +162,7 @@ export class GameTable {
   revealPublicHand(seat: number): boolean {
     const cards = this.state.holeCards.get(seat);
     if (!cards) return false;
+    this.state.shownCards[seat] = [cards[0], cards[1]];
     this.state.shownHands[seat] = [cards[0], cards[1]];
     this.state.revealedHoles[seat] = [cards[0], cards[1]];
     this.state.muckedSeats = this.state.muckedSeats.filter((s) => s !== seat);
@@ -149,6 +171,11 @@ export class GameTable {
 
   muckPublicHand(seat: number): boolean {
     if (!this.state.holeCards.has(seat)) return false;
+    if (this.state.shownCards[seat]) {
+      const next = { ...this.state.shownCards };
+      delete next[seat];
+      this.state.shownCards = next;
+    }
     if (this.state.shownHands[seat]) {
       const next = { ...this.state.shownHands };
       delete next[seat];
@@ -215,8 +242,15 @@ export class GameTable {
   }
 
   removePlayer(seat: number): void {
+    const pendingDeadBlind = this.state.pendingDeadBlinds.get(seat) ?? 0;
+    if (pendingDeadBlind > 0 && !this.isHandActive()) {
+      this.state.pot = Math.max(0, this.state.pot - pendingDeadBlind);
+    }
     this.state.players = this.state.players.filter((p) => p.seat !== seat);
     this.state.pendingToAct.delete(seat);
+    this.state.actedSinceLastFullRaise.delete(seat);
+    this.state.pendingDeadBlinds.delete(seat);
+    this.state.pendingDeadBlindActions = this.state.pendingDeadBlindActions.filter((action) => action.seat !== seat);
     this.state.holeCards.delete(seat);
   }
 
@@ -233,16 +267,23 @@ export class GameTable {
     }
 
     const handId = uuidv4();
+    const pendingDeadBlinds = new Map(this.state.pendingDeadBlinds);
+    const pendingDeadBlindActions = [...this.state.pendingDeadBlindActions];
+    this.state.pendingDeadBlinds.clear();
+    this.state.pendingDeadBlindActions = [];
+
     this.state.handId = handId;
     this.state.street = "PREFLOP";
     this.handInProgress = true;
     this.state.board = [];
-    this.state.actions = [];
+    this.state.actions = [...pendingDeadBlindActions];
     this.state.pot = 0;
     this.state.currentBet = this.state.bigBlind;
     this.state.minRaiseTo = this.state.bigBlind * 2;
     this.state.lastFullRaiseSize = this.state.bigBlind;
+    this.state.lastFullBet = this.state.bigBlind;
     this.state.lastReopenBet = this.state.bigBlind;
+    this.state.actedSinceLastFullRaise = new Set<number>();
     this.state.pendingToAct = new Set<number>();
     this.state.holeCards.clear();
     this.state.contributed.clear();
@@ -251,6 +292,7 @@ export class GameTable {
     this.state.winners = undefined;
     this.state.runoutBoards = undefined;
     this.state.runoutPayouts = undefined;
+    this.state.shownCards = {};
     this.state.shownHands = {};
     this.state.revealedHoles = {};
     this.state.muckedSeats = [];
@@ -275,6 +317,12 @@ export class GameTable {
       if (active && player.isNewPlayer) {
         player.isNewPlayer = false;
       }
+    }
+
+    for (const [seat, amount] of pendingDeadBlinds.entries()) {
+      if (amount <= 0) continue;
+      this.state.pot += amount;
+      this.state.contributed.set(seat, (this.state.contributed.get(seat) ?? 0) + amount);
     }
 
     if (this.ante > 0) {
@@ -338,6 +386,7 @@ export class GameTable {
     }
 
     const toCall = Math.max(0, this.state.currentBet - player.streetCommitted);
+    const pendingBeforeAction = new Set(this.state.pendingToAct);
     let actionAmount = 0;
 
     // Validate action legality
@@ -373,8 +422,10 @@ export class GameTable {
     if (action === "fold") {
       player.folded = true;
       player.inHand = false;
+      this.markActedSinceLastFullRaise(seat);
     } else if (action === "check") {
       // no chip movement
+      this.markActedSinceLastFullRaise(seat);
     } else if (action === "call") {
       const commit = Math.min(toCall, player.stack);
       player.stack -= commit;
@@ -382,25 +433,46 @@ export class GameTable {
       this.state.pot += commit;
       actionAmount = commit;
       if (player.stack === 0) player.allIn = true;
+      this.markActedSinceLastFullRaise(seat);
     } else if (action === "raise") {
       const raiseTo = amount as number;
+      const previousBet = this.state.currentBet;
+      const previousMinRaiseTo = this.state.minRaiseTo;
       const commit = raiseTo - player.streetCommitted;
       player.stack -= commit;
       player.streetCommitted = raiseTo;
       this.state.pot += commit;
       actionAmount = commit;
-      const raiseIncrement = raiseTo - this.state.currentBet;
-      this.state.lastFullRaiseSize = raiseIncrement;
-      this.state.minRaiseTo = raiseTo + raiseIncrement;
+      const raiseIncrement = raiseTo - previousBet;
+      const minRaiseIncrement = previousMinRaiseTo - previousBet;
+      const isFullRaise = raiseIncrement >= minRaiseIncrement;
       this.state.currentBet = raiseTo;
       if (player.stack === 0) player.allIn = true;
 
-      this.state.pendingToAct = new Set(
-        this.activePlayers()
-          .filter((p) => p.seat !== seat && !p.allIn)
-          .map((p) => p.seat)
-      );
+      if (isFullRaise) {
+        this.state.lastFullRaiseSize = raiseIncrement;
+        this.state.lastFullBet = raiseTo;
+        this.state.lastReopenBet = raiseTo;
+        this.state.minRaiseTo = raiseTo + raiseIncrement;
+        this.state.actedSinceLastFullRaise = new Set<number>([seat]);
+        this.state.pendingToAct = new Set(
+          this.activePlayers()
+            .filter((p) => p.seat !== seat && !p.allIn)
+            .map((p) => p.seat)
+        );
+      } else {
+        // Short all-in raise via "raise": not a full raise, so no reopen reset.
+        this.markActedSinceLastFullRaise(seat);
+        this.state.minRaiseTo = this.state.currentBet + this.state.lastFullRaiseSize;
+        this.state.pendingToAct = this.pendingSeatsAfterIncompleteRaise(
+          seat,
+          previousBet,
+          pendingBeforeAction
+        );
+      }
     } else if (action === "all_in") {
+      const previousBet = this.state.currentBet;
+      const previousMinRaiseTo = this.state.minRaiseTo;
       const commit = player.stack;
       const newTotal = player.streetCommitted + commit;
       player.stack = 0;
@@ -409,37 +481,37 @@ export class GameTable {
       actionAmount = commit;
       player.allIn = true;
 
-      if (newTotal > this.state.currentBet) {
-        // Full Raise Rule (TDA Rules / Robert's Rules):
-        // A short all-in that doesn't meet the minimum raise size does NOT
-        // reopen betting for players who already acted at the current level.
-        const raiseSize = newTotal - this.state.currentBet;
-        const minRaiseIncrement = this.state.minRaiseTo - this.state.currentBet;
+      if (newTotal > previousBet) {
+        const raiseSize = newTotal - previousBet;
+        const minRaiseIncrement = previousMinRaiseTo - previousBet;
         const isFullRaise = raiseSize >= minRaiseIncrement;
 
         this.state.currentBet = newTotal;
 
         if (isFullRaise) {
-          // Full raise: reopen action for everyone, update minRaiseTo
+          // Full raise: establish a new reopen level.
           this.state.lastFullRaiseSize = raiseSize;
+          this.state.lastFullBet = newTotal;
           this.state.lastReopenBet = newTotal;
           this.state.minRaiseTo = newTotal + raiseSize;
+          this.state.actedSinceLastFullRaise = new Set<number>([seat]);
           this.state.pendingToAct = new Set(
             this.activePlayers()
               .filter((p) => p.seat !== seat && !p.allIn)
               .map((p) => p.seat)
           );
         } else {
-          // Short all-in: do NOT reopen re-raise rights.
-          // But players who haven't matched the new currentBet must still act (call/fold).
-          // lastReopenBet stays unchanged — so computeLegalActions blocks their raise.
-          for (const p of this.activePlayers()) {
-            if (p.seat === seat || p.allIn) continue;
-            if (p.streetCommitted < this.state.currentBet) {
-              this.state.pendingToAct.add(p.seat);
-            }
-          }
+          // Incomplete all-in raise: no reopen reset.
+          this.markActedSinceLastFullRaise(seat);
+          this.state.minRaiseTo = this.state.currentBet + this.state.lastFullRaiseSize;
+          this.state.pendingToAct = this.pendingSeatsAfterIncompleteRaise(
+            seat,
+            previousBet,
+            pendingBeforeAction
+          );
         }
+      } else {
+        this.markActedSinceLastFullRaise(seat);
       }
     }
 
@@ -502,8 +574,8 @@ export class GameTable {
   getPosition(seat: number): string {
     const activeSeats = this.activePlayers().map((p) => p.seat).sort((a, b) => a - b);
     const order = orderedFromButton(this.state.buttonSeat, activeSeats);
-    const positions = activeSeats.length <= 2 ? POSITIONS_HU : POSITIONS_6MAX;
-    const labelOrder = positions.slice(positions.length - order.length);
+    const labelOrder = POSITION_LABELS_BY_COUNT[order.length];
+    if (!labelOrder) return "UNKNOWN";
     const idx = order.indexOf(seat);
     return idx >= 0 ? labelOrder[idx] : "UNKNOWN";
   }
@@ -536,7 +608,8 @@ export class GameTable {
   }
 
   /** Post a dead blind to allow a new player to enter the game immediately.
-   *  The player pays the BB amount and transitions from sitting_out/new to active. */
+   *  Policy: dead blind is forced and non-live. It is added to the next hand's pot,
+   *  does NOT count toward streetCommitted, and does NOT grant blind option rights. */
   postDeadBlind(seat: number): void {
     const player = this.playerBySeat(seat);
     if (this.isHandActive()) {
@@ -544,6 +617,17 @@ export class GameTable {
     }
     const amount = Math.min(player.stack, this.state.bigBlind);
     if (amount <= 0) throw new Error("No chips to post");
+    player.stack -= amount;
+    this.state.pendingDeadBlinds.set(seat, (this.state.pendingDeadBlinds.get(seat) ?? 0) + amount);
+    this.state.pendingDeadBlindActions.push({
+      seat,
+      street: "PREFLOP",
+      type: "post_dead_blind" as HandActionType,
+      amount,
+      at: Date.now(),
+    });
+    // Keep conservation visible between hands.
+    this.state.pot += amount;
     player.status = 'active';
     player.isNewPlayer = false;
   }
@@ -583,15 +667,15 @@ export class GameTable {
     const canCall = toCall > 0;
     const callAmount = Math.min(toCall, player.stack);
 
-    // Full Raise Rule: player can only raise if they haven't already responded
-    // to the last full raise. If a short all-in moved currentBet above lastReopenBet,
-    // players who already matched lastReopenBet can only call/fold.
-    const hasRespondedToLastFullRaise = player.streetCommitted >= this.state.lastReopenBet;
-    const bettingReopenedByFullRaise = this.state.currentBet >= this.state.lastReopenBet;
-    const canRaise = player.stack > toCall &&
-      (!hasRespondedToLastFullRaise || this.state.currentBet <= this.state.lastReopenBet);
-    const minRaise = Math.min(this.state.minRaiseTo, player.stack + player.streetCommitted);
     const maxRaise = player.stack + player.streetCommitted;
+    const hasActedSinceLastFullRaise = this.state.actedSinceLastFullRaise.has(player.seat);
+    const raiseIncrementFaced = Math.max(0, this.state.currentBet - player.streetCommitted);
+    const fullRaiseFaced = raiseIncrementFaced >= this.state.lastFullRaiseSize;
+    const raiseBlockedByIncompleteAllIn = hasActedSinceLastFullRaise
+      && raiseIncrementFaced > 0
+      && !fullRaiseFaced;
+    const canRaise = maxRaise > this.state.currentBet && !raiseBlockedByIncompleteAllIn;
+    const minRaise = Math.min(this.state.minRaiseTo, maxRaise);
 
     return {
       canFold: true,
@@ -664,6 +748,7 @@ export class GameTable {
     const solvedSecond = this.solveContenders(contenders, secondBoard);
 
     for (const sidePot of distributableSidePots) {
+      // Run-it-twice odd-chip policy: Run 1 gets ceil, Run 2 gets floor.
       const run1Amount = Math.ceil(sidePot.amount / 2);
       const run2Amount = Math.floor(sidePot.amount / 2);
       this.distributeSolvedPot(run1Amount, solvedFirst, sidePot.eligibleSeats, payoutsRun1);
@@ -683,8 +768,8 @@ export class GameTable {
     this.state.pot = 0;
     this.state.actorSeat = null;
     this.state.pendingToAct.clear();
-    this.revealShowdownHands(contenders.map((p) => p.seat));
-    this.enterShowdownDecisionState(contenders.map((p) => p.seat));
+    this.revealShowdownHands(this.mandatoryShowdownSeats(contenders));
+    this.applyShowdownVisibilityPolicy(contenders);
     this.settlementResult = this.createSettlementResult(true);
     this.allInRunCount = 1;
   }
@@ -730,12 +815,8 @@ export class GameTable {
     const share = Math.floor(potAmount / winnerSeats.length);
     let remainder = potAmount - share * winnerSeats.length;
 
-    // Odd-chip-to-button rule: order winners by proximity to button clockwise
-    const allSeats = this.state.players.map((p) => p.seat).sort((a, b) => a - b);
-    const orderedFromBtn = orderedFromButton(this.state.buttonSeat, allSeats);
-    const sortedWinners = [...winnerSeats].sort(
-      (a, b) => orderedFromBtn.indexOf(a) - orderedFromBtn.indexOf(b)
-    );
+    // Odd-chip rule: start from the seat immediately left of button, then clockwise.
+    const sortedWinners = this.sortSeatsClockwiseFromButtonLeft(winnerSeats);
 
     for (const seat of sortedWinners) {
       const player = this.playerBySeat(seat);
@@ -824,12 +905,15 @@ export class GameTable {
     this.state.pot = 0;
     this.state.currentBet = 0;
     this.state.lastFullRaiseSize = this.state.bigBlind;
+    this.state.lastFullBet = 0;
     this.state.lastReopenBet = 0;
+    this.state.actedSinceLastFullRaise = new Set<number>();
     this.state.actorSeat = null;
     this.state.actions = [];
     this.state.winners = undefined;
     this.state.runoutBoards = undefined;
     this.state.runoutPayouts = undefined;
+    this.state.shownCards = {};
     this.state.shownHands = {};
     this.state.revealedHoles = {};
     this.state.muckedSeats = [];
@@ -837,6 +921,8 @@ export class GameTable {
     this.state.pendingToAct.clear();
     this.state.holeCards.clear();
     this.state.contributed.clear();
+    this.state.pendingDeadBlinds.clear();
+    this.state.pendingDeadBlindActions = [];
     this.state.handStartStacks.clear();
     this.runoutPending = false;
     this.collectedFee = 0;
@@ -902,7 +988,9 @@ export class GameTable {
     this.state.currentBet = 0;
     this.state.minRaiseTo = this.state.bigBlind;
     this.state.lastFullRaiseSize = this.state.bigBlind;
+    this.state.lastFullBet = 0;
     this.state.lastReopenBet = 0;
+    this.state.actedSinceLastFullRaise = new Set<number>();
     for (const p of this.state.players) {
       p.streetCommitted = 0;
     }
@@ -951,8 +1039,8 @@ export class GameTable {
     this.state.pot = 0;
     this.state.actorSeat = null;
     this.state.pendingToAct.clear();
-    this.revealShowdownHands(contenders.map((p) => p.seat));
-    this.enterShowdownDecisionState(contenders.map((p) => p.seat));
+    this.revealShowdownHands(this.mandatoryShowdownSeats(contenders));
+    this.applyShowdownVisibilityPolicy(contenders);
     this.settlementResult = this.createSettlementResult(true);
   }
 
@@ -962,6 +1050,7 @@ export class GameTable {
     winner.stack += won;
     this.state.winners = [{ seat: winner.seat, amount: won }];
     this.state.runoutPayouts = undefined;
+    this.state.shownCards = {};
     this.state.shownHands = {};
     this.state.pot = 0;
     this.state.street = "SHOWDOWN";
@@ -975,11 +1064,14 @@ export class GameTable {
 
   private commitBlind(seat: number, amount: number, type: "post_sb" | "post_bb") {
     const commit = this.commitForcedChips(seat, amount, { countToStreet: true });
-    this.logAction({ seat, street: "PREFLOP", type: type as unknown as PlayerActionType, amount: commit, at: Date.now() });
+    this.logAction({ seat, street: "PREFLOP", type, amount: commit, at: Date.now() });
   }
 
   private collectAnte(seat: number): void {
-    this.commitForcedChips(seat, this.ante, { countToStreet: false });
+    const commit = this.commitForcedChips(seat, this.ante, { countToStreet: false });
+    if (commit > 0) {
+      this.logAction({ seat, street: "PREFLOP", type: "ante", amount: commit, at: Date.now() });
+    }
   }
 
   private commitForcedChips(seat: number, amount: number, opts: { countToStreet: boolean }): number {
@@ -999,20 +1091,99 @@ export class GameTable {
     return commit;
   }
 
+  private markActedSinceLastFullRaise(seat: number): void {
+    this.state.actedSinceLastFullRaise.add(seat);
+  }
+
+  private pendingSeatsAfterIncompleteRaise(
+    excludingSeat: number,
+    previousBet: number,
+    pendingBeforeAction: ReadonlySet<number>
+  ): Set<number> {
+    const pending = new Set<number>();
+    for (const player of this.activePlayers()) {
+      if (player.seat === excludingSeat || player.allIn) continue;
+      const needsToMatchNewBet = player.streetCommitted < this.state.currentBet;
+      const hadActionPendingAtPreviousLevel = pendingBeforeAction.has(player.seat);
+      const hadMatchedPreviousBet = player.streetCommitted === previousBet;
+      if (needsToMatchNewBet || (hadActionPendingAtPreviousLevel && !hadMatchedPreviousBet)) {
+        pending.add(player.seat);
+      }
+    }
+    return pending;
+  }
+
+  private mandatoryShowdownSeats(contenders: TablePlayer[]): number[] {
+    const required = new Set<number>();
+    for (const winner of this.state.winners ?? []) {
+      required.add(winner.seat);
+    }
+    for (const contender of contenders) {
+      if (contender.allIn) required.add(contender.seat);
+    }
+    return [...required].sort((a, b) => a - b);
+  }
+
+  private sortSeatsClockwiseFromButtonLeft(seats: number[]): number[] {
+    if (seats.length <= 1) return [...seats];
+    const tableSeats = this.state.players.map((player) => player.seat).sort((a, b) => a - b);
+    const clockwiseFromButtonLeft = orderedFromButton(this.state.buttonSeat, tableSeats);
+    const indexBySeat = new Map<number, number>();
+    clockwiseFromButtonLeft.forEach((seat, index) => indexBySeat.set(seat, index));
+    return [...seats].sort(
+      (a, b) => (indexBySeat.get(a) ?? Number.MAX_SAFE_INTEGER) - (indexBySeat.get(b) ?? Number.MAX_SAFE_INTEGER)
+    );
+  }
+
   private revealShowdownHands(seats: number[]): void {
     for (const seat of seats) {
       const cards = this.state.holeCards.get(seat);
       if (!cards) continue;
+      this.state.shownCards[seat] = [cards[0], cards[1]];
       this.state.shownHands[seat] = [cards[0], cards[1]];
       this.state.revealedHoles[seat] = [cards[0], cards[1]];
+      this.state.muckedSeats = this.state.muckedSeats.filter((s) => s !== seat);
     }
+  }
+
+  private applyShowdownVisibilityPolicy(contenders: TablePlayer[]): void {
+    const contenderSeats = contenders.map((player) => player.seat);
+    if (contenderSeats.length < 2) {
+      this.state.showdownPhase = "none";
+      this.state.muckedSeats = [];
+      return;
+    }
+
+    const hasAllInContender = contenders.some((player) => player.allIn);
+    const calledShowdown = this.didRiverEndWithCall();
+    const mustForceReveal = hasAllInContender || calledShowdown;
+    if (mustForceReveal) {
+      this.revealShowdownHands(contenderSeats);
+      this.state.showdownPhase = "none";
+      this.state.muckedSeats = [];
+      return;
+    }
+
+    this.enterShowdownDecisionState(contenderSeats);
+  }
+
+  private didRiverEndWithCall(): boolean {
+    for (let i = this.state.actions.length - 1; i >= 0; i -= 1) {
+      const action = this.state.actions[i];
+      if (action.street !== "RIVER") continue;
+      return action.type === "call";
+    }
+    return false;
   }
 
   private applyRakeToSidePots(
     sidePots: Array<{ amount: number; eligibleSeats: number[] }>
   ): { sidePots: Array<{ amount: number; eligibleSeats: number[] }>; collectedFee: number } {
-    const totalPot = sidePots.reduce((sum, sidePot) => sum + sidePot.amount, 0);
-    const fee = this.calculateRake(totalPot);
+    const grossPot = this.state.pot;
+    const fee = this.calculateRake(grossPot);
+    const netPot = Math.max(0, grossPot - fee);
+    this.state.pot = netPot;
+
     if (fee <= 0) {
       return {
         sidePots: sidePots.map((sidePot) => ({ amount: sidePot.amount, eligibleSeats: [...sidePot.eligibleSeats] })),
@@ -1036,7 +1207,7 @@ export class GameTable {
   }
 
   private calculateRake(totalPot: number): number {
-    if (totalPot <= 0 || this.rakePercent <= 0) return 0;
+    if (!this.rakeEnabled || totalPot <= 0 || this.rakePercent <= 0) return 0;
     const uncapped = Math.floor((totalPot * this.rakePercent) / 100);
     if (uncapped <= 0) return 0;
     return Math.min(uncapped, this.rakeCap);

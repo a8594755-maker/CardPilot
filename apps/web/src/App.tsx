@@ -718,7 +718,7 @@ export function App() {
           />
         ) : view === "history" ? (
           /* ═══════ HISTORY ═══════ */
-          <HistoryPage socket={socket} isConnected={socketConnected} />
+          <HistoryPage socket={socket} isConnected={socketConnected} userId={authSession.userId} />
         ) : view === "lobby" ? (
           /* ═══════ LOBBY ═══════ */
           <main className="flex-1 p-6 overflow-y-auto">
@@ -1970,7 +1970,7 @@ function ProfilePage({ displayName, setDisplayName, email, authSession }: {
 }
 
 /* ═══════════════════ HISTORY PAGE ═══════════════════ */
-function HistoryPage({ socket, isConnected }: { socket: Socket | null; isConnected: boolean }) {
+function HistoryPage({ socket, isConnected }: { socket: Socket | null; isConnected: boolean; userId?: string }) {
   const [rooms, setRooms] = useState<HistoryRoomSummary[]>([]);
   const [sessions, setSessions] = useState<HistorySessionSummary[]>([]);
   const [hands, setHands] = useState<HistoryHandSummary[]>([]);
@@ -2893,6 +2893,31 @@ function AuthScreen({ onAuth }: { onAuth: (s: AuthSession) => void }) {
 
         {/* Card */}
         <div className="glass-card p-8">
+          {/* Google OAuth — prominent, above email form */}
+          {supabase && (
+            <>
+              <button
+                type="button"
+                onClick={handleGoogleSignIn}
+                disabled={loading}
+                className="w-full py-3.5 text-sm font-semibold rounded-xl border border-white/15 bg-white text-slate-900 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 shadow-sm"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="#4285F4" d="M21.2 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.2c-.2 1.2-.9 2.2-2 2.9v2.4h3.2c1.9-1.7 3-4.3 3-7.2z"/>
+                  <path fill="#34A853" d="M12 22c2.7 0 4.9-.9 6.5-2.4l-3.2-2.4c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.5C4.7 19.8 8.1 22 12 22z"/>
+                  <path fill="#FBBC05" d="M6.4 14.1c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2V7.5H3.1C2.4 8.9 2 10.4 2 12s.4 3.1 1.1 4.5l3.3-2.4z"/>
+                  <path fill="#EA4335" d="M12 5.8c1.5 0 2.8.5 3.9 1.5l2.9-2.9C16.9 2.7 14.7 1.8 12 1.8 8.1 1.8 4.7 4 3.1 7.5l3.3 2.5c.8-2.4 3-4.2 5.6-4.2z"/>
+                </svg>
+                Continue with Google
+              </button>
+
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10" /></div>
+                <div className="relative flex justify-center"><span className="bg-[#0f1724] px-3 text-xs text-slate-500">or continue with email</span></div>
+              </div>
+            </>
+          )}
+
           {/* Tab switcher */}
           <div className="flex gap-1 bg-white/5 rounded-xl p-1 mb-6">
             {(["login", "signup"] as const).map((m) => (
@@ -2954,18 +2979,6 @@ function AuthScreen({ onAuth }: { onAuth: (s: AuthSession) => void }) {
             <button type="submit" disabled={isDisabled || !formValid}
               className="btn-primary w-full !py-3 text-base font-semibold disabled:opacity-40">
               {loading ? "..." : cooldown > 0 ? `Wait ${cooldown}s` : mode === "login" ? "Log In" : "Create Account"}
-            </button>
-
-            <button
-              type="button"
-              onClick={handleGoogleSignIn}
-              disabled={loading}
-              className="w-full !py-3 text-sm font-medium rounded-xl border border-white/15 bg-white text-slate-900 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.2 1.3-1.6 3.9-5.5 3.9-3.3 0-6-2.8-6-6.2s2.7-6.2 6-6.2c1.9 0 3.2.8 3.9 1.5l2.7-2.7C16.8 2.7 14.6 1.8 12 1.8 6.9 1.8 2.8 6.2 2.8 11.8S6.9 21.8 12 21.8c6.9 0 9.2-5 9.2-7.6 0-.5-.1-.9-.1-1.3H12z"/>
-              </svg>
-              Continue with Google
             </button>
           </form>
 

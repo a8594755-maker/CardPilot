@@ -47,6 +47,33 @@ npm run build:server
 npm run ci:verify
 ```
 
+## Supabase Auth Setup (Google OAuth)
+
+To enable Google sign-in you need a Supabase project with the Google provider configured:
+
+1. **Create a Google OAuth client** in the [Google Cloud Console](https://console.cloud.google.com/apis/credentials):
+   - Application type: **Web application**
+   - Authorized redirect URI: `https://<YOUR_PROJECT_REF>.supabase.co/auth/v1/callback`
+
+2. **Enable Google provider** in the Supabase dashboard:
+   - Go to **Authentication → Providers → Google**
+   - Toggle **Enable**
+   - Paste your Google **Client ID** and **Client Secret**
+
+3. **Set Site URL** in the Supabase dashboard:
+   - Go to **Authentication → URL Configuration**
+   - **Site URL**: your production URL (e.g. `https://cardpilot.app`)
+   - **Redirect URLs**: add all environments, e.g.:
+     - `http://localhost:5173` (local dev)
+     - `https://cardpilot.app` (production)
+     - Any Netlify preview URLs if needed
+
+4. **Set environment variables** (see `.env.example`):
+   - Web: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
+   - Server: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+
+When Supabase is not configured (env vars unset), the Google button is hidden and the app falls back to guest/local mode.
+
 ## Deployment Notes
 - Web deploy is compatible with Netlify (`netlify.toml` is included).
 - Server deploy can run on Railway/Node hosts (`PORT` respected).

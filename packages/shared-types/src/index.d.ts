@@ -104,6 +104,8 @@ export interface TableState {
     pot: number;
     currentBet: number;
     minRaiseTo: number;
+    lastFullRaiseSize: number;
+    lastFullBet: number;
     actorSeat: number | null;
     handId: string | null;
     players: TablePlayer[];
@@ -131,6 +133,8 @@ export interface TableState {
         amount: number;
     }>;
     /** Showdown-revealed hole cards by seat (always public once shown) */
+    shownCards: Record<number, [string, string]>;
+    /** Backward-compatible alias for shownCards */
     shownHands: Record<number, [string, string]>;
     /** Publicly revealed hole cards by seat */
     revealedHoles?: Record<number, [string, string]>;

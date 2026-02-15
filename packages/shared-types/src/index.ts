@@ -6,7 +6,9 @@ export type PlayerActionType = 'fold' | 'check' | 'call' | 'raise' | 'all_in';
 
 export type BlindActionType = 'post_sb' | 'post_bb' | 'post_dead_blind';
 
-export type HandActionType = PlayerActionType | BlindActionType;
+export type AnteActionType = 'ante';
+
+export type HandActionType = PlayerActionType | BlindActionType | AnteActionType;
 
 export interface LegalActions {
   canFold: boolean;

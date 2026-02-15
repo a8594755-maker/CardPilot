@@ -146,6 +146,7 @@ function createTableIfNeeded(room: RoomInfo): GameTable {
       smallBlind: room.smallBlind,
       bigBlind: room.bigBlind,
       ante: settings?.ante ?? 0,
+      rakeEnabled: simulatedFeeEnabled,
       rakePercent: simulatedFeeEnabled ? (settings?.simulatedFeePercent ?? 0) : 0,
       rakeCap: simulatedFeeEnabled && simulatedFeeCap > 0 ? simulatedFeeCap : undefined,
     });

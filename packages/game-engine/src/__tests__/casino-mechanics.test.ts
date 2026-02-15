@@ -2,12 +2,13 @@ import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { GameTable } from "../index.js";
 
-function makeHeadsUpTable(params?: { ante?: number; rakePercent?: number; rakeCap?: number }) {
+function makeHeadsUpTable(params?: { ante?: number; rakeEnabled?: boolean; rakePercent?: number; rakeCap?: number }) {
   const t = new GameTable({
     tableId: "casino",
     smallBlind: 50,
     bigBlind: 100,
     ante: params?.ante ?? 0,
+    rakeEnabled: params?.rakeEnabled,
     rakePercent: params?.rakePercent ?? 0,
     rakeCap: params?.rakeCap,
   });
@@ -46,20 +47,30 @@ describe("Casino mechanics", () => {
     t.startHand();
     const state = t.getPublicState();
     assert.equal(state.pot, 200, "pot should include antes + blinds (25+25+50+100)");
+    const anteActions = state.actions.filter((action) => action.type === "ante");
+    assert.equal(anteActions.length, 2, "all active players should post ante");
+    assert.equal(anteActions.every((action) => action.amount === 25), true);
+    const firstBlindIdx = state.actions.findIndex((action) => action.type === "post_sb" || action.type === "post_bb");
+    const lastAnteIdx = state.actions.reduce((idx, action, i) => action.type === "ante" ? i : idx, -1);
+    assert.ok(firstBlindIdx > lastAnteIdx, "ante actions must be logged before blind postings");
     const totalStacks = state.players.reduce((sum, player) => sum + player.stack, 0);
     assert.equal(totalStacks + state.pot, 2000, "chip conservation at hand start");
   });
 
-  it("reveals showdown hands in public shownHands map", () => {
+  it("reveals mandatory showdown hands while keeping non-mandatory losers private", () => {
     const t = makeHeadsUpTable();
     t.startHand();
     playToShowdown(t);
 
     const state = t.getPublicState();
-    const shownSeats = Object.keys(state.shownHands).map((key) => Number(key));
-    assert.equal(shownSeats.length, 2, "all showdown contenders should be revealed");
-    assert.ok(state.shownHands[1], "seat 1 should be shown");
-    assert.ok(state.shownHands[2], "seat 2 should be shown");
+    const shownSeats = Object.keys(state.shownCards).map((key) => Number(key));
+    assert.equal(state.showdownPhase, "decision", "non-mandatory showdown should enter reveal decision state");
+    const winnerSeats = (state.winners ?? []).map((winner) => winner.seat);
+    assert.ok(winnerSeats.length > 0, "showdown should produce at least one winner");
+    for (const winnerSeat of winnerSeats) {
+      assert.ok(shownSeats.includes(winnerSeat), `winner seat ${winnerSeat} must be auto-revealed`);
+    }
+    assert.deepEqual(state.shownHands, state.shownCards, "shownHands should mirror shownCards");
   });
 
   it("deducts rake before payout and reports collectedFee", () => {
@@ -85,5 +96,26 @@ describe("Casino mechanics", () => {
 
     const sumStacks = t.getPublicState().players.reduce((sum, player) => sum + player.stack, 0);
     assert.equal(sumStacks + settlement!.collectedFee, 2000, "stack conservation with rake");
+  });
+
+  it("skips rake when rakeEnabled is false", () => {
+    const t = makeHeadsUpTable({ rakeEnabled: false, rakePercent: 10, rakeCap: 50 });
+    t.startHand();
+
+    let state = t.getPublicState();
+    t.applyAction(state.actorSeat!, "all_in");
+    state = t.getPublicState();
+    if (state.actorSeat !== null) {
+      t.applyAction(state.actorSeat, "all_in");
+    }
+
+    assert.ok(t.isRunoutPending(), "all-in runout should be pending");
+    t.performRunout();
+
+    const settlement = t.getSettlementResult();
+    assert.ok(settlement, "settlement should exist");
+    assert.equal(settlement!.totalPot, 2000);
+    assert.equal(settlement!.collectedFee, 0, "no rake should be collected when disabled");
+    assert.equal(settlement!.totalPaid, 2000, "full pot should be paid when rake is disabled");
   });
 });

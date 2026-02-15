@@ -37,9 +37,137 @@ function playToShowdown(t: GameTable): void {
   }
 }
 
+function blindSeat(s: ReturnType<GameTable["getPublicState"]>, type: "post_sb" | "post_bb"): number {
+  const blindAction = s.actions.find((a) => String(a.type) === type);
+  assert.ok(blindAction, `${type} should be posted at hand start`);
+  return blindAction.seat;
+}
+
+function advanceUntilSeat(t: GameTable, targetSeat: number, maxSteps = 12): void {
+  for (let i = 0; i < maxSteps; i++) {
+    const s = t.getPublicState();
+    assert.notEqual(s.actorSeat, null, "expected an actor while advancing action");
+    if (s.actorSeat === targetSeat) return;
+    const la = s.legalActions;
+    assert.ok(la, "legal actions should exist while advancing action");
+    if (la.canFold) t.applyAction(s.actorSeat!, "fold");
+    else if (la.canCall) t.applyAction(s.actorSeat!, "call");
+    else if (la.canCheck) t.applyAction(s.actorSeat!, "check");
+    else assert.fail(`no legal fallback action for seat ${s.actorSeat}`);
+  }
+  assert.fail(`did not reach target seat ${targetSeat} within ${maxSteps} actions`);
+}
+
 // ═══════════════════════════════════════════════════════════════
 // FULL RAISE RULE (TDA / Robert's Rules)
 // ═══════════════════════════════════════════════════════════════
+
+describe("Re-raise eligibility regressions", () => {
+  it("preflop open raise: BB can still 3-bet before BB has acted", () => {
+    const t = new GameTable({ tableId: "rr_bb_3bet", smallBlind: 5, bigBlind: 10 });
+    t.addPlayer({ seat: 1, userId: "u1", name: "A", stack: 1000 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "B", stack: 1000 });
+    t.addPlayer({ seat: 3, userId: "u3", name: "C", stack: 1000 });
+    t.addPlayer({ seat: 4, userId: "u4", name: "D", stack: 1000 });
+    t.startHand();
+
+    let s = t.getPublicState();
+    const bbSeat = blindSeat(s, "post_bb");
+    const openerSeat = s.actorSeat!;
+    t.applyAction(openerSeat, "raise", 30);
+
+    advanceUntilSeat(t, bbSeat);
+    s = t.getPublicState();
+    assert.equal(s.actorSeat, bbSeat, "BB should get action after the open raise");
+    assert.equal(s.legalActions?.canRaise, true, "BB should be able to 3-bet");
+  });
+
+  it("open -> BB 3-bet -> opener can 4-bet", () => {
+    const t = new GameTable({ tableId: "rr_open_4bet", smallBlind: 5, bigBlind: 10 });
+    t.addPlayer({ seat: 1, userId: "u1", name: "A", stack: 3000 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "B", stack: 3000 });
+    t.addPlayer({ seat: 3, userId: "u3", name: "C", stack: 3000 });
+    t.addPlayer({ seat: 4, userId: "u4", name: "D", stack: 3000 });
+    t.startHand();
+
+    let s = t.getPublicState();
+    const bbSeat = blindSeat(s, "post_bb");
+    const openerSeat = s.actorSeat!;
+    t.applyAction(openerSeat, "raise", 30);
+
+    advanceUntilSeat(t, bbSeat);
+    s = t.getPublicState();
+    assert.equal(s.legalActions?.canRaise, true, "BB should be able to 3-bet facing the open");
+    t.applyAction(bbSeat, "raise", 80);
+
+    advanceUntilSeat(t, openerSeat);
+    s = t.getPublicState();
+    assert.equal(s.actorSeat, openerSeat, "opener should act again after BB 3-bet");
+    assert.equal(s.legalActions?.canRaise, true, "opener should be able to 4-bet after a full 3-bet");
+  });
+
+  it("postflop bet -> raise -> original bettor can re-raise", () => {
+    const t = new GameTable({ tableId: "rr_postflop_reraise", smallBlind: 5, bigBlind: 10 });
+    t.addPlayer({ seat: 1, userId: "u1", name: "A", stack: 3000 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "B", stack: 3000 });
+    t.addPlayer({ seat: 3, userId: "u3", name: "C", stack: 3000 });
+    t.startHand();
+
+    let s = t.getPublicState();
+    while (s.handId && s.street === "PREFLOP" && s.actorSeat !== null) {
+      const la = s.legalActions;
+      assert.ok(la, "preflop legal actions should exist");
+      if (la.canCall) t.applyAction(s.actorSeat, "call");
+      else if (la.canCheck) t.applyAction(s.actorSeat, "check");
+      else assert.fail("could not advance preflop with call/check actions");
+      s = t.getPublicState();
+    }
+
+    assert.equal(s.street, "FLOP", "hand should advance to flop");
+    assert.notEqual(s.actorSeat, null, "flop actor must exist");
+    const flopBettor = s.actorSeat!;
+    assert.equal(s.legalActions?.canRaise, true, "first flop actor should be able to bet");
+    t.applyAction(flopBettor, "raise", s.legalActions!.minRaise);
+
+    s = t.getPublicState();
+    assert.notEqual(s.actorSeat, null, "next flop actor must exist");
+    assert.equal(s.legalActions?.canRaise, true, "later player should be able to raise on flop");
+    t.applyAction(s.actorSeat!, "raise", s.legalActions!.minRaise);
+
+    advanceUntilSeat(t, flopBettor);
+    s = t.getPublicState();
+    assert.equal(s.actorSeat, flopBettor, "flop bettor should act again after facing a raise");
+    assert.equal(s.legalActions?.canRaise, true, "flop bettor should be allowed to re-raise");
+  });
+
+  it("short all-in before a player has acted: unacted player may still raise", () => {
+    const t = new GameTable({ tableId: "rr_short_unacted", smallBlind: 5, bigBlind: 10 });
+    t.addPlayer({ seat: 1, userId: "u1", name: "A", stack: 1000 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "B", stack: 35 });
+    t.addPlayer({ seat: 3, userId: "u3", name: "C", stack: 1000 });
+    t.addPlayer({ seat: 4, userId: "u4", name: "D", stack: 1000 });
+    t.startHand();
+
+    let s = t.getPublicState();
+    const openerSeat = s.actorSeat!;
+    t.applyAction(openerSeat, "raise", 30);
+
+    s = t.getPublicState();
+    const shortSeat = s.actorSeat!;
+    const shortPlayer = s.players.find((p) => p.seat === shortSeat);
+    assert.ok(shortPlayer, "short-stack actor should exist");
+    assert.equal(
+      shortPlayer.stack + shortPlayer.streetCommitted,
+      35,
+      "second actor should be the configured short stack"
+    );
+    t.applyAction(shortSeat, "all_in");
+
+    s = t.getPublicState();
+    assert.notEqual(s.actorSeat, null, "an unacted player should still have action");
+    assert.equal(s.legalActions?.canRaise, true, "unacted player should still be allowed to raise");
+  });
+});
 
 describe("Full Raise Rule: short all-in does NOT reopen betting", () => {
   it("classic scenario: Raise → Call → Short all-in → original raiser CANNOT re-raise", () => {
@@ -51,7 +179,6 @@ describe("Full Raise Rule: short all-in does NOT reopen betting", () => {
     t.startHand();
 
     let s = t.getPublicState();
-    const btn = s.buttonSeat;
 
     // Find the seats in action order
     // We need to get through preflop action:
@@ -63,6 +190,7 @@ describe("Full Raise Rule: short all-in does NOT reopen betting", () => {
       t.applyAction(s.actorSeat, "raise", 30);
     }
     const raiserSeat = s.actorSeat;
+    assert.notEqual(raiserSeat, null, "preflop raiser seat should be known");
 
     // Second actor calls 30
     s = t.getPublicState();
@@ -86,19 +214,14 @@ describe("Full Raise Rule: short all-in does NOT reopen betting", () => {
     // Now check: the original raiser should NOT be able to re-raise
     // because the all-in of 35 (raise of 5) is less than the min raise of 20 (30-10=20)
     s = t.getPublicState();
-    if (s.actorSeat !== null) {
-      const la = s.legalActions;
-      if (la) {
-        // If this actor already raised to 30 and the short all-in was only 5 more,
-        // this actor should NOT be able to raise
-        const actor = s.players.find(p => p.seat === s.actorSeat);
-        if (actor && actor.streetCommitted >= 30) {
-          // This is the original raiser coming back after short all-in
-          assert.equal(la.canRaise, false, 
-            `Player at seat ${s.actorSeat} (streetCommitted=${actor.streetCommitted}) should NOT be able to re-raise after short all-in`);
-        }
-      }
-    }
+    assert.equal(s.actorSeat, raiserSeat, "action should return to original raiser after short all-in");
+    assert.equal(
+      s.legalActions?.canRaise,
+      false,
+      `Player at seat ${s.actorSeat} should NOT be able to re-raise after short all-in`
+    );
+    assert.equal(s.legalActions?.canCall, true, "player should still be able to call the short all-in");
+    assert.ok((s.legalActions?.callAmount ?? 0) > 0, "player should owe additional chips to call");
 
     // Play the rest to completion for conservation check
     while (true) {
@@ -188,6 +311,43 @@ describe("Full Raise Rule: short all-in does NOT reopen betting", () => {
       t.finalizeShowdownReveals({ autoMuckLosingHands: true });
     }
     assert.equal(finalStacks(t), initial, "conservation");
+  });
+
+  it("cumulative short all-ins reopen betting once full raise amount is reached", () => {
+    const t = new GameTable({ tableId: "fr_cumulative_reopen", smallBlind: 5, bigBlind: 10 });
+    t.addPlayer({ seat: 1, userId: "u1", name: "A", stack: 1000 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "B", stack: 35 });
+    t.addPlayer({ seat: 3, userId: "u3", name: "C", stack: 50 });
+    t.addPlayer({ seat: 4, userId: "u4", name: "D", stack: 1000 });
+    t.startHand();
+
+    let s = t.getPublicState();
+    const openerSeat = s.actorSeat!;
+    t.applyAction(openerSeat, "raise", 30);
+
+    s = t.getPublicState();
+    assert.notEqual(s.actorSeat, null, "short stack #1 should act after open raise");
+    const shortOne = s.players.find((p) => p.seat === s.actorSeat)!;
+    assert.equal(shortOne.stack + shortOne.streetCommitted, 35, "first short stack should have total 35 chips");
+    t.applyAction(s.actorSeat!, "all_in"); // to 35 (short +5)
+
+    s = t.getPublicState();
+    assert.notEqual(s.actorSeat, null, "short stack #2 should act next");
+    const shortTwo = s.players.find((p) => p.seat === s.actorSeat)!;
+    assert.equal(shortTwo.stack + shortTwo.streetCommitted, 50, "second short stack should have total 50 chips");
+    t.applyAction(s.actorSeat!, "all_in"); // to 50 (short +15, cumulative +20 over 30)
+
+    s = t.getPublicState();
+    assert.notEqual(s.actorSeat, null, "remaining unacted player should still have action");
+    t.applyAction(s.actorSeat!, "call");
+
+    s = t.getPublicState();
+    assert.equal(s.actorSeat, openerSeat, "action should return to opener");
+    assert.equal(
+      s.legalActions?.canRaise,
+      true,
+      "cumulative short all-ins totaling a full raise should reopen betting to prior actor"
+    );
   });
 
   it("short all-in still allows unacted player to raise", () => {
@@ -409,16 +569,28 @@ describe("New Player Blind Policies", () => {
     assert.equal(newP?.isNewPlayer, true);
   });
 
-  it("postDeadBlind transitions player to active", () => {
+  it("postDeadBlind deducts chips and carries dead blind into next hand pot", () => {
     const t = new GameTable({ tableId: "np3", smallBlind: 5, bigBlind: 10 });
     t.addPlayer({ seat: 1, userId: "u1", name: "A", stack: 1000 });
     t.addPlayer({ seat: 2, userId: "u2", name: "B", stack: 1000 });
     t.addPlayer({ seat: 3, userId: "u3", name: "New", stack: 1000, status: "sitting_out", isNewPlayer: true });
 
     t.postDeadBlind(3);
-    const p = t.getPublicState().players.find(pl => pl.seat === 3);
+    const pre = t.getPublicState();
+    const p = pre.players.find(pl => pl.seat === 3);
     assert.equal(p?.status, "active");
     assert.equal(p?.isNewPlayer, false);
+    assert.equal(p?.stack, 990, "dead blind should be deducted immediately");
+    assert.equal(pre.pot, 10, "queued dead blind should be visible in pre-hand pot");
+
+    t.startHand();
+    const s = t.getPublicState();
+    const contrib = t.getContributions();
+    const seat3 = s.players.find((pl) => pl.seat === 3)!;
+
+    assert.equal(s.actions.some((a) => a.seat === 3 && a.type === "post_dead_blind" && a.amount === 10), true);
+    assert.equal(contrib.get(3), 15, "seat 3 should have dead blind + live SB in contribution map");
+    assert.equal(seat3.streetCommitted, 5, "dead blind should be non-live and not count toward streetCommitted");
   });
 
   it("isNewPlayer is cleared after being dealt in", () => {

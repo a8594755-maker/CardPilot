@@ -17,6 +17,20 @@ function make6Max(sb = 50, bb = 100) {
   return t;
 }
 
+function makeNMax(n: number, sb = 50, bb = 100) {
+  const t = new GameTable({ tableId: `test${n}`, smallBlind: sb, bigBlind: bb });
+  for (let i = 1; i <= n; i++) {
+    t.addPlayer({ seat: i, userId: `u${i}`, name: `P${i}`, stack: 10000 });
+  }
+  return t;
+}
+
+function orderedFromButton(buttonSeat: number, seats: number[]): number[] {
+  const gt = seats.filter((seat) => seat > buttonSeat);
+  const lte = seats.filter((seat) => seat <= buttonSeat);
+  return [...gt, ...lte];
+}
+
 // ────────── Basic setup ──────────
 
 describe("GameTable setup", () => {
@@ -442,6 +456,33 @@ describe("Positions", () => {
     assert.ok(positions.has("SB"));
     assert.ok(positions.has("BB"));
     assert.ok(positions.has("BTN"));
+  });
+
+  it("should map 3-handed positions in button order", () => {
+    const t = makeNMax(3);
+    t.startHand();
+    const s = t.getPublicState();
+    const activeSeats = s.players.filter((player) => player.inHand).map((player) => player.seat).sort((a, b) => a - b);
+    const order = orderedFromButton(s.buttonSeat, activeSeats);
+    assert.deepEqual(order.map((seat) => t.getPosition(seat)), ["SB", "BB", "BTN"]);
+  });
+
+  it("should map 4-handed positions in button order", () => {
+    const t = makeNMax(4);
+    t.startHand();
+    const s = t.getPublicState();
+    const activeSeats = s.players.filter((player) => player.inHand).map((player) => player.seat).sort((a, b) => a - b);
+    const order = orderedFromButton(s.buttonSeat, activeSeats);
+    assert.deepEqual(order.map((seat) => t.getPosition(seat)), ["SB", "BB", "UTG", "BTN"]);
+  });
+
+  it("should map 5-handed positions in button order", () => {
+    const t = makeNMax(5);
+    t.startHand();
+    const s = t.getPublicState();
+    const activeSeats = s.players.filter((player) => player.inHand).map((player) => player.seat).sort((a, b) => a - b);
+    const order = orderedFromButton(s.buttonSeat, activeSeats);
+    assert.deepEqual(order.map((seat) => t.getPosition(seat)), ["SB", "BB", "UTG", "CO", "BTN"]);
   });
 });
 
