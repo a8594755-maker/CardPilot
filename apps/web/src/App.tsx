@@ -21,6 +21,7 @@ import { preloadCardImages, getCardImagePath } from "./lib/card-images.js";
 import { SettlementOverlay } from "./components/SettlementOverlay";
 import { getSuggestedPresets, userPresetsToButtons, type BetPreset } from "./lib/bet-sizing.js";
 import { AppComplianceFooter } from "./legal-pages";
+import { saveHand, getHands, autoTag, type HandRecord, type HandActionRecord } from "./lib/hand-history.js";
 
 const SERVER = import.meta.env.VITE_SERVER_URL || "http://127.0.0.1:4000";
 const DEBUG_LOGS_ENABLED = import.meta.env.DEV;
@@ -153,9 +154,13 @@ export function App() {
 
   /* ── Refs for latest state (avoid stale closures in socket handlers) ── */
   const seatRef = useRef(seat);
+  const holeCardsRef = useRef(holeCards);
+  const snapshotRef = useRef(snapshot);
   const currentRoomCodeRef = useRef(currentRoomCode);
   useEffect(() => { setName(displayName); }, [displayName]);
   useEffect(() => { seatRef.current = seat; }, [seat]);
+  useEffect(() => { holeCardsRef.current = holeCards; }, [holeCards]);
+  useEffect(() => { snapshotRef.current = snapshot; }, [snapshot]);
   useEffect(() => { currentRoomCodeRef.current = currentRoomCode; }, [currentRoomCode]);
 
   /* ── Client-side timer tick: count down remaining every second ── */
@@ -332,6 +337,39 @@ export function App() {
         setSettlement(d.settlement);
         setSettlementCountdown(6);
       }
+
+      // Save to local hand history (localStorage fallback)
+      try {
+        const st = d.finalState ?? snapshotRef.current;
+        const cards = holeCardsRef.current;
+        const heroSeat = seatRef.current;
+        if (st && cards.length === 2 && d.settlement) {
+          const heroPos = st.positions?.[heroSeat] ?? "?";
+          const actionRecords: HandActionRecord[] = st.actions.map((a) => ({
+            seat: a.seat,
+            street: a.street ?? st.street,
+            type: a.type,
+            amount: a.amount ?? 0,
+          }));
+          const heroLedger = d.settlement.ledger.find((e) => e.seat === heroSeat);
+          saveHand({
+            gameType: "NLH",
+            stakes: `${st.smallBlind}/${st.bigBlind}`,
+            tableSize: st.players.length,
+            position: heroPos,
+            heroCards: [cards[0], cards[1]],
+            board: st.board,
+            actions: actionRecords,
+            potSize: d.settlement.totalPot,
+            stackSize: heroLedger?.endStack ?? 0,
+            result: heroLedger?.net ?? 0,
+            tags: autoTag(actionRecords),
+          });
+        }
+      } catch (err) {
+        debugLog("[local-history] failed to save hand:", err);
+      }
+
       setTimeout(() => setHoleCards([]), 800);
     });
     s.on("error_event", (d: { message: string }) => {
@@ -2041,6 +2079,82 @@ function useIsMobileViewport(): boolean {
   return isMobile;
 }
 
+function LocalHistoryFallback() {
+  const [hands, setHands] = useState<HandRecord[]>([]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setHands(getHands());
+  }, []);
+
+  const refresh = () => setHands(getHands());
+
+  if (hands.length === 0) {
+    return (
+      <div className="glass-card p-6 sm:p-8 text-center space-y-3">
+        <div className="text-3xl opacity-40">📋</div>
+        <h3 className="text-base font-semibold text-white">No Local History Yet</h3>
+        <p className="text-sm text-slate-400 max-w-md mx-auto">
+          Hands you play will be saved locally in your browser. Play a hand to see it here.
+        </p>
+        <p className="text-xs text-slate-500">
+          Local history is stored for 30 days. For full room-based history, configure Supabase on the server.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="glass-card flex-1 min-h-0 flex flex-col overflow-hidden">
+      <div className="sticky top-0 z-10 px-3 py-2 border-b border-white/5 bg-slate-950/70 backdrop-blur-sm flex items-center gap-2">
+        <div className="text-xs uppercase tracking-wider text-slate-400">Local History</div>
+        <span className="text-[11px] text-slate-500">{hands.length} hand{hands.length !== 1 ? "s" : ""} (browser storage)</span>
+        <button onClick={refresh} className="btn-ghost text-[11px] !py-1 !px-2 ml-auto">Refresh</button>
+      </div>
+      <div className="min-h-0 overflow-y-auto p-2 space-y-1.5">
+        {hands.map((h) => {
+          const isExpanded = expandedId === h.id;
+          const netColor = (h.result ?? 0) > 0 ? "text-emerald-400" : (h.result ?? 0) < 0 ? "text-red-400" : "text-slate-400";
+          const dateStr = new Date(h.createdAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+          return (
+            <button
+              key={h.id}
+              onClick={() => setExpandedId(isExpanded ? null : h.id)}
+              className="w-full text-left px-3 py-2.5 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-500 w-[110px] shrink-0">{dateStr}</span>
+                <span className="text-xs font-mono text-slate-300">{h.heroCards.join(" ")}</span>
+                <span className="text-[11px] text-slate-500">{h.position}</span>
+                <span className="text-[11px] text-slate-500">{h.stakes}</span>
+                <span className={`text-xs font-medium ml-auto ${netColor}`}>
+                  {(h.result ?? 0) > 0 ? "+" : ""}{h.result ?? 0}
+                </span>
+              </div>
+              {isExpanded && (
+                <div className="mt-2 pt-2 border-t border-white/5 space-y-1">
+                  <div className="flex gap-3 text-[11px] text-slate-400">
+                    <span>Pot: {h.potSize}</span>
+                    <span>Board: {h.board.length > 0 ? h.board.join(" ") : "—"}</span>
+                    <span>Players: {h.tableSize}</span>
+                  </div>
+                  {h.tags.length > 0 && (
+                    <div className="flex gap-1 flex-wrap">
+                      {h.tags.map((t) => (
+                        <span key={t} className="px-1.5 py-0.5 rounded bg-white/5 text-[10px] text-slate-500">{t}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function HistoryPage({ socket, isConnected, userId, supabaseEnabled }: { socket: Socket | null; isConnected: boolean; userId: string; supabaseEnabled: boolean }) {
   const initialRouteRef = useRef<HistoryRouteState>(readHistoryRouteFromUrl());
 
@@ -2450,26 +2564,7 @@ function HistoryPage({ socket, isConnected, userId, supabaseEnabled }: { socket:
         {!isConnected || !socket ? (
           <div className="glass-card p-8 text-center text-slate-400 text-sm">Connect to the game server to load hand history.</div>
         ) : !supabaseEnabled || !isUuid(userId) ? (
-          <div className="glass-card p-6 sm:p-8 text-center space-y-3">
-            <div className="text-3xl opacity-40">🔒</div>
-            <h3 className="text-base font-semibold text-white">Hand History Unavailable</h3>
-            {!supabaseEnabled ? (
-              <p className="text-sm text-slate-400 max-w-md mx-auto">
-                The server does not have Supabase persistence enabled. Hand history requires a database connection.
-                Ask the server admin to configure <code className="text-xs bg-white/10 px-1.5 py-0.5 rounded">SUPABASE_SERVICE_ROLE_KEY</code>.
-              </p>
-            ) : (
-              <p className="text-sm text-slate-400 max-w-md mx-auto">
-                Your session is using a local guest ID (<code className="text-xs bg-white/10 px-1.5 py-0.5 rounded">{userId.slice(0, 16)}…</code>) which cannot store history.
-                Sign in with email or Google to get a persistent session with hand history.
-              </p>
-            )}
-            <p className="text-xs text-slate-500">
-              {!supabaseEnabled
-                ? "Server env: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY must both be set."
-                : "Go to Profile → Sign Out, then sign in with email or Google."}
-            </p>
-          </div>
+          <LocalHistoryFallback />
         ) : (
           <>
             <div className="lg:hidden min-h-0 flex-1">
