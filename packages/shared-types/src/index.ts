@@ -62,6 +62,52 @@ export interface HandAction {
   at: number;
 }
 
+export interface HandWinner {
+  seat: number;
+  amount: number;
+  handName?: string;
+}
+
+export interface RunoutPayout {
+  run: 1 | 2;
+  board: string[];
+  winners: HandWinner[];
+}
+
+export interface PotLayer {
+  label: string;
+  amount: number;
+  eligibleSeats: number[];
+}
+
+export interface SeatLedgerEntry {
+  seat: number;
+  playerName: string;
+  startStack: number;
+  invested: number;
+  won: number;
+  endStack: number;
+  net: number;
+}
+
+export interface SettlementResult {
+  handId: string;
+  totalPot: number;
+  rake: number;
+  totalPaid: number;
+  runCount: 1 | 2;
+  boards: string[][];
+  potLayers: PotLayer[];
+  winnersByRun: Array<{ run: 1 | 2; board: string[]; winners: HandWinner[] }>;
+  payoutsBySeat: Record<number, number>;
+  payoutsBySeatByRun?: Array<Record<number, number>>;
+  ledger: SeatLedgerEntry[];
+  contributions: Record<number, number>;
+  showdown: boolean;
+  buttonSeat: number;
+  timestamp: number;
+}
+
 export interface TableState {
   tableId: string;
   smallBlind: number;
@@ -78,18 +124,26 @@ export interface TableState {
   actions: HandAction[];
   legalActions: LegalActions | null;
   mode: 'COACH' | 'REVIEW' | 'CASUAL';
-  winners?: Array<{ seat: number; amount: number; handName?: string }>;
+  winners?: HandWinner[];
   /** Map of seat number → position label (BTN, SB, BB, UTG, etc.) */
   positions: Record<number, string>;
   allInPrompt?: AllInPrompt;
   /** When run-it-twice is chosen, both completed boards (length 2, each with 5 cards) */
   runoutBoards?: string[][];
+  /** Per-run payouts when run-it-twice is used */
+  runoutPayouts?: RunoutPayout[];
   /** Seats marked as pending stand-up (will leave after current hand ends) */
   pendingStandUp?: number[];
   /** True when host requested pause but a hand is still active */
   pendingPause?: boolean;
   /** Pending deposit requests visible to all players */
   pendingDeposits?: Array<{ orderId: string; seat: number; userId: string; userName: string; amount: number }>;
+  /** Publicly revealed hole cards by seat */
+  revealedHoles?: Record<number, [string, string]>;
+  /** Seats that explicitly mucked at showdown */
+  muckedSeats?: number[];
+  /** Showdown reveal state used by clients to render SHOW/MUCK actions */
+  showdownPhase?: "none" | "decision";
 }
 
 // ===== Advice Types =====
@@ -100,10 +154,54 @@ export interface StrategyMix {
   fold: number;
 }
 
+export type AdviceStage = 'preflop' | 'postflop';
+
+export type StackDepthBucket = 'short' | 'medium' | 'standard' | 'deep';
+
+export interface StackProfile {
+  effectiveStackBb: number;
+  requestedBucket: StackDepthBucket;
+  resolvedFormat: string;
+  resolvedStackBb: number;
+  usedFallback: boolean;
+}
+
+export type PostflopPreferredAction = 'check' | 'bet_small' | 'bet_big';
+
+export interface PostflopFrequency {
+  check: number;
+  betSmall: number;
+  betBig: number;
+}
+
+export interface BoardTextureProfile {
+  isPaired: boolean;
+  isMonotone: boolean;
+  hasFlushDraw: boolean;
+  isConnected: boolean;
+  isDisconnected: boolean;
+  isHighCardHeavy: boolean;
+  wetness: 'dry' | 'neutral' | 'wet';
+  labels: string[];
+}
+
+export interface MathBreakdown {
+  potOdds?: number;
+  equityRequired?: number;
+  callAmount?: number;
+  potAfterCall?: number;
+  mdf?: number;
+  spr?: number;
+  effectiveStack?: number;
+  commitmentThreshold?: number;
+  isLowSpr?: boolean;
+}
+
 export interface AdvicePayload {
   tableId: string;
   handId: string;
   seat: number;
+  stage?: AdviceStage;
   spotKey: string;
   heroHand: string;
   mix: StrategyMix;
@@ -112,6 +210,16 @@ export interface AdvicePayload {
   recommended?: 'raise' | 'call' | 'fold';
   randomSeed?: number;
   deviation?: number;
+  stackProfile?: StackProfile;
+  math?: MathBreakdown;
+  postflop?: {
+    bucketKey: string;
+    preferredAction: PostflopPreferredAction;
+    frequency: PostflopFrequency;
+    frequencyText: string;
+    rationale: string;
+    boardTexture: BoardTextureProfile;
+  };
 }
 
 // ===== Action Types =====
@@ -182,6 +290,12 @@ export type RunItTwiceMode = 'always' | 'ask_players' | 'off';
 
 export type ShowdownSpeed = 'fast' | 'normal' | 'slow';
 
+export const SHOWDOWN_SPEED_DELAYS_MS: Record<ShowdownSpeed, number> = {
+  fast: 3_000,
+  normal: 6_000,
+  slow: 9_000,
+};
+
 export type DoubleBoardMode = 'always' | 'bomb_pot' | 'off';
 
 export type DeckStyle = 'four_color' | 'two_color';
@@ -232,6 +346,11 @@ export interface RoomSettings {
   showdownSpeed: ShowdownSpeed;            // fast(3s) / normal(6s) / slow(9s)
   dealToAwayPlayers: boolean;              // deal hands to players marked as away
   revealAllAtShowdown: boolean;            // reveal all hands when no more action possible
+  autoRevealOnAllInCall: boolean;          // auto reveal involved hands when action is closed and only runout remains
+  autoRevealWinningHands: boolean;         // force winners to reveal at showdown
+  autoMuckLosingHands: boolean;            // default losing hands to muck
+  allowShowAfterFold: boolean;             // allow folded players to voluntarily show before hand end
+  allowShowCalledHandRequest: boolean;     // optional casino-style called hand request
   bombPotEnabled: boolean;                 // enable bomb pots
   bombPotFrequency: number;                // every N hands (0 = manual only)
   doubleBoardMode: DoubleBoardMode;        // always / only on bomb pot / off
@@ -241,6 +360,7 @@ export interface RoomSettings {
   simulatedFeeCap: number;                 // max fee per hand
   allowGuestChat: boolean;                 // allow guests to send chat messages
   autoTrimExcessBets: boolean;             // auto trim bets exceeding pot/call
+  roomFundsTracking: boolean;              // track session funds and allow rejoin stack restoration
 }
 
 export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
@@ -275,6 +395,11 @@ export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
   showdownSpeed: 'normal',
   dealToAwayPlayers: false,
   revealAllAtShowdown: true,
+  autoRevealOnAllInCall: true,
+  autoRevealWinningHands: true,
+  autoMuckLosingHands: true,
+  allowShowAfterFold: false,
+  allowShowCalledHandRequest: false,
   bombPotEnabled: false,
   bombPotFrequency: 0,
   doubleBoardMode: 'off',
@@ -284,6 +409,7 @@ export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
   simulatedFeeCap: 0,
   allowGuestChat: true,
   autoTrimExcessBets: true,
+  roomFundsTracking: false,
 };
 
 export interface RoomOwnership {

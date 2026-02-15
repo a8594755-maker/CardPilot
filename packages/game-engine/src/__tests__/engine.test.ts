@@ -31,6 +31,11 @@ describe("GameTable setup", () => {
     assert.throws(() => t.addPlayer({ seat: 1, userId: "u3", name: "C", stack: 5000 }), /seat already occupied/);
   });
 
+  it("should reject seating with zero stack", () => {
+    const t = new GameTable({ tableId: "stack0", smallBlind: 50, bigBlind: 100 });
+    assert.throws(() => t.addPlayer({ seat: 1, userId: "u1", name: "A", stack: 0 }), /stack must be greater than 0/);
+  });
+
   it("should start hand and set PREFLOP", () => {
     const t = makeTable();
     const { handId } = t.startHand();
@@ -38,6 +43,12 @@ describe("GameTable setup", () => {
     assert.ok(handId);
     assert.equal(s.street, "PREFLOP");
     assert.equal(s.handId, handId);
+  });
+
+  it("should not allow starting a new hand while one is active", () => {
+    const t = makeTable();
+    t.startHand();
+    assert.throws(() => t.startHand(), /hand already active/);
   });
 
   it("should deal hole cards to each player", () => {

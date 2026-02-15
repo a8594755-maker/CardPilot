@@ -43,6 +43,11 @@ const DEFAULTS: RoomSettings = {
   showdownSpeed: "normal",
   dealToAwayPlayers: false,
   revealAllAtShowdown: true,
+  autoRevealOnAllInCall: true,
+  autoRevealWinningHands: true,
+  autoMuckLosingHands: true,
+  allowShowAfterFold: false,
+  allowShowCalledHandRequest: false,
   bombPotEnabled: false,
   bombPotFrequency: 0,
   doubleBoardMode: "off",
@@ -52,6 +57,7 @@ const DEFAULTS: RoomSettings = {
   simulatedFeeCap: 0,
   allowGuestChat: true,
   autoTrimExcessBets: true,
+  roomFundsTracking: false,
 };
 
 const MAX_LOG_ENTRIES = 200;
@@ -85,8 +91,6 @@ export interface ManagedRoom {
   emptyTimerHandle: ReturnType<typeof setTimeout> | null;
   // Hand active?
   handActive: boolean;
-  // Auto-deal hands continuously after showdown while enabled by host
-  autoDealEnabled: boolean;
   // Paused?
   paused: boolean;
   // Created at
@@ -146,7 +150,6 @@ export class RoomManager {
       disconnectGrace: new Map(),
       emptyTimerHandle: null,
       handActive: false,
-      autoDealEnabled: false,
       paused: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -291,6 +294,10 @@ export class RoomManager {
       "timeBankHandsToFill",
       "thinkExtensionSecondsPerUse", "thinkExtensionQuotaPerHour",
       "disconnectGracePeriod", "maxConsecutiveTimeouts",
+      "autoStartNextHand", "showdownSpeed", "dealToAwayPlayers", "revealAllAtShowdown",
+      "autoRevealOnAllInCall", "autoRevealWinningHands", "autoMuckLosingHands",
+      "allowShowAfterFold", "allowShowCalledHandRequest",
+      "roomFundsTracking",
     ];
 
     // Fields that can only change pre-game or apply next hand
@@ -421,7 +428,7 @@ export class RoomManager {
     const room = this.rooms.get(tableId);
     if (!room) return false;
     room.handActive = false;
-    room.autoDealEnabled = false;
+    room.settings.autoStartNextHand = false;
     room.paused = false;
     room.status = "WAITING";
     this.clearActionTimer(tableId);
@@ -440,12 +447,12 @@ export class RoomManager {
   setAutoDeal(tableId: string, enabled: boolean): void {
     const room = this.rooms.get(tableId);
     if (!room) return;
-    room.autoDealEnabled = enabled;
+    room.settings.autoStartNextHand = enabled;
     room.updatedAt = new Date().toISOString();
   }
 
   isAutoDealEnabled(tableId: string): boolean {
-    return this.rooms.get(tableId)?.autoDealEnabled ?? false;
+    return this.rooms.get(tableId)?.settings.autoStartNextHand ?? false;
   }
 
   /* ═══════════ ACTION TIMER ═══════════ */

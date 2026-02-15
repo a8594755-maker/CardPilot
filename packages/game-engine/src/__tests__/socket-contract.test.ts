@@ -26,6 +26,8 @@ describe("Socket event contract consistency", () => {
       "stand_up",
       "start_hand",
       "action_submit",
+      "show_hand",
+      "muck_hand",
       "run_count_submit",
       "update_settings",
       "kick_player",

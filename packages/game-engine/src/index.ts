@@ -1,7 +1,15 @@
 import { randomInt } from "node:crypto";
 import { v4 as uuidv4 } from "uuid";
 import pokersolver from "pokersolver";
-import type { HandAction, LegalActions, PlayerActionType, Street, TablePlayer, TableState } from "@cardpilot/shared-types";
+import type {
+  HandAction,
+  LegalActions,
+  PlayerActionType,
+  SettlementResult,
+  Street,
+  TablePlayer,
+  TableState,
+} from "@cardpilot/shared-types";
 
 const RANKS = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"];
 const SUITS = ["s", "h", "d", "c"];
@@ -22,12 +30,18 @@ type MutableTableState = TableState & {
   deck: string[];
   holeCards: Map<number, [string, string]>;
   contributed: Map<number, number>;
+  handStartStacks: Map<number, number>;
+  revealedHoles: Record<number, [string, string]>;
+  muckedSeats: number[];
+  showdownPhase: "none" | "decision";
 };
 
 export class GameTable {
   private state: MutableTableState;
   private allInRunCount: 1 | 2 = 1;
   private runoutPending = false;
+  private settlementResult: SettlementResult | null = null;
+  private handInProgress = false;
 
   constructor(params: { tableId: string; smallBlind: number; bigBlind: number; mode?: TableMode }) {
     this.state = {
@@ -47,15 +61,26 @@ export class GameTable {
       legalActions: null,
       mode: params.mode ?? "COACH",
       positions: {},
+      revealedHoles: {},
+      muckedSeats: [],
+      showdownPhase: "none",
       pendingToAct: new Set<number>(),
       deck: [],
       holeCards: new Map(),
+      handStartStacks: new Map(),
       contributed: new Map()
     };
   }
 
   getPublicState(): TableState {
-    const { pendingToAct: _pending, deck: _deck, holeCards: _holes, contributed: _contrib, ...rest } = this.state;
+    const {
+      pendingToAct: _pending,
+      deck: _deck,
+      holeCards: _holes,
+      contributed: _contrib,
+      handStartStacks: _handStartStacks,
+      ...rest
+    } = this.state;
     // Compute legalActions for current actor
     const legal = this.computeLegalActions();
     // Compute positions for all active players
@@ -72,9 +97,66 @@ export class GameTable {
     return this.state.holeCards.get(seat) ?? null;
   }
 
+  isSeatFolded(seat: number): boolean {
+    const player = this.state.players.find((p) => p.seat === seat);
+    return player?.folded ?? false;
+  }
+
+  getShowdownContenderSeats(): number[] {
+    return this.state.players
+      .filter((p) => p.inHand && !p.folded && this.state.holeCards.has(p.seat))
+      .map((p) => p.seat)
+      .sort((a, b) => a - b);
+  }
+
+  revealPublicHand(seat: number): boolean {
+    const cards = this.state.holeCards.get(seat);
+    if (!cards) return false;
+    this.state.revealedHoles[seat] = [cards[0], cards[1]];
+    this.state.muckedSeats = this.state.muckedSeats.filter((s) => s !== seat);
+    return true;
+  }
+
+  muckPublicHand(seat: number): boolean {
+    if (!this.state.holeCards.has(seat)) return false;
+    if (this.state.revealedHoles[seat]) {
+      const next = { ...this.state.revealedHoles };
+      delete next[seat];
+      this.state.revealedHoles = next;
+    }
+    if (!this.state.muckedSeats.includes(seat)) {
+      this.state.muckedSeats = [...this.state.muckedSeats, seat].sort((a, b) => a - b);
+    }
+    return true;
+  }
+
+  finalizeShowdownReveals(params?: { autoMuckLosingHands?: boolean }): void {
+    if (this.state.showdownPhase !== "decision") return;
+    const winners = new Set((this.state.winners ?? []).map((w) => w.seat));
+    const contenders = this.getShowdownContenderSeats();
+    const autoMuckLosingHands = params?.autoMuckLosingHands ?? true;
+
+    for (const seat of winners) {
+      this.revealPublicHand(seat);
+    }
+
+    if (autoMuckLosingHands) {
+      for (const seat of contenders) {
+        if (winners.has(seat)) continue;
+        if (this.state.revealedHoles[seat]) continue;
+        this.muckPublicHand(seat);
+      }
+    }
+
+    this.state.showdownPhase = "none";
+  }
+
   addPlayer(player: { seat: number; userId: string; name: string; stack: number }): void {
     if (this.state.players.some((p) => p.seat === player.seat)) {
       throw new Error("seat already occupied");
+    }
+    if (player.stack <= 0) {
+      throw new Error("stack must be greater than 0");
     }
     this.state.players.push({
       seat: player.seat,
@@ -102,6 +184,10 @@ export class GameTable {
   }
 
   startHand(): { handId: string } {
+    if (this.isHandActive()) {
+      throw new Error("hand already active");
+    }
+
     const seated = this.state.players.filter((p) => p.stack > 0);
     if (seated.length < 2) {
       throw new Error("need at least 2 players with chips");
@@ -110,6 +196,7 @@ export class GameTable {
     const handId = uuidv4();
     this.state.handId = handId;
     this.state.street = "PREFLOP";
+    this.handInProgress = true;
     this.state.board = [];
     this.state.actions = [];
     this.state.pot = 0;
@@ -118,17 +205,24 @@ export class GameTable {
     this.state.pendingToAct = new Set<number>();
     this.state.holeCards.clear();
     this.state.contributed.clear();
+    this.state.handStartStacks.clear();
     this.state.deck = shuffledDeck();
     this.state.winners = undefined;
     this.state.runoutBoards = undefined;
+    this.state.runoutPayouts = undefined;
+    this.state.revealedHoles = {};
+    this.state.muckedSeats = [];
+    this.state.showdownPhase = "none";
     this.allInRunCount = 1;
     this.runoutPending = false;
+    this.settlementResult = null;
 
     const sortedSeats = seated.map((p) => p.seat).sort((a, b) => a - b);
     this.state.buttonSeat = nextSeatCircular(this.state.buttonSeat, sortedSeats);
 
     for (const player of this.state.players) {
       const active = sortedSeats.includes(player.seat);
+      this.state.handStartStacks.set(player.seat, player.stack);
       player.inHand = active;
       player.folded = !active;
       player.allIn = false;
@@ -341,7 +435,30 @@ export class GameTable {
   }
 
   isHandActive(): boolean {
-    return this.state.handId !== null && (this.state.actorSeat !== null || this.runoutPending);
+    return this.handInProgress && this.state.handId !== null && (this.state.actorSeat !== null || this.runoutPending || this.state.showdownPhase === "decision");
+  }
+
+  /** Called by the server after finalizeHandEnd to cleanly mark the hand as done.
+   *  This prevents any stale handId from blocking the next startHand(). */
+  clearHand(): void {
+    this.handInProgress = false;
+    this.state.handId = null;
+  }
+
+  /** Replace the deck after startHand() for deterministic testing.
+   *  Cards are popped from end, so last element is dealt first. */
+  setDeckForTesting(deck: string[]): void {
+    this.state.deck = [...deck];
+  }
+
+  /** Expose hole cards for testing (read-only snapshot). */
+  getAllHoleCards(): Map<number, [string, string]> {
+    return new Map(this.state.holeCards);
+  }
+
+  /** Expose contributions for testing (read-only snapshot). */
+  getContributions(): Map<number, number> {
+    return new Map(this.state.contributed);
   }
 
   getMode(): TableMode {
@@ -427,28 +544,34 @@ export class GameTable {
     const firstBoard = this.completeRunoutBoard(baseBoard);
     const secondBoard = this.completeRunoutBoard(baseBoard);
 
-    const payouts = new Map<number, { amount: number; handName?: string }>();
+    const payoutsRun1 = new Map<number, { amount: number; handName?: string }>();
+    const payoutsRun2 = new Map<number, { amount: number; handName?: string }>();
     const sidePots = this.buildSidePots(contenders);
     const solvedFirst = this.solveContenders(contenders, firstBoard);
     const solvedSecond = this.solveContenders(contenders, secondBoard);
 
     for (const sidePot of sidePots) {
-      const firstHalf = Math.floor(sidePot.amount / 2);
-      const secondHalf = sidePot.amount - firstHalf;
-      this.distributeSolvedPot(firstHalf, solvedFirst, sidePot.eligibleSeats, payouts);
-      this.distributeSolvedPot(secondHalf, solvedSecond, sidePot.eligibleSeats, payouts);
+      const run1Amount = Math.ceil(sidePot.amount / 2);
+      const run2Amount = Math.floor(sidePot.amount / 2);
+      this.distributeSolvedPot(run1Amount, solvedFirst, sidePot.eligibleSeats, payoutsRun1);
+      this.distributeSolvedPot(run2Amount, solvedSecond, sidePot.eligibleSeats, payoutsRun2);
     }
 
+    const payouts = this.mergePayoutMaps(payoutsRun1, payoutsRun2);
     // Store both boards for client visualization
     this.state.runoutBoards = [firstBoard, secondBoard];
+    this.state.runoutPayouts = [
+      { run: 1, board: firstBoard, winners: this.mapPayoutsToWinners(payoutsRun1) },
+      { run: 2, board: secondBoard, winners: this.mapPayoutsToWinners(payoutsRun2) },
+    ];
     this.state.board = secondBoard;
     this.state.street = "SHOWDOWN";
-    this.state.winners = [...payouts.entries()]
-      .map(([seat, v]) => ({ seat, amount: v.amount, handName: v.handName }))
-      .sort((a, b) => a.seat - b.seat);
+    this.state.winners = this.mapPayoutsToWinners(payouts);
     this.state.pot = 0;
     this.state.actorSeat = null;
     this.state.pendingToAct.clear();
+    this.enterShowdownDecisionState(contenders.map((p) => p.seat));
+    this.settlementResult = this.createSettlementResult(true);
     this.allInRunCount = 1;
   }
 
@@ -493,7 +616,14 @@ export class GameTable {
     const share = Math.floor(potAmount / winnerSeats.length);
     let remainder = potAmount - share * winnerSeats.length;
 
-    for (const seat of winnerSeats) {
+    // Odd-chip-to-button rule: order winners by proximity to button clockwise
+    const allSeats = this.state.players.map((p) => p.seat).sort((a, b) => a - b);
+    const orderedFromBtn = orderedFromButton(this.state.buttonSeat, allSeats);
+    const sortedWinners = [...winnerSeats].sort(
+      (a, b) => orderedFromBtn.indexOf(a) - orderedFromBtn.indexOf(b)
+    );
+
+    for (const seat of sortedWinners) {
       const player = this.playerBySeat(seat);
       const amt = share + (remainder > 0 ? 1 : 0);
       player.stack += amt;
@@ -574,6 +704,7 @@ export class GameTable {
       this.state.contributed.set(p.seat, 0);
     }
     this.state.handId = null;
+    this.handInProgress = false;
     this.state.street = "SHOWDOWN";
     this.state.board = [];
     this.state.pot = 0;
@@ -582,10 +713,16 @@ export class GameTable {
     this.state.actions = [];
     this.state.winners = undefined;
     this.state.runoutBoards = undefined;
+    this.state.runoutPayouts = undefined;
+    this.state.revealedHoles = {};
+    this.state.muckedSeats = [];
+    this.state.showdownPhase = "none";
     this.state.pendingToAct.clear();
     this.state.holeCards.clear();
     this.state.contributed.clear();
+    this.state.handStartStacks.clear();
     this.runoutPending = false;
+    this.settlementResult = null;
   }
 
   /** True when applyAction detected an all-in runout situation */
@@ -685,9 +822,12 @@ export class GameTable {
     this.state.winners = [...payouts.entries()]
       .map(([seat, v]) => ({ seat, amount: v.amount, handName: v.handName }))
       .sort((a, b) => a.seat - b.seat);
+    this.state.runoutPayouts = undefined;
     this.state.pot = 0;
     this.state.actorSeat = null;
     this.state.pendingToAct.clear();
+    this.enterShowdownDecisionState(contenders.map((p) => p.seat));
+    this.settlementResult = this.createSettlementResult(true);
   }
 
   private finishNoShowdown(): void {
@@ -695,10 +835,14 @@ export class GameTable {
     const won = this.state.pot;
     winner.stack += won;
     this.state.winners = [{ seat: winner.seat, amount: won }];
+    this.state.runoutPayouts = undefined;
     this.state.pot = 0;
     this.state.street = "SHOWDOWN";
     this.state.actorSeat = null;
     this.state.pendingToAct.clear();
+    this.state.showdownPhase = "none";
+    this.state.muckedSeats = [];
+    this.settlementResult = this.createSettlementResult(false);
   }
 
   private commitBlind(seat: number, amount: number, type: "post_sb" | "post_bb") {
@@ -755,6 +899,160 @@ export class GameTable {
 
   private logAction(action: HandAction): void {
     this.state.actions.push(action);
+  }
+
+  private enterShowdownDecisionState(contenderSeats: number[]): void {
+    if (contenderSeats.length < 2) {
+      this.state.showdownPhase = "none";
+      this.state.muckedSeats = [];
+      return;
+    }
+
+    this.state.showdownPhase = "decision";
+    this.state.muckedSeats = [];
+  }
+
+  getSettlementResult(): SettlementResult | null {
+    return this.settlementResult;
+  }
+
+  private mapPayoutsToWinners(payouts: Map<number, { amount: number; handName?: string }>): Array<{ seat: number; amount: number; handName?: string }> {
+    return [...payouts.entries()]
+      .map(([seat, payout]) => ({ seat, amount: payout.amount, handName: payout.handName }))
+      .sort((a, b) => a.seat - b.seat);
+  }
+
+  private mergePayoutMaps(
+    map1: Map<number, { amount: number; handName?: string }>,
+    map2: Map<number, { amount: number; handName?: string }>
+  ): Map<number, { amount: number; handName?: string }> {
+    const merged = new Map<number, { amount: number; handName?: string }>();
+
+    for (const [seat, payout] of map1.entries()) {
+      merged.set(seat, { ...payout });
+    }
+    for (const [seat, payout] of map2.entries()) {
+      const existing = merged.get(seat);
+      merged.set(seat, {
+        amount: (existing?.amount ?? 0) + payout.amount,
+        handName: existing?.handName ?? payout.handName,
+      });
+    }
+
+    return merged;
+  }
+
+  private buildPotLayers(): Array<{ label: string; amount: number; eligibleSeats: number[] }> {
+    const contenders = this.state.players.filter((p) => p.inHand && !p.folded);
+    const contendersForPots = contenders.length > 0
+      ? contenders
+      : this.state.players.filter((p) => (this.state.contributed.get(p.seat) ?? 0) > 0);
+
+    const sidePots = this.buildSidePots(contendersForPots);
+    if (sidePots.length > 0) {
+      return sidePots.map((sidePot, index) => ({
+        label: index === 0 ? "Main Pot" : `Side Pot ${index}`,
+        amount: sidePot.amount,
+        eligibleSeats: [...sidePot.eligibleSeats],
+      }));
+    }
+
+    const total = [...this.state.contributed.values()].reduce((sum, amount) => sum + amount, 0);
+    if (total <= 0) return [];
+    return [{
+      label: "Main Pot",
+      amount: total,
+      eligibleSeats: [...new Set((this.state.winners ?? []).map((winner) => winner.seat))],
+    }];
+  }
+
+  private createSettlementResult(showdown: boolean): SettlementResult {
+    const contributions: Record<number, number> = {};
+    for (const player of this.state.players) {
+      contributions[player.seat] = this.state.contributed.get(player.seat) ?? 0;
+    }
+
+    const totalPot = Object.values(contributions).reduce((sum, amount) => sum + amount, 0);
+    const runCount = this.state.runoutPayouts?.length === 2 ? 2 : 1;
+    const winnersByRun = runCount === 2
+      ? this.state.runoutPayouts!.map((run) => ({ run: run.run, board: [...run.board], winners: [...run.winners] }))
+      : [{
+          run: 1 as const,
+          board: [...this.state.board],
+          winners: [...(this.state.winners ?? [])],
+        }];
+
+    const payoutsBySeat: Record<number, number> = {};
+    for (const winner of this.state.winners ?? []) {
+      payoutsBySeat[winner.seat] = (payoutsBySeat[winner.seat] ?? 0) + winner.amount;
+    }
+    const totalPaid = Object.values(payoutsBySeat).reduce((sum, amount) => sum + amount, 0);
+
+    // Conservation invariant: totalPaid must equal totalPot (rake=0)
+    if (totalPaid !== totalPot) {
+      console.error(
+        `[CONSERVATION VIOLATION] totalPaid=${totalPaid} != totalPot=${totalPot}, ` +
+        `handId=${this.state.handId}, winners=${JSON.stringify(this.state.winners)}, ` +
+        `contributions=${JSON.stringify(Object.fromEntries(this.state.contributed))}`
+      );
+    }
+
+    // Conservation invariant: sum(stacks_after) == sum(stacks_before)
+    const sumStacksAfter = this.state.players.reduce((s, p) => s + p.stack, 0);
+    const sumStacksBefore = [...this.state.handStartStacks.values()].reduce((s, v) => s + v, 0);
+    if (sumStacksAfter !== sumStacksBefore) {
+      console.error(
+        `[CONSERVATION VIOLATION] sumStacksAfter=${sumStacksAfter} != sumStacksBefore=${sumStacksBefore}, ` +
+        `handId=${this.state.handId}`
+      );
+    }
+
+    const payoutsBySeatByRun = runCount === 2
+      ? winnersByRun.map((run) => {
+          const bySeat: Record<number, number> = {};
+          for (const winner of run.winners) {
+            bySeat[winner.seat] = (bySeat[winner.seat] ?? 0) + winner.amount;
+          }
+          return bySeat;
+        })
+      : undefined;
+
+    const ledger = this.state.players
+      .map((player) => {
+        const startStack = this.state.handStartStacks.get(player.seat) ?? player.stack;
+        const invested = contributions[player.seat] ?? 0;
+        const endStack = player.stack;
+        const won = Math.max(0, endStack - startStack + invested);
+        const net = endStack - startStack;
+        return {
+          seat: player.seat,
+          playerName: player.name,
+          startStack,
+          invested,
+          won,
+          endStack,
+          net,
+        };
+      })
+      .sort((a, b) => a.seat - b.seat);
+
+    return {
+      handId: this.state.handId ?? "",
+      totalPot,
+      rake: 0,
+      totalPaid,
+      runCount,
+      boards: runCount === 2 ? [...(this.state.runoutBoards ?? [])] : [[...this.state.board]],
+      potLayers: this.buildPotLayers(),
+      winnersByRun,
+      payoutsBySeat,
+      payoutsBySeatByRun,
+      ledger,
+      contributions,
+      showdown,
+      buttonSeat: this.state.buttonSeat,
+      timestamp: Date.now(),
+    };
   }
 }
 
