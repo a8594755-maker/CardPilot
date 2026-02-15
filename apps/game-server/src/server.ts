@@ -587,7 +587,10 @@ function currentPlayerCount(tableId: string): number {
 
 function toLobbySummary(room: RoomInfo): LobbyRoomSummary {
   const managed = roomManager.getRoom(room.tableId);
-  const clubInfo = clubManager.getClubForTable(room.roomCode);
+  const roomWithClub = room as RoomInfo & { clubId?: string };
+  const clubInfo = roomWithClub.clubId
+    ? { clubId: roomWithClub.clubId, clubTableId: "" }
+    : clubManager.getClubForTable(room.roomCode);
   const club = clubInfo ? clubManager.getClub(clubInfo.clubId) : null;
   return {
     tableId: room.tableId,
@@ -1939,7 +1942,7 @@ io.on("connection", (socket) => {
       // Club membership gate: if the room belongs to a club, only active members can join
       const clubInfo = clubManager.getClubForTable(room.roomCode);
       if (clubInfo && !clubManager.isActiveMember(clubInfo.clubId, identity.userId)) {
-        throw new Error("This is a club table. Only active club members can join.");
+        throw new Error("Club members only: this table is restricted to active club members.");
       }
 
       // Check password for private rooms (non-club private rooms)
@@ -1993,7 +1996,7 @@ io.on("connection", (socket) => {
     if (joinTableRoomCode) {
       const clubInfo = clubManager.getClubForTable(joinTableRoomCode);
       if (clubInfo && !clubManager.isActiveMember(clubInfo.clubId, identity.userId)) {
-        socket.emit("error_event", { message: "This is a club table. Only active club members can join." });
+        socket.emit("error_event", { message: "Club members only: this table is restricted to active club members." });
         return;
       }
     }

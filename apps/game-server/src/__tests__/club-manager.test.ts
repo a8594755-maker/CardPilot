@@ -1,5 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { ClubManager } from "../club-manager.js";
 import { DEFAULT_CLUB_RULES } from "@cardpilot/shared-types";
 
@@ -57,6 +59,65 @@ describe("ClubManager — club lifecycle", () => {
     // He can't update
     const result = mgr.updateClub(club.id, "u2", { name: "Hacked" });
     assert.equal(result, null);
+  });
+});
+
+describe("Club membership gates — server integration contracts", () => {
+  it("non-member is denied by join_room_code gate for club tables", () => {
+    const mgr = new ClubManager();
+    const club = mgr.createClub({
+      ownerUserId: "owner",
+      ownerDisplayName: "Owner",
+      name: "Gate Club",
+      requireApprovalToJoin: false,
+    });
+    const table = mgr.createTable(club.id, "owner", "Main")!;
+    mgr.setTableRoomCode(club.id, table.clubTable.id, "CLB001");
+
+    const clubInfo = mgr.getClubForTable("CLB001");
+    assert.ok(clubInfo);
+    assert.equal(mgr.isActiveMember(clubInfo!.clubId, "stranger"), false);
+  });
+
+  it("active member is allowed by join_table gate for club tables", () => {
+    const mgr = new ClubManager();
+    const club = mgr.createClub({
+      ownerUserId: "owner",
+      ownerDisplayName: "Owner",
+      name: "Gate Club",
+      requireApprovalToJoin: false,
+    });
+    mgr.requestJoin(club.code, "member1", "Member One");
+
+    const table = mgr.createTable(club.id, "owner", "Main")!;
+    mgr.setTableRoomCode(club.id, table.clubTable.id, "CLB002");
+    const clubInfo = mgr.getClubForTable("CLB002");
+
+    assert.ok(clubInfo);
+    assert.equal(mgr.isActiveMember(clubInfo!.clubId, "member1"), true);
+  });
+
+  it("pending member is denied by join gates until approved", () => {
+    const mgr = new ClubManager();
+    const club = mgr.createClub({
+      ownerUserId: "owner",
+      ownerDisplayName: "Owner",
+      name: "Approval Club",
+      requireApprovalToJoin: true,
+    });
+    mgr.requestJoin(club.code, "u2", "Pending User");
+
+    const table = mgr.createTable(club.id, "owner", "Main")!;
+    mgr.setTableRoomCode(club.id, table.clubTable.id, "CLB003");
+    const clubInfo = mgr.getClubForTable("CLB003");
+
+    assert.ok(clubInfo);
+    assert.equal(mgr.isActiveMember(clubInfo!.clubId, "u2"), false);
+  });
+
+  it("public lobby snapshot contract excludes private/club tables", () => {
+    const source = readFileSync(resolve(process.cwd(), "src/server.ts"), "utf-8");
+    assert.match(source, /\.filter\(\(room\) => room\.status === "OPEN" && room\.visibility === "public"\)/);
   });
 });
 
