@@ -76,6 +76,7 @@ export interface SettlementResult {
     handId: string;
     totalPot: number;
     rake: number;
+    collectedFee: number;
     totalPaid: number;
     runCount: 1 | 2;
     boards: string[][];
@@ -129,6 +130,8 @@ export interface TableState {
         userName: string;
         amount: number;
     }>;
+    /** Showdown-revealed hole cards by seat (always public once shown) */
+    shownHands: Record<number, [string, string]>;
     /** Publicly revealed hole cards by seat */
     revealedHoles?: Record<number, [string, string]>;
     /** Seats that explicitly mucked at showdown */

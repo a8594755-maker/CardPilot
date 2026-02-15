@@ -39,26 +39,25 @@ railway up
 
 ---
 
-### 2️⃣ 部署前端 (Vercel - 免费)
+### 2️⃣ 部署前端 (Netlify - 免费)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start)
 
 **手动部署步骤：**
 
-1. 注册 [Vercel](https://vercel.com) 账号
+1. 注册 [Netlify](https://app.netlify.com/) 账号
 2. 导入 GitHub 仓库
 3. 配置:
-   - **Framework Preset**: Vite
-   - **Root Directory**: `apps/web`
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
+   - **Base directory**: 留空 (仓库根目录)
+   - **Build command**: `npm run build -w @cardpilot/web`
+   - **Publish directory**: `apps/web/dist`
 
 4. 添加环境变量:
    ```
    VITE_SERVER_URL=https://你的后端地址
    ```
 
-5. 点击 Deploy
+5. 点击 **Deploy site**
 
 ---
 
@@ -111,8 +110,8 @@ npm install
 # 2. 构建
 npm run build
 
-# 3. 部署到 Vercel
-vercel --prod
+# 3. 部署到 Netlify
+netlify deploy --prod --dir=dist
 
 echo "✅ 前端部署完成"
 ```
@@ -200,7 +199,7 @@ docker-compose up -d
 ```typescript
 const io = new Server(httpServer, {
   cors: {
-    origin: ["https://你的前端域名.vercel.app", "http://localhost:5173"],
+    origin: ["https://你的前端域名.netlify.app", "http://localhost:5173"],
     credentials: true
   }
 });
@@ -218,7 +217,7 @@ const io = new Server(httpServer, {
 
 | 服务 | 平台 | 费用 | 特点 |
 |------|------|------|------|
-| 前端 | Vercel | 免费 | 自动部署，CDN 加速 |
+| 前端 | Netlify | 免费 | 自动部署，CDN 加速 |
 | 后端 | Railway | 免费 $5/月额度 | 自动扩展 |
 | 数据库 | Railway Postgres | 免费 | 自动备份 |
 | 备选 | Render | 免费 | 支持 WebSocket |
@@ -227,7 +226,7 @@ const io = new Server(httpServer, {
 
 ## 🎯 下一步
 
-1. 选择部署平台 (Vercel + Railway 推荐)
+1. 选择部署平台 (Netlify + Railway 推荐)
 2. 准备 GitHub 仓库
 3. 按上述步骤部署
 4. 分享链接给朋友！

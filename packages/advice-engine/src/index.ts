@@ -232,9 +232,6 @@ function resolveStackResolution(effectiveStackBb?: number): StackResolution {
   const preferredFormat = `cash_6max_${targetStackBb}bb`;
 
   pushUnique(candidates, preferredFormat);
-  if (chartFormats.has(preferredFormat)) {
-    // already added as top candidate
-  }
 
   const nearestFormats = nearestFormatsByDepth(normalizedInput);
   for (const format of nearestFormats) {

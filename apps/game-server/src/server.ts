@@ -39,9 +39,9 @@ app.use(cors());
 app.get("/health", (_req, res) => res.json({ ok: true }));
 const DEPLOY_COMMIT_REF =
   process.env.RAILWAY_GIT_COMMIT_SHA ||
+  process.env.NETLIFY_COMMIT_REF ||
   process.env.COMMIT_REF ||
   process.env.GIT_COMMIT ||
-  process.env.VERCEL_GIT_COMMIT_SHA ||
   "";
 app.get("/version", (_req, res) => res.json({ ok: true, commit: DEPLOY_COMMIT_REF || null }));
 
@@ -135,10 +135,16 @@ function registerRoom(room: RoomInfo): void {
 function createTableIfNeeded(room: RoomInfo): GameTable {
   let table = tables.get(room.tableId);
   if (!table) {
+    const settings = roomManager.getRoom(room.tableId)?.settings;
+    const simulatedFeeEnabled = settings?.simulatedFeeEnabled ?? false;
+    const simulatedFeeCap = settings?.simulatedFeeCap ?? 0;
     table = new GameTable({
       tableId: room.tableId,
       smallBlind: room.smallBlind,
-      bigBlind: room.bigBlind
+      bigBlind: room.bigBlind,
+      ante: settings?.ante ?? 0,
+      rakePercent: simulatedFeeEnabled ? (settings?.simulatedFeePercent ?? 0) : 0,
+      rakeCap: simulatedFeeEnabled && simulatedFeeCap > 0 ? simulatedFeeCap : undefined,
     });
     tables.set(room.tableId, table);
   }

@@ -20,6 +20,8 @@ export type Position = 'SB' | 'BB' | 'UTG' | 'MP' | 'HJ' | 'CO' | 'BTN';
 
 // ===== Player & Table Types =====
 
+export type PlayerStatus = 'active' | 'sitting_out';
+
 export interface TablePlayer {
   seat: number;
   userId: string;
@@ -29,6 +31,10 @@ export interface TablePlayer {
   folded: boolean;
   allIn: boolean;
   streetCommitted: number;
+  /** Player table status — sitting_out players are skipped during deal */
+  status: PlayerStatus;
+  /** True if player has not yet played a hand at this table (must wait for BB or post dead) */
+  isNewPlayer: boolean;
 }
 
 export interface AllInPrompt {
@@ -94,6 +100,7 @@ export interface SettlementResult {
   handId: string;
   totalPot: number;
   rake: number;
+  collectedFee: number;
   totalPaid: number;
   runCount: 1 | 2;
   boards: string[][];
@@ -118,6 +125,9 @@ export interface TableState {
   pot: number;
   currentBet: number;
   minRaiseTo: number;
+  /** The size of the last full (legal) raise. Used for the "full raise" rule:
+   *  a short all-in that doesn't meet lastFullRaiseSize does NOT reopen betting. */
+  lastFullRaiseSize: number;
   actorSeat: number | null;
   handId: string | null;
   players: TablePlayer[];
@@ -138,6 +148,8 @@ export interface TableState {
   pendingPause?: boolean;
   /** Pending deposit requests visible to all players */
   pendingDeposits?: Array<{ orderId: string; seat: number; userId: string; userName: string; amount: number }>;
+  /** Showdown-revealed hole cards by seat (always public once shown) */
+  shownHands: Record<number, [string, string]>;
   /** Publicly revealed hole cards by seat */
   revealedHoles?: Record<number, [string, string]>;
   /** Seats that explicitly mucked at showdown */

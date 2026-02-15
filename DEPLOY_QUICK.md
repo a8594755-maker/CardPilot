@@ -3,7 +3,7 @@
 ## 📋 准备工作
 
 1. **GitHub 账号** - 代码托管
-2. **Vercel 账号** - 前端托管 (免费)
+2. **Netlify 账号** - 前端托管 (免费)
 3. **Railway 账号** - 后端托管 (免费 $5/月额度)
 
 ---
@@ -60,7 +60,7 @@ railway init --name cardpilot-backend
 railway variables set DATABASE_URL="postgresql://..."
 railway variables set PORT="4000"
 railway variables set NODE_ENV="production"
-railway variables set CORS_ORIGIN="https://你的前端域名.vercel.app"
+railway variables set CORS_ORIGIN="https://你的前端域名.netlify.app"
 
 # 7. 部署
 railway up
@@ -73,21 +73,20 @@ railway domain
 
 ---
 
-## 第三步：部署前端 (Vercel)
+## 第三步：部署前端 (Netlify)
 
 ### 3.1 导入项目
-1. 登录 [Vercel Dashboard](https://vercel.com/dashboard)
-2. 点击 **Add New Project**
+1. 登录 [Netlify Dashboard](https://app.netlify.com/)
+2. 点击 **Add new site** → **Import an existing project**
 3. 导入你的 GitHub 仓库
 
 ### 3.2 配置构建设置
 
 | 设置项 | 值 |
 |--------|-----|
-| **Framework Preset** | Vite |
-| **Root Directory** | `apps/web` |
-| **Build Command** | `npm run build` |
-| **Output Directory** | `dist` |
+| **Base directory** | 留空（仓库根目录） |
+| **Build command** | `npm run build -w @cardpilot/web` |
+| **Publish directory** | `apps/web/dist` |
 
 ### 3.3 添加环境变量
 
@@ -98,7 +97,7 @@ VITE_SERVER_URL=https://你的后端地址.railway.app
 ```
 
 ### 3.4 部署
-点击 **Deploy**
+点击 **Deploy site**
 
 ---
 
@@ -111,7 +110,7 @@ curl https://你的后端地址.railway.app/health
 ```
 
 ### 前端访问
-打开 Vercel 提供的域名，应该能看到游戏界面。
+打开 Netlify 提供的域名，应该能看到游戏界面。
 
 ### 测试游戏
 1. 创建一个房间
@@ -124,7 +123,7 @@ curl https://你的后端地址.railway.app/health
 ## 🔧 自定义域名 (可选)
 
 ### 前端自定义域名
-1. Vercel 项目 → Settings → Domains
+1. Netlify 项目 → Domain management
 2. 添加你的域名
 3. 按提示配置 DNS
 
@@ -140,7 +139,7 @@ curl https://你的后端地址.railway.app/health
 
 | 平台 | 免费额度 | 超出费用 |
 |------|----------|----------|
-| **Vercel** | 无限流量，100GB 带宽/月 | Pro $20/月 |
+| **Netlify** | 免费套餐可用 | Pro $19/月起 |
 | **Railway** | $5/月额度 | 按需付费 |
 | **PostgreSQL** | 包含在 $5 额度内 | 按存储计费 |
 
@@ -156,7 +155,7 @@ Access-Control-Allow-Origin
 ```
 **解决**: 在 Railway 环境变量中添加:
 ```
-CORS_ORIGIN=https://你的前端域名.vercel.app
+CORS_ORIGIN=https://你的前端域名.netlify.app
 ```
 
 ### 2. WebSocket 连接失败
@@ -176,7 +175,7 @@ VITE_SERVER_URL=wss://你的后端地址.railway.app
 ## 📞 需要帮助？
 
 1. Railway 文档: https://docs.railway.app
-2. Vercel 文档: https://vercel.com/docs
+2. Netlify 文档: https://docs.netlify.com
 3. Socket.IO 部署指南: https://socket.io/docs/v4/
 
 ---
@@ -185,7 +184,7 @@ VITE_SERVER_URL=wss://你的后端地址.railway.app
 
 你可以分享这个链接给朋友：
 ```
-https://你的项目名.vercel.app
+https://你的项目名.netlify.app
 ```
 
 大家打开浏览器就能一起玩扑克了！🃏
