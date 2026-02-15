@@ -17,6 +17,20 @@ export interface HandRecord {
   result?: number;
   tags: string[];
   gtoAnalysis?: GTOAnalysis | null;
+  // Extended fields for room-based history
+  roomCode?: string;
+  roomName?: string;
+  tableId?: string;
+  handId?: string;
+  endedAt?: string; // ISO string
+  heroSeat?: number;
+  heroName?: string;
+  smallBlind?: number;
+  bigBlind?: number;
+  playersCount?: number;
+  // Per-player showdown info (seat -> cards or "mucked")
+  showdownHands?: Record<number, [string, string] | "mucked">;
+  playerNames?: Record<number, string>;
 }
 
 export interface HandActionRecord {
@@ -135,6 +149,103 @@ export function updateHand(id: string, update: Partial<HandRecord>): void {
 
 export function clearAllHands(): void {
   localStorage.removeItem(STORAGE_KEY);
+}
+
+/** Room summary derived from local hand records */
+export interface LocalRoomSummary {
+  roomCode: string;
+  roomName: string;
+  stakes: string;
+  lastPlayedAt: number;
+  handsCount: number;
+  netResult: number;
+  smallBlind: number;
+  bigBlind: number;
+}
+
+/** Group local hands by roomCode for room-based history */
+export function getHandsByRoom(): { rooms: LocalRoomSummary[]; handsByRoom: Record<string, HandRecord[]> } {
+  const all = pruneExpired(readAll()).sort((a, b) => b.createdAt - a.createdAt);
+  const byRoom: Record<string, HandRecord[]> = {};
+
+  for (const h of all) {
+    const code = h.roomCode || "_local";
+    if (!byRoom[code]) byRoom[code] = [];
+    byRoom[code].push(h);
+  }
+
+  const rooms: LocalRoomSummary[] = Object.entries(byRoom).map(([code, hands]) => {
+    const last = hands[0];
+    const net = hands.reduce((sum, h) => sum + (h.result ?? 0), 0);
+    return {
+      roomCode: code,
+      roomName: last.roomName || (code === "_local" ? "Local / Unknown" : code),
+      stakes: last.stakes,
+      lastPlayedAt: last.createdAt,
+      handsCount: hands.length,
+      netResult: net,
+      smallBlind: last.smallBlind ?? 0,
+      bigBlind: last.bigBlind ?? 0,
+    };
+  });
+
+  rooms.sort((a, b) => b.lastPlayedAt - a.lastPlayedAt);
+  return { rooms, handsByRoom: byRoom };
+}
+
+/** Generate PokerStars-style hand history text */
+export function formatHandAsPokerStars(hand: HandRecord): string {
+  const lines: string[] = [];
+  const ts = hand.endedAt ? new Date(hand.endedAt).toLocaleString() : new Date(hand.createdAt).toLocaleString();
+  const hid = hand.handId || hand.id;
+  lines.push(`PokerStars Hand #${hid}: Hold'em No Limit (${hand.stakes}) - ${ts}`);
+  lines.push(`Table '${hand.roomName || hand.roomCode || "CardPilot"}' ${hand.tableSize}-max Seat #${hand.heroSeat ?? "?"} is the button`);
+
+  // Player names if available
+  if (hand.playerNames) {
+    for (const [seatStr, name] of Object.entries(hand.playerNames)) {
+      lines.push(`Seat ${seatStr}: ${name}`);
+    }
+  }
+
+  lines.push(`*** HOLE CARDS ***`);
+  lines.push(`Dealt to ${hand.heroName || "Hero"} [${hand.heroCards.join(" ")}]`);
+
+  const STREETS = ["PREFLOP", "FLOP", "TURN", "RIVER"];
+  for (const street of STREETS) {
+    const acts = hand.actions.filter((a) => a.street.toUpperCase() === street);
+    if (!acts.length) continue;
+
+    if (street === "FLOP" && hand.board.length >= 3) {
+      lines.push(`*** FLOP *** [${hand.board.slice(0, 3).join(" ")}]`);
+    } else if (street === "TURN" && hand.board.length >= 4) {
+      lines.push(`*** TURN *** [${hand.board.slice(0, 3).join(" ")}] [${hand.board[3]}]`);
+    } else if (street === "RIVER" && hand.board.length >= 5) {
+      lines.push(`*** RIVER *** [${hand.board.slice(0, 4).join(" ")}] [${hand.board[4]}]`);
+    }
+
+    for (const a of acts) {
+      const name = hand.playerNames?.[a.seat] || `Seat ${a.seat}`;
+      const amt = a.amount > 0 ? ` ${a.amount}` : "";
+      lines.push(`${name}: ${a.type}s${amt}`);
+    }
+  }
+
+  if (hand.board.length > 0) {
+    lines.push(`*** SUMMARY ***`);
+    lines.push(`Total pot ${hand.potSize} | Board [${hand.board.join(" ")}]`);
+  }
+
+  if (hand.runoutBoards && hand.runoutBoards.length > 1) {
+    hand.runoutBoards.forEach((b, i) => {
+      lines.push(`Run ${i + 1}: [${b.join(" ")}]`);
+    });
+  }
+
+  const net = hand.result ?? 0;
+  lines.push(`${hand.heroName || "Hero"} ${net >= 0 ? "collected" : "lost"} ${Math.abs(net)} chips (net: ${net >= 0 ? "+" : ""}${net})`);
+
+  return lines.join("\n");
 }
 
 /**

@@ -440,6 +440,106 @@ describe("ClubManager — tables", () => {
   });
 });
 
+describe("ClubManager — club table access enforcement", () => {
+  it("creating a club generates unique code and creates OWNER membership", () => {
+    const mgr = new ClubManager();
+    const club1 = mgr.createClub({ ownerUserId: "u1", ownerDisplayName: "Alice", name: "Club 1" });
+    const club2 = mgr.createClub({ ownerUserId: "u2", ownerDisplayName: "Bob", name: "Club 2" });
+
+    assert.ok(club1.code);
+    assert.ok(club2.code);
+    assert.notEqual(club1.code, club2.code, "Club codes must be unique");
+    assert.equal(club1.code.length, 6);
+
+    const owner1 = mgr.getMember(club1.id, "u1");
+    assert.ok(owner1);
+    assert.equal(owner1!.role, "owner");
+    assert.equal(owner1!.status, "active");
+  });
+
+  it("joining by code creates MEMBER row idempotently", () => {
+    const mgr = new ClubManager();
+    const club = mgr.createClub({
+      ownerUserId: "u1",
+      ownerDisplayName: "Alice",
+      name: "Idempotent Join Club",
+      requireApprovalToJoin: false,
+    });
+
+    const result1 = mgr.requestJoin(club.code, "u2", "Bob");
+    assert.equal(result1.status, "joined");
+
+    // Second join attempt should return error (already member) — idempotent safety
+    const result2 = mgr.requestJoin(club.code, "u2", "Bob");
+    assert.equal(result2.status, "error");
+    assert.ok(result2.message.includes("Already"));
+
+    const member = mgr.getMember(club.id, "u2");
+    assert.equal(member!.role, "member");
+  });
+
+  it("non-member cannot list club tables (via getClubDetail)", () => {
+    const mgr = new ClubManager();
+    const club = mgr.createClub({
+      ownerUserId: "u1",
+      ownerDisplayName: "Alice",
+      name: "Table Access Club",
+    });
+
+    mgr.createTable(club.id, "u1", "Owner Table");
+
+    // Non-member trying to get club detail (which includes tables)
+    const detail = mgr.getClubDetail(club.id, "stranger");
+    assert.equal(detail, null, "Non-member should not get club detail or table list");
+  });
+
+  it("non-admin/non-host cannot create club table", () => {
+    const mgr = new ClubManager();
+    const club = mgr.createClub({
+      ownerUserId: "u1",
+      ownerDisplayName: "Alice",
+      name: "Restricted Table Club",
+      requireApprovalToJoin: false,
+    });
+
+    mgr.requestJoin(club.code, "u2", "Bob"); // joins as member
+
+    // Regular member cannot create table (requires host+ role)
+    const result = mgr.createTable(club.id, "u2", "Illegal Table");
+    assert.equal(result, null, "Regular member should not be able to create a table");
+
+    // Non-member cannot create table
+    const result2 = mgr.createTable(club.id, "stranger", "Outsider Table");
+    assert.equal(result2, null, "Non-member should not be able to create a table");
+  });
+
+  it("club tables should be identifiable via getClubForTable after setting room code", () => {
+    const mgr = new ClubManager();
+    const club = mgr.createClub({
+      ownerUserId: "u1",
+      ownerDisplayName: "Alice",
+      name: "Isolation Club",
+    });
+
+    const result = mgr.createTable(club.id, "u1", "Private Table");
+    assert.ok(result);
+
+    // Before room code set — not findable
+    const before = mgr.getClubForTable("ROOM_XYZ");
+    assert.equal(before, null);
+
+    // After room code set — findable
+    mgr.setTableRoomCode(club.id, result!.clubTable.id, "ROOM_XYZ");
+    const after = mgr.getClubForTable("ROOM_XYZ");
+    assert.ok(after);
+    assert.equal(after!.clubId, club.id);
+
+    // isActiveMember correctly gates access
+    assert.equal(mgr.isActiveMember(club.id, "u1"), true, "Owner should be active member");
+    assert.equal(mgr.isActiveMember(club.id, "stranger"), false, "Non-member should not be active");
+  });
+});
+
 describe("ClubManager — audit log", () => {
   it("records audit entries for club actions", () => {
     const mgr = new ClubManager();

@@ -23,8 +23,12 @@ import { SettlementOverlay } from "./components/SettlementOverlay";
 import { getSuggestedPresets, userPresetsToButtons, type BetPreset } from "./lib/bet-sizing.js";
 import { AppComplianceFooter } from "./legal-pages";
 import { ClubsPage } from "./pages/clubs/ClubsPage";
+import { HistoryByRoomPage } from "./pages/HistoryByRoomPage";
 import type { ClubListItem, ClubDetailPayload } from "@cardpilot/shared-types";
 import { saveHand, getHands, autoTag, type HandRecord, type HandActionRecord } from "./lib/hand-history.js";
+import { ChipAnimationLayer } from "./components/ChipAnimationLayer";
+import { useChipAnimationDriver, type ChipAnimationAnchors } from "./hooks/useChipAnimationDriver";
+import { type AnimationSpeed, loadAnimationSpeed, saveAnimationSpeed } from "./lib/chip-animation.js";
 
 const SERVER = import.meta.env.VITE_SERVER_URL || "http://127.0.0.1:4000";
 const DEBUG_LOGS_ENABLED = import.meta.env.DEV;
@@ -79,6 +83,9 @@ export function App() {
   const [winners, setWinners] = useState<Array<{ seat: number; amount: number; handName?: string }> | null>(null);
   const [settlement, setSettlement] = useState<SettlementResult | null>(null);
   const [settlementCountdown, setSettlementCountdown] = useState(0);
+  const [settlementEndsAtMs, setSettlementEndsAtMs] = useState(0);
+  const [settlementRevealedHoles, setSettlementRevealedHoles] = useState<Record<number, [string, string]> | undefined>(undefined);
+  const [settlementWinnerHandNames, setSettlementWinnerHandNames] = useState<Record<number, string> | undefined>(undefined);
   const [allInPrompt, setAllInPrompt] = useState<AllInPrompt | null>(null);
   const [boardReveal, setBoardReveal] = useState<{ street: string; equities: Array<{ seat: number; winRate: number; tieRate: number }> } | null>(null);
   const [showHandConfirm, setShowHandConfirm] = useState(false);
@@ -96,6 +103,7 @@ export function App() {
   const [pendingSitSeat, setPendingSitSeat] = useState(1);
   const [buyInAmount, setBuyInAmount] = useState(10000);
   const [currentRoomCode, setCurrentRoomCode] = useState("");
+  const [currentRoomName, setCurrentRoomName] = useState("");
   const [view, setView] = useState<"lobby" | "table" | "profile" | "history" | "clubs">(() => {
     if (typeof window === "undefined") return "lobby";
     const param = new URLSearchParams(window.location.search).get("view");
@@ -134,6 +142,23 @@ export function App() {
   });
   const [showMobileGto, setShowMobileGto] = useState(false);
 
+  /* ── Chip animation state ── */
+  const [chipAnimSpeed, setChipAnimSpeed] = useState<AnimationSpeed>(loadAnimationSpeed);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const potRef = useRef<HTMLDivElement>(null);
+  const seatRefs = useRef<Record<number, HTMLElement | null>>({});
+  // Re-create anchors object on each render so driver reads live DOM refs
+  const chipAnchorsLive: ChipAnimationAnchors = {
+    container: tableContainerRef.current,
+    pot: potRef.current,
+    seats: seatRefs.current,
+  };
+  const { transfers: chipTransfers, removeTransfer: removeChipTransfer, onSnapshot: chipOnSnapshot, onSettlement: chipOnSettlement } = useChipAnimationDriver(chipAnchorsLive, chipAnimSpeed);
+  const chipOnSnapshotRef = useRef(chipOnSnapshot);
+  chipOnSnapshotRef.current = chipOnSnapshot;
+  const chipOnSettlementRef = useRef(chipOnSettlement);
+  chipOnSettlementRef.current = chipOnSettlement;
+
   /* ── Toast state (replaces permanent status bar) ── */
   const [toast, setToast] = useState<{ text: string; isError: boolean; id: number } | null>(null);
   const [toastExiting, setToastExiting] = useState(false);
@@ -167,11 +192,13 @@ export function App() {
   const holeCardsRef = useRef(holeCards);
   const snapshotRef = useRef(snapshot);
   const currentRoomCodeRef = useRef(currentRoomCode);
+  const currentRoomNameRef = useRef(currentRoomName);
   useEffect(() => { setName(displayName); }, [displayName]);
   useEffect(() => { seatRef.current = seat; }, [seat]);
   useEffect(() => { holeCardsRef.current = holeCards; }, [holeCards]);
   useEffect(() => { snapshotRef.current = snapshot; }, [snapshot]);
   useEffect(() => { currentRoomCodeRef.current = currentRoomCode; }, [currentRoomCode]);
+  useEffect(() => { currentRoomNameRef.current = currentRoomName; }, [currentRoomName]);
 
   /* ── Client-side timer tick: count down remaining every second ── */
   const [timerDisplay, setTimerDisplay] = useState<TimerState | null>(null);
@@ -282,14 +309,15 @@ export function App() {
     s.on("disconnect", () => { setSocketConnected(false); });
     s.on("lobby_snapshot", (d: { rooms: LobbyRoomSummary[] }) => setLobbyRooms(d.rooms ?? []));
     s.on("room_created", (d: { tableId: string; roomCode: string; roomName: string }) => {
-      setTableId(d.tableId); setCurrentRoomCode(d.roomCode);
+      setTableId(d.tableId); setCurrentRoomCode(d.roomCode); setCurrentRoomName(d.roomName);
       showToast(`Room created: ${d.roomName} (${d.roomCode})`); setView("table");
     });
     s.on("room_joined", (d: { tableId: string; roomCode: string; roomName: string }) => {
-      setTableId(d.tableId); setCurrentRoomCode(d.roomCode);
+      setTableId(d.tableId); setCurrentRoomCode(d.roomCode); setCurrentRoomName(d.roomName);
       showToast(`Joined room: ${d.roomName} (${d.roomCode})`); setView("table");
     });
     s.on("table_snapshot", (d: TableState) => {
+      chipOnSnapshotRef.current(d);
       setSnapshot(d);
       if (d.winners) setWinners(d.winners);
       if (d.allInPrompt && d.allInPrompt.actorSeat === seatRef.current) {
@@ -305,7 +333,8 @@ export function App() {
     s.on("hand_started", () => {
       setActionPending(false);
       setAdvice(null); setDeviation(null); setWinners(null); setAllInPrompt(null); setBoardReveal(null); setHoleCards([]);
-      setSettlement(null); setSettlementCountdown(0);
+      setSettlement(null); setSettlementCountdown(0); setSettlementEndsAtMs(0);
+      setSettlementRevealedHoles(undefined); setSettlementWinnerHandNames(undefined);
     });
     s.on("board_reveal", (d: { handId: string; street: string; newCards: string[]; board: string[]; equities: Array<{ seat: number; winRate: number; tieRate: number }> }) => {
       setBoardReveal({ street: d.street, equities: d.equities });
@@ -342,10 +371,35 @@ export function App() {
       if (d.winners) setWinners(d.winners);
       if (d.finalState) setSnapshot(d.finalState);
 
+      // Chip animation: animate pot→winner payouts
+      if (d.settlement) chipOnSettlementRef.current(d.settlement);
+
       // Settlement overlay: capture settlement data and start countdown
       if (d.settlement) {
         setSettlement(d.settlement);
+        setSettlementEndsAtMs(Date.now() + 6000);
         setSettlementCountdown(6);
+        // Capture revealed hole cards from the final table state
+        const fs = d.finalState;
+        if (fs?.revealedHoles) {
+          const holes: Record<number, [string, string]> = {};
+          for (const [s, cards] of Object.entries(fs.revealedHoles)) {
+            if (Array.isArray(cards) && cards.length === 2) holes[Number(s)] = cards as [string, string];
+          }
+          setSettlementRevealedHoles(Object.keys(holes).length > 0 ? holes : undefined);
+        } else {
+          setSettlementRevealedHoles(undefined);
+        }
+        // Capture winner hand names
+        if (fs?.winners) {
+          const names: Record<number, string> = {};
+          for (const w of fs.winners) {
+            if (w.handName) names[w.seat] = w.handName;
+          }
+          setSettlementWinnerHandNames(Object.keys(names).length > 0 ? names : undefined);
+        } else {
+          setSettlementWinnerHandNames(undefined);
+        }
       }
 
       // Save to local hand history (localStorage fallback)
@@ -362,6 +416,15 @@ export function App() {
             amount: a.amount ?? 0,
           }));
           const heroLedger = d.settlement.ledger.find((e) => e.seat === heroSeat);
+          // Build player names map and showdown hands from snapshot
+          const playerNames: Record<number, string> = {};
+          const showdownHands: Record<number, [string, string] | "mucked"> = {};
+          for (const p of st.players) {
+            playerNames[p.seat] = p.name;
+            const revealed = st.revealedHoles?.[p.seat] as [string, string] | undefined;
+            if (revealed) showdownHands[p.seat] = revealed;
+            else if (st.muckedSeats?.includes(p.seat)) showdownHands[p.seat] = "mucked";
+          }
           saveHand({
             gameType: "NLH",
             stakes: `${st.smallBlind}/${st.bigBlind}`,
@@ -375,6 +438,18 @@ export function App() {
             stackSize: heroLedger?.endStack ?? 0,
             result: heroLedger?.net ?? 0,
             tags: autoTag(actionRecords),
+            roomCode: currentRoomCodeRef.current || undefined,
+            roomName: currentRoomNameRef.current || undefined,
+            tableId: tableId || undefined,
+            handId: d.handId || undefined,
+            endedAt: new Date().toISOString(),
+            heroSeat,
+            heroName: name || displayName || "Hero",
+            smallBlind: st.smallBlind,
+            bigBlind: st.bigBlind,
+            playersCount: st.players.length,
+            showdownHands,
+            playerNames,
           });
         }
       } catch (err) {
@@ -410,14 +485,14 @@ export function App() {
     s.on("kicked", (d: { reason: string; banned: boolean }) => {
       setKicked(d);
       setView("lobby");
-      setCurrentRoomCode("");
+      setCurrentRoomCode(""); setCurrentRoomName("");
       setRoomState(null);
       showToast(`You were ${d.banned ? "banned" : "kicked"}: ${d.reason}`);
     });
     s.on("room_closed", (d?: { reason?: string }) => {
       setActionPending(false);
       setView("lobby");
-      setCurrentRoomCode("");
+      setCurrentRoomCode(""); setCurrentRoomName("");
       setRoomState(null);
       setSnapshot(null);
       setHoleCards([]);
@@ -437,6 +512,9 @@ export function App() {
       setWinners(null);
       setSettlement(null);
       setSettlementCountdown(0);
+      setSettlementEndsAtMs(0);
+      setSettlementRevealedHoles(undefined);
+      setSettlementWinnerHandNames(undefined);
       setAllInPrompt(null);
       setAdvice(null);
       setDeviation(null);
@@ -600,14 +678,17 @@ export function App() {
     myIsMucked,
     roomState?.settings.autoMuckLosingHands,
   ]);
-  // Settlement overlay countdown timer
+  // Settlement overlay countdown timer — absolute-time-based for reliable ticking
   useEffect(() => {
-    if (!settlement || settlementCountdown <= 0) return;
-    const timer = setTimeout(() => {
-      setSettlementCountdown((prev) => Math.max(0, prev - 1));
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [settlement, settlementCountdown]);
+    if (!settlement || !settlementEndsAtMs) return;
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((settlementEndsAtMs - Date.now()) / 1000));
+      setSettlementCountdown(remaining);
+    };
+    tick();
+    const interval = setInterval(tick, 500);
+    return () => clearInterval(interval);
+  }, [settlement, settlementEndsAtMs]);
 
   // Compute auto-start block reason for settlement overlay
   const autoStartBlockReason = useMemo(() => {
@@ -663,7 +744,7 @@ export function App() {
       const isMucked = snapshot?.muckedSeats?.includes(seatNum) ?? false;
       const revealedHandName = snapshot?.winners?.find((w) => w.seat === seatNum)?.handName;
       return (
-        <div key={seatNum} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ top: pos.top, left: pos.left }}>
+        <div key={seatNum} ref={(el) => { seatRefs.current[seatNum] = el; }} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ top: pos.top, left: pos.left }}>
           <SeatChip player={player} seatNum={seatNum} isActor={isActor} isMe={isMe}
             isOwner={!!isOwner} isCoHost={!!isCo} timer={seatTimer}
             posLabel={posLabel} isButton={isButton} displayBB={displayBB} bigBlind={snapshot?.bigBlind ?? 3}
@@ -699,7 +780,7 @@ export function App() {
       socket.emit("stand_up", { tableId, seat });
       socket.emit("leave_table", { tableId });
     }
-    setCurrentRoomCode("");
+    setCurrentRoomCode(""); setCurrentRoomName("");
     setRoomState(null);
     setSnapshot(null);
     setHoleCards([]);
@@ -823,7 +904,7 @@ export function App() {
           />
         ) : view === "history" ? (
           /* ═══════ HISTORY ═══════ */
-          <HistoryPage
+          <HistoryByRoomPage
             socket={socket}
             isConnected={isConnected}
             userId={authSession?.userId ?? ""}
@@ -1122,6 +1203,16 @@ export function App() {
                 <button onClick={() => setDisplayBB(!displayBB)}
                   className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all ${displayBB ? "bg-amber-500/15 text-amber-400 border-amber-500/30" : "bg-white/5 text-slate-400 border-white/10 hover:bg-white/10"}`}>
                   {displayBB ? "BB" : "$"}
+                </button>
+
+                <button onClick={() => {
+                  const next: AnimationSpeed = chipAnimSpeed === "normal" ? "fast" : chipAnimSpeed === "fast" ? "off" : "normal";
+                  setChipAnimSpeed(next);
+                  saveAnimationSpeed(next);
+                }}
+                  className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all ${chipAnimSpeed === "off" ? "bg-white/5 text-slate-500 border-white/10" : chipAnimSpeed === "fast" ? "bg-sky-500/15 text-sky-400 border-sky-500/30" : "bg-purple-500/15 text-purple-400 border-purple-500/30"}`}
+                  title={`Chip animations: ${chipAnimSpeed} (click to cycle)`}>
+                  {chipAnimSpeed === "off" ? "Anim Off" : chipAnimSpeed === "fast" ? "Anim Fast" : "Anim"}
                 </button>
 
                 {roomState && (
@@ -1511,7 +1602,7 @@ export function App() {
                   </div>
 
                   {/* Table image + overlays — constrained size */}
-                  <div className="relative w-full max-w-2xl select-none shrink" style={{ background: "#111827" }}>
+                  <div ref={tableContainerRef} className="relative w-full max-w-2xl select-none shrink" style={{ background: "#111827" }}>
                     <img src="/poker-table.png" alt="Table" className="w-full h-auto" style={{ mixBlendMode: "lighten" }} draggable={false} />
 
                     {/* Community cards — centered on table (supports run-it-twice dual boards) */}
@@ -1550,17 +1641,20 @@ export function App() {
                       </div>
                     ) : null}
 
-                    {/* Pot chip on table */}
-                    {(snapshot?.pot ?? 0) > 0 && (
-                      <div className="absolute top-[32%] left-1/2 -translate-x-1/2 pointer-events-none">
+                    {/* Pot chip on table (always render anchor ref for animations) */}
+                    <div ref={potRef} className="absolute top-[32%] left-1/2 -translate-x-1/2 pointer-events-none">
+                      {(snapshot?.pot ?? 0) > 0 && (
                         <div className="bg-black/70 px-2 py-0.5 rounded-full text-amber-400 font-bold text-[10px] shadow-lg">
                           {displayBB ? `${((snapshot?.pot ?? 0) / (snapshot?.bigBlind ?? 3)).toFixed(1)}bb` : (snapshot?.pot ?? 0).toLocaleString()}
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
 
                     {/* Player seats */}
                     {seatElements}
+
+                    {/* Chip animation overlay */}
+                    <ChipAnimationLayer transfers={chipTransfers} onTransferDone={removeChipTransfer} speed={chipAnimSpeed} />
                   </div>
 
                   {/* Hole cards — rendered in normal flow below the table image to avoid overlapping timer/buttons */}
@@ -1613,10 +1707,12 @@ export function App() {
                       autoStartScheduled={!autoStartBlockReason && (roomState?.settings.autoStartNextHand ?? true)}
                       autoStartBlockReason={autoStartBlockReason}
                       countdownSeconds={settlementCountdown}
-                      onDismiss={() => { setSettlement(null); setWinners(null); }}
-                      onDealNow={isHost ? () => { socket?.emit("start_hand", { tableId }); setSettlement(null); setWinners(null); } : undefined}
+                      onDismiss={() => { setSettlement(null); setSettlementEndsAtMs(0); setSettlementRevealedHoles(undefined); setSettlementWinnerHandNames(undefined); setWinners(null); }}
+                      onDealNow={isHost ? () => { socket?.emit("start_hand", { tableId }); setSettlement(null); setSettlementEndsAtMs(0); setSettlementRevealedHoles(undefined); setSettlementWinnerHandNames(undefined); setWinners(null); } : undefined}
                       isHost={!!isHost}
                       getCardImagePath={getCardImagePath}
+                      revealedHoles={settlementRevealedHoles}
+                      winnerHandNames={settlementWinnerHandNames}
                     />
                   ) : winners && winners.length > 0 && (
                     <div className="w-full max-w-2xl mt-2 shrink-0 animate-[fadeSlideUp_0.5s_ease-out]">

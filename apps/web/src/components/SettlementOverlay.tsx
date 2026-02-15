@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, memo } from "react";
 import type { SettlementResult, TablePlayer } from "@cardpilot/shared-types";
+import { CardGlyph } from "./CardGlyph";
+import { CardZoomModal } from "./CardZoomModal";
 
 interface SettlementOverlayProps {
   settlement: SettlementResult;
@@ -11,6 +13,10 @@ interface SettlementOverlayProps {
   onDealNow?: () => void;
   isHost: boolean;
   getCardImagePath: (card: string) => string;
+  /** Revealed hole cards from the final table state, keyed by seat */
+  revealedHoles?: Record<number, [string, string]>;
+  /** Winner hand names from the final table state, keyed by seat */
+  winnerHandNames?: Record<number, string>;
 }
 
 export const SettlementOverlay = memo(function SettlementOverlay({
@@ -23,8 +29,23 @@ export const SettlementOverlay = memo(function SettlementOverlay({
   onDealNow,
   isHost,
   getCardImagePath,
+  revealedHoles,
+  winnerHandNames,
 }: SettlementOverlayProps) {
   const [showDrawer, setShowDrawer] = useState(false);
+  const [zoomCards, setZoomCards] = useState<{ cards: string[]; label: string; sublabel?: string } | null>(null);
+
+  // ESC to close overlay
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (zoomCards) { setZoomCards(null); return; }
+        onDismiss();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onDismiss, zoomCards]);
 
   const playerName = useCallback(
     (seat: number) => {
@@ -36,7 +57,10 @@ export const SettlementOverlay = memo(function SettlementOverlay({
 
   // Combine all winners across runs for overlay header
   const allWinners = settlement.winnersByRun.flatMap((r) => r.winners);
-  const uniqueWinnerSeats = [...new Set(allWinners.map((w) => w.seat))];
+
+  // Countdown expired + no new hand yet = "waiting for server" state
+  const countdownExpired = countdownSeconds <= 0;
+  const showWaitingFallback = autoStartScheduled && countdownExpired;
 
   return (
     <div className="w-full max-w-2xl mt-2 shrink-0 animate-[fadeSlideUp_0.5s_ease-out]">
@@ -45,7 +69,7 @@ export const SettlementOverlay = memo(function SettlementOverlay({
         <button
           onClick={onDismiss}
           className="absolute top-2 right-3 text-slate-500 hover:text-white text-sm transition-colors"
-          title="Dismiss"
+          title="Dismiss (Esc)"
         >
           ✕
         </button>
@@ -97,13 +121,19 @@ export const SettlementOverlay = memo(function SettlementOverlay({
                   >
                     Run {run.run}
                   </span>
-                  <div className="flex gap-0.5">
+                  <div className="flex gap-1">
                     {run.board.map((c, i) => (
-                      <img
+                      <CardGlyph
                         key={i}
-                        src={getCardImagePath(c)}
-                        alt={c}
-                        className="w-7 h-auto rounded"
+                        card={c}
+                        size="sm"
+                        fourColor
+                        onClick={() =>
+                          setZoomCards({
+                            cards: run.board,
+                            label: `Run ${run.run} Board`,
+                          })
+                        }
                       />
                     ))}
                   </div>
@@ -117,6 +147,17 @@ export const SettlementOverlay = memo(function SettlementOverlay({
                       amount={w.amount}
                       handName={w.handName}
                       invested={settlement.contributions[w.seat] ?? 0}
+                      revealedCards={revealedHoles?.[w.seat]}
+                      onClickCards={
+                        revealedHoles?.[w.seat]
+                          ? () =>
+                              setZoomCards({
+                                cards: revealedHoles[w.seat],
+                                label: playerName(w.seat),
+                                sublabel: w.handName ?? winnerHandNames?.[w.seat],
+                              })
+                          : undefined
+                      }
                     />
                   ))}
                 </div>
@@ -134,10 +175,54 @@ export const SettlementOverlay = memo(function SettlementOverlay({
                 amount={w.amount}
                 handName={w.handName}
                 invested={settlement.contributions[w.seat] ?? 0}
+                revealedCards={revealedHoles?.[w.seat]}
+                onClickCards={
+                  revealedHoles?.[w.seat]
+                    ? () =>
+                        setZoomCards({
+                          cards: revealedHoles![w.seat],
+                          label: playerName(w.seat),
+                          sublabel: w.handName ?? winnerHandNames?.[w.seat],
+                        })
+                    : undefined
+                }
               />
             ))}
           </div>
         )}
+
+        {/* Revealed hole cards for non-winners (if any) */}
+        {revealedHoles && (() => {
+          const winnerSeats = new Set(allWinners.map((w) => w.seat));
+          const nonWinnerReveals = Object.entries(revealedHoles)
+            .filter(([s]) => !winnerSeats.has(Number(s)))
+            .map(([s, cards]) => ({ seat: Number(s), cards }));
+          if (nonWinnerReveals.length === 0) return null;
+          return (
+            <div className="mb-3 space-y-1">
+              <div className="text-[10px] text-slate-500 uppercase tracking-wider text-center">Shown Hands</div>
+              {nonWinnerReveals.map(({ seat: s, cards }) => (
+                <div
+                  key={s}
+                  className="flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() =>
+                    setZoomCards({
+                      cards,
+                      label: playerName(s),
+                      sublabel: winnerHandNames?.[s] ?? "Revealed hand",
+                    })
+                  }
+                >
+                  <span className="text-[10px] text-slate-400">{playerName(s)}</span>
+                  <div className="flex gap-0.5">
+                    <CardGlyph card={cards[0]} size="sm" fourColor />
+                    <CardGlyph card={cards[1]} size="sm" fourColor />
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
 
         {/* Countdown / Status */}
         <div className="text-center mb-2">
@@ -148,6 +233,10 @@ export const SettlementOverlay = memo(function SettlementOverlay({
                 {countdownSeconds}
               </span>
               …
+            </span>
+          ) : showWaitingFallback ? (
+            <span className="text-[11px] text-amber-300 animate-pulse">
+              Waiting for server…
             </span>
           ) : autoStartBlockReason ? (
             <span className="text-[11px] text-amber-300">
@@ -160,8 +249,8 @@ export const SettlementOverlay = memo(function SettlementOverlay({
           )}
         </div>
 
-        {/* Host deal button when auto-start is off */}
-        {isHost && !autoStartScheduled && onDealNow && (
+        {/* Host deal button: show when auto-start is off OR when countdown expired as a fallback */}
+        {isHost && onDealNow && (!autoStartScheduled || showWaitingFallback) && (
           <div className="text-center mb-2">
             <button
               onClick={onDealNow}
@@ -172,13 +261,19 @@ export const SettlementOverlay = memo(function SettlementOverlay({
           </div>
         )}
 
-        {/* Hand Summary button */}
-        <div className="text-center">
+        {/* Action buttons row */}
+        <div className="flex items-center justify-center gap-2">
           <button
             onClick={() => setShowDrawer(!showDrawer)}
             className="text-[11px] px-3 py-1.5 rounded-lg bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10 transition-all"
           >
             {showDrawer ? "Hide Details" : "Hand Summary"}
+          </button>
+          <button
+            onClick={onDismiss}
+            className="text-[11px] px-3 py-1.5 rounded-lg bg-white/10 text-white border border-white/15 hover:bg-white/20 transition-all font-semibold"
+          >
+            Continue
           </button>
         </div>
 
@@ -191,6 +286,16 @@ export const SettlementOverlay = memo(function SettlementOverlay({
           />
         )}
       </div>
+
+      {/* Card zoom modal */}
+      {zoomCards && (
+        <CardZoomModal
+          cards={zoomCards.cards}
+          label={zoomCards.label}
+          sublabel={zoomCards.sublabel}
+          onClose={() => setZoomCards(null)}
+        />
+      )}
     </div>
   );
 });
@@ -202,12 +307,16 @@ function WinnerRow({
   amount,
   handName,
   invested,
+  revealedCards,
+  onClickCards,
 }: {
   seat: number;
   name: string;
   amount: number;
   handName?: string;
   invested: number;
+  revealedCards?: [string, string];
+  onClickCards?: () => void;
 }) {
   const net = amount - invested;
   return (
@@ -221,6 +330,16 @@ function WinnerRow({
           <span className="text-slate-400 text-[10px]">{handName}</span>
         )}
       </div>
+      {revealedCards && (
+        <div
+          className={`flex gap-0.5 shrink-0 ${onClickCards ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}`}
+          onClick={onClickCards}
+          title={onClickCards ? "Tap to zoom" : undefined}
+        >
+          <CardGlyph card={revealedCards[0]} size="sm" fourColor />
+          <CardGlyph card={revealedCards[1]} size="sm" fourColor />
+        </div>
+      )}
       <div className="ml-auto text-right shrink-0">
         <div className="text-amber-400 font-extrabold text-base">
           +{amount.toLocaleString()}
@@ -270,14 +389,9 @@ function HandSummaryDrawer({
                 Run {idx + 1}
               </span>
             )}
-            <div className="flex gap-0.5">
+            <div className="flex gap-1">
               {board.map((c, i) => (
-                <img
-                  key={i}
-                  src={getCardImagePath(c)}
-                  alt={c}
-                  className="w-8 h-auto rounded"
-                />
+                <CardGlyph key={i} card={c} size="sm" fourColor />
               ))}
             </div>
           </div>

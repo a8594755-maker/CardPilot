@@ -287,6 +287,12 @@ export interface LobbyRoomSummary {
   status: 'OPEN' | 'CLOSED';
   visibility: RoomVisibility;
   updatedAt: string;
+  /** Club ID if this table belongs to a club */
+  clubId?: string;
+  /** Club name if this table belongs to a club */
+  clubName?: string;
+  /** True when the table is a club-managed table */
+  isClubTable?: boolean;
 }
 
 // ===== Hand History Types =====

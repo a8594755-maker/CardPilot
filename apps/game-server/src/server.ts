@@ -587,6 +587,8 @@ function currentPlayerCount(tableId: string): number {
 
 function toLobbySummary(room: RoomInfo): LobbyRoomSummary {
   const managed = roomManager.getRoom(room.tableId);
+  const clubInfo = clubManager.getClubForTable(room.roomCode);
+  const club = clubInfo ? clubManager.getClub(clubInfo.clubId) : null;
   return {
     tableId: room.tableId,
     roomCode: room.roomCode,
@@ -597,7 +599,12 @@ function toLobbySummary(room: RoomInfo): LobbyRoomSummary {
     playerCount: currentPlayerCount(room.tableId),
     status: room.status,
     visibility: managed?.settings.visibility ?? "public",
-    updatedAt: room.updatedAt ?? room.createdAt
+    updatedAt: room.updatedAt ?? room.createdAt,
+    ...(clubInfo && {
+      clubId: clubInfo.clubId,
+      clubName: club?.name,
+      isClubTable: true,
+    }),
   };
 }
 
@@ -1929,9 +1936,15 @@ io.on("connection", (socket) => {
         throw new Error("You are banned from this room");
       }
 
-      // Check password for private rooms
+      // Club membership gate: if the room belongs to a club, only active members can join
+      const clubInfo = clubManager.getClubForTable(room.roomCode);
+      if (clubInfo && !clubManager.isActiveMember(clubInfo.clubId, identity.userId)) {
+        throw new Error("This is a club table. Only active club members can join.");
+      }
+
+      // Check password for private rooms (non-club private rooms)
       const managed = roomManager.getRoom(room.tableId);
-      if (managed?.settings.visibility === "private" && managed.settings.password) {
+      if (!clubInfo && managed?.settings.visibility === "private" && managed.settings.password) {
         if (payload.password !== managed.settings.password) {
           throw new Error("Incorrect room password");
         }
@@ -1974,6 +1987,17 @@ io.on("connection", (socket) => {
   socket.on("join_table", async (payload: { tableId: string }) => {
     const room = await ensureRoomByTableId(payload.tableId);
     ensureManagedRoom(room, identity);
+
+    // Club membership gate: if the room belongs to a club, only active members can join
+    const joinTableRoomCode = roomCodeForTable(payload.tableId) ?? room.roomCode;
+    if (joinTableRoomCode) {
+      const clubInfo = clubManager.getClubForTable(joinTableRoomCode);
+      if (clubInfo && !clubManager.isActiveMember(clubInfo.clubId, identity.userId)) {
+        socket.emit("error_event", { message: "This is a club table. Only active club members can join." });
+        return;
+      }
+    }
+
     const table = createTableIfNeeded(room);
     socket.join(payload.tableId);
 
