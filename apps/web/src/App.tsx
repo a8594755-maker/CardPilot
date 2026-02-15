@@ -84,6 +84,7 @@ export function App() {
   const [seatRequests, setSeatRequests] = useState<Array<{ orderId: string; userId: string; userName: string; seat: number; buyIn: number }>>([]);
   const [showRoomLog, setShowRoomLog] = useState(false);
   const [socketConnected, setSocketConnected] = useState(false);
+  const [showGtoSidebar, setShowGtoSidebar] = useState(true);
 
   useEffect(() => { preloadCardImages(); }, []);
 
@@ -219,7 +220,7 @@ export function App() {
       setSeat(d.seat);
     });
     s.on("hand_started", () => {
-      setAdvice(null); setDeviation(null); setWinners(null); setAllInPrompt(null); setBoardReveal(null);
+      setAdvice(null); setDeviation(null); setWinners(null); setAllInPrompt(null); setBoardReveal(null); setHoleCards([]);
     });
     s.on("board_reveal", (d: { handId: string; street: string; newCards: string[]; board: string[]; equities: Array<{ seat: number; winRate: number; tieRate: number }> }) => {
       setBoardReveal({ street: d.street, equities: d.equities });
@@ -272,6 +273,7 @@ export function App() {
           });
         }
       } catch { /* ignore recording errors */ }
+      setTimeout(() => setHoleCards([]), 800);
     });
     s.on("error_event", (d: { message: string }) => setMessage(`Error: ${d.message}`));
     s.on("all_in_prompt", (d: AllInPrompt) => setAllInPrompt(d));
@@ -1094,51 +1096,51 @@ export function App() {
                   )}
                 </div>
 
-                {/* ── GTO SIDEBAR ── */}
-                <aside className="w-72 border-l border-white/5 p-3 overflow-y-auto hidden lg:block shrink-0">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[10px] font-extrabold text-slate-900">G</div>
-                      <h2 className="text-xs font-bold text-white uppercase tracking-wider">GTO Coach</h2>
-                    </div>
+                {/* ── GTO SIDEBAR — collapsible ── */}
+                <aside className={`border-l border-white/5 overflow-y-auto hidden lg:flex flex-col shrink-0 transition-all duration-200 ${showGtoSidebar ? "w-56 p-2" : "w-8 p-1"}`}>
+                  <button onClick={() => setShowGtoSidebar(!showGtoSidebar)} className="flex items-center gap-1 mb-1 hover:opacity-80 transition-opacity" title={showGtoSidebar ? "Collapse" : "Expand GTO Coach"}>
+                    <div className="w-5 h-5 rounded-md bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[9px] font-extrabold text-slate-900 shrink-0">G</div>
+                    {showGtoSidebar && <h2 className="text-[10px] font-bold text-white uppercase tracking-wider">GTO</h2>}
+                    <span className="text-[10px] text-slate-500 ml-auto">{showGtoSidebar ? "◂" : "▸"}</span>
+                  </button>
+                  {showGtoSidebar && (
+                    <div className="space-y-2">
                     {advice ? (
-                      <div className="space-y-3">
-                        <div className="text-[10px] text-slate-500 font-mono">{advice.spotKey}</div>
-                        <div className="flex items-center gap-2 py-2 px-3 rounded-xl bg-white/[0.05]">
-                          <span className="text-[10px] text-slate-500">Hand</span>
-                          <span className="text-base font-extrabold text-white tracking-wide">{advice.heroHand}</span>
+                      <div className="space-y-2">
+                        <div className="text-[9px] text-slate-500 font-mono truncate">{advice.spotKey}</div>
+                        <div className="flex items-center gap-1.5 py-1 px-2 rounded-lg bg-white/[0.05]">
+                          <span className="text-[9px] text-slate-500">Hand</span>
+                          <span className="text-sm font-extrabold text-white tracking-wide">{advice.heroHand}</span>
                         </div>
 
-                        {/* Recommended action */}
                         {advice.recommended && (
-                          <div className={`p-2 rounded-xl border text-center ${
+                          <div className={`p-1.5 rounded-lg border text-center ${
                             advice.recommended === "raise" ? "bg-red-500/10 border-red-500/30 text-red-400"
                             : advice.recommended === "call" ? "bg-blue-500/10 border-blue-500/30 text-blue-400"
                             : "bg-slate-500/10 border-slate-500/30 text-slate-400"
                           }`}>
-                            <div className="text-[9px] uppercase tracking-wider opacity-70 mb-0.5">GTO Recommendation</div>
-                            <div className="text-base font-extrabold uppercase">{advice.recommended}</div>
+                            <div className="text-[8px] uppercase tracking-wider opacity-70">Recommendation</div>
+                            <div className="text-sm font-extrabold uppercase">{advice.recommended}</div>
                           </div>
                         )}
 
-                        <div className="space-y-1.5">
+                        <div className="space-y-1">
                           <Bar label="Raise" pct={advice.mix.raise} color="from-red-500 to-red-600" />
                           <Bar label="Call" pct={advice.mix.call} color="from-blue-500 to-blue-600" />
                           <Bar label="Fold" pct={advice.mix.fold} color="from-slate-500 to-slate-600" />
                         </div>
-                        <div className="p-2 rounded-xl bg-white/[0.03] border border-white/5 text-xs text-slate-300 leading-relaxed">{advice.explanation}</div>
+                        <div className="p-1.5 rounded-lg bg-white/[0.03] border border-white/5 text-[10px] text-slate-300 leading-relaxed">{advice.explanation}</div>
 
-                        {/* Deviation feedback */}
                         {deviation && (
-                          <div className={`p-2 rounded-xl border ${
+                          <div className={`p-1.5 rounded-lg border ${
                             deviation.deviation <= 0.2 ? "bg-emerald-500/10 border-emerald-500/30"
                             : deviation.deviation <= 0.5 ? "bg-amber-500/10 border-amber-500/30"
                             : "bg-red-500/10 border-red-500/30"
                           }`}>
-                            <div className="text-[9px] uppercase tracking-wider text-slate-400 mb-0.5">Deviation</div>
+                            <div className="text-[8px] uppercase tracking-wider text-slate-400">Deviation</div>
                             <div className="flex items-center justify-between">
-                              <span className="text-xs text-white">You: <span className="font-bold uppercase">{deviation.playerAction}</span></span>
-                              <span className={`text-sm font-extrabold ${
+                              <span className="text-[10px] text-white">You: <span className="font-bold uppercase">{deviation.playerAction}</span></span>
+                              <span className={`text-xs font-extrabold ${
                                 deviation.deviation <= 0.2 ? "text-emerald-400"
                                 : deviation.deviation <= 0.5 ? "text-amber-400"
                                 : "text-red-400"
@@ -1148,12 +1150,13 @@ export function App() {
                         )}
                       </div>
                     ) : (
-                      <div className="text-center py-10">
-                        <div className="text-2xl mb-2 opacity-20">🎯</div>
-                        <p className="text-slate-500 text-xs">Advice appears on your turn…</p>
+                      <div className="text-center py-6">
+                        <div className="text-xl mb-1 opacity-20">🎯</div>
+                        <p className="text-slate-500 text-[10px]">Advice on your turn…</p>
                       </div>
                     )}
-                  </div>
+                    </div>
+                  )}
                 </aside>
               </div>
 
