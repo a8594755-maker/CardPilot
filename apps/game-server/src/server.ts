@@ -29,9 +29,9 @@ import type {
   ActionSubmitPayload, AdvicePayload, LobbyRoomSummary, TableState,
   UpdateSettingsPayload, KickPlayerPayload, TransferOwnershipPayload,
   SetCoHostPayload, GameControlPayload, JoinRoomWithPasswordPayload, AllInPrompt,
-  RoomFullState, TimerState,
+  RoomFullState, TimerState, HistoryHandDetailCore, HistoryHandPlayerSummary, HistoryHandSummaryCore,
 } from "@cardpilot/shared-types";
-import { SupabasePersistence, type RoomRecord, type VerifiedIdentity } from "./supabase";
+import { SupabasePersistence, type PersistHandHistoryPayload, type RoomRecord, type SessionContextMetadata, type VerifiedIdentity } from "./supabase";
 import { RoomManager } from "./room-manager";
 
 const app = express();
@@ -1007,6 +1007,7 @@ function startHandFlow(tableId: string, actorUserId: string, source: "manual" | 
     throw new Error(validationError);
   }
 
+  openRoomSessionIfNeeded(tableId, "start_hand").catch((e) => console.warn("startHandFlow: openRoomSession failed:", (e as Error).message));
   applyApprovedDeposits(tableId);
 
   const { handId } = table.startHand();
@@ -1086,6 +1087,9 @@ function finalizeHandEnd(tableId: string, state: TableState): void {
   const rcTimeout = pendingRunCountTimeouts.get(tableId);
   if (rcTimeout) { clearTimeout(rcTimeout); pendingRunCountTimeouts.delete(tableId); }
   clearShowdownDecisionTimeout(tableId);
+  const table = tables.get(tableId);
+  const settlement = table?.getSettlementResult() ?? null;
+  persistHandHistory(tableId, state, settlement).catch((e) => console.warn("finalizeHandEnd: persistHandHistory failed:", (e as Error).message));
   io.to(tableId).emit("hand_ended", {
     handId: state.handId,
     finalState: state,
@@ -1095,13 +1099,12 @@ function finalizeHandEnd(tableId: string, state: TableState): void {
     players: state.players,
     pot: state.pot,
     winners: state.winners,
-    settlement: tables.get(tableId)?.getSettlementResult() ?? undefined,
+    settlement: settlement ?? undefined,
   });
   roomManager.clearActionTimer(tableId);
   roomManager.setHandActive(tableId, false);
 
   // Cleanly mark hand as done in engine (nulls handId, resets handInProgress)
-  const table = tables.get(tableId);
   if (table) table.clearHand();
 
   // Increment hands played for session stats
@@ -1170,6 +1173,7 @@ function handleRoomAutoClose(tableId: string): void {
       roomCodeToTableId.delete(room.roomCode);
       sessionStatsByRoomCode.delete(room.roomCode);
       roomsByTableId.delete(tableId);
+      closeRoomSessionIfOpen(tableId, "auto_close").catch(() => {});
       supabase.touchRoom(tableId, "CLOSED").catch(() => {});
     }
     void emitLobbySnapshot();
@@ -1410,7 +1414,8 @@ async function ensureRoomByTableId(tableId: string): Promise<RoomInfo> {
     status: "OPEN",
     isPublic: true,
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
+    updatedAt: new Date().toISOString(),
+    createdBy: null,
   };
 
   registerRoom(fallback);
@@ -1444,6 +1449,124 @@ function touchLocalRoom(tableId: string): void {
   if (!room) return;
   room.updatedAt = new Date().toISOString();
   roomsByTableId.set(tableId, room);
+}
+
+function ensureManagedRoom(room: RoomInfo, ownerFallback: VerifiedIdentity): void {
+  if (roomManager.getRoom(room.tableId)) return;
+  const ownerId = room.createdBy ?? ownerFallback.userId;
+  roomManager.createRoom({
+    tableId: room.tableId,
+    roomCode: room.roomCode,
+    roomName: room.roomName,
+    ownerId,
+    ownerName: ownerId === ownerFallback.userId ? ownerFallback.displayName : "Host",
+    settings: {
+      maxPlayers: room.maxPlayers,
+      smallBlind: room.smallBlind,
+      bigBlind: room.bigBlind,
+      visibility: room.isPublic ? "public" : "private",
+    },
+  });
+}
+
+function buildSessionMetadata(tableId: string, trigger: string): SessionContextMetadata | undefined {
+  const room = roomsByTableId.get(tableId);
+  if (!room) return undefined;
+  const managed = roomManager.getRoom(tableId);
+  return {
+    roomCode: room.roomCode,
+    roomName: room.roomName,
+    ownerId: managed?.ownership.ownerId ?? room.createdBy ?? undefined,
+    ownerName: managed?.ownership.ownerName ?? undefined,
+    coHostIds: managed?.ownership.coHostIds ?? [],
+    trigger,
+  };
+}
+
+async function openRoomSessionIfNeeded(tableId: string, trigger: string): Promise<void> {
+  if (!supabase.enabled()) return;
+  await supabase.openRoomSession(tableId, buildSessionMetadata(tableId, trigger));
+}
+
+async function closeRoomSessionIfOpen(tableId: string, trigger: string): Promise<void> {
+  if (!supabase.enabled()) return;
+  await supabase.closeRoomSession(tableId, { trigger, closedAt: new Date().toISOString() });
+}
+
+async function persistHandHistory(tableId: string, state: TableState, settlement: ReturnType<GameTable["getSettlementResult"]>): Promise<void> {
+  if (!supabase.enabled()) return;
+  if (!state.handId || !settlement) return;
+
+  const managed = roomManager.getRoom(tableId);
+  const playersBySeat = new Map(state.players.map((player) => [player.seat, player]));
+
+  const playersSummary: HistoryHandPlayerSummary[] = state.players.map((player) => ({
+    seat: player.seat,
+    userId: player.userId,
+    name: player.name,
+  }));
+
+  const winnersBySeat = new Map<number, number>();
+  for (const winner of state.winners ?? []) {
+    winnersBySeat.set(winner.seat, winner.amount);
+  }
+
+  const netByUser: Record<string, number> = {};
+  for (const entry of settlement.ledger) {
+    const player = playersBySeat.get(entry.seat);
+    if (!player) continue;
+    netByUser[player.userId] = entry.net;
+  }
+
+  const summary: HistoryHandSummaryCore = {
+    totalPot: settlement.totalPot,
+    runCount: settlement.runCount,
+    winners: (state.winners ?? []).map((winner) => ({
+      seat: winner.seat,
+      amount: winner.amount,
+      handName: winner.handName,
+    })),
+    myNetByUser: netByUser,
+    flags: {
+      allIn: state.actions.some((action) => action.type === "all_in"),
+      runItTwice: settlement.runCount === 2,
+      showdown: settlement.showdown,
+    },
+  };
+
+  const detail: HistoryHandDetailCore = {
+    board: [...state.board],
+    runoutBoards: state.runoutBoards ? state.runoutBoards.map((board) => [...board]) : [],
+    potLayers: settlement.potLayers.map((layer) => ({
+      label: layer.label,
+      amount: layer.amount,
+      eligibleSeats: [...layer.eligibleSeats],
+    })),
+    contributionsBySeat: { ...settlement.contributions },
+    actionTimeline: [...state.actions],
+    revealedHoles: { ...(state.revealedHoles ?? {}) },
+    payoutLedger: settlement.ledger.map((entry) => ({ ...entry })),
+  };
+
+  const viewerUserIds = [...new Set([
+    ...state.players.map((player) => player.userId),
+    managed?.ownership.ownerId ?? "",
+    ...(managed?.ownership.coHostIds ?? []),
+  ])].filter((userId) => userId.length > 0);
+
+  const payload: PersistHandHistoryPayload = {
+    roomId: tableId,
+    handId: state.handId,
+    endedAt: new Date(settlement.timestamp).toISOString(),
+    blinds: { sb: state.smallBlind, bb: state.bigBlind },
+    players: playersSummary,
+    summary,
+    detail,
+    viewerUserIds,
+    sessionMetadata: buildSessionMetadata(tableId, "hand_end"),
+  };
+
+  await supabase.recordHandHistory(payload);
 }
 
 io.on("connection", (socket) => {
@@ -1484,7 +1607,8 @@ io.on("connection", (socket) => {
           status: "OPEN",
           isPublic: payload.isPublic ?? true,
           createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
+          createdBy: identity.userId,
         };
 
         if (room.bigBlind <= room.smallBlind) {
@@ -1514,6 +1638,7 @@ io.on("connection", (socket) => {
 
         // Persist to Supabase in background — don't block room creation
         supabase.upsertRoom(room).catch((e) => console.warn("create_room: upsertRoom failed:", (e as Error).message));
+        openRoomSessionIfNeeded(room.tableId, "create_room").catch((e) => console.warn("create_room: openRoomSession failed:", (e as Error).message));
         supabase.logEvent({
           tableId: room.tableId,
           eventType: "CREATE_ROOM",
@@ -1553,6 +1678,48 @@ io.on("connection", (socket) => {
     await emitLobbySnapshot(socket.id);
   });
 
+  socket.on("request_history_rooms", async (payload?: { limit?: number }) => {
+    try {
+      const rooms = await supabase.listHistoryRooms(identity.userId, payload?.limit ?? 50);
+      socket.emit("history_rooms", { rooms });
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
+  socket.on("request_history_sessions", async (payload: { roomId: string; limit?: number }) => {
+    try {
+      if (!payload?.roomId) throw new Error("roomId is required");
+      const sessions = await supabase.listHistorySessions(identity.userId, payload.roomId, payload.limit ?? 100);
+      socket.emit("history_sessions", { roomId: payload.roomId, sessions });
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
+  socket.on("request_history_hands", async (payload: { roomSessionId: string; limit?: number; beforeEndedAt?: string }) => {
+    try {
+      if (!payload?.roomSessionId) throw new Error("roomSessionId is required");
+      const { hands, hasMore, nextCursor } = await supabase.listHistoryHands(identity.userId, payload.roomSessionId, {
+        limit: payload.limit ?? 50,
+        beforeEndedAt: payload.beforeEndedAt,
+      });
+      socket.emit("history_hands", { roomSessionId: payload.roomSessionId, hands, hasMore, nextCursor });
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
+  socket.on("request_history_hand_detail", async (payload: { handHistoryId: string }) => {
+    try {
+      if (!payload?.handHistoryId) throw new Error("handHistoryId is required");
+      const hand = await supabase.getHistoryHandDetail(identity.userId, payload.handHistoryId);
+      socket.emit("history_hand_detail", { handHistoryId: payload.handHistoryId, hand });
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
   socket.on("join_room_code", async (payload: { roomCode: string; password?: string }) => {
     try {
       console.log("[JOIN_ROOM_CODE] Request from", identity.userId, "payload:", payload);
@@ -1560,8 +1727,27 @@ io.on("connection", (socket) => {
       const room = await ensureRoomByCode(payload.roomCode);
       console.log("[JOIN_ROOM_CODE] Room found:", room ? `${room.roomName} (${room.roomCode})` : "null");
       
-      if (!room || room.status !== "OPEN") {
+      if (!room) {
         console.log("[JOIN_ROOM_CODE] Room not found or closed");
+        throw new Error("Room not found or closed");
+      }
+
+      if (room.status === "CLOSED") {
+        if (room.createdBy && room.createdBy !== identity.userId) {
+          throw new Error("Room is closed. Only the room host can reopen it.");
+        }
+        room.status = "OPEN";
+        room.createdBy = room.createdBy ?? identity.userId;
+        room.updatedAt = new Date().toISOString();
+        registerRoom(room);
+        ensureManagedRoom(room, identity);
+        openRoomSessionIfNeeded(room.tableId, "reopen_room").catch((e) => console.warn("join_room_code: reopen openRoomSession failed:", (e as Error).message));
+        supabase.upsertRoom(room).catch((e) => console.warn("join_room_code: reopen upsertRoom failed:", (e as Error).message));
+      } else {
+        ensureManagedRoom(room, identity);
+      }
+
+      if (room.status !== "OPEN") {
         throw new Error("Room not found or closed");
       }
 
@@ -1587,6 +1773,7 @@ io.on("connection", (socket) => {
       });
 
       supabase.touchRoom(room.tableId, "OPEN").catch((e) => console.warn("join_room_code: touchRoom failed:", (e as Error).message));
+      openRoomSessionIfNeeded(room.tableId, "join_room_code").catch((e) => console.warn("join_room_code: openRoomSession failed:", (e as Error).message));
       supabase.logEvent({
         tableId: room.tableId,
         eventType: "JOIN_BY_CODE",
@@ -1613,6 +1800,7 @@ io.on("connection", (socket) => {
 
   socket.on("join_table", async (payload: { tableId: string }) => {
     const room = await ensureRoomByTableId(payload.tableId);
+    ensureManagedRoom(room, identity);
     const table = createTableIfNeeded(room);
     socket.join(payload.tableId);
 
@@ -1622,6 +1810,7 @@ io.on("connection", (socket) => {
     });
 
     supabase.touchRoom(payload.tableId, "OPEN").catch((e) => console.warn("join_table: touchRoom failed:", (e as Error).message));
+    openRoomSessionIfNeeded(payload.tableId, "join_table").catch((e) => console.warn("join_table: openRoomSession failed:", (e as Error).message));
     supabase.logEvent({
       tableId: payload.tableId,
       eventType: "JOIN_TABLE",
@@ -2429,6 +2618,7 @@ io.on("connection", (socket) => {
           clearAutoDealSchedule(payload.tableId);
           clearShowdownDecisionTimeout(payload.tableId);
           roomManager.endGame(payload.tableId, identity.userId, identity.displayName);
+          closeRoomSessionIfOpen(payload.tableId, "game_control_end").catch((e) => console.warn("game_control(end): closeRoomSession failed:", (e as Error).message));
           break;
         case "start":
           // Delegate to start_hand logic
@@ -2441,6 +2631,7 @@ io.on("connection", (socket) => {
           clearAutoDealSchedule(payload.tableId);
           clearShowdownDecisionTimeout(payload.tableId);
           roomManager.endGame(payload.tableId, identity.userId, identity.displayName);
+          closeRoomSessionIfOpen(payload.tableId, "game_control_restart").catch((e) => console.warn("game_control(restart): closeRoomSession failed:", (e as Error).message));
           // Client should call start_hand after restart
           break;
       }
@@ -2512,6 +2703,7 @@ io.on("connection", (socket) => {
       tables.delete(payload.tableId);
       roomManager.deleteRoom(payload.tableId);
 
+      closeRoomSessionIfOpen(payload.tableId, "close_room").catch(() => {});
       supabase.touchRoom(payload.tableId, "CLOSED").catch(() => {});
       supabase.logEvent({
         tableId: payload.tableId,

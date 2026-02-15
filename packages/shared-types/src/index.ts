@@ -4,7 +4,9 @@ export type Street = 'PREFLOP' | 'FLOP' | 'TURN' | 'RIVER' | 'SHOWDOWN';
 
 export type PlayerActionType = 'fold' | 'check' | 'call' | 'raise' | 'all_in';
 
-export type BlindActionType = 'post_sb' | 'post_bb';
+export type BlindActionType = 'post_sb' | 'post_bb' | 'post_dead_blind';
+
+export type HandActionType = PlayerActionType | BlindActionType;
 
 export interface LegalActions {
   canFold: boolean;
@@ -63,7 +65,7 @@ export interface BoardRevealEvent {
 export interface HandAction {
   seat: number;
   street: Street;
-  type: PlayerActionType;
+  type: HandActionType;
   amount: number;
   at: number;
 }
@@ -128,6 +130,8 @@ export interface TableState {
   /** The size of the last full (legal) raise. Used for the "full raise" rule:
    *  a short all-in that doesn't meet lastFullRaiseSize does NOT reopen betting. */
   lastFullRaiseSize: number;
+  /** The currentBet level where betting was last fully reopened by a full bet/raise. */
+  lastFullBet: number;
   actorSeat: number | null;
   handId: string | null;
   players: TablePlayer[];
@@ -148,7 +152,9 @@ export interface TableState {
   pendingPause?: boolean;
   /** Pending deposit requests visible to all players */
   pendingDeposits?: Array<{ orderId: string; seat: number; userId: string; userName: string; amount: number }>;
-  /** Showdown-revealed hole cards by seat (always public once shown) */
+  /** Showdown-revealed hole cards by seat (always public once shown). */
+  shownCards: Record<number, [string, string]>;
+  /** Backward-compatible alias for shownCards. */
   shownHands: Record<number, [string, string]>;
   /** Publicly revealed hole cards by seat */
   revealedHoles?: Record<number, [string, string]>;
@@ -257,6 +263,71 @@ export interface LobbyRoomSummary {
   status: 'OPEN' | 'CLOSED';
   visibility: RoomVisibility;
   updatedAt: string;
+}
+
+// ===== Hand History Types =====
+
+export interface HistoryHandPlayerSummary {
+  seat: number;
+  userId: string;
+  name: string;
+}
+
+export interface HistoryHandSummaryCore {
+  totalPot: number;
+  runCount: 1 | 2;
+  winners: HandWinner[];
+  myNetByUser: Record<string, number>;
+  flags: {
+    allIn: boolean;
+    runItTwice: boolean;
+    showdown: boolean;
+  };
+}
+
+export interface HistoryHandDetailCore {
+  board: string[];
+  runoutBoards: string[][];
+  potLayers: PotLayer[];
+  contributionsBySeat: Record<number, number>;
+  actionTimeline: HandAction[];
+  revealedHoles: Record<number, [string, string]>;
+  payoutLedger: SeatLedgerEntry[];
+}
+
+export interface HistoryRoomSummary {
+  roomId: string;
+  roomCode: string;
+  roomName: string;
+  lastPlayedAt: string;
+  totalHands: number;
+}
+
+export interface HistorySessionSummary {
+  roomSessionId: string;
+  roomId: string;
+  openedAt: string;
+  closedAt: string | null;
+  handCount: number;
+}
+
+export interface HistoryHandSummary {
+  id: string;
+  roomId: string;
+  roomSessionId: string;
+  handId: string;
+  handNo: number;
+  endedAt: string;
+  blinds: {
+    sb: number;
+    bb: number;
+  };
+  players: HistoryHandPlayerSummary[];
+  summary: HistoryHandSummaryCore;
+}
+
+export interface HistoryHandDetail extends HistoryHandSummary {
+  detail: HistoryHandDetailCore;
 }
 
 // ===== New Types (Coach Mode) =====

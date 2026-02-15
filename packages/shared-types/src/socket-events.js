@@ -29,7 +29,11 @@ export const SOCKET_EVENT_NAMES = {
         'transfer_ownership',
         'set_cohost',
         'game_control',
-        'close_room'
+        'close_room',
+        'request_history_rooms',
+        'request_history_sessions',
+        'request_history_hands',
+        'request_history_hand_detail'
     ],
     serverToClient: [
         'connected',
@@ -66,6 +70,10 @@ export const SOCKET_EVENT_NAMES = {
         'kicked',
         'room_closed',
         'stood_up',
-        'system_message'
+        'system_message',
+        'history_rooms',
+        'history_sessions',
+        'history_hands',
+        'history_hand_detail'
     ],
 };

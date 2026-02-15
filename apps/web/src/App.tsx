@@ -1,11 +1,25 @@
 import { useEffect, useMemo, useState, useCallback, useRef, memo } from "react";
 import { io, type Socket } from "socket.io-client";
-import type { AdvicePayload, LobbyRoomSummary, TableState, TablePlayer, LegalActions, RoomFullState, TimerState, RoomLogEntry, AllInPrompt, SettlementResult } from "@cardpilot/shared-types";
+import type {
+  AdvicePayload,
+  AllInPrompt,
+  HistoryHandDetail,
+  HistoryHandSummary,
+  HistoryRoomSummary,
+  HistorySessionSummary,
+  LegalActions,
+  LobbyRoomSummary,
+  RoomFullState,
+  RoomLogEntry,
+  SettlementResult,
+  TablePlayer,
+  TableState,
+  TimerState
+} from "@cardpilot/shared-types";
 import { getExistingSession, ensureGuestSession, signUpWithEmail, signInWithEmail, signInWithGoogle, signOut, supabase, validateEmail, validatePassword, getRateLimitSecondsLeft, type AuthSession } from "./supabase";
 import { preloadCardImages, getCardImagePath } from "./lib/card-images.js";
 import { SettlementOverlay } from "./components/SettlementOverlay";
 import { getSuggestedPresets, userPresetsToButtons, type BetPreset } from "./lib/bet-sizing.js";
-import { saveHand, getHands, updateHand, autoTag, type HandRecord, type HandActionRecord, type GTOAnalysis, type StreetAnalysis } from "./lib/hand-history.js";
 
 const SERVER = import.meta.env.VITE_SERVER_URL || "http://127.0.0.1:4000";
 const DEBUG_LOGS_ENABLED = import.meta.env.DEV;
@@ -60,7 +74,6 @@ export function App() {
   const [winners, setWinners] = useState<Array<{ seat: number; amount: number; handName?: string }> | null>(null);
   const [settlement, setSettlement] = useState<SettlementResult | null>(null);
   const [settlementCountdown, setSettlementCountdown] = useState(0);
-  const [settlementHistory, setSettlementHistory] = useState<SettlementResult[]>([]);
   const [allInPrompt, setAllInPrompt] = useState<AllInPrompt | null>(null);
   const [boardReveal, setBoardReveal] = useState<{ street: string; equities: Array<{ seat: number; winRate: number; tieRate: number }> } | null>(null);
   const [showHandConfirm, setShowHandConfirm] = useState(false);
@@ -130,13 +143,9 @@ export function App() {
   }, [showGtoSidebar]);
 
   /* ── Refs for latest state (avoid stale closures in socket handlers) ── */
-  const snapshotRef = useRef(snapshot);
-  const holeCardsRef = useRef(holeCards);
   const seatRef = useRef(seat);
   const currentRoomCodeRef = useRef(currentRoomCode);
   useEffect(() => { setName(displayName); }, [displayName]);
-  useEffect(() => { snapshotRef.current = snapshot; }, [snapshot]);
-  useEffect(() => { holeCardsRef.current = holeCards; }, [holeCards]);
   useEffect(() => { seatRef.current = seat; }, [seat]);
   useEffect(() => { currentRoomCodeRef.current = currentRoomCode; }, [currentRoomCode]);
 
@@ -312,36 +321,7 @@ export function App() {
       if (d.settlement) {
         setSettlement(d.settlement);
         setSettlementCountdown(6);
-        setSettlementHistory((prev) => [...prev.slice(-99), d.settlement!]);
       }
-
-      // Auto-record hand to history
-      try {
-        const snap = d.finalState ?? snapshotRef.current;
-        const cards = holeCardsRef.current;
-        const mySeat = seatRef.current;
-        if (snap && cards && cards.length === 2) {
-          const myPlayer = snap.players.find((p) => p.seat === mySeat);
-          const myWin = d.winners?.find((w) => w.seat === mySeat);
-          const result = myWin ? myWin.amount : 0;
-          const actionRecords: HandActionRecord[] = snap.actions.map((a) => ({
-            seat: a.seat, street: a.street, type: a.type, amount: a.amount,
-          }));
-          saveHand({
-            gameType: "NLH",
-            stakes: `${snap.smallBlind}/${snap.bigBlind}`,
-            tableSize: snap.players.length,
-            position: "",
-            heroCards: [cards[0], cards[1]],
-            board: snap.board,
-            actions: actionRecords,
-            potSize: snap.pot,
-            stackSize: myPlayer?.stack ?? 10000,
-            result,
-            tags: autoTag(actionRecords),
-          });
-        }
-      } catch { /* ignore recording errors */ }
       setTimeout(() => setHoleCards([]), 800);
     });
     s.on("error_event", (d: { message: string }) => {
@@ -737,7 +717,7 @@ export function App() {
           />
         ) : view === "history" ? (
           /* ═══════ HISTORY ═══════ */
-          <HistoryPage />
+          <HistoryPage socket={socket} isConnected={socketConnected} />
         ) : view === "lobby" ? (
           /* ═══════ LOBBY ═══════ */
           <main className="flex-1 p-6 overflow-y-auto">
@@ -1969,7 +1949,7 @@ function ProfilePage({ displayName, setDisplayName, email, authSession }: {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-bold text-white">Data Retention</h3>
-              <p className="text-xs text-slate-400 mt-1">Hand history is stored locally and automatically deleted after 30 days. Toggle off to disable recording.</p>
+              <p className="text-xs text-slate-400 mt-1">Hand history is server-authored and visible by room permissions. Toggle this to hide local preference data only.</p>
             </div>
             <button onClick={() => updatePref("dataRetention", !prefs.dataRetention)}
               className={`relative w-12 h-7 rounded-full transition-colors ${prefs.dataRetention ? "bg-emerald-500" : "bg-slate-600"}`}>
@@ -1978,7 +1958,7 @@ function ProfilePage({ displayName, setDisplayName, email, authSession }: {
           </div>
           {prefs.dataRetention && (
             <div className="mt-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400">
-              Hand records are kept for 30 days, then permanently deleted. No data is shared with third parties.
+              Local client preferences are stored in your browser. Hand history is stored on the server and follows room visibility rules.
             </div>
           )}
         </div>
@@ -1988,253 +1968,396 @@ function ProfilePage({ displayName, setDisplayName, email, authSession }: {
 }
 
 /* ═══════════════════ HISTORY PAGE ═══════════════════ */
-function HistoryPage() {
-  const [hands, setHands] = useState<HandRecord[]>([]);
-  const [posFilter, setPosFilter] = useState("");
-  const [tagFilter, setTagFilter] = useState("");
-  const [selected, setSelected] = useState<HandRecord | null>(null);
+function HistoryPage({ socket, isConnected }: { socket: Socket | null; isConnected: boolean }) {
+  const [rooms, setRooms] = useState<HistoryRoomSummary[]>([]);
+  const [sessions, setSessions] = useState<HistorySessionSummary[]>([]);
+  const [hands, setHands] = useState<HistoryHandSummary[]>([]);
+  const [selectedRoomId, setSelectedRoomId] = useState("");
+  const [selectedSessionId, setSelectedSessionId] = useState("");
+  const [selectedHandId, setSelectedHandId] = useState("");
+  const [detailById, setDetailById] = useState<Record<string, HistoryHandDetail>>({});
+  const [loadingRooms, setLoadingRooms] = useState(false);
+  const [loadingSessions, setLoadingSessions] = useState(false);
+  const [loadingHands, setLoadingHands] = useState(false);
+  const [loadingMoreHands, setLoadingMoreHands] = useState(false);
+  const [loadingDetailId, setLoadingDetailId] = useState("");
+  const [hasMoreHands, setHasMoreHands] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+
+  const selectedRoomRef = useRef(selectedRoomId);
+  const selectedSessionRef = useRef(selectedSessionId);
+  const pendingHandsRequestRef = useRef<{ roomSessionId: string; beforeEndedAt?: string } | null>(null);
+
+  useEffect(() => { selectedRoomRef.current = selectedRoomId; }, [selectedRoomId]);
+  useEffect(() => { selectedSessionRef.current = selectedSessionId; }, [selectedSessionId]);
+
+  const requestRooms = useCallback(() => {
+    if (!socket) return;
+    setLoadingRooms(true);
+    socket.emit("request_history_rooms", { limit: 100 });
+  }, [socket]);
+
+  const requestSessions = useCallback((roomId: string) => {
+    if (!socket || !roomId) return;
+    setLoadingSessions(true);
+    socket.emit("request_history_sessions", { roomId, limit: 200 });
+  }, [socket]);
+
+  const requestHands = useCallback((roomSessionId: string, beforeEndedAt?: string) => {
+    if (!socket || !roomSessionId) return;
+    if (beforeEndedAt) {
+      setLoadingMoreHands(true);
+    } else {
+      setLoadingHands(true);
+    }
+    pendingHandsRequestRef.current = { roomSessionId, beforeEndedAt };
+    socket.emit("request_history_hands", { roomSessionId, limit: 40, beforeEndedAt });
+  }, [socket]);
 
   useEffect(() => {
-    const filters: { position?: string; tags?: string[] } = {};
-    if (posFilter) filters.position = posFilter;
-    if (tagFilter) filters.tags = [tagFilter];
-    setHands(getHands(filters));
-  }, [posFilter, tagFilter]);
+    if (!socket) return;
 
-  // refresh on mount
-  useEffect(() => { setHands(getHands()); }, []);
+    const onHistoryRooms = (payload: { rooms: HistoryRoomSummary[] }) => {
+      setLoadingRooms(false);
+      const nextRooms = payload.rooms ?? [];
+      setRooms(nextRooms);
+      setSelectedRoomId((current) => {
+        if (current && nextRooms.some((room) => room.roomId === current)) return current;
+        return nextRooms[0]?.roomId ?? "";
+      });
+    };
 
-  if (selected) {
-    return <HandDetailView hand={selected} onBack={() => { setSelected(null); setHands(getHands()); }} />;
-  }
+    const onHistorySessions = (payload: { roomId: string; sessions: HistorySessionSummary[] }) => {
+      if (payload.roomId !== selectedRoomRef.current) return;
+      setLoadingSessions(false);
+      const nextSessions = payload.sessions ?? [];
+      setSessions(nextSessions);
+      setSelectedSessionId((current) => {
+        if (current && nextSessions.some((session) => session.roomSessionId === current)) return current;
+        return nextSessions[0]?.roomSessionId ?? "";
+      });
+    };
+
+    const onHistoryHands = (payload: { roomSessionId: string; hands: HistoryHandSummary[]; hasMore: boolean; nextCursor?: string }) => {
+      if (payload.roomSessionId !== selectedSessionRef.current) return;
+      setLoadingHands(false);
+      setLoadingMoreHands(false);
+
+      const pending = pendingHandsRequestRef.current;
+      const append = pending?.roomSessionId === payload.roomSessionId && !!pending.beforeEndedAt;
+
+      setHands((current) => {
+        if (!append) return payload.hands ?? [];
+        const seen = new Set(current.map((hand) => hand.id));
+        const merged = [...current];
+        for (const hand of payload.hands ?? []) {
+          if (!seen.has(hand.id)) {
+            merged.push(hand);
+            seen.add(hand.id);
+          }
+        }
+        return merged;
+      });
+      setHasMoreHands(Boolean(payload.hasMore));
+      setNextCursor(payload.nextCursor ?? null);
+    };
+
+    const onHistoryHandDetail = (payload: { handHistoryId: string; hand: HistoryHandDetail | null }) => {
+      if (payload.hand) {
+        setDetailById((current) => ({ ...current, [payload.handHistoryId]: payload.hand! }));
+      }
+      setLoadingDetailId((current) => (current === payload.handHistoryId ? "" : current));
+    };
+
+    socket.on("history_rooms", onHistoryRooms);
+    socket.on("history_sessions", onHistorySessions);
+    socket.on("history_hands", onHistoryHands);
+    socket.on("history_hand_detail", onHistoryHandDetail);
+
+    return () => {
+      socket.off("history_rooms", onHistoryRooms);
+      socket.off("history_sessions", onHistorySessions);
+      socket.off("history_hands", onHistoryHands);
+      socket.off("history_hand_detail", onHistoryHandDetail);
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+    requestRooms();
+  }, [socket, isConnected, requestRooms]);
+
+  useEffect(() => {
+    setSessions([]);
+    setSelectedSessionId("");
+    setHands([]);
+    setSelectedHandId("");
+    setHasMoreHands(false);
+    setNextCursor(null);
+    if (!selectedRoomId) return;
+    requestSessions(selectedRoomId);
+  }, [selectedRoomId, requestSessions]);
+
+  useEffect(() => {
+    setHands([]);
+    setSelectedHandId("");
+    setHasMoreHands(false);
+    setNextCursor(null);
+    if (!selectedSessionId) return;
+    requestHands(selectedSessionId);
+  }, [selectedSessionId, requestHands]);
+
+  const selectedHand = selectedHandId ? detailById[selectedHandId] ?? null : null;
 
   return (
-    <main className="flex-1 p-6 overflow-y-auto">
-      <div className="max-w-3xl mx-auto space-y-6">
-        <h2 className="text-2xl font-bold text-white">Hand History</h2>
-
-        {/* Filters */}
-        <div className="glass-card p-4 flex flex-wrap items-center gap-3">
-          <span className="text-xs text-slate-400 font-medium uppercase">Filters</span>
-          <select value={posFilter} onChange={(e) => setPosFilter(e.target.value)} className="input-field text-xs !py-1.5">
-            <option value="">All Positions</option>
-            {["BTN", "SB", "BB", "UTG", "MP", "CO", "HJ"].map((p) => <option key={p} value={p}>{p}</option>)}
-          </select>
-          <select value={tagFilter} onChange={(e) => setTagFilter(e.target.value)} className="input-field text-xs !py-1.5">
-            <option value="">All Types</option>
-            {["SRP", "3bet_pot", "4bet_pot", "all_in"].map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-          <span className="text-[10px] text-slate-500 ml-auto">{hands.length} hands</span>
+    <main className="flex-1 p-4 overflow-hidden">
+      <div className="h-full flex flex-col gap-3">
+        <div className="glass-card p-4 flex items-center gap-3">
+          <h2 className="text-xl font-bold text-white">Hand History by Room</h2>
+          <span className="text-xs text-slate-500">Summary lists are lightweight; details load on demand.</span>
+          <button onClick={requestRooms} className="btn-ghost text-xs !py-1.5 !px-3 ml-auto">Refresh</button>
         </div>
 
-        {/* Hand List */}
-        {hands.length === 0 ? (
-          <div className="glass-card p-6 text-center py-16">
-            <div className="text-4xl mb-3 opacity-20">📋</div>
-            <p className="text-slate-400 text-sm">No hands recorded yet.</p>
-            <p className="text-slate-500 text-xs mt-1">Play some hands and they will appear here automatically.</p>
-          </div>
+        {!isConnected || !socket ? (
+          <div className="glass-card p-8 text-center text-slate-400 text-sm">Connect to the game server to load hand history.</div>
         ) : (
-          <div className="space-y-2">
-            {hands.map((h) => (
-              <button key={h.id} onClick={() => setSelected(h)}
-                className="w-full text-left glass-card glass-card-hover p-4 flex items-center gap-4">
-                {/* Hero cards */}
-                <div className="flex -space-x-2 shrink-0">
-                  {h.heroCards.map((c, i) => (
-                    <CardImg key={i} card={c} className="w-9 h-13 rounded shadow" />
-                  ))}
-                </div>
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-white">{h.stakes}</span>
-                    {h.position && <span className="text-[10px] bg-white/10 text-slate-300 px-1.5 py-0.5 rounded">{h.position}</span>}
-                    {h.tags.map((t) => (
-                      <span key={t} className="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded">{t}</span>
-                    ))}
-                  </div>
-                  <div className="text-xs text-slate-500 mt-0.5">
-                    {new Date(h.createdAt).toLocaleDateString()} {new Date(h.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    <span className="mx-2">·</span>Pot {h.potSize.toLocaleString()}
-                    <span className="mx-2">·</span>{h.board.length > 0 ? h.board.join(" ") : "No showdown"}
-                  </div>
-                </div>
-                {/* Result */}
-                <div className={`text-sm font-bold tabular-nums ${(h.result ?? 0) > 0 ? "text-emerald-400" : (h.result ?? 0) < 0 ? "text-red-400" : "text-slate-500"}`}>
-                  {(h.result ?? 0) > 0 ? "+" : ""}{(h.result ?? 0).toLocaleString()}
-                </div>
-              </button>
-            ))}
+          <div className="min-h-0 flex-1 grid grid-cols-1 lg:grid-cols-[260px_320px_minmax(0,1fr)] gap-3">
+            <section className="glass-card min-h-0 p-3 flex flex-col">
+              <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Rooms</div>
+              <div className="min-h-0 overflow-y-auto space-y-1.5">
+                {loadingRooms ? (
+                  <p className="text-xs text-slate-500 py-2">Loading rooms…</p>
+                ) : rooms.length === 0 ? (
+                  <p className="text-xs text-slate-500 py-2">No visible room history.</p>
+                ) : (
+                  rooms.map((room) => (
+                    <button
+                      key={room.roomId}
+                      onClick={() => setSelectedRoomId(room.roomId)}
+                      className={`w-full text-left p-2 rounded-lg border transition-all ${
+                        selectedRoomId === room.roomId ? "bg-amber-500/10 border-amber-500/30" : "bg-white/[0.02] border-white/5 hover:border-white/20"
+                      }`}
+                    >
+                      <div className="text-sm font-semibold text-white truncate">{room.roomName}</div>
+                      <div className="text-[10px] text-slate-500 mt-0.5">
+                        <span className="font-mono text-amber-400/80">{room.roomCode}</span>
+                        <span className="mx-1.5">·</span>
+                        {room.totalHands} hands
+                      </div>
+                      <div className="text-[10px] text-slate-600 mt-0.5">Last: {formatHistoryDateTime(room.lastPlayedAt)}</div>
+                    </button>
+                  ))
+                )}
+              </div>
+            </section>
+
+            <section className="glass-card min-h-0 p-3 flex flex-col">
+              <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Sessions</div>
+              <div className="min-h-0 overflow-y-auto space-y-1.5">
+                {selectedRoomId.length === 0 ? (
+                  <p className="text-xs text-slate-500 py-2">Select a room.</p>
+                ) : loadingSessions ? (
+                  <p className="text-xs text-slate-500 py-2">Loading sessions…</p>
+                ) : sessions.length === 0 ? (
+                  <p className="text-xs text-slate-500 py-2">No sessions available.</p>
+                ) : (
+                  sessions.map((session, idx) => {
+                    const currentDay = historyDayKey(session.openedAt);
+                    const prevDay = idx > 0 ? historyDayKey(sessions[idx - 1].openedAt) : "";
+                    return (
+                      <div key={session.roomSessionId}>
+                        {idx === 0 || currentDay !== prevDay ? (
+                          <div className="text-[10px] text-slate-600 uppercase tracking-wider mt-2 mb-1">
+                            {new Date(session.openedAt).toLocaleDateString()}
+                          </div>
+                        ) : null}
+                        <button
+                          onClick={() => setSelectedSessionId(session.roomSessionId)}
+                          className={`w-full text-left p-2 rounded-lg border transition-all ${
+                            selectedSessionId === session.roomSessionId ? "bg-cyan-500/10 border-cyan-500/30" : "bg-white/[0.02] border-white/5 hover:border-white/20"
+                          }`}
+                        >
+                          <div className="text-xs text-white font-medium">
+                            {formatHistoryTime(session.openedAt)} - {session.closedAt ? formatHistoryTime(session.closedAt) : "Open"}
+                          </div>
+                          <div className="text-[10px] text-slate-500 mt-0.5">{session.handCount} visible hands</div>
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </section>
+
+            <section className="glass-card min-h-0 p-3 flex flex-col">
+              <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Hands</div>
+              <div className="min-h-0 overflow-y-auto space-y-1.5">
+                {selectedSessionId.length === 0 ? (
+                  <p className="text-xs text-slate-500 py-2">Select a session.</p>
+                ) : loadingHands ? (
+                  <p className="text-xs text-slate-500 py-2">Loading hands…</p>
+                ) : hands.length === 0 ? (
+                  <p className="text-xs text-slate-500 py-2">No hands in this session.</p>
+                ) : (
+                  hands.map((hand) => (
+                    <button
+                      key={hand.id}
+                      onClick={() => {
+                        setSelectedHandId(hand.id);
+                        if (!detailById[hand.id] && socket) {
+                          setLoadingDetailId(hand.id);
+                          socket.emit("request_history_hand_detail", { handHistoryId: hand.id });
+                        }
+                      }}
+                      className="w-full text-left p-2.5 rounded-lg border border-white/5 bg-white/[0.02] hover:border-amber-500/30 transition-all"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-sm text-white font-semibold">Hand #{hand.handNo}</div>
+                        <div className="text-[10px] text-slate-500">{formatHistoryTime(hand.endedAt)}</div>
+                      </div>
+                      <div className="text-[11px] text-slate-400 mt-1">
+                        Pot {hand.summary.totalPot.toLocaleString()} · Blinds {hand.blinds.sb}/{hand.blinds.bb}
+                        <span className="mx-1.5">·</span>
+                        {hand.summary.flags.runItTwice ? "Run it twice" : "Single run"}
+                      </div>
+                      <div className="text-[10px] text-slate-500 mt-1 truncate">
+                        {hand.summary.winners.length > 0
+                          ? hand.summary.winners.map((winner) => {
+                              const player = hand.players.find((p) => p.seat === winner.seat);
+                              return `${player?.name ?? `Seat ${winner.seat}`} +${winner.amount}`;
+                            }).join(" · ")
+                          : "No winner data"}
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+              {selectedSessionId && hasMoreHands && (
+                <button
+                  onClick={() => nextCursor && requestHands(selectedSessionId, nextCursor)}
+                  disabled={loadingMoreHands || !nextCursor}
+                  className="mt-2 btn-ghost text-xs !py-1.5 disabled:opacity-50"
+                >
+                  {loadingMoreHands ? "Loading…" : "Load more"}
+                </button>
+              )}
+            </section>
           </div>
         )}
       </div>
+
+      {selectedHandId && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3" onClick={() => setSelectedHandId("")}>
+          <div className="glass-card w-full max-w-4xl max-h-[92vh] overflow-y-auto p-5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold text-white">Hand Detail</h3>
+              <button onClick={() => setSelectedHandId("")} className="btn-ghost text-xs !py-1 !px-2">Close</button>
+            </div>
+            {!selectedHand && loadingDetailId === selectedHandId ? (
+              <p className="text-sm text-slate-400">Loading hand detail…</p>
+            ) : selectedHand ? (
+              <HistoryHandDetailView hand={selectedHand} />
+            ) : (
+              <p className="text-sm text-slate-400">Hand detail is not available.</p>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 }
 
-/* ═══════════════════ HAND DETAIL VIEW ═══════════════════ */
-function HandDetailView({ hand, onBack }: { hand: HandRecord; onBack: () => void }) {
-  const streets = useMemo(() => {
-    const grouped: Record<string, HandActionRecord[]> = {};
-    for (const a of hand.actions) {
-      (grouped[a.street] ??= []).push(a);
-    }
-    return Object.entries(grouped);
-  }, [hand]);
-
-  const boardByStreet = useMemo(() => {
-    const b = hand.board;
-    return {
-      FLOP: b.slice(0, 3),
-      TURN: b.slice(0, 4),
-      RIVER: b.slice(0, 5),
-    };
-  }, [hand]);
-
+function HistoryHandDetailView({ hand }: { hand: HistoryHandDetail }) {
   return (
-    <main className="flex-1 p-6 overflow-y-auto">
-      <div className="max-w-3xl mx-auto space-y-6">
-        <div className="flex items-center gap-3">
-          <button onClick={onBack} className="btn-ghost text-xs !py-2 !px-3">← Back</button>
-          <h2 className="text-2xl font-bold text-white">Hand Detail</h2>
+    <div className="space-y-4">
+      <div className="glass-card p-3">
+        <div className="flex flex-wrap items-center gap-3 text-sm">
+          <span className="font-semibold text-white">Hand #{hand.handNo}</span>
+          <span className="text-slate-400">Ended {formatHistoryDateTime(hand.endedAt)}</span>
+          <span className="text-slate-400">Pot {hand.summary.totalPot.toLocaleString()}</span>
+          <span className="text-slate-400">Blinds {hand.blinds.sb}/{hand.blinds.bb}</span>
+        </div>
+      </div>
+
+      <div className="glass-card p-3 space-y-2">
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Boards</h4>
+        {(hand.detail.runoutBoards.length > 0 ? hand.detail.runoutBoards : [hand.detail.board]).map((board, idx) => (
+          <div key={idx} className="flex items-center gap-2">
+            {hand.detail.runoutBoards.length > 1 && <span className="text-[10px] text-slate-500 w-7">Run {idx + 1}</span>}
+            <div className="flex gap-1.5">
+              {board.map((card, cardIdx) => <CardImg key={cardIdx} card={card} className="w-9 h-13 rounded shadow" />)}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div className="glass-card p-3">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Pot Breakdown</h4>
+          <div className="space-y-1.5">
+            {hand.detail.potLayers.map((layer, idx) => (
+              <div key={idx} className="text-xs text-slate-300 flex items-center justify-between">
+                <span>{layer.label}</span>
+                <span className="font-mono text-amber-300">{layer.amount.toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Summary card */}
-        <div className="glass-card p-6">
-          <div className="flex items-center gap-6">
-            <div className="flex -space-x-3">
-              {hand.heroCards.map((c, i) => (
-                <CardImg key={i} card={c} className="w-14 h-20 rounded-lg shadow-lg" />
-              ))}
-            </div>
-            <div className="flex-1 space-y-1">
-              <div className="flex items-center gap-3">
-                <span className="text-lg font-bold text-white">{hand.stakes}</span>
-                {hand.position && <span className="text-xs bg-white/10 text-slate-300 px-2 py-0.5 rounded">{hand.position}</span>}
-                <span className={`text-lg font-bold tabular-nums ${(hand.result ?? 0) > 0 ? "text-emerald-400" : (hand.result ?? 0) < 0 ? "text-red-400" : "text-slate-500"}`}>
-                  {(hand.result ?? 0) > 0 ? "+" : ""}{(hand.result ?? 0).toLocaleString()}
+        <div className="glass-card p-3">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Payout Ledger</h4>
+          <div className="space-y-1.5">
+            {hand.detail.payoutLedger.map((entry) => (
+              <div key={entry.seat} className="text-xs flex items-center justify-between">
+                <span className="text-slate-300">{entry.playerName}</span>
+                <span className={`font-mono ${entry.net >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                  {entry.net >= 0 ? "+" : ""}{entry.net.toLocaleString()}
                 </span>
               </div>
-              <p className="text-xs text-slate-500">
-                {new Date(hand.createdAt).toLocaleString()}
-                <span className="mx-2">·</span>Pot {hand.potSize.toLocaleString()}
-                <span className="mx-2">·</span>{hand.tableSize} players
-              </p>
-              <div className="flex gap-1 mt-1">
-                {hand.tags.map((t) => <span key={t} className="text-[10px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded">{t}</span>)}
-              </div>
-            </div>
+            ))}
           </div>
         </div>
+      </div>
 
-        {/* Board */}
-        {hand.board.length > 0 && (
-          <div className="glass-card p-4">
-            <h3 className="text-sm font-bold text-slate-400 mb-3">Board</h3>
-            <div className="flex gap-2">
-              {hand.board.map((c, i) => (
-                <CardImg key={i} card={c} className="w-12 h-17 rounded shadow" />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Action timeline */}
-        <div className="glass-card p-6 space-y-4">
-          <h3 className="text-sm font-bold text-slate-400">Action Timeline</h3>
-          {streets.map(([street, actions]) => (
-            <div key={street} className="space-y-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-amber-400 uppercase">{street}</span>
-                {street !== "PREFLOP" && (boardByStreet as any)[street] && (
-                  <div className="flex gap-1">
-                    {((boardByStreet as any)[street] as string[]).map((c: string, i: number) => (
-                      <CardImg key={i} card={c} className="w-7 h-10 rounded shadow-sm" />
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="space-y-1 pl-4 border-l border-white/10">
-                {actions.map((a, i) => (
-                  <div key={i} className="flex items-center gap-2 text-xs">
-                    <span className="text-slate-500 w-12">Seat {a.seat}</span>
-                    <span className={`font-semibold uppercase ${
-                      a.type === "fold" ? "text-slate-400" :
-                      a.type === "raise" || a.type === "all_in" ? "text-red-400" :
-                      a.type === "call" ? "text-blue-400" :
-                      a.type === "check" ? "text-emerald-400" : "text-slate-300"
-                    }`}>{a.type}</span>
-                    {a.amount > 0 && <span className="text-slate-400 font-mono">{a.amount.toLocaleString()}</span>}
-                  </div>
-                ))}
-              </div>
+      <div className="glass-card p-3">
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Action Timeline</h4>
+        <div className="space-y-1.5 max-h-64 overflow-y-auto">
+          {hand.detail.actionTimeline.map((action, idx) => (
+            <div key={`${action.seat}-${action.at}-${idx}`} className="text-xs flex items-center gap-2">
+              <span className="text-slate-500 w-10">{action.street}</span>
+              <span className="text-slate-500 w-12">Seat {action.seat}</span>
+              <span className={`uppercase font-semibold ${
+                action.type === "fold" ? "text-slate-400" :
+                action.type === "raise" || action.type === "all_in" ? "text-red-400" :
+                action.type === "call" ? "text-blue-400" :
+                action.type === "check" ? "text-emerald-400" :
+                "text-slate-300"
+              }`}>
+                {action.type}
+              </span>
+              {action.amount > 0 && <span className="text-slate-400 font-mono">{action.amount.toLocaleString()}</span>}
             </div>
           ))}
         </div>
-
-        {/* GTO Analysis section */}
-        <div className="glass-card p-6">
-          {hand.gtoAnalysis ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-slate-400">GTO Analysis</h3>
-                <div className={`text-xl font-bold ${hand.gtoAnalysis.overallScore >= 70 ? "text-emerald-400" : hand.gtoAnalysis.overallScore >= 40 ? "text-amber-400" : "text-red-400"}`}>
-                  {hand.gtoAnalysis.overallScore}/100
-                </div>
-              </div>
-              {hand.gtoAnalysis.streets.map((s, i) => (
-                <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-white/[0.03]">
-                  <span className={`w-2 h-2 rounded-full ${s.accuracy === "good" ? "bg-emerald-400" : s.accuracy === "ok" ? "bg-amber-400" : "bg-red-400"}`} />
-                  <span className="text-xs text-slate-400 w-16 uppercase">{s.street}</span>
-                  <span className="text-xs text-white font-medium">{s.action}</span>
-                  <span className="text-[10px] text-slate-500">vs GTO: {s.gtoAction}</span>
-                  {s.errorType && <span className="text-[10px] text-red-400 ml-auto">{s.errorType}</span>}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-slate-400 text-sm mb-3">No GTO analysis yet for this hand.</p>
-              <button onClick={() => {
-                const analysis = generateSimpleAnalysis(hand);
-                hand.gtoAnalysis = analysis;
-                updateHand(hand.id, { gtoAnalysis: analysis });
-              }} className="btn-primary text-sm !py-2 !px-6">
-                Analyze Now
-              </button>
-            </div>
-          )}
-        </div>
       </div>
-    </main>
+    </div>
   );
 }
 
-function generateSimpleAnalysis(hand: HandRecord): GTOAnalysis {
-  const streets: StreetAnalysis[] = [];
-  const uniqueStreets = [...new Set(hand.actions.filter(a => a.seat === 0 || true).map(a => a.street))];
+function historyDayKey(value: string): string {
+  const d = new Date(value);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
 
-  for (const street of uniqueStreets) {
-    const heroActions = hand.actions.filter(a => a.street === street);
-    if (heroActions.length === 0) continue;
-    const lastAction = heroActions[heroActions.length - 1];
-    const gtoAction = lastAction.type === "fold" ? "call" : lastAction.type;
-    const accuracy = lastAction.type === "fold" ? "ok" as const : "good" as const;
-    streets.push({
-      street,
-      action: lastAction.type,
-      gtoAction,
-      evDiff: 0,
-      accuracy,
-    });
-  }
+function formatHistoryDateTime(value: string): string {
+  return new Date(value).toLocaleString([], { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
 
-  return {
-    overallScore: Math.round(50 + Math.random() * 50),
-    streets,
-    analyzedAt: Date.now(),
-  };
+function formatHistoryTime(value: string): string {
+  return new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
 /* ═══════════════════ ROOM SETTINGS PANEL (Host-only) ═══════════════════ */

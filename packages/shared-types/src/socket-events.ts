@@ -9,6 +9,10 @@ import type {
   SettlementResult,
   AdvicePayload as AdvicePayloadFromIndex,
   LobbyRoomSummary as LobbyRoomSummaryFromIndex,
+  HistoryRoomSummary,
+  HistorySessionSummary,
+  HistoryHandSummary,
+  HistoryHandDetail,
 } from './index.js';
 
 // Re-export types from index.ts for convenience
@@ -201,7 +205,11 @@ export const SOCKET_EVENT_NAMES = {
     'transfer_ownership',
     'set_cohost',
     'game_control',
-    'close_room'
+    'close_room',
+    'request_history_rooms',
+    'request_history_sessions',
+    'request_history_hands',
+    'request_history_hand_detail'
   ] as const,
   serverToClient: [
     'connected',
@@ -238,7 +246,11 @@ export const SOCKET_EVENT_NAMES = {
     'kicked',
     'room_closed',
     'stood_up',
-    'system_message'
+    'system_message',
+    'history_rooms',
+    'history_sessions',
+    'history_hands',
+    'history_hand_detail'
   ] as const,
 };
 
@@ -279,6 +291,10 @@ export interface ClientToServerEvents {
   set_cohost: (payload: { tableId: string; userId: string; add: boolean }) => void;
   game_control: (payload: { tableId: string; action: 'start' | 'pause' | 'resume' | 'end' | 'restart' }) => void;
   close_room: (payload: { tableId: string }) => void;
+  request_history_rooms: (payload?: { limit?: number }) => void;
+  request_history_sessions: (payload: { roomId: string; limit?: number }) => void;
+  request_history_hands: (payload: { roomSessionId: string; limit?: number; beforeEndedAt?: string }) => void;
+  request_history_hand_detail: (payload: { handHistoryId: string }) => void;
 }
 
 export interface ServerToClientEvents {
@@ -332,4 +348,8 @@ export interface ServerToClientEvents {
   room_closed: (payload?: { tableId?: string; reason?: string }) => void;
   stood_up: (payload: { seat: number; reason: string }) => void;
   system_message: (payload: { message: string }) => void;
+  history_rooms: (payload: { rooms: HistoryRoomSummary[] }) => void;
+  history_sessions: (payload: { roomId: string; sessions: HistorySessionSummary[] }) => void;
+  history_hands: (payload: { roomSessionId: string; hands: HistoryHandSummary[]; hasMore: boolean; nextCursor?: string }) => void;
+  history_hand_detail: (payload: { handHistoryId: string; hand: HistoryHandDetail | null }) => void;
 }

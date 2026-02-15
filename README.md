@@ -11,6 +11,7 @@ Texas Hold'em training platform scaffold with real-time table sync and preflop G
 - `backend/sql/001_init.sql`: PostgreSQL schema
 - `backend/sql/002_supabase_multiplayer.sql`: Supabase multiplayer persistence tables + RLS
 - `backend/sql/003_lobby_room_code.sql`: room code + lobby fields and indexes
+- `backend/sql/004_hand_history_room_sessions.sql`: room sessions + server-authored hand history + access indexing
 - `docs/mvp-blueprint.md`: product + architecture blueprint
 
 ## Run locally
@@ -26,6 +27,7 @@ npm install
 ```sql
 -- backend/sql/002_supabase_multiplayer.sql
 -- backend/sql/003_lobby_room_code.sql
+-- backend/sql/004_hand_history_room_sessions.sql
 ```
 4. Start web + server together:
 ```bash
