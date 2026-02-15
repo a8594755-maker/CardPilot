@@ -80,6 +80,18 @@ const pendingAllInPrompts = new Map<string, { handId: string; prompt: AllInPromp
 const pendingRunCountTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 const handIdleWatchdogs = new Map<string, ReturnType<typeof setTimeout>>();
 const HAND_IDLE_TIMEOUT_MS = 60_000; // 60s with no seated players → abort hand
+
+// Deferred actions: stand-up seats and pause requests that wait for hand to end
+const pendingStandUps = new Map<string, Set<number>>(); // tableId → set of seats
+const pendingPause = new Map<string, { userId: string; displayName: string }>(); // tableId → who requested
+
+// Session stats: per-room, per-player cumulative buy-in tracking
+type PlayerSessionEntry = { userId: string; name: string; totalBuyIn: number; handsPlayed: number };
+const sessionStats = new Map<string, Map<string, PlayerSessionEntry>>(); // tableId → userId → entry
+
+// Deposit requests: seated player asks for more chips, host approves, credited at hand boundary
+type DepositRequest = { orderId: string; tableId: string; seat: number; userId: string; userName: string; amount: number; approved: boolean };
+const pendingDeposits = new Map<string, DepositRequest>(); // orderId → request
 const supabase = new SupabasePersistence();
 
 // Room manager handles ownership, settings, timers, kick/ban, auto-close
@@ -154,6 +166,57 @@ function socketIdBySeat(tableId: string, seat: number): string {
     if (binding.tableId === tableId && binding.seat === seat) return sid;
   }
   return "";
+}
+
+function recordSessionBuyIn(tableId: string, userId: string, name: string, amount: number): void {
+  let roomStats = sessionStats.get(tableId);
+  if (!roomStats) { roomStats = new Map(); sessionStats.set(tableId, roomStats); }
+  const existing = roomStats.get(userId);
+  if (existing) {
+    existing.totalBuyIn += amount;
+    existing.name = name; // keep name up-to-date
+  } else {
+    roomStats.set(userId, { userId, name, totalBuyIn: amount, handsPlayed: 0 });
+  }
+}
+
+function incrementHandsPlayed(tableId: string, playerUserIds: string[]): void {
+  const roomStats = sessionStats.get(tableId);
+  if (!roomStats) return;
+  for (const uid of playerUserIds) {
+    const entry = roomStats.get(uid);
+    if (entry) entry.handsPlayed += 1;
+  }
+}
+
+function applyApprovedDeposits(tableId: string): void {
+  const table = tables.get(tableId);
+  if (!table) return;
+  const toRemove: string[] = [];
+  for (const [orderId, deposit] of pendingDeposits.entries()) {
+    if (deposit.tableId !== tableId || !deposit.approved) continue;
+    try {
+      table.addStack(deposit.seat, deposit.amount);
+      recordSessionBuyIn(tableId, deposit.userId, deposit.userName, deposit.amount);
+      const sid = socketIdBySeat(tableId, deposit.seat);
+      if (sid) io.to(sid).emit("system_message", { message: `Deposit of ${deposit.amount} credited to your stack` });
+      io.to(tableId).emit("system_message", { message: `${deposit.userName} (Seat ${deposit.seat}) deposited ${deposit.amount}` });
+    } catch (err) {
+      console.warn("applyApprovedDeposits: addStack failed:", (err as Error).message);
+    }
+    toRemove.push(orderId);
+  }
+  for (const id of toRemove) pendingDeposits.delete(id);
+}
+
+function getPendingDepositsForTable(tableId: string): Array<{ orderId: string; seat: number; userId: string; userName: string; amount: number }> {
+  const result: Array<{ orderId: string; seat: number; userId: string; userName: string; amount: number }> = [];
+  for (const [, deposit] of pendingDeposits.entries()) {
+    if (deposit.tableId === tableId) {
+      result.push({ orderId: deposit.orderId, seat: deposit.seat, userId: deposit.userId, userName: deposit.userName, amount: deposit.amount });
+    }
+  }
+  return result;
 }
 
 function hasVoluntaryPreflopAction(state: TableState): boolean {
@@ -351,6 +414,18 @@ function broadcastSnapshot(tableId: string) {
   if (pendingPrompt && pendingPrompt.handId === snapshot.handId) {
     snapshot.allInPrompt = pendingPrompt.prompt;
   }
+  // Attach deferred stand-up seats and pending pause for client UI
+  const deferredSeats = pendingStandUps.get(tableId);
+  if (deferredSeats && deferredSeats.size > 0) {
+    snapshot.pendingStandUp = [...deferredSeats];
+  }
+  if (pendingPause.has(tableId)) {
+    snapshot.pendingPause = true;
+  }
+  const deposits = getPendingDepositsForTable(tableId);
+  if (deposits.length > 0) {
+    snapshot.pendingDeposits = deposits;
+  }
   io.to(tableId).emit("table_snapshot", snapshot);
   emitPresence(tableId);
   // Defer advice computation so it never blocks snapshot delivery or timer updates
@@ -448,11 +523,48 @@ function calculateAllPlayersEquity(table: GameTable, board: Card[]): Array<{ sea
 }
 
 async function handleSequentialRunout(tableId: string, table: GameTable): Promise<void> {
-  // For run-it-twice, use the engine's built-in method (not sequential)
+  // For run-it-twice: engine deals both boards atomically, then we reveal street-by-street
   if (table.getAllInRunCount() === 2) {
-    table.performRunout();
-    const state = table.getPublicState();
-    finalizeHandEnd(tableId, state);
+    const boardBefore = [...table.getPublicState().board];
+    table.performRunout(); // deals both boards, computes payouts, sets runoutBoards
+    const finalState = table.getPublicState();
+    const boards = finalState.runoutBoards; // [board1, board2], each length 5
+
+    if (boards && boards.length === 2) {
+      // Determine how many cards were already on the board before runout
+      const alreadyDealt = boardBefore.length; // 0, 3, or 4
+
+      // Build reveal steps: each step shows new cards for that street on both boards
+      type RevealStep = { street: string; boardSlice: [number, number]; delay: number };
+      const steps: RevealStep[] = [];
+      if (alreadyDealt < 3) steps.push({ street: "FLOP", boardSlice: [0, 3], delay: 1500 });
+      if (alreadyDealt < 4) steps.push({ street: "TURN", boardSlice: [3, 4], delay: 2000 });
+      if (alreadyDealt < 5) steps.push({ street: "RIVER", boardSlice: [4, 5], delay: 2000 });
+
+      for (let i = 0; i < steps.length; i++) {
+        const step = steps[i];
+        const newCardsR1 = boards[0].slice(step.boardSlice[0], step.boardSlice[1]);
+        const newCardsR2 = boards[1].slice(step.boardSlice[0], step.boardSlice[1]);
+        const partialBoard1 = boards[0].slice(0, step.boardSlice[1]);
+        const partialBoard2 = boards[1].slice(0, step.boardSlice[1]);
+
+        io.to(tableId).emit("run_twice_reveal", {
+          handId: finalState.handId,
+          street: step.street,
+          run1: { newCards: newCardsR1, board: partialBoard1 },
+          run2: { newCards: newCardsR2, board: partialBoard2 },
+        });
+
+        if (i < steps.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, step.delay));
+        }
+      }
+
+      // Final showdown after last reveal delay
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
+
+    finalizeHandEnd(tableId, finalState);
     return;
   }
 
@@ -557,6 +669,12 @@ function startHandFlow(tableId: string, actorUserId: string, source: "manual" | 
     throw new Error("Game is paused");
   }
 
+  // Guard: reject deal if a hand is already active
+  const existingTable = tables.get(tableId);
+  if (existingTable && existingTable.isHandActive()) {
+    throw new Error("Hand in progress");
+  }
+
   const table = createTableIfNeeded(room);
   const { handId } = table.startHand();
   pendingAllInPrompts.delete(tableId);
@@ -631,12 +749,47 @@ function finalizeHandEnd(tableId: string, state: TableState): void {
     handId: state.handId,
     finalState: state,
     board: state.board,
+    runoutBoards: state.runoutBoards,
     players: state.players,
     pot: state.pot,
     winners: state.winners,
   });
   roomManager.clearActionTimer(tableId);
   roomManager.setHandActive(tableId, false);
+
+  // Increment hands played for session stats
+  incrementHandsPlayed(tableId, state.players.filter((p) => p.inHand).map((p) => p.userId));
+
+  // Bust-out auto-stand: players with stack=0 after hand ends
+  for (const p of state.players) {
+    if (p.stack === 0 && p.inHand) {
+      const sid = socketIdBySeat(tableId, p.seat);
+      if (sid) {
+        io.to(sid).emit("system_message", { message: "You busted — stood up. Rebuy to continue." });
+      }
+      standUpPlayer(tableId, p.seat, "Busted out (stack = 0)");
+    }
+  }
+
+  // Process deferred stand-ups
+  const deferredSeats = pendingStandUps.get(tableId);
+  if (deferredSeats && deferredSeats.size > 0) {
+    for (const seatNum of deferredSeats) {
+      standUpPlayer(tableId, seatNum, "Left after hand ended");
+    }
+    pendingStandUps.delete(tableId);
+  }
+
+  // Process deferred pause
+  const deferredPause = pendingPause.get(tableId);
+  if (deferredPause) {
+    pendingPause.delete(tableId);
+    roomManager.pauseGame(tableId, deferredPause.userId, deferredPause.displayName);
+  }
+
+  // Credit approved deposits at hand boundary
+  applyApprovedDeposits(tableId);
+
   touchLocalRoom(tableId);
   broadcastSnapshot(tableId);
   scheduleAutoDealIfNeeded(tableId);
@@ -796,6 +949,7 @@ function initiateRunoutFlow(tableId: string, table: GameTable): void {
       pendingAllInPrompts.delete(tableId);
       console.log(`[ALL_IN] Run count timeout for ${tableId}, defaulting to run 1`);
       table.setAllInRunCount(1);
+      io.to(tableId).emit("run_count_chosen", { runCount: 1, seat: lowestEquity.seat, auto: true });
       void handleSequentialRunout(tableId, table);
     }, 15000);
     pendingRunCountTimeouts.set(tableId, timeout);
@@ -1138,6 +1292,8 @@ io.on("connection", (socket) => {
       
       console.log("[SIT_DOWN] Player added successfully");
 
+      recordSessionBuyIn(payload.tableId, identity.userId, name, payload.buyIn);
+
       socketSeat.set(socket.id, {
         tableId: payload.tableId,
         seat: payload.seat,
@@ -1268,6 +1424,8 @@ io.on("connection", (socket) => {
         stack: request.buyIn,
       });
 
+      recordSessionBuyIn(request.tableId, request.userId, request.userName, request.buyIn);
+
       // Bind the requester's socket to the seat
       socketSeat.set(request.socketId, {
         tableId: request.tableId,
@@ -1305,18 +1463,104 @@ io.on("connection", (socket) => {
     }
   });
 
+  /* ═══════════ DEPOSIT REQUEST FLOW ═══════════ */
+
+  socket.on("deposit_request", (payload: { tableId: string; amount: number }) => {
+    try {
+      const binding = socketSeat.get(socket.id);
+      if (!binding || binding.tableId !== payload.tableId) throw new Error("Not seated at this table");
+
+      const managed = roomManager.getRoom(payload.tableId);
+      if (!managed) throw new Error("Room not found");
+      if (!managed.settings.rebuyAllowed) throw new Error("Rebuys are not allowed in this room");
+
+      const { buyInMax } = managed.settings;
+      const table = tables.get(payload.tableId);
+      const player = table?.getPublicState().players.find((p) => p.seat === binding.seat);
+      if (!player) throw new Error("Player not found");
+      if (payload.amount <= 0) throw new Error("Amount must be positive");
+      if (player.stack + payload.amount > buyInMax) throw new Error(`Deposit would exceed max buy-in (${buyInMax})`);
+
+      const orderId = randomUUID();
+      const deposit: DepositRequest = {
+        orderId, tableId: payload.tableId, seat: binding.seat,
+        userId: identity.userId, userName: identity.displayName,
+        amount: payload.amount, approved: false,
+      };
+      pendingDeposits.set(orderId, deposit);
+
+      // Notify host/co-hosts
+      for (const [sid] of socketSeat.entries()) {
+        const id = socketIdentity.get(sid);
+        if (!id) continue;
+        if (!roomManager.isHostOrCoHost(payload.tableId, id.userId)) continue;
+        io.to(sid).emit("deposit_request_pending", {
+          orderId, userId: identity.userId, userName: identity.displayName,
+          seat: binding.seat, amount: payload.amount,
+        });
+      }
+
+      socket.emit("system_message", { message: `Deposit request of ${payload.amount} sent to host for approval` });
+      broadcastSnapshot(payload.tableId);
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
+  socket.on("approve_deposit", (payload: { tableId: string; orderId: string }) => {
+    try {
+      if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId)) throw new Error("Only host/co-host can approve deposits");
+      const deposit = pendingDeposits.get(payload.orderId);
+      if (!deposit || deposit.tableId !== payload.tableId) throw new Error("Deposit request not found");
+
+      deposit.approved = true;
+
+      const table = tables.get(payload.tableId);
+      // If no hand active, credit immediately
+      if (table && !table.isHandActive()) {
+        applyApprovedDeposits(payload.tableId);
+      } else {
+        // Will be credited at hand boundary in finalizeHandEnd
+        io.to(payload.tableId).emit("system_message", { message: `Deposit of ${deposit.amount} for ${deposit.userName} approved — will credit after hand` });
+      }
+      broadcastSnapshot(payload.tableId);
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
+  socket.on("reject_deposit", (payload: { tableId: string; orderId: string }) => {
+    try {
+      if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId)) throw new Error("Only host/co-host can reject deposits");
+      const deposit = pendingDeposits.get(payload.orderId);
+      if (!deposit || deposit.tableId !== payload.tableId) throw new Error("Deposit request not found");
+      pendingDeposits.delete(payload.orderId);
+
+      const sid = socketIdBySeat(payload.tableId, deposit.seat);
+      if (sid) io.to(sid).emit("system_message", { message: "Your deposit request was declined by the host" });
+      broadcastSnapshot(payload.tableId);
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
   socket.on("stand_up", async (payload: { tableId: string; seat: number }) => {
     const table = tables.get(payload.tableId);
     if (!table) return;
 
-    if (table.isHandActive()) {
-      socket.emit("error_event", { message: "Cannot stand up during an active hand" });
-      return;
-    }
-
     const binding = socketSeat.get(socket.id);
     if (!binding || binding.tableId !== payload.tableId || binding.seat !== payload.seat) {
       socket.emit("error_event", { message: "You can only stand up from your own seat" });
+      return;
+    }
+
+    // Defer if hand is active — mark as pending and process after hand ends
+    if (table.isHandActive()) {
+      let pending = pendingStandUps.get(payload.tableId);
+      if (!pending) { pending = new Set(); pendingStandUps.set(payload.tableId, pending); }
+      pending.add(payload.seat);
+      socket.emit("system_message", { message: "You will leave after the current hand ends" });
+      broadcastSnapshot(payload.tableId);
       return;
     }
 
@@ -1481,6 +1725,38 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("request_session_stats", (payload: { tableId: string }) => {
+    try {
+      if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId)) {
+        throw new Error("Only host or co-host can view session stats");
+      }
+      const table = tables.get(payload.tableId);
+      const currentPlayers = table ? table.getPublicState().players : [];
+      const roomStats = sessionStats.get(payload.tableId);
+      const entries: Array<{ seat: number | null; userId: string; name: string; totalBuyIn: number; currentStack: number; net: number; handsPlayed: number }> = [];
+
+      if (roomStats) {
+        for (const [uid, entry] of roomStats.entries()) {
+          const seated = currentPlayers.find((p) => p.userId === uid);
+          const currentStack = seated ? seated.stack : 0;
+          entries.push({
+            seat: seated?.seat ?? null,
+            userId: entry.userId,
+            name: entry.name,
+            totalBuyIn: entry.totalBuyIn,
+            currentStack,
+            net: currentStack - entry.totalBuyIn,
+            handsPlayed: entry.handsPlayed,
+          });
+        }
+      }
+
+      socket.emit("session_stats", { tableId: payload.tableId, entries });
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
   socket.on("leave_table", async (payload: { tableId: string }) => {
     socket.leave(payload.tableId);
     supabase.logEvent({
@@ -1627,9 +1903,18 @@ io.on("connection", (socket) => {
       }
 
       switch (payload.action) {
-        case "pause":
+        case "pause": {
+          // Defer pause if hand is active
+          const tbl = tables.get(payload.tableId);
+          if (tbl && tbl.isHandActive()) {
+            pendingPause.set(payload.tableId, { userId: identity.userId, displayName: identity.displayName });
+            io.to(payload.tableId).emit("system_message", { message: "Game will pause after the current hand ends" });
+            broadcastSnapshot(payload.tableId);
+            return; // Don't broadcastSnapshot again at the end
+          }
           roomManager.pauseGame(payload.tableId, identity.userId, identity.displayName);
           break;
+        }
         case "resume":
           roomManager.resumeGame(payload.tableId, identity.userId, identity.displayName);
           // Restart timer if hand is active

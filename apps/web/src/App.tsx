@@ -83,6 +83,13 @@ export function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [seatRequests, setSeatRequests] = useState<Array<{ orderId: string; userId: string; userName: string; seat: number; buyIn: number }>>([]);
   const [showRoomLog, setShowRoomLog] = useState(false);
+  const [showSessionStats, setShowSessionStats] = useState(false);
+  type SessionStatsEntry = { seat: number | null; userId: string; name: string; totalBuyIn: number; currentStack: number; net: number; handsPlayed: number };
+  const [sessionStatsData, setSessionStatsData] = useState<SessionStatsEntry[]>([]);
+  const [showDepositModal, setShowDepositModal] = useState(false);
+  const [depositAmount, setDepositAmount] = useState(0);
+  type DepositNotification = { orderId: string; userId: string; userName: string; seat: number; amount: number };
+  const [depositNotifications, setDepositNotifications] = useState<DepositNotification[]>([]);
   const [socketConnected, setSocketConnected] = useState(false);
   const [showGtoSidebar, setShowGtoSidebar] = useState(() => {
     try { return localStorage.getItem("cardpilot_show_gto") !== "false"; } catch { return true; }
@@ -321,6 +328,12 @@ export function App() {
       showToast(`Error: ${d.message}`);
     });
     s.on("all_in_prompt", (d: AllInPrompt) => setAllInPrompt(d));
+    s.on("session_stats", (d: { tableId: string; entries: Array<{ seat: number | null; userId: string; name: string; totalBuyIn: number; currentStack: number; net: number; handsPlayed: number }> }) => {
+      setSessionStatsData(d.entries);
+    });
+    s.on("deposit_request_pending", (d: { orderId: string; userId: string; userName: string; seat: number; amount: number }) => {
+      setDepositNotifications((prev) => [...prev, d]);
+    });
 
     // Room management events
     s.on("room_state_update", (d: RoomFullState) => {
@@ -424,12 +437,20 @@ export function App() {
     const min = settings?.buyInMin ?? 40;
     const max = settings?.buyInMax ?? 300;
     const step = Math.max(100, settings?.bigBlind ?? 100);
-    const mid = (min + max) / 2;
-    const snapped = Math.round(mid / step) * step;
+    // Sticky rebuy: load last buy-in for this room, fallback to midpoint
+    let initial: number | null = null;
+    try {
+      if (currentRoomCode) {
+        const saved = localStorage.getItem(`cardpilot_buyin_${currentRoomCode}`);
+        if (saved) { const n = Number(saved); if (n >= min && n <= max) initial = n; }
+      }
+    } catch { /* ignore */ }
+    const raw = initial ?? (min + max) / 2;
+    const snapped = Math.round(raw / step) * step;
     setBuyInAmount(Math.min(max, Math.max(min, snapped)));
     setPendingSitSeat(seatNum);
     setShowBuyInModal(true);
-  }, [roomState?.settings]);
+  }, [roomState?.settings, currentRoomCode]);
 
   const seatElements = useMemo(() => {
     const maxP = roomState?.settings.maxPlayers ?? 6;
@@ -444,12 +465,13 @@ export function App() {
       const posLabel = snapshot?.positions?.[seatNum] ?? "";
       const isButton = snapshot?.buttonSeat === seatNum && !!snapshot?.handId;
       const equity = boardReveal?.equities.find((e) => e.seat === seatNum) ?? null;
+      const isPendingLeave = snapshot?.pendingStandUp?.includes(seatNum) ?? false;
       return (
         <div key={seatNum} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ top: pos.top, left: pos.left }}>
           <SeatChip player={player} seatNum={seatNum} isActor={isActor} isMe={isMe}
             isOwner={!!isOwner} isCoHost={!!isCo} timer={seatTimer}
             posLabel={posLabel} isButton={isButton} displayBB={displayBB} bigBlind={snapshot?.bigBlind ?? 3}
-            equity={equity}
+            equity={equity} pendingLeave={isPendingLeave}
             onClickEmpty={handleSeatClick} />
         </div>
       );
@@ -836,7 +858,7 @@ export function App() {
               <div className="px-3 py-1.5 flex flex-wrap items-center gap-2 border-b border-white/5 shrink-0">
                 <input value={name} onChange={(e) => setName(e.target.value)} className="input-field !py-1 !px-2 w-24 text-xs" placeholder="Name" />
                 <button
-                  disabled={!isConnected || !isHost}
+                  disabled={!isConnected || !isHost || !!(snapshot?.handId && (snapshot.actorSeat != null || snapshot.street !== "SHOWDOWN"))}
                   onClick={() => {
                     if (!isHost) {
                       showToast("Only host can start and run auto-deal");
@@ -844,6 +866,10 @@ export function App() {
                     }
                     if ((snapshot?.players.length ?? 0) < 2) {
                       showToast("Need ≥2 players");
+                      return;
+                    }
+                    if (snapshot?.handId && (snapshot.actorSeat != null || snapshot.street !== "SHOWDOWN")) {
+                      showToast("Hand in progress");
                       return;
                     }
                     socket?.emit("start_hand", { tableId });
@@ -855,6 +881,13 @@ export function App() {
                 </button>
                 <button disabled={!isConnected} onClick={() => socket?.emit("stand_up", { tableId, seat })} className="text-[11px] px-2.5 py-1 rounded-lg bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 disabled:opacity-40 transition-all" title="Stand up from seat">Stand</button>
                 <button onClick={leaveRoom} className="text-[11px] px-2.5 py-1 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all" title="Leave room entirely">Exit</button>
+                {roomState?.settings.rebuyAllowed && (
+                  <button disabled={!isConnected} onClick={() => {
+                    const bb = roomState?.settings.bigBlind ?? 100;
+                    setDepositAmount(bb * 100);
+                    setShowDepositModal(true);
+                  }} className="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 disabled:opacity-40 transition-all" title="Request additional chips">Rebuy</button>
+                )}
 
                 <button onClick={() => setDisplayBB(!displayBB)}
                   className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all ${displayBB ? "bg-amber-500/15 text-amber-400 border-amber-500/30" : "bg-white/5 text-slate-400 border-white/10 hover:bg-white/10"}`}>
@@ -867,6 +900,7 @@ export function App() {
                     <span className="text-[10px] text-slate-500">{roomState.settings.smallBlind}/{roomState.settings.bigBlind} · {roomState.settings.maxPlayers}-max</span>
                     <span className="text-[10px] text-slate-500">Timer {roomState.settings.actionTimerSeconds}s</span>
                     {roomState.status === "PAUSED" && <span className="text-[10px] text-red-400 font-bold animate-pulse">PAUSED</span>}
+                    {snapshot?.pendingPause && <span className="text-[10px] text-amber-400 font-semibold animate-pulse">Pausing after hand…</span>}
                   </>
                 )}
 
@@ -897,6 +931,9 @@ export function App() {
                     )}
                     <button onClick={() => setShowSettings(!showSettings)} className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10">⚙</button>
                     <button onClick={() => setShowRoomLog(!showRoomLog)} className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10">📋</button>
+                    <button onClick={() => { setShowSessionStats(!showSessionStats); if (!showSessionStats) socket?.emit("request_session_stats", { tableId }); }}
+                      className={`text-[10px] px-2 py-0.5 rounded border hover:bg-white/10 ${showSessionStats ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/30" : "bg-white/5 text-slate-300 border-white/10"}`}
+                      title="Session Stats">📊</button>
                     {seatRequests.length > 0 ? (
                       <button className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold animate-pulse">
                         🎫 {seatRequests.length} Request{seatRequests.length > 1 ? "s" : ""}
@@ -973,6 +1010,8 @@ export function App() {
                             debugLog("[BUY_IN_MODAL] Emitting seat_request (guest)");
                             socket?.emit("seat_request", { tableId, seat: pendingSitSeat, buyIn: buyInAmount, name });
                           }
+                          // Sticky rebuy: remember buy-in per room
+                          try { if (currentRoomCode) localStorage.setItem(`cardpilot_buyin_${currentRoomCode}`, String(buyInAmount)); } catch { /* ignore */ }
                           setShowBuyInModal(false);
                         }} className="flex-1 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-900/30 hover:from-emerald-400 hover:to-emerald-500 transition-all">
                           {isHostOrCoHost ? "Sit Down" : "Request Seat"}
@@ -986,6 +1025,72 @@ export function App() {
                   </div>
                 );
               })()}
+
+              {/* ── Deposit Modal ── */}
+              {showDepositModal && (() => {
+                const settings = roomState?.settings;
+                const bb = settings?.bigBlind ?? 100;
+                const myPlayer = snapshot?.players.find((p) => p.seat === seat);
+                const maxDeposit = Math.max(0, (settings?.buyInMax ?? 20000) - (myPlayer?.stack ?? 0));
+                const minDeposit = Math.max(bb, 1);
+                return (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowDepositModal(false)}>
+                    <div className="glass-card p-5 w-72 space-y-3" onClick={(e) => e.stopPropagation()}>
+                      <h3 className="text-sm font-bold text-emerald-400 text-center">Request Deposit</h3>
+                      <div className="text-center">
+                        <span className="text-2xl font-bold text-emerald-400 font-mono">{depositAmount.toLocaleString()}</span>
+                        <div className="text-[10px] text-slate-500 mt-0.5">{(depositAmount / bb).toFixed(0)} BB</div>
+                      </div>
+                      <input type="range" min={minDeposit} max={maxDeposit} step={bb} value={Math.min(depositAmount, maxDeposit)}
+                        onChange={(e) => setDepositAmount(Number(e.target.value))}
+                        className="w-full h-2 rounded-full appearance-none bg-white/10 accent-emerald-500 cursor-pointer" />
+                      <div className="flex justify-between text-[10px] text-slate-500">
+                        <span>{minDeposit.toLocaleString()}</span>
+                        <span>{maxDeposit.toLocaleString()}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => setShowDepositModal(false)}
+                          className="flex-1 py-2 rounded-lg text-xs font-medium bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 transition-all">Cancel</button>
+                        <button disabled={depositAmount <= 0 || depositAmount > maxDeposit} onClick={() => {
+                          socket?.emit("deposit_request", { tableId, amount: depositAmount });
+                          setShowDepositModal(false);
+                        }} className="flex-1 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-900/30 hover:from-emerald-400 hover:to-emerald-500 transition-all disabled:opacity-40">
+                          Request
+                        </button>
+                      </div>
+                      <p className="text-[9px] text-slate-600 text-center">Host must approve · Credited at hand boundary</p>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* ── Deposit Notifications (Host Only) ── */}
+              {isHostOrCoHost && depositNotifications.length > 0 && (
+                <div className="mx-3 mt-1 shrink-0">
+                  <div className="glass-card p-3 border border-cyan-500/30 bg-cyan-500/5">
+                    <h3 className="text-xs font-bold text-cyan-400 mb-2">Deposit Requests ({depositNotifications.length})</h3>
+                    <div className="space-y-1.5">
+                      {depositNotifications.map((d) => (
+                        <div key={d.orderId} className="flex items-center gap-2 p-2 rounded-lg bg-black/20 border border-cyan-500/10">
+                          <div className="flex-1 text-[10px]">
+                            <span className="text-white font-medium">{d.userName}</span>
+                            <span className="text-slate-500"> (Seat {d.seat})</span>
+                            <span className="text-cyan-400 font-mono ml-1">+{d.amount.toLocaleString()}</span>
+                          </div>
+                          <button onClick={() => {
+                            socket?.emit("approve_deposit", { tableId, orderId: d.orderId });
+                            setDepositNotifications((prev) => prev.filter((x) => x.orderId !== d.orderId));
+                          }} className="px-2 py-1 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30">✓</button>
+                          <button onClick={() => {
+                            socket?.emit("reject_deposit", { tableId, orderId: d.orderId });
+                            setDepositNotifications((prev) => prev.filter((x) => x.orderId !== d.orderId));
+                          }} className="px-2 py-1 rounded text-[10px] font-semibold bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30">✗</button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* ── Seat Request Panel (Host Only) ── */}
               {isHostOrCoHost && seatRequests.length > 0 && (
@@ -1080,6 +1185,49 @@ export function App() {
                 </div>
               )}
 
+              {/* ── Session Stats Panel ── */}
+              {showSessionStats && (
+                <div className="mx-3 mt-1 glass-card p-3 max-h-48 overflow-y-auto shrink-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xs font-bold text-cyan-400">Session Stats</h3>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => socket?.emit("request_session_stats", { tableId })} className="text-[9px] text-slate-400 hover:text-white">↻ Refresh</button>
+                      <button onClick={() => setShowSessionStats(false)} className="text-xs text-slate-500 hover:text-white">✕</button>
+                    </div>
+                  </div>
+                  {sessionStatsData.length === 0 ? (
+                    <p className="text-[10px] text-slate-500 text-center py-2">No session data yet</p>
+                  ) : (
+                    <table className="w-full text-[10px]">
+                      <thead>
+                        <tr className="text-slate-500 border-b border-white/5">
+                          <th className="text-left py-1 font-medium">Seat</th>
+                          <th className="text-left py-1 font-medium">Player</th>
+                          <th className="text-right py-1 font-medium">Deposited</th>
+                          <th className="text-right py-1 font-medium">Stack</th>
+                          <th className="text-right py-1 font-medium">Net</th>
+                          <th className="text-right py-1 font-medium">Hands</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sessionStatsData.map((e) => (
+                          <tr key={e.userId} className="border-b border-white/5 last:border-0">
+                            <td className="py-1 text-slate-400">{e.seat ?? "—"}</td>
+                            <td className="py-1 text-slate-200 font-medium truncate max-w-[100px]">{e.name}</td>
+                            <td className="py-1 text-right text-slate-400 font-mono">{e.totalBuyIn.toLocaleString()}</td>
+                            <td className="py-1 text-right text-slate-300 font-mono">{e.currentStack.toLocaleString()}</td>
+                            <td className={`py-1 text-right font-mono font-semibold ${e.net > 0 ? "text-emerald-400" : e.net < 0 ? "text-red-400" : "text-slate-400"}`}>
+                              {e.net > 0 ? "+" : ""}{e.net.toLocaleString()}
+                            </td>
+                            <td className="py-1 text-right text-slate-500">{e.handsPlayed}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              )}
+
               {/* ── CENTER: TABLE + SIDEBAR ── */}
               <div className="flex-1 flex overflow-hidden min-h-0">
                 {/* Table area */}
@@ -1119,15 +1267,34 @@ export function App() {
                   <div className="relative w-full max-w-2xl select-none shrink" style={{ background: "#111827" }}>
                     <img src="/poker-table.png" alt="Table" className="w-full h-auto" style={{ mixBlendMode: "lighten" }} draggable={false} />
 
-                    {/* Community cards — centered on table */}
+                    {/* Community cards — centered on table (supports run-it-twice dual boards) */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ top: "-2%" }}>
-                      <div className="flex gap-1 pointer-events-auto" style={{ width: "32%" }}>
-                        {snapshot?.board && snapshot.board.length > 0
-                          ? snapshot.board.map((c, i) => <CardImg key={i} card={c} className="flex-1 min-w-0 max-w-[56px] rounded shadow-lg" />)
-                          : Array.from({ length: 5 }).map((_, i) => (
-                              <div key={i} className="flex-1 min-w-0 max-w-[56px] aspect-[2.5/3.5] rounded border border-dashed border-white/15 bg-white/[0.04]" />
-                            ))}
-                      </div>
+                      {snapshot?.runoutBoards && snapshot.runoutBoards.length === 2 ? (
+                        /* Run-it-twice: two rows of community cards */
+                        <div className="flex flex-col gap-1 items-center pointer-events-auto" style={{ width: "36%" }}>
+                          {snapshot.runoutBoards.map((board, runIdx) => (
+                            <div key={runIdx} className="flex items-center gap-0.5 w-full">
+                              <span className={`text-[7px] font-bold uppercase shrink-0 w-6 text-center ${runIdx === 0 ? "text-cyan-400" : "text-amber-400"}`}>
+                                R{runIdx + 1}
+                              </span>
+                              <div className="flex gap-0.5 flex-1">
+                                {board.map((c, i) => (
+                                  <CardImg key={i} card={c} className="flex-1 min-w-0 max-w-[44px] rounded shadow-lg" />
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        /* Standard single board */
+                        <div className="flex gap-1 pointer-events-auto" style={{ width: "32%" }}>
+                          {snapshot?.board && snapshot.board.length > 0
+                            ? snapshot.board.map((c, i) => <CardImg key={i} card={c} className="flex-1 min-w-0 max-w-[56px] rounded shadow-lg" />)
+                            : Array.from({ length: 5 }).map((_, i) => (
+                                <div key={i} className="flex-1 min-w-0 max-w-[56px] aspect-[2.5/3.5] rounded border border-dashed border-white/15 bg-white/[0.04]" />
+                              ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* Pot chip on table */}
@@ -1352,6 +1519,7 @@ export function App() {
                   legal={snapshot?.legalActions ?? null}
                   pot={snapshot?.pot ?? 0}
                   bigBlind={snapshot?.bigBlind ?? 100}
+                  currentBet={snapshot?.currentBet ?? 0}
                   raiseTo={raiseTo}
                   setRaiseTo={setRaiseTo}
                   street={snapshot?.street ?? "PREFLOP"}
@@ -1405,6 +1573,15 @@ export function App() {
                         Run Twice
                       </button>
                     </div>
+                  </div>
+                )}
+
+                {/* Waiting banner: shown to non-prompted players during all-in decision */}
+                {snapshot?.allInPrompt && snapshot.allInPrompt.actorSeat !== seat && seat != null && snapshot.players.some((p) => p.seat === seat && p.inHand) && (
+                  <div className="mt-2 px-3 py-2 rounded-xl border border-amber-500/20 bg-amber-500/5 text-center">
+                    <span className="text-[10px] text-amber-300 animate-pulse">
+                      Waiting for Seat {snapshot.allInPrompt.actorSeat} to choose run count…
+                    </span>
                   </div>
                 )}
               </div>
@@ -2454,6 +2631,7 @@ function ActionBar({
   legal,
   pot,
   bigBlind,
+  currentBet,
   raiseTo,
   setRaiseTo,
   onAction,
@@ -2471,6 +2649,7 @@ function ActionBar({
   legal: LegalActions | null;
   pot: number;
   bigBlind: number;
+  currentBet: number;
   raiseTo: number;
   setRaiseTo: (v: number) => void;
   onAction: (action: "fold" | "check" | "call" | "raise" | "all_in", amount?: number) => void;
@@ -2611,8 +2790,19 @@ function ActionBar({
             className="w-16 text-center text-xs font-mono font-semibold text-white bg-white/5 border border-white/10 rounded-lg py-1 focus:border-red-500/50 focus:outline-none" />
           <div className="w-px h-4 bg-white/10" />
           {(() => {
-            const showBBMultipliers = pot <= bigBlind * 2 || (!legal?.canCheck && !legal?.canCall);
-            if (showBBMultipliers) {
+            const facingBet = callAmt > 0 && currentBet > 0;
+            const showBBMultipliers = !facingBet && (pot <= bigBlind * 2 || (!legal?.canCheck && !legal?.canCall));
+            if (facingBet) {
+              return [2, 3].map((mult) => {
+                const chips = Math.max(min, Math.min(max, Math.round(currentBet * mult)));
+                return (
+                  <button key={mult} onClick={() => setRaiseTo(chips)}
+                    className={`min-h-[30px] px-2 py-1 rounded-md text-[10px] font-semibold transition-all ${
+                      raiseTo === chips ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"
+                    }`}>{mult}x</button>
+                );
+              });
+            } else if (showBBMultipliers) {
               return [2, 3, 4].map((mult) => {
                 const chips = Math.max(min, Math.min(max, Math.round(bigBlind * mult)));
                 return (
@@ -2683,11 +2873,12 @@ function InfoCell({ label, value, highlight, cyan }: { label: string; value: str
   );
 }
 
-const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, equity, onClickEmpty }: {
+const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, equity, pendingLeave, onClickEmpty }: {
   player?: TablePlayer; seatNum: number; isActor: boolean; isMe: boolean;
   isOwner?: boolean; isCoHost?: boolean; timer?: TimerState | null;
-  posLabel?: string; isButton?: boolean; displayBB?: boolean; bigBlind?: number; 
+  posLabel?: string; isButton?: boolean; displayBB?: boolean; bigBlind?: number;
   equity?: { winRate: number; tieRate: number } | null;
+  pendingLeave?: boolean;
   onClickEmpty?: (seatNum: number) => void;
 }) {
   const bb = bigBlind || 1;
@@ -2702,10 +2893,13 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
     );
   }
 
-  // Timer ring calculation
-  const totalTime = timer ? (timer.usingTimeBank ? timer.timeBankRemaining + timer.remaining : Math.max(1, timer.remaining + ((Date.now() - timer.startedAt) / 1000))) : 1;
-  const timerPct = timer ? Math.max(0, Math.min(1, timer.remaining / totalTime)) : 0;
+  // Timer progress calculation (for border color + inline badge)
   const timerUrgent = timer && timer.remaining <= 3;
+  const timerColor = timerUrgent ? "text-red-400" : timer?.usingTimeBank ? "text-amber-400" : "text-emerald-400";
+  // Border glow based on timer state
+  const timerBorderClass = timer
+    ? timerUrgent ? "ring-2 ring-red-500/60" : timer.usingTimeBank ? "ring-2 ring-amber-500/50" : "ring-2 ring-emerald-500/40"
+    : "";
 
   // Position label colors
   const posColor = posLabel === "BTN" ? "bg-amber-500 text-white" : posLabel === "SB" ? "bg-blue-500 text-white" : posLabel === "BB" ? "bg-red-500 text-white" : "bg-slate-600 text-slate-200";
@@ -2720,23 +2914,7 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
           </div>
         </div>
       )}
-      {/* Timer ring */}
-      {timer && (
-        <div className="absolute -inset-1 z-0">
-          <svg className="w-full h-full" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="3" />
-            <circle cx="50" cy="50" r="46" fill="none"
-              stroke={timerUrgent ? "#ef4444" : timer.usingTimeBank ? "#f59e0b" : "#22c55e"}
-              strokeWidth="3" strokeLinecap="round"
-              strokeDasharray={`${2 * Math.PI * 46}`}
-              strokeDashoffset={`${2 * Math.PI * 46 * (1 - timerPct)}`}
-              transform="rotate(-90 50 50)"
-              className={timerUrgent ? "animate-pulse" : ""}
-            />
-          </svg>
-        </div>
-      )}
-      <div className={`relative z-10 w-18 md:w-22 rounded-xl p-1 text-center transition-all ${
+      <div className={`relative z-10 w-18 md:w-22 rounded-xl p-1 text-center transition-all ${timerBorderClass} ${
         isActor ? "bg-amber-500/20 border-2 border-amber-400 shadow-[0_0_16px_rgba(245,158,11,0.3)]"
         : isMe ? "bg-cyan-500/10 border-2 border-cyan-400/50"
         : "bg-black/60 border border-white/10"
@@ -2765,11 +2943,15 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
             {Math.round(equity.winRate * 100)}%
           </div>
         )}
-        {/* Timer countdown */}
+        {/* Timer countdown — integrated inside the seat chip */}
         {timer && (
-          <div className={`text-[8px] font-bold tabular-nums ${timerUrgent ? "text-red-400 animate-pulse" : timer.usingTimeBank ? "text-amber-400" : "text-emerald-400"}`}>
+          <div className={`text-[8px] font-bold tabular-nums ${timerColor} ${timerUrgent ? "animate-pulse" : ""}`}>
             {timer.usingTimeBank ? `⏱ ${Math.ceil(timer.timeBankRemaining)}s` : `${Math.ceil(timer.remaining)}s`}
           </div>
+        )}
+        {/* Pending leave indicator */}
+        {pendingLeave && (
+          <div className="text-[7px] text-slate-400 italic">Leaving…</div>
         )}
       </div>
       {/* Street bet amount — shown below the chip */}

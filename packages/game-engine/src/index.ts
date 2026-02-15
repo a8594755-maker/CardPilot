@@ -89,6 +89,12 @@ export class GameTable {
     this.state.players.sort((a, b) => a.seat - b.seat);
   }
 
+  addStack(seat: number, amount: number): void {
+    const player = this.state.players.find((p) => p.seat === seat);
+    if (!player) throw new Error("player not found");
+    player.stack += amount;
+  }
+
   removePlayer(seat: number): void {
     this.state.players = this.state.players.filter((p) => p.seat !== seat);
     this.state.pendingToAct.delete(seat);
@@ -114,6 +120,7 @@ export class GameTable {
     this.state.contributed.clear();
     this.state.deck = shuffledDeck();
     this.state.winners = undefined;
+    this.state.runoutBoards = undefined;
     this.allInRunCount = 1;
     this.runoutPending = false;
 
@@ -432,6 +439,8 @@ export class GameTable {
       this.distributeSolvedPot(secondHalf, solvedSecond, sidePot.eligibleSeats, payouts);
     }
 
+    // Store both boards for client visualization
+    this.state.runoutBoards = [firstBoard, secondBoard];
     this.state.board = secondBoard;
     this.state.street = "SHOWDOWN";
     this.state.winners = [...payouts.entries()]
@@ -572,6 +581,7 @@ export class GameTable {
     this.state.actorSeat = null;
     this.state.actions = [];
     this.state.winners = undefined;
+    this.state.runoutBoards = undefined;
     this.state.pendingToAct.clear();
     this.state.holeCards.clear();
     this.state.contributed.clear();

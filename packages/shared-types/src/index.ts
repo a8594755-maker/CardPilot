@@ -82,6 +82,14 @@ export interface TableState {
   /** Map of seat number → position label (BTN, SB, BB, UTG, etc.) */
   positions: Record<number, string>;
   allInPrompt?: AllInPrompt;
+  /** When run-it-twice is chosen, both completed boards (length 2, each with 5 cards) */
+  runoutBoards?: string[][];
+  /** Seats marked as pending stand-up (will leave after current hand ends) */
+  pendingStandUp?: number[];
+  /** True when host requested pause but a hand is still active */
+  pendingPause?: boolean;
+  /** Pending deposit requests visible to all players */
+  pendingDeposits?: Array<{ orderId: string; seat: number; userId: string; userName: string; amount: number }>;
 }
 
 // ===== Advice Types =====
