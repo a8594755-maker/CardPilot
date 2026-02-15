@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, memo } from "react";
+import { useEffect, useRef, useState, memo } from "react";
 import type { ChipTransfer, AnimationSpeed } from "../lib/chip-animation.js";
 
 interface ChipAnimationLayerProps {
@@ -10,6 +10,7 @@ interface ChipAnimationLayerProps {
 /**
  * Absolute overlay rendered on top of the table surface.
  * Renders animated chip tokens that fly from seat→pot or pot→seat.
+ * 3-stage animation: flight → arrival hold → merge/fade.
  * pointer-events: none so clicks pass through.
  */
 export const ChipAnimationLayer = memo(function ChipAnimationLayer({
@@ -31,7 +32,9 @@ export const ChipAnimationLayer = memo(function ChipAnimationLayer({
   );
 });
 
-// ── Individual animated chip token ──
+// ── 3-stage animated chip token ──
+
+type Phase = "init" | "flight" | "hold" | "merge" | "done";
 
 interface AnimatedChipProps {
   transfer: ChipTransfer;
@@ -39,54 +42,72 @@ interface AnimatedChipProps {
 }
 
 function AnimatedChip({ transfer, onDone }: AnimatedChipProps) {
-  const elRef = useRef<HTMLDivElement>(null);
-  const [phase, setPhase] = useState<"start" | "flying" | "landed">("start");
+  const [phase, setPhase] = useState<Phase>("init");
+  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const rafRef = useRef<number>();
 
-  const { id, from, to, amount, kind, duration } = transfer;
+  const { id, from, to, amount, kind, timing } = transfer;
+  const isWinner = kind === "toWinner";
 
-  // Kick off the animation on mount
+  // Phase state machine: init → flight → hold → merge → done
   useEffect(() => {
-    // Start at "from" position, then after a microtask switch to "flying"
-    const raf = requestAnimationFrame(() => {
-      setPhase("flying");
+    // Kick off flight on next frame (so browser renders at "from" first)
+    rafRef.current = requestAnimationFrame(() => {
+      setPhase("flight");
     });
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, []);
 
-  // Remove after duration
   useEffect(() => {
-    if (phase !== "flying") return;
-    const timer = setTimeout(() => {
-      setPhase("landed");
-      onDone(id);
-    }, duration + 50); // small buffer
-    return () => clearTimeout(timer);
-  }, [phase, duration, id, onDone]);
+    if (phase === "flight") {
+      timerRef.current = setTimeout(() => setPhase("hold"), timing.flight);
+    } else if (phase === "hold") {
+      timerRef.current = setTimeout(() => setPhase("merge"), timing.hold);
+    } else if (phase === "merge") {
+      timerRef.current = setTimeout(() => {
+        setPhase("done");
+        onDone(id);
+      }, timing.merge);
+    }
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [phase, timing, id, onDone]);
 
-  if (phase === "landed") return null;
+  if (phase === "done") return null;
 
-  const x = phase === "start" ? from.x : to.x;
-  const y = phase === "start" ? from.y : to.y;
+  // Position: start at "from", move to "to" during flight, stay at "to" for hold+merge
+  const atOrigin = phase === "init";
+  const x = atOrigin ? from.x : to.x;
+  const y = atOrigin ? from.y : to.y;
 
-  const isAllIn = kind === "toPot" && amount > 0; // styling handled below
-  const isWinner = kind === "toWinner";
+  // Opacity/scale per phase
+  let opacity = 1;
+  let scale = 1;
+  if (phase === "init") { opacity = 0.7; scale = 0.8; }
+  if (phase === "merge") { opacity = 0; scale = 0.4; }
 
   // Format amount for display
   const label = amount >= 1000 ? `${(amount / 1000).toFixed(1)}k` : amount.toLocaleString();
 
+  // Transition timing depends on phase
+  let transitionDuration = "0ms";
+  if (phase === "flight") transitionDuration = `${timing.flight}ms`;
+  if (phase === "merge") transitionDuration = `${timing.merge}ms`;
+
   return (
     <div
-      ref={elRef}
       className="absolute flex items-center gap-1"
       style={{
         left: x,
         top: y,
-        transform: "translate(-50%, -50%)",
-        transition: phase === "flying"
-          ? `left ${duration}ms cubic-bezier(0.25, 0.1, 0.25, 1), top ${duration}ms cubic-bezier(0.25, 0.1, 0.25, 1), opacity ${duration * 0.3}ms ease`
-          : "none",
-        opacity: phase === "flying" ? 1 : 0.85,
-        willChange: "left, top, opacity",
+        transform: `translate(-50%, -50%) scale(${scale})`,
+        opacity,
+        transition: phase === "init"
+          ? "none"
+          : `left ${transitionDuration} cubic-bezier(0.25, 0.1, 0.25, 1), top ${transitionDuration} cubic-bezier(0.25, 0.1, 0.25, 1), opacity ${transitionDuration} ease, transform ${transitionDuration} ease`,
+        willChange: "transform, opacity",
       }}
     >
       {/* Chip icon */}
@@ -113,6 +134,20 @@ function AnimatedChip({ transfer, onDone }: AnimatedChipProps) {
       >
         {isWinner ? "+" : ""}{label}
       </span>
+      {/* Pot pulse ring — shows during hold phase for toPot transfers */}
+      {kind === "toPot" && phase === "hold" && (
+        <div
+          className="absolute inset-0 -m-2 rounded-full border-2 border-sky-400/60 animate-ping"
+          style={{ animationDuration: `${timing.potPulse}ms`, animationIterationCount: 1 }}
+        />
+      )}
+      {/* Winner glow — shows during hold phase for toWinner transfers */}
+      {isWinner && phase === "hold" && (
+        <div
+          className="absolute inset-0 -m-3 rounded-full bg-amber-400/20 animate-pulse"
+          style={{ animationDuration: `${timing.winnerGlow}ms` }}
+        />
+      )}
     </div>
   );
 }

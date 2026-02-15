@@ -1,5 +1,5 @@
 import type { SeatInfo } from '@cardpilot/shared-types';
-import { getCardImagePath, getCardBackPath } from '../../lib/card-images.js';
+import { PokerCard } from '../PokerCard.js';
 
 interface SeatProps {
   seat: SeatInfo;
@@ -64,15 +64,15 @@ export function Seat({ seat, isMySeat, holeCards, isActor, onClick }: SeatProps)
           {holeCards ? (
             <div className="flex justify-center gap-1">
               {holeCards.map((card, i) => (
-                <PlayingCard key={i} card={card} />
+                <PokerCard key={i} card={card} variant="seat" />
               ))}
             </div>
           ) : seat.status === 'sitting_out' ? (
             <div className="text-center text-xs text-red-400">Folded</div>
           ) : (
             <div className="flex justify-center gap-1">
-              <CardBack />
-              <CardBack />
+              <PokerCard faceDown variant="seat" />
+              <PokerCard faceDown variant="seat" />
             </div>
           )}
         </div>
@@ -81,48 +81,5 @@ export function Seat({ seat, isMySeat, holeCards, isActor, onClick }: SeatProps)
   );
 }
 
-interface PlayingCardProps {
-  card: string; // e.g., "Ah", "Ks"
-}
-
-function PlayingCard({ card }: PlayingCardProps) {
-  const imagePath = getCardImagePath(card);
-  
-  return (
-    <img
-      src={imagePath}
-      alt={card}
-      className="w-12 h-auto rounded shadow-md hover:scale-105 transition-transform"
-      onError={(e) => {
-        // If image loading fails, show fallback text
-        const target = e.target as HTMLImageElement;
-        target.style.display = 'none';
-        const parent = target.parentElement;
-        if (parent) {
-          parent.innerHTML = `<div class="w-8 h-11 bg-white rounded border border-slate-300 flex items-center justify-center text-xs font-bold">${card}</div>`;
-        }
-      }}
-    />
-  );
-}
-
-function CardBack() {
-  return (
-    <img
-      src={getCardBackPath('blue')}
-      alt="Card Back"
-      className="w-12 h-auto rounded shadow-md"
-      onError={(e) => {
-        // If image loading fails, show fallback style
-        const target = e.target as HTMLImageElement;
-        target.style.display = 'none';
-        const parent = target.parentElement;
-        if (parent) {
-          parent.innerHTML = '<div class="w-8 h-11 bg-blue-600 rounded border-2 border-white/30"></div>';
-        }
-      }}
-    />
-  );
-}
 
 export default Seat;

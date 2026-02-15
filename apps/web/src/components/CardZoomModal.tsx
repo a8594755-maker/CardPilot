@@ -1,5 +1,5 @@
 import { useEffect, memo } from "react";
-import { CardGlyph } from "./CardGlyph";
+import { PokerCard } from "./PokerCard";
 
 interface CardZoomModalProps {
   cards: string[];
@@ -52,7 +52,7 @@ export const CardZoomModal = memo(function CardZoomModal({
         )}
         <div className="flex items-center justify-center gap-3">
           {cards.map((c, i) => (
-            <CardGlyph key={i} card={c} size="lg" fourColor />
+            <PokerCard key={i} card={c} variant="modal" />
           ))}
         </div>
       </div>

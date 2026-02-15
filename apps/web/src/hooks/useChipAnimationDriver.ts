@@ -3,7 +3,7 @@ import type { TableState, SettlementResult } from "@cardpilot/shared-types";
 import {
   type ChipTransfer,
   type AnimationSpeed,
-  getDuration,
+  getTiming,
   getAnchorCenter,
   nextTransferId,
 } from "../lib/chip-animation.js";
@@ -97,7 +97,7 @@ export function useChipAnimationDriver(
               kind: "toPot",
               seat: p.seat,
               createdAt: Date.now(),
-              duration: getDuration(spd, "toPot"),
+              timing: getTiming(spd, "toPot"),
             });
           }
         }
@@ -125,7 +125,7 @@ export function useChipAnimationDriver(
       const potPos = getAnchorCenter(pot, container);
       if (!potPos) return;
 
-      const baseDuration = getDuration(spd, "toWinner");
+      const timing = getTiming(spd, "toWinner");
 
       // Aggregate payouts by seat (handles split pot / run-it-twice)
       const payouts: Record<number, number> = { ...settlement.payoutsBySeat };
@@ -134,13 +134,13 @@ export function useChipAnimationDriver(
         .map(([s, amt]) => ({ seat: Number(s), amount: amt }))
         .filter((e) => e.amount > 0);
 
-      // Stagger: each winner starts 120ms after the previous
+      // Stagger: each winner starts 150ms after the previous
       entries.forEach((entry, idx) => {
         const seatEl = seats[entry.seat];
         const toPos = getAnchorCenter(seatEl, container);
         if (!toPos) return;
 
-        const staggerDelay = idx * 120;
+        const staggerDelay = idx * 150;
 
         // We add the transfer after a brief delay to stagger visually
         setTimeout(() => {
@@ -154,7 +154,7 @@ export function useChipAnimationDriver(
               kind: "toWinner",
               seat: entry.seat,
               createdAt: Date.now(),
-              duration: baseDuration,
+              timing,
             },
           ]);
         }, staggerDelay);
@@ -163,11 +163,11 @@ export function useChipAnimationDriver(
     [], // stable — reads from refs
   );
 
-  // Clean up stale transfers (safety: remove any older than 5s)
+  // Clean up stale transfers (safety: remove any older than 8s)
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
-      setTransfers((prev) => prev.filter((t) => now - t.createdAt < 5000));
+      setTransfers((prev) => prev.filter((t) => now - t.createdAt < 8000));
     }, 3000);
     return () => clearInterval(interval);
   }, []);

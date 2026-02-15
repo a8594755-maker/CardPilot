@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { ClubManager } from "../club-manager.js";
 import { DEFAULT_CLUB_RULES } from "@cardpilot/shared-types";
+import { requireActiveClubMember } from "../services/club-service.js";
 
 describe("ClubManager — club lifecycle", () => {
   it("creates a club and owner is an active member with owner role", () => {
@@ -598,6 +599,145 @@ describe("ClubManager — club table access enforcement", () => {
     // isActiveMember correctly gates access
     assert.equal(mgr.isActiveMember(club.id, "u1"), true, "Owner should be active member");
     assert.equal(mgr.isActiveMember(club.id, "stranger"), false, "Non-member should not be active");
+  });
+});
+
+describe("ClubService — requireActiveClubMember gate", () => {
+  it("returns NOT_CLUB_TABLE for non-club room codes", () => {
+    const mgr = new ClubManager();
+    const result = requireActiveClubMember(mgr, "RANDOM_CODE", "u1");
+    assert.equal(result.allowed, false);
+    if (!result.allowed) {
+      assert.equal(result.code, "NOT_CLUB_TABLE");
+    }
+  });
+
+  it("returns NOT_MEMBER for non-members on club tables", () => {
+    const mgr = new ClubManager();
+    const club = mgr.createClub({
+      ownerUserId: "owner",
+      ownerDisplayName: "Owner",
+      name: "Gate Club",
+      requireApprovalToJoin: true,
+    });
+    const table = mgr.createTable(club.id, "owner", "Gated Table")!;
+    mgr.setTableRoomCode(club.id, table.clubTable.id, "GATE001");
+
+    const result = requireActiveClubMember(mgr, "GATE001", "stranger");
+    assert.equal(result.allowed, false);
+    if (!result.allowed) {
+      assert.equal(result.code, "NOT_MEMBER");
+    }
+  });
+
+  it("returns PENDING for pending members", () => {
+    const mgr = new ClubManager();
+    const club = mgr.createClub({
+      ownerUserId: "owner",
+      ownerDisplayName: "Owner",
+      name: "Pending Gate Club",
+      requireApprovalToJoin: true,
+    });
+    mgr.requestJoin(club.code, "u2", "Pending User");
+    const table = mgr.createTable(club.id, "owner", "Gated Table")!;
+    mgr.setTableRoomCode(club.id, table.clubTable.id, "GATE002");
+
+    const result = requireActiveClubMember(mgr, "GATE002", "u2");
+    assert.equal(result.allowed, false);
+    if (!result.allowed) {
+      assert.equal(result.code, "PENDING");
+    }
+  });
+
+  it("returns BANNED for banned members", () => {
+    const mgr = new ClubManager();
+    const club = mgr.createClub({
+      ownerUserId: "owner",
+      ownerDisplayName: "Owner",
+      name: "Ban Gate Club",
+      requireApprovalToJoin: false,
+    });
+    mgr.requestJoin(club.code, "u2", "User");
+    mgr.banMember(club.id, "owner", "u2", "Test ban");
+    const table = mgr.createTable(club.id, "owner", "Gated Table")!;
+    mgr.setTableRoomCode(club.id, table.clubTable.id, "GATE003");
+
+    const result = requireActiveClubMember(mgr, "GATE003", "u2");
+    assert.equal(result.allowed, false);
+    if (!result.allowed) {
+      assert.equal(result.code, "BANNED");
+    }
+  });
+
+  it("returns allowed:true for active members", () => {
+    const mgr = new ClubManager();
+    const club = mgr.createClub({
+      ownerUserId: "owner",
+      ownerDisplayName: "Owner",
+      name: "Active Gate Club",
+      requireApprovalToJoin: false,
+    });
+    mgr.requestJoin(club.code, "u2", "Active User");
+    const table = mgr.createTable(club.id, "owner", "Gated Table")!;
+    mgr.setTableRoomCode(club.id, table.clubTable.id, "GATE004");
+
+    const result = requireActiveClubMember(mgr, "GATE004", "u2");
+    assert.equal(result.allowed, true);
+    if (result.allowed) {
+      assert.equal(result.clubId, club.id);
+      assert.equal(result.member.userId, "u2");
+      assert.equal(result.member.status, "active");
+    }
+  });
+
+  it("full approval workflow: pending -> approved -> can join table", () => {
+    const mgr = new ClubManager();
+    const club = mgr.createClub({
+      ownerUserId: "owner",
+      ownerDisplayName: "Owner",
+      name: "Workflow Club",
+      requireApprovalToJoin: true,
+    });
+    const table = mgr.createTable(club.id, "owner", "Workflow Table")!;
+    mgr.setTableRoomCode(club.id, table.clubTable.id, "WFLOW01");
+
+    // Step 1: Request join (pending)
+    mgr.requestJoin(club.code, "u2", "Applicant");
+    const r1 = requireActiveClubMember(mgr, "WFLOW01", "u2");
+    assert.equal(r1.allowed, false);
+    if (!r1.allowed) assert.equal(r1.code, "PENDING");
+
+    // Step 2: Approve
+    mgr.approveJoin(club.id, "owner", "u2");
+    const r2 = requireActiveClubMember(mgr, "WFLOW01", "u2");
+    assert.equal(r2.allowed, true);
+  });
+});
+
+describe("ClubManager — hydrate/persist interface", () => {
+  it("setRepo accepts a repo and hydrate runs without error when no repo", async () => {
+    const mgr = new ClubManager();
+    // hydrate without repo should be a no-op
+    await mgr.hydrate();
+    // Should still work as empty in-memory store
+    const clubs = mgr.listMyClubs("anyone");
+    assert.deepEqual(clubs, []);
+  });
+
+  it("setRepo + createClub triggers persistence (no error without real DB)", () => {
+    const mgr = new ClubManager();
+    // Create a mock repo that's disabled
+    const mockRepo = { enabled: () => false, hydrateAll: async () => ({ clubs: [], members: [], invites: [], rulesets: [], tables: [] }), createClub: async () => {}, upsertMember: async () => {}, appendAudit: async () => {} } as any;
+    mgr.setRepo(mockRepo);
+
+    // Creating a club should not throw even with disabled repo
+    const club = mgr.createClub({
+      ownerUserId: "u1",
+      ownerDisplayName: "Alice",
+      name: "Persist Test Club",
+    });
+    assert.ok(club.id);
+    assert.ok(club.code);
   });
 });
 

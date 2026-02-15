@@ -18,6 +18,7 @@ import { logError, logInfo, logWarn } from "./logger";
 import { SupabasePersistence, type PersistHandHistoryPayload, type RoomRecord, type SessionContextMetadata, type VerifiedIdentity } from "./supabase";
 import { RoomManager } from "./room-manager";
 import { ClubManager } from "./club-manager";
+import { ClubRepo } from "./services/club-repo";
 import type {
   ClubCreatePayload,
   ClubUpdatePayload,
@@ -135,7 +136,11 @@ const roomManager = new RoomManager((tableId, event, data) => {
 });
 
 // Club manager handles club lifecycle, membership, permissions, rulesets
+const clubRepo = new ClubRepo();
 const clubManager = new ClubManager();
+clubManager.setRepo(clubRepo);
+// Hydrate clubs from DB at startup (async, non-blocking)
+clubManager.hydrate().catch((e) => logWarn({ event: "club_manager.hydrate.failed", message: (e as Error).message }));
 
 io.use(async (socket, next) => {
   const auth = (socket.handshake.auth ?? {}) as {

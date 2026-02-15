@@ -16,6 +16,7 @@ import type {
 } from "@cardpilot/shared-types";
 import { canPerformClubAction, hasClubPermission, DEFAULT_CLUB_RULES } from "@cardpilot/shared-types";
 import { logError, logInfo, logWarn } from "./logger";
+import type { ClubRepo } from "./services/club-repo";
 
 // ── In-memory store (mirrors DB; authoritative for real-time) ──
 
@@ -44,6 +45,75 @@ export class ClubManager {
   private clubByCode = new Map<string, string>(); // club code -> clubId
   private inviteCodeToClub = new Map<string, string>(); // invite code -> clubId
   private userClubs = new Map<string, Set<string>>(); // userId -> set of clubIds
+  private repo: ClubRepo | null = null;
+
+  /** Attach a persistence adapter. Call before hydrate(). */
+  setRepo(repo: ClubRepo): void {
+    this.repo = repo;
+  }
+
+  /** Load all clubs from the DB into memory. Call once at server startup. */
+  async hydrate(): Promise<void> {
+    if (!this.repo || !this.repo.enabled()) {
+      logInfo({ event: "club_manager.hydrate.skip", message: "No repo or repo disabled — starting with empty state" });
+      return;
+    }
+
+    const data = await this.repo.hydrateAll();
+
+    // Index clubs
+    for (const club of data.clubs) {
+      const state: ClubState = {
+        club,
+        members: new Map(),
+        invites: new Map(),
+        rulesets: new Map(),
+        tables: new Map(),
+        auditLog: [],
+      };
+      this.clubs.set(club.id, state);
+      this.clubByCode.set(club.code, club.id);
+    }
+
+    // Index members
+    for (const m of data.members) {
+      const state = this.clubs.get(m.clubId);
+      if (!state) continue;
+      state.members.set(m.userId, m);
+      if (m.status === "active") {
+        this.addUserClub(m.userId, m.clubId);
+      }
+    }
+
+    // Index invites
+    for (const inv of data.invites) {
+      const state = this.clubs.get(inv.clubId);
+      if (!state) continue;
+      state.invites.set(inv.id, inv);
+      if (!inv.revoked) {
+        this.inviteCodeToClub.set(inv.inviteCode, inv.clubId);
+      }
+    }
+
+    // Index rulesets
+    for (const rs of data.rulesets) {
+      const state = this.clubs.get(rs.clubId);
+      if (!state) continue;
+      state.rulesets.set(rs.id, rs);
+    }
+
+    // Index tables
+    for (const t of data.tables) {
+      const state = this.clubs.get(t.clubId);
+      if (!state) continue;
+      state.tables.set(t.id, t);
+    }
+
+    logInfo({
+      event: "club_manager.hydrate.complete",
+      message: `Hydrated ${data.clubs.length} clubs, ${data.members.length} members`,
+    });
+  }
 
   // ═══════════════ CLUB LIFECYCLE ═══════════════
 
@@ -104,6 +174,9 @@ export class ClubManager {
     this.addUserClub(params.ownerUserId, clubId);
     this.writeAudit(clubId, params.ownerUserId, "club_created", { name: club.name });
 
+    // Persist to DB (fire-and-forget)
+    this.persistCreateClub(club, ownerMember);
+
     logInfo({ event: "club.created", clubId, code, owner: params.ownerUserId });
     return club;
   }
@@ -138,6 +211,7 @@ export class ClubManager {
     club.updatedAt = new Date().toISOString();
 
     this.writeAudit(clubId, actorUserId, "club_updated", updates);
+    this.repo?.updateClub(club).catch((e) => logWarn({ event: "club_repo.persist.updateClub", message: (e as Error).message }));
     return { ...club };
   }
 
@@ -213,9 +287,11 @@ export class ClubManager {
     };
 
     state.members.set(userId, member);
+    this.repo?.upsertMember(member).catch((e) => logWarn({ event: "club_repo.persist.upsertMember", message: (e as Error).message }));
 
     if (usedInvite) {
       usedInvite.usesCount += 1;
+      this.repo?.incrementInviteUses(usedInvite.id).catch((e) => logWarn({ event: "club_repo.persist.incrementInviteUses", message: (e as Error).message }));
     }
 
     if (skipApproval) {
@@ -244,6 +320,7 @@ export class ClubManager {
     target.lastSeenAt = new Date().toISOString();
     this.addUserClub(targetUserId, clubId);
     this.writeAudit(clubId, actorUserId, "join_approved", { targetUserId, targetName: target.displayName });
+    this.repo?.updateMemberStatus(clubId, targetUserId, "active").catch((e) => logWarn({ event: "club_repo.persist.approveJoin", message: (e as Error).message }));
     return { ...target };
   }
 
@@ -261,6 +338,7 @@ export class ClubManager {
 
     state.members.delete(targetUserId);
     this.writeAudit(clubId, actorUserId, "join_rejected", { targetUserId, targetName: target.displayName });
+    this.repo?.deleteMember(clubId, targetUserId).catch((e) => logWarn({ event: "club_repo.persist.rejectJoin", message: (e as Error).message }));
     return true;
   }
 
@@ -289,6 +367,7 @@ export class ClubManager {
       oldRole,
       newRole,
     });
+    this.repo?.updateMemberRole(clubId, targetUserId, newRole).catch((e) => logWarn({ event: "club_repo.persist.updateMemberRole", message: (e as Error).message }));
     return { ...target };
   }
 
@@ -310,6 +389,7 @@ export class ClubManager {
     target.status = "left";
     this.removeUserClub(targetUserId, clubId);
     this.writeAudit(clubId, actorUserId, "member_kicked", { targetUserId, targetName: target.displayName });
+    this.repo?.updateMemberStatus(clubId, targetUserId, "left").catch((e) => logWarn({ event: "club_repo.persist.kickMember", message: (e as Error).message }));
     return true;
   }
 
@@ -341,6 +421,7 @@ export class ClubManager {
       reason: reason ?? "",
       expiresInHours,
     });
+    this.repo?.updateMemberStatus(clubId, targetUserId, "banned").catch((e) => logWarn({ event: "club_repo.persist.banMember", message: (e as Error).message }));
     return true;
   }
 
@@ -358,6 +439,7 @@ export class ClubManager {
 
     target.status = "left";
     this.writeAudit(clubId, actorUserId, "member_unbanned", { targetUserId, targetName: target.displayName });
+    this.repo?.updateMemberStatus(clubId, targetUserId, "left").catch((e) => logWarn({ event: "club_repo.persist.unbanMember", message: (e as Error).message }));
     return true;
   }
 
@@ -397,6 +479,7 @@ export class ClubManager {
     state.invites.set(invite.id, invite);
     this.inviteCodeToClub.set(inviteCode, clubId);
     this.writeAudit(clubId, actorUserId, "invite_created", { inviteCode, maxUses, expiresInHours });
+    this.repo?.createInvite(invite).catch((e) => logWarn({ event: "club_repo.persist.createInvite", message: (e as Error).message }));
     return invite;
   }
 
@@ -415,6 +498,7 @@ export class ClubManager {
     invite.revoked = true;
     this.inviteCodeToClub.delete(invite.inviteCode);
     this.writeAudit(clubId, actorUserId, "invite_revoked", { inviteCode: invite.inviteCode });
+    this.repo?.revokeInvite(invite.id).catch((e) => logWarn({ event: "club_repo.persist.revokeInvite", message: (e as Error).message }));
     return true;
   }
 
@@ -462,6 +546,10 @@ export class ClubManager {
     }
 
     this.writeAudit(clubId, actorUserId, "ruleset_created", { rulesetId: ruleset.id, name: ruleset.name });
+    this.repo?.createRuleset(ruleset).catch((e) => logWarn({ event: "club_repo.persist.createRuleset", message: (e as Error).message }));
+    if (ruleset.isDefault) {
+      this.repo?.updateClub(state.club).catch((e) => logWarn({ event: "club_repo.persist.setDefaultRuleset", message: (e as Error).message }));
+    }
     return ruleset;
   }
 
@@ -493,6 +581,7 @@ export class ClubManager {
     }
 
     this.writeAudit(clubId, actorUserId, "ruleset_updated", { rulesetId, name: ruleset.name });
+    this.repo?.updateRuleset(ruleset).catch((e) => logWarn({ event: "club_repo.persist.updateRuleset", message: (e as Error).message }));
     return { ...ruleset };
   }
 
@@ -513,6 +602,10 @@ export class ClubManager {
     }
     state.club.defaultRulesetId = rulesetId;
     this.writeAudit(clubId, actorUserId, "ruleset_set_default", { rulesetId, name: ruleset.name });
+    this.repo?.clearDefaultRuleset(clubId).then(() => {
+      this.repo?.updateRuleset({ ...ruleset, isDefault: true }).catch(() => {});
+      this.repo?.updateClub(state.club).catch(() => {});
+    }).catch((e) => logWarn({ event: "club_repo.persist.setDefaultRuleset", message: (e as Error).message }));
     return true;
   }
 
@@ -556,6 +649,7 @@ export class ClubManager {
 
     state.tables.set(clubTable.id, clubTable);
     this.writeAudit(clubId, actorUserId, "table_created", { tableId: clubTable.id, name: clubTable.name });
+    this.repo?.createTable(clubTable).catch((e) => logWarn({ event: "club_repo.persist.createTable", message: (e as Error).message }));
     return { clubTable, rules };
   }
 
@@ -563,7 +657,10 @@ export class ClubManager {
     const state = this.clubs.get(clubId);
     if (!state) return;
     const table = state.tables.get(clubTableId);
-    if (table) table.roomCode = roomCode;
+    if (table) {
+      table.roomCode = roomCode;
+      this.repo?.setTableRoomCode(clubTableId, roomCode).catch((e) => logWarn({ event: "club_repo.persist.setTableRoomCode", message: (e as Error).message }));
+    }
   }
 
   closeTable(clubId: string, actorUserId: string, clubTableId: string): boolean {
@@ -583,6 +680,7 @@ export class ClubManager {
 
     table.status = "closed";
     this.writeAudit(clubId, actorUserId, "table_closed", { tableId: clubTableId, name: table.name });
+    this.repo?.updateTableStatus(clubTableId, "closed").catch((e) => logWarn({ event: "club_repo.persist.closeTable", message: (e as Error).message }));
     return true;
   }
 
@@ -602,6 +700,7 @@ export class ClubManager {
 
     table.status = "paused";
     this.writeAudit(clubId, actorUserId, "table_paused", { tableId: clubTableId, name: table.name });
+    this.repo?.updateTableStatus(clubTableId, "paused").catch((e) => logWarn({ event: "club_repo.persist.pauseTable", message: (e as Error).message }));
     return true;
   }
 
@@ -758,6 +857,12 @@ export class ClubManager {
     if (set) set.delete(clubId);
   }
 
+  private persistCreateClub(club: Club, ownerMember: ClubMember): void {
+    if (!this.repo) return;
+    this.repo.createClub(club).catch((e) => logWarn({ event: "club_repo.persist.createClub", message: (e as Error).message }));
+    this.repo.upsertMember(ownerMember).catch((e) => logWarn({ event: "club_repo.persist.createOwnerMember", message: (e as Error).message }));
+  }
+
   private writeAudit(clubId: string, actorUserId: string, actionType: string, payload: Record<string, unknown>): void {
     const state = this.clubs.get(clubId);
     if (!state) return;
@@ -776,5 +881,8 @@ export class ClubManager {
     if (state.auditLog.length > 500) {
       state.auditLog = state.auditLog.slice(-500);
     }
+
+    // Persist audit entry to DB
+    this.repo?.appendAudit(entry).catch((e) => logWarn({ event: "club_repo.persist.audit", message: (e as Error).message }));
   }
 }

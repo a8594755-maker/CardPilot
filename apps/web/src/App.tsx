@@ -18,8 +18,9 @@ import type {
 } from "@cardpilot/shared-types";
 import { getClockwiseSeatsFromButton } from "@cardpilot/shared-types";
 import { getExistingSession, ensureGuestSession, signUpWithEmail, signInWithEmail, signInWithGoogle, signOut, supabase, validateEmail, validatePassword, getRateLimitSecondsLeft, isUuid, type AuthSession } from "./supabase";
-import { preloadCardImages, getCardImagePath } from "./lib/card-images.js";
+import { preloadCardImages } from "./lib/card-images.js";
 import { SettlementOverlay } from "./components/SettlementOverlay";
+import { PokerCard } from "./components/PokerCard";
 import { getSuggestedPresets, userPresetsToButtons, type BetPreset } from "./lib/bet-sizing.js";
 import { AppComplianceFooter } from "./legal-pages";
 import { ClubsPage } from "./pages/clubs/ClubsPage";
@@ -1206,13 +1207,13 @@ export function App() {
                 </button>
 
                 <button onClick={() => {
-                  const next: AnimationSpeed = chipAnimSpeed === "normal" ? "fast" : chipAnimSpeed === "fast" ? "off" : "normal";
+                  const next: AnimationSpeed = chipAnimSpeed === "normal" ? "slow" : chipAnimSpeed === "slow" ? "off" : "normal";
                   setChipAnimSpeed(next);
                   saveAnimationSpeed(next);
                 }}
-                  className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all ${chipAnimSpeed === "off" ? "bg-white/5 text-slate-500 border-white/10" : chipAnimSpeed === "fast" ? "bg-sky-500/15 text-sky-400 border-sky-500/30" : "bg-purple-500/15 text-purple-400 border-purple-500/30"}`}
+                  className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all ${chipAnimSpeed === "off" ? "bg-white/5 text-slate-500 border-white/10" : chipAnimSpeed === "slow" ? "bg-amber-500/15 text-amber-400 border-amber-500/30" : "bg-purple-500/15 text-purple-400 border-purple-500/30"}`}
                   title={`Chip animations: ${chipAnimSpeed} (click to cycle)`}>
-                  {chipAnimSpeed === "off" ? "Anim Off" : chipAnimSpeed === "fast" ? "Anim Fast" : "Anim"}
+                  {chipAnimSpeed === "off" ? "Anim Off" : chipAnimSpeed === "slow" ? "Anim Slow" : "Anim"}
                 </button>
 
                 {roomState && (
@@ -1617,7 +1618,7 @@ export function App() {
                               </span>
                               <div className="flex gap-0.5 flex-1">
                                 {board.map((c, i) => (
-                                  <CardImg key={i} card={c} className="flex-1 min-w-0 max-w-[44px] rounded shadow-lg" />
+                                  <PokerCard key={i} card={c} variant="seat" />
                                 ))}
                               </div>
                             </div>
@@ -1627,7 +1628,7 @@ export function App() {
                         /* Standard single board */
                         <div className="flex gap-1 pointer-events-auto" style={{ width: "32%" }}>
                           {snapshot?.board && snapshot.board.length > 0
-                            ? snapshot.board.map((c, i) => <CardImg key={i} card={c} className="flex-1 min-w-0 max-w-[56px] rounded shadow-lg" />)
+                            ? snapshot.board.map((c, i) => <PokerCard key={i} card={c} variant="table" />)
                             : Array.from({ length: 5 }).map((_, i) => (
                                 <div key={i} className="flex-1 min-w-0 max-w-[56px] aspect-[2.5/3.5] rounded border border-dashed border-white/15 bg-white/[0.04]" />
                               ))}
@@ -1695,7 +1696,7 @@ export function App() {
                           Revealed
                         </span>
                       )}
-                      {holeCards.map((c, i) => <CardImg key={i} card={c} className="w-14 rounded-lg shadow-lg border border-white/10" />)}
+                      {holeCards.map((c, i) => <PokerCard key={i} card={c} variant="table" />)}
                     </div>
                   )}
 
@@ -1710,7 +1711,6 @@ export function App() {
                       onDismiss={() => { setSettlement(null); setSettlementEndsAtMs(0); setSettlementRevealedHoles(undefined); setSettlementWinnerHandNames(undefined); setWinners(null); }}
                       onDealNow={isHost ? () => { socket?.emit("start_hand", { tableId }); setSettlement(null); setSettlementEndsAtMs(0); setSettlementRevealedHoles(undefined); setSettlementWinnerHandNames(undefined); setWinners(null); } : undefined}
                       isHost={!!isHost}
-                      getCardImagePath={getCardImagePath}
                       revealedHoles={settlementRevealedHoles}
                       winnerHandNames={settlementWinnerHandNames}
                     />
@@ -1835,8 +1835,8 @@ export function App() {
                         <button className="text-slate-400 hover:text-white" onClick={() => setRevealedZoom(null)}>✕</button>
                       </div>
                       <div className="flex items-center justify-center gap-2">
-                        <CardImg card={revealedZoom.cards[0]} className="w-24 md:w-28 rounded-xl shadow-xl border border-emerald-400/40" />
-                        <CardImg card={revealedZoom.cards[1]} className="w-24 md:w-28 rounded-xl shadow-xl border border-emerald-400/40" />
+                        <PokerCard card={revealedZoom.cards[0]} variant="modal" />
+                        <PokerCard card={revealedZoom.cards[1]} variant="modal" />
                       </div>
                     </div>
                   </div>
@@ -3141,7 +3141,7 @@ function HistoryHandDetailView({ hand, userId, compact = false }: { hand: Histor
               <span className="text-[10px] text-slate-500 w-10">{`Run ${idx + 1}`}</span>
             ) : null}
             <div className="flex gap-1.5 overflow-x-auto">
-              {board.map((card, cardIdx) => <CardImg key={cardIdx} card={card} className="w-9 h-13 rounded shadow" />)}
+              {board.map((card, cardIdx) => <PokerCard key={cardIdx} card={card} variant="seat" />)}
             </div>
           </div>
         ))}
@@ -4197,8 +4197,8 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
       {revealedCards && (
         <button onClick={onClickRevealed} className="flex flex-col items-center gap-0.5" title="Tap to zoom revealed hand">
           <div className="flex items-center gap-1">
-            <CardImg card={revealedCards[0]} className="w-7 h-10 rounded shadow border border-emerald-500/40" />
-            <CardImg card={revealedCards[1]} className="w-7 h-10 rounded shadow border border-emerald-500/40" />
+            <PokerCard card={revealedCards[0]} variant="mini" className="border-emerald-500/40" />
+            <PokerCard card={revealedCards[1]} variant="mini" className="border-emerald-500/40" />
           </div>
           <div className="text-[8px] text-emerald-300 max-w-[72px] truncate">{revealedHandName ?? "Revealed"}</div>
         </button>
@@ -4216,12 +4216,7 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
   );
 });
 
-const CardImg = memo(function CardImg({ card, className }: { card: string; className?: string }) {
-  return (
-    <img src={getCardImagePath(card)} alt={card} className={className}
-      onError={(e) => { (e.target as HTMLImageElement).src = getCardImagePath(""); }} />
-  );
-});
+// CardImg removed — replaced by unified PokerCard component
 
 function Bar({ label, pct, color }: { label: string; pct: number; color: string }) {
   const p = Math.round(pct * 100);

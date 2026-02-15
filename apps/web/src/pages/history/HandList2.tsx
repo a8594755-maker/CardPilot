@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { HandRecord } from "../../lib/hand-history.js";
-import { getCardImagePath } from "../../lib/card-images.js";
+import { PokerCard } from "../../components/PokerCard.js";
 
 const ROW_HEIGHT = 108;
 const OVERSCAN = 6;
@@ -21,19 +21,6 @@ function dayBucket(ts: number): string {
   if (ts >= start - 86400000) return "Yesterday";
   if (ts >= start - 6 * 86400000) return "This Week";
   return new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
-
-/** Mini card image component */
-function MiniCard({ card, size = 28 }: { card: string; size?: number }) {
-  return (
-    <img
-      src={getCardImagePath(card)}
-      alt={card}
-      className="rounded-sm shadow-sm"
-      style={{ height: size, width: "auto" }}
-      loading="lazy"
-    />
-  );
 }
 
 /** Sort options for the hand list */
@@ -180,14 +167,14 @@ export function HandList2({
                   {/* Hero cards */}
                   <div className="flex gap-0.5 shrink-0">
                     {hand.heroCards.map((c) => (
-                      <MiniCard key={c} card={c} size={30} />
+                      <PokerCard key={c} card={c} variant="seat" />
                     ))}
                   </div>
                   {/* Board preview (first 3 cards) */}
                   {boardPreview.length > 0 && (
                     <div className="flex gap-0.5 shrink-0 ml-1 opacity-60">
                       {boardPreview.map((c, i) => (
-                        <MiniCard key={`${c}-${i}`} card={c} size={22} />
+                        <PokerCard key={`${c}-${i}`} card={c} variant="mini" />
                       ))}
                     </div>
                   )}

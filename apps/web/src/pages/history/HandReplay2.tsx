@@ -1,21 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import type { HandActionRecord, HandRecord } from "../../lib/hand-history.js";
-import { getCardImagePath } from "../../lib/card-images.js";
+import { PokerCard } from "../../components/PokerCard.js";
 
 const STREETS = ["PREFLOP", "FLOP", "TURN", "RIVER"];
 const STREET_CARD_COUNTS: Record<string, number> = { PREFLOP: 0, FLOP: 3, TURN: 4, RIVER: 5 };
-
-function MiniCard({ card, size = 36, fading = false }: { card: string; size?: number; fading?: boolean }) {
-  return (
-    <img
-      src={getCardImagePath(card)}
-      alt={card}
-      className={`rounded-sm shadow-md transition-all duration-300 ${fading ? "opacity-30 scale-90" : "opacity-100 scale-100"}`}
-      style={{ height: size, width: "auto" }}
-      loading="lazy"
-    />
-  );
-}
 
 function buildTimeline(actions: HandActionRecord[]) {
   return actions.map((a, idx) => ({ ...a, idx }));
@@ -176,7 +164,7 @@ export function HandReplay2({ hand }: { hand: HandRecord | null }) {
             <div className="text-[9px] text-slate-500 uppercase mb-1">Hero</div>
             <div className="flex gap-0.5">
               {hand.heroCards.map((c) => (
-                <MiniCard key={c} card={c} size={40} />
+                <PokerCard key={c} card={c} variant="seat" />
               ))}
             </div>
           </div>
@@ -194,7 +182,12 @@ export function HandReplay2({ hand }: { hand: HandRecord | null }) {
         <div className="flex items-center gap-1 min-h-[44px]">
           {hand.board.length > 0 ? (
             hand.board.map((c, i) => (
-              <MiniCard key={`${c}-${i}`} card={c} size={40} fading={i >= boardCardsToShow} />
+              <PokerCard
+                key={`${c}-${i}`}
+                card={c}
+                variant="seat"
+                className={`transition-all duration-300 ${i >= boardCardsToShow ? "opacity-30 scale-90" : "opacity-100 scale-100"}`}
+              />
             ))
           ) : (
             <span className="text-[11px] text-slate-500 italic">No board yet</span>

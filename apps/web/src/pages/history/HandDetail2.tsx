@@ -1,22 +1,10 @@
 import { useMemo, useState } from "react";
 import type { HandActionRecord, HandRecord } from "../../lib/hand-history.js";
 import { formatHandAsPokerStars } from "../../lib/hand-history.js";
-import { getCardImagePath } from "../../lib/card-images.js";
+import { PokerCard } from "../../components/PokerCard.js";
 
 const STREETS = ["PREFLOP", "FLOP", "TURN", "RIVER"];
 const EDITABLE_TAGS = ["SRP", "3bet_pot", "4bet_pot", "all_in"];
-
-function MiniCard({ card, size = 32 }: { card: string; size?: number }) {
-  return (
-    <img
-      src={getCardImagePath(card)}
-      alt={card}
-      className="rounded-sm shadow-sm"
-      style={{ height: size, width: "auto" }}
-      loading="lazy"
-    />
-  );
-}
 
 function splitBoard(board: string[]) {
   return {
@@ -142,7 +130,7 @@ export function HandDetail2({
         <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-2">Hero Cards</div>
         <div className="flex gap-1.5">
           {hand.heroCards.map((c) => (
-            <MiniCard key={c} card={c} size={52} />
+            <PokerCard key={c} card={c} variant="table" />
           ))}
         </div>
       </div>
@@ -169,7 +157,7 @@ export function HandDetail2({
                     <div className="text-[9px] text-slate-500 uppercase mb-1">Flop</div>
                     <div className="flex gap-0.5">
                       {split.flop.map((c, i) => (
-                        <MiniCard key={`f${i}`} card={c} size={36} />
+                        <PokerCard key={`f${i}`} card={c} variant="seat" />
                       ))}
                     </div>
                   </div>
@@ -180,7 +168,7 @@ export function HandDetail2({
                     <div className="text-[9px] text-slate-500 uppercase mb-1">Turn</div>
                     <div className="flex gap-0.5">
                       {split.turn.map((c, i) => (
-                        <MiniCard key={`t${i}`} card={c} size={36} />
+                        <PokerCard key={`t${i}`} card={c} variant="seat" />
                       ))}
                     </div>
                   </div>
@@ -191,7 +179,7 @@ export function HandDetail2({
                     <div className="text-[9px] text-slate-500 uppercase mb-1">River</div>
                     <div className="flex gap-0.5">
                       {split.river.map((c, i) => (
-                        <MiniCard key={`r${i}`} card={c} size={36} />
+                        <PokerCard key={`r${i}`} card={c} variant="seat" />
                       ))}
                     </div>
                   </div>
@@ -229,7 +217,7 @@ export function HandDetail2({
                   ) : (
                     <div className="flex gap-0.5">
                       {cards.map((c) => (
-                        <MiniCard key={c} card={c} size={28} />
+                        <PokerCard key={c} card={c} variant="mini" />
                       ))}
                     </div>
                   )}

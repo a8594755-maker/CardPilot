@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, memo } from "react";
 import type { SettlementResult, TablePlayer } from "@cardpilot/shared-types";
-import { CardGlyph } from "./CardGlyph";
+import { PokerCard } from "./PokerCard";
 import { CardZoomModal } from "./CardZoomModal";
 
 interface SettlementOverlayProps {
@@ -12,7 +12,6 @@ interface SettlementOverlayProps {
   onDismiss: () => void;
   onDealNow?: () => void;
   isHost: boolean;
-  getCardImagePath: (card: string) => string;
   /** Revealed hole cards from the final table state, keyed by seat */
   revealedHoles?: Record<number, [string, string]>;
   /** Winner hand names from the final table state, keyed by seat */
@@ -28,12 +27,12 @@ export const SettlementOverlay = memo(function SettlementOverlay({
   onDismiss,
   onDealNow,
   isHost,
-  getCardImagePath,
   revealedHoles,
   winnerHandNames,
 }: SettlementOverlayProps) {
   const [showDrawer, setShowDrawer] = useState(false);
   const [zoomCards, setZoomCards] = useState<{ cards: string[]; label: string; sublabel?: string } | null>(null);
+  const [run2Expanded, setRun2Expanded] = useState(false);
 
   // ESC to close overlay
   useEffect(() => {
@@ -63,110 +62,126 @@ export const SettlementOverlay = memo(function SettlementOverlay({
   const showWaitingFallback = autoStartScheduled && countdownExpired;
 
   return (
-    <div className="w-full max-w-2xl mt-2 shrink-0 animate-[fadeSlideUp_0.5s_ease-out]">
-      <div className="relative rounded-2xl border border-amber-500/30 bg-gradient-to-b from-amber-500/10 via-black/60 to-black/80 backdrop-blur-md px-6 py-4 shadow-[0_0_30px_rgba(245,158,11,0.15)]">
-        {/* Close button */}
-        <button
-          onClick={onDismiss}
-          className="absolute top-2 right-3 text-slate-500 hover:text-white text-sm transition-colors"
-          title="Dismiss (Esc)"
-        >
-          ✕
-        </button>
+    <div className="w-full max-w-2xl mt-2 shrink-0 animate-[fadeSlideUp_0.35s_ease-out]">
+      <div className="relative rounded-2xl border border-amber-500/25 bg-gradient-to-b from-amber-500/8 via-black/70 to-black/85 backdrop-blur-sm px-5 py-4 shadow-lg shadow-black/30 max-h-[80vh] overflow-y-auto overflow-x-hidden">
+        {/* Sticky header */}
+        <div className="sticky top-0 z-10 -mx-5 px-5 pb-2 bg-gradient-to-b from-black/90 to-transparent">
+          {/* Close button */}
+          <button
+            onClick={onDismiss}
+            className="absolute top-1 right-3 text-slate-500 hover:text-white text-sm transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+            title="Dismiss (Esc)"
+          >
+            ✕
+          </button>
 
-        {/* Header */}
-        <div className="flex items-center justify-center gap-2 mb-1">
-          <span className="text-2xl">🏆</span>
-          <span className="text-amber-400 text-lg font-extrabold tracking-wide uppercase">
-            Hand Result
-          </span>
-          <span className="text-2xl">🏆</span>
-        </div>
-        <div className="text-center text-[10px] text-slate-500 font-mono mb-3">
-          {settlement.handId.slice(0, 8)}
-        </div>
+          {/* Header */}
+          <div className="flex items-center justify-center gap-2 mb-1 pt-1">
+            <span className="text-amber-400 text-base font-extrabold tracking-wide uppercase">
+              Hand Result
+            </span>
+          </div>
+          <div className="text-center text-[10px] text-slate-500 font-mono mb-2">
+            {settlement.handId.slice(0, 8)}
+          </div>
 
-        {/* Pot summary */}
-        <div className="flex items-center justify-center gap-4 mb-3 text-[11px]">
-          <span className="text-slate-400">
-            Total Pot:{" "}
-            <span className="text-amber-400 font-bold">
-              {settlement.totalPot.toLocaleString()}
+          {/* Pot summary */}
+          <div className="flex items-center justify-center gap-4 text-[11px]">
+            <span className="text-slate-400">
+              Pot{" "}
+              <span className="text-amber-400 font-bold">
+                {settlement.totalPot.toLocaleString()}
+              </span>
             </span>
-          </span>
-          <span className="text-slate-500">Rake: 0</span>
-          <span className="text-slate-400">
-            Paid:{" "}
-            <span className="text-emerald-400 font-bold">
-              {settlement.totalPaid.toLocaleString()}
+            <span className="text-slate-600">·</span>
+            <span className="text-slate-500">Rake 0</span>
+            <span className="text-slate-600">·</span>
+            <span className="text-slate-400">
+              Paid{" "}
+              <span className="text-emerald-400 font-bold">
+                {settlement.totalPaid.toLocaleString()}
+              </span>
             </span>
-          </span>
+          </div>
         </div>
 
         {/* Run-it-twice: show per-run results */}
         {settlement.runCount === 2 ? (
-          <div className="space-y-2 mb-3">
-            {settlement.winnersByRun.map((run) => (
-              <div
-                key={run.run}
-                className="rounded-xl border border-white/10 bg-white/[0.03] p-3"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <span
-                    className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                      run.run === 1
-                        ? "bg-cyan-500/20 text-cyan-400"
-                        : "bg-amber-500/20 text-amber-400"
-                    }`}
+          <div className="space-y-2 mb-3 mt-2">
+            {settlement.winnersByRun.map((run) => {
+              const isRun2 = run.run === 2;
+              const collapsed = isRun2 && !run2Expanded;
+              return (
+                <div
+                  key={run.run}
+                  className="rounded-xl border border-white/8 bg-white/[0.02] p-3"
+                >
+                  <div
+                    className={`flex items-center gap-2 ${collapsed ? "" : "mb-2"} ${isRun2 ? "cursor-pointer" : ""}`}
+                    onClick={isRun2 ? () => setRun2Expanded(!run2Expanded) : undefined}
                   >
-                    Run {run.run}
-                  </span>
-                  <div className="flex gap-1">
-                    {run.board.map((c, i) => (
-                      <CardGlyph
-                        key={i}
-                        card={c}
-                        size="sm"
-                        fourColor
-                        onClick={() =>
-                          setZoomCards({
-                            cards: run.board,
-                            label: `Run ${run.run} Board`,
-                          })
-                        }
-                      />
-                    ))}
+                    <span
+                      className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                        run.run === 1
+                          ? "bg-cyan-500/20 text-cyan-400"
+                          : "bg-amber-500/20 text-amber-400"
+                      }`}
+                    >
+                      Run {run.run}
+                    </span>
+                    <div className="flex gap-1">
+                      {run.board.map((c, i) => (
+                        <PokerCard
+                          key={i}
+                          card={c}
+                          variant="mini"
+                          onClick={() =>
+                            setZoomCards({
+                              cards: run.board,
+                              label: `Run ${run.run} Board`,
+                            })
+                          }
+                        />
+                      ))}
+                    </div>
+                    {isRun2 && (
+                      <span className="ml-auto text-[10px] text-slate-500">
+                        {collapsed ? "▸ expand" : "▾ collapse"}
+                      </span>
+                    )}
                   </div>
+                  {!collapsed && (
+                    <div className="flex flex-col gap-1">
+                      {run.winners.map((w) => (
+                        <WinnerRow
+                          key={`${run.run}-${w.seat}`}
+                          seat={w.seat}
+                          name={playerName(w.seat)}
+                          amount={w.amount}
+                          handName={w.handName}
+                          invested={settlement.contributions[w.seat] ?? 0}
+                          revealedCards={revealedHoles?.[w.seat]}
+                          onClickCards={
+                            revealedHoles?.[w.seat]
+                              ? () =>
+                                  setZoomCards({
+                                    cards: revealedHoles[w.seat],
+                                    label: playerName(w.seat),
+                                    sublabel: w.handName ?? winnerHandNames?.[w.seat],
+                                  })
+                              : undefined
+                          }
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <div className="flex flex-col gap-1">
-                  {run.winners.map((w) => (
-                    <WinnerRow
-                      key={`${run.run}-${w.seat}`}
-                      seat={w.seat}
-                      name={playerName(w.seat)}
-                      amount={w.amount}
-                      handName={w.handName}
-                      invested={settlement.contributions[w.seat] ?? 0}
-                      revealedCards={revealedHoles?.[w.seat]}
-                      onClickCards={
-                        revealedHoles?.[w.seat]
-                          ? () =>
-                              setZoomCards({
-                                cards: revealedHoles[w.seat],
-                                label: playerName(w.seat),
-                                sublabel: w.handName ?? winnerHandNames?.[w.seat],
-                              })
-                          : undefined
-                      }
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           /* Standard single-run winners */
-          <div className="flex flex-col items-center gap-2 mb-3">
+          <div className="flex flex-col items-center gap-2 mb-3 mt-2">
             {allWinners.map((w) => (
               <WinnerRow
                 key={w.seat}
@@ -204,7 +219,7 @@ export const SettlementOverlay = memo(function SettlementOverlay({
               {nonWinnerReveals.map(({ seat: s, cards }) => (
                 <div
                   key={s}
-                  className="flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+                  className="flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity min-h-[44px]"
                   onClick={() =>
                     setZoomCards({
                       cards,
@@ -215,8 +230,8 @@ export const SettlementOverlay = memo(function SettlementOverlay({
                 >
                   <span className="text-[10px] text-slate-400">{playerName(s)}</span>
                   <div className="flex gap-0.5">
-                    <CardGlyph card={cards[0]} size="sm" fourColor />
-                    <CardGlyph card={cards[1]} size="sm" fourColor />
+                    <PokerCard card={cards[0]} variant="seat" />
+                    <PokerCard card={cards[1]} variant="seat" />
                   </div>
                 </div>
               ))}
@@ -254,7 +269,7 @@ export const SettlementOverlay = memo(function SettlementOverlay({
           <div className="text-center mb-2">
             <button
               onClick={onDealNow}
-              className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg hover:from-blue-400 hover:to-blue-500 transition-all"
+              className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg hover:from-blue-400 hover:to-blue-500 transition-all min-h-[44px]"
             >
               Deal Now
             </button>
@@ -265,13 +280,13 @@ export const SettlementOverlay = memo(function SettlementOverlay({
         <div className="flex items-center justify-center gap-2">
           <button
             onClick={() => setShowDrawer(!showDrawer)}
-            className="text-[11px] px-3 py-1.5 rounded-lg bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10 transition-all"
+            className="text-[11px] px-3 py-1.5 rounded-lg bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10 transition-all min-h-[44px]"
           >
             {showDrawer ? "Hide Details" : "Hand Summary"}
           </button>
           <button
             onClick={onDismiss}
-            className="text-[11px] px-3 py-1.5 rounded-lg bg-white/10 text-white border border-white/15 hover:bg-white/20 transition-all font-semibold"
+            className="text-[11px] px-3 py-1.5 rounded-lg bg-white/10 text-white border border-white/15 hover:bg-white/20 transition-all font-semibold min-h-[44px]"
           >
             Continue
           </button>
@@ -282,7 +297,6 @@ export const SettlementOverlay = memo(function SettlementOverlay({
           <HandSummaryDrawer
             settlement={settlement}
             playerName={playerName}
-            getCardImagePath={getCardImagePath}
           />
         )}
       </div>
@@ -320,8 +334,8 @@ function WinnerRow({
 }) {
   const net = amount - invested;
   return (
-    <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 animate-[fadeSlideUp_0.6s_ease-out]">
-      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-xs font-extrabold text-slate-900 shadow-lg shrink-0">
+    <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-amber-500/8 border border-amber-500/15 animate-[fadeSlideUp_0.35s_ease-out]">
+      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-xs font-extrabold text-slate-900 shrink-0">
         {name[0]?.toUpperCase() ?? "?"}
       </div>
       <div className="flex flex-col min-w-0">
@@ -336,8 +350,8 @@ function WinnerRow({
           onClick={onClickCards}
           title={onClickCards ? "Tap to zoom" : undefined}
         >
-          <CardGlyph card={revealedCards[0]} size="sm" fourColor />
-          <CardGlyph card={revealedCards[1]} size="sm" fourColor />
+          <PokerCard card={revealedCards[0]} variant="seat" />
+          <PokerCard card={revealedCards[1]} variant="seat" />
         </div>
       )}
       <div className="ml-auto text-right shrink-0">
@@ -365,14 +379,12 @@ function WinnerRow({
 function HandSummaryDrawer({
   settlement,
   playerName,
-  getCardImagePath,
 }: {
   settlement: SettlementResult;
   playerName: (seat: number) => string;
-  getCardImagePath: (card: string) => string;
 }) {
   return (
-    <div className="mt-4 space-y-3 border-t border-white/10 pt-3 max-h-[50vh] overflow-y-auto">
+    <div className="mt-4 space-y-3 border-t border-white/10 pt-3">
       {/* Boards */}
       <div>
         <h4 className="text-[10px] text-slate-500 uppercase tracking-wider mb-1.5">
@@ -391,7 +403,7 @@ function HandSummaryDrawer({
             )}
             <div className="flex gap-1">
               {board.map((c, i) => (
-                <CardGlyph key={i} card={c} size="sm" fourColor />
+                <PokerCard key={i} card={c} variant="mini" />
               ))}
             </div>
           </div>
