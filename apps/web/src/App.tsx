@@ -276,6 +276,13 @@ export function App() {
     s.on("board_reveal", (d: { handId: string; street: string; newCards: string[]; board: string[]; equities: Array<{ seat: number; winRate: number; tieRate: number }> }) => {
       setBoardReveal({ street: d.street, equities: d.equities });
     });
+    s.on("run_twice_reveal", (d: { handId: string; street: string; run1: { newCards: string[]; board: string[] }; run2: { newCards: string[]; board: string[] } }) => {
+      setBoardReveal((prev) => ({ street: d.street, equities: prev?.equities ?? [] }));
+      setSnapshot((prev) => {
+        if (!prev || prev.handId !== d.handId) return prev;
+        return { ...prev, runoutBoards: [d.run1.board, d.run2.board] };
+      });
+    });
     s.on("run_count_chosen", () => {
       setAllInPrompt(null);
     });
@@ -435,6 +442,19 @@ export function App() {
   const isHost = useMemo(() => roomState?.ownership.ownerId === authSession?.userId, [roomState, authSession]);
   const isCoHost = useMemo(() => roomState?.ownership.coHostIds.includes(authSession?.userId ?? "") ?? false, [roomState, authSession]);
   const isHostOrCoHost = isHost || isCoHost;
+  const handInProgress = useMemo(
+    () => (roomState?.status === "PLAYING") || Boolean(snapshot?.handId && (snapshot.actorSeat != null || snapshot.showdownPhase === "decision")),
+    [roomState?.status, snapshot?.handId, snapshot?.actorSeat, snapshot?.showdownPhase]
+  );
+  const dealDisabledReason = useMemo(() => {
+    if (!isConnected) return "Server disconnected";
+    if (!isHost) return "Only host can deal";
+    if (roomState?.status === "PAUSED") return "Game is paused";
+    if (handInProgress) return "Current hand is still in progress";
+    const eligibleCount = snapshot?.players.filter((p) => p.stack > 0).length ?? 0;
+    if (eligibleCount < 2) return `Need at least 2 players with chips (currently ${eligibleCount})`;
+    return null;
+  }, [isConnected, isHost, roomState?.status, handInProgress, snapshot?.players]);
   const myOwnedRoomCode = useMemo(
     () => (roomState?.ownership.ownerId === authSession?.userId ? currentRoomCode : ""),
     [roomState, authSession, currentRoomCode]
@@ -467,6 +487,27 @@ export function App() {
   useEffect(() => {
     if (!canVoluntaryShow) setShowHandConfirm(false);
   }, [canVoluntaryShow]);
+  useEffect(() => {
+    if (!isHostOrCoHost) {
+      setDepositNotifications([]);
+      return;
+    }
+    const pending = snapshot?.pendingDeposits ?? [];
+    setDepositNotifications(
+      pending.map((deposit) => ({
+        orderId: deposit.orderId,
+        userId: deposit.userId,
+        userName: deposit.userName,
+        seat: deposit.seat,
+        amount: deposit.amount,
+      }))
+    );
+  }, [isHostOrCoHost, snapshot?.pendingDeposits]);
+  useEffect(() => {
+    if (roomState?.settings.roomFundsTracking === false) {
+      setShowSessionStats(false);
+    }
+  }, [roomState?.settings.roomFundsTracking]);
   useEffect(() => {
     if (!socket || !snapshot?.handId) return;
     if (!isMyShowdownDecision) return;
@@ -940,26 +981,18 @@ export function App() {
               <div className="px-3 py-1.5 flex flex-wrap items-center gap-2 border-b border-white/5 shrink-0">
                 <input value={name} onChange={(e) => setName(e.target.value)} className="input-field !py-1 !px-2 w-24 text-xs" placeholder="Name" />
                 <button
-                  disabled={!isConnected || !isHost || !!(snapshot?.handId && (snapshot.actorSeat != null || snapshot.street !== "SHOWDOWN"))}
+                  disabled={dealDisabledReason != null}
                   onClick={() => {
-                    if (!isHost) {
-                      showToast("Only host can start and run auto-deal");
-                      return;
-                    }
-                    if ((snapshot?.players.length ?? 0) < 2) {
-                      showToast("Need ≥2 players");
-                      return;
-                    }
-                    if (snapshot?.handId && (snapshot.actorSeat != null || snapshot.street !== "SHOWDOWN")) {
-                      showToast("Hand in progress");
+                    if (dealDisabledReason) {
+                      showToast(dealDisabledReason);
                       return;
                     }
                     socket?.emit("start_hand", { tableId });
                   }}
                   className="text-[11px] px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30 disabled:opacity-40 transition-all"
-                  title={isHost ? "Start game (auto-deal continues until stopped)" : "Host only"}
+                  title={dealDisabledReason ?? "Deal a new hand"}
                 >
-                  {isHost ? "Deal / Auto" : "Deal (Host)"}
+                  {isHost ? "Deal" : "Deal (Host)"}
                 </button>
                 <button disabled={!isConnected} onClick={() => socket?.emit("stand_up", { tableId, seat })} className="text-[11px] px-2.5 py-1 rounded-lg bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 disabled:opacity-40 transition-all" title="Stand up from seat">Stand</button>
                 <button onClick={leaveRoom} className="text-[11px] px-2.5 py-1 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all" title="Leave room entirely">Exit</button>
@@ -1013,9 +1046,13 @@ export function App() {
                     )}
                     <button onClick={() => setShowSettings(!showSettings)} className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10">⚙</button>
                     <button onClick={() => setShowRoomLog(!showRoomLog)} className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10">📋</button>
-                    <button onClick={() => { setShowSessionStats(!showSessionStats); if (!showSessionStats) socket?.emit("request_session_stats", { tableId }); }}
-                      className={`text-[10px] px-2 py-0.5 rounded border hover:bg-white/10 ${showSessionStats ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/30" : "bg-white/5 text-slate-300 border-white/10"}`}
-                      title="Session Stats">📊</button>
+                    {roomState?.settings.roomFundsTracking ? (
+                      <button onClick={() => { setShowSessionStats(!showSessionStats); if (!showSessionStats) socket?.emit("request_session_stats", { tableId }); }}
+                        className={`text-[10px] px-2 py-0.5 rounded border hover:bg-white/10 ${showSessionStats ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/30" : "bg-white/5 text-slate-300 border-white/10"}`}
+                        title="Session Stats">📊</button>
+                    ) : (
+                      <span className="text-[9px] text-slate-600" title="Enable Room funds tracking in settings to view stats">Funds tracking off</span>
+                    )}
                     {seatRequests.length > 0 ? (
                       <button className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold animate-pulse">
                         🎫 {seatRequests.length} Request{seatRequests.length > 1 ? "s" : ""}
@@ -1140,7 +1177,7 @@ export function App() {
                           Request
                         </button>
                       </div>
-                      <p className="text-[9px] text-slate-600 text-center">Host must approve · Credited at hand boundary</p>
+                      <p className="text-[9px] text-slate-600 text-center">Host must approve · Credited at next hand start</p>
                     </div>
                   </div>
                 );
@@ -1268,7 +1305,7 @@ export function App() {
               )}
 
               {/* ── Session Stats Panel ── */}
-              {showSessionStats && (
+              {showSessionStats && roomState?.settings.roomFundsTracking && (
                 <div className="mx-3 mt-1 glass-card p-3 max-h-48 overflow-y-auto shrink-0">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-xs font-bold text-cyan-400">Session Stats</h3>
@@ -2375,6 +2412,42 @@ function RoomSettingsPanel({ roomState, isHost, players, authUserId, onUpdateSet
       {/* ══ GAME RULES TAB ══ */}
       {tab === "rules" && (
         <div className="space-y-3">
+          <SectionTitle>Hand Flow</SectionTitle>
+          <YesNo
+            label="Auto-start next hand?"
+            value={s.autoStartNextHand}
+            onChange={(v) => updateField("autoStartNextHand", v)}
+            hint="Automatically starts the next hand after showdown delay"
+          />
+          <TriToggle
+            label="Showdown speed"
+            value={s.showdownSpeed}
+            options={[
+              { value: "fast", label: "Fast (3s)" },
+              { value: "normal", label: "Normal (6s)" },
+              { value: "slow", label: "Slow (9s)" },
+            ]}
+            onChange={(v) => updateField("showdownSpeed", v)}
+          />
+          <YesNo
+            label="Deal to away players?"
+            value={s.dealToAwayPlayers}
+            onChange={(v) => updateField("dealToAwayPlayers", v)}
+            hint="When off, disconnected/away seats are excluded from auto-deal eligibility"
+          />
+          <YesNo
+            label="Reveal all at showdown?"
+            value={s.revealAllAtShowdown}
+            onChange={(v) => updateField("revealAllAtShowdown", v)}
+            hint="Force reveal on river-call or all-in runouts"
+          />
+          <YesNo
+            label="Room funds tracking?"
+            value={s.roomFundsTracking}
+            onChange={(v) => updateField("roomFundsTracking", v)}
+            hint="Tracks per-player buy-ins, net and stack restoration across rejoin"
+          />
+
           <SectionTitle>Gameplay</SectionTitle>
           <TriToggle label="Allow Run It Twice?"
             value={s.runItTwiceMode}
@@ -3124,7 +3197,7 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
         )}
         {/* Pending leave indicator */}
         {pendingLeave && (
-          <div className="text-[7px] text-slate-400 italic">Leaving…</div>
+          <div className="text-[7px] text-slate-300 italic">Leaving after hand</div>
         )}
       </div>
       {revealedCards && (

@@ -41,6 +41,7 @@ export class GameTable {
   private allInRunCount: 1 | 2 = 1;
   private runoutPending = false;
   private settlementResult: SettlementResult | null = null;
+  private handInProgress = false;
 
   constructor(params: { tableId: string; smallBlind: number; bigBlind: number; mode?: TableMode }) {
     this.state = {
@@ -195,6 +196,7 @@ export class GameTable {
     const handId = uuidv4();
     this.state.handId = handId;
     this.state.street = "PREFLOP";
+    this.handInProgress = true;
     this.state.board = [];
     this.state.actions = [];
     this.state.pot = 0;
@@ -433,7 +435,30 @@ export class GameTable {
   }
 
   isHandActive(): boolean {
-    return this.state.handId !== null && (this.state.actorSeat !== null || this.runoutPending || this.state.showdownPhase === "decision");
+    return this.handInProgress && this.state.handId !== null && (this.state.actorSeat !== null || this.runoutPending || this.state.showdownPhase === "decision");
+  }
+
+  /** Called by the server after finalizeHandEnd to cleanly mark the hand as done.
+   *  This prevents any stale handId from blocking the next startHand(). */
+  clearHand(): void {
+    this.handInProgress = false;
+    this.state.handId = null;
+  }
+
+  /** Replace the deck after startHand() for deterministic testing.
+   *  Cards are popped from end, so last element is dealt first. */
+  setDeckForTesting(deck: string[]): void {
+    this.state.deck = [...deck];
+  }
+
+  /** Expose hole cards for testing (read-only snapshot). */
+  getAllHoleCards(): Map<number, [string, string]> {
+    return new Map(this.state.holeCards);
+  }
+
+  /** Expose contributions for testing (read-only snapshot). */
+  getContributions(): Map<number, number> {
+    return new Map(this.state.contributed);
   }
 
   getMode(): TableMode {
@@ -679,6 +704,7 @@ export class GameTable {
       this.state.contributed.set(p.seat, 0);
     }
     this.state.handId = null;
+    this.handInProgress = false;
     this.state.street = "SHOWDOWN";
     this.state.board = [];
     this.state.pot = 0;
@@ -961,6 +987,25 @@ export class GameTable {
       payoutsBySeat[winner.seat] = (payoutsBySeat[winner.seat] ?? 0) + winner.amount;
     }
     const totalPaid = Object.values(payoutsBySeat).reduce((sum, amount) => sum + amount, 0);
+
+    // Conservation invariant: totalPaid must equal totalPot (rake=0)
+    if (totalPaid !== totalPot) {
+      console.error(
+        `[CONSERVATION VIOLATION] totalPaid=${totalPaid} != totalPot=${totalPot}, ` +
+        `handId=${this.state.handId}, winners=${JSON.stringify(this.state.winners)}, ` +
+        `contributions=${JSON.stringify(Object.fromEntries(this.state.contributed))}`
+      );
+    }
+
+    // Conservation invariant: sum(stacks_after) == sum(stacks_before)
+    const sumStacksAfter = this.state.players.reduce((s, p) => s + p.stack, 0);
+    const sumStacksBefore = [...this.state.handStartStacks.values()].reduce((s, v) => s + v, 0);
+    if (sumStacksAfter !== sumStacksBefore) {
+      console.error(
+        `[CONSERVATION VIOLATION] sumStacksAfter=${sumStacksAfter} != sumStacksBefore=${sumStacksBefore}, ` +
+        `handId=${this.state.handId}`
+      );
+    }
 
     const payoutsBySeatByRun = runCount === 2
       ? winnersByRun.map((run) => {

@@ -74,7 +74,7 @@ const socketIdentity = new Map<string, VerifiedIdentity>();
 const lastAdvice = new Map<string, AdvicePayload>(); // key: `${tableId}:${seat}`
 
 // Pending seat requests: orderId -> request data
-type SeatRequest = { orderId: string; tableId: string; seat: number; buyIn: number; userId: string; userName: string; socketId: string };
+type SeatRequest = { orderId: string; tableId: string; seat: number; buyIn: number; userId: string; userName: string; socketId: string; isRestore: boolean };
 const pendingSeatRequests = new Map<string, SeatRequest>();
 const autoDealSchedule = new Map<string, ReturnType<typeof setTimeout>>();
 const pendingAllInPrompts = new Map<string, { handId: string; prompt: AllInPrompt }>();
@@ -287,7 +287,7 @@ function applyApprovedDeposits(tableId: string): void {
 function getPendingDepositsForTable(tableId: string): Array<{ orderId: string; seat: number; userId: string; userName: string; amount: number }> {
   const result: Array<{ orderId: string; seat: number; userId: string; userName: string; amount: number }> = [];
   for (const [, deposit] of pendingDeposits.entries()) {
-    if (deposit.tableId === tableId) {
+    if (deposit.tableId === tableId && !deposit.approved) {
       result.push({ orderId: deposit.orderId, seat: deposit.seat, userId: deposit.userId, userName: deposit.userName, amount: deposit.amount });
     }
   }
@@ -635,10 +635,38 @@ function maybeFinalizeShowdownDecision(tableId: string, table: GameTable): void 
   settleShowdownDecision(tableId, table, state.handId);
 }
 
+function isRiverCallShowdown(state: TableState): boolean {
+  for (let i = state.actions.length - 1; i >= 0; i -= 1) {
+    const action = state.actions[i];
+    if (action.street !== "RIVER") continue;
+    if (action.type === "call") return true;
+  }
+  return false;
+}
+
+function shouldForceRevealAtShowdown(tableId: string, state: TableState): boolean {
+  const room = roomManager.getRoom(tableId);
+  if (!room?.settings.revealAllAtShowdown) return false;
+
+  const contenders = state.players.filter((player) => player.inHand && !player.folded);
+  if (contenders.length < 2) return false;
+
+  const everyoneAllIn = contenders.every((player) => player.allIn);
+  return everyoneAllIn || isRiverCallShowdown(state);
+}
+
 function beginShowdownDecision(tableId: string, table: GameTable, state: TableState): void {
   if (state.showdownPhase !== "decision" || !state.handId) {
     finalizeHandEnd(tableId, state);
     return;
+  }
+
+  if (shouldForceRevealAtShowdown(tableId, state)) {
+    const contenders = table.getShowdownContenderSeats();
+    for (const seat of contenders) {
+      table.revealPublicHand(seat);
+    }
+    state = table.getPublicState();
   }
 
   clearShowdownDecisionTimeout(tableId);
@@ -646,11 +674,13 @@ function beginShowdownDecision(tableId: string, table: GameTable, state: TableSt
   broadcastSnapshot(tableId);
 
   const expectedHandId = state.handId;
+  if (!expectedHandId) return;
+  const handIdForTimeout: string = expectedHandId;
   const timeout = setTimeout(() => {
     pendingShowdownTimeouts.delete(tableId);
     const liveTable = tables.get(tableId);
     if (!liveTable) return;
-    settleShowdownDecision(tableId, liveTable, expectedHandId);
+    settleShowdownDecision(tableId, liveTable, handIdForTimeout);
   }, 4000);
 
   pendingShowdownTimeouts.set(tableId, timeout);
@@ -659,6 +689,7 @@ function beginShowdownDecision(tableId: string, table: GameTable, state: TableSt
 function maybeAutoRevealRunoutHands(tableId: string, table: GameTable): void {
   const settings = roomManager.getRoom(tableId)?.settings;
   if ((settings?.autoRevealOnAllInCall ?? true) !== true) return;
+  if ((settings?.revealAllAtShowdown ?? true) !== true) return;
 
   const state = table.getPublicState();
   const seatsToReveal = state.players
@@ -799,6 +830,14 @@ function resetHandIdleWatchdog(tableId: string): void {
 
     io.to(tableId).emit("hand_aborted", { reason: "Hand aborted: table idle too long" });
     io.to(tableId).emit("system_message", { message: "Hand cancelled due to long inactivity. Bets have been refunded." });
+    const deferredSeats = pendingStandUps.get(tableId);
+    if (deferredSeats && deferredSeats.size > 0) {
+      for (const seatNum of deferredSeats) {
+        standUpPlayer(tableId, seatNum, "Left after hand ended");
+      }
+      pendingStandUps.delete(tableId);
+    }
+    processQueuedTableLeaves(tableId);
     touchLocalRoom(tableId);
     broadcastSnapshot(tableId);
   }, HAND_IDLE_TIMEOUT_MS);
@@ -838,15 +877,25 @@ function processQueuedTableLeaves(tableId: string): void {
   pendingTableLeaves.delete(tableId);
 }
 
-function getEligibleSeatNumbersForDeal(tableId: string): number[] {
+function getApprovedDepositTotalsBySeat(tableId: string): Map<number, number> {
+  const totals = new Map<number, number>();
+  for (const deposit of pendingDeposits.values()) {
+    if (deposit.tableId !== tableId || !deposit.approved) continue;
+    totals.set(deposit.seat, (totals.get(deposit.seat) ?? 0) + deposit.amount);
+  }
+  return totals;
+}
+
+function getEligibleSeatNumbersForDeal(tableId: string, includeApprovedDeposits = false): number[] {
   const table = tables.get(tableId);
   if (!table) return [];
   const room = roomManager.getRoom(tableId);
   if (!room) return [];
 
   const connectedSeats = new Set(bindingsByTable(tableId).map(({ binding }) => binding.seat));
+  const approvedTotals = includeApprovedDeposits ? getApprovedDepositTotalsBySeat(tableId) : new Map<number, number>();
   return table.getPublicState().players
-    .filter((player) => player.stack > 0)
+    .filter((player) => (player.stack + (approvedTotals.get(player.seat) ?? 0)) > 0)
     .filter((player) => room.settings.dealToAwayPlayers || connectedSeats.has(player.seat))
     .map((player) => player.seat);
 }
@@ -859,7 +908,7 @@ function getHandStartValidationMessage(tableId: string): string | null {
   const table = tables.get(tableId);
   if (table?.isHandActive()) return "Hand in progress";
 
-  const eligibleSeats = getEligibleSeatNumbersForDeal(tableId);
+  const eligibleSeats = getEligibleSeatNumbersForDeal(tableId, true);
   if (eligibleSeats.length < 2) {
     return `Need at least 2 eligible players to deal (currently ${eligibleSeats.length})`;
   }
@@ -876,7 +925,7 @@ function getAutoStartSkipMessage(tableId: string): string | null {
   if (!table) return "Auto-start skipped: table not ready.";
   if (table.isHandActive()) return "Auto-start skipped: hand still active.";
 
-  const eligibleSeats = getEligibleSeatNumbersForDeal(tableId);
+  const eligibleSeats = getEligibleSeatNumbersForDeal(tableId, true);
   if (eligibleSeats.length < 2) {
     const awayHint = room.settings.dealToAwayPlayers
       ? ""
@@ -898,12 +947,12 @@ function startHandFlow(tableId: string, actorUserId: string, source: "manual" | 
   }
 
   const table = createTableIfNeeded(room);
-  applyApprovedDeposits(tableId);
-
   const validationError = getHandStartValidationMessage(tableId);
   if (validationError) {
     throw new Error(validationError);
   }
+
+  applyApprovedDeposits(tableId);
 
   const { handId } = table.startHand();
   pendingAllInPrompts.delete(tableId);
@@ -996,6 +1045,10 @@ function finalizeHandEnd(tableId: string, state: TableState): void {
   roomManager.clearActionTimer(tableId);
   roomManager.setHandActive(tableId, false);
 
+  // Cleanly mark hand as done in engine (nulls handId, resets handInProgress)
+  const table = tables.get(tableId);
+  if (table) table.clearHand();
+
   // Increment hands played for session stats
   incrementHandsPlayed(tableId, state.players.filter((p) => p.inHand).map((p) => p.userId));
   syncSessionStacksFromState(tableId, state);
@@ -1040,8 +1093,21 @@ function handleRoomAutoClose(tableId: string): void {
   if (closed) {
     clearAutoDealSchedule(tableId);
     clearShowdownDecisionTimeout(tableId);
+    pendingAllInPrompts.delete(tableId);
+    const runCountTimeout = pendingRunCountTimeouts.get(tableId);
+    if (runCountTimeout) {
+      clearTimeout(runCountTimeout);
+      pendingRunCountTimeouts.delete(tableId);
+    }
     pendingStandUps.delete(tableId);
     pendingTableLeaves.delete(tableId);
+    pendingPause.delete(tableId);
+    for (const [orderId, request] of pendingSeatRequests.entries()) {
+      if (request.tableId === tableId) pendingSeatRequests.delete(orderId);
+    }
+    for (const [orderId, deposit] of pendingDeposits.entries()) {
+      if (deposit.tableId === tableId) pendingDeposits.delete(orderId);
+    }
     io.to(tableId).emit("room_closed", { tableId, reason: "empty" });
     tables.delete(tableId);
     const room = roomsByTableId.get(tableId);
@@ -1066,7 +1132,23 @@ function startTimerForActor(tableId: string): void {
   const expectedSeat = state.actorSeat;
 
   const actorBinding = bindingsByTable(tableId).find((e) => e.binding.seat === state.actorSeat);
-  if (!actorBinding) return;
+  if (!actorBinding) {
+    // Away player was dealt in (dealToAwayPlayers=true): auto-fold so the hand cannot stall.
+    try {
+      const autoState = table.applyAction(state.actorSeat, "fold");
+      io.to(tableId).emit("action_applied", {
+        seat: state.actorSeat,
+        action: "fold",
+        amount: 0,
+        pot: autoState.pot,
+        auto: true,
+      });
+      handlePostAction(tableId, table, autoState);
+    } catch (err) {
+      console.warn("startTimerForActor: auto-fold for away actor failed:", (err as Error).message);
+    }
+    return;
+  }
 
   roomManager.startActionTimer(
     tableId,
@@ -1523,6 +1605,13 @@ io.on("connection", (socket) => {
         if (payload.seat < 1 || payload.seat > managed.settings.maxPlayers) {
           throw new Error(`Seat must be between 1 and ${managed.settings.maxPlayers}`);
         }
+      }
+
+      const name = payload.name?.slice(0, 32) || identity.displayName;
+      const restoredStack = getRestorableStack(payload.tableId, identity.userId);
+      const stackToSeat = restoredStack ?? payload.buyIn;
+      const isRestore = restoredStack != null;
+      if (managed && !isRestore) {
         const { buyInMin, buyInMax } = managed.settings;
         console.log("[SIT_DOWN] Buy-in validation:", payload.buyIn, "range:", buyInMin, "-", buyInMax);
         if (payload.buyIn < buyInMin || payload.buyIn > buyInMax) {
@@ -1530,19 +1619,21 @@ io.on("connection", (socket) => {
         }
       }
 
-      const name = payload.name?.slice(0, 32) || identity.displayName;
-      console.log("[SIT_DOWN] Adding player:", { seat: payload.seat, userId: identity.userId, name, stack: payload.buyIn });
+      console.log("[SIT_DOWN] Adding player:", { seat: payload.seat, userId: identity.userId, name, stack: stackToSeat, isRestore });
       
       table.addPlayer({
         seat: payload.seat,
         userId: identity.userId,
         name,
-        stack: payload.buyIn
+        stack: stackToSeat
       });
       
       console.log("[SIT_DOWN] Player added successfully");
 
-      recordSessionBuyIn(payload.tableId, identity.userId, name, payload.buyIn);
+      if (!isRestore) {
+        recordSessionBuyIn(payload.tableId, identity.userId, name, stackToSeat);
+      }
+      setSessionLastStack(payload.tableId, identity.userId, name, stackToSeat);
 
       socketSeat.set(socket.id, {
         tableId: payload.tableId,
@@ -1556,7 +1647,7 @@ io.on("connection", (socket) => {
         seat_no: payload.seat,
         user_id: identity.userId,
         display_name: name,
-        stack: payload.buyIn,
+        stack: stackToSeat,
         is_connected: true
       }).catch((e) => console.warn("sit_down: upsertSeat failed:", (e as Error).message));
 
@@ -1565,8 +1656,12 @@ io.on("connection", (socket) => {
         tableId: payload.tableId,
         eventType: "SIT_DOWN",
         actorUserId: identity.userId,
-        payload: { seat: payload.seat, buyIn: payload.buyIn }
+        payload: { seat: payload.seat, buyIn: stackToSeat, restored: isRestore }
       }).catch((e) => console.warn("sit_down: logEvent failed:", (e as Error).message));
+
+      if (isRestore) {
+        socket.emit("system_message", { message: `Room funds tracking restored your previous stack (${stackToSeat}).` });
+      }
 
       touchLocalRoom(payload.tableId);
       broadcastSnapshot(payload.tableId);
@@ -1591,10 +1686,14 @@ io.on("connection", (socket) => {
 
       console.log("[SEAT_REQUEST] Room found, owner:", managed.ownership.ownerId);
 
-      // Validate buy-in range
-      const { buyInMin, buyInMax } = managed.settings;
-      if (payload.buyIn < buyInMin || payload.buyIn > buyInMax) {
-        throw new Error(`Buy-in must be between ${buyInMin} and ${buyInMax}`);
+      const restoredStack = getRestorableStack(payload.tableId, identity.userId);
+      const requestedStack = restoredStack ?? payload.buyIn;
+      const isRestore = restoredStack != null;
+      if (!isRestore) {
+        const { buyInMin, buyInMax } = managed.settings;
+        if (payload.buyIn < buyInMin || payload.buyIn > buyInMax) {
+          throw new Error(`Buy-in must be between ${buyInMin} and ${buyInMax}`);
+        }
       }
 
       // Check seat availability
@@ -1612,10 +1711,11 @@ io.on("connection", (socket) => {
         orderId,
         tableId: payload.tableId,
         seat: payload.seat,
-        buyIn: payload.buyIn,
+        buyIn: requestedStack,
         userId: identity.userId,
         userName,
         socketId: socket.id,
+        isRestore,
       };
       pendingSeatRequests.set(orderId, request);
       console.log("[SEAT_REQUEST] Stored request:", orderId);
@@ -1628,13 +1728,16 @@ io.on("connection", (socket) => {
         if (!id) continue;
         if (!roomManager.isHostOrCoHost(payload.tableId, id.userId)) continue;
         io.to(sid).emit("seat_request_pending", {
-          orderId, userId: identity.userId, userName, seat: payload.seat, buyIn: payload.buyIn,
+          orderId, userId: identity.userId, userName, seat: payload.seat, buyIn: requestedStack,
         });
         notified += 1;
       }
       console.log("[SEAT_REQUEST] Notified", notified, "host/co-host sockets");
 
       socket.emit("seat_request_sent", { orderId, seat: payload.seat });
+      if (isRestore) {
+        socket.emit("system_message", { message: `Seat request sent with restored stack ${requestedStack}.` });
+      }
     } catch (error) {
       console.error("[SEAT_REQUEST] Error:", (error as Error).message);
       socket.emit("error_event", { message: (error as Error).message });
@@ -1674,7 +1777,10 @@ io.on("connection", (socket) => {
         stack: request.buyIn,
       });
 
-      recordSessionBuyIn(request.tableId, request.userId, request.userName, request.buyIn);
+      if (!request.isRestore) {
+        recordSessionBuyIn(request.tableId, request.userId, request.userName, request.buyIn);
+      }
+      setSessionLastStack(request.tableId, request.userId, request.userName, request.buyIn);
 
       // Bind the requester's socket to the seat
       socketSeat.set(request.socketId, {
@@ -1686,6 +1792,9 @@ io.on("connection", (socket) => {
 
       // Notify the requester
       io.to(request.socketId).emit("seat_approved", { seat: request.seat, buyIn: request.buyIn });
+      if (request.isRestore) {
+        io.to(request.socketId).emit("system_message", { message: `Your previous room stack was restored (${request.buyIn}).` });
+      }
 
       broadcastSnapshot(payload.tableId);
       void emitLobbySnapshot();
@@ -1729,7 +1838,12 @@ io.on("connection", (socket) => {
       const player = table?.getPublicState().players.find((p) => p.seat === binding.seat);
       if (!player) throw new Error("Player not found");
       if (payload.amount <= 0) throw new Error("Amount must be positive");
-      if (player.stack + payload.amount > buyInMax) throw new Error(`Deposit would exceed max buy-in (${buyInMax})`);
+      const pendingForSeat = [...pendingDeposits.values()]
+        .filter((deposit) => deposit.tableId === payload.tableId && deposit.seat === binding.seat)
+        .reduce((sum, deposit) => sum + deposit.amount, 0);
+      if (player.stack + pendingForSeat + payload.amount > buyInMax) {
+        throw new Error(`Rebuy would exceed max buy-in (${buyInMax})`);
+      }
 
       const orderId = randomUUID();
       const deposit: DepositRequest = {
@@ -1739,8 +1853,9 @@ io.on("connection", (socket) => {
       };
       pendingDeposits.set(orderId, deposit);
 
-      // Notify host/co-hosts
-      for (const [sid] of socketSeat.entries()) {
+      // Notify host/co-hosts in room (seated or spectating)
+      const roomSockets = io.sockets.adapter.rooms.get(payload.tableId) ?? new Set<string>();
+      for (const sid of roomSockets) {
         const id = socketIdentity.get(sid);
         if (!id) continue;
         if (!roomManager.isHostOrCoHost(payload.tableId, id.userId)) continue;
@@ -1764,15 +1879,9 @@ io.on("connection", (socket) => {
       if (!deposit || deposit.tableId !== payload.tableId) throw new Error("Deposit request not found");
 
       deposit.approved = true;
-
-      const table = tables.get(payload.tableId);
-      // If no hand active, credit immediately
-      if (table && !table.isHandActive()) {
-        applyApprovedDeposits(payload.tableId);
-      } else {
-        // Will be credited at hand boundary in finalizeHandEnd
-        io.to(payload.tableId).emit("system_message", { message: `Deposit of ${deposit.amount} for ${deposit.userName} approved — will credit after hand` });
-      }
+      io.to(payload.tableId).emit("system_message", {
+        message: `Rebuy of ${deposit.amount} for ${deposit.userName} approved — credits at next hand start.`,
+      });
       broadcastSnapshot(payload.tableId);
     } catch (error) {
       socket.emit("error_event", { message: (error as Error).message });
@@ -1809,29 +1918,12 @@ io.on("connection", (socket) => {
       let pending = pendingStandUps.get(payload.tableId);
       if (!pending) { pending = new Set(); pendingStandUps.set(payload.tableId, pending); }
       pending.add(payload.seat);
-      socket.emit("system_message", { message: "You will leave after the current hand ends" });
+      socket.emit("system_message", { message: "Leaving after this hand." });
       broadcastSnapshot(payload.tableId);
       return;
     }
 
-    table.removePlayer(payload.seat);
-    socketSeat.delete(socket.id);
-
-    supabase.removeSeat(payload.tableId, payload.seat).catch((e) => console.warn("stand_up: removeSeat failed:", (e as Error).message));
-    supabase.touchRoom(payload.tableId, "OPEN").catch((e) => console.warn("stand_up: touchRoom failed:", (e as Error).message));
-    supabase.logEvent({
-      tableId: payload.tableId,
-      eventType: "STAND_UP",
-      actorUserId: identity.userId,
-      payload: { seat: payload.seat }
-    }).catch((e) => console.warn("stand_up: logEvent failed:", (e as Error).message));
-
-    touchLocalRoom(payload.tableId);
-    broadcastSnapshot(payload.tableId);
-    roomManager.checkRoomEmpty(payload.tableId, currentPlayerCount(payload.tableId), () => {
-      handleRoomAutoClose(payload.tableId);
-    });
-    void emitLobbySnapshot();
+    standUpPlayer(payload.tableId, payload.seat, "Stood up");
   });
 
   socket.on("start_hand", async (payload: { tableId: string }) => {
@@ -1841,7 +1933,6 @@ io.on("connection", (socket) => {
         throw new Error("Only the host can start the game");
       }
 
-      roomManager.setAutoDeal(payload.tableId, true);
       clearAutoDealSchedule(payload.tableId);
       startHandFlow(payload.tableId, identity.userId, "manual");
     } catch (error) {
@@ -2062,15 +2153,20 @@ io.on("connection", (socket) => {
       if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId)) {
         throw new Error("Only host or co-host can view session stats");
       }
+      const room = roomManager.getRoom(payload.tableId);
+      if (!room) throw new Error("Room not found");
+      if (!room.settings.roomFundsTracking) {
+        throw new Error("Room funds tracking is disabled");
+      }
       const table = tables.get(payload.tableId);
       const currentPlayers = table ? table.getPublicState().players : [];
-      const roomStats = sessionStats.get(payload.tableId);
+      const roomStats = getRoomSessionStats(payload.tableId, false);
       const entries: Array<{ seat: number | null; userId: string; name: string; totalBuyIn: number; currentStack: number; net: number; handsPlayed: number }> = [];
 
       if (roomStats) {
         for (const [uid, entry] of roomStats.entries()) {
           const seated = currentPlayers.find((p) => p.userId === uid);
-          const currentStack = seated ? seated.stack : 0;
+          const currentStack = seated ? seated.stack : entry.lastStack;
           entries.push({
             seat: seated?.seat ?? null,
             userId: entry.userId,
@@ -2090,6 +2186,23 @@ io.on("connection", (socket) => {
   });
 
   socket.on("leave_table", async (payload: { tableId: string }) => {
+    const binding = socketSeat.get(socket.id);
+    const table = tables.get(payload.tableId);
+    if (binding && binding.tableId === payload.tableId && table?.isHandActive()) {
+      let pending = pendingStandUps.get(payload.tableId);
+      if (!pending) { pending = new Set(); pendingStandUps.set(payload.tableId, pending); }
+      pending.add(binding.seat);
+      queueLeaveTableAfterHand(payload.tableId, socket.id);
+      socket.emit("system_message", { message: "Leaving after this hand." });
+      touchLocalRoom(payload.tableId);
+      broadcastSnapshot(payload.tableId);
+      return;
+    }
+
+    if (binding && binding.tableId === payload.tableId) {
+      standUpPlayer(payload.tableId, binding.seat, "Left table");
+    }
+
     socket.leave(payload.tableId);
     supabase.logEvent({
       tableId: payload.tableId,
@@ -2323,7 +2436,23 @@ io.on("connection", (socket) => {
       const room = roomsByTableId.get(payload.tableId);
       if (room) {
         roomCodeToTableId.delete(room.roomCode);
+        sessionStatsByRoomCode.delete(room.roomCode);
         roomsByTableId.delete(payload.tableId);
+      }
+      pendingStandUps.delete(payload.tableId);
+      pendingTableLeaves.delete(payload.tableId);
+      pendingPause.delete(payload.tableId);
+      pendingAllInPrompts.delete(payload.tableId);
+      const runCountTimeout = pendingRunCountTimeouts.get(payload.tableId);
+      if (runCountTimeout) {
+        clearTimeout(runCountTimeout);
+        pendingRunCountTimeouts.delete(payload.tableId);
+      }
+      for (const [orderId, request] of pendingSeatRequests.entries()) {
+        if (request.tableId === payload.tableId) pendingSeatRequests.delete(orderId);
+      }
+      for (const [orderId, deposit] of pendingDeposits.entries()) {
+        if (deposit.tableId === payload.tableId) pendingDeposits.delete(orderId);
       }
       tables.delete(payload.tableId);
       roomManager.deleteRoom(payload.tableId);
@@ -2376,6 +2505,11 @@ io.on("connection", (socket) => {
             // Now remove the player
             const tbl2 = tables.get(binding.tableId);
             if (tbl2) {
+              const stateBeforeLeave = tbl2.getPublicState();
+              const leavingPlayer = stateBeforeLeave.players.find((player) => player.seat === binding.seat);
+              if (leavingPlayer) {
+                setSessionLastStack(binding.tableId, leavingPlayer.userId, leavingPlayer.name, leavingPlayer.stack);
+              }
               tbl2.removePlayer(binding.seat);
               broadcastSnapshot(binding.tableId);
             }
@@ -2394,6 +2528,11 @@ io.on("connection", (socket) => {
       } else {
         // No active hand — remove player immediately
         if (table) {
+          const stateBeforeLeave = table.getPublicState();
+          const leavingPlayer = stateBeforeLeave.players.find((player) => player.seat === binding.seat);
+          if (leavingPlayer) {
+            setSessionLastStack(binding.tableId, leavingPlayer.userId, leavingPlayer.name, leavingPlayer.stack);
+          }
           table.removePlayer(binding.seat);
           broadcastSnapshot(binding.tableId);
         }
