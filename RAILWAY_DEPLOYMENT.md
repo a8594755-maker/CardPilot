@@ -13,11 +13,14 @@
 
 ## 步驟 2：設置環境變數（可選）
 
-在 Railway 專案設置中添加（如果需要 Supabase）：
+在 Railway 專案設置中添加（如果需要 Supabase，三個要一起設）：
 ```
 SUPABASE_URL=your_supabase_url
 SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ```
+
+若不使用 Supabase，請三個都不要設，伺服器會以 guest/local 模式啟動。
 
 ## 步驟 3：獲取 Railway 後端網址
 

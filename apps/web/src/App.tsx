@@ -92,7 +92,14 @@ export function App() {
   const [pendingSitSeat, setPendingSitSeat] = useState(1);
   const [buyInAmount, setBuyInAmount] = useState(10000);
   const [currentRoomCode, setCurrentRoomCode] = useState("");
-  const [view, setView] = useState<"lobby" | "table" | "profile" | "history">("lobby");
+  const [view, setView] = useState<"lobby" | "table" | "profile" | "history">(() => {
+    if (typeof window === "undefined") return "lobby";
+    const param = new URLSearchParams(window.location.search).get("view");
+    if (param === "lobby" || param === "table" || param === "profile" || param === "history") {
+      return param;
+    }
+    return "lobby";
+  });
 
   /* ── Room management state ── */
   const [roomState, setRoomState] = useState<RoomFullState | null>(null);
@@ -1970,13 +1977,77 @@ function ProfilePage({ displayName, setDisplayName, email, authSession }: {
 }
 
 /* ═══════════════════ HISTORY PAGE ═══════════════════ */
-function HistoryPage({ socket, isConnected }: { socket: Socket | null; isConnected: boolean; userId?: string }) {
+type HistoryRouteState = {
+  roomId: string;
+  sessionId: string;
+  handId: string;
+};
+
+const HISTORY_QUERY_KEYS = ["roomId", "sessionId", "handId"] as const;
+
+function normalizeHistoryRoute(input: Partial<HistoryRouteState>): HistoryRouteState {
+  const roomId = (input.roomId ?? "").trim();
+  const sessionId = roomId ? (input.sessionId ?? "").trim() : "";
+  const handId = roomId && sessionId ? (input.handId ?? "").trim() : "";
+  return { roomId, sessionId, handId };
+}
+
+function readHistoryRouteFromUrl(): HistoryRouteState {
+  if (typeof window === "undefined") {
+    return { roomId: "", sessionId: "", handId: "" };
+  }
+  const params = new URLSearchParams(window.location.search);
+  return normalizeHistoryRoute({
+    roomId: params.get("roomId") ?? "",
+    sessionId: params.get("sessionId") ?? "",
+    handId: params.get("handId") ?? "",
+  });
+}
+
+function writeHistoryRouteToUrl(route: HistoryRouteState, mode: "push" | "replace"): void {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  for (const key of HISTORY_QUERY_KEYS) {
+    url.searchParams.delete(key);
+  }
+  if (route.roomId) url.searchParams.set("roomId", route.roomId);
+  if (route.sessionId) url.searchParams.set("sessionId", route.sessionId);
+  if (route.handId) url.searchParams.set("handId", route.handId);
+  const next = `${url.pathname}${url.searchParams.toString() ? `?${url.searchParams.toString()}` : ""}${url.hash}`;
+  if (mode === "push") {
+    window.history.pushState({ historyRoute: route }, "", next);
+    return;
+  }
+  window.history.replaceState({ historyRoute: route }, "", next);
+}
+
+function useIsMobileViewport(): boolean {
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(max-width: 1023px)").matches;
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const onChange = (event: MediaQueryListEvent) => setIsMobile(event.matches);
+    setIsMobile(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  return isMobile;
+}
+
+function HistoryPage({ socket, isConnected, userId }: { socket: Socket | null; isConnected: boolean; userId: string }) {
+  const initialRouteRef = useRef<HistoryRouteState>(readHistoryRouteFromUrl());
+
   const [rooms, setRooms] = useState<HistoryRoomSummary[]>([]);
   const [sessions, setSessions] = useState<HistorySessionSummary[]>([]);
   const [hands, setHands] = useState<HistoryHandSummary[]>([]);
-  const [selectedRoomId, setSelectedRoomId] = useState("");
-  const [selectedSessionId, setSelectedSessionId] = useState("");
-  const [selectedHandId, setSelectedHandId] = useState("");
+  const [selectedRoomId, setSelectedRoomId] = useState(initialRouteRef.current.roomId);
+  const [selectedSessionId, setSelectedSessionId] = useState(initialRouteRef.current.sessionId);
+  const [selectedHandId, setSelectedHandId] = useState(initialRouteRef.current.handId);
   const [detailById, setDetailById] = useState<Record<string, HistoryHandDetail>>({});
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [loadingSessions, setLoadingSessions] = useState(false);
@@ -1985,13 +2056,42 @@ function HistoryPage({ socket, isConnected }: { socket: Socket | null; isConnect
   const [loadingDetailId, setLoadingDetailId] = useState("");
   const [hasMoreHands, setHasMoreHands] = useState(false);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [sheetSnapPoint, setSheetSnapPoint] = useState<0.4 | 0.9>(0.4);
 
+  const sessionsCacheRef = useRef<Record<string, HistorySessionSummary[]>>({});
+  const handsCacheRef = useRef<Record<string, { hands: HistoryHandSummary[]; hasMore: boolean; nextCursor: string | null }>>({});
   const selectedRoomRef = useRef(selectedRoomId);
   const selectedSessionRef = useRef(selectedSessionId);
   const pendingHandsRequestRef = useRef<{ roomSessionId: string; beforeEndedAt?: string } | null>(null);
+  const isMobile = useIsMobileViewport();
 
   useEffect(() => { selectedRoomRef.current = selectedRoomId; }, [selectedRoomId]);
   useEffect(() => { selectedSessionRef.current = selectedSessionId; }, [selectedSessionId]);
+
+  const setRouteState = useCallback((next: HistoryRouteState) => {
+    setSelectedRoomId(next.roomId);
+    setSelectedSessionId(next.sessionId);
+    setSelectedHandId(next.handId);
+  }, []);
+
+  const navigateHistory = useCallback((nextRoute: Partial<HistoryRouteState>, mode: "push" | "replace" = "push") => {
+    const normalized = normalizeHistoryRoute(nextRoute);
+    setRouteState(normalized);
+    writeHistoryRouteToUrl(normalized, mode);
+  }, [setRouteState]);
+
+  useEffect(() => {
+    writeHistoryRouteToUrl(initialRouteRef.current, "replace");
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onPopState = () => {
+      setRouteState(readHistoryRouteFromUrl());
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [setRouteState]);
 
   const requestRooms = useCallback(() => {
     if (!socket) return;
@@ -1999,14 +2099,33 @@ function HistoryPage({ socket, isConnected }: { socket: Socket | null; isConnect
     socket.emit("request_history_rooms", { limit: 100 });
   }, [socket]);
 
-  const requestSessions = useCallback((roomId: string) => {
+  const requestSessions = useCallback((roomId: string, force = false) => {
     if (!socket || !roomId) return;
+    if (!force) {
+      const cached = sessionsCacheRef.current[roomId];
+      if (cached) {
+        setSessions(cached);
+        setLoadingSessions(false);
+        return;
+      }
+    }
     setLoadingSessions(true);
     socket.emit("request_history_sessions", { roomId, limit: 200 });
   }, [socket]);
 
-  const requestHands = useCallback((roomSessionId: string, beforeEndedAt?: string) => {
+  const requestHands = useCallback((roomSessionId: string, beforeEndedAt?: string, force = false) => {
     if (!socket || !roomSessionId) return;
+    if (!beforeEndedAt && !force) {
+      const cached = handsCacheRef.current[roomSessionId];
+      if (cached) {
+        setHands(cached.hands);
+        setHasMoreHands(cached.hasMore);
+        setNextCursor(cached.nextCursor);
+        setLoadingHands(false);
+        return;
+      }
+    }
+
     if (beforeEndedAt) {
       setLoadingMoreHands(true);
     } else {
@@ -2023,50 +2142,62 @@ function HistoryPage({ socket, isConnected }: { socket: Socket | null; isConnect
       setLoadingRooms(false);
       const nextRooms = payload.rooms ?? [];
       setRooms(nextRooms);
-      setSelectedRoomId((current) => {
-        if (current && nextRooms.some((room) => room.roomId === current)) return current;
-        return nextRooms[0]?.roomId ?? "";
-      });
+      if (selectedRoomRef.current && !nextRooms.some((room) => room.roomId === selectedRoomRef.current)) {
+        navigateHistory({}, "replace");
+      }
     };
 
     const onHistorySessions = (payload: { roomId: string; sessions: HistorySessionSummary[] }) => {
+      sessionsCacheRef.current[payload.roomId] = payload.sessions ?? [];
       if (payload.roomId !== selectedRoomRef.current) return;
+
       setLoadingSessions(false);
       const nextSessions = payload.sessions ?? [];
       setSessions(nextSessions);
-      setSelectedSessionId((current) => {
-        if (current && nextSessions.some((session) => session.roomSessionId === current)) return current;
-        return nextSessions[0]?.roomSessionId ?? "";
-      });
+      if (selectedSessionRef.current && !nextSessions.some((session) => session.roomSessionId === selectedSessionRef.current)) {
+        navigateHistory({ roomId: payload.roomId }, "replace");
+      }
     };
 
     const onHistoryHands = (payload: { roomSessionId: string; hands: HistoryHandSummary[]; hasMore: boolean; nextCursor?: string }) => {
       if (payload.roomSessionId !== selectedSessionRef.current) return;
+
       setLoadingHands(false);
       setLoadingMoreHands(false);
 
       const pending = pendingHandsRequestRef.current;
-      const append = pending?.roomSessionId === payload.roomSessionId && !!pending.beforeEndedAt;
+      const append = pending?.roomSessionId === payload.roomSessionId && Boolean(pending.beforeEndedAt);
 
       setHands((current) => {
-        if (!append) return payload.hands ?? [];
-        const seen = new Set(current.map((hand) => hand.id));
-        const merged = [...current];
-        for (const hand of payload.hands ?? []) {
-          if (!seen.has(hand.id)) {
-            merged.push(hand);
-            seen.add(hand.id);
+        let nextHands: HistoryHandSummary[];
+        if (!append) {
+          nextHands = payload.hands ?? [];
+        } else {
+          const seen = new Set(current.map((hand) => hand.id));
+          nextHands = [...current];
+          for (const hand of payload.hands ?? []) {
+            if (!seen.has(hand.id)) {
+              nextHands.push(hand);
+              seen.add(hand.id);
+            }
           }
         }
-        return merged;
+        handsCacheRef.current[payload.roomSessionId] = {
+          hands: nextHands,
+          hasMore: Boolean(payload.hasMore),
+          nextCursor: payload.nextCursor ?? null,
+        };
+        return nextHands;
       });
+      pendingHandsRequestRef.current = null;
       setHasMoreHands(Boolean(payload.hasMore));
       setNextCursor(payload.nextCursor ?? null);
     };
 
     const onHistoryHandDetail = (payload: { handHistoryId: string; hand: HistoryHandDetail | null }) => {
-      if (payload.hand) {
-        setDetailById((current) => ({ ...current, [payload.handHistoryId]: payload.hand! }));
+      const handDetail = payload.hand;
+      if (handDetail) {
+        setDetailById((current) => ({ ...current, [payload.handHistoryId]: handDetail }));
       }
       setLoadingDetailId((current) => (current === payload.handHistoryId ? "" : current));
     };
@@ -2082,7 +2213,7 @@ function HistoryPage({ socket, isConnected }: { socket: Socket | null; isConnect
       socket.off("history_hands", onHistoryHands);
       socket.off("history_hand_detail", onHistoryHandDetail);
     };
-  }, [socket]);
+  }, [socket, navigateHistory]);
 
   useEffect(() => {
     if (!socket || !isConnected) return;
@@ -2090,203 +2221,558 @@ function HistoryPage({ socket, isConnected }: { socket: Socket | null; isConnect
   }, [socket, isConnected, requestRooms]);
 
   useEffect(() => {
-    setSessions([]);
-    setSelectedSessionId("");
-    setHands([]);
-    setSelectedHandId("");
-    setHasMoreHands(false);
-    setNextCursor(null);
-    if (!selectedRoomId) return;
+    const normalized = normalizeHistoryRoute({ roomId: selectedRoomId, sessionId: selectedSessionId, handId: selectedHandId });
+    if (
+      normalized.roomId !== selectedRoomId ||
+      normalized.sessionId !== selectedSessionId ||
+      normalized.handId !== selectedHandId
+    ) {
+      setRouteState(normalized);
+      writeHistoryRouteToUrl(normalized, "replace");
+    }
+  }, [selectedRoomId, selectedSessionId, selectedHandId, setRouteState]);
+
+  useEffect(() => {
+    if (!selectedRoomId) {
+      setSessions([]);
+      setHands([]);
+      setHasMoreHands(false);
+      setNextCursor(null);
+      return;
+    }
+
+    const cached = sessionsCacheRef.current[selectedRoomId];
+    if (cached) setSessions(cached);
     requestSessions(selectedRoomId);
   }, [selectedRoomId, requestSessions]);
 
   useEffect(() => {
-    setHands([]);
-    setSelectedHandId("");
-    setHasMoreHands(false);
-    setNextCursor(null);
-    if (!selectedSessionId) return;
+    if (!selectedSessionId) {
+      setHands([]);
+      setHasMoreHands(false);
+      setNextCursor(null);
+      return;
+    }
+
+    const cached = handsCacheRef.current[selectedSessionId];
+    if (cached) {
+      setHands(cached.hands);
+      setHasMoreHands(cached.hasMore);
+      setNextCursor(cached.nextCursor);
+    }
     requestHands(selectedSessionId);
   }, [selectedSessionId, requestHands]);
 
+  useEffect(() => {
+    if (!selectedHandId || !socket) return;
+    if (detailById[selectedHandId]) return;
+    setLoadingDetailId(selectedHandId);
+    socket.emit("request_history_hand_detail", { handHistoryId: selectedHandId });
+  }, [selectedHandId, detailById, socket]);
+
+  useEffect(() => {
+    if (!selectedHandId) return;
+    setSheetSnapPoint(0.4);
+  }, [selectedHandId]);
+
+  useEffect(() => {
+    if (!(isMobile && selectedHandId)) return;
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+    };
+  }, [isMobile, selectedHandId]);
+
+  const selectedRoom = useMemo(
+    () => rooms.find((room) => room.roomId === selectedRoomId) ?? null,
+    [rooms, selectedRoomId]
+  );
+  const selectedSession = useMemo(
+    () => sessions.find((session) => session.roomSessionId === selectedSessionId) ?? null,
+    [sessions, selectedSessionId]
+  );
   const selectedHand = selectedHandId ? detailById[selectedHandId] ?? null : null;
+  const mobileStage = !selectedRoomId ? "rooms" : !selectedSessionId ? "sessions" : "hands";
+
+  const selectRoom = useCallback((roomId: string) => {
+    navigateHistory({ roomId }, "push");
+  }, [navigateHistory]);
+
+  const selectSession = useCallback((roomSessionId: string) => {
+    if (!selectedRoomId) return;
+    navigateHistory({ roomId: selectedRoomId, sessionId: roomSessionId }, "push");
+  }, [selectedRoomId, navigateHistory]);
+
+  const openHandDetail = useCallback((handHistoryId: string) => {
+    if (!selectedRoomId || !selectedSessionId) return;
+    navigateHistory({ roomId: selectedRoomId, sessionId: selectedSessionId, handId: handHistoryId }, "push");
+  }, [selectedRoomId, selectedSessionId, navigateHistory]);
+
+  const closeHandDetail = useCallback((mode: "push" | "replace" = "push") => {
+    navigateHistory({ roomId: selectedRoomId, sessionId: selectedSessionId }, mode);
+  }, [selectedRoomId, selectedSessionId, navigateHistory]);
+
+  const handleMobileBack = useCallback(() => {
+    if (selectedHandId) {
+      closeHandDetail("push");
+      return;
+    }
+    if (selectedSessionId) {
+      navigateHistory({ roomId: selectedRoomId }, "push");
+      return;
+    }
+    if (selectedRoomId) {
+      navigateHistory({}, "push");
+    }
+  }, [selectedHandId, closeHandDetail, selectedSessionId, selectedRoomId, navigateHistory]);
+
+  const handleRefresh = useCallback(() => {
+    requestRooms();
+    if (selectedRoomId) requestSessions(selectedRoomId, true);
+    if (selectedSessionId) requestHands(selectedSessionId, undefined, true);
+  }, [requestRooms, requestSessions, requestHands, selectedRoomId, selectedSessionId]);
+
+  const handleLoadMoreHands = useCallback(() => {
+    if (!selectedSessionId || !nextCursor || loadingMoreHands) return;
+    requestHands(selectedSessionId, nextCursor, true);
+  }, [selectedSessionId, nextCursor, loadingMoreHands, requestHands]);
+
+  const roomListContent = (
+    <>
+      {loadingRooms ? (
+        <HistorySkeletonRows rows={6} />
+      ) : rooms.length === 0 ? (
+        <p className="text-xs text-slate-500 py-3 px-1">No visible room history.</p>
+      ) : (
+        rooms.map((room) => (
+          <button
+            key={room.roomId}
+            onClick={() => selectRoom(room.roomId)}
+            className={`w-full min-h-[52px] text-left p-2.5 rounded-lg border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 ${
+              selectedRoomId === room.roomId ? "bg-amber-500/10 border-amber-500/30" : "bg-white/[0.02] border-white/5 hover:border-white/20"
+            }`}
+          >
+            <div className="text-sm font-semibold text-white truncate">{room.roomName}</div>
+            <div className="text-[10px] text-slate-500 mt-0.5">
+              <span className="font-mono text-amber-400/80">{room.roomCode}</span>
+              <span className="mx-1.5">·</span>
+              {room.totalHands} hands
+            </div>
+            <div className="text-[10px] text-slate-600 mt-0.5">Last: {formatHistoryDateTime(room.lastPlayedAt)}</div>
+          </button>
+        ))
+      )}
+    </>
+  );
+
+  const sessionListContent = (
+    <>
+      {!selectedRoomId ? (
+        <p className="text-xs text-slate-500 py-3 px-1">Select a room.</p>
+      ) : loadingSessions ? (
+        <HistorySkeletonRows rows={6} />
+      ) : sessions.length === 0 ? (
+        <p className="text-xs text-slate-500 py-3 px-1">No sessions available.</p>
+      ) : (
+        sessions.map((session, idx) => {
+          const currentDay = historyDayKey(session.openedAt);
+          const prevDay = idx > 0 ? historyDayKey(sessions[idx - 1].openedAt) : "";
+          return (
+            <div key={session.roomSessionId}>
+              {idx === 0 || currentDay !== prevDay ? (
+                <div className="text-[10px] text-slate-600 uppercase tracking-wider mt-2 mb-1 px-1">
+                  {new Date(session.openedAt).toLocaleDateString()}
+                </div>
+              ) : null}
+              <button
+                onClick={() => selectSession(session.roomSessionId)}
+                className={`w-full min-h-[48px] text-left p-2.5 rounded-lg border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/40 ${
+                  selectedSessionId === session.roomSessionId ? "bg-cyan-500/10 border-cyan-500/30" : "bg-white/[0.02] border-white/5 hover:border-white/20"
+                }`}
+              >
+                <div className="text-xs text-white font-medium">
+                  {formatHistoryTime(session.openedAt)} - {session.closedAt ? formatHistoryTime(session.closedAt) : "Open"}
+                </div>
+                <div className="text-[10px] text-slate-500 mt-0.5">{session.handCount} visible hands</div>
+              </button>
+            </div>
+          );
+        })
+      )}
+    </>
+  );
+
+  const handListContent = (
+    <>
+      {!selectedSessionId ? (
+        <p className="text-xs text-slate-500 py-3 px-1">Select a session.</p>
+      ) : loadingHands ? (
+        <HistorySkeletonRows rows={8} />
+      ) : hands.length === 0 ? (
+        <p className="text-xs text-slate-500 py-3 px-1">No hands in this session.</p>
+      ) : (
+        hands.map((hand) => (
+          <HistoryHandRow
+            key={hand.id}
+            hand={hand}
+            userId={userId}
+            selected={selectedHandId === hand.id}
+            onOpen={openHandDetail}
+          />
+        ))
+      )}
+    </>
+  );
 
   return (
-    <main className="flex-1 p-4 overflow-hidden">
+    <main className="flex-1 p-2 sm:p-4 overflow-hidden">
       <div className="h-full flex flex-col gap-3">
-        <div className="glass-card p-4 flex items-center gap-3">
-          <h2 className="text-xl font-bold text-white">Hand History by Room</h2>
-          <span className="text-xs text-slate-500">Summary lists are lightweight; details load on demand.</span>
-          <button onClick={requestRooms} className="btn-ghost text-xs !py-1.5 !px-3 ml-auto">Refresh</button>
+        <div className="glass-card p-3 sm:p-4 flex items-center gap-3">
+          <h2 className="text-lg sm:text-xl font-bold text-white">Hand History by Room</h2>
+          <span className="text-xs text-slate-500 hidden sm:inline">Summaries are lightweight; details load on demand.</span>
+          <button
+            onClick={handleRefresh}
+            className="btn-ghost text-xs !py-1.5 !px-3 ml-auto min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/40"
+          >
+            Refresh
+          </button>
         </div>
 
         {!isConnected || !socket ? (
           <div className="glass-card p-8 text-center text-slate-400 text-sm">Connect to the game server to load hand history.</div>
         ) : (
-          <div className="min-h-0 flex-1 grid grid-cols-1 lg:grid-cols-[260px_320px_minmax(0,1fr)] gap-3">
-            <section className="glass-card min-h-0 p-3 flex flex-col">
-              <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Rooms</div>
-              <div className="min-h-0 overflow-y-auto space-y-1.5">
-                {loadingRooms ? (
-                  <p className="text-xs text-slate-500 py-2">Loading rooms…</p>
-                ) : rooms.length === 0 ? (
-                  <p className="text-xs text-slate-500 py-2">No visible room history.</p>
-                ) : (
-                  rooms.map((room) => (
-                    <button
-                      key={room.roomId}
-                      onClick={() => setSelectedRoomId(room.roomId)}
-                      className={`w-full text-left p-2 rounded-lg border transition-all ${
-                        selectedRoomId === room.roomId ? "bg-amber-500/10 border-amber-500/30" : "bg-white/[0.02] border-white/5 hover:border-white/20"
-                      }`}
-                    >
-                      <div className="text-sm font-semibold text-white truncate">{room.roomName}</div>
-                      <div className="text-[10px] text-slate-500 mt-0.5">
-                        <span className="font-mono text-amber-400/80">{room.roomCode}</span>
-                        <span className="mx-1.5">·</span>
-                        {room.totalHands} hands
-                      </div>
-                      <div className="text-[10px] text-slate-600 mt-0.5">Last: {formatHistoryDateTime(room.lastPlayedAt)}</div>
-                    </button>
-                  ))
-                )}
-              </div>
-            </section>
+          <>
+            <div className="lg:hidden min-h-0 flex-1">
+              {mobileStage === "rooms" ? (
+                <section className="glass-card h-full min-h-0 flex flex-col overflow-hidden">
+                  <div className="sticky top-0 z-10 px-3 py-2 border-b border-white/5 bg-slate-950/70 backdrop-blur-sm">
+                    <div className="text-xs uppercase tracking-wider text-slate-400">Rooms</div>
+                    <div className="text-[11px] text-slate-500 mt-0.5">Pick a room to continue</div>
+                  </div>
+                  <div className="min-h-0 overflow-y-auto p-2 space-y-2">{roomListContent}</div>
+                </section>
+              ) : null}
 
-            <section className="glass-card min-h-0 p-3 flex flex-col">
-              <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Sessions</div>
-              <div className="min-h-0 overflow-y-auto space-y-1.5">
-                {selectedRoomId.length === 0 ? (
-                  <p className="text-xs text-slate-500 py-2">Select a room.</p>
-                ) : loadingSessions ? (
-                  <p className="text-xs text-slate-500 py-2">Loading sessions…</p>
-                ) : sessions.length === 0 ? (
-                  <p className="text-xs text-slate-500 py-2">No sessions available.</p>
-                ) : (
-                  sessions.map((session, idx) => {
-                    const currentDay = historyDayKey(session.openedAt);
-                    const prevDay = idx > 0 ? historyDayKey(sessions[idx - 1].openedAt) : "";
-                    return (
-                      <div key={session.roomSessionId}>
-                        {idx === 0 || currentDay !== prevDay ? (
-                          <div className="text-[10px] text-slate-600 uppercase tracking-wider mt-2 mb-1">
-                            {new Date(session.openedAt).toLocaleDateString()}
-                          </div>
-                        ) : null}
-                        <button
-                          onClick={() => setSelectedSessionId(session.roomSessionId)}
-                          className={`w-full text-left p-2 rounded-lg border transition-all ${
-                            selectedSessionId === session.roomSessionId ? "bg-cyan-500/10 border-cyan-500/30" : "bg-white/[0.02] border-white/5 hover:border-white/20"
-                          }`}
-                        >
-                          <div className="text-xs text-white font-medium">
-                            {formatHistoryTime(session.openedAt)} - {session.closedAt ? formatHistoryTime(session.closedAt) : "Open"}
-                          </div>
-                          <div className="text-[10px] text-slate-500 mt-0.5">{session.handCount} visible hands</div>
-                        </button>
+              {mobileStage === "sessions" ? (
+                <section className="glass-card h-full min-h-0 flex flex-col overflow-hidden">
+                  <div className="sticky top-0 z-10 px-3 py-2 border-b border-white/5 bg-slate-950/70 backdrop-blur-sm">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleMobileBack}
+                        className="btn-ghost !py-0 !px-0 w-11 min-h-[44px] text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/40"
+                        aria-label="Back to rooms"
+                      >
+                        ←
+                      </button>
+                      <div className="min-w-0">
+                        <div className="text-xs uppercase tracking-wider text-slate-400">Sessions</div>
+                        <div className="text-sm text-white font-semibold truncate">{selectedRoom?.roomName ?? "Room"}</div>
                       </div>
-                    );
-                  })
-                )}
-              </div>
-            </section>
+                    </div>
+                    <div className="text-[11px] text-slate-500 mt-1 truncate">
+                      <span className="font-mono">{selectedRoom?.roomCode ?? ""}</span>
+                      <span className="mx-1">·</span>
+                      {selectedRoom?.totalHands ?? 0} hands
+                    </div>
+                  </div>
+                  <div className="min-h-0 overflow-y-auto p-2 space-y-2">{sessionListContent}</div>
+                </section>
+              ) : null}
 
-            <section className="glass-card min-h-0 p-3 flex flex-col">
-              <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Hands</div>
-              <div className="min-h-0 overflow-y-auto space-y-1.5">
-                {selectedSessionId.length === 0 ? (
-                  <p className="text-xs text-slate-500 py-2">Select a session.</p>
-                ) : loadingHands ? (
-                  <p className="text-xs text-slate-500 py-2">Loading hands…</p>
-                ) : hands.length === 0 ? (
-                  <p className="text-xs text-slate-500 py-2">No hands in this session.</p>
-                ) : (
-                  hands.map((hand) => (
-                    <button
-                      key={hand.id}
-                      onClick={() => {
-                        setSelectedHandId(hand.id);
-                        if (!detailById[hand.id] && socket) {
-                          setLoadingDetailId(hand.id);
-                          socket.emit("request_history_hand_detail", { handHistoryId: hand.id });
-                        }
-                      }}
-                      className="w-full text-left p-2.5 rounded-lg border border-white/5 bg-white/[0.02] hover:border-amber-500/30 transition-all"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="text-sm text-white font-semibold">Hand #{hand.handNo}</div>
-                        <div className="text-[10px] text-slate-500">{formatHistoryTime(hand.endedAt)}</div>
+              {mobileStage === "hands" ? (
+                <section className="glass-card h-full min-h-0 flex flex-col overflow-hidden">
+                  <div className="sticky top-0 z-10 px-3 py-2 border-b border-white/5 bg-slate-950/70 backdrop-blur-sm">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleMobileBack}
+                        className="btn-ghost !py-0 !px-0 w-11 min-h-[44px] text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/40"
+                        aria-label="Back to sessions"
+                      >
+                        ←
+                      </button>
+                      <div className="min-w-0">
+                        <div className="text-xs uppercase tracking-wider text-slate-400">Hands</div>
+                        <div className="text-sm text-white font-semibold truncate">{selectedRoom?.roomName ?? "Room"}</div>
                       </div>
-                      <div className="text-[11px] text-slate-400 mt-1">
-                        Pot {hand.summary.totalPot.toLocaleString()} · Blinds {hand.blinds.sb}/{hand.blinds.bb}
-                        <span className="mx-1.5">·</span>
-                        {hand.summary.flags.runItTwice ? "Run it twice" : "Single run"}
-                      </div>
-                      <div className="text-[10px] text-slate-500 mt-1 truncate">
-                        {hand.summary.winners.length > 0
-                          ? hand.summary.winners.map((winner) => {
-                              const player = hand.players.find((p) => p.seat === winner.seat);
-                              return `${player?.name ?? `Seat ${winner.seat}`} +${winner.amount}`;
-                            }).join(" · ")
-                          : "No winner data"}
-                      </div>
-                    </button>
-                  ))
-                )}
-              </div>
-              {selectedSessionId && hasMoreHands && (
-                <button
-                  onClick={() => nextCursor && requestHands(selectedSessionId, nextCursor)}
-                  disabled={loadingMoreHands || !nextCursor}
-                  className="mt-2 btn-ghost text-xs !py-1.5 disabled:opacity-50"
-                >
-                  {loadingMoreHands ? "Loading…" : "Load more"}
-                </button>
-              )}
-            </section>
-          </div>
+                    </div>
+                    <div className="text-[11px] text-slate-500 mt-1 truncate">
+                      {selectedSession ? `${formatHistoryDateTime(selectedSession.openedAt)} · ${selectedSession.handCount} hands` : "Select a session"}
+                    </div>
+                  </div>
+                  <div className="min-h-0 overflow-y-auto p-2 space-y-2">{handListContent}</div>
+                  {selectedSessionId && hasMoreHands ? (
+                    <div className="px-2 pb-2 border-t border-white/5">
+                      <button
+                        onClick={handleLoadMoreHands}
+                        disabled={loadingMoreHands || !nextCursor}
+                        className="w-full mt-2 btn-ghost text-xs !py-1.5 min-h-[44px] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/40"
+                      >
+                        {loadingMoreHands ? "Loading…" : "Load more"}
+                      </button>
+                    </div>
+                  ) : null}
+                </section>
+              ) : null}
+            </div>
+
+            <div className="hidden lg:grid min-h-0 flex-1 grid-cols-[260px_320px_minmax(0,1fr)] gap-3">
+              <section className="glass-card min-h-0 p-3 flex flex-col">
+                <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Rooms</div>
+                <div className="min-h-0 overflow-y-auto space-y-1.5">{roomListContent}</div>
+              </section>
+
+              <section className="glass-card min-h-0 p-3 flex flex-col">
+                <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Sessions</div>
+                <div className="min-h-0 overflow-y-auto space-y-1.5">{sessionListContent}</div>
+              </section>
+
+              <section className="glass-card min-h-0 p-3 flex flex-col">
+                <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Hands</div>
+                <div className="min-h-0 overflow-y-auto space-y-1.5">{handListContent}</div>
+                {selectedSessionId && hasMoreHands ? (
+                  <button
+                    onClick={handleLoadMoreHands}
+                    disabled={loadingMoreHands || !nextCursor}
+                    className="mt-2 btn-ghost text-xs !py-1.5 min-h-[44px] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/40"
+                  >
+                    {loadingMoreHands ? "Loading…" : "Load more"}
+                  </button>
+                ) : null}
+              </section>
+            </div>
+          </>
         )}
       </div>
 
-      {selectedHandId && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3" onClick={() => setSelectedHandId("")}>
+      {isMobile && selectedHandId ? (
+        <HistoryBottomSheet
+          open={Boolean(selectedHandId)}
+          snapPoint={sheetSnapPoint}
+          onSnapPointChange={setSheetSnapPoint}
+          onDismiss={() => closeHandDetail("push")}
+          title={selectedHand ? `Hand #${selectedHand.handNo}` : "Hand Detail"}
+        >
+          {!selectedHand && loadingDetailId === selectedHandId ? (
+            <HistorySkeletonRows rows={6} />
+          ) : selectedHand ? (
+            <HistoryHandDetailView hand={selectedHand} userId={userId} compact />
+          ) : (
+            <p className="text-sm text-slate-400">Hand detail is not available.</p>
+          )}
+        </HistoryBottomSheet>
+      ) : null}
+
+      {!isMobile && selectedHandId ? (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3" onClick={() => closeHandDetail("push")}>
           <div className="glass-card w-full max-w-4xl max-h-[92vh] overflow-y-auto p-5" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-white">Hand Detail</h3>
-              <button onClick={() => setSelectedHandId("")} className="btn-ghost text-xs !py-1 !px-2">Close</button>
+              <button
+                onClick={() => closeHandDetail("push")}
+                className="btn-ghost text-xs !py-1 !px-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/40"
+              >
+                Close
+              </button>
             </div>
             {!selectedHand && loadingDetailId === selectedHandId ? (
-              <p className="text-sm text-slate-400">Loading hand detail…</p>
+              <HistorySkeletonRows rows={6} />
             ) : selectedHand ? (
-              <HistoryHandDetailView hand={selectedHand} />
+              <HistoryHandDetailView hand={selectedHand} userId={userId} />
             ) : (
               <p className="text-sm text-slate-400">Hand detail is not available.</p>
             )}
           </div>
         </div>
-      )}
+      ) : null}
     </main>
   );
 }
 
-function HistoryHandDetailView({ hand }: { hand: HistoryHandDetail }) {
+function HistorySkeletonRows({ rows = 5 }: { rows?: number }) {
   return (
-    <div className="space-y-4">
-      <div className="glass-card p-3">
+    <div className="space-y-2">
+      {Array.from({ length: rows }).map((_, idx) => (
+        <div key={idx} className="animate-pulse min-h-[48px] rounded-lg border border-white/5 bg-white/[0.03] p-2.5">
+          <div className="h-3 w-1/3 rounded bg-white/10" />
+          <div className="mt-2 h-2.5 w-2/3 rounded bg-white/8" />
+          <div className="mt-1.5 h-2 w-1/2 rounded bg-white/6" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function HistoryHandRow({
+  hand,
+  userId,
+  selected,
+  onOpen,
+}: {
+  hand: HistoryHandSummary;
+  userId: string;
+  selected: boolean;
+  onOpen: (handHistoryId: string) => void;
+}) {
+  const myNet = hand.summary.myNetByUser[userId] ?? 0;
+  const isChop = hand.summary.winners.length > 1;
+
+  return (
+    <button
+      onClick={() => onOpen(hand.id)}
+      className={`w-full min-h-[52px] text-left p-2.5 rounded-lg border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 ${
+        selected ? "border-amber-500/35 bg-amber-500/10" : "border-white/5 bg-white/[0.02] hover:border-amber-500/30"
+      }`}
+    >
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-2 items-center">
+        <div className="min-w-0">
+          <div className="text-sm text-white font-semibold truncate">Hand #{hand.handNo}</div>
+          <div className="text-[10px] text-slate-500">{formatHistoryTime(hand.endedAt)}</div>
+        </div>
+        <div className="text-[11px] font-mono text-slate-300 whitespace-nowrap">Pot {hand.summary.totalPot.toLocaleString()}</div>
+        <div className="text-right min-w-[84px]">
+          <div className={`text-xs font-mono font-semibold ${myNet >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+            {myNet >= 0 ? "+" : ""}{myNet.toLocaleString()}
+          </div>
+          <div className="mt-1 flex items-center justify-end gap-1">
+            {hand.summary.flags.allIn ? <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-300">AI</span> : null}
+            {hand.summary.flags.runItTwice ? <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300">R2</span> : null}
+            {isChop ? <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300">CH</span> : null}
+          </div>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function HistoryBottomSheet({
+  open,
+  snapPoint,
+  onSnapPointChange,
+  onDismiss,
+  title,
+  children,
+}: {
+  open: boolean;
+  snapPoint: 0.4 | 0.9;
+  onSnapPointChange: (next: 0.4 | 0.9) => void;
+  onDismiss: () => void;
+  title: string;
+  children: React.ReactNode;
+}) {
+  const [dragPoint, setDragPoint] = useState<number | null>(null);
+  const dragStartYRef = useRef<number | null>(null);
+  const dragStartPointRef = useRef<number>(snapPoint);
+
+  useEffect(() => {
+    if (!open) setDragPoint(null);
+  }, [open]);
+
+  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    dragStartYRef.current = event.touches[0]?.clientY ?? null;
+    dragStartPointRef.current = dragPoint ?? snapPoint;
+  };
+
+  const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    const startY = dragStartYRef.current;
+    if (startY == null) return;
+    const currentY = event.touches[0]?.clientY ?? startY;
+    const viewportHeight = typeof window === "undefined" ? 1 : Math.max(1, window.innerHeight);
+    const delta = currentY - startY;
+    const nextPoint = Math.min(0.95, Math.max(0.22, dragStartPointRef.current - delta / viewportHeight));
+    setDragPoint(nextPoint);
+  };
+
+  const handleTouchEnd = () => {
+    if (dragPoint == null) {
+      dragStartYRef.current = null;
+      return;
+    }
+    const nextSnap: 0.4 | 0.9 = dragPoint > 0.66 ? 0.9 : 0.4;
+    if (dragPoint < 0.33) {
+      onDismiss();
+    } else {
+      onSnapPointChange(nextSnap);
+    }
+    dragStartYRef.current = null;
+    setDragPoint(null);
+  };
+
+  const activePoint = dragPoint ?? snapPoint;
+
+  return (
+    <div
+      className={`fixed inset-0 z-50 bg-black/55 backdrop-blur-sm transition-opacity duration-200 ${open ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+      onClick={onDismiss}
+      aria-hidden={!open}
+    >
+      <div
+        className="history-bottom-sheet absolute inset-x-0 bottom-0 rounded-t-2xl border border-white/10 bg-[#0d1420] shadow-2xl overflow-hidden flex flex-col"
+        style={{ height: `${Math.round(activePoint * 100)}dvh`, maxHeight: "95dvh" }}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div
+          className="history-bottom-sheet-handle px-3 pt-2 pb-2 border-b border-white/5"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
+        >
+          <div className="mx-auto mb-2 h-1.5 w-12 rounded-full bg-slate-500/60" />
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-white truncate">{title}</h3>
+            <button
+              onClick={() => onSnapPointChange(snapPoint === 0.4 ? 0.9 : 0.4)}
+              className="btn-ghost text-[10px] !py-1 !px-2 min-h-[44px] ml-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/40"
+            >
+              {snapPoint === 0.4 ? "Expand" : "Peek"}
+            </button>
+            <button
+              onClick={onDismiss}
+              className="btn-ghost text-[10px] !py-1 !px-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/40"
+              aria-label="Close hand detail sheet"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+
+        <div className="min-h-0 overflow-y-auto p-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HistoryHandDetailView({ hand, userId, compact = false }: { hand: HistoryHandDetail; userId: string; compact?: boolean }) {
+  const myNet = hand.summary.myNetByUser[userId] ?? 0;
+
+  return (
+    <div className="space-y-3">
+      <div className={`glass-card ${compact ? "p-2.5" : "p-3"}`}>
         <div className="flex flex-wrap items-center gap-3 text-sm">
           <span className="font-semibold text-white">Hand #{hand.handNo}</span>
-          <span className="text-slate-400">Ended {formatHistoryDateTime(hand.endedAt)}</span>
-          <span className="text-slate-400">Pot {hand.summary.totalPot.toLocaleString()}</span>
+          <span className="text-slate-400">{formatHistoryDateTime(hand.endedAt)}</span>
           <span className="text-slate-400">Blinds {hand.blinds.sb}/{hand.blinds.bb}</span>
+          <span className="text-slate-400">Pot {hand.summary.totalPot.toLocaleString()}</span>
+          <span className={`font-mono font-semibold ${myNet >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+            My Net {myNet >= 0 ? "+" : ""}{myNet.toLocaleString()}
+          </span>
         </div>
       </div>
 
-      <div className="glass-card p-3 space-y-2">
+      <div className={`glass-card ${compact ? "p-2.5" : "p-3"} space-y-2`}>
         <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Boards</h4>
         {(hand.detail.runoutBoards.length > 0 ? hand.detail.runoutBoards : [hand.detail.board]).map((board, idx) => (
           <div key={idx} className="flex items-center gap-2">
-            {hand.detail.runoutBoards.length > 1 && <span className="text-[10px] text-slate-500 w-7">Run {idx + 1}</span>}
-            <div className="flex gap-1.5">
+            {hand.detail.runoutBoards.length > 1 ? (
+              <span className="text-[10px] text-slate-500 w-10">{`Run ${idx + 1}`}</span>
+            ) : null}
+            <div className="flex gap-1.5 overflow-x-auto">
               {board.map((card, cardIdx) => <CardImg key={cardIdx} card={card} className="w-9 h-13 rounded shadow" />)}
             </div>
           </div>
@@ -2294,7 +2780,7 @@ function HistoryHandDetailView({ hand }: { hand: HistoryHandDetail }) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <div className="glass-card p-3">
+        <div className={`glass-card ${compact ? "p-2.5" : "p-3"}`}>
           <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Pot Breakdown</h4>
           <div className="space-y-1.5">
             {hand.detail.potLayers.map((layer, idx) => (
@@ -2306,7 +2792,7 @@ function HistoryHandDetailView({ hand }: { hand: HistoryHandDetail }) {
           </div>
         </div>
 
-        <div className="glass-card p-3">
+        <div className={`glass-card ${compact ? "p-2.5" : "p-3"}`}>
           <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Payout Ledger</h4>
           <div className="space-y-1.5">
             {hand.detail.payoutLedger.map((entry) => (
@@ -2321,9 +2807,9 @@ function HistoryHandDetailView({ hand }: { hand: HistoryHandDetail }) {
         </div>
       </div>
 
-      <div className="glass-card p-3">
+      <div className={`glass-card ${compact ? "p-2.5" : "p-3"}`}>
         <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Action Timeline</h4>
-        <div className="space-y-1.5 max-h-64 overflow-y-auto">
+        <div className={`space-y-1.5 overflow-y-auto ${compact ? "max-h-[40dvh]" : "max-h-64"}`}>
           {hand.detail.actionTimeline.map((action, idx) => (
             <div key={`${action.seat}-${action.at}-${idx}`} className="text-xs flex items-center gap-2">
               <span className="text-slate-500 w-10">{action.street}</span>
@@ -2337,7 +2823,7 @@ function HistoryHandDetailView({ hand }: { hand: HistoryHandDetail }) {
               }`}>
                 {action.type}
               </span>
-              {action.amount > 0 && <span className="text-slate-400 font-mono">{action.amount.toLocaleString()}</span>}
+              {action.amount > 0 ? <span className="text-slate-400 font-mono">{action.amount.toLocaleString()}</span> : null}
             </div>
           ))}
         </div>

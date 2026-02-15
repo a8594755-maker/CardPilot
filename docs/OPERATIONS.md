@@ -14,6 +14,8 @@ Config rules:
 - Invalid numeric env values fail fast with a clear startup error.
 - Supabase variables are validated as a set:
   - Set all of `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, or leave all unset.
+  - If only a subset is configured, the server disables Supabase and runs in guest/local mode with a warning.
+  - Set `SUPABASE_STRICT_ENV=true` to fail fast instead.
 
 ## Environment Variables
 Use `.env.example` (repo root) and `apps/game-server/.env.example` as the source of truth.
@@ -24,6 +26,7 @@ Production-critical variables:
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_STRICT_ENV` (optional; set to `true` for fail-fast partial-config validation)
 
 Web variables:
 - `VITE_SERVER_URL`

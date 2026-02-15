@@ -73,6 +73,8 @@ To enable Google sign-in you need a Supabase project with the Google provider co
    - Server: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 
 When Supabase is not configured (env vars unset), the Google button is hidden and the app falls back to guest/local mode.
+If only part of the server Supabase env is set, the server now disables Supabase and falls back to guest/local mode with a warning.
+Set `SUPABASE_STRICT_ENV=true` to fail fast on partial Supabase config.
 
 ## Deployment Notes
 - Web deploy is compatible with Netlify (`netlify.toml` is included).

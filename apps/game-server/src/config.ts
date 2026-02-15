@@ -144,6 +144,17 @@ function parsePositiveInt(name: string, fallback: number): number {
   return value;
 }
 
+function parseBooleanEnv(name: string, fallback: boolean): boolean {
+  const raw = process.env[name];
+  if (!raw) return fallback;
+
+  const normalized = raw.trim().toLowerCase();
+  if (["1", "true", "yes", "on"].includes(normalized)) return true;
+  if (["0", "false", "no", "off"].includes(normalized)) return false;
+
+  throw new Error(`[config] ${name} must be boolean-like (true/false/1/0), received "${raw}"`);
+}
+
 function parseSupabaseEnvGuard(): void {
   if ((process.env.NODE_ENV || "").toLowerCase() === "test") {
     return;
@@ -155,11 +166,20 @@ function parseSupabaseEnvGuard(): void {
     "SUPABASE_SERVICE_ROLE_KEY",
   ] as const;
 
-  const defined = keys.filter((key) => typeof process.env[key] === "string" && process.env[key]!.length > 0);
-  if (defined.length > 0 && defined.length < keys.length) {
-    throw new Error(
-      "[config] Incomplete Supabase env: set SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY together (or leave all unset)."
-    );
+  const defined = keys.filter((key) => typeof process.env[key] === "string" && process.env[key]!.trim().length > 0);
+  if (defined.length === 0 || defined.length === keys.length) return;
+
+  const missing = keys.filter((key) => !defined.includes(key));
+  const message = `[config] Incomplete Supabase env: set ${keys.join(", ")} together (or leave all unset).`;
+  const details = `Set: ${defined.join(", ")} | Missing: ${missing.join(", ")}`;
+
+  if (parseBooleanEnv("SUPABASE_STRICT_ENV", false)) {
+    throw new Error(`${message} ${details}`);
+  }
+
+  console.warn(`${message} ${details}. Supabase disabled; falling back to guest/local mode.`);
+  for (const key of keys) {
+    delete process.env[key];
   }
 }
 
