@@ -34,6 +34,7 @@ import { useChipAnimationDriver, type ChipAnimationAnchors } from "./hooks/useCh
 import { type AnimationSpeed, loadAnimationSpeed, saveAnimationSpeed } from "./lib/chip-animation.js";
 import { isRealMoneyEnabled } from "./lib/feature-flags";
 import { TrainingDashboard } from "./pages/TrainingDashboard";
+import { SettingsPage } from "./pages/SettingsPage";
 import { useAuditEvents } from "./hooks/useAuditEvents";
 
 const SERVER = import.meta.env.VITE_SERVER_URL || "http://127.0.0.1:4000";
@@ -115,7 +116,7 @@ export function App() {
   const [currentRoomCode, setCurrentRoomCode] = useState("");
   const [currentRoomName, setCurrentRoomName] = useState("");
 
-  type AppView = "lobby" | "table" | "profile" | "history" | "clubs" | "cashier" | "training";
+  type AppView = "lobby" | "table" | "profile" | "history" | "clubs" | "cashier" | "training" | "settings";
   const view = useMemo<AppView>(() => {
     const path = location.pathname;
     if (path === "/" || path.startsWith("/lobby")) return "lobby";
@@ -124,6 +125,7 @@ export function App() {
     if (path.startsWith("/clubs")) return "clubs";
     if (path.startsWith("/cashier")) return "cashier";
     if (path.startsWith("/training")) return "training";
+    if (path.startsWith("/settings")) return "settings";
     if (path.startsWith("/profile")) return "profile";
     return "lobby";
   }, [location.pathname]);
@@ -165,7 +167,7 @@ export function App() {
       return;
     }
 
-    const supportedPaths = ["/lobby", "/history", "/profile", "/cashier", "/training"];
+    const supportedPaths = ["/lobby", "/history", "/profile", "/cashier", "/training", "/settings"];
     if (!(location.pathname.startsWith("/clubs") || location.pathname.startsWith("/history/") || supportedPaths.includes(location.pathname))) {
       navigate("/lobby", { replace: true });
     }
@@ -940,13 +942,13 @@ export function App() {
           <h1 className="text-base font-bold tracking-tight text-white">Card<span className="text-amber-400">Pilot</span></h1>
         </div>
         <nav className="flex items-center gap-1 bg-white/5 rounded-xl p-1">
-          {(["lobby", "clubs", "cashier", "table", "history", "training", "profile"] as const).map((v) => (
+          {(["lobby", "clubs", "cashier", "table", "history", "training", "settings", "profile"] as const).map((v) => (
             <button key={v} onClick={() => {
               setView(v);
               if (v === "clubs" && socket) { socket.emit("club_list_my_clubs"); }
             }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === v ? "bg-white/10 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
-              {v === "lobby" ? "Lobby" : v === "clubs" ? "Clubs" : v === "cashier" ? "Cashier" : v === "table" ? "Table" : v === "history" ? "History" : v === "training" ? "Training" : "Profile"}
+              {v === "lobby" ? "Lobby" : v === "clubs" ? "Clubs" : v === "cashier" ? "Cashier" : v === "table" ? "Table" : v === "history" ? "History" : v === "training" ? "Training" : v === "settings" ? "Settings" : "Profile"}
             </button>
           ))}
         </nav>
@@ -1029,6 +1031,9 @@ export function App() {
             }}
             showToast={showToast}
           />
+        ) : view === "settings" ? (
+          /* ═══════ SETTINGS ═══════ */
+          <SettingsPage />
         ) : view === "cashier" ? (
           /* ═══════ CASHIER ═══════ */
           <>
