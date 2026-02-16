@@ -35,6 +35,9 @@ import { type AnimationSpeed, loadAnimationSpeed, saveAnimationSpeed } from "./l
 import { isRealMoneyEnabled } from "./lib/feature-flags";
 import { TrainingDashboard } from "./pages/TrainingDashboard";
 import { useAuditEvents } from "./hooks/useAuditEvents";
+import { BottomActionBar } from "./components/ui/BottomActionBar";
+import { LeftOptionsRail, OptionsDrawer, type RailAction, type DrawerSection } from "./components/ui/LeftOptionsRail";
+import { FoldConfirmModal } from "./components/ui/FoldConfirmModal";
 
 const SERVER = import.meta.env.VITE_SERVER_URL || "http://127.0.0.1:4000";
 const DEBUG_LOGS_ENABLED = import.meta.env.DEV;
@@ -65,6 +68,12 @@ function getSeatLayout(n: number): Record<number, { top: string; left: string }>
     };
   }
   return result;
+}
+
+function mapSeatToVisualIndex(seatNum: number, heroSeat: number, maxPlayers: number): number {
+  const normalizedSeat = ((seatNum - 1) % maxPlayers + maxPlayers) % maxPlayers;
+  const normalizedHero = ((heroSeat - 1) % maxPlayers + maxPlayers) % maxPlayers;
+  return ((normalizedSeat - normalizedHero + maxPlayers) % maxPlayers) + 1;
 }
 
 /* ═══════════════════ MAIN APP ═══════════════════ */
@@ -99,6 +108,7 @@ export function App() {
   const [allInPrompt, setAllInPrompt] = useState<AllInPrompt | null>(null);
   const [boardReveal, setBoardReveal] = useState<{ street: string; equities: Array<{ seat: number; winRate: number; tieRate: number }> } | null>(null);
   const [showHandConfirm, setShowHandConfirm] = useState(false);
+  const [lastActionBySeat, setLastActionBySeat] = useState<Record<number, { action: string; amount: number }>>({});
 
   const [lobbyRooms, setLobbyRooms] = useState<LobbyRoomSummary[]>([]);
   const [newRoomSB, setNewRoomSB] = useState(1);
@@ -202,6 +212,12 @@ export function App() {
     try { return localStorage.getItem("cardpilot_show_gto") !== "false"; } catch { return true; }
   });
   const [showMobileGto, setShowMobileGto] = useState(false);
+
+  /* ── UI Redesign state ── */
+  const [preAction, setPreAction] = useState<string | null>(null);
+  const [showFoldConfirm, setShowFoldConfirm] = useState(false);
+  const [suppressFoldConfirm, setSuppressFoldConfirm] = useState(false);
+  const [showOptionsDrawer, setShowOptionsDrawer] = useState(false);
 
   /* ── Table theme ── */
   type TableTheme = "green" | "blue";
@@ -409,12 +425,17 @@ export function App() {
       setAdvice(null); setDeviation(null); setWinners(null); setAllInPrompt(null); setBoardReveal(null); setHoleCards([]);
       setSettlement(null); setSettlementCountdown(0); setSettlementEndsAtMs(0);
       setSettlementRevealedHoles(undefined); setSettlementWinnerHandNames(undefined);
+      setShowFoldConfirm(false);
+      setLastActionBySeat({});
     });
     s.on("board_reveal", (d: { handId: string; street: string; newCards: string[]; board: string[]; equities: Array<{ seat: number; winRate: number; tieRate: number }> }) => {
       setBoardReveal({ street: d.street, equities: d.equities });
     });
     s.on("run_twice_reveal", (d: { handId: string; street: string; run1: { newCards: string[]; board: string[] }; run2: { newCards: string[]; board: string[] } }) => {
-      setBoardReveal((prev) => ({ street: d.street, equities: prev?.equities ?? [] }));
+      setBoardReveal((prev: { street: string; equities: Array<{ seat: number; winRate: number; tieRate: number }> } | null) => ({
+        street: d.street,
+        equities: prev?.equities ?? [],
+      }));
       setSnapshot((prev) => {
         if (!prev || prev.handId !== d.handId) return prev;
         return { ...prev, runoutBoards: [d.run1.board, d.run2.board] };
@@ -428,6 +449,10 @@ export function App() {
     });
     s.on("action_applied", (d: { seat: number; action: string; amount: number; pot: number; auto?: boolean }) => {
       if (d.seat === seatRef.current) setActionPending(false);
+      setLastActionBySeat((prev) => ({
+        ...prev,
+        [d.seat]: { action: d.action, amount: d.amount ?? 0 },
+      }));
       // Show action confirmation for the local player
       if (d.seat === seatRef.current && !d.auto) {
         const actionLabel = d.action === "fold" ? "Fold" : d.action === "check" ? "Check" : d.action === "call" ? `Call ${d.amount.toLocaleString()}` : d.action === "raise" ? `Raise to ${d.amount.toLocaleString()}` : d.action === "all_in" ? "All-In" : d.action;
@@ -666,6 +691,36 @@ export function App() {
 
   // Reset action pending when turn/street/hand changes
   useEffect(() => { setActionPending(false); }, [snapshot?.actorSeat, snapshot?.street, snapshot?.handId]);
+
+  // Pre-action auto-apply: when it becomes your turn, auto-execute the pre-action if still valid
+  useEffect(() => {
+    if (!canAct || !preAction || actionPending || !snapshot?.handId) return;
+    const legal = snapshot.legalActions;
+    if (!legal) return;
+
+    if (preAction === "fold") {
+      setActionPending(true);
+      setPreAction(null);
+      socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "fold" });
+    } else if (preAction === "check" && legal.canCheck) {
+      setActionPending(true);
+      setPreAction(null);
+      socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "check" });
+    } else if (preAction === "check/fold") {
+      if (legal.canCheck) {
+        setActionPending(true);
+        setPreAction(null);
+        socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "check" });
+      } else {
+        setActionPending(true);
+        setPreAction(null);
+        socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "fold" });
+      }
+    } else {
+      // Pre-action no longer valid (e.g., "check" but there's a bet) — clear it and prompt normally
+      setPreAction(null);
+    }
+  }, [canAct, preAction, actionPending, snapshot?.handId, snapshot?.legalActions, socket, tableId]);
   const isConnected = socketConnected;
   const isHost = useMemo(() => roomState?.ownership.ownerId === authSession?.userId, [roomState, authSession]);
   const isCoHost = useMemo(() => roomState?.ownership.coHostIds.includes(authSession?.userId ?? "") ?? false, [roomState, authSession]);
@@ -679,7 +734,7 @@ export function App() {
     if (!isHost) return "Only host can deal";
     if (roomState?.status === "PAUSED") return "Game is paused";
     if (handInProgress) return "Current hand is still in progress";
-    const eligibleCount = snapshot?.players.filter((p) => p.stack > 0).length ?? 0;
+    const eligibleCount = snapshot?.players.filter((p: TablePlayer) => p.stack > 0).length ?? 0;
     if (eligibleCount < 2) return `Need at least 2 players with chips (currently ${eligibleCount})`;
     return null;
   }, [isConnected, isHost, roomState?.status, handInProgress, snapshot?.players]);
@@ -775,12 +830,28 @@ export function App() {
     if (!settlement) return null;
     if (roomState?.status === "PAUSED") return "Game is paused by host.";
     if (!roomState?.settings.autoStartNextHand) return "Auto-start is off.";
-    const eligibleCount = snapshot?.players.filter((p) => p.stack > 0).length ?? 0;
+    const eligibleCount = snapshot?.players.filter((p: TablePlayer) => p.stack > 0).length ?? 0;
     if (eligibleCount < 2) return `Waiting for 2+ eligible players (currently ${eligibleCount}).`;
     return null;
   }, [settlement, roomState, snapshot?.players]);
 
+  useEffect(() => {
+    setLastActionBySeat({});
+  }, [snapshot?.handId]);
+
   const seatPositions = useMemo(() => getSeatLayout(roomState?.settings.maxPlayers ?? 6), [roomState?.settings.maxPlayers]);
+  const heroSeatForLayout = useMemo(() => {
+    if (!snapshot?.players?.some((p: TablePlayer) => p.seat === seat)) return null;
+    return seat;
+  }, [snapshot?.players, seat]);
+  const potNumbers = useMemo(() => {
+    const totalPot = snapshot?.pot ?? 0;
+    const currentStreetCommitted = snapshot?.players?.reduce((sum: number, player: TablePlayer) => sum + (player.streetCommitted ?? 0), 0) ?? 0;
+    return {
+      totalPot,
+      pushedPot: Math.max(0, totalPot - currentStreetCommitted),
+    };
+  }, [snapshot?.pot, snapshot?.players]);
 
   const handleSeatClick = useCallback((seatNum: number) => {
     if (socket && tableId) {
@@ -809,7 +880,10 @@ export function App() {
   const seatElements = useMemo(() => {
     const maxP = roomState?.settings.maxPlayers ?? 6;
     return Array.from({ length: maxP }, (_, i) => i + 1).map((seatNum) => {
-      const pos = seatPositions[seatNum];
+      const visualSeatNum = heroSeatForLayout == null
+        ? seatNum
+        : mapSeatToVisualIndex(seatNum, heroSeatForLayout, maxP);
+      const pos = seatPositions[visualSeatNum];
       const player = snapshot?.players.find((p) => p.seat === seatNum);
       const isActor = snapshot?.actorSeat === seatNum;
       const isMe = seatNum === seat;
@@ -828,6 +902,7 @@ export function App() {
           <SeatChip player={player} seatNum={seatNum} isActor={isActor} isMe={isMe}
             isOwner={!!isOwner} isCoHost={!!isCo} timer={seatTimer}
             posLabel={posLabel} isButton={isButton} displayBB={displayBB} bigBlind={snapshot?.bigBlind ?? 3}
+            lastAction={lastActionBySeat[seatNum] ?? null}
             equity={equity} pendingLeave={isPendingLeave} revealedCards={revealedCards} revealedHandName={revealedHandName} isMucked={isMucked}
             onClickRevealed={revealedCards ? () => {
               setRevealedZoom({
@@ -841,7 +916,7 @@ export function App() {
         </div>
       );
     });
-  }, [snapshot, seat, roomState, timerDisplay, boardReveal, displayBB, seatPositions, handleSeatClick]);
+  }, [snapshot, seat, roomState, timerDisplay, boardReveal, displayBB, seatPositions, heroSeatForLayout, handleSeatClick, lastActionBySeat]);
 
   // Debug seat requests
   useEffect(() => {
@@ -1263,6 +1338,63 @@ export function App() {
         ) : (
           /* ═══════ TABLE VIEW ═══════ */
           <>
+            {/* ── Left Options Rail (desktop only) ── */}
+            <LeftOptionsRail
+              drawerOpen={showOptionsDrawer}
+              onOpenDrawer={() => setShowOptionsDrawer(true)}
+              actions={[
+                ...(myPlayer ? [
+                  { id: "away", icon: "💤", label: "Away", onClick: () => {
+                    if (myPlayer.status === "sitting_out") socket?.emit("sit_in", { tableId });
+                    else socket?.emit("sit_out", { tableId });
+                  }, active: myPlayer.status === "sitting_out" },
+                ] : []),
+                { id: "leave", icon: "🚪", label: "Leave", onClick: () => {
+                  if (handInProgress) { socket?.emit("stand_up", { tableId, seat }); }
+                  else { socket?.emit("stand_up", { tableId, seat }); }
+                }, danger: true, hidden: !myPlayer },
+                { id: "theme", icon: tableTheme === "green" ? "🟢" : "🔵", label: "Theme", onClick: () => {
+                  const next: TableTheme = tableTheme === "green" ? "blue" : "green";
+                  setTableTheme(next);
+                  try { localStorage.setItem("cardpilot_table_theme", next); } catch {}
+                }},
+                { id: "bb", icon: displayBB ? "BB" : "$", label: displayBB ? "Chips" : "BB", onClick: () => setDisplayBB(!displayBB) },
+              ]}
+            />
+
+            {/* ── Options Drawer ── */}
+            <OptionsDrawer
+              open={showOptionsDrawer}
+              onClose={() => setShowOptionsDrawer(false)}
+              roomName={currentRoomName || undefined}
+              roomCode={currentRoomCode || undefined}
+              blinds={roomState ? `${roomState.settings.smallBlind}/${roomState.settings.bigBlind}` : undefined}
+              isHost={!!isHost}
+              onCopyCode={() => {
+                if (currentRoomCode) {
+                  navigator.clipboard.writeText(currentRoomCode).then(() => showToast("Room code copied!")).catch(() => {});
+                }
+              }}
+              sections={[
+                ...(isHostOrCoHost ? [{ id: "settings", icon: "⚙️", label: "Game Settings", onClick: () => { setShowSettings(!showSettings); setShowOptionsDrawer(false); } }] : []),
+                ...(isHostOrCoHost ? [{ id: "players", icon: "👥", label: "Players & Moderation", onClick: () => { setShowSettings(true); setShowOptionsDrawer(false); } }] : []),
+                { id: "gto", icon: "🎯", label: "GTO Coach", onClick: () => { setShowGtoSidebar(!showGtoSidebar); setShowOptionsDrawer(false); }, badge: advice?.recommended?.toUpperCase() },
+                { id: "stats", icon: "📊", label: "Session Stats", onClick: () => {
+                  setShowSessionStats(!showSessionStats);
+                  if (!showSessionStats) socket?.emit("request_session_stats", { tableId });
+                  setShowOptionsDrawer(false);
+                }},
+                { id: "log", icon: "📋", label: "Room Log", onClick: () => { setShowRoomLog(!showRoomLog); setShowOptionsDrawer(false); } },
+                { id: "profile", icon: "👤", label: "Profile & Preferences", onClick: () => { setView("profile"); setShowOptionsDrawer(false); } },
+                { id: "lobby", icon: "🏠", label: "Back to Lobby", onClick: () => {
+                  if (handInProgress) { if (!confirm("A hand is in progress. Leave after this hand?")) return; socket?.emit("stand_up", { tableId, seat }); }
+                  socket?.emit("request_lobby");
+                  setView("lobby");
+                  setShowOptionsDrawer(false);
+                }},
+              ]}
+            />
+
             <main className="flex-1 flex flex-col overflow-hidden">
               {/* Kicked overlay */}
               {kicked && (
@@ -1708,11 +1840,11 @@ export function App() {
               )}
 
               {/* ── CENTER: TABLE + SIDEBAR ── */}
-              <div className="flex-1 flex overflow-hidden min-h-0">
-                {/* Table area */}
-                <div className="flex-1 flex flex-col items-center justify-center p-2 overflow-hidden">
-                  {/* Info strip */}
-                  <div className="w-full max-w-2xl flex items-center justify-between mb-1 px-1 shrink-0">
+              <div className="flex-1 flex overflow-hidden min-h-0 cp-scene-bg">
+                {/* Table area — maximized viewport usage */}
+                <div className="flex-1 flex flex-col items-center justify-center p-2 overflow-hidden relative" style={{ zIndex: 2 }}>
+                  {/* Info strip — improved numeric hierarchy */}
+                  <div className="w-full max-w-3xl flex items-center justify-between mb-1.5 px-2 shrink-0">
                     <div className="flex items-center gap-3">
                       <InfoCell label="Hand" value={snapshot?.handId ? snapshot.handId.slice(0, 8) : "—"} />
                       <div className="w-px h-5 bg-white/10" />
@@ -1724,26 +1856,26 @@ export function App() {
                           : "—"
                       } cyan />
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-5">
                       {/* Hero bet this street */}
                       {snapshot?.handId && (() => {
                         const me = snapshot.players.find(p => p.seat === seat);
                         return me && me.streetCommitted > 0 ? (
                           <div className="text-right">
-                            <span className="text-[9px] text-slate-500 uppercase tracking-wider">You Bet</span>
-                            <div className="text-sm font-bold text-sky-400">{displayBB ? `${(me.streetCommitted / (snapshot.bigBlind ?? 3)).toFixed(1)}bb` : me.streetCommitted.toLocaleString()}</div>
+                            <span className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Your Bet</span>
+                            <div className="text-base font-bold text-sky-400 cp-num">{displayBB ? `${(me.streetCommitted / (snapshot.bigBlind ?? 3)).toFixed(1)} BB` : me.streetCommitted.toLocaleString()}</div>
                           </div>
                         ) : null;
                       })()}
                       <div className="text-right">
-                        <span className="text-[9px] text-slate-500 uppercase tracking-wider">Pot</span>
-                        <div className="text-lg font-extrabold text-amber-400">{displayBB ? `${((snapshot?.pot ?? 0) / (snapshot?.bigBlind ?? 3)).toFixed(1)}bb` : (snapshot?.pot ?? 0).toLocaleString()}</div>
+                        <span className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Total Pot</span>
+                        <div className="text-xl font-extrabold text-amber-400 cp-num">{displayBB ? `${(potNumbers.totalPot / (snapshot?.bigBlind ?? 3)).toFixed(1)} BB` : potNumbers.totalPot.toLocaleString()}</div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Table surface + overlays — CSS green felt */}
-                  <div ref={tableContainerRef} className="relative w-full max-w-2xl select-none shrink">
+                  {/* Table surface + overlays — CSS green felt, wider */}
+                  <div ref={tableContainerRef} className="relative w-full max-w-3xl select-none shrink">
                     <div className={`aspect-[16/9] rounded-[50%] ${tableTheme === "blue" ? "poker-table-surface-blue" : "poker-table-surface"}`} />
 
                     {/* Community cards — centered on table (supports run-it-twice dual boards) */}
@@ -1757,7 +1889,7 @@ export function App() {
                                 R{runIdx + 1}
                               </span>
                               <div className="flex gap-0.5 flex-1">
-                                {board.map((c, i) => (
+                                {board.map((c: string, i: number) => (
                                   <PokerCard key={i} card={c} variant="seat" />
                                 ))}
                               </div>
@@ -1768,7 +1900,7 @@ export function App() {
                         /* Standard single board */
                         <div className="flex gap-1 pointer-events-auto" style={{ width: "32%" }}>
                           {snapshot?.board && snapshot.board.length > 0
-                            ? snapshot.board.map((c, i) => <PokerCard key={i} card={c} variant="table" />)
+                            ? snapshot.board.map((c: string, i: number) => <PokerCard key={i} card={c} variant="table" />)
                             : Array.from({ length: 5 }).map((_, i) => (
                                 <div key={i} className="flex-1 min-w-0 max-w-[56px] aspect-[2.5/3.5] rounded border border-dashed border-white/15 bg-white/[0.04]" />
                               ))}
@@ -1784,9 +1916,16 @@ export function App() {
 
                     {/* Pot chip on table (always render anchor ref for animations) */}
                     <div ref={potRef} className="absolute top-[32%] left-1/2 -translate-x-1/2 pointer-events-none">
-                      {(snapshot?.pot ?? 0) > 0 && (
-                        <div className="bg-black/70 px-2 py-0.5 rounded-full text-amber-400 font-bold text-[10px] shadow-lg">
-                          {displayBB ? `${((snapshot?.pot ?? 0) / (snapshot?.bigBlind ?? 3)).toFixed(1)}bb` : (snapshot?.pot ?? 0).toLocaleString()}
+                      {potNumbers.totalPot > 0 && (
+                        <div className="bg-black/70 px-2 py-1 rounded-xl text-[10px] shadow-lg border border-amber-500/20 min-w-[92px]">
+                          <div className="flex items-center justify-between gap-2 text-slate-300 uppercase tracking-wider text-[8px]">
+                            <span>Pushed</span>
+                            <span className="text-emerald-300 font-bold cp-num normal-case">{displayBB ? `${(potNumbers.pushedPot / (snapshot?.bigBlind ?? 3)).toFixed(1)}bb` : potNumbers.pushedPot.toLocaleString()}</span>
+                          </div>
+                          <div className="mt-0.5 flex items-center justify-between gap-2 text-slate-300 uppercase tracking-wider text-[8px]">
+                            <span>Total</span>
+                            <span className="text-amber-400 font-bold cp-num normal-case">{displayBB ? `${(potNumbers.totalPot / (snapshot?.bigBlind ?? 3)).toFixed(1)}bb` : potNumbers.totalPot.toLocaleString()}</span>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1836,7 +1975,7 @@ export function App() {
                           Revealed
                         </span>
                       )}
-                      {holeCards.map((c, i) => <PokerCard key={i} card={c} variant="table" />)}
+                      {holeCards.map((c: string, i: number) => <PokerCard key={i} card={c} variant="table" />)}
                     </div>
                   )}
 
@@ -1866,10 +2005,10 @@ export function App() {
                         </div>
                         <div className="flex flex-col items-center gap-2">
                           {[...winners].sort((a, b) => {
-                            const order = getClockwiseSeatsFromButton(snapshot?.buttonSeat ?? 0, winners.map((x) => x.seat));
+                            const order = getClockwiseSeatsFromButton(snapshot?.buttonSeat ?? 0, winners.map((x: { seat: number }) => x.seat));
                             return order.indexOf(a.seat) - order.indexOf(b.seat);
                           }).map((w) => {
-                            const p = snapshot?.players.find((pl) => pl.seat === w.seat);
+                            const p = snapshot?.players.find((pl: TablePlayer) => pl.seat === w.seat);
                             return (
                               <div key={w.seat} className="flex items-center gap-3 px-5 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 animate-[fadeSlideUp_0.6s_ease-out]">
                                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-sm font-extrabold text-slate-900 shadow-lg">
@@ -2071,10 +2210,10 @@ export function App() {
                 </div>
               </div>
 
-              {/* ── ACTIONS (pinned to bottom, compact) — only when seated & hand active ── */}
-              {snapshot?.handId && snapshot.players.some((p) => p.seat === seat) && (
-              <div className="shrink-0 px-3 pb-1.5 pt-1">
-                <ActionBar
+              {/* ── ACTIONS (pinned to bottom) — only when seated & hand active ── */}
+              {snapshot?.handId && snapshot.players.some((p: TablePlayer) => p.seat === seat) && (
+              <>
+                <BottomActionBar
                   canAct={!!canAct}
                   legal={snapshot?.legalActions ?? null}
                   pot={snapshot?.pot ?? 0}
@@ -2085,16 +2224,31 @@ export function App() {
                   street={snapshot?.street ?? "PREFLOP"}
                   board={snapshot?.board ?? []}
                   heroStack={snapshot?.players.find((p) => p.seat === seat)?.stack ?? 10000}
-                  numPlayers={snapshot?.players.filter((p) => p.inHand && !p.folded).length ?? 2}
+                  numPlayers={snapshot?.players.filter((p: TablePlayer) => p.inHand && !p.folded).length ?? 2}
                   advice={advice}
                   thinkExtensionEnabled={(roomState?.settings.thinkExtensionQuotaPerHour ?? 0) > 0}
                   thinkExtensionRemainingUses={thinkExtensionRemainingUses}
                   onThinkExtension={() => socket?.emit("request_think_extension", { tableId })}
                   actionPending={actionPending}
+                  displayBB={displayBB}
+                  preAction={preAction}
+                  onSetPreAction={setPreAction}
+                  isMyTurn={!!canAct}
+                  onFoldAttempt={() => {
+                    if (suppressFoldConfirm) {
+                      // Suppressed — fold directly
+                      if (!snapshot?.handId || actionPending) return;
+                      setActionPending(true);
+                      socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "fold" });
+                    } else {
+                      setShowFoldConfirm(true);
+                    }
+                  }}
                   onAction={(action, amount) => {
                     if (!snapshot?.handId) return;
                     if (actionPending) return;
                     setActionPending(true);
+                    setPreAction(null);
 
                     const legal = snapshot.legalActions;
                     if (action === "all_in") {
@@ -2121,6 +2275,27 @@ export function App() {
 
                     socket?.emit("action_submit", { tableId, handId: snapshot.handId, action, amount });
                   }}
+                />
+
+                {/* Unnecessary fold confirmation modal */}
+                <FoldConfirmModal
+                  open={showFoldConfirm}
+                  onConfirmFold={() => {
+                    setShowFoldConfirm(false);
+                    if (!snapshot?.handId || actionPending) return;
+                    setActionPending(true);
+                    socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "fold" });
+                  }}
+                  onCancel={() => {
+                    setShowFoldConfirm(false);
+                    // Auto-check instead
+                    if (snapshot?.legalActions?.canCheck && snapshot?.handId && !actionPending) {
+                      setActionPending(true);
+                      socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "check" });
+                    }
+                  }}
+                  suppressedThisSession={suppressFoldConfirm}
+                  onSuppressChange={setSuppressFoldConfirm}
                 />
 
                 {isMyShowdownDecision && snapshot?.handId && (
@@ -2188,14 +2363,14 @@ export function App() {
                 )}
 
                 {/* Waiting banner: shown to non-prompted players during all-in decision */}
-                {snapshot?.allInPrompt && snapshot.allInPrompt.actorSeat !== seat && seat != null && snapshot.players.some((p) => p.seat === seat && p.inHand) && (
+                {snapshot?.allInPrompt && snapshot.allInPrompt.actorSeat !== seat && seat != null && snapshot.players.some((p: TablePlayer) => p.seat === seat && p.inHand) && (
                   <div className="mt-2 px-3 py-2 rounded-xl border border-amber-500/20 bg-amber-500/5 text-center">
                     <span className="text-[10px] text-amber-300 animate-pulse">
                       Waiting for Seat {snapshot.allInPrompt.actorSeat} to choose run count…
                     </span>
                   </div>
                 )}
-              </div>
+              </>
               )}
             </main>
           </>
@@ -2300,7 +2475,7 @@ function ProfilePage({ displayName, setDisplayName, email, authSession }: {
                 {displayName[0]}
               </div>
               <div className="flex gap-1 mt-1">
-                {AVATAR_COLORS.map((c, i) => (
+                {AVATAR_COLORS.map((c: string, i: number) => (
                   <button key={i} onClick={() => updatePref("avatarColor", i)}
                     className={`w-5 h-5 rounded-full bg-gradient-to-br ${c} border-2 transition-all ${
                       prefs.avatarColor === i ? "border-white scale-110" : "border-transparent opacity-60 hover:opacity-100"
@@ -3414,18 +3589,20 @@ function RoomSettingsPanel({ roomState, isHost, players, authUserId, onUpdateSet
   );
 
   const YesNo = ({ label, value, onChange, hint }: { label: string; value: boolean; onChange: (v: boolean) => void; hint?: string }) => (
-    <div className="flex items-center justify-between gap-2">
+    <div className="flex items-center justify-between gap-3 min-h-[40px]">
       <div className="flex items-center gap-1.5 min-w-0">
-        <span className="text-xs text-slate-400 truncate">{label}</span>
+        <span className="text-sm text-slate-300 truncate">{label}</span>
         {hint && <span className="text-[9px] text-slate-600 cursor-help" title={hint}>?</span>}
       </div>
-      <div className="flex gap-1 shrink-0">
+      <div className="cp-segmented shrink-0">
         <button onClick={() => onChange(true)}
-          className={`text-xs px-3 py-1.5 rounded-l-md border transition-all ${value ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400 font-semibold" : "bg-white/5 border-white/10 text-slate-500"}`}>
+          className="cp-segmented-item" data-active={value ? "true" : undefined}
+          style={value ? { background: 'rgba(34, 197, 94, 0.15)', color: '#4ade80' } : undefined}>
           Yes
         </button>
         <button onClick={() => onChange(false)}
-          className={`text-xs px-3 py-1.5 rounded-r-md border transition-all ${!value ? "bg-red-500/10 border-red-500/20 text-red-400 font-semibold" : "bg-white/5 border-white/10 text-slate-500"}`}>
+          className="cp-segmented-item" data-active={!value ? "true" : undefined}
+          style={!value ? { background: 'rgba(239, 68, 68, 0.1)', color: '#f87171' } : undefined}>
           No
         </button>
       </div>
@@ -3433,12 +3610,12 @@ function RoomSettingsPanel({ roomState, isHost, players, authUserId, onUpdateSet
   );
 
   const TriToggle = ({ label, value, options, onChange }: { label: string; value: string; options: { value: string; label: string }[]; onChange: (v: string) => void }) => (
-    <div className="space-y-1">
-      <span className="text-xs text-slate-400">{label}</span>
-      <div className="flex gap-1">
+    <div className="space-y-1.5">
+      <span className="text-sm text-slate-300">{label}</span>
+      <div className="cp-segmented w-full">
         {options.map((opt) => (
           <button key={opt.value} onClick={() => onChange(opt.value)}
-            className={`flex-1 text-xs px-3 py-2 rounded-md border transition-all ${value === opt.value ? "bg-white/10 border-white/20 text-white font-semibold" : "bg-white/5 border-white/10 text-slate-500"}`}>
+            className="cp-segmented-item flex-1" data-active={value === opt.value ? "true" : undefined}>
             {opt.label}
           </button>
         ))}
@@ -3447,14 +3624,14 @@ function RoomSettingsPanel({ roomState, isHost, players, authUserId, onUpdateSet
   );
 
   return (
-    <div className="glass-card p-6 space-y-5">
+    <div className="cp-panel p-6 space-y-5">
       <div className="flex items-center justify-between">
         <h3 className="text-base font-bold text-white">Room Settings <span className="text-xs text-amber-400 font-normal ml-1">(Host Only)</span></h3>
-        <button onClick={onClose} className="text-xs text-slate-500 hover:text-white transition-colors">✕</button>
+        <button onClick={onClose} className="cp-btn cp-btn-ghost !min-h-[36px] !min-w-[36px] !px-0 text-slate-400 hover:text-white" aria-label="Close settings">✕</button>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 bg-white/5 rounded-lg p-1 overflow-x-auto">
+      {/* Tabs — segmented control style */}
+      <div className="cp-segmented w-full overflow-x-auto">
         {([
           { key: "game" as const, label: "Blinds" },
           { key: "rules" as const, label: "Rules" },
@@ -3463,7 +3640,7 @@ function RoomSettingsPanel({ roomState, isHost, players, authUserId, onUpdateSet
           { key: "moderation" as const, label: "Mod" },
         ]).map((t) => (
           <button key={t.key} onClick={() => setTab(t.key)}
-            className={`flex-1 px-3 py-2 rounded-md text-xs font-medium transition-all whitespace-nowrap ${tab === t.key ? "bg-white/10 text-white" : "text-slate-400 hover:text-white"}`}>
+            className="cp-segmented-item flex-1 whitespace-nowrap" data-active={tab === t.key ? "true" : undefined}>
             {t.label}
           </button>
         ))}
@@ -4244,16 +4421,17 @@ function Field({ label, w, children }: { label: string; w: string; children: Rea
 function InfoCell({ label, value, highlight, cyan }: { label: string; value: string; highlight?: boolean; cyan?: boolean }) {
   return (
     <div>
-      <span className="text-[10px] text-slate-500 uppercase tracking-wider">{label}</span>
-      <div className={`text-sm font-semibold ${highlight ? "text-amber-400 uppercase" : cyan ? "text-cyan-400" : "text-white"} font-mono`}>{value}</div>
+      <span className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">{label}</span>
+      <div className={`text-sm font-semibold cp-num ${highlight ? "text-amber-400 uppercase" : cyan ? "text-cyan-400" : "text-white"}`}>{value}</div>
     </div>
   );
 }
 
-const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, equity, pendingLeave, revealedCards, revealedHandName, isMucked, onClickRevealed, onClickEmpty }: {
+const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, lastAction, equity, pendingLeave, revealedCards, revealedHandName, isMucked, onClickRevealed, onClickEmpty }: {
   player?: TablePlayer; seatNum: number; isActor: boolean; isMe: boolean;
   isOwner?: boolean; isCoHost?: boolean; timer?: TimerState | null;
   posLabel?: string; isButton?: boolean; displayBB?: boolean; bigBlind?: number;
+  lastAction?: { action: string; amount: number } | null;
   equity?: { winRate: number; tieRate: number } | null;
   pendingLeave?: boolean;
   revealedCards?: [string, string];
@@ -4284,6 +4462,19 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
 
   // Position label colors
   const posColor = posLabel === "BTN" ? "bg-amber-500 text-white" : posLabel === "SB" ? "bg-blue-500 text-white" : posLabel === "BB" ? "bg-red-500 text-white" : "bg-slate-600 text-slate-200";
+  const actionType = (lastAction?.action ?? "").toLowerCase();
+  let actionLabel = "BET";
+  let actionBadgeClass = "text-emerald-300 border-emerald-500/25";
+  if (actionType === "raise") {
+    actionLabel = "RAISE";
+    actionBadgeClass = "text-rose-300 border-rose-500/30";
+  } else if (actionType === "all_in") {
+    actionLabel = "ALL-IN";
+    actionBadgeClass = "text-orange-300 border-orange-500/30";
+  } else if (actionType === "call") {
+    actionLabel = "CALL";
+    actionBadgeClass = "text-sky-300 border-sky-500/30";
+  }
 
   return (
     <div className="relative flex flex-col items-center gap-0.5">
@@ -4315,7 +4506,7 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
           </div>
         )}
         <div className="text-[10px] font-semibold text-white truncate mt-0.5">{player.name}</div>
-        <div className="text-[10px] font-mono text-amber-400">{fmt(player.stack)}</div>
+        <div className="text-xs font-bold text-amber-400 cp-num">{fmt(player.stack)}</div>
         {player.status === "sitting_out" && <div className="text-[8px] text-orange-400 font-bold uppercase">Sit Out</div>}
         {player.folded && player.status !== "sitting_out" && <div className="text-[8px] text-red-400 font-semibold">FOLDED</div>}
         {player.allIn && !equity && <div className="text-[8px] text-orange-400 font-bold">ALL-IN</div>}
@@ -4350,8 +4541,9 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
       )}
       {/* Street bet amount — shown below the chip */}
       {player.streetCommitted > 0 && !player.folded && (
-        <div className="bg-black/70 px-1.5 py-0.5 rounded-full text-[9px] font-bold text-sky-400 shadow-sm border border-sky-500/20">
-          {fmt(player.streetCommitted)}
+        <div className={`bg-black/75 px-1.5 py-0.5 rounded-full text-[9px] font-bold shadow-sm border ${actionBadgeClass}`}>
+          <span className="uppercase text-[7px] tracking-wider mr-1">{actionLabel}</span>
+          <span className="cp-num">{fmt(player.streetCommitted)}</span>
         </div>
       )}
     </div>
