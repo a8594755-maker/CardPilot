@@ -218,6 +218,30 @@ function deriveFoldEquity(context: PostflopContext, boardTexture: BoardTexturePr
   return clamp01(score);
 }
 
+function deriveRangeAdvantage(input: {
+  context: PostflopContext;
+  boardTexture: BoardTextureProfile;
+  nutAdvantage: number;
+  handClass: ReturnType<typeof classifyHandOnBoard>;
+}): number {
+  const { context, boardTexture, nutAdvantage, handClass } = input;
+  let score = 0.45;
+
+  if (context.preflopAggressor === "hero") score += 0.14;
+  if (context.aggressor === "hero") score += 0.08;
+  if (context.heroInPosition) score += 0.06;
+  if (context.numVillains > 1) score -= 0.12;
+
+  if (boardTexture.wetness === "dry") score += 0.05;
+  if (boardTexture.wetness === "wet") score -= 0.03;
+
+  if (handClass.type === "made_hand" && handClass.strength === "strong") score += 0.08;
+  if (handClass.type === "air") score -= 0.06;
+
+  score += (nutAdvantage - 0.5) * 0.3;
+  return clamp01(score);
+}
+
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
 }
@@ -383,7 +407,16 @@ export class PostflopEngine {
       context.effectiveStack
     );
     const frequencyText = formatFrequency(frequency, context.toCall);
-    const adviceSource = bucket ? "Solved Bucket" : "Heuristic Model";
+    const adviceSource = bucket
+      ? (bucket.bucketKey === baseKey ? "EXACT_BUCKET" : "FUZZY_BUCKET")
+      : "HEURISTIC_ENGINE";
+    const nutAdvantage = deriveNutAdvantage(handClass, boardTexture);
+    const rangeAdvantage = deriveRangeAdvantage({
+      context,
+      boardTexture,
+      nutAdvantage,
+      handClass,
+    });
     const rationale = buildRationale({
       bucketTemplate: bucket?.rationaleTemplate,
       boardTextureDescription: BoardAnalyzer.describe(boardTexture),
@@ -396,6 +429,11 @@ export class PostflopEngine {
       simulations: equityResult.simulations,
       villainRangeHash,
       adviceSource,
+      nutAdvantage,
+      rangeAdvantage,
+      heroInPosition: context.heroInPosition,
+      aggressor: context.aggressor,
+      street: context.street,
     });
 
     const tags = [...new Set([
@@ -450,30 +488,43 @@ export class PostflopEngine {
     line: "CBET" | "VS_BET" | "BARREL" | "PROBE";
     textureBucket: "DRY_TEXTURE" | "NEUTRAL_TEXTURE" | "WET_TEXTURE";
   }): PostflopBucketStrategy | undefined {
-    const candidates = [
-      input.baseKey,
-      buildBucketKey({ ...input, textureBucket: "NEUTRAL_TEXTURE" }),
+    const exactCandidate = input.baseKey;
+    const fuzzyCandidates = [
+      // Texture fallback first: preserve all other dimensions and soften texture strictness.
+      ...(input.textureBucket !== "NEUTRAL_TEXTURE"
+        ? [buildBucketKey({ ...input, textureBucket: "NEUTRAL_TEXTURE" })]
+        : []),
       buildBucketKey({ ...input, villainPosition: "ANY" }),
       buildBucketKey({ ...input, villainPosition: "ANY", textureBucket: "NEUTRAL_TEXTURE" }),
-      // Fallback: try SRP if we're in a 3BP/4BP with no match
-      ...(input.potType !== "SRP" ? [
-        buildBucketKey({ ...input, potType: "SRP" }),
-        buildBucketKey({ ...input, potType: "SRP", textureBucket: "NEUTRAL_TEXTURE" }),
-        buildBucketKey({ ...input, potType: "SRP", villainPosition: "ANY", textureBucket: "NEUTRAL_TEXTURE" }),
-      ] : []),
+      // Pot fallback: for sparse 3BP/4BP data, walk down to SRP equivalents.
+      ...(input.potType !== "SRP"
+        ? [
+          buildBucketKey({ ...input, potType: "SRP" }),
+          buildBucketKey({ ...input, potType: "SRP", textureBucket: "NEUTRAL_TEXTURE" }),
+          buildBucketKey({ ...input, potType: "SRP", villainPosition: "ANY" }),
+          buildBucketKey({ ...input, potType: "SRP", villainPosition: "ANY", textureBucket: "NEUTRAL_TEXTURE" }),
+        ]
+        : []),
     ];
 
-    for (const key of candidates) {
+    const exact = this.bucketIndex.get(exactCandidate);
+    if (exact) {
+      console.log(`[advice-engine] Advice Source: EXACT_BUCKET (${exactCandidate})`);
+      return exact;
+    }
+
+    for (const key of fuzzyCandidates) {
       const row = this.bucketIndex.get(key);
       if (row) {
-        if (key !== input.baseKey) {
-          console.log(`[advice-engine] bucket fuzzy match: "${input.baseKey}" → "${key}"`);
-        }
+        console.log(`[advice-engine] Advice Source: FUZZY_BUCKET ("${input.baseKey}" → "${key}")`);
         return row;
       }
     }
+
     if (this.bucketIndex.size > 0) {
-      console.log(`[advice-engine] bucket miss: "${input.baseKey}" (tried ${candidates.length} candidates)`);
+      console.log(
+        `[advice-engine] Advice Source: HEURISTIC_ENGINE (bucket miss "${input.baseKey}", tried ${1 + fuzzyCandidates.length} candidates)`
+      );
     }
     return undefined;
   }
@@ -601,83 +652,103 @@ function buildFrequencyFromScores(input: {
   } = input;
 
   const textureScore = textureToAggressionScore(boardTexture);
-  const showdownValue = showdownValueScore(handClass);
   const nutAdvantage = deriveNutAdvantage(handClass, boardTexture);
+  const rangeAdvantage = deriveRangeAdvantage({
+    context,
+    boardTexture,
+    nutAdvantage,
+    handClass,
+  });
   const foldEquity = deriveFoldEquity(context, boardTexture);
+  const showdownValue = showdownValueScore(handClass);
   const spr = math.spr ?? 10;
   const isLowSpr = spr < (math.commitmentThreshold ?? 3);
   const isDraw = handClass.type === "draw";
   const isStrong = handClass.type === "made_hand" && handClass.strength === "strong";
   const isMedium = handClass.type === "made_hand" && handClass.strength === "medium";
   const isAir = handClass.type === "air";
+  const isTopValueSlice = isStrong && equity >= 0.68;
+  const canRangeBet = context.aggressor === "hero" && nutAdvantage > 0.6 && rangeAdvantage > 0.58;
 
-  // ── OOP penalty: GTO checks more OOP unless very strong ──
-  const oopPenalty = (!context.heroInPosition && !isStrong) ? 0.15 : 0;
+  let checkSignal = 0.34;
+  let betSmallSignal = 0.33;
+  let betBigSignal = 0.33;
 
-  // ── Polarization logic: strong hands and draws bet big, medium checks ──
-  let betBigSignal: number;
-  let betSmallSignal: number;
-  let checkSignal: number;
-
-  if (equity > 0.70 || (isStrong && equity > 0.55)) {
-    // Value range: bet big for value, sometimes trap
-    betBigSignal = 0.55 + nutAdvantage * 0.25 - oopPenalty * 0.5;
-    betSmallSignal = 0.15;
-    checkSignal = 0.30 - nutAdvantage * 0.15 + oopPenalty * 0.5;
-  } else if (isDraw && equity > 0.25) {
-    // Drawing hands: semi-bluff with big bets when fold equity exists
-    const semiBluffBoost = foldEquity * 0.35;
-    betBigSignal = 0.25 + semiBluffBoost + nutAdvantage * 0.15 - oopPenalty;
-    betSmallSignal = 0.15 + (1 - foldEquity) * 0.1;
-    checkSignal = 0.60 - semiBluffBoost - nutAdvantage * 0.15 + oopPenalty;
-  } else if (isMedium || (equity >= 0.35 && equity <= 0.70)) {
-    // Condensed / medium range: mostly check, occasional small bet
-    betBigSignal = 0.05 + nutAdvantage * 0.10;
-    betSmallSignal = 0.15 + textureScore * 0.10 - oopPenalty;
-    checkSignal = 0.80 - nutAdvantage * 0.10 - textureScore * 0.10 + oopPenalty;
-  } else if (isAir && equity < 0.30 && foldEquity > 0.35) {
-    // Pure bluff: bet big with good fold equity
-    betBigSignal = 0.30 + foldEquity * 0.25 - oopPenalty;
-    betSmallSignal = 0.05;
-    checkSignal = 0.65 - foldEquity * 0.25 + oopPenalty;
+  // Polarized engine: top value + draws (bluffs) bet, medium showdown checks to protect range.
+  if (canRangeBet) {
+    // Nut/range advantage unlocks high-frequency small betting independent of precise hand equity.
+    checkSignal = 0.15;
+    betSmallSignal = 0.65 + (rangeAdvantage - 0.58) * 0.25;
+    betBigSignal = 0.20 + Math.max(0, equity - 0.55) * 0.2;
+  } else if (context.aggressor === "hero" && (isTopValueSlice || (equity >= 0.85 && handClass.type === "made_hand"))) {
+    checkSignal = 0.18;
+    betSmallSignal = 0.14;
+    betBigSignal = 0.68 + (nutAdvantage - 0.5) * 0.2;
+  } else if (context.aggressor === "hero" && (isDraw || (isAir && foldEquity >= 0.45))) {
+    checkSignal = 0.34 + (1 - foldEquity) * 0.15;
+    betSmallSignal = 0.17;
+    betBigSignal = 0.49 + foldEquity * 0.22 + (nutAdvantage - 0.5) * 0.08;
+  } else if (isMedium || (showdownValue >= 0.55 && equity >= 0.4 && equity <= 0.72)) {
+    // Showdown-heavy region: increase checking to keep protected check/call/check-back nodes.
+    checkSignal = 0.72 + (1 - textureScore) * 0.12;
+    betSmallSignal = 0.22 + textureScore * 0.05;
+    betBigSignal = 0.06;
+  } else if (equity >= 0.62) {
+    checkSignal = 0.30;
+    betSmallSignal = 0.28;
+    betBigSignal = 0.42;
+  } else if (isAir && foldEquity < 0.35) {
+    checkSignal = 0.82;
+    betSmallSignal = 0.14;
+    betBigSignal = 0.04;
   } else {
-    // Weak/marginal: mostly check, small bet sometimes
-    betBigSignal = 0.03;
-    betSmallSignal = 0.08 + equity * 0.10;
-    checkSignal = 0.89 - equity * 0.10;
+    checkSignal = 0.62;
+    betSmallSignal = 0.26;
+    betBigSignal = 0.12;
   }
 
-  // ── SPR adjustment: low SPR → commit more, bet bigger ──
+  // OOP adjustment: globally reduce betting frequency and shift EV into checking lines.
+  if (!context.heroInPosition) {
+    const oopReduction = isStrong ? 0.08 : 0.18;
+    const shiftedFromSmall = betSmallSignal * oopReduction;
+    const shiftedFromBig = betBigSignal * (oopReduction * 0.85);
+    betSmallSignal = Math.max(0, betSmallSignal - shiftedFromSmall);
+    betBigSignal = Math.max(0, betBigSignal - shiftedFromBig);
+    checkSignal += shiftedFromSmall + shiftedFromBig;
+  }
+
+  // SPR adjustment: low SPR allows wider stack-off/value-jam behavior.
   if (isLowSpr && (isStrong || isMedium)) {
     betBigSignal += 0.15;
     checkSignal -= 0.15;
   }
 
-  // ── Nut advantage override: significant nut advantage increases aggression ──
-  if (nutAdvantage > 0.7) {
-    betBigSignal += 0.12;
-    checkSignal -= 0.12;
+  // Nut-advantage pressure: in non-range-bet nodes, still increase aggression when we own top-end combos.
+  if (!canRangeBet && nutAdvantage > 0.7) {
+    betBigSignal += 0.1;
+    betSmallSignal += 0.04;
+    checkSignal -= 0.14;
   }
 
-  // ── Street adjustment: later streets → more polarized ──
+  // Later streets are naturally more polarized (less medium-size betting).
   if (context.street === "TURN" || context.street === "RIVER") {
-    // On later streets, GTO is more polarized: bet big or check, less small betting
-    const polarizationShift = context.street === "RIVER" ? 0.08 : 0.04;
+    const polarizationShift = context.street === "RIVER" ? 0.22 : 0.14;
     betBigSignal += betSmallSignal * polarizationShift;
     betSmallSignal -= betSmallSignal * polarizationShift;
   }
 
-  // ── Aggressor continuation: if hero is street aggressor, continue betting more ──
+  // Continuation pressure when hero has initiative.
   if (context.aggressor === "hero") {
-    betBigSignal += 0.08;
+    betBigSignal += 0.05;
     betSmallSignal += 0.04;
-    checkSignal -= 0.12;
+    checkSignal -= 0.09;
   }
 
-  // Apply base raise rate from config
+  // Config baseline tuning.
   const configBoost = strategyConfig.baseRaiseRate;
-  betBigSignal = clamp01(betBigSignal + configBoost * 0.3);
-  betSmallSignal = clamp01(betSmallSignal + configBoost * 0.2);
+  betBigSignal = clamp01(betBigSignal + configBoost * 0.24 + strategyConfig.aggressionFactors.nutAdvantage * nutAdvantage * 0.15);
+  betSmallSignal = clamp01(betSmallSignal + configBoost * 0.18 + strategyConfig.aggressionFactors.foldEquity * foldEquity * 0.08);
+  checkSignal = clamp01(checkSignal);
 
   if (context.toCall <= 0) {
     return normalizeFrequency({
@@ -687,7 +758,7 @@ function buildFrequencyFromScores(input: {
     });
   }
 
-  // ── Facing a bet: convert check/betSmall/betBig to call/raise/fold ──
+  // Facing a bet: reinterpret outputs as call/raise/fold weights.
   const equityRequired = math.equityRequired ?? 0;
 
   // MDF floor: defense (call + raise) must not drop below MDF
@@ -695,21 +766,20 @@ function buildFrequencyFromScores(input: {
     ? context.potSize / (context.potSize + context.toCall)
     : 1);
 
-  // Determine fold frequency based on equity vs required
   const equityEdge = equity - equityRequired;
   let foldSignal: number;
   if (equityEdge >= 0) {
-    // We have enough equity to call profitably
     foldSignal = clamp01(0.05 - equityEdge * 0.3);
   } else {
-    // Below required equity: fold more, but respect MDF
     foldSignal = clamp01(Math.abs(equityEdge) * 1.5 + (isAir ? 0.2 : 0));
   }
 
-  // Raise frequency from our betting signals (value raises + bluff raises)
   let raiseSignal = clamp01(betBigSignal + betSmallSignal * 0.3);
+  if (!context.heroInPosition) {
+    // OOP favors check-call/check-raise mixes over pure aggression.
+    raiseSignal = clamp01(raiseSignal * 0.82);
+  }
 
-  // Call is what remains after raise and fold
   let callSignal = clamp01(1 - raiseSignal - foldSignal);
 
   // Enforce MDF floor
@@ -845,12 +915,40 @@ function buildRationale(input: {
   simulations: number;
   villainRangeHash: string;
   adviceSource?: string;
+  nutAdvantage: number;
+  rangeAdvantage: number;
+  heroInPosition: boolean;
+  aggressor: "hero" | "villain" | "none";
+  street: "FLOP" | "TURN" | "RIVER";
 }): string {
   const parts: string[] = [];
-  if (input.adviceSource) parts.push(`[${input.adviceSource}]`);
+  if (input.adviceSource) {
+    const sourceText = input.adviceSource === "HEURISTIC_ENGINE"
+      ? "Live Calculation"
+      : "Solved Strategy";
+    parts.push(`[${sourceText}: ${input.adviceSource}]`);
+  }
   if (input.bucketTemplate) parts.push(input.bucketTemplate);
   parts.push(`Board: ${input.boardTextureDescription}.`);
   parts.push(`Hand class: ${input.handClassDescription}.`);
+
+  if (input.rangeAdvantage >= 0.6 && input.nutAdvantage >= 0.6) {
+    parts.push("Strategic read: you hold both range and nut advantage on this texture, so a high-frequency small-bet strategy is justified even with medium equity segments.");
+  } else if (input.nutAdvantage >= 0.6) {
+    parts.push("Strategic read: your top-end density is stronger than villain's, so pressure with value-heavy betting and selective bluffs is preferred.");
+  } else if (input.rangeAdvantage <= 0.42) {
+    parts.push("Strategic read: your range is structurally capped here, so protect EV via a tighter check/call-first strategy.");
+  } else {
+    parts.push("Strategic read: range equities are close, so keep a protected checking range while mixing pressure at controlled frequencies.");
+  }
+
+  if (input.aggressor === "hero") {
+    parts.push("As the initiative player, the model polarizes into value bets and bluff candidates while preserving medium-strength checks.");
+  }
+  if (!input.heroInPosition) {
+    parts.push(`Being out of position on the ${input.street} reduces pure betting frequency and shifts weight into check/call and check/raise lines.`);
+  }
+
   parts.push(`Equity model: ${pct(input.equity)} over ${input.simulations} sims.`);
   parts.push(`Range hash: ${input.villainRangeHash.slice(0, 10)}.`);
 

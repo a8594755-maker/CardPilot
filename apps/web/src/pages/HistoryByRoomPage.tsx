@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   getHandsByRoom,
   updateHand,
@@ -34,6 +35,13 @@ export function HistoryByRoomPage(_props: {
   userId?: string;
   supabaseEnabled?: boolean;
 }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const routeHandId = useMemo(() => {
+    const match = location.pathname.match(/^\/history\/([^/]+)$/);
+    return match ? decodeURIComponent(match[1]) : null;
+  }, [location.pathname]);
+
   // Data
   const [rooms, setRooms] = useState<LocalRoomSummary[]>([]);
   const [handsByRoom, setHandsByRoom] = useState<Record<string, HandRecord[]>>({});
@@ -41,7 +49,7 @@ export function HistoryByRoomPage(_props: {
 
   // Selection
   const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
-  const [selectedHandId, setSelectedHandId] = useState<string | null>(null);
+  const [selectedHandId, setSelectedHandId] = useState<string | null>(routeHandId ?? null);
   const [detailTab, setDetailTab] = useState<DetailTab>("detail");
 
   // Filters & sort
@@ -129,17 +137,35 @@ export function HistoryByRoomPage(_props: {
 
   // Auto-select first hand when room changes
   useEffect(() => {
-    if (currentRoomHands.length > 0) {
-      if (!selectedHandId || !currentRoomHands.some((h) => h.id === selectedHandId)) {
-        setSelectedHandId(currentRoomHands[0].id);
-      }
-    } else {
+    if (!routeHandId) {
       setSelectedHandId(null);
+      return;
     }
-  }, [currentRoomHands, selectedHandId]);
+
+    if (currentRoomHands.length > 0 && !currentRoomHands.some((h) => h.id === routeHandId)) {
+      navigate("/history", { replace: true });
+    }
+  }, [currentRoomHands, routeHandId, navigate]);
+
+  useEffect(() => {
+    setSelectedHandId(routeHandId ?? null);
+  }, [routeHandId]);
+
+  useEffect(() => {
+    if (!routeHandId) return;
+    if (selectedRoom && (handsByRoom[selectedRoom] ?? []).some((h) => h.id === routeHandId)) return;
+
+    for (const [roomCode, hands] of Object.entries(handsByRoom)) {
+      if (hands.some((h) => h.id === routeHandId)) {
+        setSelectedRoom(roomCode);
+        return;
+      }
+    }
+  }, [routeHandId, handsByRoom, selectedRoom]);
 
   // Handlers
   const handleSelectRoom = (code: string) => {
+    if (routeHandId) navigate("/history");
     setSelectedRoom(code);
     setSelectedHandId(null);
     setMobilePane("hands");
@@ -147,6 +173,7 @@ export function HistoryByRoomPage(_props: {
 
   const handleSelectHand = (id: string) => {
     setSelectedHandId(id);
+    navigate(`/history/${encodeURIComponent(id)}`);
     setMobilePane("detail");
   };
 
@@ -195,9 +222,21 @@ export function HistoryByRoomPage(_props: {
 
   // Mobile back handler
   const handleMobileBack = () => {
+    if (routeHandId) {
+      navigate(-1);
+      return;
+    }
     if (mobilePane === "detail") setMobilePane("hands");
     else if (mobilePane === "hands") setMobilePane("rooms");
   };
+
+  useEffect(() => {
+    if (routeHandId) {
+      setMobilePane("detail");
+      return;
+    }
+    setMobilePane(selectedRoom ? "hands" : "rooms");
+  }, [routeHandId, selectedRoom]);
 
   const selectedRoomData = rooms.find((r) => r.roomCode === selectedRoom);
 
@@ -232,10 +271,10 @@ export function HistoryByRoomPage(_props: {
       </div>
 
       {/* 3-column layout (desktop) / stacked nav (mobile) */}
-      <div className="flex-1 flex overflow-hidden min-h-0">
+      <div className="flex-1 min-h-0 overflow-hidden lg:grid lg:grid-cols-[minmax(14rem,clamp(14rem,22vw,18rem))_minmax(18rem,clamp(18rem,30vw,24rem))_minmax(0,1fr)]">
         {/* Column 1: Rooms */}
         <div className={`
-          w-[260px] shrink-0 border-r border-white/[0.06] flex flex-col overflow-hidden
+          min-w-0 border-r border-white/[0.06] flex flex-col overflow-hidden
           ${mobilePane === "rooms" ? "max-lg:flex" : "max-lg:hidden"} lg:flex
         `}>
           <div className="shrink-0 px-3 py-2 border-b border-white/[0.06]">
@@ -251,7 +290,7 @@ export function HistoryByRoomPage(_props: {
 
         {/* Column 2: Hands */}
         <div className={`
-          w-[340px] shrink-0 border-r border-white/[0.06] flex flex-col overflow-hidden
+          min-w-0 border-r border-white/[0.06] flex flex-col overflow-hidden
           ${mobilePane === "hands" ? "max-lg:flex max-lg:flex-1 max-lg:w-full" : "max-lg:hidden"} lg:flex
         `}>
           {/* Quick filters + search */}
@@ -329,7 +368,13 @@ export function HistoryByRoomPage(_props: {
             )}
           </div>
           {/* Content */}
-          {detailTab === "detail" ? (
+          {loading ? (
+            <div className="flex-1 p-3 space-y-3">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <div key={idx} className="animate-pulse min-h-[56px] rounded-lg border border-white/[0.06] bg-white/[0.03]" />
+              ))}
+            </div>
+          ) : detailTab === "detail" ? (
             <HandDetail2
               hand={selectedHand}
               onCopy={onCopy}

@@ -31,6 +31,12 @@ export interface HandRecord {
   // Per-player showdown info (seat -> cards or "mucked")
   showdownHands?: Record<number, [string, string] | "mucked">;
   playerNames?: Record<number, string>;
+  buttonSeat?: number;
+  positionsBySeat?: Record<number, string>;
+  stacksBySeatAtStart?: Record<number, number>;
+  actionTimeline?: HandActionTimelineRecord[];
+  potLayers?: unknown;
+  payoutLedger?: unknown;
 }
 
 export interface HandActionRecord {
@@ -40,10 +46,52 @@ export interface HandActionRecord {
   amount: number;
 }
 
+export interface HandActionTimelineRecord {
+  idx: number;
+  street: "PREFLOP" | "FLOP" | "TURN" | "RIVER";
+  seat: number;
+  type: "fold" | "check" | "call" | "bet" | "raise" | "all_in";
+  amount: number;
+  betTo?: number;
+  raiseTo?: number;
+  potBefore: number;
+  toCallBefore: number;
+  committedThisStreetBefore: number;
+  effectiveStackBefore: number;
+  at?: number;
+}
+
 export interface GTOAnalysis {
   overallScore: number; // 0-100
   streets: StreetAnalysis[];
   analyzedAt: number;
+  spots?: LocalGTOSpot[];
+  streetScores?: {
+    flop: number | null;
+    turn: number | null;
+    river: number | null;
+  };
+  precision?: "fast" | "deep";
+}
+
+export interface LocalGTOSpot {
+  street: string;
+  pot: number;
+  toCall?: number;
+  effectiveStack?: number;
+  heroAction: string;
+  heroAmount: number;
+  recommendedAction: string;
+  recommendedMix: {
+    raise: number;
+    call: number;
+    fold: number;
+  };
+  deviationScore: number;
+  evLossBb?: number;
+  actionTimelineIdx?: number;
+  decisionIndex?: number;
+  note?: string;
 }
 
 export interface StreetAnalysis {
@@ -67,10 +115,55 @@ function readAll(): HandRecord[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
-    return JSON.parse(raw) as HandRecord[];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((entry) => normalizeHandRecord(entry))
+      .filter((entry): entry is HandRecord => entry !== null);
   } catch {
     return [];
   }
+}
+
+function normalizeHandRecord(input: unknown): HandRecord | null {
+  if (!input || typeof input !== "object") return null;
+  const raw = input as Partial<HandRecord>;
+
+  if (typeof raw.id !== "string") return null;
+  if (!Array.isArray(raw.actions) || !Array.isArray(raw.heroCards) || raw.heroCards.length !== 2) return null;
+
+  const record: HandRecord = {
+    ...raw,
+    id: raw.id,
+    createdAt: Number(raw.createdAt ?? Date.now()),
+    expiresAt: Number(raw.expiresAt ?? Date.now() + RETENTION_MS),
+    gameType: raw.gameType === "PLO" ? "PLO" : "NLH",
+    stakes: typeof raw.stakes === "string" ? raw.stakes : "0/0",
+    tableSize: Number(raw.tableSize ?? 0),
+    position: typeof raw.position === "string" ? raw.position : "?",
+    heroCards: [String(raw.heroCards[0]), String(raw.heroCards[1])],
+    board: Array.isArray(raw.board) ? raw.board.map(String) : [],
+    actions: raw.actions
+      .filter((a): a is HandActionRecord => Boolean(a && typeof a === "object"))
+      .map((a) => ({
+        seat: Number(a.seat ?? 0),
+        street: String(a.street ?? "PREFLOP"),
+        type: String(a.type ?? "check"),
+        amount: Number(a.amount ?? 0),
+      })),
+    potSize: Number(raw.potSize ?? 0),
+    stackSize: Number(raw.stackSize ?? 0),
+    tags: Array.isArray(raw.tags) ? raw.tags.map(String) : [],
+    actionTimeline: Array.isArray(raw.actionTimeline) ? raw.actionTimeline : undefined,
+  };
+
+  if (!record.actionTimeline) {
+    // Migration-safe default for legacy records that only had actions[].
+    // Keep undefined so old records still render while consumers can branch.
+    record.actionTimeline = undefined;
+  }
+
+  return record;
 }
 
 function writeAll(records: HandRecord[]): void {
@@ -165,7 +258,12 @@ export interface LocalRoomSummary {
 
 /** Group local hands by roomCode for room-based history */
 export function getHandsByRoom(): { rooms: LocalRoomSummary[]; handsByRoom: Record<string, HandRecord[]> } {
-  const all = pruneExpired(readAll()).sort((a, b) => b.createdAt - a.createdAt);
+  const all = pruneExpired(readAll())
+    .map((hand) => ({
+      ...hand,
+      actionTimeline: Array.isArray(hand.actionTimeline) ? hand.actionTimeline : undefined,
+    }))
+    .sort((a, b) => b.createdAt - a.createdAt);
   const byRoom: Record<string, HandRecord[]> = {};
 
   for (const h of all) {

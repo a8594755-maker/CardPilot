@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback, useRef, memo } from "react";
 import { io, type Socket } from "socket.io-client";
+import { useLocation, useNavigate } from "react-router-dom";
 import type {
   AdvicePayload,
   AllInPrompt,
@@ -68,6 +69,9 @@ function getSeatLayout(n: number): Record<number, { top: string; left: string }>
 
 /* ═══════════════════ MAIN APP ═══════════════════ */
 export function App() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   /* ── Auth state ── */
   const [authSession, setAuthSession] = useState<AuthSession | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -110,14 +114,62 @@ export function App() {
   const [buyInAmount, setBuyInAmount] = useState(10000);
   const [currentRoomCode, setCurrentRoomCode] = useState("");
   const [currentRoomName, setCurrentRoomName] = useState("");
-  const [view, setView] = useState<"lobby" | "table" | "profile" | "history" | "clubs" | "cashier" | "training">(() => {
-    if (typeof window === "undefined") return "lobby";
-    const param = new URLSearchParams(window.location.search).get("view");
-    if (param === "lobby" || param === "table" || param === "profile" || param === "history" || param === "clubs" || param === "cashier" || param === "training") {
-      return param;
-    }
+
+  type AppView = "lobby" | "table" | "profile" | "history" | "clubs" | "cashier" | "training";
+  const view = useMemo<AppView>(() => {
+    const path = location.pathname;
+    if (path === "/" || path.startsWith("/lobby")) return "lobby";
+    if (path.startsWith("/table")) return "table";
+    if (path.startsWith("/history")) return "history";
+    if (path.startsWith("/clubs")) return "clubs";
+    if (path.startsWith("/cashier")) return "cashier";
+    if (path.startsWith("/training")) return "training";
+    if (path.startsWith("/profile")) return "profile";
     return "lobby";
-  });
+  }, [location.pathname]);
+
+  const goToTable = useCallback((nextTableId?: string, replace = false) => {
+    const resolvedTableId = (nextTableId ?? tableId ?? "table-1").trim() || "table-1";
+    navigate(`/table/${encodeURIComponent(resolvedTableId)}`, { replace });
+  }, [navigate, tableId]);
+
+  const setView = useCallback((nextView: AppView) => {
+    if (nextView === "table") {
+      goToTable();
+      return;
+    }
+    if (nextView === "lobby") {
+      navigate("/lobby");
+      return;
+    }
+    navigate(`/${nextView}`);
+  }, [goToTable, navigate]);
+
+  useEffect(() => {
+    if (location.pathname === "/") {
+      navigate("/lobby", { replace: true });
+      return;
+    }
+
+    if (location.pathname === "/table") {
+      goToTable(undefined, true);
+      return;
+    }
+
+    const tableMatch = location.pathname.match(/^\/table\/([^/]+)$/);
+    if (tableMatch) {
+      const routeTableId = decodeURIComponent(tableMatch[1]);
+      if (routeTableId && routeTableId !== tableId) {
+        setTableId(routeTableId);
+      }
+      return;
+    }
+
+    const supportedPaths = ["/lobby", "/history", "/profile", "/cashier", "/training"];
+    if (!(location.pathname.startsWith("/clubs") || location.pathname.startsWith("/history/") || supportedPaths.includes(location.pathname))) {
+      navigate("/lobby", { replace: true });
+    }
+  }, [goToTable, location.pathname, navigate, tableId]);
 
   /* ── Clubs state ── */
   const [clubList, setClubList] = useState<ClubListItem[]>([]);
@@ -330,11 +382,13 @@ export function App() {
     s.on("lobby_snapshot", (d: { rooms: LobbyRoomSummary[] }) => setLobbyRooms(d.rooms ?? []));
     s.on("room_created", (d: { tableId: string; roomCode: string; roomName: string }) => {
       setTableId(d.tableId); setCurrentRoomCode(d.roomCode); setCurrentRoomName(d.roomName);
-      showToast(`Room created: ${d.roomName} (${d.roomCode})`); setView("table");
+      showToast(`Room created: ${d.roomName} (${d.roomCode})`);
+      navigate(`/table/${encodeURIComponent(d.tableId)}`);
     });
     s.on("room_joined", (d: { tableId: string; roomCode: string; roomName: string }) => {
       setTableId(d.tableId); setCurrentRoomCode(d.roomCode); setCurrentRoomName(d.roomName);
-      showToast(`Joined room: ${d.roomName} (${d.roomCode})`); setView("table");
+      showToast(`Joined room: ${d.roomName} (${d.roomCode})`);
+      navigate(`/table/${encodeURIComponent(d.tableId)}`);
     });
     s.on("table_snapshot", (d: TableState) => {
       chipOnSnapshotRef.current(d);
@@ -601,7 +655,7 @@ export function App() {
     });
 
     return () => { s.disconnect(); };
-  }, [socketAuthUserId, socketAuthToken, displayName]);
+  }, [socketAuthUserId, socketAuthToken, displayName, navigate]);
 
   const canAct = useMemo(() => snapshot?.actorSeat === seat && snapshot?.handId, [snapshot, seat]);
   // Reset raiseTo to minRaise whenever legal actions change

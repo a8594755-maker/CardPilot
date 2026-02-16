@@ -384,6 +384,25 @@ export interface HistoryGTOHandRecord {
     type: string;
     amount: number;
   }>;
+  actionTimeline?: Array<{
+    idx: number;
+    street: "PREFLOP" | "FLOP" | "TURN" | "RIVER";
+    seat: number;
+    type: "fold" | "check" | "call" | "bet" | "raise" | "all_in";
+    amount: number;
+    betTo?: number;
+    raiseTo?: number;
+    potBefore: number;
+    toCallBefore: number;
+    committedThisStreetBefore: number;
+    effectiveStackBefore: number;
+    at?: number;
+  }>;
+  buttonSeat?: number;
+  positionsBySeat?: Record<number, string>;
+  stacksBySeatAtStart?: Record<number, number>;
+  potLayers?: unknown;
+  payoutLedger?: unknown;
   smallBlind?: number;
   bigBlind?: number;
   playerNames?: Record<number, string>;
@@ -393,13 +412,18 @@ export interface HistoryGTOSpotAnalysis {
   street: string;
   board: string[];
   pot: number;
+  toCall?: number;
+  effectiveStack?: number;
   heroAction: string;
   heroAmount: number;
+  actionTimelineIdx?: number;
+  decisionIndex?: number;
   recommended: {
     action: string;
     mix: StrategyMix;
   };
   deviationScore: number;
+  evLossBb?: number;
   alpha: number;
   mdf: number;
   equity: number;

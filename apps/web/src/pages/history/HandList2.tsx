@@ -149,7 +149,7 @@ export function HandList2({
                 )}
                 {/* Row 1: time + position + result */}
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 text-[11px]">
+                  <div className="flex items-center gap-2 text-[11px] min-w-0">
                     <span className="text-slate-500">{formatShortDate(hand.createdAt)}</span>
                     <span className="text-slate-600">·</span>
                     <span className="text-cyan-400/80 font-medium">{hand.position}</span>
@@ -165,14 +165,14 @@ export function HandList2({
                 {/* Row 2: hero cards + board preview + pot */}
                 <div className="flex items-center gap-2 mt-1.5">
                   {/* Hero cards */}
-                  <div className="flex gap-0.5 shrink-0">
+                  <div className="flex gap-0.5">
                     {hand.heroCards.map((c) => (
                       <PokerCard key={c} card={c} variant="mini" />
                     ))}
                   </div>
                   {/* Board preview (first 3 cards) */}
                   {boardPreview.length > 0 && (
-                    <div className="flex gap-0.5 shrink-0 ml-1 opacity-60">
+                    <div className="flex gap-0.5 ml-1 opacity-60">
                       {boardPreview.map((c, i) => (
                         <PokerCard key={`${c}-${i}`} card={c} variant="mini" />
                       ))}
