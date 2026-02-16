@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import type { AdvicePayload, LegalActions } from "@cardpilot/shared-types";
 import { getSuggestedPresets, userPresetsToButtons } from "../../lib/bet-sizing.js";
+import type { DerivedActionBar, DerivedPreActionUI, PreAction, PreActionType } from "../../lib/action-derivations";
 
 /* ═══════════════════════════════════════════════════════════════
    BottomActionBar
@@ -29,8 +30,10 @@ interface BottomActionBarProps {
   actionPending?: boolean;
   displayBB?: boolean;
   // Pre-action
-  preAction: string | null;
-  onSetPreAction: (action: string | null) => void;
+  preAction: PreAction | null;
+  onSetPreAction: (action: PreActionType | null) => void;
+  derivedActionBar: DerivedActionBar;
+  derivedPreActionUI: DerivedPreActionUI;
   isMyTurn: boolean;
   // Unnecessary fold
   onFoldAttempt: () => void;
@@ -59,6 +62,8 @@ export function BottomActionBar({
   displayBB,
   preAction,
   onSetPreAction,
+  derivedActionBar,
+  derivedPreActionUI,
   isMyTurn,
   onFoldAttempt,
   userBetPresets,
@@ -105,13 +110,7 @@ export function BottomActionBar({
   }
 
   const handleFold = () => {
-    if (legal?.canCheck) {
-      // Unnecessary fold — delegate to parent for confirmation
-      onFoldAttempt();
-    } else {
-      onAction("fold");
-      setShowRaiseSheet(false);
-    }
+    onFoldAttempt();
   };
 
   const handleRaiseConfirm = () => {
@@ -119,15 +118,18 @@ export function BottomActionBar({
     setShowRaiseSheet(false);
   };
 
+  const preActionLabel = preAction?.actionType ? preAction.actionType : null;
+
   // ── Pre-action controls (when NOT your turn) ──
   if (!isMyTurn && !canAct) {
+    if (!derivedPreActionUI.enabled) return null;
     return (
       <div className="shrink-0 px-3 pb-2 pt-1.5" style={{ zIndex: 'var(--cp-z-action-bar)' }}>
         {/* Pre-action indicator */}
-        {preAction && (
+        {preActionLabel && (
           <div className="flex items-center justify-center gap-2 mb-2">
             <span className="cp-preaction-badge">
-              Pre-action: {preAction}
+              Pre-action: {preActionLabel}
               <button
                 onClick={() => onSetPreAction(null)}
                 className="ml-1 text-violet-300 hover:text-white"
@@ -144,36 +146,20 @@ export function BottomActionBar({
             Pre-action — set before your turn
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => onSetPreAction(preAction === "check/fold" ? null : "check/fold")}
-              className={`cp-btn flex-1 text-xs ${
-                preAction === "check/fold"
-                  ? "bg-violet-500/20 text-violet-300 border border-violet-500/40"
-                  : "cp-btn-ghost"
-              }`}
-            >
-              Check / Fold
-            </button>
-            <button
-              onClick={() => onSetPreAction(preAction === "check" ? null : "check")}
-              className={`cp-btn flex-1 text-xs ${
-                preAction === "check"
-                  ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
-                  : "cp-btn-ghost"
-              }`}
-            >
-              Check
-            </button>
-            <button
-              onClick={() => onSetPreAction(preAction === "fold" ? null : "fold")}
-              className={`cp-btn flex-1 text-xs ${
-                preAction === "fold"
-                  ? "bg-slate-500/20 text-slate-300 border border-slate-500/40"
-                  : "cp-btn-ghost"
-              }`}
-            >
-              Fold
-            </button>
+            {derivedPreActionUI.options.map((opt) => (
+              <button
+                key={opt.type}
+                disabled={!opt.enabled}
+                onClick={() => onSetPreAction(preActionLabel === opt.type ? null : opt.type)}
+                className={`cp-btn flex-1 text-xs ${
+                  preActionLabel === opt.type
+                    ? "bg-violet-500/20 text-violet-300 border border-violet-500/40"
+                    : "cp-btn-ghost"
+                }`}
+              >
+                {opt.type === "call" && typeof opt.amount === "number" ? `Call ${fmtChips(opt.amount)}` : opt.label}
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -210,10 +196,10 @@ export function BottomActionBar({
       {/* Action buttons row */}
       <div className="px-3 pb-2 pt-1.5">
         {/* Pre-action indicator (still visible when it's your turn, pre-action applied) */}
-        {preAction && (
+        {preActionLabel && (
           <div className="flex items-center justify-center gap-2 mb-1.5">
             <span className="cp-preaction-badge">
-              Pre-action queued: {preAction}
+              Pre-action queued: {preActionLabel}
               <button
                 onClick={() => onSetPreAction(null)}
                 className="ml-1 text-violet-300 hover:text-white"
@@ -233,94 +219,114 @@ export function BottomActionBar({
           )}
 
           <div className="flex items-center gap-2">
-            {/* FOLD */}
-            <button
-              disabled={!canAct || actionPending}
-              onClick={handleFold}
-              className="cp-btn cp-btn-fold flex-1"
-              aria-label="Fold"
-            >
-              <span className="flex flex-col items-center leading-tight">
-                <span className="text-sm font-bold">FOLD</span>
-              </span>
-            </button>
+            {derivedActionBar.visibleActions.map((a) => {
+              if (a.type === "fold") {
+                return (
+                  <button
+                    key={a.type}
+                    disabled={!canAct || actionPending || !a.enabled}
+                    onClick={handleFold}
+                    className={`cp-btn cp-btn-fold flex-1 ${!a.enabled ? "opacity-50" : ""}`}
+                    aria-label="Fold"
+                    title={a.reasonDisabled}
+                  >
+                    <span className="flex flex-col items-center leading-tight">
+                      <span className="text-sm font-bold">FOLD</span>
+                    </span>
+                  </button>
+                );
+              }
 
-            {/* CHECK */}
-            {legal?.canCheck && (
-              <button
-                disabled={!canAct || actionPending}
-                onClick={() => { onAction("check"); setShowRaiseSheet(false); }}
-                className="cp-btn cp-btn-check flex-1"
-                aria-label="Check"
-              >
-                <span className="flex flex-col items-center leading-tight">
-                  <span className="text-sm font-bold">CHECK</span>
-                </span>
-              </button>
-            )}
+              if (a.type === "check") {
+                return (
+                  <button
+                    key={a.type}
+                    disabled={!canAct || actionPending || !a.enabled}
+                    onClick={() => { onAction("check"); setShowRaiseSheet(false); }}
+                    className="cp-btn cp-btn-check flex-1"
+                    aria-label="Check"
+                  >
+                    <span className="flex flex-col items-center leading-tight">
+                      <span className="text-sm font-bold">CHECK</span>
+                    </span>
+                  </button>
+                );
+              }
 
-            {/* CALL */}
-            {legal?.canCall && (
-              <button
-                disabled={!canAct || actionPending}
-                onClick={() => { onAction("call"); setShowRaiseSheet(false); }}
-                className="cp-btn cp-btn-call flex-1"
-                aria-label={`Call ${callAmt}`}
-              >
-                <span className="flex flex-col items-center leading-tight">
-                  <span className="text-sm font-bold">CALL</span>
-                  <span className="text-[11px] font-semibold opacity-90 cp-num">{fmtChips(callAmt)}</span>
-                </span>
-              </button>
-            )}
+              if (a.type === "call") {
+                const amt = typeof a.amount === "number" ? a.amount : callAmt;
+                return (
+                  <button
+                    key={a.type}
+                    disabled={!canAct || actionPending || !a.enabled}
+                    onClick={() => { onAction("call"); setShowRaiseSheet(false); }}
+                    className="cp-btn cp-btn-call flex-1"
+                    aria-label={`Call ${amt}`}
+                  >
+                    <span className="flex flex-col items-center leading-tight">
+                      <span className="text-sm font-bold">CALL</span>
+                      <span className="text-[11px] font-semibold opacity-90 cp-num">{fmtChips(amt)}</span>
+                    </span>
+                  </button>
+                );
+              }
 
-            {/* RAISE (opens sheet) */}
-            {legal?.canRaise && !showRaiseSheet && (
-              <button
-                disabled={!canAct || actionPending}
-                onClick={() => setShowRaiseSheet(true)}
-                className="cp-btn cp-btn-raise flex-1"
-                aria-label={`Raise to ${raiseTo}`}
-              >
-                <span className="flex flex-col items-center leading-tight">
-                  <span className="text-sm font-bold">RAISE</span>
-                  <span className="text-[11px] font-semibold opacity-90 cp-num">{fmtChips(raiseTo)}</span>
-                </span>
-              </button>
-            )}
+              if (a.type === "raise") {
+                if (showRaiseSheet) return null;
+                return (
+                  <button
+                    key={a.type}
+                    disabled={!canAct || actionPending || !a.enabled}
+                    onClick={() => setShowRaiseSheet(true)}
+                    className="cp-btn cp-btn-raise flex-1"
+                    aria-label={a.label}
+                  >
+                    <span className="text-sm font-bold">{a.label}</span>
+                  </button>
+                );
+              }
 
-            {/* ALL-IN (with confirm) */}
-            {legal?.canRaise && !showRaiseSheet && !allInConfirm && (
-              <button
-                disabled={!canAct || actionPending}
-                onClick={() => setAllInConfirm(true)}
-                className="cp-btn cp-btn-allin"
-                style={{ minWidth: 64 }}
-                aria-label="All-In"
-              >
-                <span className="flex flex-col items-center leading-tight">
-                  <span className="text-xs font-bold">ALL-IN</span>
-                </span>
-              </button>
-            )}
-            {legal?.canRaise && allInConfirm && (
-              <div className="flex items-center gap-1.5 animate-[cpFadeSlideUp_0.2s_ease-out]">
-                <button
-                  disabled={!canAct || actionPending}
-                  onClick={() => { onAction("all_in"); setAllInConfirm(false); setShowRaiseSheet(false); }}
-                  className="cp-btn cp-btn-allin ring-2 ring-orange-400/50"
-                  aria-label="Confirm All-In"
-                >
-                  <span className="text-xs font-bold">CONFIRM</span>
-                </button>
-                <button
-                  onClick={() => setAllInConfirm(false)}
-                  className="cp-btn cp-btn-ghost !min-h-[38px] !px-2"
-                >
-                  ✕
-                </button>
-              </div>
-            )}
+              if (a.type === "all_in") {
+                if (showRaiseSheet) return null;
+                if (!allInConfirm) {
+                  return (
+                    <button
+                      key={a.type}
+                      disabled={!canAct || actionPending || !a.enabled}
+                      onClick={() => setAllInConfirm(true)}
+                      className="cp-btn cp-btn-allin"
+                      style={{ minWidth: 64 }}
+                      aria-label="All-In"
+                    >
+                      <span className="flex flex-col items-center leading-tight">
+                        <span className="text-xs font-bold">ALL-IN</span>
+                      </span>
+                    </button>
+                  );
+                }
+
+                return (
+                  <div key={a.type} className="flex items-center gap-1.5 animate-[cpFadeSlideUp_0.2s_ease-out]">
+                    <button
+                      disabled={!canAct || actionPending || !a.enabled}
+                      onClick={() => { onAction("all_in"); setAllInConfirm(false); setShowRaiseSheet(false); }}
+                      className="cp-btn cp-btn-allin ring-2 ring-orange-400/50"
+                      aria-label="Confirm All-In"
+                    >
+                      <span className="text-xs font-bold">CONFIRM</span>
+                    </button>
+                    <button
+                      onClick={() => setAllInConfirm(false)}
+                      className="cp-btn cp-btn-ghost !min-h-[38px] !px-2"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                );
+              }
+
+              return null;
+            })}
 
             {/* AI Suggestion pill */}
             {canAct && advice && (

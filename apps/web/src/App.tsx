@@ -20,7 +20,7 @@ import type {
 import { getClockwiseSeatsFromButton } from "@cardpilot/shared-types";
 import { getExistingSession, ensureGuestSession, signUpWithEmail, signInWithEmail, signInWithGoogle, signOut, supabase, validateEmail, validatePassword, getRateLimitSecondsLeft, isUuid, type AuthSession } from "./supabase";
 import { preloadCardImages } from "./lib/card-images.js";
-import { SettlementOverlay } from "./components/SettlementOverlay";
+// SettlementOverlay removed — replaced by non-blocking linger feedback + HandSummaryDrawer
 import { PokerCard } from "./components/PokerCard";
 import { getSuggestedPresets, userPresetsToButtons, type BetPreset } from "./lib/bet-sizing.js";
 import { AppComplianceFooter } from "./legal-pages";
@@ -38,8 +38,19 @@ import { useAuditEvents } from "./hooks/useAuditEvents";
 import { BottomActionBar } from "./components/ui/BottomActionBar";
 import { LeftOptionsRail, OptionsDrawer, type RailAction, type DrawerSection } from "./components/ui/LeftOptionsRail";
 import { FoldConfirmModal } from "./components/ui/FoldConfirmModal";
+import { HandSummaryDrawer } from "./components/ui/HandSummaryDrawer";
+import { Lobby, type CreateRoomSettings } from "./components/lobby";
 import { useUserRole } from "./hooks/useUserRole";
 import { OPTIONS_ITEMS, type SettingsTab } from "./config/optionsMenuItems";
+import { useOverlayManager } from "./hooks/useOverlayManager";
+import {
+  type PreAction,
+  type PreActionType,
+  deriveActionBar,
+  derivePreActionUI,
+  shouldAutoFirePreAction,
+  shouldConfirmUnnecessaryFold,
+} from "./lib/action-derivations";
 
 const SERVER = import.meta.env.VITE_SERVER_URL || "http://127.0.0.1:4000";
 const DEBUG_LOGS_ENABLED = import.meta.env.DEV;
@@ -118,14 +129,10 @@ export function App() {
   const [lastActionBySeat, setLastActionBySeat] = useState<Record<number, { action: string; amount: number }>>({});
 
   const [lobbyRooms, setLobbyRooms] = useState<LobbyRoomSummary[]>([]);
-  const [newRoomSB, setNewRoomSB] = useState(1);
-  const [newRoomBB, setNewRoomBB] = useState(3);
-  const [newRoomBuyInMin, setNewRoomBuyInMin] = useState(40);
-  const [newRoomBuyInMax, setNewRoomBuyInMax] = useState(300);
+  const [createSettings, setCreateSettings] = useState<CreateRoomSettings>({
+    sb: 1, bb: 3, buyInMin: 40, buyInMax: 300, maxPlayers: 6, visibility: "public",
+  });
   const [displayBB, setDisplayBB] = useState(false);
-  const [newRoomMaxPlayers, setNewRoomMaxPlayers] = useState(6);
-  const [newRoomVisibility, setNewRoomVisibility] = useState<"public" | "private">("public");
-  const [roomCodeInput, setRoomCodeInput] = useState("");
   const [showBuyInModal, setShowBuyInModal] = useState(false);
   const [pendingSitSeat, setPendingSitSeat] = useState(1);
   const [buyInAmount, setBuyInAmount] = useState(10000);
@@ -151,6 +158,7 @@ export function App() {
   }, [navigate, tableId]);
 
   const setView = useCallback((nextView: AppView) => {
+    debugLog("[nav] setView", { from: location.pathname, to: nextView, tableId, currentRoomCode });
     if (nextView === "table") {
       goToTable();
       return;
@@ -160,7 +168,7 @@ export function App() {
       return;
     }
     navigate(`/${nextView}`);
-  }, [goToTable, navigate]);
+  }, [goToTable, navigate, location.pathname, tableId, currentRoomCode]);
 
   useEffect(() => {
     if (location.pathname === "/") {
@@ -201,7 +209,6 @@ export function App() {
   const [timerState, setTimerState] = useState<TimerState | null>(null);
   const [roomLog, setRoomLog] = useState<RoomLogEntry[]>([]);
   const [kicked, setKicked] = useState<{ reason: string; banned: boolean } | null>(null);
-  const [showSettings, setShowSettings] = useState(false);
   const [settingsTab, setSettingsTab] = useState<SettingsTab>("game");
   const [seatRequests, setSeatRequests] = useState<Array<{ orderId: string; userId: string; userName: string; seat: number; buyIn: number }>>([]);
   const [showRoomLog, setShowRoomLog] = useState(false);
@@ -222,10 +229,31 @@ export function App() {
   const [showMobileGto, setShowMobileGto] = useState(false);
 
   /* ── UI Redesign state ── */
-  const [preAction, setPreAction] = useState<string | null>(null);
+  const [preAction, setPreAction] = useState<PreAction | null>(null);
   const [showFoldConfirm, setShowFoldConfirm] = useState(false);
   const [suppressFoldConfirm, setSuppressFoldConfirm] = useState(false);
-  const [showOptionsDrawer, setShowOptionsDrawer] = useState(false);
+
+  /* ── Overlay Manager (single source of truth for stacking) ── */
+  const overlays = useOverlayManager();
+  const showOptionsDrawer = overlays.isOpen("optionsDrawer");
+  const setShowOptionsDrawer = useCallback((open: boolean) => {
+    if (open) overlays.open("optionsDrawer");
+    else overlays.close("optionsDrawer");
+  }, [overlays]);
+  const showSettings = overlays.isOpen("roomSettings");
+  const setShowSettings = useCallback((open: boolean) => {
+    if (open) overlays.open("roomSettings"); // auto-closes drawer (lower priority)
+    else overlays.close("roomSettings");
+  }, [overlays]);
+
+  /* ── Hand-end linger state (non-blocking winner feedback) ── */
+  const [lingerActive, setLingerActive] = useState(false);
+  const [lingerWinnerSeats, setLingerWinnerSeats] = useState<Set<number>>(new Set());
+  const [lingerSeatDeltas, setLingerSeatDeltas] = useState<Record<number, number>>({});
+  const [lingerIsAllIn, setLingerIsAllIn] = useState(false);
+  const [showHandSummaryDrawer, setShowHandSummaryDrawer] = useState(false);
+  const lingerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSettlementRef = useRef<SettlementResult | null>(null);
 
   /* ── Table theme ── */
   type TableTheme = "green" | "blue";
@@ -272,6 +300,14 @@ export function App() {
         setTimeout(() => setToast(null), 250);
       }, 5000);
     }
+  }, []);
+
+  const clearLinger = useCallback(() => {
+    if (lingerTimerRef.current) { clearTimeout(lingerTimerRef.current); lingerTimerRef.current = null; }
+    setLingerActive(false);
+    setLingerWinnerSeats(new Set());
+    setLingerSeatDeltas({});
+    setLingerIsAllIn(false);
   }, []);
 
   useEffect(() => { preloadCardImages(); }, []);
@@ -439,6 +475,8 @@ export function App() {
 
     const applyAuthoritativeSnapshot = (d: TableState, source: "table_snapshot" | "hand_ended"): boolean => {
       if (!d) return false;
+      const activeTableId = (tableIdRef.current ?? "").trim();
+      if (!activeTableId || d.tableId !== activeTableId) return false;
       const incomingVersion = Number.isFinite(d.stateVersion) ? d.stateVersion : 0;
       const currentVersion = latestSnapshotVersionRef.current;
       const incomingHash = snapshotHash(d);
@@ -509,8 +547,9 @@ export function App() {
     };
 
     const handleReconnect = () => {
+      const curPath = pathnameRef.current;
       let routeTableId = "";
-      const tableRouteMatch = pathnameRef.current.match(/^\/table\/([^/]+)$/);
+      const tableRouteMatch = curPath.match(/^\/table\/([^/]+)$/);
       if (tableRouteMatch) {
         try {
           routeTableId = decodeURIComponent(tableRouteMatch[1]);
@@ -521,10 +560,16 @@ export function App() {
       const reconnectTableId = routeTableId || tableIdRef.current;
       const reconnectRoomCode = currentRoomCodeRef.current;
       const looksAuthoritativeTableId = /^tbl_[a-z0-9]+$/i.test(reconnectTableId);
-      if (reconnectRoomCode) {
+      // Only resync if user is on table/lobby (not history/profile/etc.)
+      const shouldResync = curPath === "/" || curPath.startsWith("/lobby") || curPath.startsWith("/table");
+      if (shouldResync && reconnectRoomCode) {
+        debugLog("[reconnect] resync room", { reconnectRoomCode, curPath });
         requestSnapshotResync("socket_reconnect", reconnectTableId);
-      } else if (looksAuthoritativeTableId) {
+      } else if (shouldResync && looksAuthoritativeTableId) {
+        debugLog("[reconnect] resync table", { reconnectTableId, curPath });
         requestSnapshotResync("socket_reconnect_table_id", reconnectTableId);
+      } else {
+        debugLog("[reconnect] skipped resync, user on", curPath);
       }
     };
 
@@ -537,8 +582,9 @@ export function App() {
       setClubsLoading(true);
       s.emit("club_list_my_clubs");
 
+      const curPath = pathnameRef.current;
       let routeTableId = "";
-      const tableRouteMatch = pathnameRef.current.match(/^\/table\/([^/]+)$/);
+      const tableRouteMatch = curPath.match(/^\/table\/([^/]+)$/);
       if (tableRouteMatch) {
         try {
           routeTableId = decodeURIComponent(tableRouteMatch[1]);
@@ -549,11 +595,17 @@ export function App() {
       const activeTableId = routeTableId || tableIdRef.current;
       const roomCode = currentRoomCodeRef.current;
       const looksAuthoritativeTableId = /^tbl_[a-z0-9]+$/i.test(activeTableId);
-      if (roomCode) {
+      // Only rejoin room if user is on table or lobby page (not history/profile/etc.)
+      const shouldRejoin = curPath === "/" || curPath.startsWith("/lobby") || curPath.startsWith("/table");
+      if (shouldRejoin && roomCode) {
+        debugLog("[connect] rejoining room", { roomCode, curPath });
         s.emit("join_room_code", { roomCode });
-      } else if (looksAuthoritativeTableId) {
+      } else if (shouldRejoin && looksAuthoritativeTableId) {
+        debugLog("[connect] rejoining table", { activeTableId, curPath });
         s.emit("join_table", { tableId: activeTableId });
         requestSnapshotResync("socket_connect_table_id", activeTableId);
+      } else if (roomCode || looksAuthoritativeTableId) {
+        debugLog("[connect] skipped room rejoin, user on", curPath);
       }
     });
     s.on("connected", (d: { userId: string; displayName?: string; supabaseEnabled: boolean }) => {
@@ -565,22 +617,64 @@ export function App() {
     s.on("lobby_snapshot", (d: { rooms: LobbyRoomSummary[] }) => setLobbyRooms(d.rooms ?? []));
     s.on("room_created", (d: { tableId: string; roomCode: string; roomName: string }) => {
       resetSnapshotSyncState();
+      tableIdRef.current = d.tableId;
       setTableId(d.tableId); setCurrentRoomCode(d.roomCode); setCurrentRoomName(d.roomName);
       showToast(`Room created: ${d.roomName} (${d.roomCode})`);
-      navigate(`/table/${encodeURIComponent(d.tableId)}`);
+      // Only navigate to table if user is on lobby/table/root (not history/profile/etc.)
+      const curPath = pathnameRef.current;
+      if (curPath === "/" || curPath.startsWith("/lobby") || curPath.startsWith("/table")) {
+        navigate(`/table/${encodeURIComponent(d.tableId)}`);
+      } else {
+        debugLog("[nav-guard] room_created: skipped navigate, user on", curPath);
+      }
       s.emit("request_table_snapshot", { tableId: d.tableId });
       s.emit("request_room_state", { tableId: d.tableId });
     });
     s.on("room_joined", (d: { tableId: string; roomCode: string; roomName: string }) => {
       resetSnapshotSyncState();
+      tableIdRef.current = d.tableId;
       setTableId(d.tableId); setCurrentRoomCode(d.roomCode); setCurrentRoomName(d.roomName);
-      showToast(`Joined room: ${d.roomName} (${d.roomCode})`);
-      navigate(`/table/${encodeURIComponent(d.tableId)}`);
+      // Only navigate to table if user is on lobby/table/root (not history/profile/etc.)
+      const curPath = pathnameRef.current;
+      if (curPath === "/" || curPath.startsWith("/lobby") || curPath.startsWith("/table")) {
+        showToast(`Joined room: ${d.roomName} (${d.roomCode})`);
+        navigate(`/table/${encodeURIComponent(d.tableId)}`);
+      } else {
+        debugLog("[nav-guard] room_joined: skipped navigate, user on", curPath);
+      }
       s.emit("request_table_snapshot", { tableId: d.tableId });
       s.emit("request_room_state", { tableId: d.tableId });
     });
     s.on("table_snapshot", (d: TableState) => {
       applyAuthoritativeSnapshot(d, "table_snapshot");
+    });
+    s.on("left_table", (d: { tableId: string }) => {
+      const activeTableId = (tableIdRef.current ?? "").trim();
+      if (!activeTableId || d.tableId !== activeTableId) return;
+      resetSnapshotSyncState();
+      tableIdRef.current = "";
+      setTableId("");
+      setCurrentRoomCode(""); setCurrentRoomName("");
+      setRoomState(null);
+      setSnapshot(null);
+      setHoleCards([]);
+      setSeatRequests([]);
+      overlays.closeAll();
+      setShowRoomLog(false);
+      setShowSessionStats(false);
+      setKicked(null);
+      setWinners(null);
+      setSettlement(null);
+      setSettlementCountdown(0);
+      setAllInPrompt(null);
+      setAdvice(null);
+      setDeviation(null);
+      const curPath = pathnameRef.current;
+      if (curPath.startsWith("/table")) {
+        navigate("/lobby");
+      }
+      showToast("Left table");
+      s.emit("request_lobby");
     });
     s.on("hole_cards", (d: { cards: string[]; seat: number }) => {
       setHoleCards(d.cards);
@@ -591,7 +685,9 @@ export function App() {
       setAdvice(null); setDeviation(null); setWinners(null); setAllInPrompt(null); setBoardReveal(null); setHoleCards([]);
       setSettlement(null); setSettlementCountdown(0); setSettlementEndsAtMs(0);
       setSettlementRevealedHoles(undefined); setSettlementWinnerHandNames(undefined);
+      clearLinger(); setShowHandSummaryDrawer(false);
       setShowFoldConfirm(false);
+      setPreAction(null);
       setLastActionBySeat({});
     });
     s.on("board_reveal", (d: {
@@ -648,6 +744,7 @@ export function App() {
       setActionPending(false);
       setAllInPrompt(null);
       setBoardReveal(null);
+      setPreAction(null);
       if (d.winners) setWinners(d.winners);
       if (d.finalState) {
         applyAuthoritativeSnapshot(d.finalState, "hand_ended");
@@ -656,12 +753,11 @@ export function App() {
       // Chip animation: animate pot→winner payouts
       if (d.settlement) chipOnSettlementRef.current(d.settlement);
 
-      // Settlement overlay: capture settlement data and start countdown
+      // Non-blocking hand-end feedback: seat highlights + delta tags + toast
       if (d.settlement) {
-        setSettlement(d.settlement);
-        setSettlementEndsAtMs(Date.now() + 6000);
-        setSettlementCountdown(6);
-        // Capture revealed hole cards from the final table state
+        lastSettlementRef.current = d.settlement;
+
+        // Capture revealed hole cards from the final table state (for drawer access)
         const fs = d.finalState;
         if (fs?.revealedHoles) {
           const holes: Record<number, [string, string]> = {};
@@ -672,7 +768,6 @@ export function App() {
         } else {
           setSettlementRevealedHoles(undefined);
         }
-        // Capture winner hand names
         if (fs?.winners) {
           const names: Record<number, string> = {};
           for (const w of fs.winners) {
@@ -682,6 +777,45 @@ export function App() {
         } else {
           setSettlementWinnerHandNames(undefined);
         }
+
+        // Compute per-seat net deltas from ledger
+        const deltas: Record<number, number> = {};
+        for (const entry of d.settlement.ledger) {
+          deltas[entry.seat] = entry.net;
+        }
+        setLingerSeatDeltas(deltas);
+
+        // Identify winner seats
+        const winSeats = new Set(d.settlement.winnersByRun.flatMap((r) => r.winners.map((w) => w.seat)));
+        setLingerWinnerSeats(winSeats);
+
+        // Detect all-in showdown (any player was all-in)
+        const wasAllIn = d.finalState?.players.some((p) => p.allIn) ?? false;
+        setLingerIsAllIn(wasAllIn);
+
+        // Activate linger (non-blocking seat highlights + deltas)
+        setLingerActive(true);
+
+        // Toast: lightweight winner summary
+        const winnerNames = d.settlement.winnersByRun.flatMap((r) => r.winners).map((w) => {
+          const p = d.finalState?.players.find((pl) => pl.seat === w.seat);
+          return `${p?.name ?? `Seat ${w.seat}`} +${w.amount.toLocaleString()}`;
+        });
+        if (winnerNames.length > 0) {
+          showToast(winnerNames.length === 1 ? `Winner: ${winnerNames[0]}` : `Winners: ${winnerNames.join(", ")}`);
+        }
+
+        // Auto-advance timer: 1.5s normal, 4s all-in
+        const lingerMs = wasAllIn ? 4000 : 1500;
+        if (lingerTimerRef.current) clearTimeout(lingerTimerRef.current);
+        lingerTimerRef.current = setTimeout(() => {
+          setLingerActive(false);
+          setLingerWinnerSeats(new Set());
+          setLingerSeatDeltas({});
+          setLingerIsAllIn(false);
+          setWinners(null);
+          setSettlement(null);
+        }, lingerMs);
       }
 
       // Save to local hand history (localStorage fallback)
@@ -781,14 +915,18 @@ export function App() {
       setView("lobby");
       setCurrentRoomCode(""); setCurrentRoomName("");
       setRoomState(null);
+      overlays.closeAll();
       showToast(`You were ${d.banned ? "banned" : "kicked"}: ${d.reason}`);
     });
     s.on("room_closed", (d?: { reason?: string }) => {
       resetSnapshotSyncState();
       setActionPending(false);
       setView("lobby");
+      tableIdRef.current = "";
+      setTableId("");
       setCurrentRoomCode(""); setCurrentRoomName("");
       setRoomState(null);
+      setTimerState(null);
       setSnapshot(null);
       setHoleCards([]);
       setSeatRequests([]);
@@ -797,8 +935,10 @@ export function App() {
       setAdvice(null);
       setDeviation(null);
       setBoardReveal(null);
-      setShowSettings(false);
+      overlays.closeAll(); // clears optionsDrawer + roomSettings + any other overlay
       setShowRoomLog(false);
+      setShowSessionStats(false);
+      clearLinger(); setShowHandSummaryDrawer(false);
       showToast(d?.reason ?? "Room closed. Returned to lobby.");
     });
     s.on("hand_aborted", (d: { reason: string }) => {
@@ -814,6 +954,7 @@ export function App() {
       setAdvice(null);
       setDeviation(null);
       setBoardReveal(null);
+      clearLinger(); setShowHandSummaryDrawer(false);
       showToast(d.reason);
     });
     s.on("system_message", (d: { message: string }) => showToast(d.message));
@@ -886,6 +1027,41 @@ export function App() {
   }, [socketAuthUserId, socketAuthToken, displayName, navigate, resetSnapshotSyncState, snapshotHash]);
 
   const canAct = useMemo(() => snapshot?.actorSeat === seat && snapshot?.handId, [snapshot, seat]);
+
+  const derivedActionBar = useMemo(
+    () => deriveActionBar(snapshot, authSession?.userId ?? null),
+    [snapshot, authSession?.userId]
+  );
+  const derivedPreActionUI = useMemo(
+    () => derivePreActionUI(snapshot, authSession?.userId ?? null),
+    [snapshot, authSession?.userId]
+  );
+
+  const setPreActionType = useCallback((actionType: PreActionType | null) => {
+    const uid = authSession?.userId;
+    const hid = snapshotRef.current?.handId;
+    if (!actionType) {
+      setPreAction(null);
+      return;
+    }
+    if (!uid || !hid) return;
+    if (!derivedPreActionUI.enabled) return;
+
+    setPreAction({ handId: hid, playerId: uid, actionType, createdAt: Date.now() });
+  }, [authSession?.userId, derivedPreActionUI.enabled]);
+
+  const attemptFold = useCallback(() => {
+    const hid = snapshotRef.current?.handId;
+    const legal = snapshotRef.current?.legalActions;
+    if (!hid || actionPending) return;
+    if (shouldConfirmUnnecessaryFold(legal ?? null, suppressFoldConfirm)) {
+      setShowFoldConfirm(true);
+      return;
+    }
+    setActionPending(true);
+    setPreAction(null);
+    socket?.emit("action_submit", { tableId, handId: hid, action: "fold" });
+  }, [actionPending, socket, tableId, suppressFoldConfirm]);
   // Reset raiseTo to minRaise whenever legal actions change
   useEffect(() => {
     const minR = snapshot?.legalActions?.minRaise;
@@ -895,35 +1071,52 @@ export function App() {
   // Reset action pending when turn/street/hand changes
   useEffect(() => { setActionPending(false); }, [snapshot?.actorSeat, snapshot?.street, snapshot?.handId]);
 
-  // Pre-action auto-apply: when it becomes your turn, auto-execute the pre-action if still valid
+  const wasMyTurnRef = useRef(false);
   useEffect(() => {
-    if (!canAct || !preAction || actionPending || !snapshot?.handId) return;
-    const legal = snapshot.legalActions;
-    if (!legal) return;
+    const requiredHole = snapshot?.holeCardCount ?? 2;
+    const isPlayersTurn = Boolean(snapshot?.handId && snapshot?.actorSeat === seat);
+    const becameMyTurn = isPlayersTurn && !wasMyTurnRef.current;
+    wasMyTurnRef.current = isPlayersTurn;
+    if (!becameMyTurn) return;
 
-    if (preAction === "fold") {
-      setActionPending(true);
+    const decision = shouldAutoFirePreAction({
+      preAction,
+      gameState: snapshot,
+      playerId: authSession?.userId ?? null,
+      holeCardsCount: holeCards.length,
+      isPlayersTurn,
+      actionPending,
+    });
+
+    if (!preAction) return;
+    if (!snapshot?.handId || preAction.handId !== snapshot.handId) {
       setPreAction(null);
-      socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "fold" });
-    } else if (preAction === "check" && legal.canCheck) {
-      setActionPending(true);
-      setPreAction(null);
-      socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "check" });
-    } else if (preAction === "check/fold") {
-      if (legal.canCheck) {
-        setActionPending(true);
-        setPreAction(null);
-        socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "check" });
-      } else {
-        setActionPending(true);
-        setPreAction(null);
-        socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "fold" });
-      }
-    } else {
-      // Pre-action no longer valid (e.g., "check" but there's a bet) — clear it and prompt normally
-      setPreAction(null);
+      return;
     }
-  }, [canAct, preAction, actionPending, snapshot?.handId, snapshot?.legalActions, socket, tableId]);
+
+    if (!decision) {
+      setPreAction(null);
+      return;
+    }
+
+    if (holeCards.length < requiredHole) return;
+
+    setActionPending(true);
+    setPreAction(null);
+    socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: decision.action, amount: decision.amount });
+  }, [snapshot?.handId, snapshot?.actorSeat, snapshot?.street, snapshot?.showdownPhase, seat, preAction, actionPending, socket, tableId, authSession?.userId, holeCards.length, holeCards]);
+
+  useEffect(() => {
+    if (!preAction) return;
+    if (!snapshot?.handId || preAction.handId !== snapshot.handId) {
+      setPreAction(null);
+      return;
+    }
+    if (!derivedPreActionUI.enabled) {
+      setPreAction(null);
+      return;
+    }
+  }, [preAction, snapshot?.handId, derivedPreActionUI.enabled]);
   const isConnected = socketConnected;
   const isHost = useMemo(() => roomState?.ownership.ownerId === authSession?.userId, [roomState, authSession]);
   const isCoHost = useMemo(() => roomState?.ownership.coHostIds.includes(authSession?.userId ?? "") ?? false, [roomState, authSession]);
@@ -1017,27 +1210,34 @@ export function App() {
     myIsMucked,
     roomState?.settings.autoMuckLosingHands,
   ]);
-  // Settlement overlay countdown timer — absolute-time-based for reliable ticking
+  // Skip interaction: Space/Enter during linger period immediately clears it
   useEffect(() => {
-    if (!settlement || !settlementEndsAtMs) return;
-    const tick = () => {
-      const remaining = Math.max(0, Math.ceil((settlementEndsAtMs - Date.now()) / 1000));
-      setSettlementCountdown(remaining);
+    if (!lingerActive) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === " " || e.key === "Enter" || e.key === "Escape") {
+        e.preventDefault();
+        clearLinger();
+        setWinners(null);
+        setSettlement(null);
+      }
     };
-    tick();
-    const interval = setInterval(tick, 500);
-    return () => clearInterval(interval);
-  }, [settlement, settlementEndsAtMs]);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [lingerActive, clearLinger]);
 
-  // Compute auto-start block reason for settlement overlay
-  const autoStartBlockReason = useMemo(() => {
-    if (!settlement) return null;
-    if (roomState?.status === "PAUSED") return "Game is paused by host.";
-    if (!roomState?.settings.autoStartNextHand) return "Auto-start is off.";
-    const eligibleCount = snapshot?.players.filter((p: TablePlayer) => p.stack > 0).length ?? 0;
-    if (eligibleCount < 2) return `Waiting for 2+ eligible players (currently ${eligibleCount}).`;
-    return null;
-  }, [settlement, roomState, snapshot?.players]);
+  // Escape key closes Room Settings modal (highest priority overlay)
+  useEffect(() => {
+    if (!showSettings) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowSettings(false);
+      }
+    };
+    window.addEventListener("keydown", handler, true); // capture phase
+    return () => window.removeEventListener("keydown", handler, true);
+  }, [showSettings, setShowSettings]);
 
   useEffect(() => {
     setLastActionBySeat({});
@@ -1109,6 +1309,8 @@ export function App() {
             posLabel={posLabel} isButton={isButton} displayBB={displayBB} bigBlind={snapshot?.bigBlind ?? 3}
             lastAction={lastActionBySeat[seatNum] ?? null}
             equity={equity} handHint={handHint} pendingLeave={isPendingLeave} revealedCards={revealedCards} revealedHandName={revealedHandName} isMucked={isMucked}
+            isWinner={lingerActive && lingerWinnerSeats.has(seatNum)}
+            netDelta={lingerActive ? lingerSeatDeltas[seatNum] : undefined}
             onClickRevealed={revealedCards ? () => {
               setRevealedZoom({
                 seat: seatNum,
@@ -1121,7 +1323,7 @@ export function App() {
         </div>
       );
     });
-  }, [snapshot, seat, roomState, timerDisplay, boardReveal, displayBB, seatPositions, heroSeatForLayout, handleSeatClick, lastActionBySeat]);
+  }, [snapshot, seat, roomState, timerDisplay, boardReveal, displayBB, seatPositions, heroSeatForLayout, handleSeatClick, lastActionBySeat, lingerActive, lingerWinnerSeats, lingerSeatDeltas]);
 
   // Debug seat requests
   useEffect(() => {
@@ -1136,18 +1338,22 @@ export function App() {
   }
 
   function leaveRoom() {
+    debugLog("[nav] leaveRoom()", { tableId, currentRoomCode, seat, pathname: location.pathname });
     if (socket && tableId) {
       socket.emit("stand_up", { tableId, seat });
       socket.emit("leave_table", { tableId });
     }
     resetSnapshotSyncState();
+    tableIdRef.current = "";
+    setTableId("");
     setCurrentRoomCode(""); setCurrentRoomName("");
     setRoomState(null);
     setSnapshot(null);
     setHoleCards([]);
     setSeatRequests([]);
-    setShowSettings(false);
+    overlays.closeAll();
     setShowRoomLog(false);
+    setShowSessionStats(false);
     setKicked(null);
     setWinners(null);
     setSettlement(null);
@@ -1162,6 +1368,7 @@ export function App() {
 
   async function handleLogout() {
     resetSnapshotSyncState();
+    overlays.closeAll();
     socket?.disconnect();
     setSocket(null);
     await signOut();
@@ -1325,223 +1532,59 @@ export function App() {
           </>
         ) : view === "lobby" ? (
           /* ═══════ LOBBY ═══════ */
-          <main className="flex-1 p-6 overflow-y-auto">
-            <div className="max-w-3xl mx-auto space-y-6">
-
-              {/* ── Play Now Quick-Match ── */}
-              {!currentRoomCode && (
-                <div className="glass-card p-6 bg-gradient-to-r from-emerald-500/5 via-transparent to-amber-500/5 border-emerald-500/20">
-                  <div className="flex flex-col sm:flex-row items-center gap-4">
-                    <div className="flex-1 text-center sm:text-left">
-                      <h2 className="text-xl font-bold text-white mb-1">Ready to play?</h2>
-                      <p className="text-sm text-slate-400">Jump into a table instantly — no setup needed.</p>
-                    </div>
-                    <button
-                      disabled={!socket || !socketConnected}
-                      onClick={() => {
-                        if (!socket) { showToast("Not connected to server"); return; }
-                        // Try to join the first open public room with available seats
-                        const openRoom = lobbyRooms.find(r => r.status === "OPEN" && r.playerCount < r.maxPlayers);
-                        if (openRoom) {
-                          socket.emit("join_room_code", { roomCode: openRoom.roomCode });
-                          showToast("Quick-matching into room...");
-                        } else {
-                          // No open rooms — create a default one
-                          socket.emit("create_room", {
-                            roomName: "1/2 NLH",
-                            maxPlayers: 6,
-                            smallBlind: 1,
-                            bigBlind: 2,
-                            buyInMin: 40,
-                            buyInMax: 200,
-                            visibility: "public",
-                          });
-                          showToast("Creating a new table...");
-                        }
-                      }}
-                      className="btn-success !py-4 !px-8 text-lg font-bold whitespace-nowrap shadow-xl shadow-emerald-900/40 hover:shadow-emerald-900/60 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
-                    >
-                      ▶ Play Now
-                    </button>
-                  </div>
-                  {lobbyRooms.length > 0 && (
-                    <p className="text-[10px] text-slate-500 text-center sm:text-left mt-2">
-                      {lobbyRooms.filter(r => r.status === "OPEN" && r.playerCount < r.maxPlayers).length} open table{lobbyRooms.filter(r => r.status === "OPEN" && r.playerCount < r.maxPlayers).length !== 1 ? "s" : ""} available
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* ── Current Room Banner ── */}
-              {currentRoomCode && (
-                <div className="glass-card p-5 border-amber-500/20 bg-gradient-to-r from-amber-500/5 to-transparent">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-500/25 flex items-center justify-center text-amber-400 text-lg">
-                        {myOwnedRoomCode ? "👑" : "🎴"}
-                      </div>
-                      <div>
-                        <div className="text-xs text-slate-400 uppercase tracking-wider mb-0.5">
-                          {myOwnedRoomCode ? "Your Room" : "Current Room"}
-                        </div>
-                        <div className="font-mono font-bold text-amber-400 text-xl tracking-[0.2em]">{currentRoomCode}</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button onClick={copyCode} className="px-3 py-2 rounded-lg text-xs font-medium bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10 transition-all">Copy</button>
-                      <button onClick={() => setView("table")} className="px-4 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-900/30 hover:from-emerald-400 hover:to-emerald-500 transition-all">Go to Table</button>
-                      <button onClick={leaveRoom} className="px-3 py-2 rounded-lg text-xs font-medium bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all">Leave</button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ── Create / Join ── */}
-              <div className="glass-card p-6">
-                <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-lg font-bold text-white">
-                    {currentRoomCode ? "Switch Room" : "Create or Join a Room"}
-                  </h2>
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${socketConnected ? "bg-emerald-500 animate-pulse" : "bg-red-500"}`} />
-                    <span className="text-xs text-slate-400">{socketConnected ? "Connected" : "Disconnected"}</span>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  {/* Create Room */}
-                  <div className="space-y-3">
-                    <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider">Create Room</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-[10px] text-slate-500 mb-1">Small Blind</label>
-                        <input type="number" value={newRoomSB} min={1} onChange={(e) => { const v = Math.max(1, Number(e.target.value)); setNewRoomSB(v); setNewRoomBB(Math.max(v + 1, v * 2)); setNewRoomBuyInMin(v * 40); setNewRoomBuyInMax(v * 300); }} className="input-field w-full text-xs !py-1.5 text-center" />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-500 mb-1">Big Blind</label>
-                        <input type="number" value={newRoomBB} min={newRoomSB + 1} onChange={(e) => setNewRoomBB(Math.max(newRoomSB + 1, Number(e.target.value)))} className="input-field w-full text-xs !py-1.5 text-center" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-[10px] text-slate-500 mb-1">Buy-in Min</label>
-                        <input type="number" value={newRoomBuyInMin} min={1} onChange={(e) => setNewRoomBuyInMin(Math.max(1, Number(e.target.value)))} className="input-field w-full text-xs !py-1.5 text-center" />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-500 mb-1">Buy-in Max</label>
-                        <input type="number" value={newRoomBuyInMax} min={newRoomBuyInMin} onChange={(e) => setNewRoomBuyInMax(Math.max(newRoomBuyInMin, Number(e.target.value)))} className="input-field w-full text-xs !py-1.5 text-center" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-[10px] text-slate-500 mb-1">Max Players</label>
-                        <select value={newRoomMaxPlayers} onChange={(e) => setNewRoomMaxPlayers(Number(e.target.value))} className="input-field w-full text-xs !py-1.5">
-                          {[2,3,4,5,6,7,8,9].map(n => <option key={n} value={n}>{n} players</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[10px] text-slate-500 mb-1">Room Type</label>
-                        <div className="flex gap-1">
-                          <button onClick={() => setNewRoomVisibility("public")}
-                            className={`flex-1 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
-                              newRoomVisibility === "public"
-                                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                                : "bg-white/5 text-slate-400 border border-white/10"
-                            }`}>🌐 Public</button>
-                          <button onClick={() => setNewRoomVisibility("private")}
-                            className={`flex-1 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
-                              newRoomVisibility === "private"
-                                ? "bg-amber-500/20 text-amber-400 border border-amber-500/40"
-                                : "bg-white/5 text-slate-400 border border-white/10"
-                            }`}>🔒 Private</button>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-[10px] text-slate-500 text-center py-1 rounded-lg bg-white/[0.02]">
-                      {newRoomMaxPlayers}-max · Blinds {newRoomSB}/{newRoomBB} · Buy-in {newRoomBuyInMin.toLocaleString()}–{newRoomBuyInMax.toLocaleString()}
-                    </div>
-                    {newRoomBB <= newRoomSB && <p className="text-[10px] text-red-400 text-center">Big blind must be greater than small blind</p>}
-                    {newRoomBuyInMax < newRoomBuyInMin && <p className="text-[10px] text-red-400 text-center">Max buy-in must be ≥ min buy-in</p>}
-                    <button 
-                      onClick={() => {
-                        if (!socket) { showToast("Not connected to server"); return; }
-                        if (newRoomBB <= newRoomSB) { showToast("Big blind must be greater than small blind"); return; }
-                        if (newRoomBuyInMax < newRoomBuyInMin) { showToast("Max buy-in must be ≥ min buy-in"); return; }
-                        socket.emit("create_room", {
-                          roomName: `${newRoomSB}/${newRoomBB} NLH`,
-                          maxPlayers: newRoomMaxPlayers,
-                          smallBlind: newRoomSB,
-                          bigBlind: newRoomBB,
-                          buyInMin: newRoomBuyInMin,
-                          buyInMax: newRoomBuyInMax,
-                          visibility: newRoomVisibility,
-                        });
-                        showToast("Creating room...");
-                      }} 
-                      disabled={!socket || newRoomBB <= newRoomSB || newRoomBuyInMax < newRoomBuyInMin}
-                      className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed">
-                      Create Room
-                    </button>
-                  </div>
-
-                  {/* Join by Code */}
-                  <div className="space-y-3">
-                    <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider">Join by Code</label>
-                    <input
-                      value={roomCodeInput}
-                      onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
-                      onKeyDown={(e) => { if (e.key === "Enter" && roomCodeInput.length >= 4) { socket?.emit("join_room_code", { roomCode: roomCodeInput }); showToast("Joining room..."); } }}
-                      placeholder="Enter room code"
-                      maxLength={8}
-                      className="input-field w-full uppercase tracking-[0.3em] text-center font-mono text-lg !py-3" />
-                    <button
-                      onClick={() => {
-                        if (!roomCodeInput.trim()) { showToast("Please enter a room code"); return; }
-                        socket?.emit("join_room_code", { roomCode: roomCodeInput });
-                        showToast("Joining room...");
-                      }}
-                      disabled={!socket || !roomCodeInput.trim()}
-                      className="btn-success w-full disabled:opacity-50 disabled:cursor-not-allowed">
-                      Join Room
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* ── Room List ── */}
-              <div className="glass-card p-6">
-                <div className="flex items-center justify-between mb-5">
-                  <h2 className="text-lg font-bold text-white">Open Rooms</h2>
-                  <button onClick={() => socket?.emit("request_lobby")} className="btn-ghost text-xs !py-1.5 !px-3">Refresh</button>
-                </div>
-                {lobbyRooms.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="text-4xl mb-3 opacity-30">🎴</div>
-                    <p className="text-slate-500 text-sm">No open rooms yet</p>
-                    <p className="text-slate-600 text-xs mt-1">Create one to get started!</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {lobbyRooms.map((r) => (
-                      <div key={r.tableId} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:border-white/10 transition-all group">
-                        <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-emerald-700/20 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-sm font-bold">{r.playerCount}</div>
-                          <div>
-                            <div className="font-medium text-white text-sm">{r.roomName}</div>
-                            <div className="text-xs text-slate-500 mt-0.5">
-                              <span className="font-mono text-amber-400/70">{r.roomCode}</span>
-                              <span className="mx-2">·</span>{r.playerCount}/{r.maxPlayers} players
-                              <span className="mx-2">·</span>Blinds {r.smallBlind}/{r.bigBlind}
-                            </div>
-                          </div>
-                        </div>
-                        <button onClick={() => { socket?.emit("join_room_code", { roomCode: r.roomCode }); showToast("Joining room..."); }} className="btn-primary text-xs !py-2 !px-4 opacity-70 group-hover:opacity-100">Join</button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </main>
+          <Lobby
+            connected={socketConnected}
+            currentRoomCode={currentRoomCode}
+            currentRoomName={currentRoomName}
+            isOwner={!!myOwnedRoomCode}
+            lobbyRooms={lobbyRooms}
+            createSettings={createSettings}
+            onCreateSettingsChange={setCreateSettings}
+            onQuickPlay={() => {
+              if (!socket) { showToast("Not connected to server"); return; }
+              const openRoom = lobbyRooms.find(r => r.status === "OPEN" && r.playerCount < r.maxPlayers);
+              if (openRoom) {
+                socket.emit("join_room_code", { roomCode: openRoom.roomCode });
+                showToast("Quick-matching into room...");
+              } else {
+                socket.emit("create_room", {
+                  roomName: `${createSettings.sb}/${createSettings.bb} NLH`,
+                  maxPlayers: createSettings.maxPlayers,
+                  smallBlind: createSettings.sb,
+                  bigBlind: createSettings.bb,
+                  buyInMin: createSettings.buyInMin,
+                  buyInMax: createSettings.buyInMax,
+                  visibility: "public",
+                });
+                showToast("Creating a new table...");
+              }
+            }}
+            onJoinByCode={(code: string) => {
+              socket?.emit("join_room_code", { roomCode: code });
+              showToast("Joining room...");
+            }}
+            onCreateRoom={(s: CreateRoomSettings) => {
+              if (!socket) { showToast("Not connected to server"); return; }
+              socket.emit("create_room", {
+                roomName: `${s.sb}/${s.bb} NLH`,
+                maxPlayers: s.maxPlayers,
+                smallBlind: s.sb,
+                bigBlind: s.bb,
+                buyInMin: s.buyInMin,
+                buyInMax: s.buyInMax,
+                visibility: s.visibility,
+              });
+              showToast("Creating room...");
+            }}
+            onJoinRoom={(roomCode: string) => {
+              socket?.emit("join_room_code", { roomCode });
+              showToast("Joining room...");
+            }}
+            onRefreshLobby={() => socket?.emit("request_lobby")}
+            onCopyCode={copyCode}
+            onGoToTable={() => setView("table")}
+            onLeaveRoom={leaveRoom}
+          />
         ) : (
           /* ═══════ TABLE VIEW ═══════ */
           <>
@@ -1565,8 +1608,9 @@ export function App() {
                   }, active: myPlayer.status === "sitting_out" },
                 ] : []),
                 { id: "leave", icon: "🚪", label: "Leave", onClick: () => {
-                  if (handInProgress) { socket?.emit("stand_up", { tableId, seat }); }
-                  else { socket?.emit("stand_up", { tableId, seat }); }
+                  if (handInProgress && !confirm("A hand is in progress. Leave the table?")) return;
+                  debugLog("[nav] Leave rail clicked", { tableId, currentRoomCode });
+                  leaveRoom();
                 }, danger: true, hidden: !myPlayer },
                 { id: "theme", icon: tableTheme === "green" ? "🟢" : "🔵", label: "Theme", onClick: () => {
                   const next: TableTheme = tableTheme === "green" ? "blue" : "green";
@@ -1608,10 +1652,9 @@ export function App() {
                   } else if (item.action === "open_profile") {
                     setView("profile"); setShowOptionsDrawer(false);
                   } else if (item.action === "back_to_lobby") {
-                    if (handInProgress) { if (!confirm("A hand is in progress. Leave after this hand?")) return; socket?.emit("stand_up", { tableId, seat }); }
-                    socket?.emit("request_lobby");
-                    setView("lobby");
-                    setShowOptionsDrawer(false);
+                    if (handInProgress && !confirm("A hand is in progress. Leave the table?")) return;
+                    debugLog("[nav] Back to Lobby drawer clicked", { tableId, currentRoomCode });
+                    leaveRoom(); // leaveRoom() clears overlays, emits leave_table, navigates to lobby
                   }
                   debugLog("[OPTIONS_DRAWER] click:", item.analyticsName, { tableId, isHost: userRole.isHost, isSeated: userRole.isSeated });
                 };
@@ -1726,12 +1769,10 @@ export function App() {
                     <button onClick={copyCode} className="text-slate-500 hover:text-white transition-colors" title="Copy room code">📋</button>
                     <button onClick={() => {
                       if (handInProgress) {
-                        if (!confirm("A hand is in progress. Leave after this hand?")) return;
-                        // Defer stand-up
-                        socket?.emit("stand_up", { tableId, seat });
+                        if (!confirm("A hand is in progress. Leave the table?")) return;
                       }
-                      socket?.emit("request_lobby");
-                      setView("lobby");
+                      debugLog("[nav] Change Table clicked", { tableId, currentRoomCode });
+                      leaveRoom();
                     }} className="text-[10px] px-2 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20 transition-all" title="Browse other tables">
                       Change Table
                     </button>
@@ -1750,7 +1791,29 @@ export function App() {
                     )}
                     <button onClick={() => socket?.emit("game_control", { tableId, action: "end" })} className="text-[10px] px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20" title="Stop auto-deal">■</button>
                     {isHost && (
-                      <button onClick={() => { if (confirm("Are you sure you want to close the room? All players will be returned to the lobby.")) { socket?.emit("close_room", { tableId }); } }}
+                      <button onClick={() => {
+                        if (!confirm("Are you sure you want to close the room? All players will be returned to the lobby.")) return;
+                        if (!socket || !isConnected) {
+                          showToast("Error: Cannot close room — not connected to server");
+                          return;
+                        }
+                        debugLog("[nav] Close Room clicked", { tableId, currentRoomCode, isHost });
+                        socket.emit("close_room", { tableId });
+                        showToast("Closing room...");
+                        // Fallback: if room_closed never fires within 5s, force-navigate to lobby
+                        const closeTimeout = setTimeout(() => {
+                          debugLog("[nav] Close Room timeout — forcing local cleanup");
+                          showToast("Error: Room close may have failed — returning to lobby");
+                          leaveRoom();
+                        }, 5000);
+                        const onClosed = () => { clearTimeout(closeTimeout); };
+                        socket.once("room_closed", onClosed);
+                        // Also clear timeout if we get an error
+                        socket.once("error_event", (err: { message: string }) => {
+                          clearTimeout(closeTimeout);
+                          showToast(`Error: Close room failed — ${err.message}`);
+                        });
+                      }}
                         className="text-[10px] px-2 py-0.5 rounded bg-red-600/20 text-red-300 border border-red-500/30 hover:bg-red-600/30 font-semibold" title="Close room permanently">
                         Close Room
                       </button>
@@ -1790,7 +1853,7 @@ export function App() {
                 debugLog("[BUY_IN_MODAL] isHostOrCoHost:", isHostOrCoHost, "isHost:", isHost, "isCoHost:", isCoHost);
                 debugLog("[BUY_IN_MODAL] roomState.ownership:", roomState?.ownership);
                 return (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowBuyInModal(false)}>
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65" onClick={() => setShowBuyInModal(false)}>
                     <div className="glass-card p-6 w-80 space-y-4" onClick={(e) => e.stopPropagation()}>
                       <h3 className="text-sm font-bold text-white text-center">Choose Buy-in</h3>
                       {rejoinStackInfo?.tableId === tableId && rejoinStackInfo.stack != null && (
@@ -1875,7 +1938,7 @@ export function App() {
                 const maxDeposit = Math.max(0, (settings?.buyInMax ?? 20000) - (myPlayer?.stack ?? 0));
                 const minDeposit = Math.max(bb, 1);
                 return (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowDepositModal(false)}>
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65" onClick={() => setShowDepositModal(false)}>
                     <div className="glass-card p-5 w-72 space-y-3" onClick={(e) => e.stopPropagation()}>
                       <h3 className="text-sm font-bold text-emerald-400 text-center">Request Deposit</h3>
                       <div className="text-center">
@@ -1981,24 +2044,7 @@ export function App() {
                 </div>
               )}
 
-              {/* Settings / Log panels (overlay-style, max-height constrained) */}
-              {showSettings && roomState && (
-                <div className="mx-3 mt-1 max-h-[70vh] overflow-y-auto shrink-0">
-                  <RoomSettingsPanel
-                    roomState={roomState}
-                    isHost={!!isHost}
-                    readOnly={!userRole.isHostOrCoHost}
-                    initialTab={settingsTab}
-                    players={snapshot?.players ?? []}
-                    authUserId={authSession?.userId ?? ""}
-                    onUpdateSettings={(settings: Record<string, unknown>) => socket?.emit("update_settings", { tableId, settings })}
-                    onKick={(targetUserId: string, reason: string, ban: boolean) => socket?.emit("kick_player", { tableId, targetUserId, reason, ban })}
-                    onTransfer={(newOwnerId: string) => socket?.emit("transfer_ownership", { tableId, newOwnerId })}
-                    onSetCoHost={(userId: string, add: boolean) => socket?.emit("set_cohost", { tableId, userId, add })}
-                    onClose={() => setShowSettings(false)}
-                  />
-                </div>
-              )}
+              {/* Settings / Log panels */}
               {showRoomLog && (
                 <div className="mx-3 mt-1 glass-card p-3 max-h-36 overflow-y-auto shrink-0">
                   <div className="flex items-center justify-between mb-2">
@@ -2109,7 +2155,8 @@ export function App() {
                   </div>
 
                   {/* Table surface + overlays — CSS green felt, wider */}
-                  <div ref={tableContainerRef} className="relative w-full max-w-3xl select-none shrink">
+                  <div ref={tableContainerRef} className={`relative w-full max-w-3xl select-none shrink ${lingerActive ? "cursor-pointer" : ""}`}
+                    onClick={lingerActive ? () => { clearLinger(); setWinners(null); setSettlement(null); } : undefined}>
                     <div className={`aspect-[16/9] rounded-[50%] ${tableTheme === "blue" ? "poker-table-surface-blue" : "poker-table-surface"}`} />
 
                     {/* Community cards — centered on table (supports run-it-twice dual boards) */}
@@ -2213,56 +2260,26 @@ export function App() {
                     </div>
                   )}
 
-                  {/* Settlement Overlay (replaces old winners overlay) */}
-                  {settlement ? (
-                    <SettlementOverlay
-                      settlement={settlement}
-                      players={snapshot?.players ?? []}
-                      autoStartScheduled={!autoStartBlockReason && (roomState?.settings.autoStartNextHand ?? true)}
-                      autoStartBlockReason={autoStartBlockReason}
-                      countdownSeconds={settlementCountdown}
-                      onDismiss={() => { setSettlement(null); setSettlementEndsAtMs(0); setSettlementRevealedHoles(undefined); setSettlementWinnerHandNames(undefined); setWinners(null); }}
-                      onDealNow={isHost ? () => { socket?.emit("start_hand", { tableId }); setSettlement(null); setSettlementEndsAtMs(0); setSettlementRevealedHoles(undefined); setSettlementWinnerHandNames(undefined); setWinners(null); } : undefined}
-                      isHost={!!isHost}
-                      revealedHoles={settlementRevealedHoles}
-                      winnerHandNames={settlementWinnerHandNames}
-                    />
-                  ) : winners && winners.length > 0 && (
-                    <div className="w-full max-w-2xl mt-2 shrink-0 animate-[fadeSlideUp_0.5s_ease-out]">
-                      <div className="relative rounded-2xl border border-amber-500/30 bg-gradient-to-b from-amber-500/10 via-black/60 to-black/80 backdrop-blur-md px-6 py-4 shadow-[0_0_30px_rgba(245,158,11,0.15)]">
-                        <div className="flex items-center justify-center gap-2 mb-3">
-                          <span className="text-2xl">🏆</span>
-                          <span className="text-amber-400 text-lg font-extrabold tracking-wide uppercase">
-                            {winners.length > 1 ? "Winners" : "Winner"}
-                          </span>
-                          <span className="text-2xl">🏆</span>
-                        </div>
-                        <div className="flex flex-col items-center gap-2">
-                          {[...winners].sort((a, b) => {
-                            const order = getClockwiseSeatsFromButton(snapshot?.buttonSeat ?? 0, winners.map((x: { seat: number }) => x.seat));
-                            return order.indexOf(a.seat) - order.indexOf(b.seat);
-                          }).map((w) => {
-                            const p = snapshot?.players.find((pl: TablePlayer) => pl.seat === w.seat);
-                            return (
-                              <div key={w.seat} className="flex items-center gap-3 px-5 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 animate-[fadeSlideUp_0.6s_ease-out]">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-sm font-extrabold text-slate-900 shadow-lg">
-                                  {(p?.name ?? `S${w.seat}`)[0].toUpperCase()}
-                                </div>
-                                <div className="flex flex-col">
-                                  <span className="text-white font-bold text-sm">{p?.name ?? `Seat ${w.seat}`}</span>
-                                  {w.handName && <span className="text-slate-400 text-xs">{w.handName}</span>}
-                                </div>
-                                <span className="text-amber-400 font-extrabold text-xl ml-2 animate-[pulse_1.5s_ease-in-out_infinite]">
-                                  +{w.amount.toLocaleString()}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                        <div className="text-center mt-3">
-                          <span className="text-[10px] text-slate-500">Next hand in a few seconds...</span>
-                        </div>
-                      </div>
+                  {/* Non-blocking hand-end linger: skip hint + hand summary access */}
+                  {lingerActive && (
+                    <div className="flex items-center justify-center gap-2 mt-1 shrink-0 animate-[cpFadeSlideUp_0.3s_ease-out]">
+                      <button
+                        onClick={() => setShowHandSummaryDrawer(true)}
+                        className="text-[10px] px-3 py-1.5 rounded-lg bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10 transition-all"
+                      >
+                        Hand Summary
+                      </button>
+                      {isHost && (
+                        <button
+                          onClick={() => { socket?.emit("start_hand", { tableId }); clearLinger(); setWinners(null); setSettlement(null); }}
+                          className="text-[10px] px-3 py-1.5 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30 transition-all font-semibold"
+                        >
+                          Deal Now
+                        </button>
+                      )}
+                      <span className="text-[9px] text-slate-600 ml-1">
+                        Press Space to skip
+                      </span>
                     </div>
                   )}
                 </div>
@@ -2334,7 +2351,7 @@ export function App() {
                 </aside>
 
                 {revealedZoom && (
-                  <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-end md:items-center justify-center" onClick={() => setRevealedZoom(null)}>
+                  <div className="fixed inset-0 z-[100] bg-black/75 flex items-end md:items-center justify-center" onClick={() => setRevealedZoom(null)}>
                     <div
                       className="w-full md:w-auto md:min-w-[360px] rounded-t-2xl md:rounded-2xl border border-white/15 bg-slate-900/95 p-4 md:p-6"
                       style={{ paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}
@@ -2375,7 +2392,7 @@ export function App() {
                   {/* Slide-in drawer from right */}
                   {showMobileGto && (
                     <div className="fixed inset-0 z-50 flex justify-end" onClick={() => setShowMobileGto(false)}>
-                      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+                      <div className="absolute inset-0 bg-black/50" />
                       <div
                         className="gto-drawer relative w-72 max-w-[85vw] bg-[#0f1724] border-l border-white/10 p-4 overflow-y-auto"
                         onClick={(e) => e.stopPropagation()}
@@ -2466,21 +2483,18 @@ export function App() {
                   actionPending={actionPending}
                   displayBB={displayBB}
                   preAction={preAction}
-                  onSetPreAction={setPreAction}
+                  onSetPreAction={setPreActionType}
+                  derivedActionBar={derivedActionBar}
+                  derivedPreActionUI={derivedPreActionUI}
                   isMyTurn={!!canAct}
-                  onFoldAttempt={() => {
-                    if (suppressFoldConfirm) {
-                      // Suppressed — fold directly
-                      if (!snapshot?.handId || actionPending) return;
-                      setActionPending(true);
-                      socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "fold" });
-                    } else {
-                      setShowFoldConfirm(true);
-                    }
-                  }}
+                  onFoldAttempt={attemptFold}
                   onAction={(action, amount) => {
                     if (!snapshot?.handId) return;
                     if (actionPending) return;
+                    if (action === "fold") {
+                      attemptFold();
+                      return;
+                    }
                     setActionPending(true);
                     setPreAction(null);
 
@@ -2518,6 +2532,7 @@ export function App() {
                     setShowFoldConfirm(false);
                     if (!snapshot?.handId || actionPending) return;
                     setActionPending(true);
+                    setPreAction(null);
                     socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: "fold" });
                   }}
                   onCancel={() => {
@@ -2621,7 +2636,52 @@ export function App() {
                 )}
               </>
               )}
+
+              {/* Hand Summary Drawer (non-blocking, outside hand-active guard for linger access) */}
+              <HandSummaryDrawer
+                open={showHandSummaryDrawer}
+                onClose={() => setShowHandSummaryDrawer(false)}
+                settlement={lastSettlementRef.current}
+                playerName={(s: number) => {
+                  const p = snapshot?.players.find((pl) => pl.seat === s);
+                  return p?.name ?? `Seat ${s}`;
+                }}
+                revealedHoles={settlementRevealedHoles}
+                winnerHandNames={settlementWinnerHandNames}
+              />
             </main>
+
+            {/* ── Room Settings Full-Screen Modal ── */}
+            {showSettings && roomState && (
+              <div
+                className="cp-room-settings-backdrop"
+                onClick={() => setShowSettings(false)}
+                onKeyDown={(e) => { if (e.key === "Escape") setShowSettings(false); }}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Room Settings"
+                data-testid="room-settings-modal"
+              >
+                <div
+                  className="cp-room-settings-surface"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <RoomSettingsPanel
+                    roomState={roomState}
+                    isHost={!!isHost}
+                    readOnly={!userRole.isHostOrCoHost}
+                    initialTab={settingsTab}
+                    players={snapshot?.players ?? []}
+                    authUserId={authSession?.userId ?? ""}
+                    onUpdateSettings={(settings: Record<string, unknown>) => socket?.emit("update_settings", { tableId, settings })}
+                    onKick={(targetUserId: string, reason: string, ban: boolean) => socket?.emit("kick_player", { tableId, targetUserId, reason, ban })}
+                    onTransfer={(newOwnerId: string) => socket?.emit("transfer_ownership", { tableId, newOwnerId })}
+                    onSetCoHost={(userId: string, add: boolean) => socket?.emit("set_cohost", { tableId, userId, add })}
+                    onClose={() => setShowSettings(false)}
+                  />
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
@@ -4689,7 +4749,7 @@ function InfoCell({ label, value, highlight, cyan }: { label: string; value: str
   );
 }
 
-const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, lastAction, equity, handHint, pendingLeave, revealedCards, revealedHandName, isMucked, onClickRevealed, onClickEmpty }: {
+const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, lastAction, equity, handHint, pendingLeave, revealedCards, revealedHandName, isMucked, onClickRevealed, onClickEmpty, isWinner, netDelta }: {
   player?: TablePlayer; seatNum: number; isActor: boolean; isMe: boolean;
   isOwner?: boolean; isCoHost?: boolean; timer?: TimerState | null;
   posLabel?: string; isButton?: boolean; displayBB?: boolean; bigBlind?: number;
@@ -4702,6 +4762,8 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
   isMucked?: boolean;
   onClickRevealed?: () => void;
   onClickEmpty?: (seatNum: number) => void;
+  isWinner?: boolean;
+  netDelta?: number;
 }) {
   const bb = bigBlind || 1;
   const fmt = (v: number) => displayBB ? `${(v / bb).toFixed(1)}bb` : v.toLocaleString();
@@ -4739,8 +4801,20 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
     actionBadgeClass = "text-sky-300 border-sky-500/30";
   }
 
+  const fmtDelta = (v: number) => {
+    const abs = Math.abs(v);
+    const str = displayBB ? `${(abs / bb).toFixed(1)} BB` : abs.toLocaleString();
+    return v > 0 ? `+${str}` : v < 0 ? `−${str}` : `${str}`;
+  };
+
   return (
     <div className="relative flex flex-col items-center gap-0.5">
+      {/* Delta tag (hand-end net change) */}
+      {netDelta !== undefined && netDelta !== 0 && (
+        <div className={`cp-delta-tag ${netDelta > 0 ? "cp-delta-tag--positive" : "cp-delta-tag--negative"}`}>
+          {fmtDelta(netDelta)}
+        </div>
+      )}
       {/* BTN dealer chip */}
       {isButton && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-30">
@@ -4749,7 +4823,7 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
           </div>
         </div>
       )}
-      <div className={`relative z-10 w-18 md:w-22 rounded-xl p-1 text-center transition-all ${timerBorderClass} ${
+      <div className={`relative z-10 w-18 md:w-22 rounded-xl p-1 text-center transition-all ${timerBorderClass} ${isWinner ? "cp-seat-win" : ""} ${
         isActor ? "bg-amber-500/20 border-2 border-amber-400 shadow-[0_0_16px_rgba(245,158,11,0.3)]"
         : isMe ? "bg-cyan-500/10 border-2 border-cyan-400/50"
         : "bg-black/60 border border-white/10"
