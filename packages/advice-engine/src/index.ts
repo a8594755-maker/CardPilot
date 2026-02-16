@@ -306,6 +306,8 @@ export * from "./postflop-advice.js";
 export * from "./board-analyzer.js";
 export * from "./math-engine.js";
 export * from "./range-estimator.js";
+export * from "./line-recognition.js";
+export * from "./audit-engine.js";
 
 export function calculateDeviation(
   mix: StrategyMix,

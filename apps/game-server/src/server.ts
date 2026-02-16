@@ -20,6 +20,8 @@ import { SupabasePersistence, type PersistHandHistoryPayload, type RoomRecord, t
 import { RoomManager } from "./room-manager";
 import { ClubManager } from "./club-manager";
 import { ClubRepo } from "./services/club-repo";
+import { assertRealMoneyEnabled, REAL_MONEY_COMING_SOON_ERROR, RealMoneyComingSoonError } from "./real-money";
+import { AuditService } from "./services/audit-service";
 import type {
   ClubCreatePayload,
   ClubUpdatePayload,
@@ -142,6 +144,19 @@ if (!supabase.enabled()) {
     event: "supabase.disabled",
     message: "Supabase persistence is DISABLED — hand history, room persistence, and player profiles will not be saved. Set SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY to enable.",
   });
+}
+
+// GTO audit service — runs async after each hand, never blocks gameplay
+let auditService: AuditService | null = null;
+function getAuditService(): AuditService {
+  if (!auditService) {
+    auditService = new AuditService({
+      supabaseAdmin: supabase.getAdminClient(),
+      io,
+      maxConcurrentAudits: 4,
+    });
+  }
+  return auditService;
 }
 
 app.get("/healthz", (_req, res) => {
@@ -416,7 +431,16 @@ function hasVoluntaryPreflopAction(state: TableState): boolean {
   return false;
 }
 
-async function pushAdviceIfNeeded(tableId: string, state: TableState): Promise<void> {
+// ── Stale-advice guard: per-seat request counter ──
+const adviceRequestCounter = new Map<string, number>(); // key: `${tableId}:${seat}`
+
+type AdviceReason = "actor_changed" | "street_changed" | "action_applied" | "manual_request";
+
+async function emitAdviceIfNeeded(
+  tableId: string,
+  state: TableState,
+  reason: AdviceReason
+): Promise<void> {
   if (!state.handId || state.actorSeat == null) return;
 
   const table = tables.get(tableId);
@@ -426,12 +450,33 @@ async function pushAdviceIfNeeded(tableId: string, state: TableState): Promise<v
   if (table.getMode() === "REVIEW") return;
 
   const seat = state.actorSeat;
+
+  // Skip if actor is folded or all-in (no decisions to make)
+  const actorPlayer = state.players.find((p) => p.seat === seat);
+  if (actorPlayer && (actorPlayer.folded || actorPlayer.allIn)) return;
+
   const binding = bindingsByTable(tableId).find((entry) => entry.binding.seat === seat)?.binding;
   if (!binding) return;
 
+  // Increment and capture requestId for stale-guard
+  const counterKey = `${tableId}:${seat}`;
+  const requestId = (adviceRequestCounter.get(counterKey) ?? 0) + 1;
+  adviceRequestCounter.set(counterKey, requestId);
+
   const heroPos = table.getPosition(seat);
   const heroHand = table.getHeroHandCode(seat);
-  
+
+  logInfo({
+    event: "advice.requested",
+    tableId,
+    handId: state.handId,
+    seat,
+    street: state.street,
+    boardLength: state.board.length,
+    reason,
+    requestId,
+  });
+
   let advice: any;
 
   // Preflop advice
@@ -464,25 +509,76 @@ async function pushAdviceIfNeeded(tableId: string, state: TableState): Promise<v
     });
   } 
   // Postflop advice (flop/turn/river)
-  else if (["FLOP", "TURN", "RIVER"].includes(state.street)) {
+  else if (state.street === "FLOP" || state.street === "TURN" || state.street === "RIVER") {
     const heroHandCards = table.getHoleCards(seat);
-    if (!heroHandCards) return;
+    if (!heroHandCards) {
+      logWarn({ event: "advice.skip.no_hole_cards", tableId, seat, street: state.street });
+      return;
+    }
 
     const context = buildPostflopContext(tableId, state, seat, heroPos, heroHandCards);
-    if (!context) return;
+    if (!context) {
+      logWarn({ event: "advice.skip.no_context", tableId, seat, street: state.street });
+      return;
+    }
+
+    logInfo({
+      event: "advice.postflop_context",
+      tableId,
+      handId: state.handId,
+      seat,
+      street: state.street,
+      boardLength: context.board.length,
+      pot: context.potSize,
+      toCall: context.toCall,
+      effectiveStack: context.effectiveStack,
+      aggressor: context.aggressor,
+    });
 
     try {
       advice = await getPostflopAdvice(context);
     } catch (error) {
-      console.error(`[advice] postflop error for ${tableId}:${seat}:`, error);
+      logWarn({
+        event: "advice.postflop_error",
+        tableId,
+        seat,
+        street: state.street,
+        boardLength: context.board.length,
+        message: (error as Error).message,
+      });
       return;
     }
   } else {
     return; // Showdown or invalid street
   }
 
+  // Stale-guard: only emit if this is still the latest request for this seat
+  const currentRequestId = adviceRequestCounter.get(counterKey) ?? 0;
+  if (requestId !== currentRequestId) {
+    logInfo({
+      event: "advice.stale_skipped",
+      tableId,
+      seat,
+      street: state.street,
+      requestId,
+      currentRequestId,
+    });
+    return;
+  }
+
   // Store for deviation calc
   lastAdvice.set(`${tableId}:${seat}`, advice);
+
+  logInfo({
+    event: "advice.emitted",
+    tableId,
+    handId: state.handId,
+    seat,
+    street: state.street,
+    stage: advice.stage,
+    recommended: advice.recommended,
+    requestId,
+  });
 
   io.to(socketIdBySeat(tableId, seat)).emit("advice_payload", advice);
 }
@@ -708,7 +804,7 @@ function broadcastSnapshot(tableId: string) {
   emitPresence(tableId);
   // Defer advice computation so it never blocks snapshot delivery or timer updates
   setImmediate(() => {
-    void pushAdviceIfNeeded(tableId, snapshot).catch((err) => {
+    void emitAdviceIfNeeded(tableId, snapshot, "actor_changed").catch((err: unknown) => {
       console.warn("[advice] deferred push error:", (err as Error).message);
     });
   });
@@ -1304,6 +1400,14 @@ function finalizeHandEnd(tableId: string, state: TableState): void {
   roomManager.clearActionTimer(tableId);
   roomManager.setHandActive(tableId, false);
 
+  // ── GTO audit pipeline: queue async audit for each seated hero ──
+  // Must run BEFORE clearHand() so table.getPosition() is still available
+  try {
+    queueAuditForHand(tableId, state, table);
+  } catch (e) {
+    logWarn({ event: "audit.queue.failed", tableId, handId: state.handId, message: (e as Error).message });
+  }
+
   // Cleanly mark hand as done in engine (nulls handId, resets handInProgress)
   if (table) table.clearHand();
 
@@ -1777,12 +1881,65 @@ async function persistHandHistory(tableId: string, state: TableState, settlement
   await supabase.recordHandHistory(payload);
 }
 
+function queueAuditForHand(tableId: string, state: TableState, table: GameTable | undefined): void {
+  if (!state.handId || !state.board || state.board.length < 3) return;
+  if (!table) return;
+
+  // Capture positions from the engine while hand state is still live
+  const positions: Record<number, string> = {};
+  for (const p of state.players) {
+    positions[p.seat] = table.getPosition(p.seat) ?? "BTN";
+  }
+
+  const playerSeats = state.players
+    .filter((p) => p.inHand || !p.folded)
+    .map((p) => p.seat);
+
+  // Queue an audit for each seated player who has revealed hole cards
+  const revealedHoles = state.revealedHoles ?? {};
+  for (const p of state.players) {
+    if (!p.userId || p.userId.startsWith("guest-")) continue;
+    const cards = revealedHoles[p.seat] as [string, string] | undefined;
+    if (!cards || cards.length < 2) continue;
+
+    getAuditService().queueHandAudit(
+      {
+        handId: state.handId,
+        handHistoryId: state.handId,
+        tableId,
+        bigBlind: state.bigBlind,
+        smallBlind: state.smallBlind,
+        buttonSeat: state.buttonSeat,
+        playerSeats,
+        actions: [...state.actions],
+        positions,
+        heroUserId: p.userId,
+        heroSeat: p.seat,
+        heroCards: [cards[0], cards[1]],
+        board: [...state.board],
+        totalPot: state.pot,
+      },
+      undefined
+    );
+  }
+}
+
 io.on("connection", (socket) => {
   const identity = socketIdentity.get(socket.id);
   if (!identity) {
     socket.disconnect(true);
     return;
   }
+
+  const emitCashierComingSoon = (action: string): void => {
+    logWarn({
+      event: "cashier.coming_soon.blocked",
+      userId: identity.userId,
+      message: action,
+      enabled: runtimeConfig.enableRealMoney,
+    });
+    socket.emit("cashier_error", REAL_MONEY_COMING_SOON_ERROR);
+  };
 
   socket.emit("connected", {
     socketId: socket.id,
@@ -2602,6 +2759,14 @@ io.on("connection", (socket) => {
 
       if (prevState.street !== newState.street) {
         io.to(payload.tableId).emit("street_advanced", { street: newState.street, board: newState.board });
+        // Explicitly trigger advice on street change so turn/river is never missed
+        if (newState.actorSeat != null) {
+          setImmediate(() => {
+            void emitAdviceIfNeeded(payload.tableId, newState, "street_changed").catch((err: unknown) => {
+              console.warn("[advice] street_changed push error:", (err as Error).message);
+            });
+          });
+        }
       }
 
       // Use shared post-action logic (handles runout, finalize, or next actor)
@@ -3588,6 +3753,74 @@ io.on("connection", (socket) => {
       socket.emit("system_message", { message: `Add-on request of ${payload.amount} sent to club admins for approval` });
     } catch (error) {
       socket.emit("club_error", { code: "ADDON_FAILED", message: (error as Error).message });
+    }
+  });
+
+  /* ═══════════ CASHIER / REAL MONEY (COMING SOON) ═══════════ */
+
+  socket.on("cashier_deposit_create", (payload: { amount?: number; currency?: string }) => {
+    logInfo({
+      event: "cashier.deposit.requested",
+      userId: identity.userId,
+      message: JSON.stringify({ amount: payload?.amount ?? null, currency: payload?.currency ?? null }),
+    });
+
+    try {
+      assertRealMoneyEnabled(runtimeConfig.enableRealMoney);
+      emitCashierComingSoon("cashier_deposit_create_unimplemented");
+    } catch (error) {
+      if (error instanceof RealMoneyComingSoonError) {
+        emitCashierComingSoon("cashier_deposit_create_disabled");
+        return;
+      }
+      socket.emit("cashier_error", {
+        code: REAL_MONEY_COMING_SOON_ERROR.code,
+        message: (error as Error).message || REAL_MONEY_COMING_SOON_ERROR.message,
+      });
+    }
+  });
+
+  socket.on("cashier_withdraw_create", (payload: { amount?: number; currency?: string }) => {
+    logInfo({
+      event: "cashier.withdraw.requested",
+      userId: identity.userId,
+      message: JSON.stringify({ amount: payload?.amount ?? null, currency: payload?.currency ?? null }),
+    });
+
+    try {
+      assertRealMoneyEnabled(runtimeConfig.enableRealMoney);
+      emitCashierComingSoon("cashier_withdraw_create_unimplemented");
+    } catch (error) {
+      if (error instanceof RealMoneyComingSoonError) {
+        emitCashierComingSoon("cashier_withdraw_create_disabled");
+        return;
+      }
+      socket.emit("cashier_error", {
+        code: REAL_MONEY_COMING_SOON_ERROR.code,
+        message: (error as Error).message || REAL_MONEY_COMING_SOON_ERROR.message,
+      });
+    }
+  });
+
+  socket.on("cashier_transactions_list", (payload?: { limit?: number }) => {
+    logInfo({
+      event: "cashier.transactions.requested",
+      userId: identity.userId,
+      message: JSON.stringify({ limit: payload?.limit ?? null }),
+    });
+
+    try {
+      assertRealMoneyEnabled(runtimeConfig.enableRealMoney);
+      emitCashierComingSoon("cashier_transactions_list_unimplemented");
+    } catch (error) {
+      if (error instanceof RealMoneyComingSoonError) {
+        emitCashierComingSoon("cashier_transactions_list_disabled");
+        return;
+      }
+      socket.emit("cashier_error", {
+        code: REAL_MONEY_COMING_SOON_ERROR.code,
+        message: (error as Error).message || REAL_MONEY_COMING_SOON_ERROR.message,
+      });
     }
   });
 

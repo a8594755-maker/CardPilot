@@ -22,6 +22,12 @@ export interface LegalActions {
 
 export type Position = 'SB' | 'BB' | 'UTG' | 'MP' | 'HJ' | 'CO' | 'BTN';
 
+// ===== Future Cashier Types (Coming Soon) =====
+
+export type TransactionType = 'DEPOSIT' | 'WITHDRAW';
+
+export type TransactionStatus = 'COMING_SOON' | 'LOCKED' | 'PENDING' | 'COMPLETED' | 'FAILED';
+
 // ===== Player & Table Types =====
 
 export type PlayerStatus = 'active' | 'sitting_out';
@@ -682,3 +688,6 @@ export * from './socket-events.js';
 // Re-export club types and events
 export * from './club-types.js';
 export * from './club-events.js';
+
+// Re-export audit pipeline types
+export * from './audit-types.js';

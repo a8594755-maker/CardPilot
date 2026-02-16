@@ -805,6 +805,35 @@ export function ClubDetailView({
                 <p className="text-[10px] text-slate-500 mt-1">When disabled, anyone with the club code can join instantly.</p>
               </div>
 
+              {/* Club Monetization (Future) */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-white">Rake / Service Fee</h3>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded border border-amber-500/30 bg-amber-500/10 text-amber-300">
+                    Coming Soon
+                  </span>
+                </div>
+                <div className="space-y-2 p-3 rounded-lg bg-white/5 border border-white/10">
+                  <label className="flex items-center justify-between text-xs text-slate-400">
+                    <span className="flex items-center gap-2">
+                      <input type="checkbox" checked={false} disabled className="rounded opacity-50 cursor-not-allowed" />
+                      Rake enabled
+                    </span>
+                    <span className="text-[10px] text-slate-500">Default: Off</span>
+                  </label>
+                  <label className="flex items-center justify-between text-xs text-slate-400">
+                    <span className="flex items-center gap-2">
+                      <input type="checkbox" checked={false} disabled className="rounded opacity-50 cursor-not-allowed" />
+                      Service fee enabled
+                    </span>
+                    <span className="text-[10px] text-slate-500">Default: Off</span>
+                  </label>
+                  <p className="text-[10px] text-slate-500">
+                    Monetization controls are intentionally disabled. Club play remains virtual-credit only.
+                  </p>
+                </div>
+              </div>
+
               {/* Club Code & Invite */}
               <div>
                 <h3 className="text-sm font-semibold text-white mb-3">Share Club</h3>

@@ -11,6 +11,8 @@ export interface LegalActions {
     maxRaise: number;
 }
 export type Position = 'SB' | 'BB' | 'UTG' | 'MP' | 'HJ' | 'CO' | 'BTN';
+export type TransactionType = 'DEPOSIT' | 'WITHDRAW';
+export type TransactionStatus = 'COMING_SOON' | 'LOCKED' | 'PENDING' | 'COMPLETED' | 'FAILED';
 export interface TablePlayer {
     seat: number;
     userId: string;
@@ -347,3 +349,6 @@ export interface JoinRoomWithPasswordPayload {
     password?: string;
 }
 export * from './socket-events.js';
+export * from './club-types.js';
+export * from './club-events.js';
+export * from './audit-types.js';

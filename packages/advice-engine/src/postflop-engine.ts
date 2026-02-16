@@ -383,6 +383,7 @@ export class PostflopEngine {
       context.effectiveStack
     );
     const frequencyText = formatFrequency(frequency, context.toCall);
+    const adviceSource = bucket ? "Solved Bucket" : "Heuristic Model";
     const rationale = buildRationale({
       bucketTemplate: bucket?.rationaleTemplate,
       boardTextureDescription: BoardAnalyzer.describe(boardTexture),
@@ -394,6 +395,7 @@ export class PostflopEngine {
       equity: equityResult.equity,
       simulations: equityResult.simulations,
       villainRangeHash,
+      adviceSource,
     });
 
     const tags = [...new Set([
@@ -453,11 +455,25 @@ export class PostflopEngine {
       buildBucketKey({ ...input, textureBucket: "NEUTRAL_TEXTURE" }),
       buildBucketKey({ ...input, villainPosition: "ANY" }),
       buildBucketKey({ ...input, villainPosition: "ANY", textureBucket: "NEUTRAL_TEXTURE" }),
+      // Fallback: try SRP if we're in a 3BP/4BP with no match
+      ...(input.potType !== "SRP" ? [
+        buildBucketKey({ ...input, potType: "SRP" }),
+        buildBucketKey({ ...input, potType: "SRP", textureBucket: "NEUTRAL_TEXTURE" }),
+        buildBucketKey({ ...input, potType: "SRP", villainPosition: "ANY", textureBucket: "NEUTRAL_TEXTURE" }),
+      ] : []),
     ];
 
     for (const key of candidates) {
       const row = this.bucketIndex.get(key);
-      if (row) return row;
+      if (row) {
+        if (key !== input.baseKey) {
+          console.log(`[advice-engine] bucket fuzzy match: "${input.baseKey}" → "${key}"`);
+        }
+        return row;
+      }
+    }
+    if (this.bucketIndex.size > 0) {
+      console.log(`[advice-engine] bucket miss: "${input.baseKey}" (tried ${candidates.length} candidates)`);
     }
     return undefined;
   }
@@ -471,19 +487,31 @@ export async function getPostflopAdvice(context: PostflopContext, precision?: Ad
 
 function loadPostflopRowsFromDisk(): PostflopBucketStrategy[] {
   const path = resolvePostflopPath();
-  if (!path) return [];
+  if (!path) {
+    console.warn("[advice-engine] no postflop bucket file path resolved; using heuristic-only mode");
+    return [];
+  }
 
   try {
-    const parsed = JSON.parse(readFileSync(path, "utf-8")) as PostflopBucketStrategy[];
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter((row) =>
+    const raw = readFileSync(path, "utf-8");
+    const parsed = JSON.parse(raw) as PostflopBucketStrategy[];
+    if (!Array.isArray(parsed)) {
+      console.warn(`[advice-engine] postflop bucket file at ${path} is not an array`);
+      return [];
+    }
+    const valid = parsed.filter((row) =>
       Boolean(row?.bucketKey)
       && Boolean(row?.preferredAction)
       && Boolean(row?.frequency)
       && Boolean(row?.rationaleTemplate)
     );
+    if (valid.length < parsed.length) {
+      console.warn(`[advice-engine] filtered ${parsed.length - valid.length} invalid bucket rows from ${path}`);
+    }
+    console.log(`[advice-engine] loaded ${valid.length} valid postflop bucket rows from ${path}`);
+    return valid;
   } catch (error) {
-    console.error(`[advice-engine] failed to load postflop buckets from ${path}:`, error);
+    console.warn(`[advice-engine] failed to load postflop buckets from ${path}: ${(error as Error).message}`);
     return [];
   }
 }
@@ -576,55 +604,140 @@ function buildFrequencyFromScores(input: {
   const showdownValue = showdownValueScore(handClass);
   const nutAdvantage = deriveNutAdvantage(handClass, boardTexture);
   const foldEquity = deriveFoldEquity(context, boardTexture);
+  const spr = math.spr ?? 10;
+  const isLowSpr = spr < (math.commitmentThreshold ?? 3);
+  const isDraw = handClass.type === "draw";
+  const isStrong = handClass.type === "made_hand" && handClass.strength === "strong";
+  const isMedium = handClass.type === "made_hand" && handClass.strength === "medium";
+  const isAir = handClass.type === "air";
 
-  const raiseSignal =
-    strategyConfig.baseRaiseRate
-    + equity * strategyConfig.weights.EquityScore
-    + textureScore * strategyConfig.weights.TextureScore
-    + showdownValue * strategyConfig.weights.ShowdownValue
-    + nutAdvantage * strategyConfig.aggressionFactors.nutAdvantage
-    + foldEquity * strategyConfig.aggressionFactors.foldEquity;
+  // ── OOP penalty: GTO checks more OOP unless very strong ──
+  const oopPenalty = (!context.heroInPosition && !isStrong) ? 0.15 : 0;
 
-  const raiseFreq = clamp01(raiseSignal);
-  const betBigShare = clamp01(
-    0.25
-    + textureScore * 0.3
-    + nutAdvantage * 0.35
-    + Math.max(0, equity - 0.5) * 0.2
-  );
+  // ── Polarization logic: strong hands and draws bet big, medium checks ──
+  let betBigSignal: number;
+  let betSmallSignal: number;
+  let checkSignal: number;
 
-  if (context.toCall <= 0) {
-    const betBig = round4(raiseFreq * betBigShare);
-    const betSmall = round4(Math.max(0, raiseFreq - betBig));
-    const check = round4(Math.max(0, 1 - raiseFreq));
-    return normalizeFrequency({ check, betSmall, betBig });
+  if (equity > 0.70 || (isStrong && equity > 0.55)) {
+    // Value range: bet big for value, sometimes trap
+    betBigSignal = 0.55 + nutAdvantage * 0.25 - oopPenalty * 0.5;
+    betSmallSignal = 0.15;
+    checkSignal = 0.30 - nutAdvantage * 0.15 + oopPenalty * 0.5;
+  } else if (isDraw && equity > 0.25) {
+    // Drawing hands: semi-bluff with big bets when fold equity exists
+    const semiBluffBoost = foldEquity * 0.35;
+    betBigSignal = 0.25 + semiBluffBoost + nutAdvantage * 0.15 - oopPenalty;
+    betSmallSignal = 0.15 + (1 - foldEquity) * 0.1;
+    checkSignal = 0.60 - semiBluffBoost - nutAdvantage * 0.15 + oopPenalty;
+  } else if (isMedium || (equity >= 0.35 && equity <= 0.70)) {
+    // Condensed / medium range: mostly check, occasional small bet
+    betBigSignal = 0.05 + nutAdvantage * 0.10;
+    betSmallSignal = 0.15 + textureScore * 0.10 - oopPenalty;
+    checkSignal = 0.80 - nutAdvantage * 0.10 - textureScore * 0.10 + oopPenalty;
+  } else if (isAir && equity < 0.30 && foldEquity > 0.35) {
+    // Pure bluff: bet big with good fold equity
+    betBigSignal = 0.30 + foldEquity * 0.25 - oopPenalty;
+    betSmallSignal = 0.05;
+    checkSignal = 0.65 - foldEquity * 0.25 + oopPenalty;
+  } else {
+    // Weak/marginal: mostly check, small bet sometimes
+    betBigSignal = 0.03;
+    betSmallSignal = 0.08 + equity * 0.10;
+    checkSignal = 0.89 - equity * 0.10;
   }
 
-  const equityRequired = math.equityRequired ?? 0;
-  const bluffCatchScore = clamp01(showdownValue * 0.6 + equity * 0.4);
-  const foldPressure = clamp01((equityRequired - equity) + (1 - bluffCatchScore) * 0.35);
-  const fold = clamp01(foldPressure);
-  const call = clamp01(Math.max(0, 1 - raiseFreq - fold));
-  const scale = Math.max(EPSILON, raiseFreq + call + fold);
+  // ── SPR adjustment: low SPR → commit more, bet bigger ──
+  if (isLowSpr && (isStrong || isMedium)) {
+    betBigSignal += 0.15;
+    checkSignal -= 0.15;
+  }
 
-  const normalizedRaise = raiseFreq / scale;
-  const normalizedCall = call / scale;
-  const betBig = round4(normalizedRaise * betBigShare);
-  const betSmall = round4(Math.max(0, normalizedRaise - betBig));
+  // ── Nut advantage override: significant nut advantage increases aggression ──
+  if (nutAdvantage > 0.7) {
+    betBigSignal += 0.12;
+    checkSignal -= 0.12;
+  }
 
-  const equityEdge = equity - equityRequired;
-  if (equityEdge < -0.04) {
-    const tightenedRaise = clamp01(normalizedRaise * 0.65);
-    const tightenedCall = clamp01(normalizedCall * 0.85);
+  // ── Street adjustment: later streets → more polarized ──
+  if (context.street === "TURN" || context.street === "RIVER") {
+    // On later streets, GTO is more polarized: bet big or check, less small betting
+    const polarizationShift = context.street === "RIVER" ? 0.08 : 0.04;
+    betBigSignal += betSmallSignal * polarizationShift;
+    betSmallSignal -= betSmallSignal * polarizationShift;
+  }
+
+  // ── Aggressor continuation: if hero is street aggressor, continue betting more ──
+  if (context.aggressor === "hero") {
+    betBigSignal += 0.08;
+    betSmallSignal += 0.04;
+    checkSignal -= 0.12;
+  }
+
+  // Apply base raise rate from config
+  const configBoost = strategyConfig.baseRaiseRate;
+  betBigSignal = clamp01(betBigSignal + configBoost * 0.3);
+  betSmallSignal = clamp01(betSmallSignal + configBoost * 0.2);
+
+  if (context.toCall <= 0) {
     return normalizeFrequency({
-      check: tightenedCall,
-      betSmall: tightenedRaise * (1 - betBigShare),
-      betBig: tightenedRaise * betBigShare,
+      check: clamp01(checkSignal),
+      betSmall: clamp01(betSmallSignal),
+      betBig: clamp01(betBigSignal),
     });
   }
 
+  // ── Facing a bet: convert check/betSmall/betBig to call/raise/fold ──
+  const equityRequired = math.equityRequired ?? 0;
+
+  // MDF floor: defense (call + raise) must not drop below MDF
+  const mdf = math.mdf ?? (context.potSize > EPSILON
+    ? context.potSize / (context.potSize + context.toCall)
+    : 1);
+
+  // Determine fold frequency based on equity vs required
+  const equityEdge = equity - equityRequired;
+  let foldSignal: number;
+  if (equityEdge >= 0) {
+    // We have enough equity to call profitably
+    foldSignal = clamp01(0.05 - equityEdge * 0.3);
+  } else {
+    // Below required equity: fold more, but respect MDF
+    foldSignal = clamp01(Math.abs(equityEdge) * 1.5 + (isAir ? 0.2 : 0));
+  }
+
+  // Raise frequency from our betting signals (value raises + bluff raises)
+  let raiseSignal = clamp01(betBigSignal + betSmallSignal * 0.3);
+
+  // Call is what remains after raise and fold
+  let callSignal = clamp01(1 - raiseSignal - foldSignal);
+
+  // Enforce MDF floor
+  const defenseFreq = raiseSignal + callSignal;
+  if (defenseFreq < mdf && mdf > EPSILON && mdf < 1) {
+    if (defenseFreq > EPSILON) {
+      const scaleFactor = mdf / defenseFreq;
+      raiseSignal = clamp01(raiseSignal * scaleFactor);
+      callSignal = clamp01(callSignal * scaleFactor);
+    } else {
+      callSignal = mdf;
+    }
+    foldSignal = clamp01(1 - raiseSignal - callSignal);
+  }
+
+  // Determine big vs small raise split
+  const betBigShare = clamp01(
+    0.35
+    + nutAdvantage * 0.30
+    + textureScore * 0.15
+    + Math.max(0, equity - 0.5) * 0.20
+  );
+
+  const betBig = round4(raiseSignal * betBigShare);
+  const betSmall = round4(Math.max(0, raiseSignal - betBig));
+
   return normalizeFrequency({
-    check: normalizedCall,
+    check: callSignal,
     betSmall,
     betBig,
   });
@@ -731,8 +844,10 @@ function buildRationale(input: {
   equity: number;
   simulations: number;
   villainRangeHash: string;
+  adviceSource?: string;
 }): string {
   const parts: string[] = [];
+  if (input.adviceSource) parts.push(`[${input.adviceSource}]`);
   if (input.bucketTemplate) parts.push(input.bucketTemplate);
   parts.push(`Board: ${input.boardTextureDescription}.`);
   parts.push(`Hand class: ${input.handClassDescription}.`);
@@ -832,6 +947,9 @@ function narrowVillainRangeByHistory(baseRange: HandRange, context: PostflopCont
 
   const villainActions = context.actionHistory.filter((action) => action.seat !== context.seat);
 
+  // Track villain aggression count for range tightening
+  let villainPostflopAggCount = 0;
+
   for (const action of villainActions) {
     if (action.street === "PREFLOP" || action.street === "SHOWDOWN" || action.street === "RUN_IT_TWICE_PROMPT") {
       continue;
@@ -839,6 +957,10 @@ function narrowVillainRangeByHistory(baseRange: HandRange, context: PostflopCont
 
     if (action.type !== "check" && action.type !== "call" && action.type !== "raise" && action.type !== "all_in") {
       continue;
+    }
+
+    if (action.type === "raise" || action.type === "all_in") {
+      villainPostflopAggCount++;
     }
 
     const sizingBucket = context.potSize > EPSILON ? action.amount / context.potSize : undefined;
@@ -849,6 +971,16 @@ function narrowVillainRangeByHistory(baseRange: HandRange, context: PostflopCont
       context.board,
       sizingBucket
     );
+  }
+
+  // If villain has shown postflop aggression, remove bottom portion of range
+  // to simulate a stronger perceived range (GTO assumption)
+  if (villainPostflopAggCount > 0 && current.size > 2) {
+    const sorted = [...current.entries()].sort((a, b) => b[1] - a[1]);
+    // Keep top 50% on single aggression, top 35% on double+ aggression
+    const keepRatio = villainPostflopAggCount >= 2 ? 0.35 : 0.50;
+    const keepCount = Math.max(2, Math.ceil(sorted.length * keepRatio));
+    current = new Map(sorted.slice(0, keepCount));
   }
 
   return normalizeRangeWeights(current);

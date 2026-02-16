@@ -10,8 +10,9 @@ const configModuleUrl = pathToFileURL(resolve(process.cwd(), "src/config.ts")).h
 const tsxLoaderUrl = pathToFileURL(resolve(process.cwd(), "../../node_modules/tsx/dist/loader.mjs")).href;
 const probeScript = `
 import { getRuntimeConfig } from "${configModuleUrl}";
-getRuntimeConfig();
+const cfg = getRuntimeConfig();
 console.log(JSON.stringify({
+  enableRealMoney: cfg.enableRealMoney,
   url: process.env.SUPABASE_URL ?? null,
   anon: process.env.SUPABASE_ANON_KEY ?? null,
   service: process.env.SUPABASE_SERVICE_ROLE_KEY ?? null
@@ -45,7 +46,7 @@ function runConfigProbe(extraEnv: Record<string, string | undefined>) {
   }
 }
 
-function parseLastJsonLine(stdout: string): { url: string | null; anon: string | null; service: string | null } {
+function parseLastJsonLine(stdout: string): { enableRealMoney: boolean; url: string | null; anon: string | null; service: string | null } {
   const lastLine = stdout.trim().split("\n").at(-1);
   assert.ok(lastLine, "expected probe output");
   return JSON.parse(lastLine);
@@ -60,7 +61,7 @@ describe("Runtime config Supabase env handling", () => {
 
     assert.equal(result.status, 0, result.stderr);
     const parsed = parseLastJsonLine(result.stdout);
-    assert.deepEqual(parsed, { url: null, anon: null, service: null });
+    assert.deepEqual(parsed, { enableRealMoney: false, url: null, anon: null, service: null });
     assert.match(`${result.stdout}\n${result.stderr}`, /Supabase disabled; falling back to guest\/local mode/);
   });
 
@@ -85,9 +86,24 @@ describe("Runtime config Supabase env handling", () => {
     assert.equal(result.status, 0, result.stderr);
     const parsed = parseLastJsonLine(result.stdout);
     assert.deepEqual(parsed, {
+      enableRealMoney: false,
       url: "https://example.supabase.co",
       anon: "sb_publishable_test",
       service: "sb_service_role_test",
     });
+  });
+
+  it("defaults ENABLE_REAL_MONEY to false", () => {
+    const result = runConfigProbe({ ENABLE_REAL_MONEY: undefined });
+    assert.equal(result.status, 0, result.stderr);
+    const parsed = parseLastJsonLine(result.stdout);
+    assert.equal(parsed.enableRealMoney, false);
+  });
+
+  it("parses ENABLE_REAL_MONEY=true", () => {
+    const result = runConfigProbe({ ENABLE_REAL_MONEY: "true" });
+    assert.equal(result.status, 0, result.stderr);
+    const parsed = parseLastJsonLine(result.stdout);
+    assert.equal(parsed.enableRealMoney, true);
   });
 });

@@ -49,5 +49,13 @@ describe("Server round-flow regressions", () => {
     assert.match(source, /if \(payload\.buyIn < restoredStack\) \{/);
     assert.match(source, /Table balance requires at least \$\{restoredStack\} chips to rejoin this room/);
   });
+
+  it("defines cashier placeholder handlers that are blocked by real-money feature guard", () => {
+    assert.match(source, /socket\.on\("cashier_deposit_create"/);
+    assert.match(source, /socket\.on\("cashier_withdraw_create"/);
+    assert.match(source, /socket\.on\("cashier_transactions_list"/);
+    assert.match(source, /assertRealMoneyEnabled\(runtimeConfig\.enableRealMoney\)/);
+    assert.match(source, /socket\.emit\("cashier_error", REAL_MONEY_COMING_SOON_ERROR\)/);
+  });
 });
 

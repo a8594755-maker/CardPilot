@@ -25,11 +25,15 @@ import { getSuggestedPresets, userPresetsToButtons, type BetPreset } from "./lib
 import { AppComplianceFooter } from "./legal-pages";
 import { ClubsPage } from "./pages/clubs/ClubsPage";
 import { HistoryByRoomPage } from "./pages/HistoryByRoomPage";
+import { CashierPage } from "./pages/CashierPage";
 import type { ClubListItem, ClubDetailPayload } from "@cardpilot/shared-types";
 import { saveHand, getHands, autoTag, type HandRecord, type HandActionRecord } from "./lib/hand-history.js";
 import { ChipAnimationLayer } from "./components/ChipAnimationLayer";
 import { useChipAnimationDriver, type ChipAnimationAnchors } from "./hooks/useChipAnimationDriver";
 import { type AnimationSpeed, loadAnimationSpeed, saveAnimationSpeed } from "./lib/chip-animation.js";
+import { isRealMoneyEnabled } from "./lib/feature-flags";
+import { TrainingDashboard } from "./pages/TrainingDashboard";
+import { useAuditEvents } from "./hooks/useAuditEvents";
 
 const SERVER = import.meta.env.VITE_SERVER_URL || "http://127.0.0.1:4000";
 const DEBUG_LOGS_ENABLED = import.meta.env.DEV;
@@ -37,6 +41,7 @@ const APP_VERSION = "v0.4.1";
 const NETLIFY_COMMIT_REF = import.meta.env.VITE_NETLIFY_COMMIT_REF || "";
 const NETLIFY_DEPLOY_ID = import.meta.env.VITE_NETLIFY_DEPLOY_ID || "";
 const BUILD_TIME = new Date().toISOString().slice(0, 16).replace("T", " ");
+const REAL_MONEY_ENABLED = isRealMoneyEnabled();
 
 const debugLog = (...args: unknown[]) => {
   if (DEBUG_LOGS_ENABLED) console.log(...args);
@@ -105,10 +110,10 @@ export function App() {
   const [buyInAmount, setBuyInAmount] = useState(10000);
   const [currentRoomCode, setCurrentRoomCode] = useState("");
   const [currentRoomName, setCurrentRoomName] = useState("");
-  const [view, setView] = useState<"lobby" | "table" | "profile" | "history" | "clubs">(() => {
+  const [view, setView] = useState<"lobby" | "table" | "profile" | "history" | "clubs" | "cashier" | "training">(() => {
     if (typeof window === "undefined") return "lobby";
     const param = new URLSearchParams(window.location.search).get("view");
-    if (param === "lobby" || param === "table" || param === "profile" || param === "history" || param === "clubs") {
+    if (param === "lobby" || param === "table" || param === "profile" || param === "history" || param === "clubs" || param === "cashier" || param === "training") {
       return param;
     }
     return "lobby";
@@ -168,6 +173,9 @@ export function App() {
   chipOnSnapshotRef.current = chipOnSnapshot;
   const chipOnSettlementRef = useRef(chipOnSettlement);
   chipOnSettlementRef.current = chipOnSettlement;
+
+  /* ── GTO Audit state ── */
+  const auditState = useAuditEvents(socket, authSession?.userId ?? null);
 
   /* ── Toast state (replaces permanent status bar) ── */
   const [toast, setToast] = useState<{ text: string; isError: boolean; id: number } | null>(null);
@@ -588,6 +596,9 @@ export function App() {
     s.on("club_error", (d: { code: string; message: string }) => {
       showToast(`Error: ${d.message}`);
     });
+    s.on("cashier_error", (d: { code: string; message: string }) => {
+      showToast(`Error: ${d.message}`);
+    });
 
     return () => { s.disconnect(); };
   }, [socketAuthUserId, socketAuthToken, displayName]);
@@ -875,13 +886,13 @@ export function App() {
           <h1 className="text-base font-bold tracking-tight text-white">Card<span className="text-amber-400">Pilot</span></h1>
         </div>
         <nav className="flex items-center gap-1 bg-white/5 rounded-xl p-1">
-          {(["lobby", "clubs", "table", "history", "profile"] as const).map((v) => (
+          {(["lobby", "clubs", "cashier", "table", "history", "training", "profile"] as const).map((v) => (
             <button key={v} onClick={() => {
               setView(v);
               if (v === "clubs" && socket) { socket.emit("club_list_my_clubs"); }
             }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === v ? "bg-white/10 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
-              {v === "lobby" ? "Lobby" : v === "clubs" ? "Clubs" : v === "table" ? "Table" : v === "history" ? "History" : "Profile"}
+              {v === "lobby" ? "Lobby" : v === "clubs" ? "Clubs" : v === "cashier" ? "Cashier" : v === "table" ? "Table" : v === "history" ? "History" : v === "training" ? "Training" : "Profile"}
             </button>
           ))}
         </nav>
@@ -926,6 +937,13 @@ export function App() {
             userId={authSession?.userId ?? ""}
             supabaseEnabled={supabaseEnabled}
           />
+        ) : view === "training" ? (
+          /* ═══════ TRAINING ═══════ */
+          <TrainingDashboard
+            handAudits={auditState.handAudits}
+            sessionLeak={auditState.sessionLeak}
+            hasData={auditState.hasData}
+          />
         ) : view === "clubs" ? (
           /* ═══════ CLUBS ═══════ */
           <ClubsPage
@@ -957,6 +975,18 @@ export function App() {
             }}
             showToast={showToast}
           />
+        ) : view === "cashier" ? (
+          /* ═══════ CASHIER ═══════ */
+          <>
+            <CashierPage />
+            {!REAL_MONEY_ENABLED && (
+              <div className="px-6 pb-3 text-center">
+                <p className="text-[11px] text-slate-500">
+                  Real-money actions are disabled by default and marked Coming Soon.
+                </p>
+              </div>
+            )}
+          </>
         ) : view === "lobby" ? (
           /* ═══════ LOBBY ═══════ */
           <main className="flex-1 p-6 overflow-y-auto">

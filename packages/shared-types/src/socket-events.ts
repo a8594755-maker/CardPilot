@@ -16,6 +16,7 @@ import type {
   HistoryGTOHandRecord,
   HistoryGTOAnalysis,
 } from './index.js';
+import type { HandAuditSummary, SessionLeakSummary } from './audit-types.js';
 
 // Re-export types from index.ts for convenience
 export type { AdvicePayloadFromIndex as AdvicePayload, LobbyRoomSummaryFromIndex as LobbyRoomSummary };
@@ -212,7 +213,10 @@ export const SOCKET_EVENT_NAMES = {
     'request_history_sessions',
     'request_history_hands',
     'request_history_hand_detail',
-    'history_gto_analyze'
+    'history_gto_analyze',
+    'cashier_deposit_create',
+    'cashier_withdraw_create',
+    'cashier_transactions_list'
   ] as const,
   serverToClient: [
     'connected',
@@ -254,7 +258,10 @@ export const SOCKET_EVENT_NAMES = {
     'history_sessions',
     'history_hands',
     'history_hand_detail',
-    'history_gto_result'
+    'history_gto_result',
+    'hand_audit_complete',
+    'session_leak_update',
+    'cashier_error'
   ] as const,
 };
 
@@ -300,6 +307,9 @@ export interface ClientToServerEvents {
   request_history_hands: (payload: { roomSessionId: string; limit?: number; beforeEndedAt?: string }) => void;
   request_history_hand_detail: (payload: { handHistoryId: string }) => void;
   history_gto_analyze: (payload: { handId: string; handRecord: HistoryGTOHandRecord; precision: 'fast' | 'deep' }) => void;
+  cashier_deposit_create: (payload: { amount?: number; currency?: string }) => void;
+  cashier_withdraw_create: (payload: { amount?: number; currency?: string }) => void;
+  cashier_transactions_list: (payload?: { limit?: number }) => void;
 }
 
 export interface ServerToClientEvents {
@@ -358,4 +368,7 @@ export interface ServerToClientEvents {
   history_hands: (payload: { roomSessionId: string; hands: HistoryHandSummary[]; hasMore: boolean; nextCursor?: string }) => void;
   history_hand_detail: (payload: { handHistoryId: string; hand: HistoryHandDetail | null }) => void;
   history_gto_result: (payload: { handId: string; gtoAnalysis: HistoryGTOAnalysis | null; error?: string }) => void;
+  hand_audit_complete: (payload: { userId: string; summary: HandAuditSummary }) => void;
+  session_leak_update: (payload: { userId: string; summary: SessionLeakSummary }) => void;
+  cashier_error: (payload: { code: string; message: string }) => void;
 }

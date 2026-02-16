@@ -82,6 +82,10 @@ export class SupabasePersistence {
     return this.admin !== null;
   }
 
+  getAdminClient(): SupabaseClient | null {
+    return this.admin;
+  }
+
   async verifyAccessToken(accessToken?: string, fallbackName?: string): Promise<VerifiedIdentity> {
     if (!accessToken || !this.authClient) {
       if (this.admin) {

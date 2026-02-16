@@ -86,6 +86,20 @@ Set `SUPABASE_STRICT_ENV=true` to fail fast on partial Supabase config.
 - CardPilot is explicitly play-money only and not a real-money gambling platform.
 - Vulnerability reporting is documented in `SECURITY.md`.
 
+## Real Money (Coming Soon)
+- Real-money/payments flows are **disabled by default** and currently hard-blocked.
+- Frontend flag: `VITE_ENABLE_REAL_MONEY=false`
+- Server flag: `ENABLE_REAL_MONEY=false`
+- Current behavior:
+  - UI shows Cashier + Real Money cards as **Coming Soon** with disabled actions.
+  - Backend cashier events (`cashier_deposit_create`, `cashier_withdraw_create`, `cashier_transactions_list`) return:
+    - `{ code: "COMING_SOON", message: "Real money is not available yet." }`
+  - No payment provider integration and no payment method storage are present.
+- Future enablement path:
+  1. Set both feature flags to `true` in controlled environments.
+  2. Implement provider integration behind server-side guards.
+  3. Add KYC/region/age and compliance controls before any production release.
+
 ## Governance & Maintenance
 - Contribution guide: `CONTRIBUTING.md`
 - Release discipline: `RELEASE.md`
