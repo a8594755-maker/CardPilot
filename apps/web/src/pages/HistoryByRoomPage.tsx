@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
   getHandsByRoom,
   updateHand,
+  classifyStartingHandBucket,
   type HandRecord,
   type LocalRoomSummary,
   type GTOAnalysis,
@@ -56,6 +57,7 @@ export function HistoryByRoomPage(_props: {
   const [quickFilter, setQuickFilter] = useState<QuickFilter>("all");
   const [handSort, setHandSort] = useState<HandSort>("newest");
   const [searchQuery, setSearchQuery] = useState("");
+  const [startingHandFilter, setStartingHandFilter] = useState<string>("all");
 
   // Mobile nav
   const [mobilePane, setMobilePane] = useState<MobilePane>("rooms");
@@ -126,8 +128,36 @@ export function HistoryByRoomPage(_props: {
       });
     }
 
+    if (startingHandFilter !== "all") {
+      hands = hands.filter((h) => {
+        const bucket = h.startingHandBucket
+          ?? classifyStartingHandBucket(h.heroCards, h.gameType);
+        return bucket === startingHandFilter;
+      });
+    }
+
     return hands;
-  }, [selectedRoom, handsByRoom, quickFilter, searchQuery]);
+  }, [selectedRoom, handsByRoom, quickFilter, searchQuery, startingHandFilter]);
+
+  const startingHandBuckets = useMemo(() => {
+    if (!selectedRoom) return [] as string[];
+    const buckets = new Set<string>();
+    for (const hand of handsByRoom[selectedRoom] ?? []) {
+      buckets.add(hand.startingHandBucket ?? classifyStartingHandBucket(hand.heroCards, hand.gameType));
+    }
+    return [...buckets].sort((a, b) => a.localeCompare(b));
+  }, [selectedRoom, handsByRoom]);
+
+  const positionSummary = useMemo(() => {
+    const totals = new Map<string, number>();
+    for (const hand of currentRoomHands) {
+      const position = hand.position || "?";
+      totals.set(position, (totals.get(position) ?? 0) + (hand.result ?? 0));
+    }
+    return [...totals.entries()]
+      .map(([position, net]) => ({ position, net }))
+      .sort((a, b) => b.net - a.net);
+  }, [currentRoomHands]);
 
   // Selected hand object
   const selectedHand = useMemo(() => {
@@ -301,6 +331,19 @@ export function HistoryByRoomPage(_props: {
               placeholder="Search cards, position, tags..."
               className="w-full text-[11px] bg-slate-800/40 border border-white/[0.08] rounded-lg px-3 py-2 text-slate-300 outline-none focus:border-sky-500/40 placeholder:text-slate-600"
             />
+            <div className="flex items-center gap-2">
+              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Bucket</label>
+              <select
+                value={startingHandFilter}
+                onChange={(e) => setStartingHandFilter(e.target.value)}
+                className="flex-1 min-w-0 text-[11px] bg-slate-800/40 border border-white/[0.08] rounded-lg px-2 py-1.5 text-slate-300 outline-none focus:border-sky-500/40"
+              >
+                <option value="all">All buckets</option>
+                {startingHandBuckets.map((bucket) => (
+                  <option key={bucket} value={bucket}>{bucket}</option>
+                ))}
+              </select>
+            </div>
             <div className="flex items-center gap-1 flex-wrap">
               {QUICK_FILTERS.map((f) => (
                 <button
@@ -321,6 +364,24 @@ export function HistoryByRoomPage(_props: {
             <div className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
               Hands {currentRoomHands.length > 0 && <span className="text-slate-600">({currentRoomHands.length})</span>}
             </div>
+            {positionSummary.length > 0 && (
+              <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                {positionSummary.slice(0, 5).map((entry) => (
+                  <span
+                    key={entry.position}
+                    className={`text-[9px] px-1.5 py-0.5 rounded-full border ${
+                      entry.net > 0
+                        ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30"
+                        : entry.net < 0
+                          ? "bg-rose-500/10 text-rose-300 border-rose-500/30"
+                          : "bg-slate-700/40 text-slate-400 border-white/[0.08]"
+                    }`}
+                  >
+                    {entry.position} {entry.net > 0 ? "+" : ""}{entry.net.toLocaleString()}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
           <HandList2
             hands={currentRoomHands}

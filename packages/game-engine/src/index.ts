@@ -4,9 +4,12 @@ import pokersolver from "pokersolver";
 import type {
   HandAction,
   HandActionType,
+  DoubleBoardMode,
+  GameType,
   LegalActions,
   PlayerActionType,
   PlayerStatus,
+  RunoutPayout,
   SettlementResult,
   Street,
   TablePlayer,
@@ -36,7 +39,8 @@ type TableMode = 'COACH' | 'REVIEW' | 'CASUAL';
 type MutableTableState = TableState & {
   pendingToAct: Set<number>;
   deck: string[];
-  holeCards: Map<number, [string, string]>;
+  holeCards: Map<number, string[]>;
+  holeCardCount: number;
   contributed: Map<number, number>;
   handStartStacks: Map<number, number>;
   pendingDeadBlinds: Map<number, number>;
@@ -60,7 +64,17 @@ export class GameTable {
   private readonly rakeEnabled: boolean;
   private readonly rakePercent: number;
   private readonly rakeCap: number;
-  private readonly runItTwiceEnabled: boolean;
+  private runItTwiceEnabled: boolean;
+  private gameType: GameType;
+  private bombPotEnabled: boolean;
+  private bombPotFrequency: number;
+  private doubleBoardMode: DoubleBoardMode;
+  private handCounter = 0;
+  private holeCardCount = 2;
+  private isBombPotHand = false;
+  private isDoubleBoardHand = false;
+  private secondaryBoard: string[] = [];
+  private doubleBoardPayouts: RunoutPayout[] | null = null;
   private pendingBlindLevel: { smallBlind: number; bigBlind: number; ante: number } | null = null;
   private consecutiveTimeouts = new Map<number, number>();
   private allInRunCount: 1 | 2 = 1;
@@ -76,12 +90,21 @@ export class GameTable {
     mode?: TableMode;
     ante?: number;
     runItTwiceEnabled?: boolean;
+    gameType?: GameType;
+    bombPotEnabled?: boolean;
+    bombPotFrequency?: number;
+    doubleBoardMode?: DoubleBoardMode;
     rakeEnabled?: boolean;
     rakePercent?: number;
     rakeCap?: number;
   }) {
     this.ante = Math.max(0, params.ante ?? 0);
     this.runItTwiceEnabled = params.runItTwiceEnabled ?? false;
+    this.gameType = params.gameType ?? "texas";
+    this.bombPotEnabled = params.bombPotEnabled ?? false;
+    this.bombPotFrequency = Math.max(0, Math.floor(params.bombPotFrequency ?? 0));
+    this.doubleBoardMode = params.doubleBoardMode ?? "off";
+    this.holeCardCount = this.gameType === "omaha" ? 4 : 2;
     this.rakePercent = Math.max(0, params.rakePercent ?? 0);
     this.rakeEnabled = params.rakeEnabled ?? this.rakePercent > 0;
     // rakeCap<=0 means uncapped rake
@@ -91,6 +114,7 @@ export class GameTable {
 
     this.state = {
       tableId: params.tableId,
+      stateVersion: 0,
       smallBlind: params.smallBlind,
       bigBlind: params.bigBlind,
       ante: this.ante,
@@ -108,6 +132,9 @@ export class GameTable {
       actions: [],
       legalActions: null,
       mode: params.mode ?? "COACH",
+      gameType: this.gameType,
+      isBombPotHand: false,
+      isDoubleBoardHand: false,
       positions: {},
       shownCards: {},
       shownHands: {},
@@ -119,6 +146,7 @@ export class GameTable {
       nextBlindLevel: null,
       pendingToAct: new Set<number>(),
       deck: [],
+      holeCardCount: this.holeCardCount,
       holeCards: new Map(),
       handStartStacks: new Map(),
       contributed: new Map(),
@@ -174,7 +202,6 @@ export class GameTable {
     } = this.state;
     // Compute legalActions for current actor
     const legal = this.computeLegalActions();
-    // Compute positions for all active players
     const positions: Record<number, string> = {};
     if (this.state.handId) {
       for (const p of this.state.players) {
@@ -184,8 +211,47 @@ export class GameTable {
     return { ...rest, legalActions: legal, positions };
   }
 
+  configureVariantSettings(params: {
+    runItTwiceEnabled?: boolean;
+    gameType?: GameType;
+    bombPotEnabled?: boolean;
+    bombPotFrequency?: number;
+    doubleBoardMode?: DoubleBoardMode;
+  }): void {
+    if (this.isHandActive()) {
+      throw new Error("cannot update variant settings during an active hand");
+    }
+    if (typeof params.runItTwiceEnabled === "boolean") {
+      this.runItTwiceEnabled = params.runItTwiceEnabled;
+      this.state.runItTwiceEnabled = this.runItTwiceEnabled;
+    }
+    if (params.gameType) {
+      this.gameType = params.gameType;
+    }
+    if (typeof params.bombPotEnabled === "boolean") {
+      this.bombPotEnabled = params.bombPotEnabled;
+    }
+    if (typeof params.bombPotFrequency === "number") {
+      this.bombPotFrequency = Math.max(0, Math.floor(params.bombPotFrequency));
+    }
+    if (params.doubleBoardMode) {
+      this.doubleBoardMode = params.doubleBoardMode;
+    }
+
+    this.holeCardCount = this.gameType === "omaha" ? 4 : 2;
+    this.state.gameType = this.gameType;
+    this.state.holeCardCount = this.holeCardCount;
+  }
+
   getHoleCards(seat: number): [string, string] | null {
-    return this.state.holeCards.get(seat) ?? null;
+    const cards = this.state.holeCards.get(seat);
+    if (!cards || cards.length < 2) return null;
+    return [cards[0], cards[1]];
+  }
+
+  getPrivateHoleCards(seat: number): string[] | null {
+    const cards = this.state.holeCards.get(seat);
+    return cards ? [...cards] : null;
   }
 
   isSeatFolded(seat: number): boolean {
@@ -354,6 +420,18 @@ export class GameTable {
     this.runoutPending = false;
     this.collectedFee = 0;
     this.settlementResult = null;
+    this.secondaryBoard = [];
+    this.doubleBoardPayouts = null;
+
+    this.handCounter += 1;
+    this.holeCardCount = this.gameType === "omaha" ? 4 : 2;
+    this.isBombPotHand = this.shouldDealBombPotHand();
+    this.isDoubleBoardHand = this.doubleBoardMode === "always"
+      || (this.doubleBoardMode === "bomb_pot" && this.isBombPotHand);
+    this.state.gameType = this.gameType;
+    this.state.holeCardCount = this.holeCardCount;
+    this.state.isBombPotHand = this.isBombPotHand;
+    this.state.isDoubleBoardHand = this.isDoubleBoardHand;
 
     const sortedSeats = seated.map((p) => p.seat).sort((a, b) => a - b);
     this.state.buttonSeat = nextSeatCircular(this.state.buttonSeat, sortedSeats);
@@ -378,16 +456,47 @@ export class GameTable {
       this.state.contributed.set(seat, (this.state.contributed.get(seat) ?? 0) + amount);
     }
 
-    if (this.ante > 0) {
+    if (this.isBombPotHand) {
+      const bombAnte = Math.max(this.state.bigBlind, this.ante > 0 ? this.ante : this.state.bigBlind);
+      for (const seat of sortedSeats) {
+        const commit = this.commitForcedChips(seat, bombAnte, { countToStreet: false });
+        if (commit > 0) {
+          this.logAction({ seat, street: "PREFLOP", type: "ante", amount: commit, at: Date.now() });
+        }
+      }
+    } else if (this.ante > 0) {
       for (const seat of sortedSeats) {
         this.collectAnte(seat);
       }
     }
 
     for (const seat of sortedSeats) {
-      const card1 = this.drawCard();
-      const card2 = this.drawCard();
-      this.state.holeCards.set(seat, [card1, card2]);
+      const cards: string[] = [];
+      for (let i = 0; i < this.holeCardCount; i += 1) {
+        cards.push(this.drawCard());
+      }
+      this.state.holeCards.set(seat, cards);
+    }
+
+    if (this.isBombPotHand) {
+      this.state.street = "FLOP";
+      this.dealStreetBoardCards("FLOP");
+      this.state.currentBet = 0;
+      this.state.minRaiseTo = this.state.bigBlind;
+      this.state.lastFullRaiseSize = this.state.bigBlind;
+      this.state.lastFullBet = 0;
+      this.state.lastReopenBet = 0;
+      this.state.actedSinceLastFullRaise = new Set<number>();
+      for (const player of this.state.players) {
+        player.streetCommitted = 0;
+      }
+      this.state.pendingToAct = new Set(
+        this.activePlayers()
+          .filter((p) => !p.allIn)
+          .map((p) => p.seat)
+      );
+      this.state.actorSeat = this.nextActorFrom(this.state.buttonSeat);
+      return { handId };
     }
 
     // Determine blind seats — HU is a special case (button = SB)
@@ -638,7 +747,7 @@ export class GameTable {
 
   getHeroHandCode(seat: number): string {
     const cards = this.state.holeCards.get(seat);
-    if (!cards) return "72o";
+    if (!cards || cards.length < 2) return "72o";
     const [a, b] = cards;
     const [ra, sa] = [a[0], a[1]];
     const [rb, sb] = [b[0], b[1]];
@@ -728,8 +837,12 @@ export class GameTable {
   }
 
   /** Expose hole cards for testing (read-only snapshot). */
-  getAllHoleCards(): Map<number, [string, string]> {
-    return new Map(this.state.holeCards);
+  getAllHoleCards(): Map<number, string[]> {
+    const copy = new Map<number, string[]>();
+    for (const [seat, cards] of this.state.holeCards.entries()) {
+      copy.set(seat, [...cards]);
+    }
+    return copy;
   }
 
   /** Expose contributions for testing (read-only snapshot). */
@@ -780,19 +893,19 @@ export class GameTable {
   private advanceStreetOrShowdown(): void {
     if (this.state.street === "PREFLOP") {
       this.state.street = "FLOP";
-      this.state.board.push(this.drawCard(), this.drawCard(), this.drawCard());
+      this.dealStreetBoardCards("FLOP");
       this.prepareNextStreet();
       return;
     }
     if (this.state.street === "FLOP") {
       this.state.street = "TURN";
-      this.state.board.push(this.drawCard());
+      this.dealStreetBoardCards("TURN");
       this.prepareNextStreet();
       return;
     }
     if (this.state.street === "TURN") {
       this.state.street = "RIVER";
-      this.state.board.push(this.drawCard());
+      this.dealStreetBoardCards("RIVER");
       this.prepareNextStreet();
       return;
     }
@@ -802,6 +915,12 @@ export class GameTable {
   }
 
   private runOutBoardTwice(): void {
+    if (this.isDoubleBoardHand) {
+      this.allInRunCount = 1;
+      this.runOutBoard();
+      return;
+    }
+
     const contenders = this.activePlayers();
     if (contenders.length < 2) {
       while (this.state.board.length < 5) {
@@ -874,9 +993,36 @@ export class GameTable {
   private solveContenders(contenders: TablePlayer[], board: string[]): Array<{ seat: number; hand: { descr: string; rank: number } }> {
     return contenders.map((p) => {
       const cards = this.state.holeCards.get(p.seat) ?? ["2c", "7d"];
-      const hand = Hand.solve(toSolverCards([...cards, ...board]));
+      const hand = this.solveBestHand(cards, board);
       return { seat: p.seat, hand };
     });
+  }
+
+  private solveBestHand(holeCards: string[], board: string[]): { descr: string; rank: number } {
+    if (this.gameType === "omaha" && holeCards.length >= 4 && board.length >= 3) {
+      let best: { descr: string; rank: number } | null = null;
+      const holeCombos = combinations(holeCards, 2);
+      const boardCombos = combinations(board, 3);
+      for (const holeCombo of holeCombos) {
+        for (const boardCombo of boardCombos) {
+          const candidate = Hand.solve(toSolverCards([...holeCombo, ...boardCombo]));
+          if (!best || this.isSolverHandBetter(candidate, best)) {
+            best = candidate;
+          }
+        }
+      }
+      if (best) return best;
+    }
+
+    const fallbackCards = [...holeCards.slice(0, 2), ...board];
+    return Hand.solve(toSolverCards(fallbackCards));
+  }
+
+  private isSolverHandBetter(candidate: { descr: string; rank: number }, current: { descr: string; rank: number }): boolean {
+    const winners = Hand.winners([candidate, current]);
+    const candidateWins = winners.some((winner) => winner.descr === candidate.descr && winner.rank === candidate.rank);
+    const currentWins = winners.some((winner) => winner.descr === current.descr && winner.rank === current.rank);
+    return candidateWins && !currentWins;
   }
 
   private resolveWinnerSeats(
@@ -952,7 +1098,7 @@ export class GameTable {
 
   /** Deal remaining community cards when all players are all-in */
   private runOutBoard(): void {
-    if (this.allInRunCount === 2) {
+    if (this.allInRunCount === 2 && !this.isDoubleBoardHand) {
       this.runOutBoardTwice();
       return;
     }
@@ -960,13 +1106,13 @@ export class GameTable {
     // Deal all remaining cards at once (will be revealed step by step by server)
     while (this.state.board.length < 5) {
       if (this.state.board.length === 0) {
-        this.state.board.push(this.drawCard(), this.drawCard(), this.drawCard());
+        this.dealStreetBoardCards("FLOP");
         this.state.street = "FLOP";
       } else if (this.state.board.length === 3) {
-        this.state.board.push(this.drawCard());
+        this.dealStreetBoardCards("TURN");
         this.state.street = "TURN";
       } else if (this.state.board.length === 4) {
-        this.state.board.push(this.drawCard());
+        this.dealStreetBoardCards("RIVER");
         this.state.street = "RIVER";
       }
     }
@@ -1016,6 +1162,12 @@ export class GameTable {
     this.runoutPending = false;
     this.collectedFee = 0;
     this.settlementResult = null;
+    this.secondaryBoard = [];
+    this.doubleBoardPayouts = null;
+    this.isBombPotHand = false;
+    this.isDoubleBoardHand = false;
+    this.state.isBombPotHand = false;
+    this.state.isDoubleBoardHand = false;
   }
 
   /** True when applyAction detected an all-in runout situation */
@@ -1051,18 +1203,13 @@ export class GameTable {
 
     const newCards: string[] = [];
     if (nextStreet === "FLOP" && this.state.board.length === 0) {
-      newCards.push(this.drawCard(), this.drawCard(), this.drawCard());
-      this.state.board.push(...newCards);
+      newCards.push(...this.dealStreetBoardCards("FLOP"));
       this.state.street = "FLOP";
     } else if (nextStreet === "TURN" && this.state.board.length === 3) {
-      const card = this.drawCard();
-      newCards.push(card);
-      this.state.board.push(card);
+      newCards.push(...this.dealStreetBoardCards("TURN"));
       this.state.street = "TURN";
     } else if (nextStreet === "RIVER" && this.state.board.length === 4) {
-      const card = this.drawCard();
-      newCards.push(card);
-      this.state.board.push(card);
+      newCards.push(...this.dealStreetBoardCards("RIVER"));
       this.state.street = "RIVER";
     } else if (nextStreet === "SHOWDOWN" && this.state.board.length === 5) {
       this.state.street = "SHOWDOWN";
@@ -1109,6 +1256,12 @@ export class GameTable {
 
   private showdown(): void {
     const contenders = this.activePlayers();
+
+    if (this.isDoubleBoardHand && this.secondaryBoard.length === 5) {
+      this.showdownDoubleBoard(contenders);
+      return;
+    }
+
     const board = this.state.board;
     const solved = this.solveContenders(contenders, board);
     const sidePots = this.buildSidePots(contenders);
@@ -1128,7 +1281,46 @@ export class GameTable {
     this.state.winners = [...payouts.entries()]
       .map(([seat, v]) => ({ seat, amount: v.amount, handName: v.handName }))
       .sort((a, b) => a.seat - b.seat);
+    this.doubleBoardPayouts = null;
     this.state.runoutPayouts = undefined;
+    this.state.pot = 0;
+    this.state.actorSeat = null;
+    this.state.pendingToAct.clear();
+    this.revealShowdownHands(this.mandatoryShowdownSeats(contenders));
+    this.applyShowdownVisibilityPolicy(contenders);
+    this.settlementResult = this.createSettlementResult(true);
+  }
+
+  private showdownDoubleBoard(contenders: TablePlayer[]): void {
+    const boardPrimary = [...this.state.board];
+    const boardSecondary = [...this.secondaryBoard];
+    const solvedPrimary = this.solveContenders(contenders, boardPrimary);
+    const solvedSecondary = this.solveContenders(contenders, boardSecondary);
+    const sidePots = this.buildSidePots(contenders);
+    const {
+      sidePots: distributableSidePots,
+      collectedFee,
+    } = this.applyRakeToSidePots(sidePots);
+    this.collectedFee = collectedFee;
+
+    const payoutsPrimary = new Map<number, { amount: number; handName?: string }>();
+    const payoutsSecondary = new Map<number, { amount: number; handName?: string }>();
+    for (const sidePot of distributableSidePots) {
+      const boardAAmount = Math.ceil(sidePot.amount / 2);
+      const boardBAmount = Math.floor(sidePot.amount / 2);
+      this.distributeSolvedPot(boardAAmount, solvedPrimary, sidePot.eligibleSeats, payoutsPrimary);
+      this.distributeSolvedPot(boardBAmount, solvedSecondary, sidePot.eligibleSeats, payoutsSecondary);
+    }
+
+    const mergedPayouts = this.mergePayoutMaps(payoutsPrimary, payoutsSecondary);
+    this.doubleBoardPayouts = [
+      { run: 1, board: boardPrimary, winners: this.mapPayoutsToWinners(payoutsPrimary) },
+      { run: 2, board: boardSecondary, winners: this.mapPayoutsToWinners(payoutsSecondary) },
+    ];
+
+    this.state.winners = this.mapPayoutsToWinners(mergedPayouts);
+    this.state.runoutPayouts = undefined;
+    this.state.runoutBoards = undefined;
     this.state.pot = 0;
     this.state.actorSeat = null;
     this.state.pendingToAct.clear();
@@ -1212,8 +1404,10 @@ export class GameTable {
     for (const winner of this.state.winners ?? []) {
       required.add(winner.seat);
     }
-    for (const contender of contenders) {
-      if (contender.allIn) required.add(contender.seat);
+    if (this.didRiverEndWithCall()) {
+      for (const contender of contenders) {
+        required.add(contender.seat);
+      }
     }
     return this.sortSeatsClockwiseFromButtonLeft([...required]);
   }
@@ -1248,9 +1442,8 @@ export class GameTable {
       return;
     }
 
-    const hasAllInContender = contenders.some((player) => player.allIn);
     const calledShowdown = this.didRiverEndWithCall();
-    const mustForceReveal = hasAllInContender || calledShowdown;
+    const mustForceReveal = calledShowdown;
     if (mustForceReveal) {
       this.revealShowdownHands(contenderSeats);
       this.state.showdownPhase = "none";
@@ -1351,7 +1544,34 @@ export class GameTable {
   }
 
   private shouldPromptRunItTwice(): boolean {
+    if (this.state.board.length >= 5) return false;
+    if (this.state.street === "RIVER" || this.state.street === "SHOWDOWN") return false;
+    if (this.isDoubleBoardHand) return false;
     return this.runItTwiceEnabled && this.isEveryoneAllIn();
+  }
+
+  private shouldDealBombPotHand(): boolean {
+    if (!this.bombPotEnabled) return false;
+    if (this.bombPotFrequency <= 0) return false;
+    return this.handCounter % this.bombPotFrequency === 0;
+  }
+
+  private dealStreetBoardCards(street: "FLOP" | "TURN" | "RIVER"): string[] {
+    if (street === "FLOP") {
+      const dealt = [this.drawCard(), this.drawCard(), this.drawCard()];
+      this.state.board.push(...dealt);
+      if (this.isDoubleBoardHand) {
+        this.secondaryBoard.push(this.drawCard(), this.drawCard(), this.drawCard());
+      }
+      return dealt;
+    }
+
+    const card = this.drawCard();
+    this.state.board.push(card);
+    if (this.isDoubleBoardHand) {
+      this.secondaryBoard.push(this.drawCard());
+    }
+    return [card];
   }
 
   private enterRunItTwicePrompt(): void {
@@ -1494,6 +1714,11 @@ export class GameTable {
           board: [...this.state.board],
           winners: [...(this.state.winners ?? [])],
         }];
+    const boards = runCount === 2
+      ? [...(this.state.runoutBoards ?? [])]
+      : this.doubleBoardPayouts && this.doubleBoardPayouts.length === 2
+        ? this.doubleBoardPayouts.map((run) => [...run.board])
+        : [[...this.state.board]];
 
     const payoutsBySeat: Record<number, number> = {};
     for (const winner of this.state.winners ?? []) {
@@ -1556,9 +1781,12 @@ export class GameTable {
       collectedFee,
       totalPaid,
       runCount,
-      boards: runCount === 2 ? [...(this.state.runoutBoards ?? [])] : [[...this.state.board]],
+      boards,
       potLayers: this.buildPotLayers(),
       winnersByRun,
+      doubleBoardPayouts: this.doubleBoardPayouts
+        ? this.doubleBoardPayouts.map((run) => ({ run: run.run, board: [...run.board], winners: [...run.winners] }))
+        : undefined,
       payoutsBySeat,
       payoutsBySeatByRun,
       ledger,
@@ -1593,6 +1821,25 @@ function nextSeatCircular(currentSeat: number, orderedSeats: number[], offset = 
 
 function orderedFromButton(buttonSeat: number, seats: number[]): number[] {
   return canonicalClockwiseSeats(buttonSeat, seats);
+}
+
+function combinations<T>(items: readonly T[], choose: number): T[][] {
+  if (choose <= 0 || choose > items.length) return [];
+  if (choose === 1) return items.map((item) => [item]);
+  const result: T[][] = [];
+  const walk = (start: number, path: T[]): void => {
+    if (path.length === choose) {
+      result.push([...path]);
+      return;
+    }
+    for (let i = start; i <= items.length - (choose - path.length); i += 1) {
+      path.push(items[i]);
+      walk(i + 1, path);
+      path.pop();
+    }
+  };
+  walk(0, []);
+  return result;
 }
 
 function toSolverCards(cards: string[]): string[] {

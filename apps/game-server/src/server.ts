@@ -6,7 +6,7 @@ import { Server } from "socket.io";
 import { GameTable } from "@cardpilot/game-engine";
 import { getPreflopAdvice, getPostflopAdvice, calculateDeviation } from "@cardpilot/advice-engine";
 import { calculateEquity, type Card } from "@cardpilot/poker-evaluator";
-import { SHOWDOWN_SPEED_DELAYS_MS } from "@cardpilot/shared-types";
+import { SHOWDOWN_SPEED_DELAYS_MS, describeHandStrength } from "@cardpilot/shared-types";
 import type {
   ActionSubmitPayload, AdvicePayload, LobbyRoomSummary, TableState,
   UpdateSettingsPayload, KickPlayerPayload, TransferOwnershipPayload,
@@ -108,12 +108,22 @@ const roomCodeToTableId = new Map<string, string>();
 const socketSeat = new Map<string, SeatBinding>();
 const socketIdentity = new Map<string, VerifiedIdentity>();
 const lastAdvice = new Map<string, AdvicePayload>(); // key: `${tableId}:${seat}`
+const tableSnapshotVersions = new Map<string, number>();
 
 // Pending seat requests: orderId -> request data
 type SeatRequest = { orderId: string; tableId: string; seat: number; buyIn: number; userId: string; userName: string; socketId: string; isRestore: boolean };
 const pendingSeatRequests = new Map<string, SeatRequest>();
 const autoDealSchedule = new Map<string, ReturnType<typeof setTimeout>>();
-const pendingAllInPrompts = new Map<string, { handId: string; prompt: AllInPrompt }>();
+type PendingAllInPromptState = {
+  handId: string;
+  prompt: AllInPrompt;
+  stage: "underdog" | "opponent";
+  underdogSeat: number;
+  opponentSeat: number;
+  underdogApproved: boolean | null;
+  equitiesBySeat: Record<number, number>;
+};
+const pendingAllInPrompts = new Map<string, PendingAllInPromptState>();
 const pendingRunCountTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 const pendingShowdownTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
 const handIdleWatchdogs = new Map<string, ReturnType<typeof setTimeout>>();
@@ -242,13 +252,33 @@ function createTableIfNeeded(room: RoomInfo): GameTable {
       smallBlind: room.smallBlind,
       bigBlind: room.bigBlind,
       ante: settings?.ante ?? 0,
+      runItTwiceEnabled: settings?.runItTwice ?? false,
+      gameType: settings?.gameType ?? "texas",
+      bombPotEnabled: settings?.bombPotEnabled ?? false,
+      bombPotFrequency: settings?.bombPotFrequency ?? 0,
+      doubleBoardMode: settings?.doubleBoardMode ?? "off",
       rakeEnabled: simulatedFeeEnabled,
       rakePercent: simulatedFeeEnabled ? (settings?.simulatedFeePercent ?? 0) : 0,
       rakeCap: simulatedFeeEnabled && simulatedFeeCap > 0 ? simulatedFeeCap : undefined,
     });
     tables.set(room.tableId, table);
   }
+  if (!tableSnapshotVersions.has(room.tableId)) {
+    tableSnapshotVersions.set(room.tableId, 0);
+  }
   return table;
+}
+
+function applyRoomVariantSettings(tableId: string, table: GameTable): void {
+  const settings = roomManager.getRoom(tableId)?.settings;
+  if (!settings) return;
+  table.configureVariantSettings({
+    runItTwiceEnabled: settings.runItTwice,
+    gameType: settings.gameType,
+    bombPotEnabled: settings.bombPotEnabled,
+    bombPotFrequency: settings.bombPotFrequency,
+    doubleBoardMode: settings.doubleBoardMode,
+  });
 }
 
 function bindingByUser(tableId: string, userId: string): SeatBinding | undefined {
@@ -449,6 +479,9 @@ async function emitAdviceIfNeeded(
   // Only push advice in COACH mode immediately; REVIEW mode waits until hand end
   if (table.getMode() === "REVIEW") return;
 
+  // Advice engine is currently NLH-oriented. Skip variant hands for compatibility.
+  if ((state.gameType ?? "texas") !== "texas") return;
+
   const seat = state.actorSeat;
 
   // Skip if actor is folded or all-in (no decisions to make)
@@ -510,7 +543,7 @@ async function emitAdviceIfNeeded(
   } 
   // Postflop advice (flop/turn/river)
   else if (state.street === "FLOP" || state.street === "TURN" || state.street === "RIVER") {
-    const heroHandCards = table.getHoleCards(seat);
+    const heroHandCards = table.getPrivateHoleCards(seat) ?? table.getHoleCards(seat);
     if (!heroHandCards) {
       logWarn({ event: "advice.skip.no_hole_cards", tableId, seat, street: state.street });
       return;
@@ -780,10 +813,32 @@ async function emitLobbySnapshot(targetSocketId?: string): Promise<void> {
   }
 }
 
-function broadcastSnapshot(tableId: string) {
+function ensureSnapshotVersion(tableId: string): number {
+  const current = tableSnapshotVersions.get(tableId) ?? 0;
+  if (!tableSnapshotVersions.has(tableId)) {
+    tableSnapshotVersions.set(tableId, current);
+  }
+  return current;
+}
+
+function nextSnapshotVersion(tableId: string): number {
+  const next = ensureSnapshotVersion(tableId) + 1;
+  tableSnapshotVersions.set(tableId, next);
+  return next;
+}
+
+function withSnapshotVersion(snapshot: TableState, stateVersion: number): TableState {
+  if (snapshot.stateVersion === stateVersion) {
+    return snapshot;
+  }
+  return { ...snapshot, stateVersion };
+}
+
+function buildSnapshotForSync(tableId: string, source: "hydrate" | "broadcast"): TableState | null {
   const table = tables.get(tableId);
-  if (!table) return;
-  const snapshot = table.getPublicState();
+  if (!table) return null;
+
+  let snapshot = table.getPublicState();
   const pendingPrompt = pendingAllInPrompts.get(tableId);
   if (pendingPrompt && pendingPrompt.handId === snapshot.handId) {
     snapshot.allInPrompt = pendingPrompt.prompt;
@@ -800,6 +855,35 @@ function broadcastSnapshot(tableId: string) {
   if (deposits.length > 0) {
     snapshot.pendingDeposits = deposits;
   }
+
+  const stateVersion = source === "broadcast"
+    ? nextSnapshotVersion(tableId)
+    : ensureSnapshotVersion(tableId);
+  snapshot = withSnapshotVersion(snapshot, stateVersion);
+
+  if (runtimeConfig.envName !== "production") {
+    logInfo({
+      event: "snapshot.sync",
+      tableId,
+      handId: snapshot.handId ?? undefined,
+      street: snapshot.street,
+      stateVersion: snapshot.stateVersion,
+      source,
+    });
+  }
+
+  return snapshot;
+}
+
+function emitHydratedSnapshot(socketId: string, tableId: string): void {
+  const snapshot = buildSnapshotForSync(tableId, "hydrate");
+  if (!snapshot) return;
+  io.to(socketId).emit("table_snapshot", snapshot);
+}
+
+function broadcastSnapshot(tableId: string) {
+  const snapshot = buildSnapshotForSync(tableId, "broadcast");
+  if (!snapshot) return;
   io.to(tableId).emit("table_snapshot", snapshot);
   emitPresence(tableId);
   // Defer advice computation so it never blocks snapshot delivery or timer updates
@@ -812,15 +896,15 @@ function broadcastSnapshot(tableId: string) {
 
 function buildAllInPrompt(table: GameTable, actorSeat: number): AllInPrompt {
   const state = table.getPublicState();
-  const heroCards = table.getHoleCards(actorSeat);
+  const heroCards = table.getPrivateHoleCards(actorSeat) ?? table.getHoleCards(actorSeat);
   const opponentSeats = state.players
     .filter((p) => p.inHand && !p.folded && p.seat !== actorSeat)
     .map((p) => p.seat);
 
   let winRate = 0.5;
-  if (heroCards && opponentSeats.length > 0) {
+  if ((state.gameType ?? "texas") === "texas" && heroCards && heroCards.length === 2 && opponentSeats.length > 0) {
     const villainHands = opponentSeats
-      .map((seat) => table.getHoleCards(seat))
+      .map((seat) => table.getPrivateHoleCards(seat) ?? table.getHoleCards(seat))
       .filter((cards): cards is [string, string] => Array.isArray(cards) && cards.length === 2)
       .map((cards) => [cards[0], cards[1]] as [Card, Card]);
 
@@ -856,6 +940,15 @@ function calculateAllPlayersEquity(table: GameTable, board: Card[]): Array<{ sea
     .filter((p) => p.inHand && !p.folded)
     .map((p) => p.seat);
 
+  if ((state.gameType ?? "texas") !== "texas") {
+    const fallbackWinRate = activeSeats.length > 0 ? 1 / activeSeats.length : 0;
+    return activeSeats.map((seat) => ({
+      seat,
+      winRate: Math.round(fallbackWinRate * 1000) / 1000,
+      tieRate: 0,
+    }));
+  }
+
   const equities: Array<{ seat: number; winRate: number; tieRate: number }> = [];
 
   for (const seat of activeSeats) {
@@ -868,7 +961,7 @@ function calculateAllPlayersEquity(table: GameTable, board: Card[]): Array<{ sea
     }
 
     const villainHands = opponentSeats
-      .map((s) => table.getHoleCards(s))
+      .map((s) => table.getPrivateHoleCards(s) ?? table.getHoleCards(s))
       .filter((cards): cards is [string, string] => Array.isArray(cards) && cards.length === 2)
       .map((cards) => [cards[0], cards[1]] as [Card, Card]);
 
@@ -892,6 +985,67 @@ function calculateAllPlayersEquity(table: GameTable, board: Card[]): Array<{ sea
   }
 
   return equities;
+}
+
+function calculateAllInHandHints(table: GameTable, board: Card[]): Array<{ seat: number; label: string }> {
+  const state = table.getPublicState();
+  return state.players
+    .filter((player) => player.inHand && !player.folded)
+    .map((player) => {
+      const cards = table.getPrivateHoleCards(player.seat) ?? table.getHoleCards(player.seat);
+      const label = cards && cards.length >= 2
+        ? describeHandStrength(cards, board)
+        : "Unknown hand";
+      return { seat: player.seat, label };
+    });
+}
+
+function clearRunCountDecisionTimeout(tableId: string): void {
+  const timeout = pendingRunCountTimeouts.get(tableId);
+  if (timeout) {
+    clearTimeout(timeout);
+    pendingRunCountTimeouts.delete(tableId);
+  }
+}
+
+function clearPendingAllInPrompt(tableId: string): void {
+  clearRunCountDecisionTimeout(tableId);
+  pendingAllInPrompts.delete(tableId);
+}
+
+function scheduleRunCountDecisionTimeout(tableId: string, table: GameTable, pending: PendingAllInPromptState): void {
+  clearRunCountDecisionTimeout(tableId);
+
+  const expectedHandId = pending.handId;
+  const expectedSeat = pending.prompt.actorSeat;
+  const expectedStage = pending.stage;
+
+  const timeout = setTimeout(() => {
+    pendingRunCountTimeouts.delete(tableId);
+
+    const livePending = pendingAllInPrompts.get(tableId);
+    if (!livePending) return;
+    if (livePending.handId !== expectedHandId) return;
+    if (livePending.prompt.actorSeat !== expectedSeat) return;
+    if (livePending.stage !== expectedStage) return;
+
+    pendingAllInPrompts.delete(tableId);
+    table.setAllInRunCount(1);
+
+    logInfo({
+      event: "all_in.run_count.timeout_default",
+      tableId,
+      handId: expectedHandId,
+      seat: expectedSeat,
+      stage: expectedStage,
+      message: "Run-count decision timed out; defaulting to run once.",
+    });
+
+    io.to(tableId).emit("run_count_chosen", { runCount: 1, seat: expectedSeat, auto: true });
+    void handleSequentialRunout(tableId, table);
+  }, runtimeConfig.runCountDecisionTimeoutMs);
+
+  pendingRunCountTimeouts.set(tableId, timeout);
 }
 
 function clearShowdownDecisionTimeout(tableId: string): void {
@@ -949,7 +1103,10 @@ function shouldForceRevealAtShowdown(tableId: string, state: TableState): boolea
   if (contenders.length < 2) return false;
 
   const everyoneAllIn = contenders.every((player) => player.allIn);
-  return everyoneAllIn || isRiverCallShowdown(state);
+  if (everyoneAllIn) {
+    return room.settings.autoRevealOnAllInCall ?? true;
+  }
+  return isRiverCallShowdown(state);
 }
 
 function beginShowdownDecision(tableId: string, table: GameTable, state: TableState): void {
@@ -985,27 +1142,6 @@ function beginShowdownDecision(tableId: string, table: GameTable, state: TableSt
   }, runtimeConfig.showdownDecisionTimeoutMs);
 
   pendingShowdownTimeouts.set(tableId, timeout);
-}
-
-function maybeAutoRevealRunoutHands(tableId: string, table: GameTable): void {
-  const settings = roomManager.getRoom(tableId)?.settings;
-  if ((settings?.autoRevealOnAllInCall ?? true) !== true) return;
-  if ((settings?.revealAllAtShowdown ?? true) !== true) return;
-
-  const state = table.getPublicState();
-  const seatsToReveal = state.players
-    .filter((p) => p.inHand && !p.folded)
-    .map((p) => p.seat);
-
-  let changed = false;
-  for (const seat of seatsToReveal) {
-    changed = table.revealPublicHand(seat) || changed;
-  }
-
-  if (changed) {
-    touchLocalRoom(tableId);
-    broadcastSnapshot(tableId);
-  }
 }
 
 async function handleSequentialRunout(tableId: string, table: GameTable): Promise<void> {
@@ -1070,6 +1206,9 @@ async function handleSequentialRunout(tableId: string, table: GameTable): Promis
       }
 
       const equities = calculateAllPlayersEquity(table, [...state.board] as Card[]);
+      const hints = (street === "FLOP" || street === "TURN")
+        ? calculateAllInHandHints(table, [...state.board] as Card[])
+        : undefined;
 
       io.to(tableId).emit("board_reveal", {
         handId: state.handId,
@@ -1077,6 +1216,7 @@ async function handleSequentialRunout(tableId: string, table: GameTable): Promis
         newCards,
         board: state.board,
         equities,
+        hints,
       });
 
       broadcastSnapshot(tableId);
@@ -1280,11 +1420,10 @@ function startHandFlow(tableId: string, actorUserId: string, source: "manual" | 
     message: (e as Error).message,
   }));
   applyApprovedDeposits(tableId);
+  applyRoomVariantSettings(tableId, table);
 
   const { handId } = table.startHand();
-  pendingAllInPrompts.delete(tableId);
-  const rcTimeout = pendingRunCountTimeouts.get(tableId);
-  if (rcTimeout) { clearTimeout(rcTimeout); pendingRunCountTimeouts.delete(tableId); }
+  clearPendingAllInPrompt(tableId);
   clearShowdownDecisionTimeout(tableId);
 
   roomManager.setHandActive(tableId, true);
@@ -1302,7 +1441,7 @@ function startHandFlow(tableId: string, actorUserId: string, source: "manual" | 
   io.to(tableId).emit("hand_started", { handId });
 
   for (const { socketId, binding } of bindingsByTable(tableId)) {
-    const cards = table.getHoleCards(binding.seat);
+    const cards = table.getPrivateHoleCards(binding.seat) ?? table.getHoleCards(binding.seat);
     if (cards) {
       io.to(socketId).emit("hole_cards", { handId, cards, seat: binding.seat });
     }
@@ -1367,34 +1506,34 @@ function scheduleAutoDealIfNeeded(tableId: string): void {
 }
 
 function finalizeHandEnd(tableId: string, state: TableState): void {
-  pendingAllInPrompts.delete(tableId);
-  const rcTimeout = pendingRunCountTimeouts.get(tableId);
-  if (rcTimeout) { clearTimeout(rcTimeout); pendingRunCountTimeouts.delete(tableId); }
+  clearPendingAllInPrompt(tableId);
   clearShowdownDecisionTimeout(tableId);
   const table = tables.get(tableId);
+  const finalState = withSnapshotVersion(state, nextSnapshotVersion(tableId));
   const settlement = table?.getSettlementResult() ?? null;
   logInfo({
     event: "hand.ended",
     tableId,
-    handId: state.handId,
-    winners: (state.winners ?? []).length,
-    totalPot: settlement?.totalPot ?? state.pot,
+    handId: finalState.handId,
+    winners: (finalState.winners ?? []).length,
+    totalPot: settlement?.totalPot ?? finalState.pot,
+    stateVersion: finalState.stateVersion,
   });
-  persistHandHistory(tableId, state, settlement).catch((e) => logWarn({
+  persistHandHistory(tableId, finalState, settlement, table).catch((e) => logWarn({
     event: "hand_history.persist.failed",
     tableId,
-    handId: state.handId,
+    handId: finalState.handId,
     message: (e as Error).message,
   }));
   io.to(tableId).emit("hand_ended", {
-    handId: state.handId,
-    finalState: state,
-    board: state.board,
-    runoutBoards: state.runoutBoards,
-    runoutPayouts: state.runoutPayouts,
-    players: state.players,
-    pot: state.pot,
-    winners: state.winners,
+    handId: finalState.handId,
+    finalState,
+    board: finalState.board,
+    runoutBoards: finalState.runoutBoards,
+    runoutPayouts: finalState.runoutPayouts,
+    players: finalState.players,
+    pot: finalState.pot,
+    winners: finalState.winners,
     settlement: settlement ?? undefined,
   });
   roomManager.clearActionTimer(tableId);
@@ -1455,12 +1594,7 @@ function handleRoomAutoClose(tableId: string): void {
   if (closed) {
     clearAutoDealSchedule(tableId);
     clearShowdownDecisionTimeout(tableId);
-    pendingAllInPrompts.delete(tableId);
-    const runCountTimeout = pendingRunCountTimeouts.get(tableId);
-    if (runCountTimeout) {
-      clearTimeout(runCountTimeout);
-      pendingRunCountTimeouts.delete(tableId);
-    }
+    clearPendingAllInPrompt(tableId);
     pendingStandUps.delete(tableId);
     pendingTableLeaves.delete(tableId);
     pendingPause.delete(tableId);
@@ -1472,6 +1606,7 @@ function handleRoomAutoClose(tableId: string): void {
     }
     io.to(tableId).emit("room_closed", { tableId, reason: "empty" });
     tables.delete(tableId);
+    tableSnapshotVersions.delete(tableId);
     const room = roomsByTableId.get(tableId);
     if (room) {
       roomCodeToTableId.delete(room.roomCode);
@@ -1611,48 +1746,72 @@ function handlePostAction(tableId: string, table: GameTable, newState: TableStat
 
 /** When all-in runout is needed: decide whether to prompt for run count or just deal */
 function initiateRunoutFlow(tableId: string, table: GameTable): void {
-  maybeAutoRevealRunoutHands(tableId, table);
   const state = table.getPublicState();
 
+  // No cards remain to be run out on the river board.
+  if (state.board.length >= 5 || state.street === "RIVER" || state.street === "SHOWDOWN") {
+    table.setAllInRunCount(1);
+    touchLocalRoom(tableId);
+    broadcastSnapshot(tableId);
+    void handleSequentialRunout(tableId, table);
+    return;
+  }
+
   if (table.isEveryoneAllIn()) {
-    // All players are truly all-in → calculate equities, prompt the underdog for run count
+    // All players are truly all-in -> stage 1 prompt goes to the underdog.
     const equities = calculateAllPlayersEquity(table, [...state.board] as Card[]);
+    if (equities.length < 2 || !state.handId) {
+      table.setAllInRunCount(1);
+      touchLocalRoom(tableId);
+      broadcastSnapshot(tableId);
+      void handleSequentialRunout(tableId, table);
+      return;
+    }
+
     const lowestEquity = equities.reduce((min, e) => e.winRate < min.winRate ? e : min);
+    const headsUp = equities.length === 2;
+    const highestEquity = equities
+      .filter((e) => e.seat !== lowestEquity.seat)
+      .reduce((max, e) => (e.winRate > max.winRate ? e : max), equities.find((e) => e.seat !== lowestEquity.seat)!);
+
+    const equitiesBySeat: Record<number, number> = {};
+    for (const entry of equities) {
+      equitiesBySeat[entry.seat] = entry.winRate;
+    }
 
     const prompt: AllInPrompt = {
       actorSeat: lowestEquity.seat,
       winRate: lowestEquity.winRate,
-      recommendedRunCount: 1,
+      recommendedRunCount: headsUp ? 2 : 1,
       defaultRunCount: 1,
       allowedRunCounts: [1, 2],
-      reason: `Win rate ${Math.round(lowestEquity.winRate * 100)}%. You can choose to run it once or twice.`,
+      promptMode: headsUp ? "yes_no" : "run_count",
+      voteStep: headsUp ? "underdog" : undefined,
+      reason: headsUp
+        ? `You are the underdog (${Math.round(lowestEquity.winRate * 100)}%). Choose whether to request Run It Twice.`
+        : `Win rate ${Math.round(lowestEquity.winRate * 100)}%. Choose to run once or twice.`,
     };
 
-    pendingAllInPrompts.set(tableId, { handId: state.handId!, prompt });
+    const pending: PendingAllInPromptState = {
+      handId: state.handId,
+      prompt,
+      stage: "underdog",
+      underdogSeat: lowestEquity.seat,
+      opponentSeat: headsUp ? highestEquity.seat : lowestEquity.seat,
+      underdogApproved: headsUp ? null : true,
+      equitiesBySeat,
+    };
+    pendingAllInPrompts.set(tableId, pending);
 
     // Send prompt to the underdog player
-    io.to(socketIdBySeat(tableId, lowestEquity.seat)).emit("all_in_prompt", prompt);
+    const underdogSocketId = socketIdBySeat(tableId, lowestEquity.seat);
+    if (underdogSocketId) {
+      io.to(underdogSocketId).emit("all_in_prompt", prompt);
+    }
 
     // Also broadcast so the table knows we're waiting
     broadcastSnapshot(tableId);
-
-    // Auto-default to run 1 after 15 seconds if no response
-    const timeout = setTimeout(() => {
-      pendingRunCountTimeouts.delete(tableId);
-      const pending = pendingAllInPrompts.get(tableId);
-      if (!pending || pending.handId !== state.handId) return;
-      pendingAllInPrompts.delete(tableId);
-      logInfo({
-        event: "all_in.run_count.timeout_default",
-        tableId,
-        handId: state.handId,
-        message: "Run-count decision timed out; defaulting to run once.",
-      });
-      table.setAllInRunCount(1);
-      io.to(tableId).emit("run_count_chosen", { runCount: 1, seat: lowestEquity.seat, auto: true });
-      void handleSequentialRunout(tableId, table);
-    }, runtimeConfig.runCountDecisionTimeoutMs);
-    pendingRunCountTimeouts.set(tableId, timeout);
+    scheduleRunCountDecisionTimeout(tableId, table, pending);
   } else {
     // Not everyone is all-in (one player has chips but no one to bet against)
     // Skip prompt, just do sequential runout with run=1
@@ -1805,7 +1964,51 @@ async function closeRoomSessionIfOpen(tableId: string, trigger: string): Promise
   await supabase.closeRoomSession(tableId, { trigger, closedAt: new Date().toISOString() });
 }
 
-async function persistHandHistory(tableId: string, state: TableState, settlement: ReturnType<GameTable["getSettlementResult"]>): Promise<void> {
+const RANK_ORDER: string[] = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"];
+
+function rankValue(rank: string): number {
+  const index = RANK_ORDER.indexOf(rank);
+  return index === -1 ? -1 : index;
+}
+
+function classifyStartingHandBucket(cards: string[], gameType: TableState["gameType"]): string {
+  if (cards.length < 2) return "unknown";
+
+  const ranks = cards.map((card) => card[0]).filter(Boolean);
+  const suits = cards.map((card) => card[1]).filter(Boolean);
+  if (gameType === "omaha" || cards.length >= 4) {
+    const sortedRanks = [...ranks].sort((a, b) => rankValue(b) - rankValue(a));
+    const topRanks = `${sortedRanks[0] ?? "X"}${sortedRanks[1] ?? "X"}`;
+    const suitCounts = new Map<string, number>();
+    for (const suit of suits) {
+      suitCounts.set(suit, (suitCounts.get(suit) ?? 0) + 1);
+    }
+    const grouped = [...suitCounts.values()].sort((a, b) => b - a);
+    if ((grouped[0] ?? 0) >= 2 && (grouped[1] ?? 0) >= 2) return `${topRanks}xx-ds`;
+    if ((grouped[0] ?? 0) >= 2) return `${topRanks}xx-ss`;
+    return `${topRanks}xx`;
+  }
+
+  const [a, b] = cards;
+  const [ra, sa] = [a[0], a[1]];
+  const [rb, sb] = [b[0], b[1]];
+  const highFirst = rankValue(ra) >= rankValue(rb);
+  const high = highFirst ? ra : rb;
+  const low = highFirst ? rb : ra;
+
+  if (high === low) return `${high}${low}`;
+  if (high === "A" && low === "K") return sa === sb ? "AKs" : "AKo";
+  if (high === "A") return sa === sb ? "Axs" : "Axo";
+  if (high === "K") return "Kx";
+  return sa === sb ? `${high}${low}s` : `${high}${low}o`;
+}
+
+async function persistHandHistory(
+  tableId: string,
+  state: TableState,
+  settlement: ReturnType<GameTable["getSettlementResult"]>,
+  table?: GameTable,
+): Promise<void> {
   if (!supabase.enabled()) return;
   if (!state.handId || !settlement) return;
 
@@ -1824,10 +2027,20 @@ async function persistHandHistory(tableId: string, state: TableState, settlement
   }
 
   const netByUser: Record<string, number> = {};
+  const netByPosition: Record<string, number> = {};
+  const startingHandBucketsByUser: Record<string, string> = {};
   for (const entry of settlement.ledger) {
     const player = playersBySeat.get(entry.seat);
     if (!player) continue;
     netByUser[player.userId] = entry.net;
+
+    const position = state.positions?.[entry.seat] ?? (table ? table.getPosition(entry.seat) : `Seat ${entry.seat}`);
+    netByPosition[position] = (netByPosition[position] ?? 0) + entry.net;
+
+    const privateCards = table?.getPrivateHoleCards(entry.seat) ?? table?.getHoleCards(entry.seat) ?? null;
+    if (privateCards && privateCards.length >= 2) {
+      startingHandBucketsByUser[player.userId] = classifyStartingHandBucket(privateCards, state.gameType ?? "texas");
+    }
   }
 
   const summary: HistoryHandSummaryCore = {
@@ -1839,16 +2052,24 @@ async function persistHandHistory(tableId: string, state: TableState, settlement
       handName: winner.handName,
     })),
     myNetByUser: netByUser,
+    netByPosition: Object.keys(netByPosition).length > 0 ? netByPosition : undefined,
+    startingHandBucketsByUser: Object.keys(startingHandBucketsByUser).length > 0 ? startingHandBucketsByUser : undefined,
+    gameType: state.gameType,
     flags: {
       allIn: state.actions.some((action) => action.type === "all_in"),
       runItTwice: settlement.runCount === 2,
       showdown: settlement.showdown,
+      bombPot: state.isBombPotHand,
+      doubleBoard: state.isDoubleBoardHand,
     },
   };
 
   const detail: HistoryHandDetailCore = {
     board: [...state.board],
     runoutBoards: state.runoutBoards ? state.runoutBoards.map((board) => [...board]) : [],
+    doubleBoardPayouts: settlement.doubleBoardPayouts
+      ? settlement.doubleBoardPayouts.map((run) => ({ run: run.run, board: [...run.board], winners: [...run.winners] }))
+      : undefined,
     potLayers: settlement.potLayers.map((layer) => ({
       label: layer.label,
       amount: layer.amount,
@@ -2044,7 +2265,7 @@ io.on("connection", (socket) => {
           roomCode: room.roomCode,
           roomName: room.roomName
         });
-        socket.emit("table_snapshot", table.getPublicState());
+        emitHydratedSnapshot(socket.id, room.tableId);
         const fullState = roomManager.getFullState(room.tableId);
         if (fullState) socket.emit("room_state_update", fullState);
         emitPresence(room.tableId);
@@ -2196,8 +2417,9 @@ io.on("connection", (socket) => {
         roomCode: room.roomCode,
         roomName: room.roomName
       });
-      socket.emit("table_snapshot", table.getPublicState());
-      socket.emit("room_state_update", roomManager.getFullState(room.tableId));
+      emitHydratedSnapshot(socket.id, room.tableId);
+      const fullState = roomManager.getFullState(room.tableId);
+      if (fullState) socket.emit("room_state_update", fullState);
       emitPresence(room.tableId);
       void emitLobbySnapshot();
       console.log("[JOIN_ROOM_CODE] Successfully joined room");
@@ -2243,7 +2465,9 @@ io.on("connection", (socket) => {
       roomCode: room.roomCode,
       roomName: room.roomName
     });
-    socket.emit("table_snapshot", table.getPublicState());
+    emitHydratedSnapshot(socket.id, room.tableId);
+    const fullState = roomManager.getFullState(room.tableId);
+    if (fullState) socket.emit("room_state_update", fullState);
     emitPresence(payload.tableId);
     void emitLobbySnapshot();
   });
@@ -2895,26 +3119,93 @@ io.on("connection", (socket) => {
         throw new Error("not the designated player for run count decision");
       }
 
-      // Clear timeout and pending prompt
-      const timeout = pendingRunCountTimeouts.get(payload.tableId);
-      if (timeout) {
-        clearTimeout(timeout);
-        pendingRunCountTimeouts.delete(payload.tableId);
-      }
-      pendingAllInPrompts.delete(payload.tableId);
+      const voteRunCount = payload.runCount === 2 ? 2 : 1;
 
-      // Apply run count choice and begin sequential runout
-      const runCount = payload.runCount === 2 ? 2 : 1;
-      table.setAllInRunCount(runCount);
+      if (pending.prompt.promptMode !== "yes_no") {
+        clearPendingAllInPrompt(payload.tableId);
+        const runCount: 1 | 2 = voteRunCount === 2 ? 2 : 1;
+        table.setAllInRunCount(runCount);
+        logInfo({
+          event: "all_in.run_count.selected",
+          tableId: payload.tableId,
+          handId: payload.handId,
+          seat: binding.seat,
+          runCount,
+        });
+
+        io.to(payload.tableId).emit("run_count_chosen", { runCount, seat: binding.seat });
+        void handleSequentialRunout(payload.tableId, table);
+        return;
+      }
+
+      if (pending.stage === "underdog") {
+        if (voteRunCount === 1) {
+          clearPendingAllInPrompt(payload.tableId);
+          table.setAllInRunCount(1);
+          logInfo({
+            event: "all_in.run_count.underdog_declined",
+            tableId: payload.tableId,
+            handId: payload.handId,
+            seat: binding.seat,
+            runCount: 1,
+          });
+          io.to(payload.tableId).emit("run_count_chosen", { runCount: 1, seat: binding.seat });
+          void handleSequentialRunout(payload.tableId, table);
+          return;
+        }
+
+        const opponentSeat = pending.opponentSeat;
+        const opponentPrompt: AllInPrompt = {
+          actorSeat: opponentSeat,
+          winRate: pending.equitiesBySeat[opponentSeat] ?? 0,
+          recommendedRunCount: 1,
+          defaultRunCount: 1,
+          allowedRunCounts: [1, 2],
+          promptMode: "yes_no",
+          voteStep: "opponent",
+          requestedBySeat: pending.underdogSeat,
+          reason: `Seat ${pending.underdogSeat} requested Run It Twice. Do you agree?`,
+        };
+
+        const nextPending: PendingAllInPromptState = {
+          ...pending,
+          stage: "opponent",
+          underdogApproved: true,
+          prompt: opponentPrompt,
+        };
+        pendingAllInPrompts.set(payload.tableId, nextPending);
+
+        logInfo({
+          event: "all_in.run_count.requested_by_underdog",
+          tableId: payload.tableId,
+          handId: payload.handId,
+          seat: binding.seat,
+          requestedRunCount: 2,
+          opponentSeat,
+        });
+
+        const opponentSocketId = socketIdBySeat(payload.tableId, opponentSeat);
+        if (opponentSocketId) {
+          io.to(opponentSocketId).emit("all_in_prompt", opponentPrompt);
+        }
+        broadcastSnapshot(payload.tableId);
+        scheduleRunCountDecisionTimeout(payload.tableId, table, nextPending);
+        return;
+      }
+
+      clearPendingAllInPrompt(payload.tableId);
+      const finalRunCount: 1 | 2 = voteRunCount === 2 ? 2 : 1;
+      table.setAllInRunCount(finalRunCount);
       logInfo({
-        event: "all_in.run_count.selected",
+        event: "all_in.run_count.finalized",
         tableId: payload.tableId,
         handId: payload.handId,
         seat: binding.seat,
-        runCount,
+        runCount: finalRunCount,
+        requestedBySeat: pending.underdogSeat,
       });
 
-      io.to(payload.tableId).emit("run_count_chosen", { runCount, seat: binding.seat });
+      io.to(payload.tableId).emit("run_count_chosen", { runCount: finalRunCount, seat: binding.seat });
       void handleSequentialRunout(payload.tableId, table);
     } catch (error) {
       socket.emit("error_event", { message: (error as Error).message });
@@ -3014,6 +3305,19 @@ io.on("connection", (socket) => {
   });
 
   /* ═══════════ ROOM MANAGEMENT SOCKET HANDLERS ═══════════ */
+
+  socket.on("request_table_snapshot", async (payload: { tableId: string }) => {
+    try {
+      if (!payload?.tableId) {
+        throw new Error("tableId is required");
+      }
+      const room = await ensureRoomByTableId(payload.tableId);
+      ensureManagedRoom(room, identity);
+      emitHydratedSnapshot(socket.id, payload.tableId);
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
 
   socket.on("request_room_state", (payload: { tableId: string }) => {
     const state = roomManager.getFullState(payload.tableId);
@@ -3172,6 +3476,7 @@ io.on("connection", (socket) => {
           }
           clearAutoDealSchedule(payload.tableId);
           clearShowdownDecisionTimeout(payload.tableId);
+          clearPendingAllInPrompt(payload.tableId);
           roomManager.endGame(payload.tableId, identity.userId, identity.displayName);
           closeRoomSessionIfOpen(payload.tableId, "game_control_end").catch((e) => console.warn("game_control(end): closeRoomSession failed:", (e as Error).message));
           break;
@@ -3185,6 +3490,7 @@ io.on("connection", (socket) => {
           }
           clearAutoDealSchedule(payload.tableId);
           clearShowdownDecisionTimeout(payload.tableId);
+          clearPendingAllInPrompt(payload.tableId);
           roomManager.endGame(payload.tableId, identity.userId, identity.displayName);
           closeRoomSessionIfOpen(payload.tableId, "game_control_restart").catch((e) => console.warn("game_control(restart): closeRoomSession failed:", (e as Error).message));
           // Client should call start_hand after restart
@@ -3248,12 +3554,7 @@ io.on("connection", (socket) => {
       pendingStandUps.delete(payload.tableId);
       pendingTableLeaves.delete(payload.tableId);
       pendingPause.delete(payload.tableId);
-      pendingAllInPrompts.delete(payload.tableId);
-      const runCountTimeout = pendingRunCountTimeouts.get(payload.tableId);
-      if (runCountTimeout) {
-        clearTimeout(runCountTimeout);
-        pendingRunCountTimeouts.delete(payload.tableId);
-      }
+      clearPendingAllInPrompt(payload.tableId);
       for (const [orderId, request] of pendingSeatRequests.entries()) {
         if (request.tableId === payload.tableId) pendingSeatRequests.delete(orderId);
       }
@@ -3261,6 +3562,7 @@ io.on("connection", (socket) => {
         if (deposit.tableId === payload.tableId) pendingDeposits.delete(orderId);
       }
       tables.delete(payload.tableId);
+      tableSnapshotVersions.delete(payload.tableId);
       roomManager.deleteRoom(payload.tableId);
 
       closeRoomSessionIfOpen(payload.tableId, "close_room").catch(() => {});
@@ -3967,6 +4269,7 @@ async function gracefulShutdown(signal: NodeJS.Signals): Promise<void> {
     pendingPause.clear();
     pendingSeatRequests.clear();
     pendingDeposits.clear();
+    tableSnapshotVersions.clear();
 
     await Promise.allSettled(tableIds.map((tableId) => closeRoomSessionIfOpen(tableId, "server_shutdown")));
 

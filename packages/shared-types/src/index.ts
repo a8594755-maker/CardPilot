@@ -68,6 +68,12 @@ export interface AllInPrompt {
   defaultRunCount: 1 | 2;
   allowedRunCounts: Array<1 | 2>;
   reason: string;
+  /** Prompt mode for run-it-twice negotiation (backward compatible). */
+  promptMode?: "run_count" | "yes_no";
+  /** Two-step voting stage when promptMode=yes_no. */
+  voteStep?: "underdog" | "opponent";
+  /** Underdog seat that initiated a yes/no request, used in opponent prompt copy. */
+  requestedBySeat?: number;
 }
 
 export interface PlayerEquity {
@@ -82,6 +88,7 @@ export interface BoardRevealEvent {
   newCards: string[];
   board: string[];
   equities: PlayerEquity[];
+  hints?: Array<{ seat: number; label: string }>;
 }
 
 export interface HandAction {
@@ -130,6 +137,8 @@ export interface SettlementResult {
   boards: string[][];
   potLayers: PotLayer[];
   winnersByRun: Array<{ run: 1 | 2; board: string[]; winners: HandWinner[] }>;
+  /** Double-board per-board payouts (non-RIT). Additive and optional. */
+  doubleBoardPayouts?: Array<{ run: 1 | 2; board: string[]; winners: HandWinner[] }>;
   payoutsBySeat: Record<number, number>;
   payoutsBySeatByRun?: Array<Record<number, number>>;
   ledger: SeatLedgerEntry[];
@@ -141,6 +150,8 @@ export interface SettlementResult {
 
 export interface TableState {
   tableId: string;
+  /** Monotonic per-table snapshot version assigned by the authoritative server. */
+  stateVersion: number;
   smallBlind: number;
   bigBlind: number;
   ante?: number;
@@ -161,6 +172,14 @@ export interface TableState {
   actions: HandAction[];
   legalActions: LegalActions | null;
   mode: 'COACH' | 'REVIEW' | 'CASUAL';
+  /** Selected room game type for current table/hand. */
+  gameType?: GameType;
+  /** Hole cards dealt per player for the current hand (2 for NLH, 4 for Omaha). */
+  holeCardCount?: number;
+  /** True when the current hand is a bomb pot hand. */
+  isBombPotHand?: boolean;
+  /** True when the current hand uses double-board resolution. */
+  isDoubleBoardHand?: boolean;
   winners?: HandWinner[];
   /** Map of seat number → position label (BTN, SB, BB, UTG, etc.) */
   positions: Record<number, string>;
@@ -315,16 +334,22 @@ export interface HistoryHandSummaryCore {
   runCount: 1 | 2;
   winners: HandWinner[];
   myNetByUser: Record<string, number>;
+  netByPosition?: Record<string, number>;
+  startingHandBucketsByUser?: Record<string, string>;
+  gameType?: GameType;
   flags: {
     allIn: boolean;
     runItTwice: boolean;
     showdown: boolean;
+    bombPot?: boolean;
+    doubleBoard?: boolean;
   };
 }
 
 export interface HistoryHandDetailCore {
   board: string[];
   runoutBoards: string[][];
+  doubleBoardPayouts?: RunoutPayout[];
   potLayers: PotLayer[];
   contributionsBySeat: Record<number, number>;
   actionTimeline: HandAction[];
@@ -708,6 +733,9 @@ export interface JoinRoomWithPasswordPayload {
 
 // Re-export socket events
 export * from './socket-events.js';
+
+// Re-export shared hand-strength descriptor helper
+export * from './hand-strength.js';
 
 // Re-export club types and events
 export * from './club-types.js';

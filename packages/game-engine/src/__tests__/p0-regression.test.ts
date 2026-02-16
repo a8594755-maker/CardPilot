@@ -57,6 +57,21 @@ function forceAllIn(t: GameTable): void {
   }
 }
 
+const TEST_RANKS = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"] as const;
+const TEST_SUITS = ["s", "h", "d", "c"] as const;
+
+function makeDeckForDrawOrder(drawOrder: string[]): string[] {
+  const full: string[] = [];
+  for (const rank of TEST_RANKS) {
+    for (const suit of TEST_SUITS) {
+      full.push(`${rank}${suit}`);
+    }
+  }
+  const used = new Set(drawOrder);
+  const base = full.filter((card) => !used.has(card));
+  return [...base, ...[...drawOrder].reverse()];
+}
+
 // ═══════════════════════════════════════════════════════════════
 // P0.1 — Side pot distribution (3-player, different stacks)
 // ═══════════════════════════════════════════════════════════════
@@ -231,6 +246,113 @@ describe("P0.1: Side pot distribution", () => {
   });
 });
 
+describe("P0.7: Variant scaffolding", () => {
+  it("bomb-pot hand starts directly on FLOP with bomb antes and no blind posts", () => {
+    const t = new GameTable({
+      tableId: "bp_flop_start",
+      smallBlind: 50,
+      bigBlind: 100,
+      bombPotEnabled: true,
+      bombPotFrequency: 1,
+    });
+    t.addPlayer({ seat: 1, userId: "u1", name: "A", stack: 5000 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "B", stack: 5000 });
+    t.addPlayer({ seat: 3, userId: "u3", name: "C", stack: 5000 });
+
+    t.startHand();
+    const s = t.getPublicState();
+
+    assert.equal(s.isBombPotHand, true, "bomb-pot flag should be set");
+    assert.equal(s.street, "FLOP", "bomb-pot should skip preflop betting street");
+    assert.equal(s.board.length, 3, "bomb-pot should deal flop immediately");
+    assert.equal(s.currentBet, 0, "bomb-pot should not post live blinds");
+    assert.equal(s.holeCardCount, 2, "default game type should remain hold'em");
+
+    const blindPosts = s.actions.filter((a) => a.type === "post_sb" || a.type === "post_bb");
+    assert.equal(blindPosts.length, 0, "bomb-pot should not post SB/BB actions");
+
+    const anteActions = s.actions.filter((a) => a.type === "ante");
+    assert.equal(anteActions.length, 3, "each active player should post bomb ante");
+    assert.equal(s.pot, 300, "pot should equal 3 players × 100 bomb ante");
+    for (const player of s.players.filter((p) => p.inHand)) {
+      assert.equal(player.streetCommitted, 0, "bomb ante should not count as street commitment");
+    }
+  });
+
+  it("double-board hand resolves with two boards while keeping runCount=1", () => {
+    const t = new GameTable({
+      tableId: "db_settle",
+      smallBlind: 50,
+      bigBlind: 100,
+      doubleBoardMode: "always",
+      runItTwiceEnabled: true,
+    });
+    t.addPlayer({ seat: 1, userId: "u1", name: "A", stack: 5000 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "B", stack: 5000 });
+    const initial = 10_000;
+
+    t.startHand();
+    let s = t.getPublicState();
+    assert.equal(s.isDoubleBoardHand, true, "double-board flag should be set");
+
+    forceAllIn(t);
+    if (t.isRunoutPending()) t.performRunout();
+
+    s = t.getPublicState();
+    if (s.showdownPhase === "decision") {
+      t.finalizeShowdownReveals({ autoMuckLosingHands: true });
+    }
+
+    const sr = t.getSettlementResult();
+    assert.ok(sr, "settlement should exist");
+    assert.equal(sr!.runCount, 1, "double-board is not run-it-twice");
+    assert.equal(sr!.boards.length, 2, "settlement should include two board runouts");
+    assert.ok(sr!.doubleBoardPayouts && sr!.doubleBoardPayouts.length === 2, "double-board payouts should be captured");
+    assert.equal(finalStacks(t), initial, "chip conservation must hold");
+  });
+
+  it("omaha showdown enforces exactly-two-hole-card usage", () => {
+    const t = new GameTable({
+      tableId: "omaha_exact_two",
+      smallBlind: 50,
+      bigBlind: 100,
+      gameType: "omaha",
+      runItTwiceEnabled: false,
+    });
+    t.addPlayer({ seat: 1, userId: "u1", name: "A", stack: 5000 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "B", stack: 5000 });
+
+    t.startHand();
+    const internal = t as unknown as {
+      state: {
+        holeCards: Map<number, string[]>;
+      };
+    };
+    internal.state.holeCards.set(1, ["Th", "9d", "3s", "4c"]);
+    internal.state.holeCards.set(2, ["9h", "8h", "As", "Ad"]);
+
+    // Board: Ah Kh Qh Jh 2c
+    t.setDeckForTesting(makeDeckForDrawOrder(["Ah", "Kh", "Qh", "Jh", "2c"]));
+
+    forceAllIn(t);
+    if (t.isRunoutPending()) t.performRunout();
+
+    let s = t.getPublicState();
+    if (s.showdownPhase === "decision") {
+      t.finalizeShowdownReveals({ autoMuckLosingHands: true });
+      s = t.getPublicState();
+    }
+
+    assert.equal(s.gameType, "omaha");
+    assert.equal(s.holeCardCount, 4, "omaha should deal four private cards");
+    assert.equal(t.getPrivateHoleCards(1)?.length, 4);
+
+    const winners = s.winners?.map((winner) => winner.seat) ?? [];
+    assert.ok(winners.includes(2), "seat 2 should win with two-heart Omaha flush");
+    assert.ok(!winners.includes(1), "seat 1 must not win via invalid one-card hold'em flush usage");
+  });
+});
+
 // ═══════════════════════════════════════════════════════════════
 // P0.1 — Odd-chip-to-button rule
 // ═══════════════════════════════════════════════════════════════
@@ -387,6 +509,40 @@ describe("P0.2: Run It Twice", () => {
 
     assert.equal(finalStacks(t), initial, "conservation single run");
   });
+
+  it("does not enter RUN_IT_TWICE_PROMPT when all-in happens on the river", () => {
+    const t = new GameTable({ tableId: "rit_river_guard", smallBlind: 50, bigBlind: 100, runItTwiceEnabled: true });
+    t.addPlayer({ seat: 1, userId: "u1", name: "Alice", stack: 8000 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "Bob", stack: 8000 });
+    t.startHand();
+
+    // Passively advance to the river first.
+    for (let i = 0; i < 80; i += 1) {
+      const s = t.getPublicState();
+      if (s.street === "RIVER") break;
+      if (!s.handId || s.actorSeat === null || t.isRunoutPending()) break;
+      const la = s.legalActions;
+      if (!la) break;
+      if (la.canCheck) t.applyAction(s.actorSeat, "check");
+      else if (la.canCall) t.applyAction(s.actorSeat, "call");
+      else t.applyAction(s.actorSeat, "fold");
+    }
+
+    let s = t.getPublicState();
+    assert.equal(s.street, "RIVER", "test setup failed: expected to be on river");
+    assert.ok(s.actorSeat !== null, "river should have an actor");
+
+    t.applyAction(s.actorSeat!, "all_in");
+    s = t.getPublicState();
+    assert.ok(s.actorSeat !== null, "opponent should still have action to close river");
+
+    if (s.legalActions?.canCall) t.applyAction(s.actorSeat!, "call");
+    else t.applyAction(s.actorSeat!, "all_in");
+
+    s = t.getPublicState();
+    assert.notEqual(s.street, "RUN_IT_TWICE_PROMPT", "river all-in closure must not prompt run-it-twice");
+    assert.equal(t.isRunoutPending(), true, "river all-in closure should proceed directly to showdown runout path");
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════
@@ -432,6 +588,61 @@ describe("P0.3: Showdown visibility", () => {
     s = t.getPublicState();
     if (s.street === "SHOWDOWN" && s.winners && s.winners.length > 0) {
       assert.equal(s.showdownPhase, "decision", "should be in decision phase at showdown");
+    }
+  });
+
+  it("all-in runout uses showdown decision phase (not forced reveal)", () => {
+    const t = new GameTable({ tableId: "vis_allin_decision", smallBlind: 50, bigBlind: 100, runItTwiceEnabled: false });
+    t.addPlayer({ seat: 1, userId: "u1", name: "Alice", stack: 5000 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "Bob", stack: 5000 });
+    t.startHand();
+
+    forceAllIn(t);
+    assert.equal(t.isRunoutPending(), true, "precondition: all-in should lead to runout pending");
+    t.setAllInRunCount(1);
+    t.performRunout();
+
+    const s = t.getPublicState();
+    assert.equal(s.street, "SHOWDOWN");
+    assert.equal(s.showdownPhase, "decision", "all-in runout should defer to showdown decision phase");
+  });
+
+  it("river called showdown still forces all contenders to reveal", () => {
+    const t = new GameTable({ tableId: "vis_river_call_forced", smallBlind: 50, bigBlind: 100 });
+    t.addPlayer({ seat: 1, userId: "u1", name: "Alice", stack: 7000 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "Bob", stack: 7000 });
+    t.startHand();
+
+    // Passively advance to river.
+    for (let i = 0; i < 80; i += 1) {
+      const s = t.getPublicState();
+      if (s.street === "RIVER") break;
+      if (!s.handId || s.actorSeat === null || t.isRunoutPending()) break;
+      const la = s.legalActions;
+      if (!la) break;
+      if (la.canCheck) t.applyAction(s.actorSeat, "check");
+      else if (la.canCall) t.applyAction(s.actorSeat, "call");
+      else t.applyAction(s.actorSeat, "fold");
+    }
+
+    let s = t.getPublicState();
+    assert.equal(s.street, "RIVER", "test setup failed: expected river");
+    assert.ok(s.actorSeat !== null, "river should have an actor");
+    assert.ok(s.legalActions?.canRaise, "river actor should be able to bet/raise");
+
+    t.applyAction(s.actorSeat!, "raise", s.legalActions!.minRaise);
+    s = t.getPublicState();
+    assert.ok(s.actorSeat !== null && s.legalActions?.canCall, "opponent should be able to call on river");
+
+    t.applyAction(s.actorSeat!, "call");
+    s = t.getPublicState();
+
+    assert.equal(s.street, "SHOWDOWN");
+    assert.equal(s.showdownPhase, "none", "river called showdown should force reveal immediately");
+
+    const contenders = s.players.filter((p) => p.inHand && !p.folded).map((p) => p.seat);
+    for (const seat of contenders) {
+      assert.ok(s.revealedHoles?.[seat], `contender seat ${seat} should be revealed after river call`);
     }
   });
 

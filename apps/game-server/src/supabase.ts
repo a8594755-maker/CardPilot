@@ -615,15 +615,47 @@ function toHistorySummary(value: unknown): HistoryHandSummaryCore {
   for (const [userId, net] of Object.entries(myNetSource)) {
     myNetByUser[userId] = toFiniteNumber(net, 0);
   }
+
+  const netByPositionSource = typeof src.net_by_position === "object" && src.net_by_position !== null
+    ? src.net_by_position as Record<string, unknown>
+    : typeof src.netByPosition === "object" && src.netByPosition !== null
+      ? src.netByPosition as Record<string, unknown>
+      : {};
+  const netByPosition: Record<string, number> = {};
+  for (const [position, net] of Object.entries(netByPositionSource)) {
+    netByPosition[position] = toFiniteNumber(net, 0);
+  }
+
+  const bucketSource = typeof src.starting_hand_buckets_by_user === "object" && src.starting_hand_buckets_by_user !== null
+    ? src.starting_hand_buckets_by_user as Record<string, unknown>
+    : typeof src.startingHandBucketsByUser === "object" && src.startingHandBucketsByUser !== null
+      ? src.startingHandBucketsByUser as Record<string, unknown>
+      : {};
+  const startingHandBucketsByUser: Record<string, string> = {};
+  for (const [userId, bucket] of Object.entries(bucketSource)) {
+    if (typeof bucket === "string" && bucket.length > 0) {
+      startingHandBucketsByUser[userId] = bucket;
+    }
+  }
+
   return {
     totalPot: toFiniteNumber(src.total_pot ?? src.totalPot, 0),
     runCount: toFiniteNumber(src.run_count ?? src.runCount, 1) === 2 ? 2 : 1,
     winners: toHistoryWinners(src.winners),
     myNetByUser,
+    netByPosition: Object.keys(netByPosition).length > 0 ? netByPosition : undefined,
+    startingHandBucketsByUser: Object.keys(startingHandBucketsByUser).length > 0 ? startingHandBucketsByUser : undefined,
+    gameType: typeof src.game_type === "string"
+      ? (src.game_type as HistoryHandSummaryCore["gameType"])
+      : typeof src.gameType === "string"
+        ? (src.gameType as HistoryHandSummaryCore["gameType"])
+        : undefined,
     flags: {
       allIn: Boolean(flagsSource.all_in ?? flagsSource.allIn),
       runItTwice: Boolean(flagsSource.run_it_twice ?? flagsSource.runItTwice),
       showdown: Boolean(flagsSource.showdown),
+      bombPot: Boolean(flagsSource.bomb_pot ?? flagsSource.bombPot),
+      doubleBoard: Boolean(flagsSource.double_board ?? flagsSource.doubleBoard),
     },
   };
 }
@@ -710,9 +742,25 @@ function toHistoryDetail(value: unknown): HistoryHandDetailCore {
         .filter((entry): entry is { seat: number; playerName: string; startStack: number; invested: number; won: number; endStack: number; net: number } => entry !== null && entry.seat > 0)
     : [];
 
+  const doubleBoardPayouts = Array.isArray(src.doubleBoardPayouts)
+    ? src.doubleBoardPayouts
+        .map((entry) => {
+          if (typeof entry !== "object" || entry === null) return null;
+          const row = entry as Record<string, unknown>;
+          const board = Array.isArray(row.board)
+            ? row.board.filter((card): card is string => typeof card === "string")
+            : [];
+          const winners = toHistoryWinners(row.winners);
+          const run = toFiniteNumber(row.run, 1) === 2 ? 2 : 1;
+          return { run: run as 1 | 2, board, winners };
+        })
+        .filter((entry): entry is { run: 1 | 2; board: string[]; winners: Array<{ seat: number; amount: number; handName?: string }> } => entry !== null)
+    : undefined;
+
   return {
     board,
     runoutBoards,
+    doubleBoardPayouts,
     potLayers,
     contributionsBySeat,
     actionTimeline,

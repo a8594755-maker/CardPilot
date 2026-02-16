@@ -201,6 +201,7 @@ export const SOCKET_EVENT_NAMES = {
     'approve_deposit',
     'reject_deposit',
     'request_session_stats',
+    'request_table_snapshot',
     'leave_table',
     'request_room_state',
     'update_settings',
@@ -294,6 +295,7 @@ export interface ClientToServerEvents {
   approve_deposit: (payload: { tableId: string; orderId: string }) => void;
   reject_deposit: (payload: { tableId: string; orderId: string }) => void;
   request_session_stats: (payload: { tableId: string }) => void;
+  request_table_snapshot: (payload: { tableId: string }) => void;
   leave_table: (payload: { tableId: string }) => void;
   request_room_state: (payload: { tableId: string }) => void;
   update_settings: (payload: { tableId: string; settings: Record<string, unknown> }) => void;
@@ -323,14 +325,33 @@ export interface ServerToClientEvents {
   hand_started: (payload: { handId: string }) => void;
   action_applied: (payload: { seat: number; action: string; amount: number; pot: number; auto?: boolean }) => void;
   street_advanced: (payload: { street: Street; board: string[] }) => void;
-  board_reveal: (payload: { handId: string; street: Street; newCards: string[]; board: string[]; equities: Array<{ seat: number; winRate: number; tieRate: number }> }) => void;
+  board_reveal: (payload: {
+    handId: string;
+    street: Street;
+    newCards: string[];
+    board: string[];
+    equities: Array<{ seat: number; winRate: number; tieRate: number }>;
+    hints?: Array<{ seat: number; label: string }>;
+  }) => void;
   run_twice_reveal: (payload: {
     handId: string | null;
     street: string;
     run1: { newCards: string[]; board: string[] };
     run2: { newCards: string[]; board: string[] };
+    equities?: Array<{ seat: number; winRate: number; tieRate: number }>;
+    hints?: Array<{ seat: number; label: string }>;
   }) => void;
-  all_in_prompt: (payload: { actorSeat: number; winRate: number; recommendedRunCount: 1 | 2; defaultRunCount: 1 | 2; allowedRunCounts: Array<1 | 2>; reason: string }) => void;
+  all_in_prompt: (payload: {
+    actorSeat: number;
+    winRate: number;
+    recommendedRunCount: 1 | 2;
+    defaultRunCount: 1 | 2;
+    allowedRunCounts: Array<1 | 2>;
+    reason: string;
+    promptMode?: "run_count" | "yes_no";
+    voteStep?: "underdog" | "opponent";
+    requestedBySeat?: number;
+  }) => void;
   run_count_chosen: (payload: { runCount: 1 | 2; seat: number }) => void;
   hand_ended: (payload: {
     handId?: string;

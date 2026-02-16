@@ -98,6 +98,7 @@ export interface SettlementResult {
 }
 export interface TableState {
     tableId: string;
+    stateVersion: number;
     smallBlind: number;
     bigBlind: number;
     buttonSeat: number;

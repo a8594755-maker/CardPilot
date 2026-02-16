@@ -136,13 +136,14 @@ export function HandDetail2({
 
   const requestAnalysis = useCallback((precision: "fast" | "deep") => {
     if (!socket || !hand) return;
+    if (hand.heroCards.length < 2) return;
     setGtoState("loading");
     setGtoError(null);
     setGtoResult(null);
     socket.emit("history_gto_analyze" as string, {
       handId: hand.id,
       handRecord: {
-        heroCards: hand.heroCards,
+        heroCards: [hand.heroCards[0], hand.heroCards[1]],
         board: hand.board,
         heroSeat: hand.heroSeat ?? 0,
         heroPosition: hand.position,
@@ -234,7 +235,11 @@ export function HandDetail2({
     );
   }
 
-  const runouts = hand.runoutBoards && hand.runoutBoards.length > 0 ? hand.runoutBoards : [hand.board];
+  const runouts = hand.runoutBoards && hand.runoutBoards.length > 0
+    ? hand.runoutBoards
+    : hand.doubleBoardPayouts && hand.doubleBoardPayouts.length > 0
+      ? hand.doubleBoardPayouts.map((run) => run.board)
+      : [hand.board];
   const result = hand.result ?? 0;
   const heroSeat = hand.heroSeat;
 

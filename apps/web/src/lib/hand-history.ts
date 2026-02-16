@@ -8,13 +8,18 @@ export interface HandRecord {
   stakes: string;
   tableSize: number;
   position: string;
-  heroCards: [string, string];
+  heroCards: string[];
+  startingHandBucket?: string;
   board: string[];
   runoutBoards?: string[][];
+  doubleBoardPayouts?: Array<{ run: 1 | 2; board: string[]; winners: Array<{ seat: number; amount: number; handName?: string }> }>;
   actions: HandActionRecord[];
   potSize: number;
   stackSize: number;
   result?: number;
+  netByPosition?: Record<string, number>;
+  isBombPotHand?: boolean;
+  isDoubleBoardHand?: boolean;
   tags: string[];
   gtoAnalysis?: GTOAnalysis | null;
   // Extended fields for room-based history
@@ -107,6 +112,48 @@ const STORAGE_KEY = "cardpilot_hand_history";
 const RETENTION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const MAX_RECORDS = 500;
 
+const RANK_ORDER: string[] = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"];
+
+function rankValue(rank: string): number {
+  const index = RANK_ORDER.indexOf(rank);
+  return index === -1 ? -1 : index;
+}
+
+export function classifyStartingHandBucket(heroCards: string[], gameType: HandRecord["gameType"]): string {
+  if (!Array.isArray(heroCards) || heroCards.length < 2) return "unknown";
+
+  const cards = heroCards.filter((card) => typeof card === "string" && card.length >= 2);
+  if (cards.length < 2) return "unknown";
+
+  if (gameType === "PLO" || cards.length >= 4) {
+    const ranks = cards.map((card) => card[0]).filter(Boolean);
+    const suits = cards.map((card) => card[1]).filter(Boolean);
+    const sortedRanks = [...ranks].sort((a, b) => rankValue(b) - rankValue(a));
+    const top = `${sortedRanks[0] ?? "X"}${sortedRanks[1] ?? "X"}`;
+    const suitCounts = new Map<string, number>();
+    for (const suit of suits) {
+      suitCounts.set(suit, (suitCounts.get(suit) ?? 0) + 1);
+    }
+    const grouped = [...suitCounts.values()].sort((a, b) => b - a);
+    if ((grouped[0] ?? 0) >= 2 && (grouped[1] ?? 0) >= 2) return `${top}xx-ds`;
+    if ((grouped[0] ?? 0) >= 2) return `${top}xx-ss`;
+    return `${top}xx`;
+  }
+
+  const [a, b] = cards;
+  const [ra, sa] = [a[0], a[1]];
+  const [rb, sb] = [b[0], b[1]];
+  const highFirst = rankValue(ra) >= rankValue(rb);
+  const high = highFirst ? ra : rb;
+  const low = highFirst ? rb : ra;
+
+  if (high === low) return `${high}${low}`;
+  if (high === "A" && low === "K") return sa === sb ? "AKs" : "AKo";
+  if (high === "A") return sa === sb ? "Axs" : "Axo";
+  if (high === "K") return "Kx";
+  return sa === sb ? `${high}${low}s` : `${high}${low}o`;
+}
+
 function generateId(): string {
   return `h_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -130,19 +177,50 @@ function normalizeHandRecord(input: unknown): HandRecord | null {
   const raw = input as Partial<HandRecord>;
 
   if (typeof raw.id !== "string") return null;
-  if (!Array.isArray(raw.actions) || !Array.isArray(raw.heroCards) || raw.heroCards.length !== 2) return null;
+  if (!Array.isArray(raw.actions) || !Array.isArray(raw.heroCards) || raw.heroCards.length < 2) return null;
+
+  const heroCards = raw.heroCards.map(String).filter((card) => card.length >= 2);
+  const gameType = raw.gameType === "PLO" ? "PLO" : "NLH";
 
   const record: HandRecord = {
     ...raw,
     id: raw.id,
     createdAt: Number(raw.createdAt ?? Date.now()),
     expiresAt: Number(raw.expiresAt ?? Date.now() + RETENTION_MS),
-    gameType: raw.gameType === "PLO" ? "PLO" : "NLH",
+    gameType,
     stakes: typeof raw.stakes === "string" ? raw.stakes : "0/0",
     tableSize: Number(raw.tableSize ?? 0),
     position: typeof raw.position === "string" ? raw.position : "?",
-    heroCards: [String(raw.heroCards[0]), String(raw.heroCards[1])],
+    heroCards,
+    startingHandBucket: typeof raw.startingHandBucket === "string"
+      ? raw.startingHandBucket
+      : classifyStartingHandBucket(heroCards, gameType),
     board: Array.isArray(raw.board) ? raw.board.map(String) : [],
+    runoutBoards: Array.isArray(raw.runoutBoards)
+      ? raw.runoutBoards.map((run) => Array.isArray(run) ? run.map(String) : [])
+      : undefined,
+    doubleBoardPayouts: Array.isArray(raw.doubleBoardPayouts)
+      ? raw.doubleBoardPayouts.reduce<Array<{ run: 1 | 2; board: string[]; winners: Array<{ seat: number; amount: number; handName?: string }> }>>((acc, run) => {
+          if (!run || typeof run !== "object") return acc;
+          const row = run as { run?: number; board?: unknown; winners?: unknown };
+          const board = Array.isArray(row.board) ? row.board.map(String) : [];
+          const winners: Array<{ seat: number; amount: number; handName?: string }> = [];
+          if (Array.isArray(row.winners)) {
+            for (const winner of row.winners) {
+              if (!winner || typeof winner !== "object") continue;
+              const w = winner as { seat?: unknown; amount?: unknown; handName?: unknown };
+              winners.push({
+                seat: Number(w.seat ?? 0),
+                amount: Number(w.amount ?? 0),
+                handName: typeof w.handName === "string" ? w.handName : undefined,
+              });
+            }
+          }
+          const runNo: 1 | 2 = Number(row.run ?? 1) === 2 ? 2 : 1;
+          acc.push({ run: runNo, board, winners });
+          return acc;
+        }, [])
+      : undefined,
     actions: raw.actions
       .filter((a): a is HandActionRecord => Boolean(a && typeof a === "object"))
       .map((a) => ({
@@ -154,6 +232,13 @@ function normalizeHandRecord(input: unknown): HandRecord | null {
     potSize: Number(raw.potSize ?? 0),
     stackSize: Number(raw.stackSize ?? 0),
     tags: Array.isArray(raw.tags) ? raw.tags.map(String) : [],
+    netByPosition: raw.netByPosition && typeof raw.netByPosition === "object"
+      ? Object.fromEntries(
+          Object.entries(raw.netByPosition as Record<string, unknown>).map(([position, net]) => [position, Number(net ?? 0)])
+        )
+      : undefined,
+    isBombPotHand: Boolean(raw.isBombPotHand),
+    isDoubleBoardHand: Boolean(raw.isDoubleBoardHand),
     actionTimeline: Array.isArray(raw.actionTimeline) ? raw.actionTimeline : undefined,
   };
 
@@ -184,8 +269,11 @@ function pruneExpired(records: HandRecord[]): HandRecord[] {
 
 export function saveHand(record: Omit<HandRecord, "id" | "createdAt" | "expiresAt">): HandRecord {
   const now = Date.now();
+  const startingHandBucket = record.startingHandBucket
+    ?? classifyStartingHandBucket(record.heroCards, record.gameType);
   const full: HandRecord = {
     ...record,
+    startingHandBucket,
     id: generateId(),
     createdAt: now,
     expiresAt: now + RETENTION_MS,

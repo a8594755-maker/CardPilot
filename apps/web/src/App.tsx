@@ -28,7 +28,7 @@ import { ClubsPage } from "./pages/clubs/ClubsPage";
 import { HistoryByRoomPage } from "./pages/HistoryByRoomPage";
 import { CashierPage } from "./pages/CashierPage";
 import type { ClubListItem, ClubDetailPayload } from "@cardpilot/shared-types";
-import { saveHand, getHands, autoTag, type HandRecord, type HandActionRecord } from "./lib/hand-history.js";
+import { saveHand, getHands, autoTag, classifyStartingHandBucket, type HandRecord, type HandActionRecord } from "./lib/hand-history.js";
 import { ChipAnimationLayer } from "./components/ChipAnimationLayer";
 import { useChipAnimationDriver, type ChipAnimationAnchors } from "./hooks/useChipAnimationDriver";
 import { type AnimationSpeed, loadAnimationSpeed, saveAnimationSpeed } from "./lib/chip-animation.js";
@@ -38,6 +38,8 @@ import { useAuditEvents } from "./hooks/useAuditEvents";
 import { BottomActionBar } from "./components/ui/BottomActionBar";
 import { LeftOptionsRail, OptionsDrawer, type RailAction, type DrawerSection } from "./components/ui/LeftOptionsRail";
 import { FoldConfirmModal } from "./components/ui/FoldConfirmModal";
+import { useUserRole } from "./hooks/useUserRole";
+import { OPTIONS_ITEMS, type SettingsTab } from "./config/optionsMenuItems";
 
 const SERVER = import.meta.env.VITE_SERVER_URL || "http://127.0.0.1:4000";
 const DEBUG_LOGS_ENABLED = import.meta.env.DEV;
@@ -106,7 +108,12 @@ export function App() {
   const [settlementRevealedHoles, setSettlementRevealedHoles] = useState<Record<number, [string, string]> | undefined>(undefined);
   const [settlementWinnerHandNames, setSettlementWinnerHandNames] = useState<Record<number, string> | undefined>(undefined);
   const [allInPrompt, setAllInPrompt] = useState<AllInPrompt | null>(null);
-  const [boardReveal, setBoardReveal] = useState<{ street: string; equities: Array<{ seat: number; winRate: number; tieRate: number }> } | null>(null);
+  type BoardRevealState = {
+    street: string;
+    equities: Array<{ seat: number; winRate: number; tieRate: number }>;
+    hints?: Array<{ seat: number; label: string }>;
+  };
+  const [boardReveal, setBoardReveal] = useState<BoardRevealState | null>(null);
   const [showHandConfirm, setShowHandConfirm] = useState(false);
   const [lastActionBySeat, setLastActionBySeat] = useState<Record<number, { action: string; amount: number }>>({});
 
@@ -195,6 +202,7 @@ export function App() {
   const [roomLog, setRoomLog] = useState<RoomLogEntry[]>([]);
   const [kicked, setKicked] = useState<{ reason: string; banned: boolean } | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [settingsTab, setSettingsTab] = useState<SettingsTab>("game");
   const [seatRequests, setSeatRequests] = useState<Array<{ orderId: string; userId: string; userName: string; seat: number; buyIn: number }>>([]);
   const [showRoomLog, setShowRoomLog] = useState(false);
   const [showSessionStats, setShowSessionStats] = useState(false);
@@ -277,12 +285,49 @@ export function App() {
   const seatRef = useRef(seat);
   const holeCardsRef = useRef(holeCards);
   const snapshotRef = useRef(snapshot);
+  const tableIdRef = useRef(tableId);
+  const pathnameRef = useRef(location.pathname);
   const currentRoomCodeRef = useRef(currentRoomCode);
   const currentRoomNameRef = useRef(currentRoomName);
+  const latestSnapshotVersionRef = useRef(-1);
+  const latestSnapshotHashRef = useRef("");
+  const snapshotResyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const snapshotResyncReasonRef = useRef<string | null>(null);
+
+  const resetSnapshotSyncState = useCallback(() => {
+    if (snapshotResyncTimerRef.current) {
+      clearTimeout(snapshotResyncTimerRef.current);
+      snapshotResyncTimerRef.current = null;
+    }
+    latestSnapshotVersionRef.current = -1;
+    latestSnapshotHashRef.current = "";
+    snapshotResyncReasonRef.current = null;
+  }, []);
+
+  const snapshotHash = useCallback((s: TableState) => {
+    const board = s.board.join(",");
+    const players = s.players
+      .map((p) => `${p.seat}:${p.stack}:${p.inHand ? 1 : 0}:${p.folded ? 1 : 0}:${p.allIn ? 1 : 0}:${p.streetCommitted}`)
+      .join("|");
+    return [
+      s.tableId,
+      String(s.stateVersion),
+      s.handId ?? "-",
+      s.street,
+      String(s.pot),
+      String(s.currentBet),
+      String(s.actorSeat ?? -1),
+      board,
+      players,
+    ].join(";");
+  }, []);
+
   useEffect(() => { setName(displayName); }, [displayName]);
   useEffect(() => { seatRef.current = seat; }, [seat]);
   useEffect(() => { holeCardsRef.current = holeCards; }, [holeCards]);
   useEffect(() => { snapshotRef.current = snapshot; }, [snapshot]);
+  useEffect(() => { tableIdRef.current = tableId; }, [tableId]);
+  useEffect(() => { pathnameRef.current = location.pathname; }, [location.pathname]);
   useEffect(() => { currentRoomCodeRef.current = currentRoomCode; }, [currentRoomCode]);
   useEffect(() => { currentRoomNameRef.current = currentRoomName; }, [currentRoomName]);
 
@@ -377,6 +422,114 @@ export function App() {
     });
     setSocket(s);
 
+    const requestSnapshotResync = (reason: string, requestedTableId?: string) => {
+      const targetTableId = (requestedTableId ?? tableIdRef.current ?? "").trim();
+      if (!targetTableId) return;
+      if (snapshotResyncTimerRef.current) return;
+      snapshotResyncReasonRef.current = reason;
+      if (DEBUG_LOGS_ENABLED) {
+        debugLog("[sync] schedule resync", { tableId: targetTableId, reason });
+      }
+      snapshotResyncTimerRef.current = setTimeout(() => {
+        snapshotResyncTimerRef.current = null;
+        s.emit("request_table_snapshot", { tableId: targetTableId });
+        s.emit("request_room_state", { tableId: targetTableId });
+      }, 120);
+    };
+
+    const applyAuthoritativeSnapshot = (d: TableState, source: "table_snapshot" | "hand_ended"): boolean => {
+      if (!d) return false;
+      const incomingVersion = Number.isFinite(d.stateVersion) ? d.stateVersion : 0;
+      const currentVersion = latestSnapshotVersionRef.current;
+      const incomingHash = snapshotHash(d);
+
+      if (incomingVersion < currentVersion) {
+        debugLog("[sync] drop stale snapshot", {
+          source,
+          tableId: d.tableId,
+          incomingVersion,
+          currentVersion,
+          handId: d.handId,
+          street: d.street,
+        });
+        requestSnapshotResync("stale_snapshot", d.tableId);
+        return false;
+      }
+
+      if (incomingVersion === currentVersion) {
+        const previousHash = latestSnapshotHashRef.current;
+        if (previousHash && previousHash !== incomingHash) {
+          debugLog("[sync] same-version payload mismatch", {
+            source,
+            tableId: d.tableId,
+            stateVersion: incomingVersion,
+            handId: d.handId,
+            street: d.street,
+          });
+          requestSnapshotResync("same_version_mismatch", d.tableId);
+        }
+        return false;
+      }
+
+      if (currentVersion >= 0 && incomingVersion > currentVersion + 1) {
+        debugLog("[sync] snapshot version gap detected", {
+          source,
+          tableId: d.tableId,
+          incomingVersion,
+          currentVersion,
+          handId: d.handId,
+          street: d.street,
+        });
+        requestSnapshotResync("version_gap", d.tableId);
+      }
+
+      latestSnapshotVersionRef.current = incomingVersion;
+      latestSnapshotHashRef.current = incomingHash;
+      snapshotResyncReasonRef.current = null;
+
+      if (DEBUG_LOGS_ENABLED) {
+        debugLog("[sync] apply snapshot", {
+          source,
+          tableId: d.tableId,
+          stateVersion: d.stateVersion,
+          handId: d.handId,
+          street: d.street,
+        });
+      }
+
+      chipOnSnapshotRef.current(d);
+      setSnapshot(d);
+      if (d.winners) setWinners(d.winners);
+      if (d.allInPrompt && d.allInPrompt.actorSeat === seatRef.current) {
+        setAllInPrompt(d.allInPrompt);
+      } else {
+        setAllInPrompt(null);
+      }
+      return true;
+    };
+
+    const handleReconnect = () => {
+      let routeTableId = "";
+      const tableRouteMatch = pathnameRef.current.match(/^\/table\/([^/]+)$/);
+      if (tableRouteMatch) {
+        try {
+          routeTableId = decodeURIComponent(tableRouteMatch[1]);
+        } catch {
+          routeTableId = "";
+        }
+      }
+      const reconnectTableId = routeTableId || tableIdRef.current;
+      const reconnectRoomCode = currentRoomCodeRef.current;
+      const looksAuthoritativeTableId = /^tbl_[a-z0-9]+$/i.test(reconnectTableId);
+      if (reconnectRoomCode) {
+        requestSnapshotResync("socket_reconnect", reconnectTableId);
+      } else if (looksAuthoritativeTableId) {
+        requestSnapshotResync("socket_reconnect_table_id", reconnectTableId);
+      }
+    };
+
+    s.io.on("reconnect", handleReconnect);
+
     s.on("connect", () => {
       setSocketConnected(true);
       showToast("Connected");
@@ -384,9 +537,23 @@ export function App() {
       setClubsLoading(true);
       s.emit("club_list_my_clubs");
 
+      let routeTableId = "";
+      const tableRouteMatch = pathnameRef.current.match(/^\/table\/([^/]+)$/);
+      if (tableRouteMatch) {
+        try {
+          routeTableId = decodeURIComponent(tableRouteMatch[1]);
+        } catch {
+          routeTableId = "";
+        }
+      }
+      const activeTableId = routeTableId || tableIdRef.current;
       const roomCode = currentRoomCodeRef.current;
+      const looksAuthoritativeTableId = /^tbl_[a-z0-9]+$/i.test(activeTableId);
       if (roomCode) {
         s.emit("join_room_code", { roomCode });
+      } else if (looksAuthoritativeTableId) {
+        s.emit("join_table", { tableId: activeTableId });
+        requestSnapshotResync("socket_connect_table_id", activeTableId);
       }
     });
     s.on("connected", (d: { userId: string; displayName?: string; supabaseEnabled: boolean }) => {
@@ -397,24 +564,23 @@ export function App() {
     s.on("disconnect", () => { setSocketConnected(false); });
     s.on("lobby_snapshot", (d: { rooms: LobbyRoomSummary[] }) => setLobbyRooms(d.rooms ?? []));
     s.on("room_created", (d: { tableId: string; roomCode: string; roomName: string }) => {
+      resetSnapshotSyncState();
       setTableId(d.tableId); setCurrentRoomCode(d.roomCode); setCurrentRoomName(d.roomName);
       showToast(`Room created: ${d.roomName} (${d.roomCode})`);
       navigate(`/table/${encodeURIComponent(d.tableId)}`);
+      s.emit("request_table_snapshot", { tableId: d.tableId });
+      s.emit("request_room_state", { tableId: d.tableId });
     });
     s.on("room_joined", (d: { tableId: string; roomCode: string; roomName: string }) => {
+      resetSnapshotSyncState();
       setTableId(d.tableId); setCurrentRoomCode(d.roomCode); setCurrentRoomName(d.roomName);
       showToast(`Joined room: ${d.roomName} (${d.roomCode})`);
       navigate(`/table/${encodeURIComponent(d.tableId)}`);
+      s.emit("request_table_snapshot", { tableId: d.tableId });
+      s.emit("request_room_state", { tableId: d.tableId });
     });
     s.on("table_snapshot", (d: TableState) => {
-      chipOnSnapshotRef.current(d);
-      setSnapshot(d);
-      if (d.winners) setWinners(d.winners);
-      if (d.allInPrompt && d.allInPrompt.actorSeat === seatRef.current) {
-        setAllInPrompt(d.allInPrompt);
-      } else {
-        setAllInPrompt(null);
-      }
+      applyAuthoritativeSnapshot(d, "table_snapshot");
     });
     s.on("hole_cards", (d: { cards: string[]; seat: number }) => {
       setHoleCards(d.cards);
@@ -428,13 +594,28 @@ export function App() {
       setShowFoldConfirm(false);
       setLastActionBySeat({});
     });
-    s.on("board_reveal", (d: { handId: string; street: string; newCards: string[]; board: string[]; equities: Array<{ seat: number; winRate: number; tieRate: number }> }) => {
-      setBoardReveal({ street: d.street, equities: d.equities });
+    s.on("board_reveal", (d: {
+      handId: string;
+      street: string;
+      newCards: string[];
+      board: string[];
+      equities: Array<{ seat: number; winRate: number; tieRate: number }>;
+      hints?: Array<{ seat: number; label: string }>;
+    }) => {
+      setBoardReveal({ street: d.street, equities: d.equities, hints: d.hints });
     });
-    s.on("run_twice_reveal", (d: { handId: string; street: string; run1: { newCards: string[]; board: string[] }; run2: { newCards: string[]; board: string[] } }) => {
-      setBoardReveal((prev: { street: string; equities: Array<{ seat: number; winRate: number; tieRate: number }> } | null) => ({
+    s.on("run_twice_reveal", (d: {
+      handId: string;
+      street: string;
+      run1: { newCards: string[]; board: string[] };
+      run2: { newCards: string[]; board: string[] };
+      equities?: Array<{ seat: number; winRate: number; tieRate: number }>;
+      hints?: Array<{ seat: number; label: string }>;
+    }) => {
+      setBoardReveal((prev: BoardRevealState | null) => ({
         street: d.street,
-        equities: prev?.equities ?? [],
+        equities: d.equities ?? prev?.equities ?? [],
+        hints: d.hints ?? prev?.hints,
       }));
       setSnapshot((prev) => {
         if (!prev || prev.handId !== d.handId) return prev;
@@ -468,7 +649,9 @@ export function App() {
       setAllInPrompt(null);
       setBoardReveal(null);
       if (d.winners) setWinners(d.winners);
-      if (d.finalState) setSnapshot(d.finalState);
+      if (d.finalState) {
+        applyAuthoritativeSnapshot(d.finalState, "hand_ended");
+      }
 
       // Chip animation: animate pot→winner payouts
       if (d.settlement) chipOnSettlementRef.current(d.settlement);
@@ -506,7 +689,7 @@ export function App() {
         const st = d.finalState ?? snapshotRef.current;
         const cards = holeCardsRef.current;
         const heroSeat = seatRef.current;
-        if (st && cards.length === 2 && d.settlement) {
+        if (st && cards.length >= 2 && d.settlement) {
           const heroPos = st.positions?.[heroSeat] ?? "?";
           const actionRecords: HandActionRecord[] = st.actions.map((a) => ({
             seat: a.seat,
@@ -515,6 +698,12 @@ export function App() {
             amount: a.amount ?? 0,
           }));
           const heroLedger = d.settlement.ledger.find((e) => e.seat === heroSeat);
+          const gameType = st.gameType === "omaha" ? "PLO" : "NLH";
+          const netByPosition: Record<string, number> = {};
+          for (const entry of d.settlement.ledger) {
+            const pos = st.positions?.[entry.seat] ?? `Seat ${entry.seat}`;
+            netByPosition[pos] = (netByPosition[pos] ?? 0) + entry.net;
+          }
           // Build player names map and showdown hands from snapshot
           const playerNames: Record<number, string> = {};
           const showdownHands: Record<number, [string, string] | "mucked"> = {};
@@ -525,17 +714,22 @@ export function App() {
             else if (st.muckedSeats?.includes(p.seat)) showdownHands[p.seat] = "mucked";
           }
           saveHand({
-            gameType: "NLH",
+            gameType,
             stakes: `${st.smallBlind}/${st.bigBlind}`,
             tableSize: st.players.length,
             position: heroPos,
-            heroCards: [cards[0], cards[1]],
+            heroCards: [...cards],
+            startingHandBucket: classifyStartingHandBucket(cards, gameType),
             board: st.board,
             runoutBoards: st.runoutBoards,
+            doubleBoardPayouts: d.settlement.doubleBoardPayouts,
             actions: actionRecords,
             potSize: d.settlement.totalPot,
             stackSize: heroLedger?.endStack ?? 0,
             result: heroLedger?.net ?? 0,
+            netByPosition,
+            isBombPotHand: st.isBombPotHand,
+            isDoubleBoardHand: st.isDoubleBoardHand,
             tags: autoTag(actionRecords),
             roomCode: currentRoomCodeRef.current || undefined,
             roomName: currentRoomNameRef.current || undefined,
@@ -582,6 +776,7 @@ export function App() {
     s.on("timer_update", (d: TimerState) => setTimerState(d));
     s.on("room_log", (d: RoomLogEntry) => setRoomLog((prev) => [...prev.slice(-99), d]));
     s.on("kicked", (d: { reason: string; banned: boolean }) => {
+      resetSnapshotSyncState();
       setKicked(d);
       setView("lobby");
       setCurrentRoomCode(""); setCurrentRoomName("");
@@ -589,6 +784,7 @@ export function App() {
       showToast(`You were ${d.banned ? "banned" : "kicked"}: ${d.reason}`);
     });
     s.on("room_closed", (d?: { reason?: string }) => {
+      resetSnapshotSyncState();
       setActionPending(false);
       setView("lobby");
       setCurrentRoomCode(""); setCurrentRoomName("");
@@ -679,8 +875,15 @@ export function App() {
       showToast(`Error: ${d.message}`);
     });
 
-    return () => { s.disconnect(); };
-  }, [socketAuthUserId, socketAuthToken, displayName, navigate]);
+    return () => {
+      s.io.off("reconnect", handleReconnect);
+      if (snapshotResyncTimerRef.current) {
+        clearTimeout(snapshotResyncTimerRef.current);
+        snapshotResyncTimerRef.current = null;
+      }
+      s.disconnect();
+    };
+  }, [socketAuthUserId, socketAuthToken, displayName, navigate, resetSnapshotSyncState, snapshotHash]);
 
   const canAct = useMemo(() => snapshot?.actorSeat === seat && snapshot?.handId, [snapshot, seat]);
   // Reset raiseTo to minRaise whenever legal actions change
@@ -725,6 +928,7 @@ export function App() {
   const isHost = useMemo(() => roomState?.ownership.ownerId === authSession?.userId, [roomState, authSession]);
   const isCoHost = useMemo(() => roomState?.ownership.coHostIds.includes(authSession?.userId ?? "") ?? false, [roomState, authSession]);
   const isHostOrCoHost = isHost || isCoHost;
+  const userRole = useUserRole(roomState, authSession?.userId, seat);
   const handInProgress = useMemo(
     () => (roomState?.status === "PLAYING") || Boolean(snapshot?.handId && (snapshot.actorSeat != null || snapshot.showdownPhase === "decision")),
     [roomState?.status, snapshot?.handId, snapshot?.actorSeat, snapshot?.showdownPhase]
@@ -893,6 +1097,7 @@ export function App() {
       const posLabel = snapshot?.positions?.[seatNum] ?? "";
       const isButton = snapshot?.buttonSeat === seatNum && !!snapshot?.handId;
       const equity = boardReveal?.equities.find((e) => e.seat === seatNum) ?? null;
+      const handHint = boardReveal?.hints?.find((h) => h.seat === seatNum)?.label;
       const isPendingLeave = snapshot?.pendingStandUp?.includes(seatNum) ?? false;
       const revealedCards = snapshot?.revealedHoles?.[seatNum] as [string, string] | undefined;
       const isMucked = snapshot?.muckedSeats?.includes(seatNum) ?? false;
@@ -903,7 +1108,7 @@ export function App() {
             isOwner={!!isOwner} isCoHost={!!isCo} timer={seatTimer}
             posLabel={posLabel} isButton={isButton} displayBB={displayBB} bigBlind={snapshot?.bigBlind ?? 3}
             lastAction={lastActionBySeat[seatNum] ?? null}
-            equity={equity} pendingLeave={isPendingLeave} revealedCards={revealedCards} revealedHandName={revealedHandName} isMucked={isMucked}
+            equity={equity} handHint={handHint} pendingLeave={isPendingLeave} revealedCards={revealedCards} revealedHandName={revealedHandName} isMucked={isMucked}
             onClickRevealed={revealedCards ? () => {
               setRevealedZoom({
                 seat: seatNum,
@@ -935,6 +1140,7 @@ export function App() {
       socket.emit("stand_up", { tableId, seat });
       socket.emit("leave_table", { tableId });
     }
+    resetSnapshotSyncState();
     setCurrentRoomCode(""); setCurrentRoomName("");
     setRoomState(null);
     setSnapshot(null);
@@ -955,6 +1161,7 @@ export function App() {
   }
 
   async function handleLogout() {
+    resetSnapshotSyncState();
     socket?.disconnect();
     setSocket(null);
     await signOut();
@@ -1341,7 +1548,15 @@ export function App() {
             {/* ── Left Options Rail (desktop only) ── */}
             <LeftOptionsRail
               drawerOpen={showOptionsDrawer}
-              onOpenDrawer={() => setShowOptionsDrawer(true)}
+              onOpenDrawer={() => {
+                setShowOptionsDrawer(true);
+                debugLog("[OPTIONS_DRAWER] opened", {
+                  tableId, userId: authSession?.userId, isHost: userRole.isHost,
+                  isSeated: userRole.isSeated, canEditGame: userRole.canEditGame,
+                  canEditPlayers: userRole.canEditPlayers,
+                  renderedItemIds: OPTIONS_ITEMS.map(i => i.id),
+                });
+              }}
               actions={[
                 ...(myPlayer ? [
                   { id: "away", icon: "💤", label: "Away", onClick: () => {
@@ -1375,24 +1590,41 @@ export function App() {
                   navigator.clipboard.writeText(currentRoomCode).then(() => showToast("Room code copied!")).catch(() => {});
                 }
               }}
-              sections={[
-                ...(isHostOrCoHost ? [{ id: "settings", icon: "⚙️", label: "Game Settings", onClick: () => { setShowSettings(!showSettings); setShowOptionsDrawer(false); } }] : []),
-                ...(isHostOrCoHost ? [{ id: "players", icon: "👥", label: "Players & Moderation", onClick: () => { setShowSettings(true); setShowOptionsDrawer(false); } }] : []),
-                { id: "gto", icon: "🎯", label: "GTO Coach", onClick: () => { setShowGtoSidebar(!showGtoSidebar); setShowOptionsDrawer(false); }, badge: advice?.recommended?.toUpperCase() },
-                { id: "stats", icon: "📊", label: "Session Stats", onClick: () => {
-                  setShowSessionStats(!showSessionStats);
-                  if (!showSessionStats) socket?.emit("request_session_stats", { tableId });
-                  setShowOptionsDrawer(false);
-                }},
-                { id: "log", icon: "📋", label: "Room Log", onClick: () => { setShowRoomLog(!showRoomLog); setShowOptionsDrawer(false); } },
-                { id: "profile", icon: "👤", label: "Profile & Preferences", onClick: () => { setView("profile"); setShowOptionsDrawer(false); } },
-                { id: "lobby", icon: "🏠", label: "Back to Lobby", onClick: () => {
-                  if (handInProgress) { if (!confirm("A hand is in progress. Leave after this hand?")) return; socket?.emit("stand_up", { tableId, seat }); }
-                  socket?.emit("request_lobby");
-                  setView("lobby");
-                  setShowOptionsDrawer(false);
-                }},
-              ]}
+              sections={OPTIONS_ITEMS.map((item): DrawerSection => {
+                const isDisabled = item.requiresHost && !userRole.isHostOrCoHost;
+                const handleAction = () => {
+                  if (item.settingsTab) {
+                    setSettingsTab(item.settingsTab);
+                    setShowSettings(true);
+                    setShowOptionsDrawer(false);
+                  } else if (item.action === "toggle_gto") {
+                    setShowGtoSidebar(!showGtoSidebar); setShowOptionsDrawer(false);
+                  } else if (item.action === "toggle_stats") {
+                    setShowSessionStats(!showSessionStats);
+                    if (!showSessionStats) socket?.emit("request_session_stats", { tableId });
+                    setShowOptionsDrawer(false);
+                  } else if (item.action === "toggle_log") {
+                    setShowRoomLog(!showRoomLog); setShowOptionsDrawer(false);
+                  } else if (item.action === "open_profile") {
+                    setView("profile"); setShowOptionsDrawer(false);
+                  } else if (item.action === "back_to_lobby") {
+                    if (handInProgress) { if (!confirm("A hand is in progress. Leave after this hand?")) return; socket?.emit("stand_up", { tableId, seat }); }
+                    socket?.emit("request_lobby");
+                    setView("lobby");
+                    setShowOptionsDrawer(false);
+                  }
+                  debugLog("[OPTIONS_DRAWER] click:", item.analyticsName, { tableId, isHost: userRole.isHost, isSeated: userRole.isSeated });
+                };
+                return {
+                  id: item.id,
+                  icon: item.icon,
+                  label: item.label,
+                  onClick: handleAction,
+                  disabled: isDisabled,
+                  disabledLabel: isDisabled ? "Host only" : undefined,
+                  badge: item.id === "gto" ? advice?.recommended?.toUpperCase() : undefined,
+                };
+              })}
             />
 
             <main className="flex-1 flex flex-col overflow-hidden">
@@ -1523,7 +1755,7 @@ export function App() {
                         Close Room
                       </button>
                     )}
-                    <button onClick={() => setShowSettings(!showSettings)} className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10">⚙</button>
+                    <button onClick={() => { setSettingsTab("game"); setShowSettings(!showSettings); }} className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10">⚙</button>
                     <button onClick={() => setShowRoomLog(!showRoomLog)} className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10">📋</button>
                     {roomState?.settings.roomFundsTracking ? (
                       <button onClick={() => { setShowSessionStats(!showSessionStats); if (!showSessionStats) socket?.emit("request_session_stats", { tableId }); }}
@@ -1750,11 +1982,13 @@ export function App() {
               )}
 
               {/* Settings / Log panels (overlay-style, max-height constrained) */}
-              {showSettings && isHostOrCoHost && roomState && (
+              {showSettings && roomState && (
                 <div className="mx-3 mt-1 max-h-[70vh] overflow-y-auto shrink-0">
                   <RoomSettingsPanel
                     roomState={roomState}
                     isHost={!!isHost}
+                    readOnly={!userRole.isHostOrCoHost}
+                    initialTab={settingsTab}
                     players={snapshot?.players ?? []}
                     authUserId={authSession?.userId ?? ""}
                     onUpdateSettings={(settings: Record<string, unknown>) => socket?.emit("update_settings", { tableId, settings })}
@@ -2333,8 +2567,15 @@ export function App() {
                   <div className="mt-2 p-3 rounded-xl border border-orange-500/30 bg-orange-500/10">
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <div>
-                        <div className="text-[10px] uppercase tracking-wider text-orange-300">All-In Runout Choice</div>
+                        <div className="text-[10px] uppercase tracking-wider text-orange-300">
+                          {allInPrompt.promptMode === "yes_no" ? "Run It Twice Vote" : "All-In Runout Choice"}
+                        </div>
                         <div className="text-xs text-slate-200">Your equity: <span className="font-mono text-orange-300 font-bold">{Math.round(allInPrompt.winRate * 100)}%</span></div>
+                        {allInPrompt.voteStep === "opponent" && allInPrompt.requestedBySeat != null && (
+                          <div className="text-[10px] text-slate-300 mt-0.5">
+                            Seat {allInPrompt.requestedBySeat} requested run it twice.
+                          </div>
+                        )}
                       </div>
                       <div className="text-[10px] text-slate-400 max-w-[60%] text-right">{allInPrompt.reason}</div>
                     </div>
@@ -2347,7 +2588,11 @@ export function App() {
                         }}
                         className="btn-action flex-1 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600"
                       >
-                        Run Once
+                        {allInPrompt.promptMode === "yes_no"
+                          ? allInPrompt.voteStep === "opponent"
+                            ? "Decline (Run Once)"
+                            : "No, Run Once"
+                          : "Run Once"}
                       </button>
                       <button
                         onClick={() => {
@@ -2356,7 +2601,11 @@ export function App() {
                         }}
                         className="btn-action flex-1 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600"
                       >
-                        Run Twice
+                        {allInPrompt.promptMode === "yes_no"
+                          ? allInPrompt.voteStep === "opponent"
+                            ? "Agree: Run Twice"
+                            : "Request Run Twice"
+                          : "Run Twice"}
                       </button>
                     </div>
                   </div>
@@ -2366,7 +2615,7 @@ export function App() {
                 {snapshot?.allInPrompt && snapshot.allInPrompt.actorSeat !== seat && seat != null && snapshot.players.some((p: TablePlayer) => p.seat === seat && p.inHand) && (
                   <div className="mt-2 px-3 py-2 rounded-xl border border-amber-500/20 bg-amber-500/5 text-center">
                     <span className="text-[10px] text-amber-300 animate-pulse">
-                      Waiting for Seat {snapshot.allInPrompt.actorSeat} to choose run count…
+                      Waiting for Seat {snapshot.allInPrompt.actorSeat} {snapshot.allInPrompt.voteStep === "opponent" ? "to respond to run-it-twice request" : "to choose run count"}…
                     </span>
                   </div>
                 )}
@@ -3532,10 +3781,12 @@ function formatHistoryTime(value: string): string {
   return new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-/* ═══════════════════ ROOM SETTINGS PANEL (Host-only) ═══════════════════ */
-function RoomSettingsPanel({ roomState, isHost, players, authUserId, onUpdateSettings, onKick, onTransfer, onSetCoHost, onClose }: {
+/* ═══════════════════ ROOM SETTINGS PANEL ═══════════════════ */
+function RoomSettingsPanel({ roomState, isHost, readOnly = false, initialTab, players, authUserId, onUpdateSettings, onKick, onTransfer, onSetCoHost, onClose }: {
   roomState: RoomFullState;
   isHost: boolean;
+  readOnly?: boolean;
+  initialTab?: string;
   players: TablePlayer[];
   authUserId: string;
   onUpdateSettings: (settings: Record<string, unknown>) => void;
@@ -3544,12 +3795,17 @@ function RoomSettingsPanel({ roomState, isHost, players, authUserId, onUpdateSet
   onSetCoHost: (userId: string, add: boolean) => void;
   onClose: () => void;
 }) {
-  const [tab, setTab] = useState<"game" | "rules" | "special" | "players" | "moderation">("game");
+  const tabMap: Record<string, "game" | "rules" | "special" | "players" | "moderation"> = {
+    game: "game", rules: "rules", special: "special", players: "players",
+    moderation: "moderation", preferences: "game", "video-audio": "game",
+  };
+  const [tab, setTab] = useState<"game" | "rules" | "special" | "players" | "moderation">(tabMap[initialTab ?? ""] ?? "game");
   const [kickReason, setKickReason] = useState("");
 
   const s = roomState.settings;
 
   function updateField(key: string, value: unknown) {
+    if (readOnly) return;
     onUpdateSettings({ [key]: value });
   }
 
@@ -3559,6 +3815,7 @@ function RoomSettingsPanel({ roomState, isHost, players, authUserId, onUpdateSet
   );
 
   function addBlindLevel() {
+    if (readOnly) return;
     const last = blindLevels[blindLevels.length - 1];
     const next = { smallBlind: last.smallBlind * 2, bigBlind: last.bigBlind * 2, ante: last.ante, durationMinutes: last.durationMinutes };
     const updated = [...blindLevels, next];
@@ -3567,6 +3824,7 @@ function RoomSettingsPanel({ roomState, isHost, players, authUserId, onUpdateSet
   }
 
   function removeBlindLevel(idx: number) {
+    if (readOnly) return;
     if (blindLevels.length <= 1) return;
     const updated = blindLevels.filter((_, i) => i !== idx);
     setBlindLevels(updated);
@@ -3574,6 +3832,7 @@ function RoomSettingsPanel({ roomState, isHost, players, authUserId, onUpdateSet
   }
 
   function updateBlindLevel(idx: number, field: string, value: number) {
+    if (readOnly) return;
     const updated = blindLevels.map((lvl, i) => i === idx ? { ...lvl, [field]: value } : lvl);
     setBlindLevels(updated);
     updateField("blindStructure", updated);
@@ -3626,7 +3885,10 @@ function RoomSettingsPanel({ roomState, isHost, players, authUserId, onUpdateSet
   return (
     <div className="cp-panel p-6 space-y-5">
       <div className="flex items-center justify-between">
-        <h3 className="text-base font-bold text-white">Room Settings <span className="text-xs text-amber-400 font-normal ml-1">(Host Only)</span></h3>
+        <h3 className="text-base font-bold text-white">Room Settings {readOnly
+          ? <span className="text-xs text-slate-500 font-normal ml-1">(View Only)</span>
+          : <span className="text-xs text-amber-400 font-normal ml-1">(Host)</span>
+        }</h3>
         <button onClick={onClose} className="cp-btn cp-btn-ghost !min-h-[36px] !min-w-[36px] !px-0 text-slate-400 hover:text-white" aria-label="Close settings">✕</button>
       </div>
 
@@ -4427,12 +4689,13 @@ function InfoCell({ label, value, highlight, cyan }: { label: string; value: str
   );
 }
 
-const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, lastAction, equity, pendingLeave, revealedCards, revealedHandName, isMucked, onClickRevealed, onClickEmpty }: {
+const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, lastAction, equity, handHint, pendingLeave, revealedCards, revealedHandName, isMucked, onClickRevealed, onClickEmpty }: {
   player?: TablePlayer; seatNum: number; isActor: boolean; isMe: boolean;
   isOwner?: boolean; isCoHost?: boolean; timer?: TimerState | null;
   posLabel?: string; isButton?: boolean; displayBB?: boolean; bigBlind?: number;
   lastAction?: { action: string; amount: number } | null;
   equity?: { winRate: number; tieRate: number } | null;
+  handHint?: string;
   pendingLeave?: boolean;
   revealedCards?: [string, string];
   revealedHandName?: string;
@@ -4514,6 +4777,11 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
         {equity && player.allIn && (
           <div className="text-[8px] font-bold text-emerald-400">
             {Math.round(equity.winRate * 100)}%
+          </div>
+        )}
+        {handHint && player.allIn && (
+          <div className="text-[7px] leading-tight text-cyan-200/90 max-w-[82px] truncate" title={handHint}>
+            {handHint}
           </div>
         )}
         {/* Timer countdown — integrated inside the seat chip */}
