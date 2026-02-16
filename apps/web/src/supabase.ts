@@ -4,6 +4,7 @@ export type AuthSession = { accessToken: string; userId: string; email?: string 
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const DEV_MODE = import.meta.env.DEV;
 
 const GUEST_SESSION_STORAGE_KEY = "cardpilot_guest_session";
 
@@ -71,21 +72,113 @@ export const supabase =
       })
     : null;
 
+let getSupabaseSessionInFlight: Promise<AuthSession | null> | null = null;
+let invalidRefreshHandled = false;
+let invalidRefreshSignOutInFlight: Promise<void> | null = null;
+
+type AuthErrorDetails = {
+  message: string;
+  description: string | null;
+  code: string | null;
+  status: number | null;
+};
+
+function extractAuthErrorDetails(err: unknown): AuthErrorDetails {
+  if (err && typeof err === "object") {
+    const e = err as {
+      message?: unknown;
+      error_description?: unknown;
+      code?: unknown;
+      status?: unknown;
+    };
+
+    const message =
+      typeof e.message === "string" && e.message.trim().length > 0
+        ? e.message
+        : String(err);
+    const description = typeof e.error_description === "string" ? e.error_description : null;
+    const code = typeof e.code === "string" ? e.code : null;
+    const status = typeof e.status === "number" ? e.status : null;
+
+    return { message, description, code, status };
+  }
+
+  const message = err instanceof Error ? err.message : String(err);
+  return { message, description: null, code: null, status: null };
+}
+
+function isInvalidRefreshTokenError(err: unknown): boolean {
+  const details = extractAuthErrorDetails(err);
+  const text = `${details.message} ${details.description ?? ""}`.toLowerCase();
+  return text.includes("invalid refresh token") || text.includes("refresh token not found");
+}
+
+async function handleInvalidRefreshToken(err: unknown): Promise<void> {
+  clearGuestSession();
+  if (!supabase) return;
+  if (invalidRefreshHandled) return;
+  if (invalidRefreshSignOutInFlight) {
+    await invalidRefreshSignOutInFlight;
+    return;
+  }
+
+  invalidRefreshSignOutInFlight = (async () => {
+    invalidRefreshHandled = true;
+    const details = extractAuthErrorDetails(err);
+    if (DEV_MODE) {
+      console.warn("[auth] Invalid refresh token detected. Clearing local auth session.", {
+        status: details.status,
+        code: details.code,
+        message: details.message,
+        error_description: details.description,
+      });
+    }
+    try {
+      await supabase.auth.signOut({ scope: "local" });
+    } catch (signOutErr) {
+      if (DEV_MODE) {
+        console.warn("[auth] Local sign-out after invalid refresh token failed", signOutErr);
+      }
+    }
+  })().finally(() => {
+    invalidRefreshSignOutInFlight = null;
+  });
+
+  await invalidRefreshSignOutInFlight;
+}
+
 async function getSupabaseSession(): Promise<AuthSession | null> {
   if (!supabase) return null;
-  const { data: existing } = await supabase.auth.getSession();
-  if (existing.session?.access_token && existing.session.user?.id) {
-    clearGuestSession();
-    const meta = existing.session.user.user_metadata;
-    const dn = (typeof meta?.display_name === "string" && meta.display_name) || (typeof meta?.name === "string" && meta.name) || null;
-    return {
-      accessToken: existing.session.access_token,
-      userId: existing.session.user.id,
-      email: existing.session.user.email,
-      displayName: dn,
-    };
-  }
-  return null;
+  if (getSupabaseSessionInFlight) return getSupabaseSessionInFlight;
+
+  getSupabaseSessionInFlight = (async () => {
+    const { data: existing, error } = await supabase.auth.getSession();
+    if (error) {
+      if (isInvalidRefreshTokenError(error)) {
+        await handleInvalidRefreshToken(error);
+        return null;
+      }
+      throw error;
+    }
+
+    if (existing.session?.access_token && existing.session.user?.id) {
+      invalidRefreshHandled = false;
+      clearGuestSession();
+      const meta = existing.session.user.user_metadata;
+      const dn = (typeof meta?.display_name === "string" && meta.display_name) || (typeof meta?.name === "string" && meta.name) || null;
+      return {
+        accessToken: existing.session.access_token,
+        userId: existing.session.user.id,
+        email: existing.session.user.email,
+        displayName: dn,
+      };
+    }
+    return null;
+  })().finally(() => {
+    getSupabaseSessionInFlight = null;
+  });
+
+  return getSupabaseSessionInFlight;
 }
 
 function isAnonDisabledError(err: unknown): boolean {
@@ -146,18 +239,30 @@ export function validatePassword(password: string): string | null {
 
 /* ── Friendly error mapping ── */
 function friendlyAuthError(err: unknown): Error {
-  const msg = err instanceof Error ? err.message : String(err);
-  if (msg.includes("rate limit") || msg.includes("429")) {
+  const details = extractAuthErrorDetails(err);
+  const msg = details.message;
+  const combined = `${details.message} ${details.description ?? ""}`.toLowerCase();
+  if (combined.includes("rate limit") || msg.includes("429") || details.status === 429) {
     return new Error("Email rate limit exceeded. Please wait a few minutes before trying again.");
   }
-  if (msg.includes("422") || msg.includes("invalid") || msg.includes("Unable to validate")) {
-    return new Error("Invalid email or password format. Check your input and try again.");
+  if (
+    combined.includes("signup is disabled") ||
+    combined.includes("signups not allowed") ||
+    combined.includes("allow new users to sign up")
+  ) {
+    return new Error("Signups are currently disabled for this project. Ask an admin to enable 'Allow new users to sign up' in Supabase Authentication settings.");
   }
-  if (msg.includes("User already registered")) {
+  if (combined.includes("user already registered") || combined.includes("already registered") || combined.includes("already exists")) {
     return new Error("This email is already registered. Try logging in instead.");
+  }
+  if (combined.includes("invalid email") || combined.includes("unable to validate email")) {
+    return new Error("Please check your email format and try again.");
   }
   if (msg.includes("Invalid login credentials")) {
     return new Error("Incorrect email or password.");
+  }
+  if (details.description) {
+    return new Error(`${msg} (${details.description})`);
   }
   return err instanceof Error ? err : new Error(msg);
 }
@@ -246,8 +351,19 @@ export async function signUpWithEmail(email: string, password: string, displayNa
     });
     if (error) throw error;
     if (!data.session || !data.user) throw new Error("Sign up succeeded but no session returned. Check your email for confirmation.");
+    invalidRefreshHandled = false;
     return { accessToken: data.session.access_token, userId: data.user.id, email: data.user.email, displayName: displayName || null };
   } catch (err) {
+    if (DEV_MODE) {
+      const details = extractAuthErrorDetails(err);
+      console.error("[auth] signUpWithEmail failed", {
+        status: details.status,
+        code: details.code,
+        message: details.message,
+        error_description: details.description,
+        rawError: err,
+      });
+    }
     throw friendlyAuthError(err);
   }
 }
@@ -266,6 +382,7 @@ export async function signInWithEmail(email: string, password: string): Promise<
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
     if (!data.session || !data.user) throw new Error("Sign in failed");
+    invalidRefreshHandled = false;
     const meta = data.user.user_metadata;
     const dn = (typeof meta?.display_name === "string" && meta.display_name) || (typeof meta?.name === "string" && meta.name) || null;
     return { accessToken: data.session.access_token, userId: data.user.id, email: data.user.email, displayName: dn };
@@ -293,5 +410,6 @@ export async function signOut(): Promise<void> {
   if (supabase) {
     await supabase.auth.signOut();
   }
+  invalidRefreshHandled = false;
   clearGuestSession();
 }

@@ -76,6 +76,20 @@ When Supabase is not configured (env vars unset), the Google button is hidden an
 If only part of the server Supabase env is set, the server now disables Supabase and falls back to guest/local mode with a warning.
 Set `SUPABASE_STRICT_ENV=true` to fail fast on partial Supabase config.
 
+### Auth Regression Checklist (Refresh + Signup)
+
+1. Clear browser storage (`localStorage` + Supabase auth keys), sign in, then reload:
+   - Expected: no repeated `400 /auth/v1/token?grant_type=refresh_token` spam.
+2. Corrupt/remove the stored refresh token, then reload:
+   - Expected: app clears local auth state, lands in logged-out UI, and does not loop refresh errors.
+3. Attempt signup with an existing email:
+   - Expected: UI shows a practical hint (e.g. already registered), and dev console logs raw Supabase error details.
+4. Open two tabs and reload both at the same time:
+   - Expected: no burst of concurrent refresh failures.
+
+If signup fails with a message indicating signups are disabled, enable:
+- **Supabase Dashboard → Authentication → Providers → Email → Allow new users to sign up**
+
 ## Deployment Notes
 - Web deploy is compatible with Netlify (`netlify.toml` is included).
 - Server deploy can run on Railway/Node hosts (`PORT` respected).

@@ -830,3 +830,164 @@
   0% { opacity: 1; transform: translateY(0); }
   100% { opacity: 0; transform: translateY(-8px); }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   Plan A — Mobile Bottom-Tab Navigation System
+   Desktop (>= 769px): unchanged top tabs
+   Mobile  (<= 768px): top bar + bottom tabs + more menu
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Mobile Top Bar ── */
+.cp-mob-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--cp-z-hud, 40);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 12px;
+  padding-top: env(safe-area-inset-top, 0px);
+  background: rgba(10, 15, 26, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+/* total height including safe area for padding calculations */
+.cp-mob-topbar-spacer {
+  height: calc(48px + env(safe-area-inset-top, 0px));
+  flex-shrink: 0;
+}
+
+/* ── Mobile Bottom Tabs ── */
+.cp-mob-bottomtabs {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--cp-z-hud, 40);
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  height: 56px;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: rgba(10, 15, 26, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.cp-mob-bottomtabs-spacer {
+  height: calc(56px + env(safe-area-inset-bottom, 0px));
+  flex-shrink: 0;
+}
+
+.cp-mob-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 2px;
+  padding: 4px 0;
+  border: none;
+  background: transparent;
+  color: var(--cp-text-muted, #64748b);
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s ease;
+  min-height: 44px;
+  position: relative;
+}
+.cp-mob-tab[data-active="true"] {
+  color: var(--cp-accent, #f59e0b);
+}
+.cp-mob-tab[data-active="true"]::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--cp-accent, #f59e0b);
+}
+.cp-mob-tab-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* ── More Menu (bottom sheet) ── */
+.cp-mob-more-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--cp-z-modal, 50);
+  background: rgba(0, 0, 0, 0.55);
+  animation: cpFadeIn 0.2s ease-out;
+}
+.cp-mob-more-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: calc(var(--cp-z-modal, 50) + 1);
+  background: var(--cp-bg-surface, #111827);
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  padding: 8px 0;
+  padding-bottom: env(safe-area-inset-bottom, 8px);
+  animation: cpSlideUp 0.25s ease-out;
+  max-height: 70vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.cp-mob-more-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 4px auto 12px;
+}
+.cp-mob-more-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  background: transparent;
+  color: var(--cp-text-secondary, #94a3b8);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s ease;
+  text-align: left;
+  min-height: 48px;
+}
+.cp-mob-more-item:active {
+  background: rgba(255, 255, 255, 0.06);
+}
+.cp-mob-more-item[data-active="true"] {
+  color: var(--cp-accent, #f59e0b);
+}
+.cp-mob-more-item-icon {
+  font-size: 20px;
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* ── Responsive visibility ── */
+@media (max-width: 768px) {
+  .cp-desktop-only { display: none !important; }
+  /* Prevent iOS zoom on inputs */
+  input, select, textarea { font-size: 16px !important; }
+}
+@media (min-width: 769px) {
+  .cp-mobile-only { display: none !important; }
+}

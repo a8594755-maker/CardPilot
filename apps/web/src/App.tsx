@@ -43,6 +43,8 @@ import { Lobby, type CreateRoomSettings } from "./components/lobby";
 import { useUserRole } from "./hooks/useUserRole";
 import { OPTIONS_ITEMS, type SettingsTab } from "./config/optionsMenuItems";
 import { useOverlayManager } from "./hooks/useOverlayManager";
+import { useIsMobile } from "./hooks/useIsMobile";
+import { MobileTopBar, MobileBottomTabs, MobileMoreMenu } from "./components/mobile-nav";
 import {
   type PreAction,
   type PreActionType,
@@ -93,6 +95,8 @@ function mapSeatToVisualIndex(seatNum: number, heroSeat: number, maxPlayers: num
 export function App() {
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   /* ── Auth state ── */
   const [authSession, setAuthSession] = useState<AuthSession | null>(null);
@@ -1415,6 +1419,12 @@ export function App() {
   }
 
   /* ═══════════════════ RENDER ═══════════════════ */
+  const PAGE_TITLES: Record<string, string> = {
+    lobby: "Lobby", table: "Table", profile: "Profile",
+    history: "History", clubs: "Clubs", cashier: "Cashier", training: "Training",
+  };
+  const mobilePageTitle = PAGE_TITLES[view] ?? "CardPilot";
+
   return (
     <div className="h-screen flex flex-col overflow-hidden">
       {/* ── Onboarding Modal ── */}
@@ -1422,8 +1432,8 @@ export function App() {
         <OnboardingModal onComplete={completeOnboarding} />
       )}
 
-      {/* ── NAV ── */}
-      <header className="flex items-center justify-between px-4 py-1.5 border-b border-white/5 shrink-0">
+      {/* ── DESKTOP NAV (hidden on mobile) ── */}
+      <header className="flex items-center justify-between px-4 py-1.5 border-b border-white/5 shrink-0 cp-desktop-only">
         <div className="flex items-center gap-3">
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-sm font-extrabold text-slate-900 shadow-lg">C</div>
           <h1 className="text-base font-bold tracking-tight text-white">Card<span className="text-amber-400">Pilot</span></h1>
@@ -1451,9 +1461,19 @@ export function App() {
         </div>
       </header>
 
-      {/* ── Toast overlay (replaces old status bar — no layout shift) ── */}
+      {/* ── MOBILE NAV: Top Bar (shown on mobile) ── */}
+      {isMobile && (
+        <MobileTopBar
+          title={mobilePageTitle}
+          isConnected={isConnected}
+          onMenuOpen={() => setShowMoreMenu(true)}
+          displayName={displayName}
+        />
+      )}
+
+      {/* ── Toast overlay ── */}
       {toast && (
-        <div className="fixed bottom-4 left-4 z-[100] pointer-events-none lg:bottom-4 lg:left-4 max-lg:bottom-auto max-lg:top-14 max-lg:left-1/2 max-lg:-translate-x-1/2"
+        <div className={`fixed z-[100] pointer-events-none ${isMobile ? "top-[calc(52px+env(safe-area-inset-top,0px))] left-1/2 -translate-x-1/2" : "bottom-4 left-4 lg:bottom-4 lg:left-4 max-lg:bottom-auto max-lg:top-14 max-lg:left-1/2 max-lg:-translate-x-1/2"}`}
           role="status" aria-live="polite">
           <div className={`toast ${toast.isError ? "toast-error" : "toast-info"} ${toastExiting ? "toast-exit" : ""}`}>
             {toast.text}
@@ -1462,7 +1482,7 @@ export function App() {
       )}
 
       {/* ── CONTENT ── */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className={`flex-1 flex flex-col overflow-hidden ${isMobile ? "pt-[calc(48px+env(safe-area-inset-top,0px))]" : ""} ${isMobile && view !== "table" ? "pb-[calc(56px+env(safe-area-inset-bottom,0px))]" : ""}`}>
       <div className="flex-1 flex overflow-hidden">
         {view === "profile" ? (
           /* ═══════ PROFILE ═══════ */
@@ -2686,6 +2706,32 @@ export function App() {
         )}
       </div>
       {view !== "table" && <AppComplianceFooter />}
+
+      {/* ── MOBILE NAV: Bottom Tabs + More Menu (shown on mobile, hidden on table view) ── */}
+      {isMobile && view !== "table" && (
+        <MobileBottomTabs
+          activeView={view}
+          onNavigate={(v) => {
+            setView(v);
+            if (v === "clubs" && socket) { socket.emit("club_list_my_clubs"); }
+            setShowMoreMenu(false);
+          }}
+          onMoreOpen={() => setShowMoreMenu((prev) => !prev)}
+          moreOpen={showMoreMenu}
+        />
+      )}
+      {isMobile && (
+        <MobileMoreMenu
+          open={showMoreMenu}
+          onClose={() => setShowMoreMenu(false)}
+          activeView={view}
+          onNavigate={(v) => {
+            setView(v);
+            if (v === "clubs" && socket) { socket.emit("club_list_my_clubs"); }
+          }}
+          onSignOut={handleLogout}
+        />
+      )}
       </div>
     </div>
   );
