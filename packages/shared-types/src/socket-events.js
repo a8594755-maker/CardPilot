@@ -16,12 +16,14 @@ export const SOCKET_EVENT_NAMES = {
         'action_submit',
         'show_hand',
         'muck_hand',
+        'submit_run_preference',
         'run_count_submit',
         'request_think_extension',
         'deposit_request',
         'approve_deposit',
         'reject_deposit',
         'request_session_stats',
+        'request_table_snapshot',
         'leave_table',
         'request_room_state',
         'update_settings',
@@ -33,7 +35,8 @@ export const SOCKET_EVENT_NAMES = {
         'request_history_rooms',
         'request_history_sessions',
         'request_history_hands',
-        'request_history_hand_detail'
+        'request_history_hand_detail',
+        'history_gto_analyze'
     ],
     serverToClient: [
         'connected',
@@ -48,8 +51,13 @@ export const SOCKET_EVENT_NAMES = {
         'street_advanced',
         'board_reveal',
         'run_twice_reveal',
+        'allin_locked',
         'all_in_prompt',
+        'run_count_confirmed',
         'run_count_chosen',
+        'reveal_hole_cards',
+        'reveal_board_card',
+        'showdown_results',
         'hand_ended',
         'hand_aborted',
         'advice_payload',
@@ -74,6 +82,9 @@ export const SOCKET_EVENT_NAMES = {
         'history_rooms',
         'history_sessions',
         'history_hands',
-        'history_hand_detail'
+        'history_hand_detail',
+        'history_gto_result',
+        'hand_audit_complete',
+        'session_leak_update'
     ],
 };

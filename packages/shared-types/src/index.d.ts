@@ -11,8 +11,6 @@ export interface LegalActions {
     maxRaise: number;
 }
 export type Position = 'SB' | 'BB' | 'UTG' | 'MP' | 'HJ' | 'CO' | 'BTN';
-export type TransactionType = 'DEPOSIT' | 'WITHDRAW';
-export type TransactionStatus = 'COMING_SOON' | 'LOCKED' | 'PENDING' | 'COMPLETED' | 'FAILED';
 export interface TablePlayer {
     seat: number;
     userId: string;
@@ -26,9 +24,9 @@ export interface TablePlayer {
 export interface AllInPrompt {
     actorSeat: number;
     winRate: number;
-    recommendedRunCount: 1 | 2;
-    defaultRunCount: 1 | 2;
-    allowedRunCounts: Array<1 | 2>;
+    recommendedRunCount: 1 | 2 | 3;
+    defaultRunCount: 1 | 2 | 3;
+    allowedRunCounts: Array<1 | 2 | 3>;
     reason: string;
 }
 export interface PlayerEquity {
@@ -56,7 +54,7 @@ export interface HandWinner {
     handName?: string;
 }
 export interface RunoutPayout {
-    run: 1 | 2;
+    run: 1 | 2 | 3;
     board: string[];
     winners: HandWinner[];
 }
@@ -80,11 +78,11 @@ export interface SettlementResult {
     rake: number;
     collectedFee: number;
     totalPaid: number;
-    runCount: 1 | 2;
+    runCount: 1 | 2 | 3;
     boards: string[][];
     potLayers: PotLayer[];
     winnersByRun: Array<{
-        run: 1 | 2;
+        run: 1 | 2 | 3;
         board: string[];
         winners: HandWinner[];
     }>;
@@ -127,8 +125,8 @@ export interface TableState {
     pendingStandUp?: number[];
     /** True when host requested pause but a hand is still active */
     pendingPause?: boolean;
-    /** Pending deposit requests visible to all players */
-    pendingDeposits?: Array<{
+    /** Pending rebuy requests visible to all players */
+    pendingRebuys?: Array<{
         orderId: string;
         seat: number;
         userId: string;
@@ -169,7 +167,7 @@ export interface ActionSubmitPayload {
     handId: string;
     action: PlayerActionType;
     amount?: number;
-    runCount?: 1 | 2;
+    runCount?: 1 | 2 | 3;
 }
 export interface LobbyRoomSummary {
     tableId: string;

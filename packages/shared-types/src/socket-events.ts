@@ -195,6 +195,7 @@ export const SOCKET_EVENT_NAMES = {
     'action_submit',
     'show_hand',
     'muck_hand',
+    'submit_run_preference',
     'run_count_submit',
     'request_think_extension',
     'deposit_request',
@@ -214,10 +215,7 @@ export const SOCKET_EVENT_NAMES = {
     'request_history_sessions',
     'request_history_hands',
     'request_history_hand_detail',
-    'history_gto_analyze',
-    'cashier_deposit_create',
-    'cashier_withdraw_create',
-    'cashier_transactions_list'
+    'history_gto_analyze'
   ] as const,
   serverToClient: [
     'connected',
@@ -232,8 +230,13 @@ export const SOCKET_EVENT_NAMES = {
     'street_advanced',
     'board_reveal',
     'run_twice_reveal',
+    'allin_locked',
     'all_in_prompt',
+    'run_count_confirmed',
     'run_count_chosen',
+    'reveal_hole_cards',
+    'reveal_board_card',
+    'showdown_results',
     'hand_ended',
     'hand_aborted',
     'advice_payload',
@@ -261,8 +264,7 @@ export const SOCKET_EVENT_NAMES = {
     'history_hand_detail',
     'history_gto_result',
     'hand_audit_complete',
-    'session_leak_update',
-    'cashier_error'
+    'session_leak_update'
   ] as const,
 };
 
@@ -289,7 +291,8 @@ export interface ClientToServerEvents {
   action_submit: (payload: { tableId: string; handId: string; action: PlayerActionType; amount?: number }) => void;
   show_hand: (payload: { tableId: string; handId: string; seat: number; scope: "table" }) => void;
   muck_hand: (payload: { tableId: string; handId: string; seat: number }) => void;
-  run_count_submit: (payload: { tableId: string; handId: string; runCount: 1 | 2 }) => void;
+  submit_run_preference: (payload: { tableId: string; handId: string; runCount: 1 | 2 | 3 }) => void;
+  run_count_submit: (payload: { tableId: string; handId: string; runCount: 1 | 2 | 3 }) => void;
   request_think_extension: (payload: { tableId: string }) => void;
   deposit_request: (payload: { tableId: string; amount: number }) => void;
   approve_deposit: (payload: { tableId: string; orderId: string }) => void;
@@ -309,9 +312,6 @@ export interface ClientToServerEvents {
   request_history_hands: (payload: { roomSessionId: string; limit?: number; beforeEndedAt?: string }) => void;
   request_history_hand_detail: (payload: { handHistoryId: string }) => void;
   history_gto_analyze: (payload: { handId: string; handRecord: HistoryGTOHandRecord; precision: 'fast' | 'deep' }) => void;
-  cashier_deposit_create: (payload: { amount?: number; currency?: string }) => void;
-  cashier_withdraw_create: (payload: { amount?: number; currency?: string }) => void;
-  cashier_transactions_list: (payload?: { limit?: number }) => void;
 }
 
 export interface ServerToClientEvents {
@@ -341,18 +341,44 @@ export interface ServerToClientEvents {
     equities?: Array<{ seat: number; winRate: number; tieRate: number }>;
     hints?: Array<{ seat: number; label: string }>;
   }) => void;
+  allin_locked: (payload: {
+    handId: string;
+    eligiblePlayers: Array<{ seat: number; name: string }>;
+    maxRunCountAllowed: 3;
+    submittedPlayerIds?: number[];
+  }) => void;
   all_in_prompt: (payload: {
     actorSeat: number;
     winRate: number;
-    recommendedRunCount: 1 | 2;
-    defaultRunCount: 1 | 2;
-    allowedRunCounts: Array<1 | 2>;
+    recommendedRunCount: 1 | 2 | 3;
+    defaultRunCount: 1 | 2 | 3;
+    allowedRunCounts: Array<1 | 2 | 3>;
     reason: string;
     promptMode?: "run_count" | "yes_no";
     voteStep?: "underdog" | "opponent";
     requestedBySeat?: number;
   }) => void;
-  run_count_chosen: (payload: { runCount: 1 | 2; seat: number }) => void;
+  run_count_confirmed: (payload: { handId: string; runCount: 1 | 2 | 3 }) => void;
+  run_count_chosen: (payload: { runCount: 1 | 2 | 3; seat: number }) => void;
+  reveal_hole_cards: (payload: { handId: string; revealed: Record<number, [string, string]> }) => void;
+  reveal_board_card: (payload: {
+    handId: string;
+    runIndex: 1 | 2 | 3;
+    card: string;
+    boardSizeNow: number;
+    board: string[];
+    street: Street;
+  }) => void;
+  showdown_results: (payload: {
+    handId: string;
+    runCount: 1 | 2 | 3;
+    perRunWinners: Array<{
+      run: 1 | 2 | 3;
+      board: string[];
+      winners: Array<{ seat: number; amount: number; handName?: string }>;
+    }>;
+    totalPayouts: Record<number, number>;
+  }) => void;
   hand_ended: (payload: {
     handId?: string;
     finalState?: TableState;
@@ -391,5 +417,4 @@ export interface ServerToClientEvents {
   history_gto_result: (payload: { handId: string; gtoAnalysis: HistoryGTOAnalysis | null; error?: string }) => void;
   hand_audit_complete: (payload: { userId: string; summary: HandAuditSummary }) => void;
   session_leak_update: (payload: { userId: string; summary: SessionLeakSummary }) => void;
-  cashier_error: (payload: { code: string; message: string }) => void;
 }

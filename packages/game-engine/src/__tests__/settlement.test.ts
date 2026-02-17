@@ -259,6 +259,51 @@ describe("Settlement: Run it twice", () => {
     assert.equal(sr!.totalPot, sr!.totalPaid, "totalPot must equal totalPaid");
     assert.equal(sr!.rake, 0);
   });
+
+  it("should deal three boards and split pots deterministically", () => {
+    const t = makeTable(50, 100);
+    const initialTotal = 20000;
+    t.startHand();
+
+    let s = t.getPublicState();
+    t.applyAction(s.actorSeat!, "all_in");
+    s = t.getPublicState();
+    if (s.actorSeat !== null) {
+      t.applyAction(s.actorSeat, "all_in");
+    }
+
+    assert.ok(t.isRunoutPending(), "runout should be pending after all-in");
+
+    t.setAllInRunCount(3);
+    t.performRunout();
+
+    const final = t.getPublicState();
+    const finalStacks = final.players.reduce((sum, p) => sum + p.stack, 0);
+    assert.equal(finalStacks, initialTotal, "conservation after run-it-thrice");
+    assert.equal(final.pot, 0, "pot must be zero");
+
+    assert.ok(final.runoutBoards, "runoutBoards must exist");
+    assert.equal(final.runoutBoards!.length, 3, "must have 3 boards");
+    assert.equal(final.runoutBoards![0].length, 5, "run 1 board must have 5 cards");
+    assert.equal(final.runoutBoards![1].length, 5, "run 2 board must have 5 cards");
+    assert.equal(final.runoutBoards![2].length, 5, "run 3 board must have 5 cards");
+
+    const sr = t.getSettlementResult();
+    assert.ok(sr, "settlement result must exist");
+    assert.equal(sr!.runCount, 3);
+    assert.equal(sr!.boards.length, 3);
+    assert.equal(sr!.winnersByRun.length, 3);
+    assert.ok(sr!.payoutsBySeatByRun, "payoutsBySeatByRun must exist for multi-run");
+    assert.equal(sr!.payoutsBySeatByRun!.length, 3);
+
+    const runTotals = sr!.payoutsBySeatByRun!.map((runMap) =>
+      (Object.values(runMap) as number[]).reduce((sum, amount) => sum + amount, 0)
+    );
+    assert.equal(runTotals[0] + runTotals[1] + runTotals[2], sr!.totalPaid, "per-run payouts must sum to totalPaid");
+    assert.ok(runTotals[0] >= runTotals[1], "run 1 total should be >= run 2 total");
+    assert.ok(runTotals[1] >= runTotals[2], "run 2 total should be >= run 3 total");
+    assert.equal(sr!.totalPot, sr!.totalPaid, "totalPot must equal totalPaid");
+  });
 });
 
 // ────────── Scenario 5: Auto next hand (no stuck state) ──────────

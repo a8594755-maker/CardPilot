@@ -638,9 +638,12 @@ function toHistorySummary(value: unknown): HistoryHandSummaryCore {
     }
   }
 
+  const runCountRaw = toFiniteNumber(src.run_count ?? src.runCount, 1);
+  const runCount: 1 | 2 | 3 = runCountRaw >= 3 ? 3 : runCountRaw === 2 ? 2 : 1;
+
   return {
     totalPot: toFiniteNumber(src.total_pot ?? src.totalPot, 0),
-    runCount: toFiniteNumber(src.run_count ?? src.runCount, 1) === 2 ? 2 : 1,
+    runCount,
     winners: toHistoryWinners(src.winners),
     myNetByUser,
     netByPosition: Object.keys(netByPosition).length > 0 ? netByPosition : undefined,

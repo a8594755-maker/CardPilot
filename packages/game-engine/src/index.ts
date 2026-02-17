@@ -84,7 +84,7 @@ export class GameTable {
   private doubleBoardPayouts: RunoutPayout[] | null = null;
   private pendingBlindLevel: { smallBlind: number; bigBlind: number; ante: number } | null = null;
   private consecutiveTimeouts = new Map<number, number>();
-  private allInRunCount: 1 | 2 = 1;
+  private allInRunCount: 1 | 2 | 3 = 1;
   private runoutPending = false;
   private collectedFee = 0;
   private settlementResult: SettlementResult | null = null;
@@ -568,8 +568,12 @@ export class GameTable {
     return { handId };
   }
 
-  setAllInRunCount(count: 1 | 2): void {
-    this.allInRunCount = count;
+  setAllInRunCount(count: 1 | 2 | 3): void {
+    if (count === 3) {
+      this.allInRunCount = 3;
+      return;
+    }
+    this.allInRunCount = count === 2 ? 2 : 1;
   }
 
   updateBlindStructure(smallBlind: number, bigBlind: number, ante: number): void {
@@ -588,7 +592,7 @@ export class GameTable {
     this.state.nextBlindLevel = next;
   }
 
-  getAllInRunCount(): 1 | 2 {
+  getAllInRunCount(): 1 | 2 | 3 {
     return this.allInRunCount;
   }
 
@@ -970,7 +974,7 @@ export class GameTable {
     this.showdown();
   }
 
-  private runOutBoardTwice(): void {
+  private runOutBoardMultiple(runCount: 2 | 3): void {
     if (this.isDoubleBoardHand) {
       this.allInRunCount = 1;
       this.runOutBoard();
@@ -997,36 +1001,44 @@ export class GameTable {
     }
 
     const baseBoard = [...this.state.board];
-    const firstBoard = this.completeRunoutBoard(baseBoard);
-    const secondBoard = this.completeRunoutBoard(baseBoard);
+    const boards: string[][] = [];
+    const solvedByRun: Array<Array<{ seat: number; hand: { descr: string; rank: number } }>> = [];
+    const payoutsByRun: Array<Map<number, { amount: number; handName?: string }>> = [];
 
-    const payoutsRun1 = new Map<number, { amount: number; handName?: string }>();
-    const payoutsRun2 = new Map<number, { amount: number; handName?: string }>();
+    for (let i = 0; i < runCount; i += 1) {
+      const board = this.completeRunoutBoard(baseBoard);
+      boards.push(board);
+      solvedByRun.push(this.solveContenders(contenders, board));
+      payoutsByRun.push(new Map<number, { amount: number; handName?: string }>());
+    }
+
     const sidePots = this.buildSidePots(contenders);
     const {
       sidePots: distributableSidePots,
       collectedFee,
     } = this.applyRakeToSidePots(sidePots);
     this.collectedFee = collectedFee;
-    const solvedFirst = this.solveContenders(contenders, firstBoard);
-    const solvedSecond = this.solveContenders(contenders, secondBoard);
 
     for (const sidePot of distributableSidePots) {
-      // Run-it-twice odd-chip policy: Run 1 gets ceil, Run 2 gets floor.
-      const run1Amount = Math.ceil(sidePot.amount / 2);
-      const run2Amount = Math.floor(sidePot.amount / 2);
-      this.distributeSolvedPot(run1Amount, solvedFirst, sidePot.eligibleSeats, payoutsRun1);
-      this.distributeSolvedPot(run2Amount, solvedSecond, sidePot.eligibleSeats, payoutsRun2);
+      // Deterministic odd-chip policy across runs: earlier runs receive +1 first.
+      const runAmounts = this.splitPotAcrossRuns(sidePot.amount, runCount);
+      for (let i = 0; i < runCount; i += 1) {
+        this.distributeSolvedPot(runAmounts[i], solvedByRun[i], sidePot.eligibleSeats, payoutsByRun[i]);
+      }
     }
 
-    const payouts = this.mergePayoutMaps(payoutsRun1, payoutsRun2);
-    // Store both boards for client visualization
-    this.state.runoutBoards = [firstBoard, secondBoard];
-    this.state.runoutPayouts = [
-      { run: 1, board: firstBoard, winners: this.mapPayoutsToWinners(payoutsRun1) },
-      { run: 2, board: secondBoard, winners: this.mapPayoutsToWinners(payoutsRun2) },
-    ];
-    this.state.board = secondBoard;
+    let payouts = new Map<number, { amount: number; handName?: string }>();
+    for (const payoutsForRun of payoutsByRun) {
+      payouts = this.mergePayoutMaps(payouts, payoutsForRun);
+    }
+
+    this.state.runoutBoards = boards.map((board) => [...board]);
+    this.state.runoutPayouts = boards.map((board, index) => ({
+      run: (index + 1) as 1 | 2 | 3,
+      board: [...board],
+      winners: this.mapPayoutsToWinners(payoutsByRun[index]),
+    }));
+    this.state.board = [...boards[boards.length - 1]];
     this.state.street = "SHOWDOWN";
     this.state.winners = this.mapPayoutsToWinners(payouts);
     this.state.pot = 0;
@@ -1044,6 +1056,16 @@ export class GameTable {
       board.push(this.drawCard());
     }
     return board;
+  }
+
+  private splitPotAcrossRuns(potAmount: number, runCount: 2 | 3): number[] {
+    const allocations = new Array<number>(runCount).fill(Math.floor(potAmount / runCount));
+    let remainder = potAmount - allocations.reduce((sum, amount) => sum + amount, 0);
+    for (let i = 0; i < allocations.length && remainder > 0; i += 1) {
+      allocations[i] += 1;
+      remainder -= 1;
+    }
+    return allocations;
   }
 
   private solveContenders(contenders: TablePlayer[], board: string[]): Array<{ seat: number; hand: { descr: string; rank: number } }> {
@@ -1154,8 +1176,8 @@ export class GameTable {
 
   /** Deal remaining community cards when all players are all-in */
   private runOutBoard(): void {
-    if (this.allInRunCount === 2 && !this.isDoubleBoardHand) {
-      this.runOutBoardTwice();
+    if (this.allInRunCount >= 2 && !this.isDoubleBoardHand) {
+      this.runOutBoardMultiple(this.allInRunCount as 2 | 3);
       return;
     }
 
@@ -1600,10 +1622,8 @@ export class GameTable {
   }
 
   private shouldPromptRunItTwice(): boolean {
-    if (this.state.board.length >= 5) return false;
-    if (this.state.street === "RIVER" || this.state.street === "SHOWDOWN") return false;
-    if (this.isDoubleBoardHand) return false;
-    return this.runItTwiceEnabled && this.isEveryoneAllIn();
+    // Run-count negotiation is orchestrated by the authoritative server.
+    return false;
   }
 
   private shouldDealBombPotHand(): boolean {
@@ -1801,15 +1821,16 @@ export class GameTable {
 
     const totalPot = Object.values(contributions).reduce((sum, amount) => sum + amount, 0);
     const collectedFee = this.collectedFee;
-    const runCount = this.state.runoutPayouts?.length === 2 ? 2 : 1;
-    const winnersByRun = runCount === 2
+    const runCountRaw = this.state.runoutPayouts?.length ?? 1;
+    const runCount: 1 | 2 | 3 = runCountRaw === 3 ? 3 : runCountRaw === 2 ? 2 : 1;
+    const winnersByRun = runCount > 1
       ? this.state.runoutPayouts!.map((run) => ({ run: run.run, board: [...run.board], winners: [...run.winners] }))
       : [{
           run: 1 as const,
           board: [...this.state.board],
           winners: [...(this.state.winners ?? [])],
         }];
-    const boards = runCount === 2
+    const boards = runCount > 1
       ? [...(this.state.runoutBoards ?? [])]
       : this.doubleBoardPayouts && this.doubleBoardPayouts.length === 2
         ? this.doubleBoardPayouts.map((run) => [...run.board])
@@ -1840,7 +1861,7 @@ export class GameTable {
       );
     }
 
-    const payoutsBySeatByRun = runCount === 2
+    const payoutsBySeatByRun = runCount > 1
       ? winnersByRun.map((run) => {
           const bySeat: Record<number, number> = {};
           for (const winner of run.winners) {
@@ -1880,7 +1901,12 @@ export class GameTable {
       potLayers: this.buildPotLayers(),
       winnersByRun,
       doubleBoardPayouts: this.doubleBoardPayouts
-        ? this.doubleBoardPayouts.map((run) => ({ run: run.run, board: [...run.board], winners: [...run.winners] }))
+        ? this.doubleBoardPayouts.map((run, index) => ({
+            // Double-board always has exactly two boards, independent of all-in multi-run count.
+            run: (index === 0 ? 1 : 2) as 1 | 2,
+            board: [...run.board],
+            winners: [...run.winners],
+          }))
         : undefined,
       payoutsBySeat,
       payoutsBySeatByRun,

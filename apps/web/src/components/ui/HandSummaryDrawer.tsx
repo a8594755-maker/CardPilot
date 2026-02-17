@@ -93,9 +93,13 @@ export const HandSummaryDrawer = memo(function HandSummaryDrawer({
             </h4>
             {settlement.winnersByRun.map((run) => (
               <div key={run.run}>
-                {settlement.runCount === 2 && (
+                {settlement.runCount > 1 && (
                   <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full inline-block mb-1 ${
-                    run.run === 1 ? "bg-cyan-500/20 text-cyan-400" : "bg-amber-500/20 text-amber-400"
+                    run.run === 1
+                      ? "bg-cyan-500/20 text-cyan-400"
+                      : run.run === 2
+                        ? "bg-amber-500/20 text-amber-400"
+                        : "bg-emerald-500/20 text-emerald-400"
                   }`}>
                     Run {run.run}
                   </span>
@@ -155,13 +159,13 @@ export const HandSummaryDrawer = memo(function HandSummaryDrawer({
           {/* Boards */}
           <div>
             <h4 className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1.5">
-              Board{settlement.runCount === 2 ? "s" : ""}
+              Board{settlement.runCount > 1 ? "s" : ""}
             </h4>
             {settlement.boards.map((board, idx) => (
               <div key={idx} className="flex items-center gap-1 mb-1">
-                {settlement.runCount === 2 && (
+                {settlement.runCount > 1 && (
                   <span className={`text-[9px] font-bold uppercase w-10 shrink-0 ${
-                    idx === 0 ? "text-cyan-400" : "text-amber-400"
+                    idx === 0 ? "text-cyan-400" : idx === 1 ? "text-amber-400" : "text-emerald-400"
                   }`}>
                     Run {idx + 1}
                   </span>

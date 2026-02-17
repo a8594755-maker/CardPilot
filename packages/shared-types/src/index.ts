@@ -22,12 +22,6 @@ export interface LegalActions {
 
 export type Position = 'SB' | 'BB' | 'UTG' | 'MP' | 'HJ' | 'CO' | 'BTN';
 
-// ===== Future Cashier Types (Coming Soon) =====
-
-export type TransactionType = 'DEPOSIT' | 'WITHDRAW';
-
-export type TransactionStatus = 'COMING_SOON' | 'LOCKED' | 'PENDING' | 'COMPLETED' | 'FAILED';
-
 // ===== Player & Table Types =====
 
 export type PlayerStatus = 'active' | 'sitting_out';
@@ -64,9 +58,9 @@ export interface TablePlayer {
 export interface AllInPrompt {
   actorSeat: number;
   winRate: number;
-  recommendedRunCount: 1 | 2;
-  defaultRunCount: 1 | 2;
-  allowedRunCounts: Array<1 | 2>;
+  recommendedRunCount: 1 | 2 | 3;
+  defaultRunCount: 1 | 2 | 3;
+  allowedRunCounts: Array<1 | 2 | 3>;
   reason: string;
   /** Prompt mode for run-it-twice negotiation (backward compatible). */
   promptMode?: "run_count" | "yes_no";
@@ -106,7 +100,7 @@ export interface HandWinner {
 }
 
 export interface RunoutPayout {
-  run: 1 | 2;
+  run: 1 | 2 | 3;
   board: string[];
   winners: HandWinner[];
 }
@@ -133,10 +127,10 @@ export interface SettlementResult {
   rake: number;
   collectedFee: number;
   totalPaid: number;
-  runCount: 1 | 2;
+  runCount: 1 | 2 | 3;
   boards: string[][];
   potLayers: PotLayer[];
-  winnersByRun: Array<{ run: 1 | 2; board: string[]; winners: HandWinner[] }>;
+  winnersByRun: Array<{ run: 1 | 2 | 3; board: string[]; winners: HandWinner[] }>;
   /** Double-board per-board payouts (non-RIT). Additive and optional. */
   doubleBoardPayouts?: Array<{ run: 1 | 2; board: string[]; winners: HandWinner[] }>;
   payoutsBySeat: Record<number, number>;
@@ -194,8 +188,8 @@ export interface TableState {
   pendingStandUp?: number[];
   /** True when host requested pause but a hand is still active */
   pendingPause?: boolean;
-  /** Pending deposit requests visible to all players */
-  pendingDeposits?: Array<{ orderId: string; seat: number; userId: string; userName: string; amount: number }>;
+  /** Pending rebuy requests visible to all players */
+  pendingRebuys?: Array<{ orderId: string; seat: number; userId: string; userName: string; amount: number }>;
   /** Showdown-revealed hole cards by seat (always public once shown). */
   shownCards: Record<number, [string, string]>;
   /** Backward-compatible alias for shownCards. */
@@ -301,7 +295,7 @@ export interface ActionSubmitPayload {
   action: PlayerActionType;
   amount?: number;
   ritVote?: 'yes' | 'no';
-  runCount?: 1 | 2;
+  runCount?: 1 | 2 | 3;
 }
 
 // ===== Lobby Types =====
@@ -333,7 +327,7 @@ export interface HistoryHandPlayerSummary {
 
 export interface HistoryHandSummaryCore {
   totalPot: number;
-  runCount: 1 | 2;
+  runCount: 1 | 2 | 3;
   winners: HandWinner[];
   myNetByUser: Record<string, number>;
   netByPosition?: Record<string, number>;
@@ -571,6 +565,7 @@ export interface RoomSettings {
   useCentsValues: boolean;                 // display chip values as cents
   rabbitHunting: boolean;                  // allow players to see undealt cards
   autoStartNextHand: boolean;              // auto start the next hand
+  minPlayersToStart: number;               // minimum seated players required to auto/start a hand
   showdownSpeed: ShowdownSpeed;            // fast(3s) / normal(6s) / slow(9s)
   dealToAwayPlayers: boolean;              // deal hands to players marked as away
   revealAllAtShowdown: boolean;            // reveal all hands when no more action possible
@@ -624,6 +619,7 @@ export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
   useCentsValues: false,
   rabbitHunting: false,
   autoStartNextHand: true,
+  minPlayersToStart: 2,
   showdownSpeed: 'normal',
   dealToAwayPlayers: false,
   revealAllAtShowdown: true,

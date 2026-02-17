@@ -3,7 +3,6 @@ import { io, type Socket } from "socket.io-client";
 import { useLocation, useNavigate } from "react-router-dom";
 import type {
   AdvicePayload,
-  AllInPrompt,
   HistoryHandDetail,
   HistoryHandSummary,
   HistoryRoomSummary,
@@ -23,16 +22,14 @@ import { preloadCardImages } from "./lib/card-images.js";
 // SettlementOverlay removed — replaced by non-blocking linger feedback + HandSummaryDrawer
 import { PokerCard } from "./components/PokerCard";
 import { getSuggestedPresets, userPresetsToButtons, type BetPreset } from "./lib/bet-sizing.js";
-import { AppComplianceFooter } from "./legal-pages";
+import { AppLegalFooter } from "./legal-pages";
 import { ClubsPage } from "./pages/clubs/ClubsPage";
 import { HistoryByRoomPage } from "./pages/HistoryByRoomPage";
-import { CashierPage } from "./pages/CashierPage";
 import type { ClubListItem, ClubDetailPayload } from "@cardpilot/shared-types";
 import { saveHand, getHands, autoTag, classifyStartingHandBucket, type HandRecord, type HandActionRecord } from "./lib/hand-history.js";
 import { ChipAnimationLayer } from "./components/ChipAnimationLayer";
 import { useChipAnimationDriver, type ChipAnimationAnchors } from "./hooks/useChipAnimationDriver";
 import { type AnimationSpeed, loadAnimationSpeed, saveAnimationSpeed } from "./lib/chip-animation.js";
-import { isRealMoneyEnabled } from "./lib/feature-flags";
 import { formatChips, formatDelta, makeChipFormatter } from "./lib/format-chips";
 import { describeHandStrength } from "@cardpilot/shared-types";
 import { TrainingDashboard } from "./pages/TrainingDashboard";
@@ -62,7 +59,6 @@ const APP_VERSION = "v0.4.1";
 const NETLIFY_COMMIT_REF = import.meta.env.VITE_NETLIFY_COMMIT_REF || "";
 const NETLIFY_DEPLOY_ID = import.meta.env.VITE_NETLIFY_DEPLOY_ID || "";
 const BUILD_TIME = new Date().toISOString().slice(0, 16).replace("T", " ");
-const REAL_MONEY_ENABLED = isRealMoneyEnabled();
 
 const debugLog = (...args: unknown[]) => {
   if (DEBUG_LOGS_ENABLED) console.log(...args);
@@ -124,7 +120,14 @@ export function App() {
   const [settlementEndsAtMs, setSettlementEndsAtMs] = useState(0);
   const [settlementRevealedHoles, setSettlementRevealedHoles] = useState<Record<number, [string, string]> | undefined>(undefined);
   const [settlementWinnerHandNames, setSettlementWinnerHandNames] = useState<Record<number, string> | undefined>(undefined);
-  const [allInPrompt, setAllInPrompt] = useState<AllInPrompt | null>(null);
+  type AllInLockState = {
+    handId: string;
+    eligiblePlayers: Array<{ seat: number; name: string }>;
+    maxRunCountAllowed: 3;
+    submittedPlayerIds: number[];
+  };
+  const [allInLock, setAllInLock] = useState<AllInLockState | null>(null);
+  const [myRunPreference, setMyRunPreference] = useState<1 | 2 | 3 | null>(null);
   type BoardRevealState = {
     street: string;
     equities: Array<{ seat: number; winRate: number; tieRate: number }>;
@@ -145,14 +148,13 @@ export function App() {
   const [currentRoomCode, setCurrentRoomCode] = useState("");
   const [currentRoomName, setCurrentRoomName] = useState("");
 
-  type AppView = "lobby" | "table" | "profile" | "history" | "clubs" | "cashier" | "training";
+  type AppView = "lobby" | "table" | "profile" | "history" | "clubs" | "training";
   const view = useMemo<AppView>(() => {
     const path = location.pathname;
     if (path === "/" || path.startsWith("/lobby")) return "lobby";
     if (path.startsWith("/table")) return "table";
     if (path.startsWith("/history")) return "history";
     if (path.startsWith("/clubs")) return "clubs";
-    if (path.startsWith("/cashier")) return "cashier";
     if (path.startsWith("/training")) return "training";
     if (path.startsWith("/profile")) return "profile";
     return "lobby";
@@ -196,7 +198,7 @@ export function App() {
       return;
     }
 
-    const supportedPaths = ["/lobby", "/history", "/profile", "/cashier", "/training"];
+    const supportedPaths = ["/lobby", "/history", "/profile", "/training"];
     if (!(location.pathname.startsWith("/clubs") || location.pathname.startsWith("/history/") || supportedPaths.includes(location.pathname))) {
       navigate("/lobby", { replace: true });
     }
@@ -221,10 +223,10 @@ export function App() {
   const [showSessionStats, setShowSessionStats] = useState(false);
   type SessionStatsEntry = { seat: number | null; userId: string; name: string; totalBuyIn: number; currentStack: number; net: number; handsPlayed: number; preservedBalance: number };
   const [sessionStatsData, setSessionStatsData] = useState<SessionStatsEntry[]>([]);
-  const [showDepositModal, setShowDepositModal] = useState(false);
-  const [depositAmount, setDepositAmount] = useState(0);
-  type DepositNotification = { orderId: string; userId: string; userName: string; seat: number; amount: number };
-  const [depositNotifications, setDepositNotifications] = useState<DepositNotification[]>([]);
+  const [showRebuyModal, setShowRebuyModal] = useState(false);
+  const [rebuyAmount, setRebuyAmount] = useState(0);
+  type RebuyNotification = { orderId: string; userId: string; userName: string; seat: number; amount: number };
+  const [rebuyRequests, setRebuyRequests] = useState<RebuyNotification[]>([]);
   const [rejoinStackInfo, setRejoinStackInfo] = useState<{ tableId: string; stack: number | null; loading: boolean } | null>(null);
   const [revealedZoom, setRevealedZoom] = useState<{ seat: number; name: string; cards: [string, string]; handName?: string } | null>(null);
   const [socketConnected, setSocketConnected] = useState(false);
@@ -544,10 +546,9 @@ export function App() {
       chipOnSnapshotRef.current(d);
       setSnapshot(d);
       if (d.winners) setWinners(d.winners);
-      if (d.allInPrompt && d.allInPrompt.actorSeat === seatRef.current) {
-        setAllInPrompt(d.allInPrompt);
-      } else {
-        setAllInPrompt(null);
+      setAllInLock((prev) => (prev && prev.handId !== d.handId ? null : prev));
+      if (!d.handId) {
+        setMyRunPreference(null);
       }
       return true;
     };
@@ -672,7 +673,8 @@ export function App() {
       setWinners(null);
       setSettlement(null);
       setSettlementCountdown(0);
-      setAllInPrompt(null);
+      setAllInLock(null);
+      setMyRunPreference(null);
       setAdvice(null);
       setDeviation(null);
       const curPath = pathnameRef.current;
@@ -688,7 +690,7 @@ export function App() {
     });
     s.on("hand_started", () => {
       setActionPending(false);
-      setAdvice(null); setDeviation(null); setWinners(null); setAllInPrompt(null); setBoardReveal(null); setHoleCards([]);
+      setAdvice(null); setDeviation(null); setWinners(null); setAllInLock(null); setMyRunPreference(null); setBoardReveal(null); setHoleCards([]);
       setSettlement(null); setSettlementCountdown(0); setSettlementEndsAtMs(0);
       setSettlementRevealedHoles(undefined); setSettlementWinnerHandNames(undefined);
       clearLinger(); setShowHandSummaryDrawer(false);
@@ -732,8 +734,76 @@ export function App() {
         return { ...prev, runoutBoards: [d.run1.board, d.run2?.board ?? []] };
       });
     });
+    s.on("allin_locked", (d: {
+      handId: string;
+      eligiblePlayers: Array<{ seat: number; name: string }>;
+      maxRunCountAllowed: 3;
+      submittedPlayerIds?: number[];
+    }) => {
+      const liveHandId = snapshotRef.current?.handId;
+      if (liveHandId && d.handId !== liveHandId) return;
+      setAllInLock({
+        handId: d.handId,
+        eligiblePlayers: d.eligiblePlayers ?? [],
+        maxRunCountAllowed: 3,
+        submittedPlayerIds: d.submittedPlayerIds ?? [],
+      });
+      if (seatRef.current != null && !(d.submittedPlayerIds ?? []).includes(seatRef.current)) {
+        setMyRunPreference(null);
+      }
+    });
+    s.on("run_count_confirmed", (d: { handId: string; runCount: 1 | 2 | 3 }) => {
+      const liveHandId = snapshotRef.current?.handId;
+      if (liveHandId && d.handId !== liveHandId) return;
+      setAllInLock(null);
+      setMyRunPreference(null);
+    });
     s.on("run_count_chosen", () => {
-      setAllInPrompt(null);
+      setAllInLock(null);
+      setMyRunPreference(null);
+    });
+    s.on("reveal_hole_cards", (d: { handId: string; revealed: Record<number, [string, string]> }) => {
+      setSnapshot((prev) => {
+        if (!prev || prev.handId !== d.handId) return prev;
+        return { ...prev, revealedHoles: { ...(prev.revealedHoles ?? {}), ...(d.revealed ?? {}) } };
+      });
+    });
+    s.on("reveal_board_card", (d: {
+      handId: string;
+      runIndex: 1 | 2 | 3;
+      card: string;
+      boardSizeNow: number;
+      board: string[];
+      street: string;
+    }) => {
+      setBoardReveal((prev: BoardRevealState | null) => ({
+        street: `R${d.runIndex} ${d.street}`,
+        equities: prev?.equities ?? [],
+        hints: prev?.hints,
+      }));
+      setSnapshot((prev) => {
+        if (!prev || prev.handId !== d.handId) return prev;
+        const currentBoards = prev.runoutBoards ? prev.runoutBoards.map((board) => [...board]) : [];
+        while (currentBoards.length < d.runIndex) currentBoards.push([]);
+        currentBoards[d.runIndex - 1] = [...d.board];
+        return {
+          ...prev,
+          board: d.runIndex === 1 ? [...d.board] : prev.board,
+          runoutBoards: currentBoards,
+        };
+      });
+    });
+    s.on("showdown_results", (d: {
+      handId: string;
+      totalPayouts: Record<number, number>;
+    }) => {
+      if (snapshotRef.current?.handId && d.handId !== snapshotRef.current.handId) return;
+      const winnersFromPayouts = Object.entries(d.totalPayouts ?? {})
+        .map(([seatNum, amount]) => ({ seat: Number(seatNum), amount: Number(amount) || 0 }))
+        .filter((winner) => winner.amount > 0);
+      if (winnersFromPayouts.length > 0) {
+        setWinners(winnersFromPayouts);
+      }
     });
     s.on("stood_up", (d: { seat: number; reason: string }) => {
       showToast(d.reason);
@@ -756,7 +826,8 @@ export function App() {
     });
     s.on("hand_ended", (d: { handId?: string; finalState?: TableState; winners?: Array<{ seat: number; amount: number; handName?: string }>; settlement?: SettlementResult }) => {
       setActionPending(false);
-      setAllInPrompt(null);
+      setAllInLock(null);
+      setMyRunPreference(null);
       setBoardReveal(null);
       setPreAction(null);
       if (d.winners) setWinners(d.winners);
@@ -903,7 +974,6 @@ export function App() {
       setActionPending(false);
       showToast(`Error: ${d.message}`);
     });
-    s.on("all_in_prompt", (d: AllInPrompt) => setAllInPrompt(d));
     s.on("session_stats", (d: { tableId: string; entries: Array<{ seat: number | null; userId: string; name: string; totalBuyIn: number; currentStack: number; net: number; handsPlayed: number; preservedBalance: number }> }) => {
       setSessionStatsData(d.entries);
     });
@@ -911,7 +981,7 @@ export function App() {
       setRejoinStackInfo({ tableId: d.tableId, stack: d.stack, loading: false });
     });
     s.on("deposit_request_pending", (d: { orderId: string; userId: string; userName: string; seat: number; amount: number }) => {
-      setDepositNotifications((prev) => [...prev, d]);
+      setRebuyRequests((prev) => [...prev, d]);
     });
 
     // Room management events
@@ -945,7 +1015,8 @@ export function App() {
       setHoleCards([]);
       setSeatRequests([]);
       setWinners(null);
-      setAllInPrompt(null);
+      setAllInLock(null);
+      setMyRunPreference(null);
       setAdvice(null);
       setDeviation(null);
       setBoardReveal(null);
@@ -964,7 +1035,8 @@ export function App() {
       setSettlementEndsAtMs(0);
       setSettlementRevealedHoles(undefined);
       setSettlementWinnerHandNames(undefined);
-      setAllInPrompt(null);
+      setAllInLock(null);
+      setMyRunPreference(null);
       setAdvice(null);
       setDeviation(null);
       setBoardReveal(null);
@@ -1026,10 +1098,6 @@ export function App() {
     s.on("club_error", (d: { code: string; message: string }) => {
       showToast(`Error: ${d.message}`);
     });
-    s.on("cashier_error", (d: { code: string; message: string }) => {
-      showToast(`Error: ${d.message}`);
-    });
-
     return () => {
       s.io.off("reconnect", handleReconnect);
       if (snapshotResyncTimerRef.current) {
@@ -1140,15 +1208,24 @@ export function App() {
     () => (roomState?.status === "PLAYING") || Boolean(snapshot?.handId && (snapshot.actorSeat != null || snapshot.showdownPhase === "decision")),
     [roomState?.status, snapshot?.handId, snapshot?.actorSeat, snapshot?.showdownPhase]
   );
+  const minPlayersToStart = useMemo(
+    () => Math.max(2, roomState?.settings.minPlayersToStart ?? 2),
+    [roomState?.settings.minPlayersToStart]
+  );
+  const eligiblePlayerCount = useMemo(
+    () => snapshot?.players.filter((p: TablePlayer) => p.status === "active" && p.stack > 0).length ?? 0,
+    [snapshot?.players]
+  );
   const dealDisabledReason = useMemo(() => {
     if (!isConnected) return "Server disconnected";
-    if (!isHost) return "Only host can deal";
+    if (!isHostOrCoHost && seat == null) return "Sit down to deal";
     if (roomState?.status === "PAUSED") return "Game is paused";
     if (handInProgress) return "Current hand is still in progress";
-    const eligibleCount = snapshot?.players.filter((p: TablePlayer) => p.stack > 0).length ?? 0;
-    if (eligibleCount < 2) return `Need at least 2 players with chips (currently ${eligibleCount})`;
+    if (eligiblePlayerCount < minPlayersToStart) {
+      return `Need at least ${minPlayersToStart} players with chips (currently ${eligiblePlayerCount})`;
+    }
     return null;
-  }, [isConnected, isHost, roomState?.status, handInProgress, snapshot?.players]);
+  }, [isConnected, isHostOrCoHost, seat, roomState?.status, handInProgress, eligiblePlayerCount, minPlayersToStart]);
   const myOwnedRoomCode = useMemo(
     () => (roomState?.ownership.ownerId === authSession?.userId ? currentRoomCode : ""),
     [roomState, authSession, currentRoomCode]
@@ -1178,16 +1255,26 @@ export function App() {
     if (roomState?.status !== "PLAYING") return false;
     return myPlayer.folded;
   }, [snapshot?.handId, snapshot?.showdownPhase, myPlayer, holeCards.length, roomState?.settings.allowShowAfterFold, roomState?.status]);
+  const allInLockForCurrentHand = allInLock && snapshot?.handId === allInLock.handId ? allInLock : null;
+  const runChoiceEligible = Boolean(
+    allInLockForCurrentHand?.eligiblePlayers.some((player) => player.seat === seat)
+    && myPlayer?.inHand
+    && !myPlayer.folded
+  );
+  const submittedRunSeats = allInLockForCurrentHand?.submittedPlayerIds ?? [];
+  const hasSubmittedRunPreference = seat != null && submittedRunSeats.includes(seat);
+  const pendingRunPlayers = (allInLockForCurrentHand?.eligiblePlayers ?? []).filter((player) => !submittedRunSeats.includes(player.seat));
+  const runChoiceWaitingCount = pendingRunPlayers.length;
   useEffect(() => {
     if (!canVoluntaryShow) setShowHandConfirm(false);
   }, [canVoluntaryShow]);
   useEffect(() => {
     if (!isHostOrCoHost) {
-      setDepositNotifications([]);
+      setRebuyRequests([]);
       return;
     }
-    const pending = snapshot?.pendingDeposits ?? [];
-    setDepositNotifications(
+    const pending = snapshot?.pendingRebuys ?? [];
+    setRebuyRequests(
       pending.map((deposit) => ({
         orderId: deposit.orderId,
         userId: deposit.userId,
@@ -1196,7 +1283,7 @@ export function App() {
         amount: deposit.amount,
       }))
     );
-  }, [isHostOrCoHost, snapshot?.pendingDeposits]);
+  }, [isHostOrCoHost, snapshot?.pendingRebuys]);
   useEffect(() => {
     if (roomState?.settings.roomFundsTracking === false) {
       setShowSessionStats(false);
@@ -1377,7 +1464,8 @@ export function App() {
     setWinners(null);
     setSettlement(null);
     setSettlementCountdown(0);
-    setAllInPrompt(null);
+    setAllInLock(null);
+    setMyRunPreference(null);
     setAdvice(null);
     setDeviation(null);
     setView("lobby");
@@ -1436,7 +1524,7 @@ export function App() {
   /* ═══════════════════ RENDER ═══════════════════ */
   const PAGE_TITLES: Record<string, string> = {
     lobby: "Lobby", table: "Table", profile: "Profile",
-    history: "History", clubs: "Clubs", cashier: "Cashier", training: "Training",
+    history: "History", clubs: "Clubs", training: "Training",
   };
   const mobilePageTitle = PAGE_TITLES[view] ?? "CardPilot";
 
@@ -1454,13 +1542,13 @@ export function App() {
           <h1 className="text-base font-bold tracking-tight text-white">Card<span className="text-amber-400">Pilot</span></h1>
         </div>
         <nav className="flex items-center gap-1 bg-white/5 rounded-xl p-1">
-          {(["lobby", "clubs", "cashier", "table", "history", "training", "profile"] as const).map((v) => (
+          {(["lobby", "clubs", "table", "history", "training", "profile"] as const).map((v) => (
             <button key={v} onClick={() => {
               setView(v);
               if (v === "clubs" && socket) { socket.emit("club_list_my_clubs"); }
             }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === v ? "bg-white/10 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
-              {v === "lobby" ? "Lobby" : v === "clubs" ? "Clubs" : v === "cashier" ? "Cashier" : v === "table" ? "Table" : v === "history" ? "History" : v === "training" ? "Training" : "Profile"}
+              {v === "lobby" ? "Lobby" : v === "clubs" ? "Clubs" : v === "table" ? "Table" : v === "history" ? "History" : v === "training" ? "Training" : "Profile"}
             </button>
           ))}
         </nav>
@@ -1553,18 +1641,6 @@ export function App() {
             }}
             showToast={showToast}
           />
-        ) : view === "cashier" ? (
-          /* ═══════ CASHIER ═══════ */
-          <>
-            <CashierPage />
-            {!REAL_MONEY_ENABLED && (
-              <div className="px-6 pb-3 text-center">
-                <p className="text-[11px] text-slate-500">
-                  Real-money actions are disabled by default and marked Coming Soon.
-                </p>
-              </div>
-            )}
-          </>
         ) : view === "lobby" ? (
           /* ═══════ LOBBY ═══════ */
           <Lobby
@@ -1737,8 +1813,13 @@ export function App() {
                   className="text-[11px] px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30 disabled:opacity-40 transition-all"
                   title={dealDisabledReason ?? "Deal a new hand"}
                 >
-                  {isHost ? "Deal" : "Deal (Host)"}
+                  Deal
                 </button>
+                {!handInProgress && eligiblePlayerCount < minPlayersToStart && (
+                  <span className="text-[10px] px-2 py-1 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                    Waiting for players ({eligiblePlayerCount}/{minPlayersToStart})
+                  </span>
+                )}
                 <button disabled={!isConnected} onClick={() => socket?.emit("stand_up", { tableId, seat })} className="text-[11px] px-2.5 py-1 rounded-lg bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 disabled:opacity-40 transition-all" title="Stand up from seat">Stand</button>
                 {isHost && roomState?.settings?.bombPotEnabled && (
                   <button
@@ -1771,8 +1852,8 @@ export function App() {
                 {roomState?.settings.rebuyAllowed && (
                   <button disabled={!isConnected} onClick={() => {
                     const bb = roomState?.settings.bigBlind ?? 100;
-                    setDepositAmount(bb * 100);
-                    setShowDepositModal(true);
+                    setRebuyAmount(bb * 100);
+                    setShowRebuyModal(true);
                   }} className="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 disabled:opacity-40 transition-all" title="Request additional chips">Rebuy</button>
                 )}
 
@@ -1979,34 +2060,34 @@ export function App() {
                 );
               })()}
 
-              {/* ── Deposit Modal ── */}
-              {showDepositModal && (() => {
+              {/* ── Rebuy Modal ── */}
+              {showRebuyModal && (() => {
                 const settings = roomState?.settings;
                 const bb = settings?.bigBlind ?? 100;
                 const myPlayer = snapshot?.players.find((p) => p.seat === seat);
-                const maxDeposit = Math.max(0, (settings?.buyInMax ?? 20000) - (myPlayer?.stack ?? 0));
-                const minDeposit = Math.max(bb, 1);
+                const maxRebuy = Math.max(0, (settings?.buyInMax ?? 20000) - (myPlayer?.stack ?? 0));
+                const minRebuy = Math.max(bb, 1);
                 return (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65" onClick={() => setShowDepositModal(false)}>
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65" onClick={() => setShowRebuyModal(false)}>
                     <div className="glass-card p-5 w-72 space-y-3" onClick={(e) => e.stopPropagation()}>
-                      <h3 className="text-sm font-bold text-emerald-400 text-center">Request Deposit</h3>
+                      <h3 className="text-sm font-bold text-emerald-400 text-center">Request Rebuy</h3>
                       <div className="text-center">
-                        <span className="text-2xl font-bold text-emerald-400 font-mono">{depositAmount.toLocaleString()}</span>
-                        <div className="text-[10px] text-slate-500 mt-0.5">{(depositAmount / bb).toFixed(0)} BB</div>
+                        <span className="text-2xl font-bold text-emerald-400 font-mono">{rebuyAmount.toLocaleString()}</span>
+                        <div className="text-[10px] text-slate-500 mt-0.5">{(rebuyAmount / bb).toFixed(0)} BB</div>
                       </div>
-                      <input type="range" min={minDeposit} max={maxDeposit} step={bb} value={Math.min(depositAmount, maxDeposit)}
-                        onChange={(e) => setDepositAmount(Number(e.target.value))}
+                      <input type="range" min={minRebuy} max={maxRebuy} step={bb} value={Math.min(rebuyAmount, maxRebuy)}
+                        onChange={(e) => setRebuyAmount(Number(e.target.value))}
                         className="w-full h-2 rounded-full appearance-none bg-white/10 accent-emerald-500 cursor-pointer" />
                       <div className="flex justify-between text-[10px] text-slate-500">
-                        <span>{minDeposit.toLocaleString()}</span>
-                        <span>{maxDeposit.toLocaleString()}</span>
+                        <span>{minRebuy.toLocaleString()}</span>
+                        <span>{maxRebuy.toLocaleString()}</span>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={() => setShowDepositModal(false)}
+                        <button onClick={() => setShowRebuyModal(false)}
                           className="flex-1 py-2 rounded-lg text-xs font-medium bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 transition-all">Cancel</button>
-                        <button disabled={depositAmount <= 0 || depositAmount > maxDeposit} onClick={() => {
-                          socket?.emit("deposit_request", { tableId, amount: depositAmount });
-                          setShowDepositModal(false);
+                        <button disabled={rebuyAmount <= 0 || rebuyAmount > maxRebuy} onClick={() => {
+                          socket?.emit("deposit_request", { tableId, amount: rebuyAmount });
+                          setShowRebuyModal(false);
                         }} className="flex-1 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-900/30 hover:from-emerald-400 hover:to-emerald-500 transition-all disabled:opacity-40">
                           {isHostOrCoHost ? "Top Up" : "Request"}
                         </button>
@@ -2017,13 +2098,13 @@ export function App() {
                 );
               })()}
 
-              {/* ── Deposit Notifications (Host Only) ── */}
-              {isHostOrCoHost && depositNotifications.length > 0 && (
+              {/* ── Rebuy Requests (Host Only) ── */}
+              {isHostOrCoHost && rebuyRequests.length > 0 && (
                 <div className="mx-3 mt-1 shrink-0">
                   <div className="glass-card p-3 border border-cyan-500/30 bg-cyan-500/5">
-                    <h3 className="text-xs font-bold text-cyan-400 mb-2">Deposit Requests ({depositNotifications.length})</h3>
+                    <h3 className="text-xs font-bold text-cyan-400 mb-2">Rebuy Requests ({rebuyRequests.length})</h3>
                     <div className="space-y-1.5">
-                      {depositNotifications.map((d) => (
+                      {rebuyRequests.map((d) => (
                         <div key={d.orderId} className="flex items-center gap-2 p-2 rounded-lg bg-black/20 border border-cyan-500/10">
                           <div className="flex-1 text-[10px]">
                             <span className="text-white font-medium">{d.userName}</span>
@@ -2032,11 +2113,11 @@ export function App() {
                           </div>
                           <button onClick={() => {
                             socket?.emit("approve_deposit", { tableId, orderId: d.orderId });
-                            setDepositNotifications((prev) => prev.filter((x) => x.orderId !== d.orderId));
+                            setRebuyRequests((prev) => prev.filter((x) => x.orderId !== d.orderId));
                           }} className="px-2 py-1 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30">✓</button>
                           <button onClick={() => {
                             socket?.emit("reject_deposit", { tableId, orderId: d.orderId });
-                            setDepositNotifications((prev) => prev.filter((x) => x.orderId !== d.orderId));
+                            setRebuyRequests((prev) => prev.filter((x) => x.orderId !== d.orderId));
                           }} className="px-2 py-1 rounded text-[10px] font-semibold bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30">✗</button>
                         </div>
                       ))}
@@ -2140,7 +2221,7 @@ export function App() {
                         <tr className="text-slate-500 border-b border-white/5">
                           <th className="text-left py-1 font-medium">Seat</th>
                           <th className="text-left py-1 font-medium">Player</th>
-                          <th className="text-right py-1 font-medium">Deposited</th>
+                          <th className="text-right py-1 font-medium">Buy-ins</th>
                           <th className="text-right py-1 font-medium">Stack</th>
                           <th className="text-right py-1 font-medium">Preserved</th>
                           <th className="text-right py-1 font-medium">Net</th>
@@ -2223,14 +2304,16 @@ export function App() {
                     onClick={lingerActive ? () => { clearLinger(); setWinners(null); setSettlement(null); } : undefined}>
                     <div className={`aspect-[16/9] rounded-[50%] ${tableTheme === "blue" ? "poker-table-surface-blue" : "poker-table-surface"}`} />
 
-                    {/* Community cards — centered on table (supports run-it-twice dual boards) */}
+                    {/* Community cards — centered on table (supports up to 3 runout boards) */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ top: "-2%" }}>
-                      {snapshot?.runoutBoards && snapshot.runoutBoards.length === 2 ? (
-                        /* Run-it-twice: two rows of community cards — sequential reveal animation */
+                      {snapshot?.runoutBoards && snapshot.runoutBoards.length > 1 ? (
+                        /* Multi-run: one row per run board, revealed sequentially by the server */
                         <div className="flex flex-col gap-1 items-center pointer-events-auto" style={{ width: "36%" }}>
                           {snapshot.runoutBoards.map((board, runIdx) => (
                             <div key={runIdx} className={`flex items-center gap-0.5 w-full transition-all duration-200 ${board.length === 0 ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}>
-                              <span className={`text-[7px] font-bold uppercase shrink-0 w-6 text-center ${runIdx === 0 ? "text-cyan-400" : "text-amber-400"}`}>
+                              <span className={`text-[7px] font-bold uppercase shrink-0 w-6 text-center ${
+                                runIdx === 0 ? "text-cyan-400" : runIdx === 1 ? "text-amber-400" : "text-emerald-400"
+                              }`}>
                                 R{runIdx + 1}
                               </span>
                               <div className="flex gap-0.5 flex-1">
@@ -2326,7 +2409,7 @@ export function App() {
                       {holeCards.map((c: string, i: number) => <PokerCard key={i} card={c} variant="table" />)}
                       {/* Hand strength display — updates by street */}
                       {snapshot?.board && snapshot.board.length >= 3 && holeCards.length >= 2 && (() => {
-                        const boardCards = snapshot.runoutBoards && snapshot.runoutBoards.length === 2
+                        const boardCards = snapshot.runoutBoards && snapshot.runoutBoards.length > 1
                           ? snapshot.runoutBoards
                           : [snapshot.board];
                         return boardCards.map((b, bIdx) => {
@@ -2352,7 +2435,7 @@ export function App() {
                       >
                         Hand Summary
                       </button>
-                      {isHost && (
+                      {seat != null && (
                         <button
                           onClick={() => { socket?.emit("start_hand", { tableId }); clearLinger(); setWinners(null); setSettlement(null); }}
                           className="text-[10px] px-3 py-1.5 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30 transition-all font-semibold"
@@ -2661,59 +2744,64 @@ export function App() {
                   </div>
                 )}
 
-                {allInPrompt && snapshot?.handId && allInPrompt.actorSeat === seat && (
+                {allInLockForCurrentHand && runChoiceEligible && (
                   <div className="mt-2 p-3 rounded-xl border border-orange-500/30 bg-orange-500/10">
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <div>
-                        <div className="text-[10px] uppercase tracking-wider text-orange-300">
-                          {allInPrompt.promptMode === "yes_no" ? "Run It Twice Vote" : "All-In Runout Choice"}
-                        </div>
-                        <div className="text-xs text-slate-200">Your equity: <span className="font-mono text-orange-300 font-bold">{Math.round(allInPrompt.winRate * 100)}%</span></div>
-                        {allInPrompt.voteStep === "opponent" && allInPrompt.requestedBySeat != null && (
+                        <div className="text-[10px] uppercase tracking-wider text-orange-300">All-In Run Count</div>
+                        <div className="text-xs text-slate-200">Choose run once, twice, or three times.</div>
+                        {hasSubmittedRunPreference && runChoiceWaitingCount > 0 && (
                           <div className="text-[10px] text-slate-300 mt-0.5">
-                            Seat {allInPrompt.requestedBySeat} requested run it twice.
+                            Submitted. Waiting for {runChoiceWaitingCount} player{runChoiceWaitingCount === 1 ? "" : "s"}.
                           </div>
                         )}
                       </div>
-                      <div className="text-[10px] text-slate-400 max-w-[60%] text-right">{allInPrompt.reason}</div>
+                      <div className="text-[10px] text-slate-400 text-right">
+                        {submittedRunSeats.length}/{allInLockForCurrentHand.eligiblePlayers.length} responded
+                      </div>
                     </div>
 
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          socket?.emit("run_count_submit", { tableId, handId: snapshot.handId, runCount: 1 });
-                          setAllInPrompt(null);
-                        }}
-                        className="btn-action flex-1 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600"
-                      >
-                        {allInPrompt.promptMode === "yes_no"
-                          ? allInPrompt.voteStep === "opponent"
-                            ? "Decline (Run Once)"
-                            : "No, Run Once"
-                          : "Run Once"}
-                      </button>
-                      <button
-                        onClick={() => {
-                          socket?.emit("run_count_submit", { tableId, handId: snapshot.handId, runCount: 2 });
-                          setAllInPrompt(null);
-                        }}
-                        className="btn-action flex-1 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600"
-                      >
-                        {allInPrompt.promptMode === "yes_no"
-                          ? allInPrompt.voteStep === "opponent"
-                            ? "Agree: Run Twice"
-                            : "Request Run Twice"
-                          : "Run Twice"}
-                      </button>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { runCount: 1 as const, label: "Once" },
+                        { runCount: 2 as const, label: "Twice" },
+                        { runCount: 3 as const, label: "Three times" },
+                      ].map((choice) => {
+                        const selected = myRunPreference === choice.runCount;
+                        const disabled = hasSubmittedRunPreference || choice.runCount > allInLockForCurrentHand.maxRunCountAllowed;
+                        return (
+                          <button
+                            key={choice.runCount}
+                            disabled={disabled}
+                            onClick={() => {
+                              if (!snapshot?.handId || !allInLockForCurrentHand) return;
+                              socket?.emit("submit_run_preference", {
+                                tableId,
+                                handId: snapshot.handId,
+                                runCount: choice.runCount,
+                              });
+                              setMyRunPreference(choice.runCount);
+                            }}
+                            className={`btn-action ${
+                              selected
+                                ? "bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 border border-amber-300/60"
+                                : "bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600"
+                            } disabled:opacity-50`}
+                          >
+                            {choice.label}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
 
-                {/* Waiting banner: shown to non-prompted players during all-in decision */}
-                {snapshot?.allInPrompt && snapshot.allInPrompt.actorSeat !== seat && seat != null && snapshot.players.some((p: TablePlayer) => p.seat === seat && p.inHand) && (
+                {allInLockForCurrentHand && !runChoiceEligible && seat != null && snapshot.players.some((p: TablePlayer) => p.seat === seat && p.inHand) && (
                   <div className="mt-2 px-3 py-2 rounded-xl border border-amber-500/20 bg-amber-500/5 text-center">
                     <span className="text-[10px] text-amber-300 animate-pulse">
-                      Waiting for Seat {snapshot.allInPrompt.actorSeat} {snapshot.allInPrompt.voteStep === "opponent" ? "to respond to run-it-twice request" : "to choose run count"}…
+                      Waiting for run-count choices from {pendingRunPlayers.length > 0
+                        ? pendingRunPlayers.map((player) => `Seat ${player.seat}`).join(", ")
+                        : "all players"}…
                     </span>
                   </div>
                 )}
@@ -2768,7 +2856,7 @@ export function App() {
           </>
         )}
       </div>
-      {view !== "table" && <AppComplianceFooter />}
+      {view !== "table" && <AppLegalFooter />}
 
       {/* ── MOBILE NAV: Bottom Tabs + More Menu (shown on mobile, hidden on table view) ── */}
       {isMobile && view !== "table" && (

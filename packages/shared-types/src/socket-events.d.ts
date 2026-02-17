@@ -129,8 +129,8 @@ export interface ErrorPayload {
     message: string;
 }
 export declare const SOCKET_EVENT_NAMES: {
-    clientToServer: readonly ["request_lobby", "create_room", "join_room_code", "join_table", "sit_down", "seat_request", "approve_seat", "reject_seat", "stand_up", "start_hand", "action_submit", "show_hand", "muck_hand", "run_count_submit", "request_think_extension", "deposit_request", "approve_deposit", "reject_deposit", "request_session_stats", "request_table_snapshot", "leave_table", "request_room_state", "update_settings", "kick_player", "transfer_ownership", "set_cohost", "game_control", "close_room", "request_history_rooms", "request_history_sessions", "request_history_hands", "request_history_hand_detail"];
-    serverToClient: readonly ["connected", "lobby_snapshot", "room_created", "room_joined", "table_snapshot", "presence", "hole_cards", "hand_started", "action_applied", "street_advanced", "board_reveal", "run_twice_reveal", "all_in_prompt", "run_count_chosen", "hand_ended", "hand_aborted", "advice_payload", "advice_deviation", "error_event", "left_table", "room_state_update", "timer_update", "room_log", "seat_request_pending", "seat_request_sent", "seat_approved", "seat_rejected", "deposit_request_pending", "session_stats", "settings_updated", "think_extension_result", "kicked", "room_closed", "stood_up", "system_message", "history_rooms", "history_sessions", "history_hands", "history_hand_detail"];
+    clientToServer: readonly ["request_lobby", "create_room", "join_room_code", "join_table", "sit_down", "seat_request", "approve_seat", "reject_seat", "stand_up", "start_hand", "action_submit", "show_hand", "muck_hand", "submit_run_preference", "run_count_submit", "request_think_extension", "deposit_request", "approve_deposit", "reject_deposit", "request_session_stats", "request_table_snapshot", "leave_table", "request_room_state", "update_settings", "kick_player", "transfer_ownership", "set_cohost", "game_control", "close_room", "request_history_rooms", "request_history_sessions", "request_history_hands", "request_history_hand_detail", "history_gto_analyze"];
+    serverToClient: readonly ["connected", "lobby_snapshot", "room_created", "room_joined", "table_snapshot", "presence", "hole_cards", "hand_started", "action_applied", "street_advanced", "board_reveal", "run_twice_reveal", "allin_locked", "all_in_prompt", "run_count_confirmed", "run_count_chosen", "reveal_hole_cards", "reveal_board_card", "showdown_results", "hand_ended", "hand_aborted", "advice_payload", "advice_deviation", "error_event", "left_table", "room_state_update", "timer_update", "room_log", "seat_request_pending", "seat_request_sent", "seat_approved", "seat_rejected", "deposit_request_pending", "session_stats", "settings_updated", "think_extension_result", "kicked", "room_closed", "stood_up", "system_message", "history_rooms", "history_sessions", "history_hands", "history_hand_detail", "history_gto_result", "hand_audit_complete", "session_leak_update"];
 };
 export interface ClientToServerEvents {
     request_lobby: () => void;
@@ -195,10 +195,15 @@ export interface ClientToServerEvents {
         handId: string;
         seat: number;
     }) => void;
+    submit_run_preference: (payload: {
+        tableId: string;
+        handId: string;
+        runCount: 1 | 2 | 3;
+    }) => void;
     run_count_submit: (payload: {
         tableId: string;
         handId: string;
-        runCount: 1 | 2;
+        runCount: 1 | 2 | 3;
     }) => void;
     request_think_extension: (payload: {
         tableId: string;
@@ -339,17 +344,56 @@ export interface ServerToClientEvents {
             board: string[];
         };
     }) => void;
+    allin_locked: (payload: {
+        handId: string;
+        eligiblePlayers: Array<{
+            seat: number;
+            name: string;
+        }>;
+        maxRunCountAllowed: 3;
+        submittedPlayerIds?: number[];
+    }) => void;
     all_in_prompt: (payload: {
         actorSeat: number;
         winRate: number;
-        recommendedRunCount: 1 | 2;
-        defaultRunCount: 1 | 2;
-        allowedRunCounts: Array<1 | 2>;
+        recommendedRunCount: 1 | 2 | 3;
+        defaultRunCount: 1 | 2 | 3;
+        allowedRunCounts: Array<1 | 2 | 3>;
         reason: string;
     }) => void;
+    run_count_confirmed: (payload: {
+        handId: string;
+        runCount: 1 | 2 | 3;
+    }) => void;
     run_count_chosen: (payload: {
-        runCount: 1 | 2;
+        runCount: 1 | 2 | 3;
         seat: number;
+    }) => void;
+    reveal_hole_cards: (payload: {
+        handId: string;
+        revealed: Record<number, [string, string]>;
+    }) => void;
+    reveal_board_card: (payload: {
+        handId: string;
+        runIndex: 1 | 2 | 3;
+        card: string;
+        boardSizeNow: number;
+        board: string[];
+        street: Street;
+    }) => void;
+    showdown_results: (payload: {
+        handId: string;
+        runCount: 1 | 2 | 3;
+        perRunWinners: Array<{
+            run: 1 | 2 | 3;
+            board: string[];
+            winners: Array<{
+                seat: number;
+                amount: number;
+                handName?: string;
+            }>;
+        }>;
+        totalPayouts: Record<number, number>;
     }) => void;
     hand_ended: (payload: {
         handId?: string;
