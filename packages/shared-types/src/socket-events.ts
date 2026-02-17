@@ -359,7 +359,7 @@ export interface ServerToClientEvents {
     requestedBySeat?: number;
   }) => void;
   run_count_confirmed: (payload: { handId: string; runCount: 1 | 2 | 3 }) => void;
-  run_count_chosen: (payload: { runCount: 1 | 2 | 3; seat: number }) => void;
+  run_count_chosen: (payload: { runCount: 1 | 2 | 3; seat: number; auto?: boolean }) => void;
   reveal_hole_cards: (payload: { handId: string; revealed: Record<number, [string, string]> }) => void;
   reveal_board_card: (payload: {
     handId: string;

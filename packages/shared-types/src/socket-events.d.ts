@@ -368,6 +368,7 @@ export interface ServerToClientEvents {
     run_count_chosen: (payload: {
         runCount: 1 | 2 | 3;
         seat: number;
+        auto?: boolean;
     }) => void;
     reveal_hole_cards: (payload: {
         handId: string;
