@@ -1,9 +1,10 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { spawn, type ChildProcessWithoutNullStreams, type ChildProcessByStdio } from "node:child_process";
 import { randomInt, randomUUID } from "node:crypto";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import { Readable } from "node:stream";
 import { io, type Socket } from "socket.io-client";
 import type {
   ClientToServerEvents,
@@ -67,7 +68,7 @@ function assertMonotonicVersions(snapshots: TableState[], label: string): void {
   }
 }
 
-async function startServer(): Promise<{ process: ChildProcessWithoutNullStreams; url: string }> {
+async function startServer(): Promise<{ process: ChildProcessByStdio<null, Readable, Readable>; url: string }> {
   const port = 45_000 + randomInt(1_000);
   const cwd = resolve(process.cwd());
   const serverEntry = resolve(cwd, "src/server.ts");
@@ -101,7 +102,7 @@ async function startServer(): Promise<{ process: ChildProcessWithoutNullStreams;
   return { process: child, url: `http://127.0.0.1:${port}` };
 }
 
-async function stopServer(child: ChildProcessWithoutNullStreams): Promise<void> {
+async function stopServer(child: ChildProcessByStdio<null, Readable, Readable>): Promise<void> {
   if (child.exitCode !== null) return;
   child.kill();
 

@@ -724,6 +724,19 @@ function toHistoryDetail(value: unknown): HistoryHandDetailCore {
     revealedHoles[seat] = [c1, c2];
   }
 
+  // Extract private hole cards by userId (for hero's folded cards)
+  const privateSource = typeof src.privateHoleCardsByUser === "object" && src.privateHoleCardsByUser !== null
+    ? src.privateHoleCardsByUser as Record<string, unknown>
+    : {};
+  const privateHoleCardsByUser: Record<string, [string, string]> = {};
+  for (const [userId, cards] of Object.entries(privateSource)) {
+    if (!userId || !Array.isArray(cards) || cards.length !== 2) continue;
+    const c1 = String(cards[0] ?? "");
+    const c2 = String(cards[1] ?? "");
+    if (!c1 || !c2) continue;
+    privateHoleCardsByUser[userId] = [c1, c2];
+  }
+
   const payoutLedger = Array.isArray(src.payoutLedger)
     ? src.payoutLedger
         .map((entry) => {
@@ -765,6 +778,7 @@ function toHistoryDetail(value: unknown): HistoryHandDetailCore {
     contributionsBySeat,
     actionTimeline,
     revealedHoles,
+    privateHoleCardsByUser: Object.keys(privateHoleCardsByUser).length > 0 ? privateHoleCardsByUser : undefined,
     payoutLedger,
   };
 }

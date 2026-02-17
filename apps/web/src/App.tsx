@@ -33,6 +33,8 @@ import { ChipAnimationLayer } from "./components/ChipAnimationLayer";
 import { useChipAnimationDriver, type ChipAnimationAnchors } from "./hooks/useChipAnimationDriver";
 import { type AnimationSpeed, loadAnimationSpeed, saveAnimationSpeed } from "./lib/chip-animation.js";
 import { isRealMoneyEnabled } from "./lib/feature-flags";
+import { formatChips, formatDelta, makeChipFormatter } from "./lib/format-chips";
+import { describeHandStrength } from "@cardpilot/shared-types";
 import { TrainingDashboard } from "./pages/TrainingDashboard";
 import { useAuditEvents } from "./hooks/useAuditEvents";
 import { BottomActionBar } from "./components/ui/BottomActionBar";
@@ -707,8 +709,9 @@ export function App() {
     s.on("run_twice_reveal", (d: {
       handId: string;
       street: string;
+      phase?: "top" | "both";
       run1: { newCards: string[]; board: string[] };
-      run2: { newCards: string[]; board: string[] };
+      run2?: { newCards: string[]; board: string[] };
       equities?: Array<{ seat: number; winRate: number; tieRate: number }>;
       hints?: Array<{ seat: number; label: string }>;
     }) => {
@@ -719,7 +722,14 @@ export function App() {
       }));
       setSnapshot((prev) => {
         if (!prev || prev.handId !== d.handId) return prev;
-        return { ...prev, runoutBoards: [d.run1.board, d.run2.board] };
+        // Sequential reveal: "top" phase shows run1 only, "both" shows both boards
+        if (d.phase === "top") {
+          // Show top board; keep previous run2 board or empty
+          const prevRun2 = prev.runoutBoards?.[1] ?? d.run2?.board ?? [];
+          return { ...prev, runoutBoards: [d.run1.board, prevRun2] };
+        }
+        // "both" or legacy (no phase): show both boards
+        return { ...prev, runoutBoards: [d.run1.board, d.run2?.board ?? []] };
       });
     });
     s.on("run_count_chosen", () => {
@@ -1305,7 +1315,12 @@ export function App() {
       const isPendingLeave = snapshot?.pendingStandUp?.includes(seatNum) ?? false;
       const revealedCards = snapshot?.revealedHoles?.[seatNum] as [string, string] | undefined;
       const isMucked = snapshot?.muckedSeats?.includes(seatNum) ?? false;
-      const revealedHandName = snapshot?.winners?.find((w) => w.seat === seatNum)?.handName;
+      // Get hand name from winners, or compute it for non-winners with revealed cards
+      const winnerHandName = snapshot?.winners?.find((w) => w.seat === seatNum)?.handName;
+      const computedHandName = revealedCards && snapshot?.board && snapshot.board.length >= 3 && !winnerHandName
+        ? describeHandStrength(revealedCards, snapshot.board)
+        : undefined;
+      const revealedHandName = winnerHandName ?? computedHandName;
       return (
         <div key={seatNum} ref={(el) => { seatRefs.current[seatNum] = el; }} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ top: pos.top, left: pos.left }}>
           <SeatChip player={player} seatNum={seatNum} isActor={isActor} isMe={isMe}
@@ -1320,7 +1335,7 @@ export function App() {
                 seat: seatNum,
                 name: player?.name ?? `Seat ${seatNum}`,
                 cards: revealedCards,
-                handName: revealedHandName,
+                handName: revealedHandName ?? undefined,
               });
             } : undefined}
             onClickEmpty={handleSeatClick} />
@@ -1725,6 +1740,20 @@ export function App() {
                   {isHost ? "Deal" : "Deal (Host)"}
                 </button>
                 <button disabled={!isConnected} onClick={() => socket?.emit("stand_up", { tableId, seat })} className="text-[11px] px-2.5 py-1 rounded-lg bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 disabled:opacity-40 transition-all" title="Stand up from seat">Stand</button>
+                {isHost && roomState?.settings?.bombPotEnabled && (
+                  <button
+                    disabled={!isConnected || !!snapshot?.bombPotQueued}
+                    onClick={() => socket?.emit("queue_bomb_pot", { tableId })}
+                    className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all disabled:opacity-40 ${
+                      snapshot?.bombPotQueued
+                        ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
+                        : "bg-orange-500/10 text-orange-400 border-orange-500/20 hover:bg-orange-500/20"
+                    }`}
+                    title={snapshot?.bombPotQueued ? "Bomb pot already queued" : "Queue next hand as bomb pot"}
+                  >
+                    💣 {snapshot?.bombPotQueued ? "Queued" : "Bomb Pot"}
+                  </button>
+                )}
                 {myPlayer && (
                   myPlayer.status === "sitting_out" ? (
                     <button disabled={!isConnected} onClick={() => socket?.emit("sit_in", { tableId })}
@@ -2035,8 +2064,7 @@ export function App() {
                               <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold">Seat #{req.seat}</span>
                             </div>
                             <div className="text-[10px] text-slate-400">
-                              Buy-in: <span className="text-amber-400 font-semibold">{req.buyIn.toLocaleString()}</span>
-                              {displayBB && <span className="text-slate-500 ml-1">({(req.buyIn / (snapshot?.bigBlind ?? 3)).toFixed(1)}bb)</span>}
+                              Buy-in: <span className="text-amber-400 font-semibold">{formatChips(req.buyIn, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</span>
                             </div>
                           </div>
                           <div className="flex gap-2">
@@ -2124,11 +2152,11 @@ export function App() {
                           <tr key={e.userId} className="border-b border-white/5 last:border-0">
                             <td className="py-1 text-slate-400">{e.seat ?? "—"}</td>
                             <td className="py-1 text-slate-200 font-medium truncate max-w-[100px]">{e.name}</td>
-                            <td className="py-1 text-right text-slate-400 font-mono">{e.totalBuyIn.toLocaleString()}</td>
-                            <td className="py-1 text-right text-slate-300 font-mono">{e.currentStack.toLocaleString()}</td>
-                            <td className="py-1 text-right text-cyan-300 font-mono">{e.preservedBalance.toLocaleString()}</td>
+                            <td className="py-1 text-right text-slate-400 font-mono">{formatChips(e.totalBuyIn, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</td>
+                            <td className="py-1 text-right text-slate-300 font-mono">{formatChips(e.currentStack, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</td>
+                            <td className="py-1 text-right text-cyan-300 font-mono">{formatChips(e.preservedBalance, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</td>
                             <td className={`py-1 text-right font-mono font-semibold ${e.net > 0 ? "text-emerald-400" : e.net < 0 ? "text-red-400" : "text-slate-400"}`}>
-                              {e.net > 0 ? "+" : ""}{e.net.toLocaleString()}
+                              {e.net > 0 ? "+" : ""}{formatChips(Math.abs(e.net), { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}
                             </td>
                             <td className="py-1 text-right text-slate-500">{e.handsPlayed}</td>
                           </tr>
@@ -2149,6 +2177,22 @@ export function App() {
                       <InfoCell label="Hand" value={snapshot?.handId ? snapshot.handId.slice(0, 8) : "—"} />
                       <div className="w-px h-5 bg-white/10" />
                       <InfoCell label="Street" value={snapshot?.street ?? "—"} highlight />
+                      {snapshot?.isBombPotHand && (
+                        <>
+                          <div className="w-px h-5 bg-white/10" />
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/25 font-bold uppercase tracking-wider">
+                            <span className="cp-bomb-icon">💣</span> Bomb Pot
+                          </span>
+                        </>
+                      )}
+                      {snapshot?.bombPotQueued && !snapshot?.isBombPotHand && (
+                        <>
+                          <div className="w-px h-5 bg-white/10" />
+                          <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-orange-500/10 text-orange-300/70 border border-orange-500/15 font-medium">
+                            💣 Next hand
+                          </span>
+                        </>
+                      )}
                       <div className="w-px h-5 bg-white/10" />
                       <InfoCell label="Action" value={
                         snapshot?.actorSeat != null
@@ -2163,13 +2207,13 @@ export function App() {
                         return me && me.streetCommitted > 0 ? (
                           <div className="text-right">
                             <span className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Your Bet</span>
-                            <div className="text-base font-bold text-sky-400 cp-num">{displayBB ? `${(me.streetCommitted / (snapshot.bigBlind ?? 3)).toFixed(1)} BB` : me.streetCommitted.toLocaleString()}</div>
+                            <div className="text-base font-bold text-sky-400 cp-num">{formatChips(me.streetCommitted, { mode: displayBB ? "bb" : "chips", bbSize: snapshot.bigBlind ?? 3 })}</div>
                           </div>
                         ) : null;
                       })()}
                       <div className="text-right">
                         <span className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">Total Pot</span>
-                        <div className="text-xl font-extrabold text-amber-400 cp-num">{displayBB ? `${(potNumbers.totalPot / (snapshot?.bigBlind ?? 3)).toFixed(1)} BB` : potNumbers.totalPot.toLocaleString()}</div>
+                        <div className="text-xl font-extrabold text-amber-400 cp-num">{formatChips(potNumbers.totalPot, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</div>
                       </div>
                     </div>
                   </div>
@@ -2182,16 +2226,18 @@ export function App() {
                     {/* Community cards — centered on table (supports run-it-twice dual boards) */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ top: "-2%" }}>
                       {snapshot?.runoutBoards && snapshot.runoutBoards.length === 2 ? (
-                        /* Run-it-twice: two rows of community cards */
+                        /* Run-it-twice: two rows of community cards — sequential reveal animation */
                         <div className="flex flex-col gap-1 items-center pointer-events-auto" style={{ width: "36%" }}>
                           {snapshot.runoutBoards.map((board, runIdx) => (
-                            <div key={runIdx} className="flex items-center gap-0.5 w-full">
+                            <div key={runIdx} className={`flex items-center gap-0.5 w-full transition-all duration-200 ${board.length === 0 ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}>
                               <span className={`text-[7px] font-bold uppercase shrink-0 w-6 text-center ${runIdx === 0 ? "text-cyan-400" : "text-amber-400"}`}>
                                 R{runIdx + 1}
                               </span>
                               <div className="flex gap-0.5 flex-1">
                                 {board.map((c: string, i: number) => (
-                                  <PokerCard key={i} card={c} variant="seat" />
+                                  <div key={i} className="cp-rit-card-reveal" style={{ animationDelay: `${i * 75}ms` }}>
+                                    <PokerCard card={c} variant="seat" />
+                                  </div>
                                 ))}
                               </div>
                             </div>
@@ -2209,11 +2255,12 @@ export function App() {
                       )}
                     </div>
 
-                    {boardReveal ? (
-                      <div className="absolute left-1/2 -translate-x-1/2 top-[33%] z-20 px-2 py-0.5 rounded-full bg-black/65 border border-cyan-500/30 text-[10px] font-semibold text-cyan-300 tracking-wide">
+                    {/* Runout street badge — positioned above pot summary */}
+                    {boardReveal && (
+                      <div className="absolute left-1/2 -translate-x-1/2 top-[26%] z-20 px-2 py-0.5 rounded-full bg-black/65 border border-cyan-500/30 text-[10px] font-semibold text-cyan-300 tracking-wide">
                         Runout: {boardReveal.street}
                       </div>
-                    ) : null}
+                    )}
 
                     {/* Pot chip on table (always render anchor ref for animations) */}
                     <div ref={potRef} className="absolute top-[32%] left-1/2 -translate-x-1/2 pointer-events-none">
@@ -2221,11 +2268,11 @@ export function App() {
                         <div className="bg-black/70 px-2 py-1 rounded-xl text-[10px] shadow-lg border border-amber-500/20 min-w-[92px]">
                           <div className="flex items-center justify-between gap-2 text-slate-300 uppercase tracking-wider text-[8px]">
                             <span>Pushed</span>
-                            <span className="text-emerald-300 font-bold cp-num normal-case">{displayBB ? `${(potNumbers.pushedPot / (snapshot?.bigBlind ?? 3)).toFixed(1)}bb` : potNumbers.pushedPot.toLocaleString()}</span>
+                            <span className="text-emerald-300 font-bold cp-num normal-case">{formatChips(potNumbers.pushedPot, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</span>
                           </div>
                           <div className="mt-0.5 flex items-center justify-between gap-2 text-slate-300 uppercase tracking-wider text-[8px]">
                             <span>Total</span>
-                            <span className="text-amber-400 font-bold cp-num normal-case">{displayBB ? `${(potNumbers.totalPot / (snapshot?.bigBlind ?? 3)).toFixed(1)}bb` : potNumbers.totalPot.toLocaleString()}</span>
+                            <span className="text-amber-400 font-bold cp-num normal-case">{formatChips(potNumbers.totalPot, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</span>
                           </div>
                         </div>
                       )}
@@ -2277,6 +2324,22 @@ export function App() {
                         </span>
                       )}
                       {holeCards.map((c: string, i: number) => <PokerCard key={i} card={c} variant="table" />)}
+                      {/* Hand strength display — updates by street */}
+                      {snapshot?.board && snapshot.board.length >= 3 && holeCards.length >= 2 && (() => {
+                        const boardCards = snapshot.runoutBoards && snapshot.runoutBoards.length === 2
+                          ? snapshot.runoutBoards
+                          : [snapshot.board];
+                        return boardCards.map((b, bIdx) => {
+                          const desc = describeHandStrength(holeCards, b);
+                          if (!desc || desc === "No board yet" || desc === "No hand data") return null;
+                          return (
+                            <span key={bIdx} className="text-[9px] px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 ml-1" title={boardCards.length > 1 ? `Board ${bIdx + 1}` : "Made hand"}>
+                              {boardCards.length > 1 && <span className="text-[7px] text-cyan-400/60 mr-1">R{bIdx + 1}</span>}
+                              {desc}
+                            </span>
+                          );
+                        });
+                      })()}
                     </div>
                   )}
 
@@ -3903,7 +3966,7 @@ function RoomSettingsPanel({ roomState, isHost, readOnly = false, initialTab, pl
 }) {
   const tabMap: Record<string, "game" | "rules" | "special" | "players" | "moderation"> = {
     game: "game", rules: "rules", special: "special", players: "players",
-    moderation: "moderation", preferences: "game", "video-audio": "game",
+    moderation: "moderation", preferences: "game",
   };
   const [tab, setTab] = useState<"game" | "rules" | "special" | "players" | "moderation">(tabMap[initialTab ?? ""] ?? "game");
   const [kickReason, setKickReason] = useState("");
@@ -4167,11 +4230,38 @@ function RoomSettingsPanel({ roomState, isHost, readOnly = false, initialTab, pl
           <SectionTitle>Bomb Pot</SectionTitle>
           <YesNo label="Bomb Pot enabled?" value={s.bombPotEnabled} onChange={(v) => updateField("bombPotEnabled", v)}
             hint="All players put in a set amount pre-flop with no betting" />
-          {s.bombPotEnabled && (
-            <SettingRow label="Frequency (every N hands, 0=manual)">
-              <input type="number" value={s.bombPotFrequency} onChange={(e) => updateField("bombPotFrequency", Number(e.target.value))} className="input-field text-xs !py-1.5 w-20" min={0} max={100} />
+          {s.bombPotEnabled && (<>
+            <TriToggle label="Trigger mode"
+              value={s.bombPotTriggerMode ?? "frequency"}
+              options={[
+                { value: "frequency", label: "Every N" },
+                { value: "probability", label: "% Chance" },
+                { value: "manual", label: "Manual" },
+              ]}
+              onChange={(v) => updateField("bombPotTriggerMode", v)}
+            />
+            {(s.bombPotTriggerMode ?? "frequency") === "frequency" && (
+              <SettingRow label="Every N hands">
+                <input type="number" value={s.bombPotFrequency} onChange={(e) => updateField("bombPotFrequency", Number(e.target.value))} className="input-field text-xs !py-1.5 w-20" min={1} max={100} />
+              </SettingRow>
+            )}
+            {(s.bombPotTriggerMode ?? "frequency") === "probability" && (
+              <SettingRow label="Probability (%)">
+                <input type="number" value={s.bombPotProbability ?? 0} onChange={(e) => updateField("bombPotProbability", Number(e.target.value))} className="input-field text-xs !py-1.5 w-20" min={0} max={100} />
+              </SettingRow>
+            )}
+            <TriToggle label="Ante mode"
+              value={s.bombPotAnteMode ?? "bb_multiplier"}
+              options={[
+                { value: "bb_multiplier", label: "× BB" },
+                { value: "fixed", label: "Fixed" },
+              ]}
+              onChange={(v) => updateField("bombPotAnteMode", v)}
+            />
+            <SettingRow label={s.bombPotAnteMode === "fixed" ? "Ante (chips)" : "Ante (× BB)"}>
+              <input type="number" value={s.bombPotAnteValue ?? 1} onChange={(e) => updateField("bombPotAnteValue", Number(e.target.value))} className="input-field text-xs !py-1.5 w-20" min={1} max={100} />
             </SettingRow>
-          )}
+          </>)}
 
           <SectionTitle>Double Board</SectionTitle>
           <TriToggle label="Double Board?"
@@ -4812,7 +4902,7 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
   netDelta?: number;
 }) {
   const bb = bigBlind || 1;
-  const fmt = (v: number) => displayBB ? `${(v / bb).toFixed(1)}bb` : v.toLocaleString();
+  const fmt = (v: number) => formatChips(v, { mode: displayBB ? "bb" : "chips", bbSize: bb });
 
   if (!player) {
     return (
@@ -4847,11 +4937,7 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
     actionBadgeClass = "text-sky-300 border-sky-500/30";
   }
 
-  const fmtDelta = (v: number) => {
-    const abs = Math.abs(v);
-    const str = displayBB ? `${(abs / bb).toFixed(1)} BB` : abs.toLocaleString();
-    return v > 0 ? `+${str}` : v < 0 ? `−${str}` : `${str}`;
-  };
+  const fmtDelta = (v: number) => formatDelta(v, { mode: displayBB ? "bb" : "chips", bbSize: bb });
 
   return (
     <div className="relative flex flex-col items-center gap-0.5">
@@ -4893,13 +4979,14 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
         {player.status === "sitting_out" && <div className="text-[8px] text-orange-400 font-bold uppercase">Sit Out</div>}
         {player.folded && player.status !== "sitting_out" && <div className="text-[8px] text-red-400 font-semibold">FOLDED</div>}
         {player.allIn && !equity && <div className="text-[8px] text-orange-400 font-bold">ALL-IN</div>}
-        {/* Show equity when available */}
-        {equity && player.allIn && (
+        {/* Show equity when available - visible for all active players during all-in situations */}
+        {equity && !player.folded && (
           <div className="text-[8px] font-bold text-emerald-400">
+            {player.allIn && <span className="text-orange-400 mr-0.5">ALL-IN</span>}
             {Math.round(equity.winRate * 100)}%
           </div>
         )}
-        {handHint && player.allIn && (
+        {handHint && !player.folded && (
           <div className="text-[7px] leading-tight text-cyan-200/90 max-w-[82px] truncate" title={handHint}>
             {handHint}
           </div>

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import type { AdvicePayload, LegalActions } from "@cardpilot/shared-types";
 import { getSuggestedPresets, userPresetsToButtons } from "../../lib/bet-sizing.js";
 import type { DerivedActionBar, DerivedPreActionUI, PreAction, PreActionType } from "../../lib/action-derivations";
+import { formatChips } from "../../lib/format-chips";
 
 /* ═══════════════════════════════════════════════════════════════
    BottomActionBar
@@ -88,8 +89,7 @@ export function BottomActionBar({
   }, [min, max, legal?.canRaise, raiseTo, setRaiseTo]);
 
   const fmtChips = useCallback((v: number) => {
-    if (displayBB) return `${(v / bb).toFixed(1)} BB`;
-    return v.toLocaleString();
+    return formatChips(v, { mode: displayBB ? "bb" : "chips", bbSize: bb });
   }, [displayBB, bb]);
 
   // Suggested presets
@@ -462,8 +462,8 @@ function RaiseSheet({
         <div className="flex items-center justify-between">
           <div>
             <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Your bet</div>
-            <div className="text-2xl font-extrabold text-white cp-num">{raiseTo.toLocaleString()}</div>
-            <div className="text-xs text-slate-400 cp-num">{(raiseTo / bb).toFixed(1)} BB</div>
+            <div className="text-2xl font-extrabold text-white cp-num">{fmtChips(raiseTo)}</div>
+            {!displayBB && <div className="text-xs text-slate-400 cp-num">{(raiseTo / bb).toFixed(1)} BB</div>}
           </div>
           <div className="text-right">
             <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Pot</div>
@@ -568,8 +568,8 @@ function RaiseSheet({
             className="cp-btn cp-btn-raise flex-[2]"
           >
             <span className="flex flex-col items-center leading-tight">
-              <span className="text-sm font-bold">RAISE TO {raiseTo.toLocaleString()}</span>
-              <span className="text-[10px] opacity-80 cp-num">{(raiseTo / bb).toFixed(1)} BB</span>
+              <span className="text-sm font-bold">RAISE TO {fmtChips(raiseTo)}</span>
+              {!displayBB && <span className="text-[10px] opacity-80 cp-num">{(raiseTo / bb).toFixed(1)} BB</span>}
             </span>
           </button>
         </div>

@@ -27,16 +27,11 @@ describe("OPTIONS_ITEMS config", () => {
     expect(prefs!.requiresHost).toBe(false);
   });
 
-  it("contains Video / Audio entry", () => {
-    const va = OPTIONS_ITEMS.find((item) => item.id === "video-audio");
-    expect(va).toBeDefined();
-    expect(va!.requiresHost).toBe(false);
-  });
 
   it("contains all expected entries in correct order", () => {
     const ids = OPTIONS_ITEMS.map((item) => item.id);
     expect(ids).toEqual([
-      "settings", "players", "preferences", "video-audio",
+      "settings", "players", "preferences",
       "gto", "stats", "log", "profile", "lobby",
     ]);
   });
@@ -48,8 +43,8 @@ describe("OPTIONS_ITEMS config", () => {
     expect(players.requiresHost).toBe(true);
   });
 
-  it("Preferences, Video/Audio, GTO Coach, Stats, Log, Profile, Lobby do NOT require host", () => {
-    const nonHostIds = ["preferences", "video-audio", "gto", "stats", "log", "profile", "lobby"];
+  it("Preferences, GTO Coach, Stats, Log, Profile, Lobby do NOT require host", () => {
+    const nonHostIds = ["preferences", "gto", "stats", "log", "profile", "lobby"];
     for (const id of nonHostIds) {
       const item = OPTIONS_ITEMS.find((i) => i.id === id);
       expect(item).toBeDefined();
@@ -70,12 +65,11 @@ describe("OPTIONS_ITEMS config", () => {
 
   it("settings items have settingsTab defined", () => {
     const settingsItems = OPTIONS_ITEMS.filter((item) => item.settingsTab);
-    expect(settingsItems.length).toBeGreaterThanOrEqual(4);
+    expect(settingsItems.length).toBeGreaterThanOrEqual(3);
     const tabs = settingsItems.map((item) => item.settingsTab);
     expect(tabs).toContain("game");
     expect(tabs).toContain("players");
     expect(tabs).toContain("preferences");
-    expect(tabs).toContain("video-audio");
   });
 });
 

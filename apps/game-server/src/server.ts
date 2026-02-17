@@ -276,7 +276,11 @@ function applyRoomVariantSettings(tableId: string, table: GameTable): void {
     runItTwiceEnabled: settings.runItTwice,
     gameType: settings.gameType,
     bombPotEnabled: settings.bombPotEnabled,
+    bombPotTriggerMode: settings.bombPotTriggerMode,
     bombPotFrequency: settings.bombPotFrequency,
+    bombPotProbability: settings.bombPotProbability,
+    bombPotAnteMode: settings.bombPotAnteMode,
+    bombPotAnteValue: settings.bombPotAnteValue,
     doubleBoardMode: settings.doubleBoardMode,
   });
 }
@@ -913,7 +917,7 @@ function buildAllInPrompt(table: GameTable, actorSeat: number): AllInPrompt {
         heroHand: [heroCards[0], heroCards[1]] as [Card, Card],
         villainHands,
         board: [...state.board] as Card[],
-        simulations: 1200,
+        simulations: 5000,
       });
       winRate = equity.equity;
     }
@@ -974,7 +978,7 @@ function calculateAllPlayersEquity(table: GameTable, board: Card[]): Array<{ sea
       heroHand: [heroCards[0], heroCards[1]] as [Card, Card],
       villainHands,
       board,
-      simulations: 1200,
+      simulations: 5000,
     });
 
     equities.push({
@@ -1157,12 +1161,16 @@ async function handleSequentialRunout(tableId: string, table: GameTable): Promis
         // Determine how many cards were already on the board before runout
         const alreadyDealt = boardBefore.length; // 0, 3, or 4
 
-        // Build reveal steps: each step shows new cards for that street on both boards
+        // Build reveal steps: each step shows new cards for that street
         type RevealStep = { street: string; boardSlice: [number, number]; delay: number };
         const steps: RevealStep[] = [];
         if (alreadyDealt < 3) steps.push({ street: "FLOP", boardSlice: [0, 3], delay: 1500 });
         if (alreadyDealt < 4) steps.push({ street: "TURN", boardSlice: [3, 4], delay: 2000 });
         if (alreadyDealt < 5) steps.push({ street: "RIVER", boardSlice: [4, 5], delay: 2000 });
+
+        // Sequential reveal: top board first, then bottom board per street
+        // Phase "top" reveals run1 only; phase "both" reveals run2 alongside run1
+        const BOARD_STAGGER_MS = 400; // delay between top and bottom panel reveal
 
         for (let i = 0; i < steps.length; i++) {
           const step = steps[i];
@@ -1171,9 +1179,27 @@ async function handleSequentialRunout(tableId: string, table: GameTable): Promis
           const partialBoard1 = boards[0].slice(0, step.boardSlice[1]);
           const partialBoard2 = boards[1].slice(0, step.boardSlice[1]);
 
+          // 1) Reveal top board (run1) first — run2 carries previous state
+          const prevPartialBoard2 = step.boardSlice[0] > 0
+            ? boards[1].slice(0, step.boardSlice[0])
+            : undefined;
           io.to(tableId).emit("run_twice_reveal", {
             handId: finalState.handId,
             street: step.street,
+            phase: "top",
+            run1: { newCards: newCardsR1, board: partialBoard1 },
+            run2: prevPartialBoard2
+              ? { newCards: [], board: prevPartialBoard2 }
+              : undefined,
+          });
+
+          // 2) Short stagger, then reveal bottom board (run2)
+          await new Promise((resolve) => setTimeout(resolve, BOARD_STAGGER_MS));
+
+          io.to(tableId).emit("run_twice_reveal", {
+            handId: finalState.handId,
+            street: step.street,
+            phase: "both",
             run1: { newCards: newCardsR1, board: partialBoard1 },
             run2: { newCards: newCardsR2, board: partialBoard2 },
           });
@@ -2064,6 +2090,16 @@ async function persistHandHistory(
     },
   };
 
+  // Collect private hole cards for each player (even if folded)
+  const privateHoleCardsByUser: Record<string, [string, string]> = {};
+  for (const player of state.players) {
+    if (!player.userId) continue;
+    const cards = table?.getPrivateHoleCards(player.seat) ?? table?.getHoleCards(player.seat);
+    if (cards && cards.length >= 2) {
+      privateHoleCardsByUser[player.userId] = [cards[0], cards[1]];
+    }
+  }
+
   const detail: HistoryHandDetailCore = {
     board: [...state.board],
     runoutBoards: state.runoutBoards ? state.runoutBoards.map((board) => [...board]) : [],
@@ -2078,6 +2114,7 @@ async function persistHandHistory(
     contributionsBySeat: { ...settlement.contributions },
     actionTimeline: [...state.actions],
     revealedHoles: { ...(state.revealedHoles ?? {}) },
+    privateHoleCardsByUser: Object.keys(privateHoleCardsByUser).length > 0 ? privateHoleCardsByUser : undefined,
     payoutLedger: settlement.ledger.map((entry) => ({ ...entry })),
   };
 
@@ -3348,6 +3385,22 @@ io.on("connection", (socket) => {
         socket.emit("system_message", { message: `Some settings will apply next hand: ${Object.keys(result.deferred).join(", ")}` });
       }
       void emitLobbySnapshot();
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
+  // Bomb Pot manual trigger: host queues next hand as bomb pot
+  socket.on("queue_bomb_pot", (payload: { tableId: string }) => {
+    try {
+      if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId)) {
+        throw new Error("Only the host or co-host can trigger bomb pots");
+      }
+      const table = tables.get(payload.tableId);
+      if (!table) throw new Error("Table not found");
+      table.queueBombPotNextHand();
+      io.to(payload.tableId).emit("bomb_pot_queued", { queuedBy: identity.displayName });
+      broadcastSnapshot(payload.tableId);
     } catch (error) {
       socket.emit("error_event", { message: (error as Error).message });
     }

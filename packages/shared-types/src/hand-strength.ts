@@ -22,6 +22,26 @@ const RANK_VALUE: Record<Rank, number> = {
   A: 14,
 };
 
+const RANK_NAME: Record<number, string> = {
+  2: "Twos", 3: "Threes", 4: "Fours", 5: "Fives", 6: "Sixes",
+  7: "Sevens", 8: "Eights", 9: "Nines", 10: "Tens",
+  11: "Jacks", 12: "Queens", 13: "Kings", 14: "Aces",
+};
+
+const RANK_NAME_SINGULAR: Record<number, string> = {
+  2: "Two", 3: "Three", 4: "Four", 5: "Five", 6: "Six",
+  7: "Seven", 8: "Eight", 9: "Nine", 10: "Ten",
+  11: "Jack", 12: "Queen", 13: "King", 14: "Ace",
+};
+
+function rankLabel(v: number): string {
+  return RANK_NAME[v] ?? String(v);
+}
+
+function rankSingular(v: number): string {
+  return RANK_NAME_SINGULAR[v] ?? String(v);
+}
+
 function parseCard(card: string): ParsedCard | null {
   if (typeof card !== "string" || card.length < 2) return null;
   const rank = card[0] as Rank;
@@ -38,28 +58,33 @@ function countByRank(cards: ParsedCard[]): Map<number, number> {
   return counts;
 }
 
-function hasStraight(values: number[]): boolean {
-  const uniq = [...new Set(values)].sort((a, b) => a - b);
-  const withWheel = uniq.includes(14) ? [1, ...uniq] : uniq;
-  let streak = 1;
-  for (let i = 1; i < withWheel.length; i += 1) {
-    const diff = withWheel[i] - withWheel[i - 1];
-    if (diff === 1) {
-      streak += 1;
-      if (streak >= 5) return true;
-    } else if (diff > 1) {
-      streak = 1;
-    }
+function findStraightHigh(values: number[]): number | null {
+  const uniq = [...new Set(values)].sort((a, b) => b - a);
+  const withWheel = uniq.includes(14) ? [...uniq, 1] : uniq;
+  const sorted = [...new Set(withWheel)].sort((a, b) => b - a);
+  for (let i = 0; i <= sorted.length - 5; i++) {
+    if (sorted[i] - sorted[i + 4] === 4) return sorted[i];
   }
-  return false;
+  return null;
 }
 
-function hasFlush(cards: ParsedCard[]): boolean {
+function hasStraight(values: number[]): boolean {
+  return findStraightHigh(values) !== null;
+}
+
+function getFlushSuit(cards: ParsedCard[]): string | null {
   const suitCounts = new Map<string, number>();
   for (const card of cards) {
     suitCounts.set(card.suit, (suitCounts.get(card.suit) ?? 0) + 1);
   }
-  return [...suitCounts.values()].some((count) => count >= 5);
+  for (const [suit, count] of suitCounts) {
+    if (count >= 5) return suit;
+  }
+  return null;
+}
+
+function hasFlush(cards: ParsedCard[]): boolean {
+  return getFlushSuit(cards) !== null;
 }
 
 function hasFlushDraw(cards: ParsedCard[]): boolean {
@@ -97,6 +122,11 @@ function straightDrawLabel(values: number[]): "Open-ended straight draw" | "Guts
   return null;
 }
 
+/**
+ * Returns a human-readable description of the best made hand.
+ * Examples: "Set of Queens", "Two Pair (Aces and Tens)", "Flush (King-high)",
+ *           "Straight (Ten-high)", "Full House (Jacks full of Fours)"
+ */
 export function describeHandStrength(holeCards: string[], boardCards: string[]): string {
   const parsedHole = holeCards.map(parseCard).filter((c): c is ParsedCard => c !== null);
   const parsedBoard = boardCards.map(parseCard).filter((c): c is ParsedCard => c !== null);
@@ -106,25 +136,92 @@ export function describeHandStrength(holeCards: string[], boardCards: string[]):
   if (parsedBoard.length === 0) return "No board yet";
 
   const values = all.map((c) => c.value);
-  const rankCounts = [...countByRank(all).values()].sort((a, b) => b - a);
+  const rankCountMap = countByRank(all);
+  const rankCounts = [...rankCountMap.values()].sort((a, b) => b - a);
+  const holeValues = new Set(parsedHole.map((c) => c.value));
 
-  const flush = hasFlush(all);
-  const straight = hasStraight(values);
+  const flushSuit = getFlushSuit(all);
+  const straightHigh = findStraightHigh(values);
 
-  if (flush && straight) return "Straight flush draw complete";
-  if (rankCounts[0] === 4) return "Quads";
-  if (rankCounts[0] === 3 && rankCounts[1] === 2) return "Full house";
-  if (flush) return "Flush";
-  if (straight) return "Straight";
-  if (rankCounts[0] === 3) return "Trips";
-  if (rankCounts[0] === 2 && rankCounts[1] === 2) return "Two pair";
+  // Straight Flush / Royal Flush
+  if (flushSuit && straightHigh !== null) {
+    const flushCards = all.filter((c) => c.suit === flushSuit);
+    const sfHigh = findStraightHigh(flushCards.map((c) => c.value));
+    if (sfHigh !== null) {
+      if (sfHigh === 14) return "Royal Flush";
+      return `Straight Flush (${rankSingular(sfHigh)}-high)`;
+    }
+  }
 
-  const boardTop = Math.max(...parsedBoard.map((c) => c.value));
-  const holePairsTop = parsedHole.some((card) => card.value === boardTop)
-    && rankCounts[0] === 2;
-  if (holePairsTop) return "Top pair";
-  if (rankCounts[0] === 2) return "Pair";
+  // Four of a Kind
+  if (rankCounts[0] === 4) {
+    const quadRank = [...rankCountMap.entries()].find(([, c]) => c === 4)![0];
+    return `Four of a Kind (${rankLabel(quadRank)})`;
+  }
 
+  // Full House
+  if (rankCounts[0] === 3 && rankCounts[1] >= 2) {
+    const trips = [...rankCountMap.entries()]
+      .filter(([, c]) => c >= 3)
+      .sort((a, b) => b[0] - a[0]);
+    const pairs = [...rankCountMap.entries()]
+      .filter(([r, c]) => c >= 2 && r !== trips[0][0])
+      .sort((a, b) => b[0] - a[0]);
+    if (trips.length > 0 && pairs.length > 0) {
+      return `Full House (${rankLabel(trips[0][0])} full of ${rankLabel(pairs[0][0])})`;
+    }
+    return "Full House";
+  }
+
+  // Flush
+  if (flushSuit) {
+    const flushCards = all.filter((c) => c.suit === flushSuit)
+      .sort((a, b) => b.value - a.value);
+    return `Flush (${rankSingular(flushCards[0].value)}-high)`;
+  }
+
+  // Straight
+  if (straightHigh !== null) {
+    return `Straight (${rankSingular(straightHigh)}-high)`;
+  }
+
+  // Three of a Kind / Set / Trips
+  if (rankCounts[0] === 3) {
+    const tripRank = [...rankCountMap.entries()].find(([, c]) => c === 3)![0];
+    const isSet = parsedHole.filter((c) => c.value === tripRank).length === 2;
+    if (isSet) return `Set of ${rankLabel(tripRank)}`;
+    return `Trips (${rankLabel(tripRank)})`;
+  }
+
+  // Two Pair
+  if (rankCounts[0] === 2 && rankCounts[1] === 2) {
+    const pairs = [...rankCountMap.entries()]
+      .filter(([, c]) => c === 2)
+      .sort((a, b) => b[0] - a[0]);
+    if (pairs.length >= 2) {
+      return `Two Pair (${rankLabel(pairs[0][0])} and ${rankLabel(pairs[1][0])})`;
+    }
+    return "Two Pair";
+  }
+
+  // One Pair
+  if (rankCounts[0] === 2) {
+    const pairRank = [...rankCountMap.entries()].find(([, c]) => c === 2)![0];
+    const boardValues = parsedBoard.map((c) => c.value);
+    const boardTop = Math.max(...boardValues);
+    const isPocket = parsedHole.filter((c) => c.value === pairRank).length === 2;
+    if (isPocket) return `Pocket ${rankLabel(pairRank)}`;
+    if (pairRank === boardTop && holeValues.has(pairRank)) return `Top Pair (${rankLabel(pairRank)})`;
+    // Check if it's middle or bottom pair
+    const boardRanks = [...new Set(boardValues)].sort((a, b) => b - a);
+    if (holeValues.has(pairRank) && boardRanks.length >= 2 && pairRank === boardRanks[boardRanks.length - 1]) {
+      return `Bottom Pair (${rankLabel(pairRank)})`;
+    }
+    if (holeValues.has(pairRank)) return `Pair of ${rankLabel(pairRank)}`;
+    return `Pair of ${rankLabel(pairRank)}`;
+  }
+
+  // Draws (only pre-river)
   if (parsedBoard.length < 5) {
     const drawParts: string[] = [];
     if (hasFlushDraw(all)) drawParts.push("Flush draw");
@@ -133,5 +230,7 @@ export function describeHandStrength(holeCards: string[], boardCards: string[]):
     if (drawParts.length > 0) return drawParts.join(" + ");
   }
 
-  return "High card";
+  // High card
+  const highCard = Math.max(...parsedHole.map((c) => c.value));
+  return `High Card (${rankSingular(highCard)})`;
 }

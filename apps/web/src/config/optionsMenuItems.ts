@@ -8,7 +8,7 @@
  * - Items are NEVER removed based on hand phase or table state.
  */
 
-export type SettingsTab = "game" | "players" | "preferences" | "video-audio";
+export type SettingsTab = "game" | "players" | "preferences";
 
 export interface OptionsMenuItem {
   id: string;
@@ -57,15 +57,6 @@ export const OPTIONS_ITEMS: readonly OptionsMenuItem[] = [
     requiresSeated: false,
     settingsTab: "preferences",
     analyticsName: "drawer_preferences",
-  },
-  {
-    id: "video-audio",
-    label: "Video / Audio",
-    icon: "🎙️",
-    requiresHost: false,
-    requiresSeated: false,
-    settingsTab: "video-audio",
-    analyticsName: "drawer_video_audio",
   },
   {
     id: "gto",

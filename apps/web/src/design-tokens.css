@@ -982,6 +982,35 @@
   flex-shrink: 0;
 }
 
+/* ── RIT Card Reveal Animation ── */
+@keyframes cp-rit-card-in {
+  from { opacity: 0; transform: scale(0.85) translateY(4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.cp-rit-card-reveal {
+  animation: cp-rit-card-in 200ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cp-rit-card-reveal {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+/* ── Bomb Pot Animation ── */
+@keyframes cp-bomb-pulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.cp-bomb-icon {
+  display: inline-block;
+  animation: cp-bomb-pulse 350ms ease-in-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cp-bomb-icon { animation: none; }
+}
+
 /* ── Responsive visibility ── */
 @media (max-width: 768px) {
   .cp-desktop-only { display: none !important; }

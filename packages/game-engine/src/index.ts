@@ -4,6 +4,8 @@ import pokersolver from "pokersolver";
 import type {
   HandAction,
   HandActionType,
+  BombPotAnteMode,
+  BombPotTriggerMode,
   DoubleBoardMode,
   GameType,
   LegalActions,
@@ -67,7 +69,12 @@ export class GameTable {
   private runItTwiceEnabled: boolean;
   private gameType: GameType;
   private bombPotEnabled: boolean;
+  private bombPotTriggerMode: BombPotTriggerMode;
   private bombPotFrequency: number;
+  private bombPotProbability: number;
+  private bombPotAnteMode: BombPotAnteMode;
+  private bombPotAnteValue: number;
+  private forceNextBombPot = false;
   private doubleBoardMode: DoubleBoardMode;
   private handCounter = 0;
   private holeCardCount = 2;
@@ -92,7 +99,11 @@ export class GameTable {
     runItTwiceEnabled?: boolean;
     gameType?: GameType;
     bombPotEnabled?: boolean;
+    bombPotTriggerMode?: BombPotTriggerMode;
     bombPotFrequency?: number;
+    bombPotProbability?: number;
+    bombPotAnteMode?: BombPotAnteMode;
+    bombPotAnteValue?: number;
     doubleBoardMode?: DoubleBoardMode;
     rakeEnabled?: boolean;
     rakePercent?: number;
@@ -102,7 +113,11 @@ export class GameTable {
     this.runItTwiceEnabled = params.runItTwiceEnabled ?? false;
     this.gameType = params.gameType ?? "texas";
     this.bombPotEnabled = params.bombPotEnabled ?? false;
+    this.bombPotTriggerMode = params.bombPotTriggerMode ?? "frequency";
     this.bombPotFrequency = Math.max(0, Math.floor(params.bombPotFrequency ?? 0));
+    this.bombPotProbability = Math.max(0, Math.min(100, params.bombPotProbability ?? 0));
+    this.bombPotAnteMode = params.bombPotAnteMode ?? "bb_multiplier";
+    this.bombPotAnteValue = Math.max(0, params.bombPotAnteValue ?? 1);
     this.doubleBoardMode = params.doubleBoardMode ?? "off";
     this.holeCardCount = this.gameType === "omaha" ? 4 : 2;
     this.rakePercent = Math.max(0, params.rakePercent ?? 0);
@@ -215,7 +230,11 @@ export class GameTable {
     runItTwiceEnabled?: boolean;
     gameType?: GameType;
     bombPotEnabled?: boolean;
+    bombPotTriggerMode?: BombPotTriggerMode;
     bombPotFrequency?: number;
+    bombPotProbability?: number;
+    bombPotAnteMode?: BombPotAnteMode;
+    bombPotAnteValue?: number;
     doubleBoardMode?: DoubleBoardMode;
   }): void {
     if (this.isHandActive()) {
@@ -231,8 +250,20 @@ export class GameTable {
     if (typeof params.bombPotEnabled === "boolean") {
       this.bombPotEnabled = params.bombPotEnabled;
     }
+    if (params.bombPotTriggerMode) {
+      this.bombPotTriggerMode = params.bombPotTriggerMode;
+    }
     if (typeof params.bombPotFrequency === "number") {
       this.bombPotFrequency = Math.max(0, Math.floor(params.bombPotFrequency));
+    }
+    if (typeof params.bombPotProbability === "number") {
+      this.bombPotProbability = Math.max(0, Math.min(100, params.bombPotProbability));
+    }
+    if (params.bombPotAnteMode) {
+      this.bombPotAnteMode = params.bombPotAnteMode;
+    }
+    if (typeof params.bombPotAnteValue === "number") {
+      this.bombPotAnteValue = Math.max(0, params.bombPotAnteValue);
     }
     if (params.doubleBoardMode) {
       this.doubleBoardMode = params.doubleBoardMode;
@@ -241,6 +272,17 @@ export class GameTable {
     this.holeCardCount = this.gameType === "omaha" ? 4 : 2;
     this.state.gameType = this.gameType;
     this.state.holeCardCount = this.holeCardCount;
+  }
+
+  /** Host action: queue the next hand as a bomb pot. Resets after the next hand starts. */
+  queueBombPotNextHand(): void {
+    this.forceNextBombPot = true;
+    this.state.bombPotQueued = true;
+  }
+
+  /** Check if a bomb pot is queued for next hand. */
+  isBombPotQueued(): boolean {
+    return this.forceNextBombPot;
   }
 
   getHoleCards(seat: number): [string, string] | null {
@@ -457,7 +499,7 @@ export class GameTable {
     }
 
     if (this.isBombPotHand) {
-      const bombAnte = Math.max(this.state.bigBlind, this.ante > 0 ? this.ante : this.state.bigBlind);
+      const bombAnte = this.computeBombPotAnte();
       for (const seat of sortedSeats) {
         const commit = this.commitForcedChips(seat, bombAnte, { countToStreet: false });
         if (commit > 0) {
@@ -786,6 +828,20 @@ export class GameTable {
   clearHand(): void {
     this.handInProgress = false;
     this.state.handId = null;
+    // Clear board and pot to prevent stale display when table is empty or user rejoins
+    this.state.board = [];
+    this.state.pot = 0;
+    this.state.runoutBoards = undefined;
+    this.state.street = "PREFLOP";
+    this.state.winners = undefined;
+    this.state.revealedHoles = {};
+    this.state.actorSeat = null;
+    this.state.currentBet = 0;
+    // Clear bomb pot flags
+    this.isBombPotHand = false;
+    this.state.isBombPotHand = false;
+    this.isDoubleBoardHand = false;
+    this.state.isDoubleBoardHand = false;
   }
 
   /** Toggle a player's sit-out status. Cannot toggle during an active hand for that player. */
@@ -1551,9 +1607,48 @@ export class GameTable {
   }
 
   private shouldDealBombPotHand(): boolean {
+    // Manual trigger always takes priority
+    if (this.forceNextBombPot) {
+      this.forceNextBombPot = false;
+      this.state.bombPotQueued = false;
+      return true;
+    }
     if (!this.bombPotEnabled) return false;
-    if (this.bombPotFrequency <= 0) return false;
-    return this.handCounter % this.bombPotFrequency === 0;
+
+    switch (this.bombPotTriggerMode) {
+      case "frequency":
+        if (this.bombPotFrequency <= 0) return false;
+        return this.handCounter % this.bombPotFrequency === 0;
+      case "probability":
+        if (this.bombPotProbability <= 0) return false;
+        if (this.bombPotProbability >= 100) return true;
+        // Deterministic seeded RNG: hash(tableId + handCounter)
+        return this.seededBombPotRoll() < this.bombPotProbability;
+      case "manual":
+        return false; // Only triggered via forceNextBombPot (handled above)
+      default:
+        return false;
+    }
+  }
+
+  /** Deterministic seeded roll for bomb pot probability (0-99). */
+  private seededBombPotRoll(): number {
+    const seed = `${this.state.tableId}:${this.handCounter}`;
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      hash = ((hash << 5) - hash + seed.charCodeAt(i)) & 0x7fffffff;
+    }
+    return Math.abs(hash) % 100;
+  }
+
+  /** Compute the bomb pot ante amount based on settings. */
+  private computeBombPotAnte(): number {
+    if (this.bombPotAnteMode === "fixed") {
+      return Math.max(1, this.bombPotAnteValue);
+    }
+    // bb_multiplier mode
+    const multiplier = Math.max(1, this.bombPotAnteValue);
+    return this.state.bigBlind * multiplier;
   }
 
   private dealStreetBoardCards(street: "FLOP" | "TURN" | "RIVER"): string[] {

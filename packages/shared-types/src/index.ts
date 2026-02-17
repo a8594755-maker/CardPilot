@@ -178,6 +178,8 @@ export interface TableState {
   holeCardCount?: number;
   /** True when the current hand is a bomb pot hand. */
   isBombPotHand?: boolean;
+  /** True when the host has queued the next hand as a bomb pot (ephemeral). */
+  bombPotQueued?: boolean;
   /** True when the current hand uses double-board resolution. */
   isDoubleBoardHand?: boolean;
   winners?: HandWinner[];
@@ -354,6 +356,8 @@ export interface HistoryHandDetailCore {
   contributionsBySeat: Record<number, number>;
   actionTimeline: HandAction[];
   revealedHoles: Record<number, [string, string]>;
+  /** Private hole cards by userId - only returned to the owning user */
+  privateHoleCardsByUser?: Record<string, [string, string]>;
   payoutLedger: SeatLedgerEntry[];
 }
 
@@ -518,6 +522,10 @@ export const SHOWDOWN_SPEED_DELAYS_MS: Record<ShowdownSpeed, number> = {
 
 export type DoubleBoardMode = 'always' | 'bomb_pot' | 'off';
 
+export type BombPotTriggerMode = 'frequency' | 'manual' | 'probability';
+
+export type BombPotAnteMode = 'bb_multiplier' | 'fixed';
+
 export type DeckStyle = 'four_color' | 'two_color';
 
 export type ValuesDisplayStyle = 'big_blinds' | 'formatted' | 'none';
@@ -572,7 +580,11 @@ export interface RoomSettings {
   allowShowAfterFold: boolean;             // allow folded players to voluntarily show before hand end
   allowShowCalledHandRequest: boolean;     // optional casino-style called hand request
   bombPotEnabled: boolean;                 // enable bomb pots
-  bombPotFrequency: number;                // every N hands (0 = manual only)
+  bombPotTriggerMode: BombPotTriggerMode;  // frequency / manual / probability
+  bombPotFrequency: number;                // every N hands (used when mode=frequency)
+  bombPotProbability: number;              // 0-100 chance each hand (used when mode=probability)
+  bombPotAnteMode: BombPotAnteMode;        // bb_multiplier or fixed chips
+  bombPotAnteValue: number;                // multiplier of BB or fixed chip amount
   doubleBoardMode: DoubleBoardMode;        // always / only on bomb pot / off
   sevenTwoBounty: number;                  // 0 = off, >0 = bounty amount per player
   simulatedFeeEnabled: boolean;            // simulated rake/fee
@@ -621,7 +633,11 @@ export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
   allowShowAfterFold: false,
   allowShowCalledHandRequest: false,
   bombPotEnabled: false,
+  bombPotTriggerMode: 'frequency',
   bombPotFrequency: 0,
+  bombPotProbability: 0,
+  bombPotAnteMode: 'bb_multiplier',
+  bombPotAnteValue: 1,
   doubleBoardMode: 'off',
   sevenTwoBounty: 0,
   simulatedFeeEnabled: false,
