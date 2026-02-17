@@ -353,8 +353,9 @@ export class ClubManager {
       return null;
     }
 
-    // Only owner can promote to admin; can't change owner role
-    if (newRole === "owner") return null;
+    // Club roles are strict: owner/admin/member.
+    if (newRole !== "admin" && newRole !== "member") return null;
+    // Only owner can promote to admin.
     if (newRole === "admin" && actor.role !== "owner") return null;
 
     const target = state.members.get(targetUserId);
@@ -665,6 +666,57 @@ export class ClubManager {
     }
   }
 
+  updateTable(
+    clubId: string,
+    actorUserId: string,
+    clubTableId: string,
+    updates: { name?: string; rulesetId?: string | null },
+  ): { table: ClubTable; rules: ClubRules } | null {
+    const state = this.clubs.get(clubId);
+    if (!state) return null;
+
+    const actor = state.members.get(actorUserId);
+    if (!actor || actor.status !== "active" || !canPerformClubAction(actor.role, "manage_tables")) {
+      return null;
+    }
+
+    const table = state.tables.get(clubTableId);
+    if (!table || table.status === "closed") return null;
+
+    const persistedUpdates: { name?: string; rulesetId?: string | null } = {};
+
+    if (updates.name !== undefined) {
+      table.name = updates.name.trim().slice(0, 80) || table.name;
+      persistedUpdates.name = table.name;
+    }
+
+    if (updates.rulesetId !== undefined) {
+      if (updates.rulesetId !== null && !state.rulesets.get(updates.rulesetId)) {
+        return null;
+      }
+      table.rulesetId = updates.rulesetId;
+      persistedUpdates.rulesetId = updates.rulesetId;
+    }
+
+    const rules = this.getRulesForTable(clubId, clubTableId);
+    if (!rules) return null;
+
+    if (Object.keys(persistedUpdates).length > 0) {
+      this.repo?.updateTable(clubTableId, persistedUpdates).catch((e) => logWarn({
+        event: "club_repo.persist.updateTable",
+        message: (e as Error).message,
+      }));
+    }
+
+    this.writeAudit(clubId, actorUserId, "table_updated", {
+      tableId: clubTableId,
+      name: table.name,
+      rulesetId: table.rulesetId,
+    });
+
+    return { table: { ...table }, rules };
+  }
+
   closeTable(clubId: string, actorUserId: string, clubTableId: string): boolean {
     const state = this.clubs.get(clubId);
     if (!state) return false;
@@ -675,8 +727,7 @@ export class ClubManager {
     const table = state.tables.get(clubTableId);
     if (!table || table.status === "closed") return false;
 
-    // Host can close their own tables, admin+ can close any
-    if (table.createdBy !== actorUserId && !canPerformClubAction(actor.role, "manage_tables")) {
+    if (!canPerformClubAction(actor.role, "close_table")) {
       return false;
     }
 
@@ -696,7 +747,7 @@ export class ClubManager {
     const table = state.tables.get(clubTableId);
     if (!table || table.status !== "open") return false;
 
-    if (table.createdBy !== actorUserId && !canPerformClubAction(actor.role, "manage_tables")) {
+    if (!canPerformClubAction(actor.role, "pause_table")) {
       return false;
     }
 
@@ -719,6 +770,12 @@ export class ClubManager {
 
   getMember(clubId: string, userId: string): ClubMember | null {
     return this.clubs.get(clubId)?.members.get(userId) ?? null;
+  }
+
+  setMemberBalance(clubId: string, userId: string, balance: number): void {
+    const member = this.clubs.get(clubId)?.members.get(userId);
+    if (!member) return;
+    member.balance = Math.max(0, Math.trunc(balance));
   }
 
   isActiveMember(clubId: string, userId: string): boolean {
@@ -745,6 +802,40 @@ export class ClubManager {
       }
     }
     return null;
+  }
+
+  getClubTable(clubId: string, clubTableId: string): ClubTable | null {
+    const state = this.clubs.get(clubId);
+    if (!state) return null;
+    return state.tables.get(clubTableId) ?? null;
+  }
+
+  getRulesForTable(clubId: string, clubTableId: string): ClubRules | null {
+    const state = this.clubs.get(clubId);
+    if (!state) return null;
+    const table = state.tables.get(clubTableId);
+    if (!table) return null;
+
+    if (table.rulesetId) {
+      const rs = state.rulesets.get(table.rulesetId);
+      if (rs) return rs.rulesJson;
+    }
+    if (state.club.defaultRulesetId) {
+      const rs = state.rulesets.get(state.club.defaultRulesetId);
+      if (rs) return rs.rulesJson;
+    }
+    return { ...DEFAULT_CLUB_RULES };
+  }
+
+  listOpenTables(): Array<{ clubId: string; table: ClubTable }> {
+    const rows: Array<{ clubId: string; table: ClubTable }> = [];
+    for (const [clubId, state] of this.clubs) {
+      for (const table of state.tables.values()) {
+        if (table.status === "closed") continue;
+        rows.push({ clubId, table });
+      }
+    }
+    return rows;
   }
 
   getRulesForRoom(roomCode: string): ClubRules | null {
@@ -837,7 +928,13 @@ export class ClubManager {
       members: activeMembers.map((m) => ({ ...m })),
       invites: canPerformClubAction(member.role, "create_invite") ? invites : [],
       rulesets,
-      tables: openTables.map((t) => ({ ...t })),
+      tables: openTables.map((t) => {
+        const rules = this.getRulesForTable(clubId, t.id);
+        return {
+          ...t,
+          minPlayersToStart: rules?.dealing?.minPlayersToStart ?? 2,
+        };
+      }),
       pendingMembers: canPerformClubAction(member.role, "approve_joins") ? pendingMembers : [],
       auditLog,
     };

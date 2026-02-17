@@ -18,14 +18,14 @@ describe("Server round-flow regressions", () => {
 
   it("credits approved rebuys at hand start (not hand end)", () => {
     const startHandIdx = source.indexOf("function startHandFlow");
-    const applyIdx = source.indexOf("applyApprovedDeposits(tableId);", startHandIdx);
+    const applyIdx = source.indexOf("applyApprovedRebuys(tableId);", startHandIdx);
     const tableStartIdx = source.indexOf("table.startHand()", startHandIdx);
-    assert.ok(applyIdx > startHandIdx, "startHandFlow must apply approved deposits");
-    assert.ok(tableStartIdx > applyIdx, "approved deposits must apply before table.startHand()");
+    assert.ok(applyIdx > startHandIdx, "startHandFlow must apply approved rebuys");
+    assert.ok(tableStartIdx > applyIdx, "approved rebuys must apply before table.startHand()");
 
     const finalizeIdx = source.indexOf("function finalizeHandEnd");
-    const finalizeApplyIdx = source.indexOf("applyApprovedDeposits(tableId);", finalizeIdx);
-    assert.equal(finalizeApplyIdx, -1, "finalizeHandEnd should not credit deposits");
+    const finalizeApplyIdx = source.indexOf("applyApprovedRebuys(tableId);", finalizeIdx);
+    assert.equal(finalizeApplyIdx, -1, "finalizeHandEnd should not apply rebuys");
   });
 
   it("queues leave-after-hand and bust-out stand-up flows", () => {
@@ -50,12 +50,4 @@ describe("Server round-flow regressions", () => {
     assert.match(source, /Table balance requires at least \$\{restoredStack\} chips to rejoin this room/);
   });
 
-  it("defines cashier placeholder handlers that are blocked by real-money feature guard", () => {
-    assert.match(source, /socket\.on\("cashier_deposit_create"/);
-    assert.match(source, /socket\.on\("cashier_withdraw_create"/);
-    assert.match(source, /socket\.on\("cashier_transactions_list"/);
-    assert.match(source, /assertRealMoneyEnabled\(runtimeConfig\.enableRealMoney\)/);
-    assert.match(source, /socket\.emit\("cashier_error", REAL_MONEY_COMING_SOON_ERROR\)/);
-  });
 });
-

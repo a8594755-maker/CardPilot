@@ -44,7 +44,7 @@ export function LegalStandalonePage({ route }: { route: LegalRoute }) {
   );
 }
 
-export function AppComplianceFooter() {
+export function AppLegalFooter() {
   const footerRef = useRef<HTMLElement>(null);
 
   const syncHeight = useCallback(() => {
@@ -68,7 +68,7 @@ export function AppComplianceFooter() {
     <footer ref={footerRef} className="shrink-0 border-t border-white/5 px-4 py-2 bg-[#0a0f1a]/80 backdrop-blur-sm" style={{ paddingBottom: "max(8px, env(safe-area-inset-bottom))" }}>
       <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-[11px] text-amber-300/90">
-          Responsible play: CardPilot is a play-money training product, not a real-money gambling platform.
+          CardPilot uses virtual credits for training sessions.
         </p>
         <div className="flex items-center gap-3 text-[11px]">
           <a href="/privacy" className="text-slate-400 hover:text-slate-200">
@@ -129,7 +129,7 @@ function TermsSection() {
     <>
       <LegalSection heading="Service scope">
         <p>CardPilot provides multiplayer poker training rooms and hand-review tools.</p>
-        <p>The product is intended for educational use and does not support real-money gambling transactions.</p>
+        <p>The product is intended for educational use and does not support real-money gambling activity.</p>
       </LegalSection>
 
       <LegalSection heading="User conduct">

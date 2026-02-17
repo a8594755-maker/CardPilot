@@ -1,6 +1,6 @@
 import { memo } from "react";
 
-type AppView = "lobby" | "table" | "profile" | "history" | "clubs" | "cashier" | "training";
+type AppView = "lobby" | "table" | "profile" | "history" | "clubs" | "training";
 
 interface TabDef {
   id: AppView | "__more__";
@@ -11,12 +11,12 @@ interface TabDef {
 const PRIMARY_TABS: TabDef[] = [
   { id: "lobby",   label: "Lobby",   icon: "🏠" },
   { id: "table",   label: "Table",   icon: "🃏" },
-  { id: "cashier", label: "Cashier", icon: "💰" },
+  { id: "clubs", label: "Clubs", icon: "🏆" },
   { id: "profile", label: "Profile", icon: "👤" },
   { id: "__more__", label: "More",   icon: "⋯" },
 ];
 
-const SECONDARY_VIEWS: AppView[] = ["clubs", "history", "training"];
+const SECONDARY_VIEWS: AppView[] = ["history", "training"];
 
 interface MobileBottomTabsProps {
   activeView: string;

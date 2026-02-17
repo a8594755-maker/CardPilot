@@ -77,6 +77,7 @@ export class RoomManager {
       settings.bigBlind = settings.smallBlind * 2;
     }
     settings.maxPlayers = Math.min(runtimeConfig.maxPlayers, Math.max(runtimeConfig.minPlayers, settings.maxPlayers));
+    settings.minPlayersToStart = Math.min(settings.maxPlayers, Math.max(2, Math.floor(settings.minPlayersToStart ?? 2)));
 
     const room: ManagedRoom = {
       tableId: params.tableId,
@@ -247,7 +248,7 @@ export class RoomManager {
       "timeBankHandsToFill",
       "thinkExtensionSecondsPerUse", "thinkExtensionQuotaPerHour",
       "disconnectGracePeriod", "maxConsecutiveTimeouts",
-      "autoStartNextHand", "showdownSpeed", "dealToAwayPlayers", "revealAllAtShowdown",
+      "autoStartNextHand", "minPlayersToStart", "showdownSpeed", "dealToAwayPlayers", "revealAllAtShowdown",
       "autoRevealOnAllInCall", "autoRevealWinningHands", "autoMuckLosingHands",
       "allowShowAfterFold", "allowShowCalledHandRequest",
       "roomFundsTracking",
@@ -287,6 +288,7 @@ export class RoomManager {
 
     // Clamp timer-related settings
     room.settings.maxPlayers = Math.min(runtimeConfig.maxPlayers, Math.max(runtimeConfig.minPlayers, Math.floor(room.settings.maxPlayers)));
+    room.settings.minPlayersToStart = Math.min(room.settings.maxPlayers, Math.max(2, Math.floor(room.settings.minPlayersToStart ?? 2)));
     room.settings.actionTimerSeconds = Math.max(5, Math.min(120, Math.floor(room.settings.actionTimerSeconds)));
     room.settings.timeBankSeconds = Math.max(0, Math.min(300, Math.floor(room.settings.timeBankSeconds)));
     room.settings.timeBankRefillPerHand = Math.max(0, Math.min(60, Math.floor(room.settings.timeBankRefillPerHand)));

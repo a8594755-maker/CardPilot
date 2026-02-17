@@ -9,7 +9,7 @@ export const OVERLAY_PRIORITY = {
   none: 0,
   drawer: 10,       // Options drawer
   panel: 20,        // GTO sidebar, session stats, room log
-  modal: 30,        // Buy-in, deposit, fold confirm
+  modal: 30,        // Buy-in, rebuy, fold confirm
   roomSettings: 40, // Room Settings (full-screen surface)
 } as const;
 
@@ -17,7 +17,7 @@ export type OverlayId =
   | "optionsDrawer"
   | "roomSettings"
   | "buyIn"
-  | "deposit"
+  | "rebuy"
   | "foldConfirm"
   | "revealedZoom"
   | "mobileGto"
@@ -34,7 +34,7 @@ export const OVERLAY_CONFIG: Record<OverlayId, number> = {
   handSummary: OVERLAY_PRIORITY.drawer,
   roomSettings: OVERLAY_PRIORITY.roomSettings,
   buyIn: OVERLAY_PRIORITY.modal,
-  deposit: OVERLAY_PRIORITY.modal,
+  rebuy: OVERLAY_PRIORITY.modal,
   foldConfirm: OVERLAY_PRIORITY.modal,
   revealedZoom: OVERLAY_PRIORITY.modal,
   mobileGto: OVERLAY_PRIORITY.modal,

@@ -6,9 +6,8 @@
 |-----------|-------------|---------------------|------------|-----------|
 | Lobby     | `/lobby`    | Primary             | ✅ (🏠)    |           |
 | Table     | `/table/:id`| Primary             | ✅ (🃏)    |           |
-| Cashier   | `/cashier`  | Primary             | ✅ (💰)    |           |
+| Clubs     | `/clubs`    | Primary             | ✅ (🏆)    |           |
 | Profile   | `/profile`  | Primary             | ✅ (👤)    |           |
-| Clubs     | `/clubs`    | Secondary           |            | ✅ (🏆)   |
 | History   | `/history`  | Secondary           |            | ✅ (📜)   |
 | Training  | `/training` | Secondary           |            | ✅ (🎯)   |
 | Sign Out  | —           | Utility             |            | ✅ (🚪)   |
@@ -27,8 +26,8 @@
 |------|---------|
 | `apps/web/src/hooks/useIsMobile.ts` | `matchMedia`-based hook, breakpoint 768px, no JS resize measuring |
 | `apps/web/src/components/mobile-nav/MobileTopBar.tsx` | Fixed top bar: hamburger menu, centered page title, connection dot + avatar |
-| `apps/web/src/components/mobile-nav/MobileBottomTabs.tsx` | Fixed bottom tab bar: 5 tabs (Lobby, Table, Cashier, Profile, More) with active indicator |
-| `apps/web/src/components/mobile-nav/MobileMoreMenu.tsx` | Bottom sheet: secondary routes (Clubs, History, Training) + Sign Out; dismissible via backdrop/ESC |
+| `apps/web/src/components/mobile-nav/MobileBottomTabs.tsx` | Fixed bottom tab bar: 5 tabs (Lobby, Table, Clubs, Profile, More) with active indicator |
+| `apps/web/src/components/mobile-nav/MobileMoreMenu.tsx` | Bottom sheet: secondary routes (History, Training) + Sign Out; dismissible via backdrop/ESC |
 | `apps/web/src/components/mobile-nav/index.ts` | Barrel export |
 
 ## Edge Cases Handled
@@ -45,15 +44,15 @@
 ### Mobile Portrait (≤ 768px)
 - [ ] Desktop top tab strip is hidden
 - [ ] Mobile top bar visible with page title + hamburger + avatar
-- [ ] Bottom tabs visible with 5 items: Lobby, Table, Cashier, Profile, More
+- [ ] Bottom tabs visible with 5 items: Lobby, Table, Clubs, Profile, More
 - [ ] Tap each primary tab → navigates correctly, active state highlights
-- [ ] Tap "More" → bottom sheet opens with Clubs, History, Training, Sign Out
-- [ ] Tap a secondary route → navigates, sheet closes, "More" tab highlights
+- [ ] Tap "More" → bottom sheet opens with History, Training, Sign Out
+- [ ] Tap a secondary route → navigates, sheet closes, "More" tab highlights for secondary routes
 - [ ] Tap backdrop → More sheet closes
 - [ ] Press ESC → More sheet closes
 - [ ] Content not hidden behind top bar (padding-top applied)
 - [ ] Content not hidden behind bottom tabs (padding-bottom applied)
-- [ ] AppComplianceFooter visible above bottom tabs
+- [ ] AppLegalFooter visible above bottom tabs
 - [ ] Navigate to Table → bottom tabs disappear, BottomActionBar works normally
 - [ ] Navigate away from Table → bottom tabs reappear
 
@@ -77,5 +76,5 @@
 - [ ] Mobile top bar hidden
 - [ ] Mobile bottom tabs hidden
 - [ ] More menu hidden
-- [ ] All 7 tabs in top strip work as before
+- [ ] All 6 tabs in top strip work as before
 - [ ] No visual regression

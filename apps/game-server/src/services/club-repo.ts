@@ -14,13 +14,20 @@ import type {
   ClubRuleset,
   ClubTable,
   ClubAuditLogEntry,
+  ClubWalletBalance,
+  ClubWalletTransaction,
+  ClubWalletTxType,
+  ClubLeaderboardEntry,
+  ClubLeaderboardMetric,
+  ClubLeaderboardRange,
   ClubRole,
   ClubMemberStatus,
   ClubVisibility,
   ClubTableStatus,
   ClubRules,
 } from "@cardpilot/shared-types";
-import { logError, logInfo, logWarn } from "../logger";
+import { normalizeClubRole } from "@cardpilot/shared-types";
+import { logInfo, logWarn } from "../logger";
 
 // ── Row ↔ Domain mappers ──────────────────────────────────────────
 
@@ -46,7 +53,7 @@ function rowToMember(r: Record<string, unknown>): ClubMember {
   return {
     clubId: String(r.club_id),
     userId: String(r.user_id),
-    role: (r.role as ClubRole) ?? "member",
+    role: normalizeClubRole(typeof r.role === "string" ? r.role : null),
     status: (r.status as ClubMemberStatus) ?? "active",
     nicknameInClub: r.nickname_in_club ? String(r.nickname_in_club) : null,
     balance: Number(r.balance ?? 0),
@@ -104,6 +111,54 @@ function rowToAudit(r: Record<string, unknown>): ClubAuditLogEntry {
     payloadJson: (r.payload_json as Record<string, unknown>) ?? {},
     createdAt: String(r.created_at),
   };
+}
+
+function rowToWalletTx(r: Record<string, unknown>): ClubWalletTransaction {
+  return {
+    id: String(r.id),
+    clubId: String(r.club_id),
+    userId: String(r.user_id),
+    type: String(r.type) as ClubWalletTxType,
+    amount: Number(r.amount ?? 0),
+    currency: String(r.currency ?? "chips"),
+    refType: r.ref_type ? String(r.ref_type) : null,
+    refId: r.ref_id ? String(r.ref_id) : null,
+    createdAt: String(r.created_at),
+    createdBy: r.created_by ? String(r.created_by) : null,
+    note: r.note ? String(r.note) : null,
+    metaJson: (r.meta_json as Record<string, unknown>) ?? {},
+    idempotencyKey: r.idempotency_key ? String(r.idempotency_key) : null,
+  };
+}
+
+export interface AppendWalletTxInput {
+  clubId: string;
+  userId: string;
+  type: ClubWalletTxType;
+  amount: number;
+  currency?: string;
+  refType?: string | null;
+  refId?: string | null;
+  createdBy?: string | null;
+  note?: string | null;
+  metaJson?: Record<string, unknown>;
+  idempotencyKey?: string | null;
+}
+
+export interface AppendWalletTxResult {
+  tx: ClubWalletTransaction;
+  newBalance: number;
+  wasDuplicate: boolean;
+}
+
+function dayFromRange(range: ClubLeaderboardRange): string {
+  if (range === "all") {
+    return "1970-01-01";
+  }
+  const now = new Date();
+  const dayCount = range === "day" ? 1 : range === "month" ? 30 : 7;
+  const from = new Date(now.getTime() - (dayCount - 1) * 24 * 60 * 60 * 1000);
+  return from.toISOString().slice(0, 10);
 }
 
 // ── ClubRepo ──────────────────────────────────────────────────────
@@ -414,6 +469,16 @@ export class ClubRepo {
     if (error) logWarn({ event: "club_repo.setTableRoomCode.failed", message: error.message });
   }
 
+  async updateTable(clubTableId: string, updates: { name?: string; rulesetId?: string | null }): Promise<void> {
+    if (!this.db) return;
+    const payload: Record<string, unknown> = {};
+    if (updates.name !== undefined) payload.name = updates.name;
+    if (updates.rulesetId !== undefined) payload.ruleset_id = updates.rulesetId;
+    if (Object.keys(payload).length === 0) return;
+    const { error } = await this.db.from("club_tables").update(payload).eq("id", clubTableId);
+    if (error) logWarn({ event: "club_repo.updateTable.failed", message: error.message });
+  }
+
   async fetchTables(clubId: string): Promise<ClubTable[]> {
     if (!this.db) return [];
     const { data, error } = await this.db
@@ -464,6 +529,242 @@ export class ClubRepo {
     return (data ?? []).map(rowToAudit);
   }
 
+  // ═══════════════ WALLET LEDGER ═══════════════
+
+  async appendWalletTx(input: AppendWalletTxInput): Promise<AppendWalletTxResult | null> {
+    if (!this.db) return null;
+
+    const {
+      clubId,
+      userId,
+      type,
+      amount,
+      currency = "chips",
+      refType = null,
+      refId = null,
+      createdBy = null,
+      note = null,
+      metaJson = {},
+      idempotencyKey = null,
+    } = input;
+
+    const { data, error } = await this.db.rpc("club_wallet_append_tx", {
+      _club_id: clubId,
+      _user_id: userId,
+      _type: type,
+      _amount: Math.trunc(amount),
+      _currency: currency,
+      _ref_type: refType,
+      _ref_id: refId,
+      _created_by: createdBy,
+      _note: note,
+      _meta_json: metaJson,
+      _idempotency_key: idempotencyKey,
+    });
+
+    if (error) {
+      logWarn({ event: "club_repo.appendWalletTx.failed", message: error.message });
+      return null;
+    }
+
+    const row = Array.isArray(data) ? data[0] : null;
+    if (!row?.tx_id) {
+      logWarn({ event: "club_repo.appendWalletTx.invalid_response", message: "Missing tx_id from RPC" });
+      return null;
+    }
+
+    const txId = String(row.tx_id);
+    const newBalance = Number(row.current_balance ?? 0);
+    const wasDuplicate = Boolean(row.was_duplicate ?? false);
+
+    const { data: txRow, error: txError } = await this.db
+      .from("club_wallet_transactions")
+      .select("*")
+      .eq("id", txId)
+      .maybeSingle();
+
+    if (txError || !txRow) {
+      if (txError) {
+        logWarn({ event: "club_repo.appendWalletTx.fetch_tx_failed", message: txError.message });
+      }
+      const fallbackTx: ClubWalletTransaction = {
+        id: txId,
+        clubId,
+        userId,
+        type,
+        amount,
+        currency,
+        refType,
+        refId,
+        createdAt: new Date().toISOString(),
+        createdBy,
+        note,
+        metaJson,
+        idempotencyKey,
+      };
+      return { tx: fallbackTx, newBalance, wasDuplicate };
+    }
+
+    return {
+      tx: rowToWalletTx(txRow),
+      newBalance,
+      wasDuplicate,
+    };
+  }
+
+  async getWalletBalance(clubId: string, userId: string, currency = "chips"): Promise<number> {
+    if (!this.db) return 0;
+
+    const { data: account, error: accountError } = await this.db
+      .from("club_wallet_accounts")
+      .select("current_balance")
+      .eq("club_id", clubId)
+      .eq("user_id", userId)
+      .eq("currency", currency)
+      .maybeSingle();
+
+    if (!accountError && account) {
+      return Number(account.current_balance ?? 0);
+    }
+
+    const { data: txRows, error: txError } = await this.db
+      .from("club_wallet_transactions")
+      .select("amount")
+      .eq("club_id", clubId)
+      .eq("user_id", userId)
+      .eq("currency", currency);
+
+    if (txError) {
+      logWarn({ event: "club_repo.getWalletBalance.failed", message: txError.message });
+      return 0;
+    }
+
+    return (txRows ?? []).reduce((sum, row) => sum + Number((row as any).amount ?? 0), 0);
+  }
+
+  async getWalletBalances(clubId: string, userIds: string[], currency = "chips"): Promise<Map<string, number>> {
+    const result = new Map<string, number>();
+    if (!this.db) return result;
+    if (userIds.length === 0) return result;
+
+    const uniqUserIds = [...new Set(userIds)];
+    const { data, error } = await this.db
+      .from("club_wallet_accounts")
+      .select("user_id, current_balance")
+      .eq("club_id", clubId)
+      .eq("currency", currency)
+      .in("user_id", uniqUserIds);
+
+    if (error) {
+      logWarn({ event: "club_repo.getWalletBalances.failed", message: error.message });
+    } else {
+      for (const row of data ?? []) {
+        result.set(String((row as any).user_id), Number((row as any).current_balance ?? 0));
+      }
+    }
+
+    // Ensure all requested ids are present (fallback to 0 when account row is missing).
+    for (const userId of uniqUserIds) {
+      if (!result.has(userId)) result.set(userId, 0);
+    }
+    return result;
+  }
+
+  async listWalletTxs(
+    clubId: string,
+    userId: string,
+    currency = "chips",
+    limit = 50,
+    offset = 0,
+  ): Promise<ClubWalletTransaction[]> {
+    if (!this.db) return [];
+    const safeLimit = Math.max(1, Math.min(limit, 200));
+    const safeOffset = Math.max(0, offset);
+    const from = safeOffset;
+    const to = safeOffset + safeLimit - 1;
+
+    const { data, error } = await this.db
+      .from("club_wallet_transactions")
+      .select("*")
+      .eq("club_id", clubId)
+      .eq("user_id", userId)
+      .eq("currency", currency)
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    if (error) {
+      logWarn({ event: "club_repo.listWalletTxs.failed", message: error.message });
+      return [];
+    }
+    return (data ?? []).map((row) => rowToWalletTx(row as Record<string, unknown>));
+  }
+
+  async recordClubHandStats(
+    clubId: string,
+    userId: string,
+    handsDelta: number,
+    netDelta: number,
+    rakeDelta = 0,
+  ): Promise<void> {
+    if (!this.db) return;
+    const { error } = await this.db.rpc("club_record_hand_stats", {
+      _club_id: clubId,
+      _user_id: userId,
+      _hands_delta: Math.trunc(handsDelta),
+      _net_delta: Math.trunc(netDelta),
+      _rake_delta: Math.trunc(rakeDelta),
+    });
+    if (error) {
+      logWarn({ event: "club_repo.recordClubHandStats.failed", message: error.message });
+    }
+  }
+
+  async getClubLeaderboard(
+    clubId: string,
+    timeRange: ClubLeaderboardRange = "week",
+    metric: ClubLeaderboardMetric = "net",
+    limit = 50,
+  ): Promise<ClubLeaderboardEntry[]> {
+    if (!this.db) return [];
+
+    const { data, error } = await this.db.rpc("club_get_leaderboard", {
+      _club_id: clubId,
+      _day_from: dayFromRange(timeRange),
+      _metric: metric,
+      _limit: Math.max(1, Math.min(limit, 200)),
+    });
+
+    if (error) {
+      logWarn({ event: "club_repo.getClubLeaderboard.failed", message: error.message });
+      return [];
+    }
+
+    const rows = (data ?? []).map((row: any) => ({
+      rank: Number(row.rank ?? 0),
+      clubId: String(row.club_id ?? clubId),
+      userId: String(row.user_id),
+      displayName: row.display_name ? String(row.display_name) : undefined,
+      metric,
+      metricValue: Number(row.metric_value ?? 0),
+      balance: 0,
+      hands: Number(row.hands ?? 0),
+      buyIn: Number(row.buy_in ?? 0),
+      cashOut: Number(row.cash_out ?? 0),
+      deposits: Number(row.deposits ?? 0),
+      net: Number(row.net ?? 0),
+    }));
+
+    const balances = await this.getWalletBalances(
+      clubId,
+      rows.map((row: ClubLeaderboardEntry) => row.userId),
+      "chips",
+    );
+    return rows.map((row: ClubLeaderboardEntry) => ({
+      ...row,
+      balance: balances.get(row.userId) ?? 0,
+    }));
+  }
+
   // ═══════════════ BULK HYDRATION ═══════════════
 
   /**
@@ -479,12 +780,13 @@ export class ClubRepo {
   }> {
     if (!this.db) return { clubs: [], members: [], invites: [], rulesets: [], tables: [] };
 
-    const [clubsRes, membersRes, invitesRes, rulesetsRes, tablesRes] = await Promise.all([
+    const [clubsRes, membersRes, invitesRes, rulesetsRes, tablesRes, walletAccountsRes] = await Promise.all([
       this.db.from("clubs").select("*").eq("is_archived", false),
       this.db.from("club_members").select("*, player_profiles(display_name)"),
       this.db.from("club_invites").select("*").eq("revoked", false),
       this.db.from("club_rulesets").select("*"),
       this.db.from("club_tables").select("*").neq("status", "closed"),
+      this.db.from("club_wallet_accounts").select("club_id, user_id, currency, current_balance"),
     ]);
 
     if (clubsRes.error) logWarn({ event: "club_repo.hydrateAll.clubs.failed", message: clubsRes.error.message });
@@ -492,11 +794,21 @@ export class ClubRepo {
     if (invitesRes.error) logWarn({ event: "club_repo.hydrateAll.invites.failed", message: invitesRes.error.message });
     if (rulesetsRes.error) logWarn({ event: "club_repo.hydrateAll.rulesets.failed", message: rulesetsRes.error.message });
     if (tablesRes.error) logWarn({ event: "club_repo.hydrateAll.tables.failed", message: tablesRes.error.message });
+    if (walletAccountsRes.error) logWarn({ event: "club_repo.hydrateAll.wallet_accounts.failed", message: walletAccountsRes.error.message });
 
     const clubs = (clubsRes.data ?? []).map(rowToClub);
+    const walletBalanceByClubUser = new Map<string, number>();
+    for (const row of walletAccountsRes.data ?? []) {
+      if ((row as any).currency && String((row as any).currency) !== "chips") continue;
+      walletBalanceByClubUser.set(
+        `${String((row as any).club_id)}:${String((row as any).user_id)}`,
+        Number((row as any).current_balance ?? 0),
+      );
+    }
     const members = (membersRes.data ?? []).map((row: any) => {
       const m = rowToMember(row);
       if (row.player_profiles?.display_name) m.displayName = String(row.player_profiles.display_name);
+      m.balance = walletBalanceByClubUser.get(`${m.clubId}:${m.userId}`) ?? 0;
       return m;
     });
     const invites = (invitesRes.data ?? []).map(rowToInvite);

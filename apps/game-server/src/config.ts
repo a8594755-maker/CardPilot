@@ -51,6 +51,7 @@ const DEFAULTS: RoomSettings = {
   useCentsValues: false,
   rabbitHunting: false,
   autoStartNextHand: true,
+  minPlayersToStart: 2,
   showdownSpeed: "normal",
   dealToAwayPlayers: false,
   revealAllAtShowdown: true,
@@ -60,7 +61,11 @@ const DEFAULTS: RoomSettings = {
   allowShowAfterFold: false,
   allowShowCalledHandRequest: false,
   bombPotEnabled: false,
+  bombPotTriggerMode: "frequency",
   bombPotFrequency: 0,
+  bombPotProbability: 0,
+  bombPotAnteMode: "bb_multiplier",
+  bombPotAnteValue: 1,
   doubleBoardMode: "off",
   sevenTwoBounty: 0,
   simulatedFeeEnabled: false,
@@ -76,7 +81,6 @@ export type RuntimeConfig = {
   envName: string;
   port: number;
   corsOrigin: string[] | true;
-  enableRealMoney: boolean;
   handIdleTimeoutMs: number;
   showdownDecisionTimeoutMs: number;
   runCountDecisionTimeoutMs: number;
@@ -200,7 +204,6 @@ function buildConfig(): RuntimeConfig {
   const runCountDecisionSeconds = parsePositiveInt("RUN_COUNT_DECISION_TIMEOUT_SECONDS", 15);
   const tableBalanceRejoinWindowMinutes = parsePositiveInt("TABLE_BALANCE_REJOIN_WINDOW_MINUTES", 360);
   const roomEmptyTtlMinutes = parsePositiveInt("ROOM_EMPTY_TTL_MINUTES", 10);
-  const enableRealMoney = parseBooleanEnv("ENABLE_REAL_MONEY", false);
 
   const port = parsePositiveInt("PORT", 4000);
 
@@ -209,7 +212,6 @@ function buildConfig(): RuntimeConfig {
     envName: process.env.NODE_ENV || "development",
     port,
     corsOrigin: parseCorsOrigin(),
-    enableRealMoney,
     handIdleTimeoutMs: handIdleSeconds * 1_000,
     showdownDecisionTimeoutMs: showdownDecisionSeconds * 1_000,
     runCountDecisionTimeoutMs: runCountDecisionSeconds * 1_000,

@@ -2,16 +2,8 @@ import { useState, useCallback } from "react";
 import type { Socket } from "socket.io-client";
 import type {
   ClubListItem,
-  ClubDetail,
-  ClubMember,
-  ClubInvite,
-  ClubRuleset,
-  ClubTable,
-  ClubAuditLogEntry,
   ClubDetailPayload,
-  ClubRole,
 } from "@cardpilot/shared-types";
-import { canPerformClubAction } from "@cardpilot/shared-types";
 import { ClubDetailView } from "./ClubDetailView";
 
 interface ClubsPageProps {
@@ -92,7 +84,7 @@ export function ClubsPage({
       <div className="max-w-3xl mx-auto space-y-6">
         {/* Disclaimer */}
         <div className="glass-card p-3 bg-amber-500/5 border-amber-500/20 text-xs text-amber-400/80 text-center">
-          🎓 CardPilot is a <strong>play-money training tool</strong> — not real-money gambling. Clubs use virtual credits only.
+          🎓 Clubs use virtual credits only. Buy-ins and rebuys are handled through room workflows.
         </div>
 
         {/* Header */}

@@ -56,7 +56,7 @@
 
 - [ ] **rakeEnabled defaults to false** — in `DEFAULT_CLUB_RULES`
 - [ ] **serviceFeeEnabled defaults to false** — in `DEFAULT_CLUB_RULES`
-- [ ] **No payment UI** — no cashier, no real-money flows
+- [ ] **Credits-only UI** — no payment flows
 - [ ] **Play-money disclaimer** — shown on ClubsPage and ClubDetailView
 
 ## Test Results

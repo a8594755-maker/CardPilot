@@ -2,7 +2,7 @@
 
 // ── Roles & Status ──
 
-export type ClubRole = 'owner' | 'admin' | 'host' | 'mod' | 'member';
+export type ClubRole = 'owner' | 'admin' | 'member';
 
 export type ClubMemberStatus = 'active' | 'pending' | 'banned' | 'left';
 
@@ -10,7 +10,7 @@ export type ClubVisibility = 'private' | 'unlisted';
 
 export type ClubTableStatus = 'open' | 'paused' | 'closed';
 
-export type RunItTwiceChooser = 'underdog' | 'all-in-initiator' | 'host';
+export type RunItTwiceChooser = 'underdog' | 'all-in-initiator';
 
 // ── Club Rules ("Club Charter") ──
 
@@ -33,7 +33,9 @@ export interface ClubRulesTime {
 
 export interface ClubRulesDealing {
   autoDealEnabled: boolean;
+  minPlayersToStart: number;
   autoDealDelaySec: number;
+  autoStartNextHand: boolean;
   allowManualDeal: boolean;
   preventDealMidHand: boolean; // must be true
 }
@@ -88,7 +90,9 @@ export const DEFAULT_CLUB_RULES: ClubRules = {
   time: { actionTimeSec: 15, timeBankSec: 60, disconnectGraceSec: 30 },
   dealing: {
     autoDealEnabled: true,
+    minPlayersToStart: 2,
     autoDealDelaySec: 3,
+    autoStartNextHand: true,
     allowManualDeal: true,
     preventDealMidHand: true,
   },
@@ -194,6 +198,59 @@ export interface ClubTable {
   playerCount?: number;
   maxPlayers?: number;
   stakes?: string;
+  minPlayersToStart?: number;
+}
+
+export type ClubWalletTxType =
+  | "deposit"
+  | "admin_grant"
+  | "admin_deduct"
+  | "buy_in"
+  | "cash_out"
+  | "transfer_in"
+  | "transfer_out"
+  | "adjustment";
+
+export interface ClubWalletTransaction {
+  id: string;
+  clubId: string;
+  userId: string;
+  type: ClubWalletTxType;
+  amount: number;
+  currency: string;
+  refType: string | null;
+  refId: string | null;
+  createdAt: string;
+  createdBy: string | null;
+  note: string | null;
+  metaJson: Record<string, unknown>;
+  idempotencyKey?: string | null;
+}
+
+export interface ClubWalletBalance {
+  clubId: string;
+  userId: string;
+  currency: string;
+  balance: number;
+}
+
+export type ClubLeaderboardMetric = "net" | "hands" | "buyin" | "deposits";
+
+export type ClubLeaderboardRange = "day" | "week" | "month" | "all";
+
+export interface ClubLeaderboardEntry {
+  rank: number;
+  clubId: string;
+  userId: string;
+  displayName?: string;
+  metric: ClubLeaderboardMetric;
+  metricValue: number;
+  balance: number;
+  hands: number;
+  buyIn: number;
+  cashOut: number;
+  deposits: number;
+  net: number;
 }
 
 export interface ClubAuditLogEntry {
@@ -232,12 +289,17 @@ export interface ClubListItem {
 // ── Permission Helpers ──
 
 const ROLE_RANK: Record<ClubRole, number> = {
-  owner: 5,
-  admin: 4,
-  host: 3,
-  mod: 2,
+  owner: 3,
+  admin: 2,
   member: 1,
 };
+
+export function normalizeClubRole(role: string | null | undefined): ClubRole {
+  if (role === "owner" || role === "admin" || role === "member") {
+    return role;
+  }
+  return "member";
+}
 
 export function hasClubPermission(
   actorRole: ClubRole,
@@ -265,24 +327,17 @@ export function canPerformClubAction(
   switch (action) {
     case 'manage_members':
     case 'manage_rulesets':
-      return hasClubPermission(actorRole, 'admin');
     case 'manage_tables':
-      return hasClubPermission(actorRole, 'admin');
     case 'approve_joins':
-      return hasClubPermission(actorRole, 'mod');
     case 'ban':
-      return hasClubPermission(actorRole, 'mod');
     case 'create_table':
-      return hasClubPermission(actorRole, 'host');
     case 'close_table':
     case 'pause_table':
-      return hasClubPermission(actorRole, 'host');
-    case 'moderate_chat':
-      return hasClubPermission(actorRole, 'mod');
     case 'create_invite':
-      return hasClubPermission(actorRole, 'mod');
     case 'view_audit_log':
-      return hasClubPermission(actorRole, 'mod');
+      return hasClubPermission(actorRole, 'admin');
+    case 'moderate_chat':
+      return hasClubPermission(actorRole, 'admin');
     default:
       return false;
   }

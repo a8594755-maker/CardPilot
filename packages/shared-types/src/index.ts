@@ -1,3 +1,5 @@
+import type { ClubRole } from "./club-types.js";
+
 // ===== Core Poker Types =====
 
 export type Street = 'PREFLOP' | 'FLOP' | 'TURN' | 'RIVER' | 'SHOWDOWN' | 'RUN_IT_TWICE_PROMPT';
@@ -698,6 +700,9 @@ export interface RoomFullState {
   tableId: string;
   roomCode: string;
   roomName: string;
+  isClubTable?: boolean;
+  clubId?: string;
+  clubRole?: ClubRole | null;
   settings: RoomSettings;
   ownership: RoomOwnership;
   status: RoomStatus;

@@ -8,7 +8,6 @@ interface MoreMenuItem {
 }
 
 const MORE_ITEMS: MoreMenuItem[] = [
-  { id: "clubs",    label: "Clubs",    icon: "🏆" },
   { id: "history",  label: "History",  icon: "📜" },
   { id: "training", label: "Training", icon: "🎯" },
 ];

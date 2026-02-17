@@ -69,9 +69,6 @@ describe("Navigation guard: shouldNavigateToTable", () => {
     expect(shouldNavigateToTable("/clubs")).toBe(false);
   });
 
-  it("blocks navigation from /cashier", () => {
-    expect(shouldNavigateToTable("/cashier")).toBe(false);
-  });
 });
 
 describe("Connect handler guard: shouldRejoinOnConnect", () => {
@@ -197,14 +194,13 @@ describe("leaveRoom cleanup", () => {
    View computation: verify pathname → view mapping
    ═══════════════════════════════════════════════════ */
 
-type AppView = "lobby" | "table" | "profile" | "history" | "clubs" | "cashier" | "training";
+type AppView = "lobby" | "table" | "profile" | "history" | "clubs" | "training";
 
 function computeView(pathname: string): AppView {
   if (pathname === "/" || pathname.startsWith("/lobby")) return "lobby";
   if (pathname.startsWith("/table")) return "table";
   if (pathname.startsWith("/history")) return "history";
   if (pathname.startsWith("/clubs")) return "clubs";
-  if (pathname.startsWith("/cashier")) return "cashier";
   if (pathname.startsWith("/training")) return "training";
   if (pathname.startsWith("/profile")) return "profile";
   return "lobby";
@@ -220,7 +216,6 @@ describe("View computation from pathname", () => {
   it("/profile → profile", () => expect(computeView("/profile")).toBe("profile"));
   it("/training → training", () => expect(computeView("/training")).toBe("training"));
   it("/clubs → clubs", () => expect(computeView("/clubs")).toBe("clubs"));
-  it("/cashier → cashier", () => expect(computeView("/cashier")).toBe("cashier"));
   it("/unknown → lobby (fallback)", () => expect(computeView("/unknown")).toBe("lobby"));
 });
 
@@ -251,7 +246,7 @@ describe("Close Room error handling", () => {
 function isPathSupported(pathname: string): boolean {
   if (pathname === "/") return true;
   if (pathname === "/table" || pathname.match(/^\/table\/[^/]+$/)) return true;
-  const supportedPaths = ["/lobby", "/history", "/profile", "/cashier", "/training"];
+  const supportedPaths = ["/lobby", "/history", "/profile", "/training"];
   if (pathname.startsWith("/clubs") || pathname.startsWith("/history/") || supportedPaths.includes(pathname)) return true;
   return false;
 }
@@ -264,9 +259,38 @@ describe("Supported paths validation", () => {
   it("/history/h1 is supported", () => expect(isPathSupported("/history/h1")).toBe(true));
   it("/profile is supported", () => expect(isPathSupported("/profile")).toBe(true));
   it("/training is supported", () => expect(isPathSupported("/training")).toBe(true));
-  it("/cashier is supported", () => expect(isPathSupported("/cashier")).toBe(true));
   it("/clubs is supported", () => expect(isPathSupported("/clubs")).toBe(true));
   it("/clubs/detail is supported", () => expect(isPathSupported("/clubs/detail")).toBe(true));
   it("/random is NOT supported", () => expect(isPathSupported("/random")).toBe(false));
   it("/admin is NOT supported", () => expect(isPathSupported("/admin")).toBe(false));
+});
+
+/* ═══════════════════════════════════════════════════
+   Club auth gate: unauthenticated/guest users must login
+   ═══════════════════════════════════════════════════ */
+
+type AuthState = { isGuest: boolean } | null;
+
+function shouldGateClubRoute(pathname: string, auth: AuthState): boolean {
+  if (!pathname.startsWith("/clubs")) return false;
+  if (!auth) return true;
+  return auth.isGuest;
+}
+
+describe("Club route auth gate", () => {
+  it("gates /clubs when user is unauthenticated", () => {
+    expect(shouldGateClubRoute("/clubs", null)).toBe(true);
+  });
+
+  it("gates /clubs when session is guest/anonymous", () => {
+    expect(shouldGateClubRoute("/clubs", { isGuest: true })).toBe(true);
+  });
+
+  it("allows /clubs when session is authenticated", () => {
+    expect(shouldGateClubRoute("/clubs", { isGuest: false })).toBe(false);
+  });
+
+  it("does not gate non-club routes", () => {
+    expect(shouldGateClubRoute("/lobby", null)).toBe(false);
+  });
 });

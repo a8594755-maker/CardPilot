@@ -5,11 +5,14 @@ import type {
   ClubRole,
   ClubRules,
   ClubVisibility,
+  ClubLeaderboardEntry,
+  ClubLeaderboardMetric,
+  ClubLeaderboardRange,
 } from "@cardpilot/shared-types";
 import { DEFAULT_CLUB_RULES } from "@cardpilot/shared-types";
 import { canPerformClubAction } from "@cardpilot/shared-types";
 
-type Tab = "overview" | "members" | "tables" | "rulesets" | "invites" | "audit" | "settings";
+type Tab = "overview" | "credits" | "leaderboard" | "members" | "tables" | "rulesets" | "invites" | "audit" | "settings";
 
 /** Consider a member "recently online" if lastSeenAt is within this many minutes */
 const ONLINE_THRESHOLD_MIN = 15;
@@ -43,8 +46,6 @@ function formatAuditAction(actionType: string, payload: Record<string, unknown>)
 const ROLE_BADGE_COLORS: Record<string, string> = {
   owner: "bg-amber-500/20 text-amber-300 border-amber-500/30",
   admin: "bg-purple-500/20 text-purple-300 border-purple-500/30",
-  host: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-  mod: "bg-cyan-500/20 text-cyan-300 border-cyan-500/30",
   member: "bg-white/5 text-slate-400 border-white/10",
 };
 
@@ -67,7 +68,7 @@ export function ClubDetailView({
   onJoinTable,
   showToast,
 }: ClubDetailViewProps) {
-  const [tab, setTab] = useState<Tab>("overview");
+  const [tab, setTab] = useState<Tab>("tables");
   const [showCreateTable, setShowCreateTable] = useState(false);
   const [newTableName, setNewTableName] = useState("");
   const [newTableRulesetId, setNewTableRulesetId] = useState<string>("");
@@ -83,9 +84,19 @@ export function ClubDetailView({
   const [rsTimeBank, setRsTimeBank] = useState(60);
   const [rsRIT, setRsRIT] = useState(false);
   const [rsIsDefault, setRsIsDefault] = useState(false);
+  const [creditBalance, setCreditBalance] = useState<number>(detail.detail.myMembership?.balance ?? 0);
+  const [leaderboardRange, setLeaderboardRange] = useState<ClubLeaderboardRange>("week");
+  const [leaderboardMetric, setLeaderboardMetric] = useState<ClubLeaderboardMetric>("net");
+  const [leaderboardRows, setLeaderboardRows] = useState<ClubLeaderboardEntry[]>([]);
+  const [myRank, setMyRank] = useState<number | null>(null);
 
   const { club, myMembership } = detail.detail;
   const myRole = myMembership?.role ?? "member";
+  const isAdminRole = myRole === "owner" || myRole === "admin";
+
+  useEffect(() => {
+    setCreditBalance(detail.detail.myMembership?.balance ?? 0);
+  }, [detail.detail.myMembership?.balance]);
 
   // Settings form state
   const [editName, setEditName] = useState(club.name);
@@ -106,7 +117,7 @@ export function ClubDetailView({
   const canCreateInvite = canPerformClubAction(myRole, "create_invite");
   const canViewAudit = canPerformClubAction(myRole, "view_audit_log");
   const canManageTables = canPerformClubAction(myRole, "manage_tables");
-  const isAdmin = canManageMembers;
+  const isAdmin = isAdminRole;
 
   const onlineMembers = useMemo(() =>
     detail.members.filter((m) => isRecentlyOnline(m.lastSeenAt)),
@@ -213,22 +224,97 @@ export function ClubDetailView({
     showToast("Closing table...");
   }, [socket, club.id, showToast]);
 
+  const handleRenameTable = useCallback((tableId: string, currentName: string) => {
+    if (!socket) return;
+    const nextName = prompt("Table name", currentName)?.trim();
+    if (!nextName || nextName === currentName) return;
+    socket.emit("club_table_update", { clubId: club.id, tableId, name: nextName });
+    showToast("Updating table...");
+  }, [socket, club.id, showToast]);
+
+  const handleUpdateTableRuleset = useCallback((tableId: string, rulesetId: string | null) => {
+    if (!socket) return;
+    socket.emit("club_table_update", { clubId: club.id, tableId, rulesetId });
+    showToast("Updating table rules...");
+  }, [socket, club.id, showToast]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const onCreditBalance = (payload: { balance: { clubId: string; userId: string; balance: number } }) => {
+      if (payload.balance.clubId !== club.id) return;
+      if (payload.balance.userId !== userId) return;
+      setCreditBalance(payload.balance.balance);
+    };
+
+    const onLeaderboard = (payload: {
+      clubId: string;
+      entries: ClubLeaderboardEntry[];
+      myRank: number | null;
+      timeRange?: ClubLeaderboardRange;
+      metric?: ClubLeaderboardMetric;
+    }) => {
+      if (payload.clubId !== club.id) return;
+      if (payload.timeRange && payload.timeRange !== leaderboardRange) return;
+      if (payload.metric && payload.metric !== leaderboardMetric) return;
+      setLeaderboardRows(payload.entries ?? []);
+      setMyRank(payload.myRank ?? null);
+    };
+
+    socket.on("club_wallet_balance", onCreditBalance);
+    socket.on("club_leaderboard", onLeaderboard);
+    return () => {
+      socket.off("club_wallet_balance", onCreditBalance);
+      socket.off("club_leaderboard", onLeaderboard);
+    };
+  }, [socket, club.id, userId, leaderboardRange, leaderboardMetric]);
+
+  useEffect(() => {
+    if (!socket) return;
+    if (tab !== "credits") return;
+    socket.emit("club_wallet_balance_get", { clubId: club.id });
+  }, [socket, tab, club.id]);
+
+  useEffect(() => {
+    if (!socket) return;
+    if (tab !== "leaderboard") return;
+    socket.emit("club_leaderboard_get", {
+      clubId: club.id,
+      timeRange: leaderboardRange,
+      metric: leaderboardMetric,
+      limit: 50,
+    });
+  }, [socket, tab, club.id, leaderboardRange, leaderboardMetric]);
+
   const tabs: { id: Tab; label: string; show: boolean }[] = [
-    { id: "overview", label: "Home", show: true },
-    { id: "members", label: `Members (${detail.members.length})`, show: true },
+    { id: "overview", label: "Home", show: isAdminRole },
+    { id: "credits", label: "Credits", show: true },
+    { id: "leaderboard", label: "Leaderboard", show: true },
+    { id: "members", label: `Members (${detail.members.length})`, show: isAdminRole },
     { id: "tables", label: `Tables (${detail.tables.length})`, show: true },
-    { id: "rulesets", label: "Rulesets", show: canManageRulesets },
-    { id: "invites", label: "Invites", show: canCreateInvite },
-    { id: "audit", label: "Activity", show: canViewAudit },
-    { id: "settings", label: "Settings", show: isAdmin },
+    { id: "rulesets", label: "Rulesets", show: isAdminRole && canManageRulesets },
+    { id: "invites", label: "Invites", show: isAdminRole && canCreateInvite },
+    { id: "audit", label: "Activity", show: isAdminRole && canViewAudit },
+    { id: "settings", label: "Settings", show: isAdminRole && isAdmin },
   ];
+
+  const visibleTabs = tabs.filter((t) => t.show);
+
+  useEffect(() => {
+    setTab(isAdminRole ? "overview" : "tables");
+  }, [club.id, isAdminRole]);
+
+  useEffect(() => {
+    if (visibleTabs.some((visible) => visible.id === tab)) return;
+    setTab(isAdminRole ? "overview" : "tables");
+  }, [tab, visibleTabs, isAdminRole]);
 
   return (
     <main className="flex-1 p-6 overflow-y-auto">
       <div className="max-w-4xl mx-auto space-y-4">
         {/* Disclaimer */}
         <div className="glass-card p-2 bg-amber-500/5 border-amber-500/20 text-[10px] text-amber-400/80 text-center">
-          🎓 Play-money training tool — not real-money gambling. All credits are virtual.
+          Virtual credits only. Use room and club workflows for buy-ins and rebuys.
         </div>
 
         {/* Header */}
@@ -290,9 +376,7 @@ export function ClubDetailView({
 
         {/* Tabs */}
         <nav className="flex gap-1 bg-white/5 rounded-xl p-1 overflow-x-auto">
-          {tabs
-            .filter((t) => t.show)
-            .map((t) => (
+          {visibleTabs.map((t) => (
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
@@ -304,7 +388,7 @@ export function ClubDetailView({
               >
                 {t.label}
               </button>
-            ))}
+          ))}
         </nav>
 
         {/* Tab Content */}
@@ -445,6 +529,138 @@ export function ClubDetailView({
             </div>
           )}
 
+          {tab === "credits" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+                <div>
+                  <div className="text-[11px] uppercase tracking-wider text-emerald-300">My Club Credits</div>
+                  <div className="text-2xl font-bold text-white font-mono">{creditBalance.toLocaleString()}</div>
+                </div>
+                <button
+                  onClick={() => {
+                    socket?.emit("club_wallet_balance_get", { clubId: club.id });
+                    showToast("Refreshing credits...");
+                  }}
+                  className="btn-secondary text-xs"
+                >
+                  Refresh
+                </button>
+              </div>
+
+              <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4 space-y-3">
+                <h3 className="text-base font-semibold text-white">Credits</h3>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Virtual Credits</p>
+                  <p className="text-sm text-slate-300">Existing credit actions remain available through room and club workflows.</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Buy-in / Rebuy</p>
+                  <p className="text-sm text-slate-300">Club tables are hostless: rebuys auto-approve if table limits and club funds allow.</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-400">Club Credits</p>
+                  <p className="text-sm text-slate-300">Managed via club credit grant/deduct controls.</p>
+                </div>
+              </div>
+
+              {isAdmin && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      const target = prompt("Target user ID:", detail.members[0]?.userId ?? "");
+                      const amount = Number(prompt("Grant amount:", "1000"));
+                      if (!target || !Number.isFinite(amount) || amount <= 0) return;
+                      socket?.emit("club_wallet_admin_deposit", { clubId: club.id, userId: target, amount, note: "Admin credit grant" });
+                    }}
+                    className="btn-primary text-xs"
+                  >
+                    Grant Credits
+                  </button>
+                  <button
+                    onClick={() => {
+                      const target = prompt("Target user ID:", detail.members[0]?.userId ?? "");
+                      const amount = Number(prompt("Signed adjustment (+/-):", "-100"));
+                      if (!target || !Number.isFinite(amount) || amount === 0) return;
+                      socket?.emit("club_wallet_admin_adjust", { clubId: club.id, userId: target, amount, note: "Admin credit adjustment" });
+                    }}
+                    className="btn-secondary text-xs"
+                  >
+                    Adjust Credits
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === "leaderboard" && (
+            <div className="space-y-4">
+              <div className="flex flex-wrap gap-2 items-center">
+                {(["day", "week", "all"] as const).map((range) => (
+                  <button
+                    key={range}
+                    onClick={() => setLeaderboardRange(range)}
+                    className={`px-2 py-1.5 rounded text-[11px] font-medium border transition-colors ${
+                      leaderboardRange === range
+                        ? "bg-indigo-500/20 border-indigo-400/50 text-indigo-200"
+                        : "bg-white/5 border-white/10 text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    {range === "day" ? "Last 24h" : range === "week" ? "Last 7d" : "All-time"}
+                  </button>
+                ))}
+                <select
+                  value={leaderboardMetric}
+                  onChange={(e) => setLeaderboardMetric(e.target.value as ClubLeaderboardMetric)}
+                  className="px-2 py-1.5 bg-white/5 border border-white/10 rounded text-xs text-white"
+                >
+                  <option value="net">Net</option>
+                  <option value="hands">Hands</option>
+                  <option value="buyin">Buy-in</option>
+                  <option value="deposits">Credits Added</option>
+                </select>
+                <button
+                  onClick={() => socket?.emit("club_leaderboard_get", { clubId: club.id, timeRange: leaderboardRange, metric: leaderboardMetric, limit: 50 })}
+                  className="btn-secondary text-xs"
+                >
+                  Refresh
+                </button>
+                <span className="text-xs text-slate-400 ml-auto">
+                  {leaderboardRange === "day" ? "Last 24 hours" : leaderboardRange === "week" ? "Last 7 days" : "All-time"}
+                </span>
+                <span className="text-xs text-slate-400">
+                  My rank: <span className="text-amber-300 font-semibold">{myRank ?? "—"}</span>
+                </span>
+              </div>
+
+              <div className="rounded-xl border border-white/10 overflow-hidden">
+                <div className="grid grid-cols-6 gap-2 text-[10px] uppercase tracking-wider text-slate-500 bg-white/5 px-3 py-2">
+                  <span>#</span>
+                  <span>Player</span>
+                  <span className="text-right">Metric</span>
+                  <span className="text-right">Balance</span>
+                  <span className="text-right">Hands</span>
+                  <span className="text-right">Net</span>
+                </div>
+                {leaderboardRows.length === 0 ? (
+                  <div className="px-3 py-6 text-center text-xs text-slate-500">No leaderboard data yet.</div>
+                ) : (
+                  leaderboardRows.map((row) => (
+                    <div key={row.userId} className="grid grid-cols-6 gap-2 text-xs px-3 py-2 border-t border-white/5">
+                      <span className="text-amber-300 font-semibold">#{row.rank}</span>
+                      <span className="text-slate-200 truncate">{row.displayName ?? row.userId.slice(0, 8)}</span>
+                      <span className="text-right text-cyan-300 font-mono">{row.metricValue.toLocaleString()}</span>
+                      <span className="text-right text-amber-300 font-mono">{row.balance.toLocaleString()}</span>
+                      <span className="text-right text-slate-400">{row.hands.toLocaleString()}</span>
+                      <span className={`text-right font-mono ${row.net >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                        {row.net >= 0 ? "+" : ""}{row.net.toLocaleString()}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
           {tab === "members" && (
             <div className="space-y-1">
               <div className="flex items-center justify-between mb-3">
@@ -455,7 +671,7 @@ export function ClubDetailView({
               {detail.members
                 .slice()
                 .sort((a, b) => {
-                  const RANK: Record<string, number> = { owner: 5, admin: 4, host: 3, mod: 2, member: 1 };
+                  const RANK: Record<string, number> = { owner: 3, admin: 2, member: 1 };
                   return (RANK[b.role] ?? 0) - (RANK[a.role] ?? 0);
                 })
                 .map((m) => {
@@ -495,8 +711,6 @@ export function ClubDetailView({
                               className="text-[10px] bg-white/5 border border-white/10 rounded px-1.5 py-1 text-slate-300 cursor-pointer"
                             >
                               <option value="member">member</option>
-                              <option value="mod">mod</option>
-                              <option value="host">host</option>
                               <option value="admin">admin</option>
                             </select>
                           )}
@@ -590,9 +804,13 @@ export function ClubDetailView({
                       <div className="text-sm font-medium text-white">{t.name}</div>
                       <div className="text-[10px] text-slate-400">
                         {t.stakes ?? "—"} · {t.playerCount ?? 0}/{t.maxPlayers ?? "?"} players ·{" "}
-                        <span className={t.status === "open" ? "text-emerald-400" : t.status === "paused" ? "text-amber-400" : "text-slate-500"}>
-                          {t.status}
-                        </span>
+                        {t.status === "open" && (t.playerCount ?? 0) < (t.minPlayersToStart ?? 2) ? (
+                          <span className="text-amber-300">Waiting for players</span>
+                        ) : (
+                          <span className={t.status === "open" ? "text-emerald-400" : t.status === "paused" ? "text-amber-400" : "text-slate-500"}>
+                            {t.status}
+                          </span>
+                        )}
                       </div>
                     </div>
                     {t.roomCode && t.status === "open" && (
@@ -603,13 +821,32 @@ export function ClubDetailView({
                         Join Table
                       </button>
                     )}
-                    {canCreateTable && t.status !== "closed" && (
-                      <button
-                        onClick={() => { if (confirm(`Close table "${t.name}"?`)) handleCloseTable(t.id); }}
-                        className="text-[10px] text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-red-500/10 transition-colors"
-                      >
-                        Close
-                      </button>
+                    {canManageTables && t.status !== "closed" && (
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={t.rulesetId ?? ""}
+                          onChange={(e) => handleUpdateTableRuleset(t.id, e.target.value || null)}
+                          className="text-[10px] bg-white/5 border border-white/10 rounded px-2 py-1 text-slate-300"
+                          title="Assigned ruleset"
+                        >
+                          <option value="">Default ruleset</option>
+                          {detail.rulesets.map((rs) => (
+                            <option key={rs.id} value={rs.id}>{rs.name}</option>
+                          ))}
+                        </select>
+                        <button
+                          onClick={() => handleRenameTable(t.id, t.name)}
+                          className="text-[10px] text-cyan-400 hover:text-cyan-300 px-2 py-1 rounded hover:bg-cyan-500/10 transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => { if (confirm(`Close table "${t.name}"?`)) handleCloseTable(t.id); }}
+                          className="text-[10px] text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-red-500/10 transition-colors"
+                        >
+                          Close
+                        </button>
+                      </div>
                     )}
                   </div>
                 ))

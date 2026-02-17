@@ -1,6 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 
-export type AuthSession = { accessToken: string; userId: string; email?: string | null; displayName?: string | null };
+export type AuthSession = {
+  accessToken: string;
+  userId: string;
+  email?: string | null;
+  displayName?: string | null;
+  isGuest: boolean;
+};
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -27,7 +33,13 @@ function getStoredGuestSession(): AuthSession | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<AuthSession>;
     if (parsed?.accessToken && parsed?.userId) {
-      return { accessToken: parsed.accessToken, userId: parsed.userId, email: parsed.email ?? null, displayName: parsed.displayName ?? null };
+      return {
+        accessToken: parsed.accessToken,
+        userId: parsed.userId,
+        email: parsed.email ?? null,
+        displayName: parsed.displayName ?? null,
+        isGuest: parsed.isGuest ?? true,
+      };
     }
     window.localStorage.removeItem(GUEST_SESSION_STORAGE_KEY);
   } catch {
@@ -56,7 +68,13 @@ function clearGuestSession(): void {
 
 function createLocalGuestSession(displayName?: string): AuthSession {
   const guestId = generateGuestId();
-  const session: AuthSession = { accessToken: guestId, userId: guestId, email: null, displayName: displayName || "Guest" };
+  const session: AuthSession = {
+    accessToken: guestId,
+    userId: guestId,
+    email: null,
+    displayName: displayName || "Guest",
+    isGuest: true,
+  };
   persistGuestSession(session);
   return session;
 }
@@ -171,6 +189,7 @@ async function getSupabaseSession(): Promise<AuthSession | null> {
         userId: existing.session.user.id,
         email: existing.session.user.email,
         displayName: dn,
+        isGuest: Boolean((existing.session.user as { is_anonymous?: boolean }).is_anonymous),
       };
     }
     return null;
@@ -287,6 +306,7 @@ export async function getExistingSession(): Promise<AuthSession | null> {
           userId: data.user.id,
           email: data.user.email,
           displayName: cached.displayName || "Guest",
+          isGuest: true,
         };
       }
     } catch {
@@ -294,7 +314,7 @@ export async function getExistingSession(): Promise<AuthSession | null> {
     }
   }
 
-  return cached;
+  return { ...cached, isGuest: cached.isGuest ?? true };
 }
 
 export async function ensureGuestSession(displayName?: string): Promise<AuthSession | null> {
@@ -304,7 +324,9 @@ export async function ensureGuestSession(displayName?: string): Promise<AuthSess
 
   const cached = getStoredGuestSession();
   // If cached guest is already a UUID (from a previous anon sign-in), return it
-  if (cached && isUuid(cached.userId)) return cached;
+  if (cached && isUuid(cached.userId)) {
+    return { ...cached, isGuest: cached.isGuest ?? true };
+  }
 
   // Try Supabase anonymous sign-in (even if we have a local guest — upgrade it)
   if (supabase) {
@@ -319,6 +341,7 @@ export async function ensureGuestSession(displayName?: string): Promise<AuthSess
         userId: data.user.id,
         email: data.user.email,
         displayName: displayName || cached?.displayName || "Guest",
+        isGuest: true,
       };
     } catch (err) {
       if (!isAnonDisabledError(err)) {
@@ -329,7 +352,7 @@ export async function ensureGuestSession(displayName?: string): Promise<AuthSess
   }
 
   // Fallback: return existing local guest or create a new one
-  if (cached) return cached;
+  if (cached) return { ...cached, isGuest: cached.isGuest ?? true };
   return createLocalGuestSession(displayName);
 }
 
@@ -352,7 +375,13 @@ export async function signUpWithEmail(email: string, password: string, displayNa
     if (error) throw error;
     if (!data.session || !data.user) throw new Error("Sign up succeeded but no session returned. Check your email for confirmation.");
     invalidRefreshHandled = false;
-    return { accessToken: data.session.access_token, userId: data.user.id, email: data.user.email, displayName: displayName || null };
+    return {
+      accessToken: data.session.access_token,
+      userId: data.user.id,
+      email: data.user.email,
+      displayName: displayName || null,
+      isGuest: false,
+    };
   } catch (err) {
     if (DEV_MODE) {
       const details = extractAuthErrorDetails(err);
@@ -385,7 +414,13 @@ export async function signInWithEmail(email: string, password: string): Promise<
     invalidRefreshHandled = false;
     const meta = data.user.user_metadata;
     const dn = (typeof meta?.display_name === "string" && meta.display_name) || (typeof meta?.name === "string" && meta.name) || null;
-    return { accessToken: data.session.access_token, userId: data.user.id, email: data.user.email, displayName: dn };
+    return {
+      accessToken: data.session.access_token,
+      userId: data.user.id,
+      email: data.user.email,
+      displayName: dn,
+      isGuest: false,
+    };
   } catch (err) {
     throw friendlyAuthError(err);
   }

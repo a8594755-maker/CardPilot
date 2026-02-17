@@ -252,13 +252,8 @@ describe("ClubManager — permission enforcement", () => {
     mgr.requestJoin(club.code, "admin1", "Admin");
     mgr.updateMemberRole(club.id, "owner", "admin1", "admin");
 
-    mgr.requestJoin(club.code, "mod1", "Mod");
-    mgr.updateMemberRole(club.id, "owner", "mod1", "mod");
-
-    mgr.requestJoin(club.code, "host1", "Host");
-    mgr.updateMemberRole(club.id, "owner", "host1", "host");
-
     mgr.requestJoin(club.code, "member1", "Member");
+    mgr.requestJoin(club.code, "member2", "Member Two");
 
     return { mgr, club };
   }
@@ -276,35 +271,59 @@ describe("ClubManager — permission enforcement", () => {
     assert.equal(updated, null);
   });
 
-  it("admin can promote to mod/host", () => {
+  it("admin can demote another admin to member", () => {
     const { mgr, club } = setupClubWithMembers();
-    const updated = mgr.updateMemberRole(club.id, "admin1", "member1", "mod");
+    const promoted = mgr.updateMemberRole(club.id, "owner", "member1", "admin");
+    assert.ok(promoted);
+
+    const updated = mgr.updateMemberRole(club.id, "admin1", "member1", "member");
     assert.ok(updated);
-    assert.equal(updated!.role, "mod");
+    assert.equal(updated!.role, "member");
   });
 
-  it("mod cannot change roles", () => {
+  it("member cannot change roles", () => {
     const { mgr, club } = setupClubWithMembers();
-    const updated = mgr.updateMemberRole(club.id, "mod1", "member1", "host");
+    const updated = mgr.updateMemberRole(club.id, "member1", "member2", "admin");
     assert.equal(updated, null);
+  });
+
+  it("member cannot approve pending joins (owner/admin only policy)", () => {
+    const mgr = new ClubManager();
+    const club = mgr.createClub({
+      ownerUserId: "owner",
+      ownerDisplayName: "Owner",
+      name: "Join Policy Club",
+      requireApprovalToJoin: true,
+    });
+    const invite = mgr.createInvite(club.id, "owner", 10, 24);
+    assert.ok(invite);
+
+    const memberJoin = mgr.requestJoin(club.code, "member1", "Member", invite!.inviteCode);
+    assert.equal(memberJoin.status, "joined");
+
+    const pendingJoin = mgr.requestJoin(club.code, "pending1", "Pending");
+    assert.equal(pendingJoin.status, "pending");
+
+    const approvedByMember = mgr.approveJoin(club.id, "member1", "pending1");
+    assert.equal(approvedByMember, null);
   });
 
   it("member cannot kick anyone", () => {
     const { mgr, club } = setupClubWithMembers();
-    const ok = mgr.kickMember(club.id, "member1", "mod1");
+    const ok = mgr.kickMember(club.id, "member1", "member2");
     assert.equal(ok, false);
   });
 
-  it("mod can kick member", () => {
+  it("member cannot kick member under owner/admin-only moderation policy", () => {
     const { mgr, club } = setupClubWithMembers();
-    const ok = mgr.kickMember(club.id, "mod1", "member1");
-    assert.equal(ok, true);
-    assert.equal(mgr.isActiveMember(club.id, "member1"), false);
+    const ok = mgr.kickMember(club.id, "member1", "member2");
+    assert.equal(ok, false);
+    assert.equal(mgr.isActiveMember(club.id, "member2"), true);
   });
 
-  it("mod cannot kick admin (higher rank)", () => {
+  it("member cannot kick admin (higher rank)", () => {
     const { mgr, club } = setupClubWithMembers();
-    const ok = mgr.kickMember(club.id, "mod1", "admin1");
+    const ok = mgr.kickMember(club.id, "member1", "admin1");
     assert.equal(ok, false);
   });
 
@@ -325,11 +344,36 @@ describe("ClubManager — permission enforcement", () => {
     assert.equal(mgr.isBanned(club.id, "member1"), false);
   });
 
-  it("host can create tables", () => {
+  it("admin can create tables", () => {
     const { mgr, club } = setupClubWithMembers();
-    const result = mgr.createTable(club.id, "host1", "Host Table");
+    const result = mgr.createTable(club.id, "admin1", "Admin Table");
     assert.ok(result);
-    assert.equal(result!.clubTable.name, "Host Table");
+    assert.equal(result!.clubTable.name, "Admin Table");
+  });
+
+  it("admin can update table name/ruleset, member cannot", () => {
+    const { mgr, club } = setupClubWithMembers();
+    const rs = mgr.createRuleset(club.id, "owner", "Deep", {
+      ...DEFAULT_CLUB_RULES,
+      maxSeats: 8,
+      stakes: { smallBlind: 2, bigBlind: 5 },
+    });
+    assert.ok(rs);
+
+    const created = mgr.createTable(club.id, "owner", "Main");
+    assert.ok(created);
+
+    const updatedByAdmin = mgr.updateTable(club.id, "admin1", created!.clubTable.id, {
+      name: "VIP",
+      rulesetId: rs!.id,
+    });
+    assert.ok(updatedByAdmin);
+    assert.equal(updatedByAdmin!.table.name, "VIP");
+    assert.equal(updatedByAdmin!.table.rulesetId, rs!.id);
+    assert.equal(updatedByAdmin!.rules.maxSeats, 8);
+
+    const updatedByMember = mgr.updateTable(club.id, "member1", created!.clubTable.id, { name: "Member Edit" });
+    assert.equal(updatedByMember, null);
   });
 
   it("member cannot create tables", () => {
@@ -422,6 +466,21 @@ describe("ClubManager — invites", () => {
     });
 
     mgr.requestJoin(club.code, "u2", "Bob"); // joins as member
+    const invite = mgr.createInvite(club.id, "u2");
+    assert.equal(invite, null);
+  });
+
+  it("members cannot create invites (owner/admin only policy)", () => {
+    const mgr = new ClubManager();
+    const club = mgr.createClub({
+      ownerUserId: "u1",
+      ownerDisplayName: "Alice",
+      name: "Invite Policy Club",
+      requireApprovalToJoin: false,
+    });
+
+    mgr.requestJoin(club.code, "u2", "Member User");
+
     const invite = mgr.createInvite(club.id, "u2");
     assert.equal(invite, null);
   });
@@ -561,7 +620,7 @@ describe("ClubManager — club table access enforcement", () => {
     assert.equal(detail, null, "Non-member should not get club detail or table list");
   });
 
-  it("non-admin/non-host cannot create club table", () => {
+  it("non-admin cannot create club table", () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
       ownerUserId: "u1",
@@ -572,7 +631,7 @@ describe("ClubManager — club table access enforcement", () => {
 
     mgr.requestJoin(club.code, "u2", "Bob"); // joins as member
 
-    // Regular member cannot create table (requires host+ role)
+    // Regular member cannot create table
     const result = mgr.createTable(club.id, "u2", "Illegal Table");
     assert.equal(result, null, "Regular member should not be able to create a table");
 
@@ -874,7 +933,7 @@ describe("ClubManager — audit log", () => {
     });
 
     mgr.requestJoin(club.code, "u2", "Bob");
-    mgr.updateMemberRole(club.id, "u1", "u2", "mod");
+    mgr.updateMemberRole(club.id, "u1", "u2", "admin");
     mgr.kickMember(club.id, "u1", "u2");
 
     const detail = mgr.getClubDetail(club.id, "u1");

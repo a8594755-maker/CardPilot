@@ -159,6 +159,7 @@ export function App() {
     if (path.startsWith("/profile")) return "profile";
     return "lobby";
   }, [location.pathname]);
+  const canAccessClubs = Boolean(authSession && !authSession.isGuest);
 
   const goToTable = useCallback((nextTableId?: string, replace = false) => {
     const resolvedTableId = (nextTableId ?? tableId ?? "table-1").trim() || "table-1";
@@ -181,6 +182,11 @@ export function App() {
   useEffect(() => {
     if (location.pathname === "/") {
       navigate("/lobby", { replace: true });
+      return;
+    }
+
+    if (location.pathname.startsWith("/clubs/")) {
+      navigate("/clubs", { replace: true });
       return;
     }
 
@@ -438,7 +444,13 @@ export function App() {
       if (session) {
         const meta = session.user.user_metadata;
         const dn = (typeof meta?.display_name === "string" && meta.display_name) || (typeof meta?.name === "string" && meta.name) || null;
-        const s: AuthSession = { accessToken: session.access_token, userId: session.user.id, email: session.user.email, displayName: dn };
+        const s: AuthSession = {
+          accessToken: session.access_token,
+          userId: session.user.id,
+          email: session.user.email,
+          displayName: dn,
+          isGuest: Boolean((session.user as { is_anonymous?: boolean }).is_anonymous),
+        };
         setAuthSession(s);
         setUserEmail(session.user.email ?? null);
         if (dn) setDisplayName(dn);
@@ -586,8 +598,12 @@ export function App() {
       setSocketConnected(true);
       showToast("Connected");
       s.emit("request_lobby");
-      setClubsLoading(true);
-      s.emit("club_list_my_clubs");
+      if (!authSession?.isGuest) {
+        setClubsLoading(true);
+        s.emit("club_list_my_clubs");
+      } else {
+        setClubsLoading(false);
+      }
 
       const curPath = pathnameRef.current;
       let routeTableId = "";
@@ -1095,6 +1111,12 @@ export function App() {
     s.on("club_table_created", (d: { clubId: string; roomCode: string }) => {
       showToast("Club table created!");
     });
+    s.on("club_table_updated", (d: { clubId: string }) => {
+      const cid = selectedClubIdRef.current;
+      if (cid && cid === d.clubId) {
+        s.emit("club_get_detail", { clubId: cid });
+      }
+    });
     s.on("club_error", (d: { code: string; message: string }) => {
       showToast(`Error: ${d.message}`);
     });
@@ -1106,7 +1128,7 @@ export function App() {
       }
       s.disconnect();
     };
-  }, [socketAuthUserId, socketAuthToken, displayName, navigate, resetSnapshotSyncState, snapshotHash]);
+  }, [socketAuthUserId, socketAuthToken, displayName, navigate, resetSnapshotSyncState, snapshotHash, authSession?.isGuest]);
 
   const canAct = useMemo(() => snapshot?.actorSeat === seat && snapshot?.handId, [snapshot, seat]);
 
@@ -1203,6 +1225,7 @@ export function App() {
   const isHost = useMemo(() => roomState?.ownership.ownerId === authSession?.userId, [roomState, authSession]);
   const isCoHost = useMemo(() => roomState?.ownership.coHostIds.includes(authSession?.userId ?? "") ?? false, [roomState, authSession]);
   const isHostOrCoHost = isHost || isCoHost;
+  const isClubTable = Boolean(roomState?.isClubTable);
   const userRole = useUserRole(roomState, authSession?.userId, seat);
   const handInProgress = useMemo(
     () => (roomState?.status === "PLAYING") || Boolean(snapshot?.handId && (snapshot.actorSeat != null || snapshot.showdownPhase === "decision")),
@@ -1269,7 +1292,7 @@ export function App() {
     if (!canVoluntaryShow) setShowHandConfirm(false);
   }, [canVoluntaryShow]);
   useEffect(() => {
-    if (!isHostOrCoHost) {
+    if (!isHostOrCoHost || isClubTable) {
       setRebuyRequests([]);
       return;
     }
@@ -1283,7 +1306,12 @@ export function App() {
         amount: deposit.amount,
       }))
     );
-  }, [isHostOrCoHost, snapshot?.pendingRebuys]);
+  }, [isHostOrCoHost, isClubTable, snapshot?.pendingRebuys]);
+  useEffect(() => {
+    if (!isClubTable) return;
+    setSeatRequests([]);
+    setRebuyRequests([]);
+  }, [isClubTable]);
   useEffect(() => {
     if (roomState?.settings.roomFundsTracking === false) {
       setShowSessionStats(false);
@@ -1488,6 +1516,15 @@ export function App() {
     showToast("Signed out");
   }
 
+  const handleAuthSuccess = useCallback((s: AuthSession) => {
+    setAuthSession(s);
+    setUserEmail(s.email ?? null);
+    const dn = s.displayName || s.email?.split("@")[0] || "Guest";
+    setDisplayName(dn);
+    setName(dn);
+    showToast("Signed in");
+  }, [showToast]);
+
   /* ── Onboarding state ── */
   const [showOnboarding, setShowOnboarding] = useState(() => {
     try { return !localStorage.getItem("cardpilot_onboarded"); } catch { return true; }
@@ -1511,14 +1548,23 @@ export function App() {
   }
 
   if (!authSession) {
-    return <AuthScreen onAuth={(s) => {
-      setAuthSession(s);
-      setUserEmail(s.email ?? null);
-      const dn = s.displayName || s.email?.split("@")[0] || "Guest";
-      setDisplayName(dn);
-      setName(dn);
-      showToast("Signed in");
-    }} />;
+    return (
+      <AuthScreen
+        onAuth={handleAuthSuccess}
+        disableGuest={location.pathname.startsWith("/clubs")}
+        gateMessage={location.pathname.startsWith("/clubs") ? "Club access requires a logged-in account." : undefined}
+      />
+    );
+  }
+
+  if (view === "clubs" && !canAccessClubs) {
+    return (
+      <AuthScreen
+        onAuth={handleAuthSuccess}
+        disableGuest
+        gateMessage="Club access requires a logged-in account."
+      />
+    );
   }
 
   /* ═══════════════════ RENDER ═══════════════════ */
@@ -1545,7 +1591,7 @@ export function App() {
           {(["lobby", "clubs", "table", "history", "training", "profile"] as const).map((v) => (
             <button key={v} onClick={() => {
               setView(v);
-              if (v === "clubs" && socket) { socket.emit("club_list_my_clubs"); }
+              if (v === "clubs" && socket && canAccessClubs) { socket.emit("club_list_my_clubs"); }
             }}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === v ? "bg-white/10 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
               {v === "lobby" ? "Lobby" : v === "clubs" ? "Clubs" : v === "table" ? "Table" : v === "history" ? "History" : v === "training" ? "Training" : "Profile"}
@@ -1957,13 +2003,13 @@ export function App() {
                     ) : (
                       <span className="text-[9px] text-slate-600" title="Enable Room funds tracking in settings to view stats">Funds tracking off</span>
                     )}
-                    {seatRequests.length > 0 ? (
+                    {!isClubTable && (seatRequests.length > 0 ? (
                       <button className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold animate-pulse">
                         🎫 {seatRequests.length} Request{seatRequests.length > 1 ? "s" : ""}
                       </button>
                     ) : (
                       <span className="text-[9px] text-slate-600">No requests</span>
-                    )}
+                    ))}
                   </>
                 )}
 
@@ -2032,15 +2078,13 @@ export function App() {
                         <button onClick={() => setShowBuyInModal(false)}
                           className="flex-1 py-2 rounded-lg text-xs font-medium bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 transition-all">Cancel</button>
                         <button onClick={() => {
-                          const canSitDirectly = isHostOrCoHost;
+                          const canSitDirectly = isHostOrCoHost || isClubTable;
                           debugLog("[BUY_IN_MODAL] Sit button clicked. canSitDirectly:", canSitDirectly, "isHostOrCoHost:", isHostOrCoHost);
                           
                           if (canSitDirectly) {
-                            // Host/Creator auto-sits directly
-                            debugLog("[BUY_IN_MODAL] Emitting sit_down (host)");
+                            debugLog("[BUY_IN_MODAL] Emitting sit_down (direct)");
                             socket?.emit("sit_down", { tableId, seat: pendingSitSeat, buyIn: (rejoinStackInfo?.tableId === tableId && rejoinStackInfo.stack != null ? rejoinStackInfo.stack : buyInAmount), name });
                           } else {
-                            // Non-host sends a request for host approval
                             debugLog("[BUY_IN_MODAL] Emitting seat_request (guest)");
                             socket?.emit("seat_request", { tableId, seat: pendingSitSeat, buyIn: (rejoinStackInfo?.tableId === tableId && rejoinStackInfo.stack != null ? rejoinStackInfo.stack : buyInAmount), name });
                           }
@@ -2048,12 +2092,12 @@ export function App() {
                           try { if (currentRoomCode) localStorage.setItem(`cardpilot_buyin_${currentRoomCode}`, String(buyInAmount)); } catch { /* ignore */ }
                           setShowBuyInModal(false);
                         }} className="flex-1 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-900/30 hover:from-emerald-400 hover:to-emerald-500 transition-all">
-                          {isHostOrCoHost ? "Sit Down" : "Request Seat"}
+                          {isClubTable || isHostOrCoHost ? "Sit Down" : "Request Seat"}
                         </button>
                       </div>
                       <p className="text-[9px] text-slate-600 text-center">
                         Seat #{pendingSitSeat} · Blinds {settings?.smallBlind ?? 1}/{bb}
-                        {!isHostOrCoHost && " · Requires host approval"}
+                        {!isClubTable && !isHostOrCoHost && " · Requires host approval"}
                       </p>
                     </div>
                   </div>
@@ -2070,7 +2114,7 @@ export function App() {
                 return (
                   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65" onClick={() => setShowRebuyModal(false)}>
                     <div className="glass-card p-5 w-72 space-y-3" onClick={(e) => e.stopPropagation()}>
-                      <h3 className="text-sm font-bold text-emerald-400 text-center">Request Rebuy</h3>
+                      <h3 className="text-sm font-bold text-emerald-400 text-center">{isClubTable ? "Top Up Stack" : "Request Rebuy"}</h3>
                       <div className="text-center">
                         <span className="text-2xl font-bold text-emerald-400 font-mono">{rebuyAmount.toLocaleString()}</span>
                         <div className="text-[10px] text-slate-500 mt-0.5">{(rebuyAmount / bb).toFixed(0)} BB</div>
@@ -2089,17 +2133,23 @@ export function App() {
                           socket?.emit("deposit_request", { tableId, amount: rebuyAmount });
                           setShowRebuyModal(false);
                         }} className="flex-1 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-900/30 hover:from-emerald-400 hover:to-emerald-500 transition-all disabled:opacity-40">
-                          {isHostOrCoHost ? "Top Up" : "Request"}
+                          {isClubTable || isHostOrCoHost ? "Top Up" : "Request"}
                         </button>
                       </div>
-                      <p className="text-[9px] text-slate-600 text-center">{isHostOrCoHost ? "Auto-approved · Credited at next hand start" : "Host must approve · Credited at next hand start"}</p>
+                      <p className="text-[9px] text-slate-600 text-center">
+                        {isClubTable
+                          ? "Instantly approved for club tables · Credited at next hand start"
+                          : isHostOrCoHost
+                            ? "Auto-approved · Credited at next hand start"
+                            : "Host must approve · Credited at next hand start"}
+                      </p>
                     </div>
                   </div>
                 );
               })()}
 
               {/* ── Rebuy Requests (Host Only) ── */}
-              {isHostOrCoHost && rebuyRequests.length > 0 && (
+              {!isClubTable && isHostOrCoHost && rebuyRequests.length > 0 && (
                 <div className="mx-3 mt-1 shrink-0">
                   <div className="glass-card p-3 border border-cyan-500/30 bg-cyan-500/5">
                     <h3 className="text-xs font-bold text-cyan-400 mb-2">Rebuy Requests ({rebuyRequests.length})</h3>
@@ -2127,7 +2177,7 @@ export function App() {
               )}
 
               {/* ── Seat Request Panel (Host Only) ── */}
-              {isHostOrCoHost && seatRequests.length > 0 && (
+              {!isClubTable && isHostOrCoHost && seatRequests.length > 0 && (
                 <div className="mx-3 mt-2 shrink-0 animate-pulse">
                   <div className="glass-card p-4 border-2 border-emerald-500/50 bg-gradient-to-r from-emerald-500/10 to-emerald-600/10 shadow-lg shadow-emerald-500/20">
                     <div className="flex items-center justify-between mb-3">
@@ -2864,7 +2914,7 @@ export function App() {
           activeView={view}
           onNavigate={(v) => {
             setView(v);
-            if (v === "clubs" && socket) { socket.emit("club_list_my_clubs"); }
+            if (v === "clubs" && socket && canAccessClubs) { socket.emit("club_list_my_clubs"); }
             setShowMoreMenu(false);
           }}
           onMoreOpen={() => setShowMoreMenu((prev) => !prev)}
@@ -2878,7 +2928,7 @@ export function App() {
           activeView={view}
           onNavigate={(v) => {
             setView(v);
-            if (v === "clubs" && socket) { socket.emit("club_list_my_clubs"); }
+            if (v === "clubs" && socket && canAccessClubs) { socket.emit("club_list_my_clubs"); }
           }}
           onSignOut={handleLogout}
         />
@@ -2963,7 +3013,7 @@ function ProfilePage({ displayName, setDisplayName, email, authSession }: {
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
     // Persist to Supabase in background
-    if (supabase && authSession && !authSession.userId.startsWith("guest-")) {
+    if (supabase && authSession && !authSession.isGuest) {
       supabase.auth.updateUser({ data: { display_name: trimmed } }).catch(() => {});
     }
   }
@@ -4502,7 +4552,15 @@ function OnboardingModal({ onComplete }: { onComplete: () => void }) {
 }
 
 /* ═══════════════════ AUTH SCREEN COMPONENT ═══════════════════ */
-function AuthScreen({ onAuth }: { onAuth: (s: AuthSession) => void }) {
+function AuthScreen({
+  onAuth,
+  disableGuest = false,
+  gateMessage,
+}: {
+  onAuth: (s: AuthSession) => void;
+  disableGuest?: boolean;
+  gateMessage?: string;
+}) {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -4584,6 +4642,10 @@ function AuthScreen({ onAuth }: { onAuth: (s: AuthSession) => void }) {
   }
 
   async function handleGuest() {
+    if (disableGuest) {
+      setError("Club access requires a logged-in account.");
+      return;
+    }
     setError(""); setLoading(true);
     try {
       const guestName = authDisplayName.trim() || "Guest";
@@ -4611,6 +4673,11 @@ function AuthScreen({ onAuth }: { onAuth: (s: AuthSession) => void }) {
 
         {/* Card */}
         <div className="glass-card p-8">
+          {gateMessage && (
+            <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-sm text-amber-300">
+              {gateMessage}
+            </div>
+          )}
           {/* Google OAuth — prominent, above email form */}
           {supabase && (
             <>
@@ -4709,9 +4776,9 @@ function AuthScreen({ onAuth }: { onAuth: (s: AuthSession) => void }) {
             <input value={authDisplayName} onChange={(e) => setAuthDisplayName(e.target.value)}
               placeholder="Enter your name (optional)" maxLength={32}
               className="input-field w-full text-center text-sm" />
-            <button onClick={handleGuest} disabled={isDisabled}
+            <button onClick={handleGuest} disabled={isDisabled || disableGuest}
               className="btn-ghost w-full !py-3 text-sm">
-              Continue as Guest
+              {disableGuest ? "Guest Access Disabled for Clubs" : "Continue as Guest"}
             </button>
           </div>
         </div>

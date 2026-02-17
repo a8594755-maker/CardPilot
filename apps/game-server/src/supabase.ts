@@ -19,6 +19,7 @@ type TableStatus = "OPEN" | "CLOSED";
 export type VerifiedIdentity = {
   userId: string;
   displayName: string;
+  isAuthenticated: boolean;
 };
 
 export type SeatPersistenceRecord = {
@@ -93,7 +94,8 @@ export class SupabasePersistence {
       }
       return {
         userId: `guest-${Math.random().toString(36).slice(2, 10)}`,
-        displayName: safeDisplayName(fallbackName)
+        displayName: safeDisplayName(fallbackName),
+        isAuthenticated: false,
       };
     }
 
@@ -118,9 +120,12 @@ export class SupabasePersistence {
       }
     }
 
+    const isAnonymousUser = Boolean((data.user as { is_anonymous?: boolean }).is_anonymous);
+
     return {
       userId: data.user.id,
-      displayName
+      displayName,
+      isAuthenticated: !isAnonymousUser,
     };
   }
 
