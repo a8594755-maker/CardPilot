@@ -17,7 +17,7 @@ import type {
   TimerState
 } from "@cardpilot/shared-types";
 import { getClockwiseSeatsFromButton } from "@cardpilot/shared-types";
-import { getExistingSession, ensureGuestSession, signUpWithEmail, signInWithEmail, signInWithGoogle, signOut, supabase, validateEmail, validatePassword, getRateLimitSecondsLeft, isUuid, type AuthSession } from "./supabase";
+import { getExistingSession, ensureGuestSession, signUpWithEmail, signInWithEmail, signInWithGoogle, signOut, supabase, validateEmail, validatePassword, getRateLimitSecondsLeft, isUuid, normalizeClientUserId, type AuthSession } from "./supabase";
 import { preloadCardImages } from "./lib/card-images.js";
 // SettlementOverlay removed — replaced by non-blocking linger feedback + HandSummaryDrawer
 import { PokerCard } from "./components/PokerCard";
@@ -59,10 +59,69 @@ const APP_VERSION = "v0.4.1";
 const NETLIFY_COMMIT_REF = import.meta.env.VITE_NETLIFY_COMMIT_REF || "";
 const NETLIFY_DEPLOY_ID = import.meta.env.VITE_NETLIFY_DEPLOY_ID || "";
 const BUILD_TIME = new Date().toISOString().slice(0, 16).replace("T", " ");
+const SOUND_PREF_KEY = "cardpilot_sound_muted";
 
 const debugLog = (...args: unknown[]) => {
   if (DEBUG_LOGS_ENABLED) console.log(...args);
 };
+
+type UiSfx = "deal" | "flip" | "chipBet" | "chipWin" | "turn";
+let sharedAudioCtx: AudioContext | null = null;
+
+function getAudioCtx(): AudioContext | null {
+  if (typeof window === "undefined") return null;
+  const Ctx = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!Ctx) return null;
+  if (!sharedAudioCtx) sharedAudioCtx = new Ctx();
+  if (sharedAudioCtx.state === "suspended") {
+    void sharedAudioCtx.resume().catch(() => {});
+  }
+  return sharedAudioCtx;
+}
+
+function playUiSfxTone(kind: UiSfx, muted: boolean) {
+  if (muted) return;
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  const out = ctx.createGain();
+  out.gain.value = 0.05;
+  out.connect(ctx.destination);
+
+  const pulse = (freq: number, start: number, duration: number, type: OscillatorType = "sine", gain = 0.24) => {
+    const osc = ctx.createOscillator();
+    const env = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, start);
+    env.gain.setValueAtTime(0.0001, start);
+    env.gain.exponentialRampToValueAtTime(gain, start + 0.012);
+    env.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    osc.connect(env);
+    env.connect(out);
+    osc.start(start);
+    osc.stop(start + duration + 0.02);
+  };
+
+  if (kind === "deal") {
+    pulse(520, now, 0.05, "triangle", 0.18);
+    pulse(660, now + 0.055, 0.05, "triangle", 0.16);
+    return;
+  }
+  if (kind === "flip") {
+    pulse(740, now, 0.06, "square", 0.1);
+    return;
+  }
+  if (kind === "chipBet") {
+    pulse(220, now, 0.06, "triangle", 0.18);
+    return;
+  }
+  if (kind === "chipWin") {
+    pulse(420, now, 0.07, "triangle", 0.14);
+    pulse(560, now + 0.06, 0.08, "triangle", 0.14);
+    return;
+  }
+  pulse(300, now, 0.08, "sine", 0.2); // turn
+}
 
 /** Compute evenly-spaced seat positions around an ellipse for the given player count.
  *  Seat 1 starts at bottom-center and proceeds clockwise. */
@@ -274,12 +333,30 @@ export function App() {
   const [tableTheme, setTableTheme] = useState<TableTheme>(() => {
     try { const v = localStorage.getItem("cardpilot_table_theme"); return v === "blue" ? "blue" : "green"; } catch { return "green"; }
   });
+  const [soundMuted, setSoundMuted] = useState(() => {
+    try { return localStorage.getItem(SOUND_PREF_KEY) === "true"; } catch { return false; }
+  });
+  const [holeDealEpoch, setHoleDealEpoch] = useState(0);
+  const [potPulseActive, setPotPulseActive] = useState(false);
+  const [winnerFlareActive, setWinnerFlareActive] = useState(false);
+  const [winnerSeatPulse, setWinnerSeatPulse] = useState<number | null>(null);
+  const [boardRevealTokens, setBoardRevealTokens] = useState<Record<string, number>>({});
 
   /* ── Chip animation state ── */
   const [chipAnimSpeed, setChipAnimSpeed] = useState<AnimationSpeed>(loadAnimationSpeed);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const potRef = useRef<HTMLDivElement>(null);
   const seatRefs = useRef<Record<number, HTMLElement | null>>({});
+  const prevHoleSigRef = useRef("");
+  const prevBoardTotalRef = useRef(0);
+  const prevBoardHandRef = useRef<string | null>(null);
+  const prevBoardRevealHandRef = useRef<string | null>(null);
+  const prevBoardSlotKeysRef = useRef<Set<string>>(new Set());
+  const boardRevealSeqRef = useRef(0);
+  const lastChipSfxTransferIdRef = useRef<string | null>(null);
+  const potPulseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const winnerFlareTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const winnerSeatPulseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Re-create anchors object on each render so driver reads live DOM refs
   const chipAnchorsLive: ChipAnimationAnchors = {
     container: tableContainerRef.current,
@@ -316,6 +393,10 @@ export function App() {
     }
   }, []);
 
+  const playUiSfx = useCallback((kind: UiSfx) => {
+    playUiSfxTone(kind, soundMuted);
+  }, [soundMuted]);
+
   const clearLinger = useCallback(() => {
     if (lingerTimerRef.current) { clearTimeout(lingerTimerRef.current); lingerTimerRef.current = null; }
     setLingerActive(false);
@@ -330,6 +411,9 @@ export function App() {
   useEffect(() => {
     try { localStorage.setItem("cardpilot_show_gto", String(showGtoSidebar)); } catch {}
   }, [showGtoSidebar]);
+  useEffect(() => {
+    try { localStorage.setItem(SOUND_PREF_KEY, String(soundMuted)); } catch {}
+  }, [soundMuted]);
 
   /* ── Refs for latest state (avoid stale closures in socket handlers) ── */
   const seatRef = useRef(seat);
@@ -380,6 +464,117 @@ export function App() {
   useEffect(() => { pathnameRef.current = location.pathname; }, [location.pathname]);
   useEffect(() => { currentRoomCodeRef.current = currentRoomCode; }, [currentRoomCode]);
   useEffect(() => { currentRoomNameRef.current = currentRoomName; }, [currentRoomName]);
+
+  const totalVisibleBoardCards = useMemo(() => {
+    if (!snapshot?.handId) return 0;
+    if (snapshot.runoutBoards && snapshot.runoutBoards.length > 1) {
+      return snapshot.runoutBoards.reduce((sum, row) => sum + row.length, 0);
+    }
+    return snapshot.board?.length ?? 0;
+  }, [snapshot?.handId, snapshot?.board, snapshot?.runoutBoards]);
+
+  const visibleBoardSlotKeys = useMemo(() => {
+    if (!snapshot?.handId) return [] as string[];
+    if (snapshot.runoutBoards && snapshot.runoutBoards.length > 1) {
+      return snapshot.runoutBoards.flatMap((row, runIdx) =>
+        row.map((_, cardIdx) => `run-${runIdx}-card-${cardIdx}`)
+      );
+    }
+    return (snapshot.board ?? []).map((_, cardIdx) => `main-${cardIdx}`);
+  }, [snapshot?.handId, snapshot?.board, snapshot?.runoutBoards]);
+
+  useEffect(() => {
+    const handId = snapshot?.handId ?? "";
+    const holeSig = handId ? `${handId}:${holeCards.join(",")}` : "";
+    if (holeCards.length >= 2 && holeSig && holeSig !== prevHoleSigRef.current) {
+      setHoleDealEpoch((v) => v + 1);
+      playUiSfx("deal");
+    }
+    prevHoleSigRef.current = holeSig;
+  }, [snapshot?.handId, holeCards, playUiSfx]);
+
+  useEffect(() => {
+    const handId = snapshot?.handId ?? null;
+    if (!handId) {
+      prevBoardHandRef.current = null;
+      prevBoardTotalRef.current = 0;
+      return;
+    }
+    if (prevBoardHandRef.current !== handId) {
+      prevBoardHandRef.current = handId;
+      prevBoardTotalRef.current = 0;
+    }
+    if (totalVisibleBoardCards > prevBoardTotalRef.current) {
+      playUiSfx("flip");
+    }
+    prevBoardTotalRef.current = totalVisibleBoardCards;
+  }, [snapshot?.handId, totalVisibleBoardCards, playUiSfx]);
+
+  useEffect(() => {
+    const handId = snapshot?.handId ?? null;
+    if (!handId) {
+      prevBoardRevealHandRef.current = null;
+      prevBoardSlotKeysRef.current = new Set();
+      setBoardRevealTokens({});
+      return;
+    }
+
+    if (prevBoardRevealHandRef.current !== handId) {
+      prevBoardRevealHandRef.current = handId;
+      prevBoardSlotKeysRef.current = new Set();
+      setBoardRevealTokens({});
+    }
+
+    const previous = prevBoardSlotKeysRef.current;
+    const next = new Set(visibleBoardSlotKeys);
+    const newlyVisible = visibleBoardSlotKeys.filter((slotKey) => !previous.has(slotKey));
+
+    if (newlyVisible.length > 0) {
+      setBoardRevealTokens((current) => {
+        const updated = { ...current };
+        for (const slotKey of newlyVisible) {
+          boardRevealSeqRef.current += 1;
+          updated[slotKey] = boardRevealSeqRef.current;
+        }
+        return updated;
+      });
+    }
+
+    prevBoardSlotKeysRef.current = next;
+  }, [snapshot?.handId, visibleBoardSlotKeys]);
+
+  useEffect(() => {
+    if (chipTransfers.length === 0) return;
+    const latest = chipTransfers[chipTransfers.length - 1];
+    if (latest.id === lastChipSfxTransferIdRef.current) return;
+    lastChipSfxTransferIdRef.current = latest.id;
+
+    if (latest.kind === "toWinner") {
+      playUiSfx("chipWin");
+      setWinnerFlareActive(true);
+      if (winnerFlareTimerRef.current) clearTimeout(winnerFlareTimerRef.current);
+      winnerFlareTimerRef.current = setTimeout(() => setWinnerFlareActive(false), 420);
+      if (typeof latest.seat === "number") {
+        setWinnerSeatPulse(latest.seat);
+        if (winnerSeatPulseTimerRef.current) clearTimeout(winnerSeatPulseTimerRef.current);
+        winnerSeatPulseTimerRef.current = setTimeout(() => setWinnerSeatPulse(null), 520);
+      }
+      return;
+    }
+
+    playUiSfx("chipBet");
+    setPotPulseActive(true);
+    if (potPulseTimerRef.current) clearTimeout(potPulseTimerRef.current);
+    potPulseTimerRef.current = setTimeout(() => setPotPulseActive(false), 320);
+  }, [chipTransfers, playUiSfx]);
+
+  useEffect(() => {
+    return () => {
+      if (potPulseTimerRef.current) clearTimeout(potPulseTimerRef.current);
+      if (winnerFlareTimerRef.current) clearTimeout(winnerFlareTimerRef.current);
+      if (winnerSeatPulseTimerRef.current) clearTimeout(winnerSeatPulseTimerRef.current);
+    };
+  }, []);
 
   /* ── Client-side timer tick: count down remaining every second ── */
   const [timerDisplay, setTimerDisplay] = useState<TimerState | null>(null);
@@ -444,12 +639,13 @@ export function App() {
       if (session) {
         const meta = session.user.user_metadata;
         const dn = (typeof meta?.display_name === "string" && meta.display_name) || (typeof meta?.name === "string" && meta.name) || null;
+        const isGuest = Boolean((session.user as { is_anonymous?: boolean }).is_anonymous);
         const s: AuthSession = {
           accessToken: session.access_token,
-          userId: session.user.id,
+          userId: normalizeClientUserId(session.user.id, isGuest),
           email: session.user.email,
           displayName: dn,
-          isGuest: Boolean((session.user as { is_anonymous?: boolean }).is_anonymous),
+          isGuest,
         };
         setAuthSession(s);
         setUserEmail(session.user.email ?? null);
@@ -1003,7 +1199,11 @@ export function App() {
     // Room management events
     s.on("room_state_update", (d: RoomFullState) => {
       if (!d) return;
-      debugLog("[client] room_state_update received, owner:", d.ownership?.ownerId);
+      debugLog("[client] room_state_update identity check", {
+        clientUserId: socketAuthUserId,
+        ownerId: d.ownership?.ownerId,
+        isHost: d.ownership?.ownerId === socketAuthUserId,
+      });
       setRoomState(d);
       if (d.log) setRoomLog(d.log);
     });
@@ -1182,6 +1382,7 @@ export function App() {
     const becameMyTurn = isPlayersTurn && !wasMyTurnRef.current;
     wasMyTurnRef.current = isPlayersTurn;
     if (!becameMyTurn) return;
+    playUiSfx("turn");
 
     const decision = shouldAutoFirePreAction({
       preAction,
@@ -1208,7 +1409,7 @@ export function App() {
     setActionPending(true);
     setPreAction(null);
     socket?.emit("action_submit", { tableId, handId: snapshot.handId, action: decision.action, amount: decision.amount });
-  }, [snapshot?.handId, snapshot?.actorSeat, snapshot?.street, snapshot?.showdownPhase, seat, preAction, actionPending, socket, tableId, authSession?.userId, holeCards.length, holeCards]);
+  }, [snapshot?.handId, snapshot?.actorSeat, snapshot?.street, snapshot?.showdownPhase, seat, preAction, actionPending, socket, tableId, authSession?.userId, holeCards.length, holeCards, playUiSfx]);
 
   useEffect(() => {
     if (!preAction) return;
@@ -1444,6 +1645,7 @@ export function App() {
             lastAction={lastActionBySeat[seatNum] ?? null}
             equity={equity} handHint={handHint} pendingLeave={isPendingLeave} revealedCards={revealedCards} revealedHandName={revealedHandName} isMucked={isMucked}
             isWinner={lingerActive && lingerWinnerSeats.has(seatNum)}
+            isWinnerPulse={winnerSeatPulse === seatNum}
             netDelta={lingerActive ? lingerSeatDeltas[seatNum] : undefined}
             onClickRevealed={revealedCards ? () => {
               setRevealedZoom({
@@ -1457,7 +1659,7 @@ export function App() {
         </div>
       );
     });
-  }, [snapshot, seat, roomState, timerDisplay, boardReveal, displayBB, seatPositions, heroSeatForLayout, handleSeatClick, lastActionBySeat, lingerActive, lingerWinnerSeats, lingerSeatDeltas]);
+  }, [snapshot, seat, roomState, timerDisplay, boardReveal, displayBB, seatPositions, heroSeatForLayout, handleSeatClick, lastActionBySeat, lingerActive, lingerWinnerSeats, lingerSeatDeltas, winnerSeatPulse]);
 
   // Debug seat requests
   useEffect(() => {
@@ -1704,6 +1906,7 @@ export function App() {
                 socket.emit("join_room_code", { roomCode: openRoom.roomCode });
                 showToast("Quick-matching into room...");
               } else {
+                debugLog("[CREATE_ROOM] Emitting create_room", { clientUserId: authSession?.userId, settings: createSettings });
                 socket.emit("create_room", {
                   roomName: `${createSettings.sb}/${createSettings.bb} NLH`,
                   maxPlayers: createSettings.maxPlayers,
@@ -1722,6 +1925,7 @@ export function App() {
             }}
             onCreateRoom={(s: CreateRoomSettings) => {
               if (!socket) { showToast("Not connected to server"); return; }
+              debugLog("[CREATE_ROOM] Emitting create_room", { clientUserId: authSession?.userId, settings: s });
               socket.emit("create_room", {
                 roomName: `${s.sb}/${s.bb} NLH`,
                 maxPlayers: s.maxPlayers,
@@ -1845,7 +2049,7 @@ export function App() {
               )}
 
               {/* ── Controls Strip ── */}
-              <div className="px-3 py-1.5 flex flex-wrap items-center gap-2 border-b border-white/5 shrink-0">
+              <div className="cp-control-strip shrink-0">
                 <input value={name} onChange={(e) => setName(e.target.value)} className="input-field !py-1 !px-2 w-24 text-xs" placeholder="Name" />
                 <button
                   disabled={dealDisabledReason != null}
@@ -1916,6 +2120,14 @@ export function App() {
                   className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all ${chipAnimSpeed === "off" ? "bg-white/5 text-slate-500 border-white/10" : chipAnimSpeed === "slow" ? "bg-amber-500/15 text-amber-400 border-amber-500/30" : "bg-purple-500/15 text-purple-400 border-purple-500/30"}`}
                   title={`Chip animations: ${chipAnimSpeed} (click to cycle)`}>
                   {chipAnimSpeed === "off" ? "Anim Off" : chipAnimSpeed === "slow" ? "Anim Slow" : "Anim"}
+                </button>
+
+                <button
+                  onClick={() => setSoundMuted((m) => !m)}
+                  className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all ${soundMuted ? "bg-white/5 text-slate-500 border-white/10" : "bg-cyan-500/15 text-cyan-300 border-cyan-500/30"}`}
+                  title={soundMuted ? "Enable table sounds" : "Mute table sounds"}
+                >
+                  {soundMuted ? "🔇 Mute" : "🔊 SFX"}
                 </button>
 
                 <button onClick={() => {
@@ -2299,11 +2511,10 @@ export function App() {
               )}
 
               {/* ── CENTER: TABLE + SIDEBAR ── */}
-              <div className="flex-1 flex overflow-hidden min-h-0 cp-scene-bg">
-                {/* Table area — maximized viewport usage */}
-                <div className="flex-1 flex flex-col items-center justify-center p-2 overflow-hidden relative" style={{ zIndex: 2 }}>
+              <div className="cp-table-layout cp-scene-bg">
+                <section className="cp-table-region-header">
                   {/* Info strip — improved numeric hierarchy */}
-                  <div className="w-full max-w-3xl flex items-center justify-between mb-1.5 px-2 shrink-0">
+                  <div className="cp-table-info-strip">
                     <div className="flex items-center gap-3">
                       <InfoCell label="Hand" value={snapshot?.handId ? snapshot.handId.slice(0, 8) : "—"} />
                       <div className="w-px h-5 bg-white/10" />
@@ -2348,41 +2559,67 @@ export function App() {
                       </div>
                     </div>
                   </div>
+                </section>
+
+                {/* Table area — maximized viewport usage */}
+                <section className="cp-table-region-table" style={{ zIndex: 2 }}>
 
                   {/* Table surface + overlays — CSS green felt, wider */}
-                  <div ref={tableContainerRef} className={`relative w-full max-w-3xl select-none shrink ${lingerActive ? "cursor-pointer" : ""}`}
+                  <div
+                    ref={tableContainerRef}
+                    className={`cp-table-canvas ${lingerActive ? "cursor-pointer" : ""} ${winnerFlareActive ? "cp-table-canvas--winner-flare" : ""}`}
                     onClick={lingerActive ? () => { clearLinger(); setWinners(null); setSettlement(null); } : undefined}>
-                    <div className={`aspect-[16/9] rounded-[50%] ${tableTheme === "blue" ? "poker-table-surface-blue" : "poker-table-surface"}`} />
+                    <div className={`cp-table-felt ${tableTheme === "blue" ? "cp-table-felt--blue" : "cp-table-felt--green"}`} />
 
                     {/* Community cards — centered on table (supports up to 3 runout boards) */}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ top: "-2%" }}>
+                    <div className="cp-table-center">
                       {snapshot?.runoutBoards && snapshot.runoutBoards.length > 1 ? (
                         /* Multi-run: one row per run board, revealed sequentially by the server */
-                        <div className="flex flex-col gap-1 items-center pointer-events-auto" style={{ width: "36%" }}>
+                        <div className="cp-board-stack">
                           {snapshot.runoutBoards.map((board, runIdx) => (
-                            <div key={runIdx} className={`flex items-center gap-0.5 w-full transition-all duration-200 ${board.length === 0 ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}>
-                              <span className={`text-[7px] font-bold uppercase shrink-0 w-6 text-center ${
+                            <div key={runIdx} className={`cp-board-row w-full transition-all duration-200 ${board.length === 0 ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}>
+                              <span className={`cp-board-run-badge shrink-0 ${
                                 runIdx === 0 ? "text-cyan-400" : runIdx === 1 ? "text-amber-400" : "text-emerald-400"
                               }`}>
                                 R{runIdx + 1}
                               </span>
-                              <div className="flex gap-0.5 flex-1">
-                                {board.map((c: string, i: number) => (
-                                  <div key={i} className="cp-rit-card-reveal" style={{ animationDelay: `${i * 75}ms` }}>
-                                    <PokerCard card={c} variant="seat" />
-                                  </div>
-                                ))}
+                              <div className="cp-board-row flex-1 justify-start">
+                                {board.map((c: string, i: number) => {
+                                  const slotKey = `run-${runIdx}-card-${i}`;
+                                  const revealToken = boardRevealTokens[slotKey] ?? 0;
+                                  return (
+                                    <div
+                                      key={`${snapshot?.handId ?? "h"}-${slotKey}-${revealToken}`}
+                                      className={revealToken > 0 ? "cp-card-flip-in" : ""}
+                                      style={revealToken > 0 ? { animationDelay: `${(runIdx * 2 + i) * 80}ms` } : undefined}
+                                    >
+                                      <PokerCard card={c} variant="table" />
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>
                           ))}
                         </div>
                       ) : (
                         /* Standard single board */
-                        <div className="flex gap-1 pointer-events-auto" style={{ width: "32%" }}>
+                        <div className="cp-board-row cp-board-row--single">
                           {snapshot?.board && snapshot.board.length > 0
-                            ? snapshot.board.map((c: string, i: number) => <PokerCard key={i} card={c} variant="table" />)
+                            ? snapshot.board.map((c: string, i: number) => {
+                                const slotKey = `main-${i}`;
+                                const revealToken = boardRevealTokens[slotKey] ?? 0;
+                                return (
+                                  <div
+                                    key={`${snapshot.handId ?? "h"}-${slotKey}-${revealToken}`}
+                                    className={revealToken > 0 ? "cp-card-flip-in" : ""}
+                                    style={revealToken > 0 ? { animationDelay: `${i * 80}ms` } : undefined}
+                                  >
+                                    <PokerCard card={c} variant="table" />
+                                  </div>
+                                );
+                              })
                             : Array.from({ length: 5 }).map((_, i) => (
-                                <div key={i} className="flex-1 min-w-0 max-w-[56px] aspect-[2.5/3.5] rounded border border-dashed border-white/15 bg-white/[0.04]" />
+                                <div key={i} className="cp-board-slot" />
                               ))}
                         </div>
                       )}
@@ -2390,15 +2627,15 @@ export function App() {
 
                     {/* Runout street badge — positioned above pot summary */}
                     {boardReveal && (
-                      <div className="absolute left-1/2 -translate-x-1/2 top-[26%] z-20 px-2 py-0.5 rounded-full bg-black/65 border border-cyan-500/30 text-[10px] font-semibold text-cyan-300 tracking-wide">
+                      <div className="cp-board-badge">
                         Runout: {boardReveal.street}
                       </div>
                     )}
 
                     {/* Pot chip on table (always render anchor ref for animations) */}
-                    <div ref={potRef} className="absolute top-[32%] left-1/2 -translate-x-1/2 pointer-events-none">
+                    <div ref={potRef} className="cp-pot-anchor">
                       {potNumbers.totalPot > 0 && (
-                        <div className="bg-black/70 px-2 py-1 rounded-xl text-[10px] shadow-lg border border-amber-500/20 min-w-[92px]">
+                        <div className={`cp-pot-pill text-[10px] ${potPulseActive ? "cp-pot-pill--pulse" : ""}`}>
                           <div className="flex items-center justify-between gap-2 text-slate-300 uppercase tracking-wider text-[8px]">
                             <span>Pushed</span>
                             <span className="text-emerald-300 font-bold cp-num normal-case">{formatChips(potNumbers.pushedPot, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</span>
@@ -2412,7 +2649,7 @@ export function App() {
                     </div>
 
                     {/* Player seats */}
-                    {seatElements}
+                    <div className="cp-seat-ring">{seatElements}</div>
 
                     {/* Chip animation overlay */}
                     <ChipAnimationLayer transfers={chipTransfers} onTransferDone={removeChipTransfer} speed={chipAnimSpeed} />
@@ -2420,7 +2657,7 @@ export function App() {
 
                   {/* Hole cards — rendered in normal flow below the table image to avoid overlapping timer/buttons */}
                   {holeCards.length > 0 && (
-                    <div className="flex items-center justify-center gap-1.5 py-1 flex-wrap">
+                    <div className="cp-hero-strip cp-hero-strip--deal-origin">
                       <span className="text-[9px] text-slate-500 uppercase tracking-wider mr-1">Your Hand</span>
                       {canVoluntaryShow && !myRevealedCards && !showHandConfirm && (
                         <button
@@ -2456,7 +2693,20 @@ export function App() {
                           Revealed
                         </span>
                       )}
-                      {holeCards.map((c: string, i: number) => <PokerCard key={i} card={c} variant="table" />)}
+                      {holeCards.map((c: string, i: number) => (
+                        <div
+                          key={`${snapshot?.handId ?? "h"}-${holeDealEpoch}-${i}-${c}`}
+                          className="cp-card-deal-in"
+                          style={{
+                            animationDelay: `${i * 90}ms`,
+                            ["--cp-deal-from-x" as string]: `${(i - (holeCards.length - 1) / 2) * 32}px`,
+                            ["--cp-deal-from-y" as string]: "-220px",
+                            ["--cp-deal-from-rot" as string]: `${i % 2 === 0 ? -10 : 10}deg`,
+                          }}
+                        >
+                          <PokerCard card={c} variant="table" />
+                        </div>
+                      ))}
                       {/* Hand strength display — updates by street */}
                       {snapshot?.board && snapshot.board.length >= 3 && holeCards.length >= 2 && (() => {
                         const boardCards = snapshot.runoutBoards && snapshot.runoutBoards.length > 1
@@ -2478,7 +2728,7 @@ export function App() {
 
                   {/* Non-blocking hand-end linger: skip hint + hand summary access */}
                   {lingerActive && (
-                    <div className="flex items-center justify-center gap-2 mt-1 shrink-0 animate-[cpFadeSlideUp_0.3s_ease-out]">
+                    <div className="cp-hero-linger animate-[cpFadeSlideUp_0.3s_ease-out]">
                       <button
                         onClick={() => setShowHandSummaryDrawer(true)}
                         className="text-[10px] px-3 py-1.5 rounded-lg bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10 transition-all"
@@ -2498,10 +2748,10 @@ export function App() {
                       </span>
                     </div>
                   )}
-                </div>
+                </section>
 
                 {/* ── GTO SIDEBAR — collapsible ── */}
-                <aside className={`border-l border-white/5 overflow-y-auto hidden lg:flex flex-col shrink-0 transition-all duration-200 ${showGtoSidebar ? "w-72 xl:w-80 p-2" : "w-8 p-1"}`}>
+                <aside className={`cp-table-region-side-panel overflow-y-auto transition-all duration-200 ${showGtoSidebar ? "w-72 xl:w-80 p-2" : "w-8 p-1"}`}>
                   <button onClick={() => setShowGtoSidebar(!showGtoSidebar)}
                     className="flex items-center gap-1.5 mb-1 hover:opacity-80 transition-opacity"
                     aria-label={showGtoSidebar ? "Collapse GTO panel" : "Expand GTO panel"}
@@ -2566,6 +2816,7 @@ export function App() {
                   )}
                 </aside>
 
+                <section className="cp-table-region-overlays">
                 {revealedZoom && (
                   <div className="fixed inset-0 z-[100] bg-black/75 flex items-end md:items-center justify-center" onClick={() => setRevealedZoom(null)}>
                     <div
@@ -2675,8 +2926,9 @@ export function App() {
                     </div>
                   )}
                 </div>
-              </div>
+                </section>
 
+                <section className="cp-table-region-action">
               {/* ── ACTIONS (pinned to bottom) — only when seated & hand active ── */}
               {snapshot?.handId && snapshot.players.some((p: TablePlayer) => p.seat === seat) && (
               <>
@@ -2857,6 +3109,8 @@ export function App() {
                 )}
               </>
               )}
+                </section>
+              </div>
 
               {/* Hand Summary Drawer (non-blocking, outside hand-active guard for linger access) */}
               <HandSummaryDrawer
@@ -5040,7 +5294,7 @@ function InfoCell({ label, value, highlight, cyan }: { label: string; value: str
   );
 }
 
-const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, lastAction, equity, handHint, pendingLeave, revealedCards, revealedHandName, isMucked, onClickRevealed, onClickEmpty, isWinner, netDelta }: {
+const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, lastAction, equity, handHint, pendingLeave, revealedCards, revealedHandName, isMucked, onClickRevealed, onClickEmpty, isWinner, isWinnerPulse, netDelta }: {
   player?: TablePlayer; seatNum: number; isActor: boolean; isMe: boolean;
   isOwner?: boolean; isCoHost?: boolean; timer?: TimerState | null;
   posLabel?: string; isButton?: boolean; displayBB?: boolean; bigBlind?: number;
@@ -5054,6 +5308,7 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
   onClickRevealed?: () => void;
   onClickEmpty?: (seatNum: number) => void;
   isWinner?: boolean;
+  isWinnerPulse?: boolean;
   netDelta?: number;
 }) {
   const bb = bigBlind || 1;
@@ -5110,7 +5365,7 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
           </div>
         </div>
       )}
-      <div className={`relative z-10 w-18 md:w-22 rounded-xl p-1 text-center transition-all ${timerBorderClass} ${isWinner ? "cp-seat-win" : ""} ${
+      <div className={`relative z-10 w-18 md:w-22 rounded-xl p-1 text-center transition-all ${timerBorderClass} ${isWinner ? "cp-seat-win" : ""} ${isWinnerPulse ? "cp-seat-win-pop" : ""} ${
         isActor ? "bg-amber-500/20 border-2 border-amber-400 shadow-[0_0_16px_rgba(245,158,11,0.3)]"
         : isMe ? "bg-cyan-500/10 border-2 border-cyan-400/50"
         : "bg-black/60 border border-white/10"

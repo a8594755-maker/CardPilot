@@ -16,24 +16,24 @@ const SUIT_SYMBOL: Record<string, string> = {
 };
 
 const SUIT_COLOR_2: Record<string, string> = {
-  s: "text-slate-100",
-  h: "text-red-500",
-  d: "text-red-500",
-  c: "text-slate-100",
+  s: "text-slate-900",
+  h: "text-red-600",
+  d: "text-red-600",
+  c: "text-slate-900",
 };
 
 const SUIT_COLOR_4: Record<string, string> = {
-  s: "text-slate-100",
-  h: "text-red-500",
-  d: "text-blue-400",
-  c: "text-emerald-400",
+  s: "text-slate-900",
+  h: "text-red-600",
+  d: "text-blue-600",
+  c: "text-emerald-700",
 };
 
-const SUIT_BG: Record<string, string> = {
-  s: "from-slate-800 to-slate-900",
-  h: "from-slate-800 to-red-950/40",
-  d: "from-slate-800 to-blue-950/40",
-  c: "from-slate-800 to-emerald-950/40",
+const SUIT_BACK_TINT: Record<string, string> = {
+  s: "from-slate-700 to-slate-900",
+  h: "from-slate-700 to-rose-900",
+  d: "from-slate-700 to-blue-900",
+  c: "from-slate-700 to-emerald-900",
 };
 
 const RANK_DISPLAY: Record<string, string> = {
@@ -59,34 +59,44 @@ export type PokerCardVariant = "mini" | "seat" | "table" | "modal";
 interface VariantConfig {
   card: string;
   rank: string;
-  suit: string;
-  gap: string;
+  cornerSuit: string;
+  centerSuit: string;
+  cornerGap: string;
+  backInner: string;
 }
 
 const VARIANT_CONFIG: Record<PokerCardVariant, VariantConfig> = {
   mini: {
-    card: "w-[22px] h-[30px] text-[9px] rounded-[3px]",
-    rank: "text-[9px] leading-none",
-    suit: "text-[7px] leading-none -mt-px",
-    gap: "",
+    card: "w-[24px] h-[34px] rounded-[4px]",
+    rank: "text-[9px]",
+    cornerSuit: "text-[8px]",
+    centerSuit: "text-[10px]",
+    cornerGap: "gap-0",
+    backInner: "w-3.5 h-5",
   },
   seat: {
-    card: "w-9 h-[50px] text-sm rounded-md",
-    rank: "text-sm leading-none",
-    suit: "text-[10px] leading-none -mt-0.5",
-    gap: "",
+    card: "w-10 h-[56px] rounded-[7px]",
+    rank: "text-[13px]",
+    cornerSuit: "text-[11px]",
+    centerSuit: "text-base",
+    cornerGap: "gap-0.5",
+    backInner: "w-6 h-9",
   },
   table: {
-    card: "w-11 h-[62px] text-base rounded-md",
-    rank: "text-base leading-none",
-    suit: "text-xs leading-none -mt-0.5",
-    gap: "",
+    card: "w-12 h-[70px] rounded-[8px]",
+    rank: "text-[15px]",
+    cornerSuit: "text-xs",
+    centerSuit: "text-lg",
+    cornerGap: "gap-0.5",
+    backInner: "w-7 h-10",
   },
   modal: {
-    card: "w-20 h-28 text-2xl rounded-xl",
-    rank: "text-2xl leading-none",
-    suit: "text-lg leading-none -mt-0.5",
-    gap: "",
+    card: "w-24 h-36 rounded-2xl",
+    rank: "text-2xl",
+    cornerSuit: "text-xl",
+    centerSuit: "text-4xl",
+    cornerGap: "gap-1",
+    backInner: "w-14 h-20",
   },
 };
 
@@ -126,25 +136,18 @@ export const PokerCard = memo(function PokerCard({
   if (faceDown || !card || card.length < 2) {
     return (
       <div
-        className={`${cfg.card} bg-gradient-to-br from-sky-800 to-sky-950 border border-sky-600/30 flex items-center justify-center select-none shadow-sm ${
+        className={`cp-poker-card cp-poker-card--back ${cfg.card} relative overflow-hidden border border-sky-500/35 bg-gradient-to-br from-slate-800 via-sky-900 to-slate-900 shadow-md select-none ${
           onClick || interactive
-            ? "cursor-pointer hover:border-sky-400/50 active:scale-95 transition-all"
+            ? "cursor-pointer hover:border-sky-300/60 hover:shadow-lg active:scale-[0.98] transition-all"
             : ""
         } ${className}`}
         onClick={onClick}
         role={onClick ? "button" : undefined}
         tabIndex={onClick ? 0 : undefined}
       >
+        <div className="absolute inset-[6%] rounded-[inherit] border border-sky-200/20 bg-[radial-gradient(circle_at_20%_20%,rgba(148,163,184,0.22),rgba(15,23,42,0.2)_50%,rgba(15,23,42,0.7)_100%)]" />
         <div
-          className={`rounded-sm border border-sky-500/20 ${
-            variant === "mini"
-              ? "w-3 h-4"
-              : variant === "seat"
-              ? "w-5 h-7"
-              : variant === "table"
-              ? "w-6 h-9"
-              : "w-12 h-16"
-          } bg-gradient-to-br from-sky-700/40 to-sky-900/60`}
+          className={`relative ${cfg.backInner} rounded-md border border-sky-200/30 bg-[repeating-linear-gradient(45deg,rgba(56,189,248,0.16)_0px,rgba(56,189,248,0.16)_3px,rgba(2,6,23,0.16)_3px,rgba(2,6,23,0.16)_6px)]`}
         />
       </div>
     );
@@ -156,23 +159,33 @@ export const PokerCard = memo(function PokerCard({
   const suitStr = SUIT_SYMBOL[suit] ?? suit;
   const colorMap = fourColor ? SUIT_COLOR_4 : SUIT_COLOR_2;
   const suitColor = colorMap[suit] ?? "text-white";
-  const bg = SUIT_BG[suit] ?? "from-slate-800 to-slate-900";
+  const backTint = SUIT_BACK_TINT[suit] ?? "from-slate-700 to-slate-900";
 
   const clickable = onClick || interactive;
 
   return (
     <div
-      className={`${cfg.card} bg-gradient-to-b ${bg} border border-white/20 flex flex-col items-center justify-center font-extrabold shadow-sm select-none ${
+      className={`cp-poker-card ${cfg.card} relative overflow-hidden border border-slate-300/80 bg-gradient-to-b from-white via-slate-50 to-slate-100 shadow-[0_2px_8px_rgba(2,6,23,0.24)] select-none ${
         clickable
-          ? "cursor-pointer hover:border-white/40 hover:shadow-md active:scale-95 transition-all"
+          ? "cursor-pointer hover:shadow-[0_8px_18px_rgba(2,6,23,0.28)] hover:-translate-y-px active:scale-[0.98] transition-all"
           : ""
       } ${className}`}
       onClick={onClick}
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
     >
-      <span className={`${suitColor} ${cfg.rank}`}>{rankStr}</span>
-      <span className={`${suitColor} ${cfg.suit}`}>{suitStr}</span>
+      <div className={`absolute inset-[1px] rounded-[inherit] bg-gradient-to-b ${backTint} opacity-[0.06]`} />
+      <div className={`absolute top-[8%] left-[10%] flex flex-col items-center leading-none ${cfg.cornerGap}`}>
+        <span className={`${suitColor} ${cfg.rank} font-black tracking-tight`}>{rankStr}</span>
+        <span className={`${suitColor} ${cfg.cornerSuit} leading-none`}>{suitStr}</span>
+      </div>
+      <div className={`absolute bottom-[8%] right-[10%] rotate-180 flex flex-col items-center leading-none ${cfg.cornerGap}`}>
+        <span className={`${suitColor} ${cfg.rank} font-black tracking-tight`}>{rankStr}</span>
+        <span className={`${suitColor} ${cfg.cornerSuit} leading-none`}>{suitStr}</span>
+      </div>
+      <span className={`absolute inset-0 flex items-center justify-center ${suitColor} ${cfg.centerSuit} opacity-80`}>
+        {suitStr}
+      </span>
     </div>
   );
 });
