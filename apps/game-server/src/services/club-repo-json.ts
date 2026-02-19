@@ -344,7 +344,16 @@ export class ClubRepoJson {
 
     const currentBalance = await this.getWalletBalance(input.clubId, input.userId, currency);
     const newBalance = currentBalance + Math.trunc(input.amount);
-    if (newBalance < 0) return null;
+    if (newBalance < 0) {
+      logWarn({ 
+        event: "club_repo_json.appendWalletTx.insufficient", 
+        clubId: input.clubId, 
+        userId: input.userId, 
+        currentBalance, 
+        amount: input.amount 
+      });
+      throw new Error(`Insufficient funds: Balance ${currentBalance}, trying to deduct ${Math.abs(Math.trunc(input.amount))}`);
+    }
 
     const tx: ClubWalletTransaction = {
       id: randomUUID(),

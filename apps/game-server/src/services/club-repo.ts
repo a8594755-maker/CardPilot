@@ -573,11 +573,19 @@ export class ClubRepo {
         code: error.code,
         clubId, userId, type, amount 
       });
-      const fallback = await this.appendWalletTxManual(input);
-      if (fallback) {
-        logInfo({ event: "club_repo.appendWalletTx.fallback_ok", clubId, userId, type, amount });
+      try {
+        const fallback = await this.appendWalletTxManual(input);
+        if (fallback) {
+          logInfo({ event: "club_repo.appendWalletTx.fallback_ok", clubId, userId, type, amount });
+        }
+        return fallback;
+      } catch (manualErr) {
+        logWarn({ 
+          event: "club_repo.appendWalletTx.fallback_failed", 
+          message: (manualErr as Error).message 
+        });
+        throw manualErr;
       }
-      return fallback;
     }
 
     const row = Array.isArray(data) ? data[0] : null;
@@ -687,7 +695,7 @@ export class ClubRepo {
     // Check sufficient balance for negative amounts
     if (newBalance < 0) {
       logWarn({ event: "club_repo.appendWalletTxManual.insufficient", clubId, userId, currentBalance, amount });
-      return null;
+      throw new Error(`Insufficient funds: Balance ${currentBalance}, trying to deduct ${Math.abs(truncatedAmount)}`);
     }
 
     // Insert transaction
@@ -712,23 +720,33 @@ export class ClubRepo {
       .single();
 
     if (insertError || !insertedTx) {
+      const msg = insertError?.message || "Unknown DB error during insert";
       logWarn({ 
         event: "club_repo.appendWalletTxManual.insert_failed", 
-        message: insertError?.message,
+        message: msg,
         details: insertError?.details,
         code: insertError?.code
       });
-      return null;
+      throw new Error(`Wallet DB insert failed: ${msg}`);
     }
 
     // Update balance
-    await this.db.from("club_wallet_accounts").upsert({
+    const { error: updateError } = await this.db.from("club_wallet_accounts").upsert({
       club_id: clubId,
       user_id: userId,
       currency,
       current_balance: newBalance,
       updated_at: new Date().toISOString(),
-    });
+    }, { onConflict: "club_id,user_id,currency" });
+
+    if (updateError) {
+       logWarn({ 
+        event: "club_repo.appendWalletTxManual.balance_update_failed", 
+        message: updateError.message 
+      });
+      // We shouldn't throw here if tx was inserted, but it's a consistency issue.
+      // For now, let's proceed but log critical warning.
+    }
 
     return {
       tx: rowToWalletTx(insertedTx as Record<string, unknown>),

@@ -347,7 +347,7 @@ as $$
     from scored s
   )
   select
-    r.rank,
+    r.rank::integer,
     r.club_id,
     r.user_id,
     pp.display_name,
@@ -412,3 +412,15 @@ create policy club_player_daily_stats_write_service on public.club_player_daily_
   to service_role
   using (true)
   with check (true);
+
+-- ═══════════════════════════════════════════════════════════════
+-- 8) GRANTS
+-- ═══════════════════════════════════════════════════════════════
+
+grant usage on schema public to postgres, anon, authenticated, service_role;
+grant all on table public.club_wallet_transactions to service_role;
+grant all on table public.club_wallet_accounts to service_role;
+grant all on table public.club_player_daily_stats to service_role;
+grant execute on function public.club_wallet_append_tx to service_role, authenticated;
+grant execute on function public.club_record_hand_stats to service_role, authenticated;
+grant execute on function public.club_get_leaderboard to service_role, authenticated;

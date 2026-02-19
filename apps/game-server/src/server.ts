@@ -628,12 +628,18 @@ async function emitWalletBalanceToUser(
 }
 
 async function appendWalletTx(input: AppendWalletTxInput) {
-  const result = await clubDataRepo.appendWalletTx(input);
-  if (!result) {
-    throw new Error("Wallet transaction failed");
+  try {
+    const result = await clubDataRepo.appendWalletTx(input);
+    if (!result) {
+      throw new Error("Wallet transaction returned null");
+    }
+    clubManager.setMemberBalance(input.clubId, input.userId, result.newBalance);
+    return result;
+  } catch (err) {
+    const msg = (err as Error).message;
+    logWarn({ event: "server.appendWalletTx.failed", message: msg, clubId: input.clubId, userId: input.userId });
+    throw new Error(`Wallet transaction failed: ${msg}`);
   }
-  clubManager.setMemberBalance(input.clubId, input.userId, result.newBalance);
-  return result;
 }
 
 function getRoomSessionStats(tableId: string, create = false): Map<string, PlayerSessionEntry> | undefined {

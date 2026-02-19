@@ -775,6 +775,14 @@ function buildFrequencyFromScores(input: {
   }
 
   let raiseSignal = clamp01(betBigSignal + betSmallSignal * 0.3);
+
+  // Dampen aggression when equity is insufficient to call
+  if (equityEdge < 0) {
+    // Reduce raise frequency proportional to how far behind we are.
+    // e.g. edge -0.1 reduces raises by 20%
+    raiseSignal = clamp01(raiseSignal * (1 + Math.max(-0.8, equityEdge * 2.0)));
+  }
+
   if (!context.heroInPosition) {
     // OOP favors check-call/check-raise mixes over pure aggression.
     raiseSignal = clamp01(raiseSignal * 0.82);
@@ -786,9 +794,11 @@ function buildFrequencyFromScores(input: {
   const defenseFreq = raiseSignal + callSignal;
   if (defenseFreq < mdf && mdf > EPSILON && mdf < 1) {
     if (defenseFreq > EPSILON) {
-      const scaleFactor = mdf / defenseFreq;
-      raiseSignal = clamp01(raiseSignal * scaleFactor);
-      callSignal = clamp01(callSignal * scaleFactor);
+      // Prioritize calling to close the MDF gap.
+      // Linearly scaling both raise and call (old behavior) artificially inflated aggression
+      // for low-equity hands that were folding too much.
+      const gap = mdf - defenseFreq;
+      callSignal = clamp01(callSignal + gap);
     } else {
       callSignal = mdf;
     }
