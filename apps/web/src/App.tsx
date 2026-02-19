@@ -54,7 +54,8 @@ import {
   shouldConfirmUnnecessaryFold,
 } from "./lib/action-derivations";
 
-const SERVER = import.meta.env.VITE_SERVER_URL || "http://127.0.0.1:4000";
+// Use VITE_SERVER_URL if explicitly set; in dev mode use relative URL to go through Vite proxy
+const SERVER = import.meta.env.VITE_SERVER_URL || (import.meta.env.DEV ? "/" : "http://127.0.0.1:4000");
 const DEBUG_LOGS_ENABLED = import.meta.env.DEV;
 const APP_VERSION = "v0.4.1";
 const NETLIFY_COMMIT_REF = import.meta.env.VITE_NETLIFY_COMMIT_REF || "";
@@ -800,7 +801,9 @@ export function App() {
   useEffect(() => {
     if (!socketAuthUserId) return;
     debugLog("[SOCKET] Connecting with userId:", socketAuthUserId);
-    const s = io(SERVER, { 
+    // Use same-origin in dev (via Vite proxy) to avoid CORS; explicit URL in prod
+    const serverUrl = import.meta.env.DEV ? window.location.origin : SERVER;
+    const s = io(serverUrl, { 
       auth: { 
         accessToken: socketAuthToken, 
         displayName,

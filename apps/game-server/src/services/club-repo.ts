@@ -562,6 +562,12 @@ export class ClubRepo {
       _idempotency_key: idempotencyKey,
     });
 
+    // If RPC fails due to schema cache, use manual fallback
+    if (error && (error.message?.includes("schema cache") || error.message?.includes("Could not find"))) {
+      logInfo({ event: "club_repo.appendWalletTx.fallback", clubId, userId, type, amount });
+      return this.appendWalletTxManual(input);
+    }
+
     if (error) {
       logWarn({ event: "club_repo.appendWalletTx.failed", message: error.message });
       return null;
@@ -609,6 +615,113 @@ export class ClubRepo {
       tx: rowToWalletTx(txRow),
       newBalance,
       wasDuplicate,
+    };
+  }
+
+  // Manual fallback when RPC is not available (schema cache issues)
+  private async appendWalletTxManual(input: AppendWalletTxInput): Promise<AppendWalletTxResult | null> {
+    if (!this.db) return null;
+
+    const {
+      clubId,
+      userId,
+      type,
+      amount,
+      currency = "chips",
+      refType = null,
+      refId = null,
+      createdBy = null,
+      note = null,
+      metaJson = {},
+    } = input;
+
+    const truncatedAmount = Math.trunc(amount);
+
+    // Check idempotency
+    if (input.idempotencyKey) {
+      const { data: existing } = await this.db
+        .from("club_wallet_transactions")
+        .select("id, created_at")
+        .eq("club_id", clubId)
+        .eq("user_id", userId)
+        .eq("currency", currency)
+        .eq("idempotency_key", input.idempotencyKey)
+        .maybeSingle();
+      
+      if (existing) {
+        const { data: balanceData } = await this.db
+          .from("club_wallet_accounts")
+          .select("current_balance")
+          .eq("club_id", clubId)
+          .eq("user_id", userId)
+          .eq("currency", currency)
+          .maybeSingle();
+        
+        return {
+          tx: rowToWalletTx(existing as RawWalletTx),
+          newBalance: balanceData?.current_balance ?? 0,
+          wasDuplicate: true,
+        };
+      }
+    }
+
+    // Get current balance
+    const { data: account } = await this.db
+      .from("club_wallet_accounts")
+      .select("current_balance")
+      .eq("club_id", clubId)
+      .eq("user_id", userId)
+      .eq("currency", currency)
+      .maybeSingle();
+
+    const currentBalance = account?.current_balance ?? 0;
+    const newBalance = currentBalance + truncatedAmount;
+
+    // Check sufficient balance for negative amounts
+    if (newBalance < 0) {
+      logWarn({ event: "club_repo.appendWalletTxManual.insufficient", clubId, userId, currentBalance, amount });
+      return null;
+    }
+
+    // Insert transaction
+    const txData = {
+      club_id: clubId,
+      user_id: userId,
+      type,
+      amount: truncatedAmount,
+      currency,
+      ref_type: refType,
+      ref_id: refId,
+      created_by: createdBy,
+      note,
+      meta_json: metaJson,
+      idempotency_key: input.idempotencyKey ?? null,
+    };
+
+    const { data: insertedTx, error: insertError } = await this.db
+      .from("club_wallet_transactions")
+      .insert(txData)
+      .select()
+      .single();
+
+    if (insertError || !insertedTx) {
+      logWarn({ event: "club_repo.appendWalletTxManual.insert_failed", message: insertError?.message });
+      return null;
+    }
+
+    // Update balance
+    await this.db.from("club_wallet_accounts").upsert({
+      club_id: clubId,
+      user_id: userId,
+      currency,
+      current_balance: newBalance,
+      updated_at: new Date().toISOString(),
+    });
+
+    return {
+      tx: rowToWalletTx(insertedTx as RawWalletTx),
+      newBalance,
+      wasDuplicate: false,
     };
   }
 

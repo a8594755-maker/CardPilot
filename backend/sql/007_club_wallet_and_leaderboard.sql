@@ -381,8 +381,10 @@ create policy club_wallet_tx_select on public.club_wallet_transactions
 
 drop policy if exists club_wallet_tx_write_service on public.club_wallet_transactions;
 create policy club_wallet_tx_write_service on public.club_wallet_transactions
-  for all using (auth.role() = 'service_role')
-  with check (auth.role() = 'service_role');
+  for all
+  to service_role
+  using (true)
+  with check (true);
 
 drop policy if exists club_wallet_accounts_select on public.club_wallet_accounts;
 create policy club_wallet_accounts_select on public.club_wallet_accounts
@@ -394,8 +396,10 @@ create policy club_wallet_accounts_select on public.club_wallet_accounts
 
 drop policy if exists club_wallet_accounts_write_service on public.club_wallet_accounts;
 create policy club_wallet_accounts_write_service on public.club_wallet_accounts
-  for all using (auth.role() = 'service_role')
-  with check (auth.role() = 'service_role');
+  for all
+  to service_role
+  using (true)
+  with check (true);
 
 drop policy if exists club_player_daily_stats_select on public.club_player_daily_stats;
 create policy club_player_daily_stats_select on public.club_player_daily_stats
@@ -404,5 +408,7 @@ create policy club_player_daily_stats_select on public.club_player_daily_stats
 
 drop policy if exists club_player_daily_stats_write_service on public.club_player_daily_stats;
 create policy club_player_daily_stats_write_service on public.club_player_daily_stats
-  for all using (auth.role() = 'service_role')
-  with check (auth.role() = 'service_role');
+  for all
+  to service_role
+  using (true)
+  with check (true);
