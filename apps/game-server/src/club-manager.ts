@@ -32,6 +32,59 @@ interface ClubState {
 const CLUB_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const INVITE_CODE_CHARS = "abcdefghjkmnpqrstuvwxyz23456789";
 
+function normalizeClubRules(input: Partial<ClubRules>): ClubRules {
+  const normalized: ClubRules = {
+    ...DEFAULT_CLUB_RULES,
+    ...input,
+    stakes: {
+      ...DEFAULT_CLUB_RULES.stakes,
+      ...(input.stakes ?? {}),
+    },
+    buyIn: {
+      ...DEFAULT_CLUB_RULES.buyIn,
+      ...(input.buyIn ?? {}),
+    },
+    time: {
+      ...DEFAULT_CLUB_RULES.time,
+      ...(input.time ?? {}),
+    },
+    dealing: {
+      ...DEFAULT_CLUB_RULES.dealing,
+      ...(input.dealing ?? {}),
+    },
+    runit: {
+      ...DEFAULT_CLUB_RULES.runit,
+      ...(input.runit ?? {}),
+    },
+    tableControls: {
+      ...DEFAULT_CLUB_RULES.tableControls,
+      ...(input.tableControls ?? {}),
+    },
+    moderation: {
+      ...DEFAULT_CLUB_RULES.moderation,
+      ...(input.moderation ?? {}),
+    },
+    economy: {
+      ...DEFAULT_CLUB_RULES.economy,
+      ...(input.economy ?? {}),
+    },
+    extras: {
+      ...DEFAULT_CLUB_RULES.extras,
+      ...(input.extras ?? {}),
+    },
+  };
+
+  // Enforce invariants
+  normalized.dealing.preventDealMidHand = true;
+  normalized.tableControls.canPauseMidHand = false;
+  normalized.tableControls.pauseAppliesAfterHand = true;
+  normalized.maxSeats = Math.min(9, Math.max(2, Math.trunc(normalized.maxSeats)));
+  normalized.extras.gameType = normalized.extras.gameType === "omaha" ? "omaha" : "texas";
+  normalized.extras.sevenTwoBounty = Math.max(0, Math.trunc(normalized.extras.sevenTwoBounty ?? 0));
+
+  return normalized;
+}
+
 function generateCode(len: number, chars: string): string {
   let code = "";
   for (let i = 0; i < len; i++) {
@@ -522,17 +575,13 @@ export class ClubManager {
       return null;
     }
 
-    // Enforce invariants
-    rules.dealing.preventDealMidHand = true;
-    rules.tableControls.canPauseMidHand = false;
-    rules.tableControls.pauseAppliesAfterHand = true;
-    rules.maxSeats = Math.min(9, Math.max(2, rules.maxSeats));
+    const normalizedRules = normalizeClubRules(rules);
 
     const ruleset: ClubRuleset = {
       id: randomUUID(),
       clubId,
       name: name.trim().slice(0, 80),
-      rulesJson: rules,
+      rulesJson: normalizedRules,
       createdBy: actorUserId,
       isDefault: isDefault ?? false,
       createdAt: new Date().toISOString(),
@@ -575,12 +624,7 @@ export class ClubManager {
 
     if (updates.name) ruleset.name = updates.name.trim().slice(0, 80);
     if (updates.rules) {
-      ruleset.rulesJson = { ...ruleset.rulesJson, ...updates.rules };
-      // Re-enforce invariants
-      ruleset.rulesJson.dealing.preventDealMidHand = true;
-      ruleset.rulesJson.tableControls.canPauseMidHand = false;
-      ruleset.rulesJson.tableControls.pauseAppliesAfterHand = true;
-      ruleset.rulesJson.maxSeats = Math.min(9, Math.max(2, ruleset.rulesJson.maxSeats));
+      ruleset.rulesJson = normalizeClubRules({ ...ruleset.rulesJson, ...updates.rules });
     }
 
     this.writeAudit(clubId, actorUserId, "ruleset_updated", { rulesetId, name: ruleset.name });
@@ -637,7 +681,7 @@ export class ClubManager {
       ruleset = state.rulesets.get(state.club.defaultRulesetId);
     }
 
-    const rules: ClubRules = ruleset?.rulesJson ?? { ...DEFAULT_CLUB_RULES };
+    const rules: ClubRules = normalizeClubRules(ruleset?.rulesJson ?? { ...DEFAULT_CLUB_RULES });
 
     const clubTable: ClubTable = {
       id: randomUUID(),
@@ -818,13 +862,13 @@ export class ClubManager {
 
     if (table.rulesetId) {
       const rs = state.rulesets.get(table.rulesetId);
-      if (rs) return rs.rulesJson;
+      if (rs) return normalizeClubRules(rs.rulesJson);
     }
     if (state.club.defaultRulesetId) {
       const rs = state.rulesets.get(state.club.defaultRulesetId);
-      if (rs) return rs.rulesJson;
+      if (rs) return normalizeClubRules(rs.rulesJson);
     }
-    return { ...DEFAULT_CLUB_RULES };
+    return normalizeClubRules({ ...DEFAULT_CLUB_RULES });
   }
 
   listOpenTables(): Array<{ clubId: string; table: ClubTable }> {
@@ -848,13 +892,13 @@ export class ClubManager {
 
     if (table.rulesetId) {
       const rs = state.rulesets.get(table.rulesetId);
-      if (rs) return rs.rulesJson;
+      if (rs) return normalizeClubRules(rs.rulesJson);
     }
     if (state.club.defaultRulesetId) {
       const rs = state.rulesets.get(state.club.defaultRulesetId);
-      if (rs) return rs.rulesJson;
+      if (rs) return normalizeClubRules(rs.rulesJson);
     }
-    return null;
+    return normalizeClubRules({ ...DEFAULT_CLUB_RULES });
   }
 
   listMyClubs(userId: string): ClubListItem[] {

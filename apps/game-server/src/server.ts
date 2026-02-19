@@ -119,11 +119,14 @@ const tableSnapshotVersions = new Map<string, number>();
 type SeatRequest = { orderId: string; tableId: string; seat: number; buyIn: number; userId: string; userName: string; socketId: string; isRestore: boolean };
 const pendingSeatRequests = new Map<string, SeatRequest>();
 const autoDealSchedule = new Map<string, ReturnType<typeof setTimeout>>();
+const tablesWithStartedHands = new Set<string>();
 type RunCountPreference = 1 | 2 | 3;
 type PendingRunCountDecisionState = {
   handId: string;
   eligiblePlayers: Array<{ seat: number; name: string }>;
+  underdogSeat: number;
   preferencesBySeat: Record<number, RunCountPreference | null>;
+  targetRunCount: RunCountPreference | null;
 };
 const pendingRunCountDecisions = new Map<string, PendingRunCountDecisionState>();
 const pendingRunCountTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
@@ -560,9 +563,11 @@ async function emitClubDetail(socketId: string, clubId: string, viewerUserId: st
 
 function withClubRoomStateMetadata(state: RoomFullState, tableId: string, viewerUserId?: string): RoomFullState {
   const clubInfo = getClubInfoForTableId(tableId);
+  const hasStartedHand = tablesWithStartedHands.has(tableId);
   if (!clubInfo) {
     return {
       ...state,
+      hasStartedHand,
       isClubTable: false,
       clubId: undefined,
       clubRole: null,
@@ -570,6 +575,7 @@ function withClubRoomStateMetadata(state: RoomFullState, tableId: string, viewer
   }
   return {
     ...state,
+    hasStartedHand,
     isClubTable: true,
     clubId: clubInfo.clubId,
     clubRole: viewerUserId ? clubManager.getMemberRole(clubInfo.clubId, viewerUserId) : null,
@@ -1340,6 +1346,8 @@ function buildAllInLockedPayload(pending: PendingRunCountDecisionState): {
   eligiblePlayers: Array<{ seat: number; name: string }>;
   maxRunCountAllowed: 3;
   submittedPlayerIds: number[];
+  underdogSeat: number;
+  targetRunCount: RunCountPreference | null;
 } {
   const submittedPlayerIds = pending.eligiblePlayers
     .map((player) => player.seat)
@@ -1350,6 +1358,8 @@ function buildAllInLockedPayload(pending: PendingRunCountDecisionState): {
     eligiblePlayers: pending.eligiblePlayers.map((player) => ({ ...player })),
     maxRunCountAllowed: 3,
     submittedPlayerIds,
+    underdogSeat: pending.underdogSeat,
+    targetRunCount: pending.targetRunCount,
   };
 }
 
@@ -1363,12 +1373,17 @@ function emitAllInLocked(tableId: string, pending: PendingRunCountDecisionState,
 }
 
 function resolveRunCountPreference(pending: PendingRunCountDecisionState): RunCountPreference {
-  let resolved: RunCountPreference = 3;
+  const target = pending.targetRunCount;
+  if (target == null || target <= 1) return 1;
+
   for (const player of pending.eligiblePlayers) {
-    const vote = pending.preferencesBySeat[player.seat] ?? 1;
-    if (vote < resolved) resolved = vote;
+    if (player.seat === pending.underdogSeat) continue;
+    if (pending.preferencesBySeat[player.seat] !== target) {
+      return 1;
+    }
   }
-  return resolved;
+
+  return target;
 }
 
 function revealLockedHoleCards(
@@ -1399,7 +1414,8 @@ function finalizeRunCountDecision(
   table: GameTable,
   pending: PendingRunCountDecisionState,
   decidingSeat?: number,
-  auto = false
+  auto = false,
+  forcedRunCount?: RunCountPreference,
 ): void {
   const liveState = table.getPublicState();
   if (!liveState.handId || liveState.handId !== pending.handId) {
@@ -1407,7 +1423,7 @@ function finalizeRunCountDecision(
     return;
   }
 
-  const runCount = resolveRunCountPreference(pending);
+  const runCount = forcedRunCount ?? resolveRunCountPreference(pending);
   table.setAllInRunCount(runCount);
   clearPendingRunCountDecision(tableId);
 
@@ -1418,6 +1434,8 @@ function finalizeRunCountDecision(
     runCount,
     decidingSeat,
     auto,
+    underdogSeat: pending.underdogSeat,
+    targetRunCount: pending.targetRunCount,
     preferencesBySeat: pending.preferencesBySeat,
   });
 
@@ -1451,7 +1469,7 @@ function scheduleRunCountDecisionTimeout(tableId: string, table: GameTable, pend
       message: "Run-count decision timed out; defaulting unresolved seats to run once.",
     });
 
-    finalizeRunCountDecision(tableId, table, livePending, undefined, true);
+    finalizeRunCountDecision(tableId, table, livePending, undefined, true, 1);
   }, runtimeConfig.runCountDecisionTimeoutMs);
 
   pendingRunCountTimeouts.set(tableId, timeout);
@@ -1923,6 +1941,7 @@ async function startHandFlow(tableId: string, actorUserId: string, source: "manu
   applyRoomVariantSettings(tableId, table);
 
   const { handId } = table.startHand();
+  tablesWithStartedHands.add(tableId);
   clearPendingRunCountDecision(tableId);
   clearShowdownDecisionTimeout(tableId);
 
@@ -1968,7 +1987,7 @@ async function startHandFlow(tableId: string, actorUserId: string, source: "manu
   return handId;
 }
 
-function scheduleAutoDealIfNeeded(tableId: string): void {
+function scheduleAutoDealIfNeeded(tableId: string, delayOverrideMs?: number): void {
   clearAutoDealSchedule(tableId);
 
   const room = roomManager.getRoom(tableId);
@@ -1976,13 +1995,19 @@ function scheduleAutoDealIfNeeded(tableId: string): void {
   const table = tables.get(tableId);
   if (!table) return;
 
+  // Normal public/private tables require an explicit first start.
+  // Club tables keep their existing auto-start behavior.
+  if (!isPersistentClubTable(tableId) && !tablesWithStartedHands.has(tableId)) {
+    return;
+  }
+
   const immediateSkip = getAutoStartSkipMessage(tableId);
   if (immediateSkip) {
     io.to(tableId).emit("system_message", { message: immediateSkip });
     return;
   }
 
-  const delayMs = SHOWDOWN_SPEED_DELAYS_MS[room.settings.showdownSpeed] ?? SHOWDOWN_SPEED_DELAYS_MS.normal;
+  const delayMs = delayOverrideMs ?? (SHOWDOWN_SPEED_DELAYS_MS[room.settings.showdownSpeed] ?? SHOWDOWN_SPEED_DELAYS_MS.normal);
 
   const handle = setTimeout(() => {
     autoDealSchedule.delete(tableId);
@@ -2113,7 +2138,8 @@ async function finalizeHandEndAsync(tableId: string, state: TableState): Promise
 
   touchLocalRoom(tableId);
   broadcastSnapshot(tableId);
-  scheduleAutoDealIfNeeded(tableId);
+  const wasAllInHand = state.players.some((player) => player.allIn);
+  scheduleAutoDealIfNeeded(tableId, wasAllInHand ? 4_000 : 2_000);
 }
 
 function handleRoomAutoClose(tableId: string): void {
@@ -2132,6 +2158,7 @@ function handleRoomAutoClose(tableId: string): void {
   pendingStandUps.delete(tableId);
   pendingTableLeaves.delete(tableId);
   pendingPause.delete(tableId);
+  tablesWithStartedHands.delete(tableId);
   for (const [orderId, request] of pendingSeatRequests.entries()) {
     if (request.tableId === tableId) pendingSeatRequests.delete(orderId);
   }
@@ -2354,28 +2381,41 @@ function initiateRunoutFlow(tableId: string, table: GameTable): void {
     preferencesBySeat[player.seat] = null;
   }
 
+  const equityBySeat = new Map<number, number>(
+    calculateAllPlayersEquity(table, [...state.board] as Card[]).map((entry) => [entry.seat, entry.winRate])
+  );
+  const underdogSeat = [...eligiblePlayers]
+    .sort((a, b) => {
+      const wa = equityBySeat.get(a.seat) ?? 1;
+      const wb = equityBySeat.get(b.seat) ?? 1;
+      if (wa === wb) return a.seat - b.seat;
+      return wa - wb;
+    })[0]?.seat ?? eligiblePlayers[0].seat;
+
   const pending: PendingRunCountDecisionState = {
     handId: state.handId,
     eligiblePlayers,
+    underdogSeat,
     preferencesBySeat,
+    targetRunCount: null,
   };
   pendingRunCountDecisions.set(tableId, pending);
 
   emitAllInLocked(tableId, pending);
 
   // Backward-compatible per-seat prompt for older clients that still listen to all_in_prompt.
-  const equityBySeat = new Map<number, number>(
-    calculateAllPlayersEquity(table, [...state.board] as Card[]).map((entry) => [entry.seat, entry.winRate])
-  );
   for (const player of eligiblePlayers) {
+    const isUnderdog = player.seat === underdogSeat;
     const prompt: AllInPrompt = {
       actorSeat: player.seat,
       winRate: equityBySeat.get(player.seat) ?? 0,
       recommendedRunCount: 1,
       defaultRunCount: 1,
-      allowedRunCounts: [1, 2, 3],
+      allowedRunCounts: isUnderdog ? [1, 2, 3] : [1],
       promptMode: "run_count",
-      reason: "All-in action is locked. Choose run once, twice, or three times.",
+      reason: isUnderdog
+        ? "You are currently the underdog. Choose run once, twice, or three times."
+        : "Waiting for underdog run-count choice. You can approve or reject after they choose.",
     };
     const socketId = socketIdBySeat(tableId, player.seat);
     if (socketId) {
@@ -2551,6 +2591,7 @@ function ensureManagedRoom(room: RoomInfo, ownerFallback: VerifiedIdentity): voi
         ownerId,
         ownerName: ownerId === ownerFallback.userId ? ownerFallback.displayName : "Club Host",
         settings: {
+          gameType: rules.extras.gameType,
           maxPlayers: rules.maxSeats,
           smallBlind: rules.stakes.smallBlind,
           bigBlind: rules.stakes.bigBlind,
@@ -2567,6 +2608,7 @@ function ensureManagedRoom(room: RoomInfo, ownerFallback: VerifiedIdentity): voi
           straddleAllowed: rules.extras.straddleAllowed,
           bombPotEnabled: rules.extras.bombPotEnabled,
           rabbitHunting: rules.extras.rabbitHuntEnabled,
+          sevenTwoBounty: rules.extras.sevenTwoBounty,
           visibility: "private",
         },
       });
@@ -3897,15 +3939,52 @@ io.on("connection", (socket) => {
       throw new Error("seat is not eligible for run count decision");
     }
 
+    if (pending.preferencesBySeat[binding.seat] != null) {
+      throw new Error("run count choice already submitted");
+    }
+
     const vote: RunCountPreference = payload.runCount === 3 ? 3 : payload.runCount === 2 ? 2 : 1;
+
+    if (binding.seat === pending.underdogSeat) {
+      pending.preferencesBySeat[binding.seat] = vote;
+      pending.targetRunCount = vote;
+      for (const player of pending.eligiblePlayers) {
+        if (player.seat !== pending.underdogSeat) {
+          pending.preferencesBySeat[player.seat] = null;
+        }
+      }
+      pendingRunCountDecisions.set(payload.tableId, pending);
+      emitAllInLocked(payload.tableId, pending);
+
+      if (vote === 1 || pending.eligiblePlayers.length <= 1) {
+        finalizeRunCountDecision(payload.tableId, table, pending, binding.seat, false, 1);
+      }
+      return;
+    }
+
+    if (pending.targetRunCount == null) {
+      throw new Error("Waiting for underdog run-count choice");
+    }
+
+    if (pending.targetRunCount === 1) {
+      throw new Error("Run count already resolved to once");
+    }
+
     pending.preferencesBySeat[binding.seat] = vote;
     pendingRunCountDecisions.set(payload.tableId, pending);
     emitAllInLocked(payload.tableId, pending);
 
-    const allSubmitted = pending.eligiblePlayers.every((player) => pending.preferencesBySeat[player.seat] != null);
-    if (!allSubmitted) return;
+    if (vote !== pending.targetRunCount) {
+      finalizeRunCountDecision(payload.tableId, table, pending, binding.seat, false, 1);
+      return;
+    }
 
-    finalizeRunCountDecision(payload.tableId, table, pending, binding.seat, false);
+    const allOpponentsSubmitted = pending.eligiblePlayers
+      .filter((player) => player.seat !== pending.underdogSeat)
+      .every((player) => pending.preferencesBySeat[player.seat] != null);
+    if (!allOpponentsSubmitted) return;
+
+    finalizeRunCountDecision(payload.tableId, table, pending, binding.seat, false, pending.targetRunCount);
   };
 
   socket.on("submit_run_preference", (payload: { tableId: string; handId: string; runCount: 1 | 2 | 3 }) => {
@@ -4649,6 +4728,7 @@ io.on("connection", (socket) => {
         ownerId: identity.userId,
         ownerName: identity.displayName,
         settings: {
+          gameType: rules.extras.gameType,
           maxPlayers: rules.maxSeats,
           smallBlind: rules.stakes.smallBlind,
           bigBlind: rules.stakes.bigBlind,
@@ -4665,6 +4745,7 @@ io.on("connection", (socket) => {
           straddleAllowed: rules.extras.straddleAllowed,
           bombPotEnabled: rules.extras.bombPotEnabled,
           rabbitHunting: rules.extras.rabbitHuntEnabled,
+          sevenTwoBounty: rules.extras.sevenTwoBounty,
           visibility: "private",
         },
       });
@@ -4780,6 +4861,7 @@ io.on("connection", (socket) => {
         const club = clubManager.getClub(payload.clubId);
 
         roomManager.updateSettings(serverTableId, {
+          gameType: result.rules.extras.gameType,
           maxPlayers: result.rules.maxSeats,
           smallBlind: result.rules.stakes.smallBlind,
           bigBlind: result.rules.stakes.bigBlind,
@@ -4796,6 +4878,7 @@ io.on("connection", (socket) => {
           straddleAllowed: result.rules.extras.straddleAllowed,
           bombPotEnabled: result.rules.extras.bombPotEnabled,
           rabbitHunting: result.rules.extras.rabbitHuntEnabled,
+          sevenTwoBounty: result.rules.extras.sevenTwoBounty,
           visibility: "private",
         }, identity.userId, identity.displayName);
 

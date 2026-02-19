@@ -4,6 +4,7 @@ import type {
   ClubDetailPayload,
   ClubRole,
   ClubRules,
+  ClubGameType,
   ClubVisibility,
   ClubLeaderboardEntry,
   ClubLeaderboardMetric,
@@ -11,6 +12,7 @@ import type {
 } from "@cardpilot/shared-types";
 import { DEFAULT_CLUB_RULES } from "@cardpilot/shared-types";
 import { canPerformClubAction } from "@cardpilot/shared-types";
+import { useIsMobile } from "../../hooks/useIsMobile";
 
 type Tab = "overview" | "credits" | "leaderboard" | "members" | "tables" | "rulesets" | "invites" | "audit" | "settings";
 
@@ -82,8 +84,11 @@ export function ClubDetailView({
   const [rsBuyMax, setRsBuyMax] = useState(200);
   const [rsTimer, setRsTimer] = useState(15);
   const [rsTimeBank, setRsTimeBank] = useState(60);
+  const [rsGameType, setRsGameType] = useState<ClubGameType>("texas");
+  const [rsSevenTwoBounty, setRsSevenTwoBounty] = useState(0);
   const [rsRIT, setRsRIT] = useState(false);
   const [rsIsDefault, setRsIsDefault] = useState(false);
+  const [selectedDefaultRulesetId, setSelectedDefaultRulesetId] = useState("");
   const [creditBalance, setCreditBalance] = useState<number>(detail.detail.myMembership?.balance ?? 0);
   const [leaderboardRange, setLeaderboardRange] = useState<ClubLeaderboardRange>("week");
   const [leaderboardMetric, setLeaderboardMetric] = useState<ClubLeaderboardMetric>("net");
@@ -93,10 +98,15 @@ export function ClubDetailView({
   const { club, myMembership } = detail.detail;
   const myRole = myMembership?.role ?? "member";
   const isAdminRole = myRole === "owner" || myRole === "admin";
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     setCreditBalance(detail.detail.myMembership?.balance ?? 0);
   }, [detail.detail.myMembership?.balance]);
+
+  useEffect(() => {
+    setSelectedDefaultRulesetId(detail.detail.defaultRuleset?.id ?? "");
+  }, [detail.detail.defaultRuleset?.id, club.id]);
 
   // Settings form state
   const [editName, setEditName] = useState(club.name);
@@ -117,6 +127,7 @@ export function ClubDetailView({
   const canCreateInvite = canPerformClubAction(myRole, "create_invite");
   const canViewAudit = canPerformClubAction(myRole, "view_audit_log");
   const canManageTables = canPerformClubAction(myRole, "manage_tables");
+  const canCloseTable = myRole === "owner";
   const isAdmin = isAdminRole;
 
   const onlineMembers = useMemo(() =>
@@ -151,12 +162,19 @@ export function ClubDetailView({
       buyIn: { minBuyIn: rsBuyMin, maxBuyIn: rsBuyMax, defaultBuyIn: Math.round((rsBuyMin + rsBuyMax) / 2) },
       time: { ...DEFAULT_CLUB_RULES.time, actionTimeSec: rsTimer, timeBankSec: rsTimeBank },
       runit: { ...DEFAULT_CLUB_RULES.runit, allowRunItTwice: rsRIT },
+      extras: {
+        ...DEFAULT_CLUB_RULES.extras,
+        gameType: rsGameType,
+        sevenTwoBounty: Math.max(0, Math.trunc(rsSevenTwoBounty)),
+      },
     };
     socket.emit("club_ruleset_create", { clubId: club.id, name: rsName.trim(), rules, isDefault: rsIsDefault });
     setShowCreateRuleset(false);
     setRsName("");
+    setRsGameType("texas");
+    setRsSevenTwoBounty(0);
     showToast("Creating ruleset...");
-  }, [socket, club.id, rsName, rsSB, rsBB, rsSeats, rsBuyMin, rsBuyMax, rsTimer, rsTimeBank, rsRIT, rsIsDefault, showToast]);
+  }, [socket, club.id, rsName, rsSB, rsBB, rsSeats, rsBuyMin, rsBuyMax, rsTimer, rsTimeBank, rsGameType, rsSevenTwoBounty, rsRIT, rsIsDefault, showToast]);
 
   const handleUpdateClub = useCallback(() => {
     if (!socket) return;
@@ -238,6 +256,12 @@ export function ClubDetailView({
     showToast("Updating table rules...");
   }, [socket, club.id, showToast]);
 
+  const handleSetDefaultRuleset = useCallback(() => {
+    if (!socket || !selectedDefaultRulesetId) return;
+    socket.emit("club_ruleset_set_default", { clubId: club.id, rulesetId: selectedDefaultRulesetId });
+    showToast("Updating default ruleset...");
+  }, [socket, club.id, selectedDefaultRulesetId, showToast]);
+
   useEffect(() => {
     if (!socket) return;
 
@@ -309,44 +333,84 @@ export function ClubDetailView({
     setTab(isAdminRole ? "overview" : "tables");
   }, [tab, visibleTabs, isAdminRole]);
 
-  return (
-    <main className="flex-1 p-6 overflow-y-auto">
-      <div className="max-w-4xl mx-auto space-y-4">
-        {/* Disclaimer */}
-        <div className="glass-card p-2 bg-amber-500/5 border-amber-500/20 text-[10px] text-amber-400/80 text-center">
-          Virtual credits only. Use room and club workflows for buy-ins and rebuys.
-        </div>
+  const backButton = (
+    <button
+      onClick={onBack}
+      className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 transition-colors hover:text-white sm:text-sm"
+    >
+      <span aria-hidden="true">←</span>
+      <span>Back</span>
+    </button>
+  );
 
+  const refreshButton = (
+    <button
+      onClick={() => {
+        socket?.emit("club_get_detail", { clubId: club.id });
+        showToast("Refreshing...");
+      }}
+      className="inline-flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold text-slate-300 transition-colors hover:bg-white/10 sm:text-xs"
+      title="Refresh club data"
+    >
+      <span aria-hidden="true">↻</span>
+      Refresh
+    </button>
+  );
+
+  return (
+    <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+      <div className="mx-auto max-w-4xl space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <button onClick={onBack} className="text-slate-400 hover:text-white transition-colors text-sm">
-            ← Back
-          </button>
-          <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold text-white shadow-lg"
-            style={{ backgroundColor: club.badgeColor ?? "#6366f1" }}
-          >
-            {club.name[0]?.toUpperCase()}
-          </div>
-          <div className="flex-1">
-            <h2 className="text-lg font-bold text-white">{club.name}</h2>
-            <div className="flex items-center gap-3 text-xs text-slate-400">
-              <span>Code: <code className="text-amber-400 font-mono">{club.code}</code></span>
-              <span>{detail.detail.memberCount} members</span>
-              <span className="flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
-                {onlineMembers.length} online
-              </span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded border ${ROLE_BADGE_COLORS[myRole] ?? ROLE_BADGE_COLORS.member} uppercase font-semibold`}>{myRole}</span>
+        <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-4 shadow-inner shadow-black/20 sm:p-5">
+          {isMobile && (
+            <div className="mb-4 flex items-center justify-between">
+              {backButton}
+              {refreshButton}
             </div>
+          )}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
+            {!isMobile && backButton}
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div
+                className={`flex h-14 w-14 items-center justify-center rounded-2xl text-xl font-bold text-white shadow-lg shadow-black/40 sm:h-16 sm:w-16`}
+                style={{ backgroundColor: club.badgeColor ?? "#6366f1" }}
+              >
+                {club.name[0]?.toUpperCase()}
+              </div>
+              <div className="flex-1 space-y-1">
+                <h2 className="text-lg font-bold text-white sm:text-xl">{club.name}</h2>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400 sm:gap-3">
+                  <span>
+                    Code: <code className="font-mono text-amber-400">{club.code}</code>
+                  </span>
+                  <span>{detail.detail.memberCount} members</span>
+                  <span className="flex items-center gap-1">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    {onlineMembers.length} online
+                  </span>
+                  <span className={`text-[10px] uppercase ${ROLE_BADGE_COLORS[myRole] ?? ROLE_BADGE_COLORS.member} rounded border px-1.5 py-0.5 font-semibold`}>
+                    {myRole}
+                  </span>
+                </div>
+              </div>
+            </div>
+            {!isMobile && refreshButton}
           </div>
-          <button
-            onClick={() => { socket?.emit("club_get_detail", { clubId: club.id }); showToast("Refreshing..."); }}
-            className="text-[10px] px-2 py-1 rounded-lg bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 transition-all"
-            title="Refresh club data"
-          >
-            ↻ Refresh
-          </button>
+          {isMobile && (
+            <div className="mt-4 grid grid-cols-2 gap-3 text-[11px] text-slate-300">
+              <button
+                className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-left font-semibold text-amber-200"
+                onClick={() => copyToClipboard(club.code, "club code")}
+              >
+                Share Code
+                <div className="text-[10px] font-mono text-amber-400">{club.code}</div>
+              </button>
+              <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                <div className="text-[10px] uppercase tracking-wide text-slate-500">Status</div>
+                <div className="text-sm font-semibold text-white">{onlineMembers.length} online / {detail.detail.memberCount}</div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Pending Join Requests Banner */}
@@ -357,17 +421,26 @@ export function ClubDetailView({
             </div>
             <div className="space-y-2">
               {detail.pendingMembers.map((m) => (
-                <div key={m.userId} className="flex items-center gap-3 text-sm bg-black/20 rounded-lg p-2">
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[10px] font-bold text-white uppercase">
-                    {((m.displayName ?? "").trim().charAt(0) || "U").toUpperCase()}
+                <div key={m.userId} className="flex flex-col gap-3 rounded-lg bg-black/20 p-3 text-sm sm:flex-row sm:items-center">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-[11px] font-bold uppercase text-white">
+                      {((m.displayName ?? "").trim().charAt(0) || "U").toUpperCase()}
+                    </div>
+                    <div>
+                      <span className="block text-white">{m.displayName ?? m.userId.slice(0, 8)}</span>
+                      <span className="text-[11px] text-slate-500">
+                        Last seen {new Date(m.lastSeenAt).toLocaleDateString()}
+                      </span>
+                    </div>
                   </div>
-                  <span className="text-white flex-1">{m.displayName ?? m.userId.slice(0, 8)}</span>
-                  <button onClick={() => handleApprove(m.userId)} className="px-2 py-1 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30">
-                    ✓ Approve
-                  </button>
-                  <button onClick={() => handleReject(m.userId)} className="px-2 py-1 rounded text-[10px] font-semibold bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30">
-                    ✗ Reject
-                  </button>
+                  <div className="flex w-full gap-2 sm:w-auto">
+                    <button onClick={() => handleApprove(m.userId)} className="flex-1 rounded border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-center text-[11px] font-semibold text-emerald-300 hover:bg-emerald-500/20">
+                      ✓ Approve
+                    </button>
+                    <button onClick={() => handleReject(m.userId)} className="flex-1 rounded border border-red-500/40 bg-red-500/10 px-3 py-1 text-center text-[11px] font-semibold text-red-300 hover:bg-red-500/20">
+                      ✗ Reject
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -375,28 +448,31 @@ export function ClubDetailView({
         )}
 
         {/* Tabs */}
-        <nav className="flex gap-1 bg-white/5 rounded-xl p-1 overflow-x-auto">
+        <nav
+          className="sticky top-0 z-10 flex gap-1 overflow-x-auto rounded-2xl bg-white/5/80 p-1 shadow-inner shadow-black/20 backdrop-blur-sm sm:static sm:bg-white/5 sm:shadow-none"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
           {visibleTabs.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-                  tab === t.id
-                    ? "bg-white/10 text-white shadow-sm"
-                    : "text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                {t.label}
-              </button>
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-medium transition-all sm:px-4 sm:text-sm ${
+                tab === t.id
+                  ? "bg-white/10 text-white shadow-sm"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              {t.label}
+            </button>
           ))}
         </nav>
 
         {/* Tab Content */}
-        <div className="glass-card p-5">
+        <div className="glass-card rounded-2xl p-4 sm:p-5">
           {tab === "overview" && (
             <div className="space-y-5">
               {/* Club Home: quick stats strip */}
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <div className="rounded-xl bg-indigo-500/10 border border-indigo-500/20 p-3 text-center">
                   <div className="text-lg font-bold text-indigo-300">{detail.detail.memberCount}</div>
                   <div className="text-[10px] text-slate-400 uppercase tracking-wider">Members</div>
@@ -794,60 +870,73 @@ export function ClubDetailView({
                 </div>
               ) : (
                 detail.tables.map((t) => (
-                  <div key={t.id} className={`flex items-center gap-3 p-3 rounded-lg border ${t.status === "open" ? "bg-emerald-500/5 border-emerald-500/20" : "bg-white/[0.02] border-white/5"}`}>
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold border ${
-                      t.status === "open" ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-400" : "bg-white/5 border-white/10 text-slate-500"
+                  <div
+                    key={t.id}
+                    className={`flex flex-col gap-3 rounded-2xl border p-3 sm:flex-row sm:items-center sm:gap-4 ${
+                      t.status === "open" ? "bg-emerald-500/5 border-emerald-500/20" : "bg-white/[0.02] border-white/5"
+                    }`}
+                  >
+                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl text-sm font-bold border ${
+                      t.status === "open" ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-300" : "bg-white/5 border-white/10 text-slate-500"
                     }`}>
                       {t.playerCount ?? 0}
                     </div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-white">{t.name}</div>
-                      <div className="text-[10px] text-slate-400">
-                        {t.stakes ?? "—"} · {t.playerCount ?? 0}/{t.maxPlayers ?? "—"} players ·{" "}
-                        {t.status === "open" && (t.playerCount ?? 0) < (t.minPlayersToStart ?? 2) ? (
-                          <span className="text-amber-300">Waiting for players</span>
-                        ) : (
-                          <span className={t.status === "open" ? "text-emerald-400" : t.status === "paused" ? "text-amber-400" : "text-slate-500"}>
-                            {t.status}
-                          </span>
-                        )}
+                    <div className="flex-1 space-y-1">
+                      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <div className="text-sm font-semibold text-white">{t.name}</div>
+                          <div className="text-[11px] text-slate-400">
+                            {t.stakes ?? "—"} · {t.playerCount ?? 0}/{t.maxPlayers ?? "—"} players
+                          </div>
+                        </div>
+                        <span className="text-[11px] font-medium uppercase text-amber-300">
+                          {t.status === "open" && (t.playerCount ?? 0) < (t.minPlayersToStart ?? 2)
+                            ? "Waiting for players"
+                            : t.status}
+                        </span>
                       </div>
+                      {"description" in t && typeof t.description === "string" && t.description.trim().length > 0 && (
+                        <p className="text-[11px] text-slate-500">{t.description}</p>
+                      )}
                     </div>
-                    {t.roomCode && t.status === "open" && (
-                      <button
-                        onClick={() => onJoinTable(t.roomCode!)}
-                        className="btn-success text-xs !py-1.5 !px-3"
-                      >
-                        Join Table
-                      </button>
-                    )}
-                    {canManageTables && t.status !== "closed" && (
-                      <div className="flex items-center gap-2">
-                        <select
-                          value={t.rulesetId ?? ""}
-                          onChange={(e) => handleUpdateTableRuleset(t.id, e.target.value || null)}
-                          className="text-[10px] bg-white/5 border border-white/10 rounded px-2 py-1 text-slate-300"
-                          title="Assigned ruleset"
-                        >
-                          <option value="">Default ruleset</option>
-                          {detail.rulesets.map((rs) => (
-                            <option key={rs.id} value={rs.id}>{rs.name}</option>
-                          ))}
-                        </select>
-                        <button
-                          onClick={() => handleRenameTable(t.id, t.name)}
-                          className="text-[10px] text-cyan-400 hover:text-cyan-300 px-2 py-1 rounded hover:bg-cyan-500/10 transition-colors"
-                        >
-                          Edit
+                    <div className="flex flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                      {t.roomCode && t.status === "open" && (
+                        <button onClick={() => onJoinTable(t.roomCode!)} className="btn-success text-xs !py-1.5">
+                          Join Table
                         </button>
-                        <button
-                          onClick={() => { if (confirm(`Close table "${t.name}"?`)) handleCloseTable(t.id); }}
-                          className="text-[10px] text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-red-500/10 transition-colors"
-                        >
-                          Close
-                        </button>
-                      </div>
-                    )}
+                      )}
+                      {canManageTables && t.status !== "closed" && (
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                          <select
+                            value={t.rulesetId ?? ""}
+                            onChange={(e) => handleUpdateTableRuleset(t.id, e.target.value || null)}
+                            className="rounded border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-slate-200"
+                            title="Assigned ruleset"
+                          >
+                            <option value="">Default ruleset</option>
+                            {detail.rulesets.map((rs) => (
+                              <option key={rs.id} value={rs.id}>{rs.name}</option>
+                            ))}
+                          </select>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleRenameTable(t.id, t.name)}
+                              className="rounded px-2 py-1 text-[10px] text-cyan-300 hover:bg-cyan-500/10"
+                            >
+                              Edit
+                            </button>
+                            {canCloseTable && (
+                              <button
+                                onClick={() => { if (confirm(`Close table "${t.name}"?`)) handleCloseTable(t.id); }}
+                                className="rounded px-2 py-1 text-[10px] text-red-300 hover:bg-red-500/10"
+                              >
+                                Close
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))
               )}
@@ -864,6 +953,31 @@ export function ClubDetailView({
                   <button onClick={() => setShowCreateRuleset(true)} className="btn-primary text-xs shrink-0">+ New Ruleset</button>
                 )}
               </div>
+
+              {canManageRulesets && detail.rulesets.length > 0 && (
+                <div className="rounded-lg border border-indigo-500/20 bg-indigo-500/5 p-3">
+                  <div className="text-[11px] font-medium text-indigo-200 mb-2">Default ruleset</div>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <select
+                      value={selectedDefaultRulesetId}
+                      onChange={(e) => setSelectedDefaultRulesetId(e.target.value)}
+                      className="flex-1 rounded border border-white/10 bg-white/5 px-2 py-1.5 text-xs text-slate-100"
+                    >
+                      <option value="" disabled>Select default ruleset</option>
+                      {detail.rulesets.map((rs) => (
+                        <option key={rs.id} value={rs.id}>{rs.name}</option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleSetDefaultRuleset}
+                      disabled={!selectedDefaultRulesetId || selectedDefaultRulesetId === detail.detail.defaultRuleset?.id}
+                      className="btn-primary text-xs disabled:opacity-50"
+                    >
+                      Apply Default
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Ruleset creation form */}
               {showCreateRuleset && canManageRulesets && (
@@ -898,6 +1012,14 @@ export function ClubDetailView({
                         className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-indigo-500" />
                     </div>
                     <div>
+                      <label className="block text-[10px] text-slate-400 mb-0.5">Game Type</label>
+                      <select value={rsGameType} onChange={(e) => setRsGameType(e.target.value as ClubGameType)}
+                        className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-indigo-500">
+                        <option value="texas">No Limit Texas Hold'em</option>
+                        <option value="omaha">Pot Limit Omaha</option>
+                      </select>
+                    </div>
+                    <div>
                       <label className="block text-[10px] text-slate-400 mb-0.5">Min Buy-In</label>
                       <input type="number" value={rsBuyMin} onChange={(e) => setRsBuyMin(Number(e.target.value))} min={1}
                         className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-indigo-500" />
@@ -910,6 +1032,11 @@ export function ClubDetailView({
                     <div>
                       <label className="block text-[10px] text-slate-400 mb-0.5">Time Bank (sec)</label>
                       <input type="number" value={rsTimeBank} onChange={(e) => setRsTimeBank(Number(e.target.value))} min={0}
+                        className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-indigo-500" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-400 mb-0.5">7-2 Bounty (0 = off)</label>
+                      <input type="number" value={rsSevenTwoBounty} onChange={(e) => setRsSevenTwoBounty(Number(e.target.value))} min={0}
                         className="w-full px-2 py-1.5 bg-white/5 border border-white/10 rounded text-sm text-white focus:outline-none focus:border-indigo-500" />
                     </div>
                   </div>
@@ -1159,6 +1286,10 @@ function RulesSummary({ rules }: { rules: ClubRules }) {
         <span className="text-slate-300">{rules.time.actionTimeSec}s + {rules.time.timeBankSec}s bank</span>
       </div>
       <div>
+        <span className="text-slate-500">Variant:</span>{" "}
+        <span className="text-slate-300">{rules.extras.gameType === "omaha" ? "PLO" : "NLH"}</span>
+      </div>
+      <div>
         <span className="text-slate-500">Run-it-twice:</span>{" "}
         <span className="text-slate-300">{rules.runit.allowRunItTwice ? "Yes" : "No"}</span>
       </div>
@@ -1173,6 +1304,10 @@ function RulesSummary({ rules }: { rules: ClubRules }) {
       <div>
         <span className="text-slate-500">Chat:</span>{" "}
         <span className="text-slate-300">{rules.moderation.chatEnabled ? "On" : "Off"}</span>
+      </div>
+      <div>
+        <span className="text-slate-500">7-2 Bounty:</span>{" "}
+        <span className="text-slate-300">{rules.extras.sevenTwoBounty > 0 ? rules.extras.sevenTwoBounty : "Off"}</span>
       </div>
     </div>
   );

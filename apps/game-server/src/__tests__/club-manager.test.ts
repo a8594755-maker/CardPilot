@@ -439,6 +439,23 @@ describe("ClubManager — rulesets", () => {
     assert.ok(ruleset);
     assert.equal(ruleset!.rulesJson.maxSeats, 9);
   });
+
+  it("supports game variant + 7-2 bounty in rulesets", () => {
+    const mgr = new ClubManager();
+    const club = mgr.createClub({ ownerUserId: "u1", ownerDisplayName: "Alice", name: "Variant Club" });
+
+    const ruleset = mgr.createRuleset(club.id, "u1", "PLO 2/5 + 7-2", {
+      ...DEFAULT_CLUB_RULES,
+      extras: {
+        ...DEFAULT_CLUB_RULES.extras,
+        gameType: "omaha",
+        sevenTwoBounty: 200,
+      },
+    });
+    assert.ok(ruleset);
+    assert.equal(ruleset!.rulesJson.extras.gameType, "omaha");
+    assert.equal(ruleset!.rulesJson.extras.sevenTwoBounty, 200);
+  });
 });
 
 describe("ClubManager — invites", () => {
@@ -526,6 +543,27 @@ describe("ClubManager — tables", () => {
 
     const paused = mgr.pauseTable(club.id, "u1", result!.clubTable.id);
     assert.equal(paused, true);
+  });
+
+  it("only owner can close a table", () => {
+    const mgr = new ClubManager();
+    const club = mgr.createClub({
+      ownerUserId: "owner",
+      ownerDisplayName: "Owner",
+      name: "Owner Close Club",
+      requireApprovalToJoin: false,
+    });
+    mgr.requestJoin(club.code, "admin1", "Admin");
+    mgr.updateMemberRole(club.id, "owner", "admin1", "admin");
+
+    const created = mgr.createTable(club.id, "owner", "Always On");
+    assert.ok(created);
+
+    const closedByAdmin = mgr.closeTable(club.id, "admin1", created!.clubTable.id);
+    assert.equal(closedByAdmin, false);
+
+    const closedByOwner = mgr.closeTable(club.id, "owner", created!.clubTable.id);
+    assert.equal(closedByOwner, true);
   });
 
   it("getClubForTable resolves by room code", () => {

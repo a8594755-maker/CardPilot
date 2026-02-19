@@ -700,6 +700,7 @@ export interface RoomFullState {
   tableId: string;
   roomCode: string;
   roomName: string;
+  hasStartedHand?: boolean;
   isClubTable?: boolean;
   clubId?: string;
   clubRole?: ClubRole | null;

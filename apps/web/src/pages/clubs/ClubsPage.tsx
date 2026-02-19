@@ -80,17 +80,12 @@ export function ClubsPage({
   }
 
   return (
-    <main className="flex-1 p-6 overflow-y-auto">
+    <main className="flex-1 p-6 overflow-y-auto overflow-x-hidden">
       <div className="max-w-3xl mx-auto space-y-6">
-        {/* Disclaimer */}
-        <div className="glass-card p-3 bg-amber-500/5 border-amber-500/20 text-xs text-amber-400/80 text-center">
-          🎓 Clubs use virtual credits only. Buy-ins and rebuys are handled through room workflows.
-        </div>
-
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-xl font-bold text-white">My Clubs</h2>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <button
               onClick={onRefreshClubs}
               disabled={!isConnected || clubsLoading}
@@ -112,13 +107,13 @@ export function ClubsPage({
         {/* Join Club */}
         <div className="glass-card p-4">
           <h3 className="text-sm font-semibold text-slate-300 mb-3">Join a Club</h3>
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 md:flex-row">
             <input
               type="text"
               placeholder="Club code (e.g. ABC123)"
               value={joinCode}
               onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-              className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              className="w-full md:flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
               maxLength={8}
             />
             <input
@@ -126,13 +121,13 @@ export function ClubsPage({
               placeholder="Invite code (optional)"
               value={inviteCode}
               onChange={(e) => setInviteCode(e.target.value)}
-              className="flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              className="w-full md:flex-1 px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
               maxLength={16}
             />
             <button
               onClick={handleJoin}
               disabled={!isConnected || !joinCode.trim()}
-              className="btn-primary text-sm whitespace-nowrap"
+              className="btn-primary text-sm whitespace-nowrap w-full md:w-auto"
             >
               Join
             </button>
@@ -171,7 +166,7 @@ export function ClubsPage({
                 onClick={() => onSelectClub(club.id)}
                 className="glass-card p-4 w-full text-left hover:bg-white/5 transition-colors"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold text-white shadow-lg"
                     style={{ backgroundColor: club.badgeColor ?? "#6366f1" }}
@@ -179,23 +174,23 @@ export function ClubsPage({
                     {club.name[0]?.toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
                       <span className="font-semibold text-white truncate">{club.name}</span>
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-slate-400 uppercase">
                         {club.myRole}
                       </span>
                     </div>
-                    <div className="text-xs text-slate-400 mt-0.5">
-                      {club.description ? (
-                        <span className="truncate block max-w-sm">{club.description}</span>
-                      ) : null}
-                    </div>
+                    {club.description ? (
+                      <div className="text-xs text-slate-400 mt-0.5 line-clamp-2">
+                        {club.description}
+                      </div>
+                    ) : null}
                   </div>
-                  <div className="text-right text-xs text-slate-400 space-y-1">
+                  <div className="flex items-center justify-between text-xs text-slate-400 sm:flex-col sm:text-right sm:space-y-1">
                     <div>{club.memberCount} members</div>
                     <div>{club.tableCount} tables</div>
                   </div>
-                  <span className="text-slate-600 text-sm">→</span>
+                  <span className="text-slate-600 text-sm sm:ml-2">→</span>
                 </div>
               </button>
             ))}

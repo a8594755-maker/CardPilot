@@ -11,6 +11,7 @@ export type ClubVisibility = 'private' | 'unlisted';
 export type ClubTableStatus = 'open' | 'paused' | 'closed';
 
 export type RunItTwiceChooser = 'underdog' | 'all-in-initiator';
+export type ClubGameType = 'texas' | 'omaha';
 
 // ── Club Rules ("Club Charter") ──
 
@@ -64,9 +65,11 @@ export interface ClubRulesEconomy {
 }
 
 export interface ClubRulesExtras {
+  gameType: ClubGameType;
   straddleAllowed: boolean;
   bombPotEnabled: boolean;
   rabbitHuntEnabled: boolean;
+  sevenTwoBounty: number;
   rebuyPolicy: 'hand_boundary' | 'anytime';
 }
 
@@ -116,9 +119,11 @@ export const DEFAULT_CLUB_RULES: ClubRules = {
     serviceFeeEnabled: false,
   },
   extras: {
+    gameType: 'texas',
     straddleAllowed: false,
     bombPotEnabled: false,
     rabbitHuntEnabled: false,
+    sevenTwoBounty: 0,
     rebuyPolicy: 'hand_boundary',
   },
 };
@@ -331,11 +336,12 @@ export function canPerformClubAction(
     case 'approve_joins':
     case 'ban':
     case 'create_table':
-    case 'close_table':
     case 'pause_table':
     case 'create_invite':
     case 'view_audit_log':
       return hasClubPermission(actorRole, 'admin');
+    case 'close_table':
+      return hasClubPermission(actorRole, 'owner');
     case 'moderate_chat':
       return hasClubPermission(actorRole, 'admin');
     default:

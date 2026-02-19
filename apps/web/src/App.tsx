@@ -61,6 +61,7 @@ const NETLIFY_COMMIT_REF = import.meta.env.VITE_NETLIFY_COMMIT_REF || "";
 const NETLIFY_DEPLOY_ID = import.meta.env.VITE_NETLIFY_DEPLOY_ID || "";
 const BUILD_TIME = new Date().toISOString().slice(0, 16).replace("T", " ");
 const SOUND_PREF_KEY = "cardpilot_sound_muted";
+const RECENT_NON_CLUB_TABLE_KEY = "cardpilot_recent_non_club_table";
 const SFX_VOLUME_MULTIPLIER = 2.5; // §6: louder SFX ceiling — adjustable (spec: 1.5×–2×, bumped to 2.5× for audibility)
 
 const debugLog = (...args: unknown[]) => {
@@ -186,6 +187,7 @@ export function App() {
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
+
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   /* ── Auth state ── */
@@ -217,6 +219,8 @@ export function App() {
     eligiblePlayers: Array<{ seat: number; name: string }>;
     maxRunCountAllowed: 3;
     submittedPlayerIds: number[];
+    underdogSeat?: number;
+    targetRunCount?: 1 | 2 | 3 | null;
   };
   const [allInLock, setAllInLock] = useState<AllInLockState | null>(null);
   const [myRunPreference, setMyRunPreference] = useState<1 | 2 | 3 | null>(null);
@@ -239,6 +243,9 @@ export function App() {
   const [buyInAmount, setBuyInAmount] = useState(10000);
   const [currentRoomCode, setCurrentRoomCode] = useState("");
   const [currentRoomName, setCurrentRoomName] = useState("");
+  const [clubRoomHintCode, setClubRoomHintCode] = useState("");
+  type RecentNonClubTable = { tableId: string; roomCode: string; roomName?: string };
+  const recentNonClubTableRef = useRef<RecentNonClubTable | null>(null);
 
   type AppView = "lobby" | "table" | "profile" | "history" | "clubs" | "training";
   const view = useMemo<AppView>(() => {
@@ -258,18 +265,17 @@ export function App() {
     navigate(`/table/${encodeURIComponent(resolvedTableId)}`, { replace });
   }, [navigate, tableId]);
 
-  const setView = useCallback((nextView: AppView) => {
-    debugLog("[nav] setView", { from: location.pathname, to: nextView, tableId, currentRoomCode });
-    if (nextView === "table") {
-      goToTable();
-      return;
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(RECENT_NON_CLUB_TABLE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as RecentNonClubTable;
+      if (!parsed?.tableId || !parsed?.roomCode) return;
+      recentNonClubTableRef.current = parsed;
+    } catch {
+      // ignore malformed cache
     }
-    if (nextView === "lobby") {
-      navigate("/lobby");
-      return;
-    }
-    navigate(`/${nextView}`);
-  }, [goToTable, navigate, location.pathname, tableId, currentRoomCode]);
+  }, []);
 
   useEffect(() => {
     if (location.pathname === "/") {
@@ -373,6 +379,7 @@ export function App() {
   const [potPulseActive, setPotPulseActive] = useState(false);
   const [winnerFlareActive, setWinnerFlareActive] = useState(false);
   const [winnerSeatPulse, setWinnerSeatPulse] = useState<number | null>(null);
+  const [resultRunFocus, setResultRunFocus] = useState<{ run: 1 | 2 | 3; seats: number[] } | null>(null);
   const [boardRevealTokens, setBoardRevealTokens] = useState<Record<string, number>>({});
 
   /* ── Chip animation state ── */
@@ -392,6 +399,7 @@ export function App() {
   const potPulseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const winnerFlareTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const winnerSeatPulseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resultRunTimersRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
   // Re-create anchors object on each render so driver reads live DOM refs
   const chipAnchorsLive: ChipAnimationAnchors = {
     container: tableContainerRef.current,
@@ -439,16 +447,95 @@ export function App() {
     }
   }, []);
 
+  const quickJoinNonClub = useCallback((trigger: "table_tab" | "quick_play") => {
+    if (!socket) {
+      showToast("Not connected to server");
+      return;
+    }
+
+    const openRoom = lobbyRooms.find((r) => r.status === "OPEN" && r.playerCount < r.maxPlayers && !r.isClubTable);
+    if (openRoom) {
+      setClubRoomHintCode("");
+      goToTable(openRoom.tableId || "table-1");
+      socket.emit("join_room_code", { roomCode: openRoom.roomCode });
+      showToast(trigger === "table_tab" ? "Joining quick table..." : "Quick-matching into room...");
+      return;
+    }
+
+    debugLog("[CREATE_ROOM] table-tab fallback create_room", { clientUserId: authSession?.userId, settings: createSettings, trigger });
+    goToTable("table-1");
+    socket.emit("create_room", {
+      roomName: `${createSettings.sb}/${createSettings.bb} NLH`,
+      maxPlayers: createSettings.maxPlayers,
+      smallBlind: createSettings.sb,
+      bigBlind: createSettings.bb,
+      buyInMin: createSettings.buyInMin,
+      buyInMax: createSettings.buyInMax,
+      visibility: "public",
+    });
+    showToast(trigger === "table_tab" ? "No recent table. Creating a new table..." : "Creating a new table...");
+  }, [socket, lobbyRooms, createSettings, authSession?.userId, goToTable, showToast]);
+
+  const setView = useCallback((nextView: AppView) => {
+    debugLog("[nav] setView", { from: location.pathname, to: nextView, tableId, currentRoomCode });
+    if (nextView === "table") {
+      const isCurrentRoomClub = Boolean(currentRoomCode && currentRoomCode === clubRoomHintCode);
+      const hasActiveNonClubRoom = Boolean(tableId && currentRoomCode && !isCurrentRoomClub);
+      if (hasActiveNonClubRoom) {
+        goToTable(tableId);
+        return;
+      }
+
+      const recent = recentNonClubTableRef.current;
+      if (recent?.roomCode) {
+        setClubRoomHintCode("");
+        goToTable(recent.tableId || "table-1");
+        if (socket) {
+          socket.emit("join_room_code", { roomCode: recent.roomCode });
+          showToast(`Returning to ${recent.roomName || recent.roomCode}...`);
+        }
+        return;
+      }
+
+      quickJoinNonClub("table_tab");
+      return;
+    }
+    if (nextView === "lobby") {
+      navigate("/lobby");
+      return;
+    }
+    navigate(`/${nextView}`);
+  }, [goToTable, navigate, location.pathname, tableId, currentRoomCode, clubRoomHintCode, socket, quickJoinNonClub, showToast]);
+
+  useEffect(() => {
+    if (!tableId || !currentRoomCode) return;
+    if (roomState?.isClubTable) return;
+    const recent: RecentNonClubTable = {
+      tableId,
+      roomCode: currentRoomCode,
+      roomName: currentRoomName || undefined,
+    };
+    recentNonClubTableRef.current = recent;
+    try {
+      localStorage.setItem(RECENT_NON_CLUB_TABLE_KEY, JSON.stringify(recent));
+    } catch {
+      // ignore storage failures
+    }
+  }, [tableId, currentRoomCode, currentRoomName, roomState?.isClubTable]);
+
   const playUiSfx = useCallback((kind: UiSfx) => {
     playUiSfxTone(kind, soundMuted);
   }, [soundMuted]);
 
   const clearLinger = useCallback(() => {
     if (lingerTimerRef.current) { clearTimeout(lingerTimerRef.current); lingerTimerRef.current = null; }
+    resultRunTimersRef.current.forEach((timer) => clearTimeout(timer));
+    resultRunTimersRef.current = [];
     setLingerActive(false);
     setLingerWinnerSeats(new Set());
     setLingerSeatDeltas({});
     setLingerIsAllIn(false);
+    setResultRunFocus(null);
   }, []);
 
   useEffect(() => { preloadCardImages(); }, []);
@@ -619,6 +706,7 @@ export function App() {
       if (potPulseTimerRef.current) clearTimeout(potPulseTimerRef.current);
       if (winnerFlareTimerRef.current) clearTimeout(winnerFlareTimerRef.current);
       if (winnerSeatPulseTimerRef.current) clearTimeout(winnerSeatPulseTimerRef.current);
+      resultRunTimersRef.current.forEach((timer) => clearTimeout(timer));
     };
   }, []);
 
@@ -919,6 +1007,7 @@ export function App() {
       resetSnapshotSyncState();
       tableIdRef.current = "";
       setTableId("");
+      setClubRoomHintCode("");
       setCurrentRoomCode(""); setCurrentRoomName("");
       setRoomState(null);
       setSnapshot(null);
@@ -997,6 +1086,8 @@ export function App() {
       eligiblePlayers: Array<{ seat: number; name: string }>;
       maxRunCountAllowed: 3;
       submittedPlayerIds?: number[];
+      underdogSeat?: number;
+      targetRunCount?: 1 | 2 | 3 | null;
     }) => {
       const liveHandId = snapshotRef.current?.handId;
       if (liveHandId && d.handId !== liveHandId) return;
@@ -1005,6 +1096,8 @@ export function App() {
         eligiblePlayers: d.eligiblePlayers ?? [],
         maxRunCountAllowed: 3,
         submittedPlayerIds: d.submittedPlayerIds ?? [],
+        underdogSeat: d.underdogSeat,
+        targetRunCount: d.targetRunCount ?? null,
       });
       if (seatRef.current != null && !(d.submittedPlayerIds ?? []).includes(seatRef.current)) {
         setMyRunPreference(null);
@@ -1139,6 +1232,27 @@ export function App() {
         // Activate linger (non-blocking seat highlights + deltas)
         setLingerActive(true);
 
+        // Explicit per-run result focus animation (clearer for multi-run showdowns)
+        resultRunTimersRef.current.forEach((timer) => clearTimeout(timer));
+        resultRunTimersRef.current = [];
+        const runs = d.settlement.winnersByRun ?? [];
+        if (runs.length > 0) {
+          runs.forEach((run, idx) => {
+            const timer = setTimeout(() => {
+              const seatsForRun = run.winners.map((winner) => winner.seat);
+              setResultRunFocus({ run: run.run, seats: seatsForRun });
+              if (seatsForRun.length > 0) {
+                setWinnerSeatPulse(seatsForRun[0]);
+                if (winnerSeatPulseTimerRef.current) clearTimeout(winnerSeatPulseTimerRef.current);
+                winnerSeatPulseTimerRef.current = setTimeout(() => setWinnerSeatPulse(null), 520);
+              }
+            }, idx * 720);
+            resultRunTimersRef.current.push(timer);
+          });
+          const clearTimer = setTimeout(() => setResultRunFocus(null), runs.length * 720 + 520);
+          resultRunTimersRef.current.push(clearTimer);
+        }
+
         // Toast: lightweight winner summary
         const winnerNames = d.settlement.winnersByRun.flatMap((r) => r.winners).map((w) => {
           const p = d.finalState?.players.find((pl) => pl.seat === w.seat);
@@ -1148,14 +1262,15 @@ export function App() {
           showToast(winnerNames.length === 1 ? `Winner: ${winnerNames[0]}` : `Winners: ${winnerNames.join(", ")}`);
         }
 
-        // Auto-advance timer: 1.5s normal, 4s all-in
-        const lingerMs = wasAllIn ? 4000 : 1500;
+        // Auto-advance timer: 2s normal, 4s all-in
+        const lingerMs = wasAllIn ? 4000 : 2000;
         if (lingerTimerRef.current) clearTimeout(lingerTimerRef.current);
         lingerTimerRef.current = setTimeout(() => {
           setLingerActive(false);
           setLingerWinnerSeats(new Set());
           setLingerSeatDeltas({});
           setLingerIsAllIn(false);
+          setResultRunFocus(null);
           setWinners(null);
           setSettlement(null);
         }, lingerMs);
@@ -1259,6 +1374,7 @@ export function App() {
       resetSnapshotSyncState();
       setKicked(d);
       setView("lobby");
+      setClubRoomHintCode("");
       setCurrentRoomCode(""); setCurrentRoomName("");
       setRoomState(null);
       overlays.closeAll();
@@ -1270,6 +1386,7 @@ export function App() {
       setView("lobby");
       tableIdRef.current = "";
       setTableId("");
+      setClubRoomHintCode("");
       setCurrentRoomCode(""); setCurrentRoomName("");
       setRoomState(null);
       setTimerState(null);
@@ -1473,6 +1590,7 @@ export function App() {
   const isCoHost = useMemo(() => roomState?.ownership.coHostIds.includes(authSession?.userId ?? "") ?? false, [roomState, authSession]);
   const isHostOrCoHost = isHost || isCoHost;
   const isClubTable = Boolean(roomState?.isClubTable);
+  const isClubTableContext = isClubTable || Boolean(currentRoomCode && currentRoomCode === clubRoomHintCode);
   const userRole = useUserRole(roomState, authSession?.userId, seat);
   const handInProgress = useMemo(
     () => (roomState?.status === "PLAYING") || Boolean(snapshot?.handId && (snapshot.actorSeat != null || snapshot.showdownPhase === "decision")),
@@ -1526,15 +1644,50 @@ export function App() {
     return myPlayer.folded;
   }, [snapshot?.handId, snapshot?.showdownPhase, myPlayer, holeCards.length, roomState?.settings.allowShowAfterFold, roomState?.status]);
   const allInLockForCurrentHand = allInLock && snapshot?.handId === allInLock.handId ? allInLock : null;
-  const runChoiceEligible = Boolean(
-    allInLockForCurrentHand?.eligiblePlayers.some((player) => player.seat === seat)
-    && myPlayer?.inHand
-    && !myPlayer.folded
+  const resolvedSeat = useMemo(() => {
+    const uid = authSession?.userId;
+    if (uid && snapshot?.players) {
+      const me = snapshot.players.find((player) => player.userId === uid);
+      if (me) return me.seat;
+    }
+    return seat;
+  }, [authSession?.userId, snapshot?.players, seat]);
+  const resolvedPlayer = useMemo(
+    () => snapshot?.players.find((player) => player.seat === resolvedSeat) ?? null,
+    [snapshot?.players, resolvedSeat]
   );
+  const underdogSeat = allInLockForCurrentHand?.underdogSeat ?? null;
+  const underdogUserId = useMemo(
+    () => (underdogSeat != null ? snapshot?.players.find((player) => player.seat === underdogSeat)?.userId ?? null : null),
+    [snapshot?.players, underdogSeat]
+  );
+  const isUnderdogUser = Boolean(
+    underdogSeat != null
+    && (
+      (resolvedSeat != null && resolvedSeat === underdogSeat)
+      || (authSession?.userId && underdogUserId === authSession.userId)
+    )
+  );
+  const myRunSeat = (isUnderdogUser && underdogSeat != null) ? underdogSeat : resolvedSeat;
+  const runChoiceEligible = Boolean(
+    (allInLockForCurrentHand?.eligiblePlayers.some((player) => player.seat === resolvedSeat)
+      && (!resolvedPlayer || (resolvedPlayer.inHand && !resolvedPlayer.folded)))
+    || isUnderdogUser
+  );
+  const myIsUnderdog = isUnderdogUser;
+  const runTarget = allInLockForCurrentHand?.targetRunCount ?? null;
+  const runTargetNeedsApproval = Boolean(runTarget && runTarget > 1);
+  const runApprovalEligible = Boolean(runChoiceEligible && !myIsUnderdog && runTargetNeedsApproval);
   const submittedRunSeats = allInLockForCurrentHand?.submittedPlayerIds ?? [];
-  const hasSubmittedRunPreference = seat != null && submittedRunSeats.includes(seat);
+  const hasSubmittedRunPreference = myRunSeat != null && submittedRunSeats.includes(myRunSeat);
   const pendingRunPlayers = (allInLockForCurrentHand?.eligiblePlayers ?? []).filter((player) => !submittedRunSeats.includes(player.seat));
   const runChoiceWaitingCount = pendingRunPlayers.length;
+  const showInitialStartPrompt = Boolean(
+    !isClubTableContext
+    && roomState
+    && roomState.hasStartedHand === false
+    && !handInProgress
+  );
   useEffect(() => {
     if (!canVoluntaryShow) setShowHandConfirm(false);
   }, [canVoluntaryShow]);
@@ -1731,6 +1884,7 @@ export function App() {
     resetSnapshotSyncState();
     tableIdRef.current = "";
     setTableId("");
+    setClubRoomHintCode("");
     setCurrentRoomCode(""); setCurrentRoomName("");
     setRoomState(null);
     setSnapshot(null);
@@ -1954,6 +2108,7 @@ export function App() {
             }}
             onJoinClubTable={(roomCode) => {
               if (socket) {
+                setClubRoomHintCode(roomCode);
                 socket.emit("join_room_code", { roomCode });
                 setView("table");
               }
@@ -1971,26 +2126,10 @@ export function App() {
             createSettings={createSettings}
             onCreateSettingsChange={setCreateSettings}
             onQuickPlay={() => {
-              if (!socket) { showToast("Not connected to server"); return; }
-              const openRoom = lobbyRooms.find(r => r.status === "OPEN" && r.playerCount < r.maxPlayers);
-              if (openRoom) {
-                socket.emit("join_room_code", { roomCode: openRoom.roomCode });
-                showToast("Quick-matching into room...");
-              } else {
-                debugLog("[CREATE_ROOM] Emitting create_room", { clientUserId: authSession?.userId, settings: createSettings });
-                socket.emit("create_room", {
-                  roomName: `${createSettings.sb}/${createSettings.bb} NLH`,
-                  maxPlayers: createSettings.maxPlayers,
-                  smallBlind: createSettings.sb,
-                  bigBlind: createSettings.bb,
-                  buyInMin: createSettings.buyInMin,
-                  buyInMax: createSettings.buyInMax,
-                  visibility: "public",
-                });
-                showToast("Creating a new table...");
-              }
+              quickJoinNonClub("quick_play");
             }}
             onJoinByCode={(code: string) => {
+              setClubRoomHintCode("");
               socket?.emit("join_room_code", { roomCode: code });
               showToast("Joining room...");
             }}
@@ -2009,6 +2148,7 @@ export function App() {
               showToast("Creating room...");
             }}
             onJoinRoom={(roomCode: string) => {
+              setClubRoomHintCode("");
               socket?.emit("join_room_code", { roomCode });
               showToast("Joining room...");
             }}
@@ -2261,7 +2401,7 @@ export function App() {
                         <button onClick={() => setShowBuyInModal(false)}
                           className="flex-1 py-2 rounded-lg text-xs font-medium bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 transition-all">Cancel</button>
                         <button onClick={() => {
-                          const canSitDirectly = isHostOrCoHost || isClubTable;
+                          const canSitDirectly = isHostOrCoHost || isClubTableContext;
                           debugLog("[BUY_IN_MODAL] Sit button clicked. canSitDirectly:", canSitDirectly, "isHostOrCoHost:", isHostOrCoHost);
                           
                           if (canSitDirectly) {
@@ -2275,12 +2415,12 @@ export function App() {
                           try { if (currentRoomCode) localStorage.setItem(`cardpilot_buyin_${currentRoomCode}`, String(buyInAmount)); } catch { /* ignore */ }
                           setShowBuyInModal(false);
                         }} className="flex-1 py-2 rounded-lg text-xs font-semibold bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-900/30 hover:from-emerald-400 hover:to-emerald-500 transition-all">
-                          {isClubTable || isHostOrCoHost ? "Sit Down" : "Request Seat"}
+                          {isClubTableContext || isHostOrCoHost ? "Sit Down" : "Request Seat"}
                         </button>
                       </div>
                       <p className="text-[9px] text-slate-600 text-center">
                         Seat #{pendingSitSeat} · Blinds {settings?.smallBlind ?? 1}/{bb}
-                        {!isClubTable && !isHostOrCoHost && " · Requires host approval"}
+                        {!isClubTableContext && !isHostOrCoHost && " · Requires host approval"}
                       </p>
                     </div>
                   </div>
@@ -2504,7 +2644,7 @@ export function App() {
                           <span className="text-[10px] font-mono text-amber-400 tracking-wider">{currentRoomCode}</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-2 shrink-0 ml-auto pl-2">
                         <span
                           className={`w-2 h-2 rounded-full ${isConnected ? "bg-emerald-400" : "bg-red-400 animate-pulse"}`}
                           title={isConnected ? "Online" : "Offline"}
@@ -2597,7 +2737,7 @@ export function App() {
                             <div key={runIdx} className={`cp-board-row w-full transition-all duration-200 ${board.length === 0 ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}>
                               <span className={`cp-board-run-badge shrink-0 ${
                                 runIdx === 0 ? "text-cyan-400" : runIdx === 1 ? "text-amber-400" : "text-emerald-400"
-                              }`}>
+                              } ${resultRunFocus?.run === (runIdx + 1) ? "ring-1 ring-amber-300/60 bg-amber-500/10 animate-pulse" : ""}`}>
                                 R{runIdx + 1}
                               </span>
                               <div className="cp-board-row flex-1 justify-start">
@@ -2646,6 +2786,11 @@ export function App() {
                     {boardReveal && (
                       <div className="cp-board-badge">
                         Runout: {boardReveal.street}
+                      </div>
+                    )}
+                    {lingerActive && resultRunFocus && (
+                      <div className="cp-board-badge mt-1 border border-amber-400/30 bg-amber-500/10 text-amber-300 animate-pulse">
+                        Result Run {resultRunFocus.run}: {resultRunFocus.seats.length > 0 ? resultRunFocus.seats.map((seatNum) => `Seat ${seatNum}`).join(", ") : "Pending"}
                       </div>
                     )}
 
@@ -2766,6 +2911,22 @@ export function App() {
                       <span className="text-[9px] text-slate-600 ml-1">
                         Press Space to skip
                       </span>
+                    </div>
+                  )}
+
+                  {/* First-hand manual start gate (normal tables only). Club tables stay auto-start. */}
+                  {showInitialStartPrompt && (
+                    <div className="cp-hero-linger animate-[cpFadeSlideUp_0.3s_ease-out]">
+                      <span className="text-[10px] text-amber-200/90">Ready to start this table?</span>
+                      <button
+                        onClick={() => {
+                          if (dealDisabledReason) { showToast(dealDisabledReason); return; }
+                          socket?.emit("start_hand", { tableId });
+                        }}
+                        className="text-[11px] px-4 py-2 rounded-lg bg-amber-500/20 text-amber-200 border border-amber-400/40 hover:bg-amber-500/30 transition-all font-semibold"
+                      >
+                        Start Game
+                      </button>
                     </div>
                   )}
                 </section>
@@ -3094,7 +3255,13 @@ export function App() {
                     <div className="flex items-center justify-between gap-2 mb-2">
                       <div>
                         <div className="text-[10px] uppercase tracking-wider text-orange-300">All-In Run Count</div>
-                        <div className="text-xs text-slate-200">Choose run once, twice, or three times.</div>
+                        <div className="text-xs text-slate-200">
+                          {myIsUnderdog
+                            ? "You are the underdog. Choose run once, twice, or three times."
+                            : runTargetNeedsApproval
+                              ? `Underdog chose run ${runTarget}. Agree to continue ${runTarget} runs or reject to run once.`
+                              : "Waiting for underdog to choose run count."}
+                        </div>
                         {hasSubmittedRunPreference && runChoiceWaitingCount > 0 && (
                           <div className="text-[10px] text-slate-300 mt-0.5">
                             Submitted. Waiting for {runChoiceWaitingCount} player{runChoiceWaitingCount === 1 ? "" : "s"}.
@@ -3106,38 +3273,83 @@ export function App() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { runCount: 1 as const, label: "Once" },
-                        { runCount: 2 as const, label: "Twice" },
-                        { runCount: 3 as const, label: "Three times" },
-                      ].map((choice) => {
-                        const selected = myRunPreference === choice.runCount;
-                        const disabled = hasSubmittedRunPreference || choice.runCount > allInLockForCurrentHand.maxRunCountAllowed;
-                        return (
-                          <button
-                            key={choice.runCount}
-                            disabled={disabled}
-                            onClick={() => {
-                              if (!snapshot?.handId || !allInLockForCurrentHand) return;
-                              socket?.emit("submit_run_preference", {
-                                tableId,
-                                handId: snapshot.handId,
-                                runCount: choice.runCount,
-                              });
-                              setMyRunPreference(choice.runCount);
-                            }}
-                            className={`btn-action ${
-                              selected
-                                ? "bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 border border-amber-300/60"
-                                : "bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600"
-                            } disabled:opacity-50`}
-                          >
-                            {choice.label}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    {myIsUnderdog ? (
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { runCount: 1 as const, label: "Once" },
+                          { runCount: 2 as const, label: "Twice" },
+                          { runCount: 3 as const, label: "Three times" },
+                        ].map((choice) => {
+                          const selected = myRunPreference === choice.runCount;
+                          const disabled = hasSubmittedRunPreference || choice.runCount > allInLockForCurrentHand.maxRunCountAllowed;
+                          return (
+                            <button
+                              key={choice.runCount}
+                              disabled={disabled}
+                              onClick={() => {
+                                if (!snapshot?.handId || !allInLockForCurrentHand) return;
+                                socket?.emit("submit_run_preference", {
+                                  tableId,
+                                  handId: snapshot.handId,
+                                  runCount: choice.runCount,
+                                });
+                                setMyRunPreference(choice.runCount);
+                              }}
+                              className={`btn-action ${
+                                selected
+                                  ? "bg-gradient-to-r from-amber-500 to-orange-500 text-slate-900 border border-amber-300/60"
+                                  : "bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600"
+                              } disabled:opacity-50`}
+                            >
+                              {choice.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : runApprovalEligible && runTarget ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          disabled={hasSubmittedRunPreference}
+                          onClick={() => {
+                            if (!snapshot?.handId || !allInLockForCurrentHand) return;
+                            socket?.emit("submit_run_preference", {
+                              tableId,
+                              handId: snapshot.handId,
+                              runCount: runTarget,
+                            });
+                            setMyRunPreference(runTarget);
+                          }}
+                          className={`btn-action ${
+                            myRunPreference === runTarget
+                              ? "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white border border-emerald-300/60"
+                              : "bg-gradient-to-r from-emerald-700 to-emerald-800 hover:from-emerald-600 hover:to-emerald-700"
+                          } disabled:opacity-50`}
+                        >
+                          Agree ({runTarget} runs)
+                        </button>
+                        <button
+                          disabled={hasSubmittedRunPreference}
+                          onClick={() => {
+                            if (!snapshot?.handId || !allInLockForCurrentHand) return;
+                            socket?.emit("submit_run_preference", {
+                              tableId,
+                              handId: snapshot.handId,
+                              runCount: 1,
+                            });
+                            setMyRunPreference(1);
+                          }}
+                          className={`btn-action ${
+                            myRunPreference === 1
+                              ? "bg-gradient-to-r from-rose-500 to-red-500 text-white border border-rose-300/60"
+                              : "bg-gradient-to-r from-rose-700 to-red-700 hover:from-rose-600 hover:to-red-600"
+                          } disabled:opacity-50`}
+                        >
+                          Reject (Run once)
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="text-[10px] text-slate-300">Waiting for underdog choice…</div>
+                    )}
                   </div>
                 )}
 
@@ -5397,8 +5609,8 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
             </span>
           </div>
         )}
-        <div className="cp-seat-name text-[10px] font-semibold text-white truncate mt-0.5">{player.name}</div>
-        <div className="cp-seat-stack text-xs font-bold text-amber-400 cp-num">{fmt(player.stack)}</div>
+        <div className="cp-seat-name text-xs font-semibold text-white truncate mt-0.5">{player.name}</div>
+        <div className="cp-seat-stack text-sm font-bold text-amber-400 cp-num">{fmt(player.stack)}</div>
         {player.status === "sitting_out" && <div className="cp-seat-status text-[8px] text-orange-400 font-bold uppercase">Sit Out</div>}
         {player.folded && player.status !== "sitting_out" && <div className="cp-seat-status text-[8px] text-red-400 font-semibold">FOLDED</div>}
         {player.allIn && !equity && <div className="cp-seat-status text-[8px] text-orange-400 font-bold">ALL-IN</div>}
