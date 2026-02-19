@@ -127,6 +127,7 @@ type PendingRunCountDecisionState = {
   underdogSeat: number;
   preferencesBySeat: Record<number, RunCountPreference | null>;
   targetRunCount: RunCountPreference | null;
+  equities: Array<{ seat: number; winRate: number; tieRate: number }>;
 };
 const pendingRunCountDecisions = new Map<string, PendingRunCountDecisionState>();
 const pendingRunCountTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
@@ -1348,6 +1349,7 @@ function buildAllInLockedPayload(pending: PendingRunCountDecisionState): {
   submittedPlayerIds: number[];
   underdogSeat: number;
   targetRunCount: RunCountPreference | null;
+  equities: Array<{ seat: number; winRate: number; tieRate: number }>;
 } {
   const submittedPlayerIds = pending.eligiblePlayers
     .map((player) => player.seat)
@@ -1360,6 +1362,7 @@ function buildAllInLockedPayload(pending: PendingRunCountDecisionState): {
     submittedPlayerIds,
     underdogSeat: pending.underdogSeat,
     targetRunCount: pending.targetRunCount,
+    equities: pending.equities,
   };
 }
 
@@ -2381,9 +2384,8 @@ function initiateRunoutFlow(tableId: string, table: GameTable): void {
     preferencesBySeat[player.seat] = null;
   }
 
-  const equityBySeat = new Map<number, number>(
-    calculateAllPlayersEquity(table, [...state.board] as Card[]).map((entry) => [entry.seat, entry.winRate])
-  );
+  const equities = calculateAllPlayersEquity(table, [...state.board] as Card[]);
+  const equityBySeat = new Map<number, number>(equities.map((entry) => [entry.seat, entry.winRate]));
   const underdogSeat = [...eligiblePlayers]
     .sort((a, b) => {
       const wa = equityBySeat.get(a.seat) ?? 1;
@@ -2398,6 +2400,7 @@ function initiateRunoutFlow(tableId: string, table: GameTable): void {
     underdogSeat,
     preferencesBySeat,
     targetRunCount: null,
+    equities,
   };
   pendingRunCountDecisions.set(tableId, pending);
 

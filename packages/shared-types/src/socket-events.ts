@@ -346,6 +346,9 @@ export interface ServerToClientEvents {
     eligiblePlayers: Array<{ seat: number; name: string }>;
     maxRunCountAllowed: 3;
     submittedPlayerIds?: number[];
+    underdogSeat?: number;
+    targetRunCount?: 1 | 2 | 3 | null;
+    equities?: Array<{ seat: number; winRate: number; tieRate: number }>;
   }) => void;
   all_in_prompt: (payload: {
     actorSeat: number;

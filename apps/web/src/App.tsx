@@ -131,8 +131,8 @@ function playUiSfxTone(kind: UiSfx, muted: boolean) {
 function getSeatLayout(n: number): Record<number, { top: string; left: string }> {
   const cx = 50;   // ellipse center X (%)
   const cy = 46;   // ellipse center Y (%) — slightly above visual center of table image
-  const rx = 43;   // horizontal radius (%)
-  const ry = 38;   // vertical radius (%)
+  const rx = 40;   // horizontal radius (%) (pulled inward)
+  const ry = 36;   // vertical radius (%) (pulled inward)
   const result: Record<number, { top: string; left: string }> = {};
   for (let i = 0; i < n; i++) {
     // π/2 = bottom in screen coords; subtract to go clockwise
@@ -219,8 +219,9 @@ export function App() {
     eligiblePlayers: Array<{ seat: number; name: string }>;
     maxRunCountAllowed: 3;
     submittedPlayerIds: number[];
-    underdogSeat?: number;
-    targetRunCount?: 1 | 2 | 3 | null;
+    underdogSeat: number | null;
+    targetRunCount: 1 | 2 | 3 | null;
+    equities?: Array<{ seat: number; winRate: number; tieRate: number }>;
   };
   const [allInLock, setAllInLock] = useState<AllInLockState | null>(null);
   const [myRunPreference, setMyRunPreference] = useState<1 | 2 | 3 | null>(null);
@@ -1088,6 +1089,7 @@ export function App() {
       submittedPlayerIds?: number[];
       underdogSeat?: number;
       targetRunCount?: 1 | 2 | 3 | null;
+      equities?: Array<{ seat: number; winRate: number; tieRate: number }>;
     }) => {
       const liveHandId = snapshotRef.current?.handId;
       if (liveHandId && d.handId !== liveHandId) return;
@@ -1096,8 +1098,9 @@ export function App() {
         eligiblePlayers: d.eligiblePlayers ?? [],
         maxRunCountAllowed: 3,
         submittedPlayerIds: d.submittedPlayerIds ?? [],
-        underdogSeat: d.underdogSeat,
+        underdogSeat: d.underdogSeat ?? null,
         targetRunCount: d.targetRunCount ?? null,
+        equities: d.equities,
       });
       if (seatRef.current != null && !(d.submittedPlayerIds ?? []).includes(seatRef.current)) {
         setMyRunPreference(null);
@@ -1675,6 +1678,11 @@ export function App() {
     || isUnderdogUser
   );
   const myIsUnderdog = isUnderdogUser;
+  const underdogWinRate = useMemo(() => {
+    if (!allInLockForCurrentHand?.equities || underdogSeat == null) return null;
+    const entry = allInLockForCurrentHand.equities.find((e) => e.seat === underdogSeat);
+    return entry ? Math.round(entry.winRate * 1000) / 10 : null;
+  }, [allInLockForCurrentHand?.equities, underdogSeat]);
   const runTarget = allInLockForCurrentHand?.targetRunCount ?? null;
   const runTargetNeedsApproval = Boolean(runTarget && runTarget > 1);
   const runApprovalEligible = Boolean(runChoiceEligible && !myIsUnderdog && runTargetNeedsApproval);
@@ -2797,12 +2805,12 @@ export function App() {
                     {/* Pot chip on table (always render anchor ref for animations) */}
                     <div ref={potRef} className="cp-pot-anchor">
                       {potNumbers.totalPot > 0 && (
-                        <div className={`cp-pot-pill text-[10px] ${potPulseActive ? "cp-pot-pill--pulse" : ""}`}>
-                          <div className="flex items-center justify-between gap-2 text-slate-300 uppercase tracking-wider text-[8px]">
+                        <div className={`cp-pot-pill text-[12px] ${potPulseActive ? "cp-pot-pill--pulse" : ""}`}>
+                          <div className="flex items-center justify-between gap-2 text-slate-300 uppercase tracking-wider text-[10px]">
                             <span>Pushed</span>
                             <span className="text-emerald-300 font-bold cp-num normal-case">{formatChips(potNumbers.pushedPot, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</span>
                           </div>
-                          <div className="mt-0.5 flex items-center justify-between gap-2 text-slate-300 uppercase tracking-wider text-[8px]">
+                          <div className="mt-0.5 flex items-center justify-between gap-2 text-slate-300 uppercase tracking-wider text-[10px]">
                             <span>Total</span>
                             <span className="text-amber-400 font-bold cp-num normal-case">{formatChips(potNumbers.totalPot, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</span>
                           </div>
@@ -3257,7 +3265,7 @@ export function App() {
                         <div className="text-[10px] uppercase tracking-wider text-orange-300">All-In Run Count</div>
                         <div className="text-xs text-slate-200">
                           {myIsUnderdog
-                            ? "You are the underdog. Choose run once, twice, or three times."
+                            ? `You are the underdog${underdogWinRate != null ? ` (~${underdogWinRate}% win)` : ""}. Choose run once, twice, or three times.`
                             : runTargetNeedsApproval
                               ? `Underdog chose run ${runTarget}. Agree to continue ${runTarget} runs or reject to run once.`
                               : "Waiting for underdog to choose run count."}
@@ -5590,7 +5598,7 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
           </div>
         </div>
       )}
-      <div className={`cp-seat-label relative z-10 w-18 md:w-22 rounded-xl p-1 text-center transition-all ${timerBorderClass} ${isWinner ? "cp-seat-win" : ""} ${isWinnerPulse ? "cp-seat-win-pop" : ""} ${
+      <div className={`cp-seat-label relative z-10 w-40 md:w-44 rounded-xl p-4.5 text-center transition-all ${timerBorderClass} ${isWinner ? "cp-seat-win" : ""} ${isWinnerPulse ? "cp-seat-win-pop" : ""} ${
         isActor ? "bg-amber-500/20 border-2 border-amber-400 shadow-[0_0_16px_rgba(245,158,11,0.3)]"
         : isMe ? "bg-cyan-500/10 border-2 border-cyan-400/50"
         : "bg-black/60 border border-white/10"
@@ -5651,8 +5659,8 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
       )}
       {/* Street bet amount — shown below the chip */}
       {player.streetCommitted > 0 && !player.folded && (
-        <div className={`cp-bet-pill bg-black/75 px-1.5 py-0.5 rounded-full text-[9px] font-bold shadow-sm border ${actionBadgeClass}`}>
-          <span className="cp-action-label uppercase text-[7px] tracking-wider mr-1">{actionLabel}</span>
+        <div className={`cp-bet-pill bg-black/75 px-1.5 py-0.5 rounded-full text-[11px] font-bold shadow-sm border ${actionBadgeClass}`}>
+          <span className="cp-action-label uppercase text-[8px] tracking-wider mr-1">{actionLabel}</span>
           <span className="cp-num">{fmt(player.streetCommitted)}</span>
         </div>
       )}
