@@ -658,7 +658,7 @@ export class ClubRepo {
           .maybeSingle();
         
         return {
-          tx: rowToWalletTx(existing as RawWalletTx),
+          tx: rowToWalletTx(existing as Record<string, unknown>),
           newBalance: balanceData?.current_balance ?? 0,
           wasDuplicate: true,
         };
@@ -719,7 +719,7 @@ export class ClubRepo {
     });
 
     return {
-      tx: rowToWalletTx(insertedTx as RawWalletTx),
+      tx: rowToWalletTx(insertedTx as Record<string, unknown>),
       newBalance,
       wasDuplicate: false,
     };
