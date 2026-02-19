@@ -22,6 +22,13 @@ const DEFAULT_BIG_BLIND = 100;
 const DEFAULT_BUY_IN_MIN = 2_000;
 const DEFAULT_BUY_IN_MAX = 20_000;
 
+const DEFAULT_CORS_ORIGINS = [
+  "http://127.0.0.1:5173",
+  "http://localhost:5173",
+  "https://cardpilotcouch.netlify.app",
+  "https://cardpilotgame-server-production.up.railway.app",
+];
+
 const DEFAULTS: RoomSettings = {
   gameType: "texas",
   maxPlayers: 6,
@@ -191,8 +198,16 @@ function parseSupabaseEnvGuard(): void {
 
 function parseCorsOrigin(): string[] | true {
   const raw = process.env.CORS_ORIGIN?.trim();
-  if (!raw) return true;
-  return raw.split(",").map((value) => value.trim()).filter((value) => value.length > 0);
+  if (!raw) return DEFAULT_CORS_ORIGINS;
+  if (raw === "*") return true;
+
+  const values = raw
+    .split(",")
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0);
+
+  const merged = Array.from(new Set([...values, ...DEFAULT_CORS_ORIGINS]));
+  return merged;
 }
 
 function buildConfig(): RuntimeConfig {
