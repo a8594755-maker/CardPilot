@@ -25,7 +25,7 @@ describe("Club authentication contracts", () => {
 
   it("emits a consistent 401-style unauthorized error for club access", () => {
     assert.match(serverSource, /const CLUB_AUTH_REQUIRED_MESSAGE = "401 Unauthorized: authentication required for club access";/);
-    assert.match(serverSource, /function emitClubUnauthorized\(socket: Socket\): void \{[\s\S]*code: "UNAUTHORIZED"[\s\S]*CLUB_AUTH_REQUIRED_MESSAGE/);
+    assert.match(serverSource, /function emitClubUnauthorized\(socket: Socket, reason\?: string\): void \{[\s\S]*code: "UNAUTHORIZED"[\s\S]*CLUB_AUTH_REQUIRED_MESSAGE/);
   });
 
   it("guards club API handlers behind requireClubAuth", () => {

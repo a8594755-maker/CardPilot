@@ -33,6 +33,7 @@ export interface HandRecord {
   smallBlind?: number;
   bigBlind?: number;
   playersCount?: number;
+  didWinAnyRun?: boolean;
   // Per-player showdown info (seat -> cards or "mucked")
   showdownHands?: Record<number, [string, string] | "mucked">;
   playerNames?: Record<number, string>;
@@ -232,6 +233,7 @@ function normalizeHandRecord(input: unknown): HandRecord | null {
     potSize: Number(raw.potSize ?? 0),
     stackSize: Number(raw.stackSize ?? 0),
     tags: Array.isArray(raw.tags) ? raw.tags.map(String) : [],
+    didWinAnyRun: Boolean(raw.didWinAnyRun),
     netByPosition: raw.netByPosition && typeof raw.netByPosition === "object"
       ? Object.fromEntries(
           Object.entries(raw.netByPosition as Record<string, unknown>).map(([position, net]) => [position, Number(net ?? 0)])
@@ -340,6 +342,7 @@ export interface LocalRoomSummary {
   lastPlayedAt: number;
   handsCount: number;
   netResult: number;
+  handsWon?: number;
   smallBlind: number;
   bigBlind: number;
 }
@@ -363,6 +366,11 @@ export function getHandsByRoom(): { rooms: LocalRoomSummary[]; handsByRoom: Reco
   const rooms: LocalRoomSummary[] = Object.entries(byRoom).map(([code, hands]) => {
     const last = hands[0];
     const net = hands.reduce((sum, h) => sum + (h.result ?? 0), 0);
+    const handsWon = hands.reduce((count, h) => {
+      if (h.didWinAnyRun) return count + 1;
+      if ((h.result ?? 0) > 0) return count + 1;
+      return count;
+    }, 0);
     return {
       roomCode: code,
       roomName: last.roomName || (code === "_local" ? "Local / Unknown" : code),
@@ -370,6 +378,7 @@ export function getHandsByRoom(): { rooms: LocalRoomSummary[]; handsByRoom: Reco
       lastPlayedAt: last.createdAt,
       handsCount: hands.length,
       netResult: net,
+      handsWon,
       smallBlind: last.smallBlind ?? 0,
       bigBlind: last.bigBlind ?? 0,
     };

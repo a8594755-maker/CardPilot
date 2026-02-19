@@ -88,7 +88,7 @@ export class SupabasePersistence {
   }
 
   async verifyAccessToken(accessToken?: string, fallbackName?: string): Promise<VerifiedIdentity> {
-    if (!accessToken || !this.authClient) {
+    if (!accessToken) {
       if (this.admin) {
         throw new Error("supabase access token required");
       }
@@ -99,7 +99,12 @@ export class SupabasePersistence {
       };
     }
 
-    const { data, error } = await this.authClient.auth.getUser(accessToken);
+    const authApi = this.authClient?.auth ?? this.admin?.auth;
+    if (!authApi) {
+      throw new Error("supabase auth client unavailable");
+    }
+
+    const { data, error } = await authApi.getUser(accessToken);
     if (error || !data.user) {
       throw new Error("invalid supabase access token");
     }

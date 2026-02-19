@@ -29,7 +29,9 @@ const { Hand } = pokersolver as unknown as {
 };
 
 const POSITION_LABELS_BY_COUNT: Record<number, readonly string[]> = {
-  2: ["SB", "BB"],
+  // orderedFromButton() starts from seat left of button (clockwise)
+  // HU special case: first seat in that order is BB, second is SB(button)
+  2: ["BB", "SB"],
   3: ["SB", "BB", "BTN"],
   4: ["SB", "BB", "UTG", "BTN"],
   5: ["SB", "BB", "UTG", "CO", "BTN"],
@@ -217,13 +219,7 @@ export class GameTable {
     } = this.state;
     // Compute legalActions for current actor
     const legal = this.computeLegalActions();
-    const positions: Record<number, string> = {};
-    if (this.state.handId) {
-      for (const p of this.state.players) {
-        if (p.inHand) positions[p.seat] = this.getPosition(p.seat);
-      }
-    }
-    return { ...rest, legalActions: legal, positions };
+    return { ...rest, legalActions: legal };
   }
 
   configureVariantSettings(params: {
@@ -477,6 +473,16 @@ export class GameTable {
 
     const sortedSeats = seated.map((p) => p.seat).sort((a, b) => a - b);
     this.state.buttonSeat = nextSeatCircular(this.state.buttonSeat, sortedSeats);
+
+    // Calculate and store persistent positions for this hand
+    this.state.positions = {};
+    const dealOrder = orderedFromButton(this.state.buttonSeat, sortedSeats);
+    const labelOrder = POSITION_LABELS_BY_COUNT[dealOrder.length];
+    if (labelOrder) {
+      dealOrder.forEach((seat, index) => {
+        this.state.positions[seat] = labelOrder[index];
+      });
+    }
 
     for (const player of this.state.players) {
       const active = sortedSeats.includes(player.seat);
@@ -808,6 +814,9 @@ export class GameTable {
   }
 
   getPosition(seat: number): string {
+    // Use persistent position if available (handles folded players)
+    if (this.state.positions[seat]) return this.state.positions[seat];
+
     const activeSeats = this.activePlayers().map((p) => p.seat).sort((a, b) => a - b);
     const order = orderedFromButton(this.state.buttonSeat, activeSeats);
     const labelOrder = POSITION_LABELS_BY_COUNT[order.length];
@@ -846,6 +855,7 @@ export class GameTable {
     this.state.isBombPotHand = false;
     this.isDoubleBoardHand = false;
     this.state.isDoubleBoardHand = false;
+    this.state.positions = {};
   }
 
   /** Toggle a player's sit-out status. Cannot toggle during an active hand for that player. */

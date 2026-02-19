@@ -49,6 +49,7 @@ export function calculateEquity(params: {
     
     let heroWins = true;
     let isTie = false;
+    let isLoss = false;
     
     for (const villainHand of villainHands) {
       const villainEval = evaluateBestHand([...villainHand, ...finalBoard]);
@@ -56,13 +57,15 @@ export function calculateEquity(params: {
       
       if (cmp < 0) {
         heroWins = false;
+        isLoss = true;
         break;
       } else if (cmp === 0) {
         isTie = true;
       }
     }
     
-    if (heroWins && !isTie) wins++;
+    if (isLoss) losses++;
+    else if (heroWins && !isTie) wins++;
     else if (isTie) ties++;
     else losses++;
   }

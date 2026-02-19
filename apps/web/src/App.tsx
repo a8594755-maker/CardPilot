@@ -222,13 +222,13 @@ export function App() {
     submittedPlayerIds: number[];
     underdogSeat: number | null;
     targetRunCount: 1 | 2 | 3 | null;
-    equities?: Array<{ seat: number; winRate: number; tieRate: number }>;
+    equities?: Array<{ seat: number; winRate: number; tieRate: number; equityRate: number }>;
   };
   const [allInLock, setAllInLock] = useState<AllInLockState | null>(null);
   const [myRunPreference, setMyRunPreference] = useState<1 | 2 | 3 | null>(null);
   type BoardRevealState = {
     street: string;
-    equities: Array<{ seat: number; winRate: number; tieRate: number }>;
+    equities: Array<{ seat: number; winRate: number; tieRate: number; equityRate: number }>;
     hints?: Array<{ seat: number; label: string }>;
   };
   const [boardReveal, setBoardReveal] = useState<BoardRevealState | null>(null);
@@ -1054,7 +1054,7 @@ export function App() {
       street: string;
       newCards: string[];
       board: string[];
-      equities: Array<{ seat: number; winRate: number; tieRate: number }>;
+      equities: Array<{ seat: number; winRate: number; tieRate: number; equityRate: number }>;
       hints?: Array<{ seat: number; label: string }>;
     }) => {
       setBoardReveal({ street: d.street, equities: d.equities, hints: d.hints });
@@ -1065,7 +1065,7 @@ export function App() {
       phase?: "top" | "both";
       run1: { newCards: string[]; board: string[] };
       run2?: { newCards: string[]; board: string[] };
-      equities?: Array<{ seat: number; winRate: number; tieRate: number }>;
+      equities?: Array<{ seat: number; winRate: number; tieRate: number; equityRate: number }>;
       hints?: Array<{ seat: number; label: string }>;
     }) => {
       setBoardReveal((prev: BoardRevealState | null) => ({
@@ -1092,7 +1092,7 @@ export function App() {
       submittedPlayerIds?: number[];
       underdogSeat?: number;
       targetRunCount?: 1 | 2 | 3 | null;
-      equities?: Array<{ seat: number; winRate: number; tieRate: number }>;
+      equities?: Array<{ seat: number; winRate: number; tieRate: number; equityRate: number }>;
     }) => {
       const liveHandId = snapshotRef.current?.handId;
       if (liveHandId && d.handId !== liveHandId) return;
@@ -1112,11 +1112,9 @@ export function App() {
     s.on("run_count_confirmed", (d: { handId: string; runCount: 1 | 2 | 3 }) => {
       const liveHandId = snapshotRef.current?.handId;
       if (liveHandId && d.handId !== liveHandId) return;
-      setAllInLock(null);
       setMyRunPreference(null);
     });
     s.on("run_count_chosen", () => {
-      setAllInLock(null);
       setMyRunPreference(null);
     });
     s.on("reveal_hole_cards", (d: { handId: string; revealed: Record<number, [string, string]> }) => {
@@ -1132,11 +1130,13 @@ export function App() {
       boardSizeNow: number;
       board: string[];
       street: string;
+      equities?: Array<{ seat: number; winRate: number; tieRate: number; equityRate: number }>;
+      hints?: Array<{ seat: number; label: string }>;
     }) => {
       setBoardReveal((prev: BoardRevealState | null) => ({
         street: `R${d.runIndex} ${d.street}`,
-        equities: prev?.equities ?? [],
-        hints: prev?.hints,
+        equities: d.equities ?? prev?.equities ?? [],
+        hints: d.hints ?? prev?.hints,
       }));
       setSnapshot((prev) => {
         if (!prev || prev.handId !== d.handId) return prev;
@@ -1183,7 +1183,6 @@ export function App() {
     });
     s.on("hand_ended", (d: { handId?: string; finalState?: TableState; winners?: Array<{ seat: number; amount: number; handName?: string }>; settlement?: SettlementResult }) => {
       setActionPending(false);
-      setAllInLock(null);
       setMyRunPreference(null);
       setBoardReveal(null);
       setPreAction(null);
@@ -1296,6 +1295,7 @@ export function App() {
             amount: a.amount ?? 0,
           }));
           const heroLedger = d.settlement.ledger.find((e) => e.seat === heroSeat);
+          const didWinAnyRun = d.settlement.winnersByRun.some((run) => run.winners.some((winner) => winner.seat === heroSeat));
           const gameType = st.gameType === "omaha" ? "PLO" : "NLH";
           const netByPosition: Record<string, number> = {};
           for (const entry of d.settlement.ledger) {
@@ -1339,6 +1339,7 @@ export function App() {
             smallBlind: st.smallBlind,
             bigBlind: st.bigBlind,
             playersCount: st.players.length,
+            didWinAnyRun,
             showdownHands,
             playerNames,
           });
@@ -1684,7 +1685,7 @@ export function App() {
   const underdogWinRate = useMemo(() => {
     if (!allInLockForCurrentHand?.equities || underdogSeat == null) return null;
     const entry = allInLockForCurrentHand.equities.find((e) => e.seat === underdogSeat);
-    return entry ? Math.round(entry.winRate * 1000) / 10 : null;
+    return entry ? Math.round(entry.equityRate * 1000) / 10 : null;
   }, [allInLockForCurrentHand?.equities, underdogSeat]);
   const runTarget = allInLockForCurrentHand?.targetRunCount ?? null;
   const runTargetNeedsApproval = Boolean(runTarget && runTarget > 1);
@@ -1840,6 +1841,7 @@ export function App() {
       const posLabel = snapshot?.positions?.[seatNum] ?? "";
       const isButton = snapshot?.buttonSeat === seatNum && !!snapshot?.handId;
       const equity = boardReveal?.equities.find((e) => e.seat === seatNum) ?? null;
+      const isAllInLocked = Boolean(allInLockForCurrentHand);
       const handHint = boardReveal?.hints?.find((h) => h.seat === seatNum)?.label;
       const isPendingLeave = snapshot?.pendingStandUp?.includes(seatNum) ?? false;
       const revealedCards = snapshot?.revealedHoles?.[seatNum] as [string, string] | undefined;
@@ -1856,7 +1858,7 @@ export function App() {
             isOwner={!!isOwner} isCoHost={!!isCo} timer={seatTimer}
             posLabel={posLabel} isButton={isButton} displayBB={displayBB} bigBlind={snapshot?.bigBlind ?? 3}
             lastAction={lastActionBySeat[seatNum] ?? null}
-            equity={equity} handHint={handHint} pendingLeave={isPendingLeave} revealedCards={revealedCards} revealedHandName={revealedHandName} isMucked={isMucked}
+            equity={equity} isAllInLocked={isAllInLocked} handHint={handHint} pendingLeave={isPendingLeave} revealedCards={revealedCards} revealedHandName={revealedHandName} isMucked={isMucked}
             isWinner={lingerActive && lingerWinnerSeats.has(seatNum)}
             isWinnerPulse={winnerSeatPulse === seatNum}
             netDelta={lingerActive ? lingerSeatDeltas[seatNum] : undefined}
@@ -1872,7 +1874,7 @@ export function App() {
         </div>
       );
     });
-  }, [snapshot, seat, roomState, timerDisplay, boardReveal, displayBB, seatPositions, heroSeatForLayout, handleSeatClick, lastActionBySeat, lingerActive, lingerWinnerSeats, lingerSeatDeltas, winnerSeatPulse]);
+  }, [snapshot, seat, roomState, timerDisplay, boardReveal, displayBB, seatPositions, heroSeatForLayout, handleSeatClick, lastActionBySeat, lingerActive, lingerWinnerSeats, lingerSeatDeltas, winnerSeatPulse, allInLockForCurrentHand]);
 
   // Debug seat requests
   useEffect(() => {
@@ -3268,7 +3270,7 @@ export function App() {
                         <div className="text-[10px] uppercase tracking-wider text-orange-300">All-In Run Count</div>
                         <div className="text-xs text-slate-200">
                           {myIsUnderdog
-                            ? `You are the underdog${underdogWinRate != null ? ` (~${underdogWinRate}% win)` : ""}. Choose run once, twice, or three times.`
+                            ? `You are the underdog${underdogWinRate != null ? ` (~${underdogWinRate}% equity)` : ""}. Choose run once, twice, or three times.`
                             : runTargetNeedsApproval
                               ? `Underdog chose run ${runTarget}. Agree to continue ${runTarget} runs or reject to run once.`
                               : "Waiting for underdog to choose run count."}
@@ -5529,12 +5531,13 @@ function InfoCell({ label, value, highlight, cyan }: { label: string; value: str
   );
 }
 
-const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, lastAction, equity, handHint, pendingLeave, revealedCards, revealedHandName, isMucked, onClickRevealed, onClickEmpty, isWinner, isWinnerPulse, netDelta }: {
+const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, lastAction, equity, isAllInLocked, handHint, pendingLeave, revealedCards, revealedHandName, isMucked, onClickRevealed, onClickEmpty, isWinner, isWinnerPulse, netDelta }: {
   player?: TablePlayer; seatNum: number; isActor: boolean; isMe: boolean;
   isOwner?: boolean; isCoHost?: boolean; timer?: TimerState | null;
   posLabel?: string; isButton?: boolean; displayBB?: boolean; bigBlind?: number;
   lastAction?: { action: string; amount: number } | null;
-  equity?: { winRate: number; tieRate: number } | null;
+  equity?: { winRate: number; tieRate: number; equityRate: number } | null;
+  isAllInLocked?: boolean;
   handHint?: string;
   pendingLeave?: boolean;
   revealedCards?: [string, string];
@@ -5584,6 +5587,9 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
   }
 
   const fmtDelta = (v: number) => formatDelta(v, { mode: displayBB ? "bb" : "chips", bbSize: bb });
+  const equityText = isAllInLocked
+    ? (equity ? `${Math.round(equity.equityRate * 100)}%` : "—")
+    : "未鎖定";
 
   return (
     <div className="relative flex flex-col items-center gap-0.5">
@@ -5620,18 +5626,16 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
             </span>
           </div>
         )}
-        <div className="cp-seat-name text-xs font-semibold text-white truncate mt-0.5">{player.name}</div>
+        <div className="cp-seat-name text-xs font-semibold text-white mt-0.5 flex items-center justify-between gap-1">
+          <span className="truncate">{player.name}</span>
+          <span className={`shrink-0 text-[8px] font-bold ${isAllInLocked ? "text-emerald-300" : "text-slate-400"}`}>
+            {equityText}
+          </span>
+        </div>
         <div className="cp-seat-stack text-sm font-bold text-amber-400 cp-num">{fmt(player.stack)}</div>
         {player.status === "sitting_out" && <div className="cp-seat-status text-[8px] text-orange-400 font-bold uppercase">Sit Out</div>}
         {player.folded && player.status !== "sitting_out" && <div className="cp-seat-status text-[8px] text-red-400 font-semibold">FOLDED</div>}
         {player.allIn && !equity && <div className="cp-seat-status text-[8px] text-orange-400 font-bold">ALL-IN</div>}
-        {/* Show equity when available - visible for all active players during all-in situations */}
-        {equity && !player.folded && (
-          <div className="cp-seat-status text-[8px] font-bold text-emerald-400">
-            {player.allIn && <span className="text-orange-400 mr-0.5">ALL-IN</span>}
-            {Math.round(equity.winRate * 100)}%
-          </div>
-        )}
         {handHint && !player.folded && (
           <div className="text-[7px] leading-tight text-cyan-200/90 max-w-[82px] truncate" title={handHint}>
             {handHint}

@@ -58,6 +58,24 @@ function advanceUntilSeat(t: GameTable, targetSeat: number, maxSteps = 12): void
   assert.fail(`did not reach target seat ${targetSeat} within ${maxSteps} actions`);
 }
 
+describe("Heads-up position mapping", () => {
+  it("maps button seat to SB and the other seat to BB", () => {
+    const t = new GameTable({ tableId: "hu_pos", smallBlind: 1, bigBlind: 3 });
+    t.addPlayer({ seat: 3, userId: "u3", name: "BB", stack: 500 });
+    t.addPlayer({ seat: 4, userId: "u4", name: "SB", stack: 500 });
+    t.startHand();
+
+    const s = t.getPublicState();
+    const sbSeat = blindSeat(s, "post_sb");
+    const bbSeat = blindSeat(s, "post_bb");
+
+    assert.equal(sbSeat, s.buttonSeat, "button seat must post SB in HU");
+    assert.notEqual(bbSeat, s.buttonSeat, "non-button seat must post BB in HU");
+    assert.equal(t.getPosition(sbSeat), "SB", "button seat should map to SB in HU");
+    assert.equal(t.getPosition(bbSeat), "BB", "other seat should map to BB in HU");
+  });
+});
+
 // ═══════════════════════════════════════════════════════════════
 // FULL RAISE RULE (TDA / Robert's Rules)
 // ═══════════════════════════════════════════════════════════════

@@ -48,6 +48,8 @@ export function RoomList({
       {rooms.map((room) => {
         const active = selectedCode === room.roomCode;
         const net = room.netResult;
+        const handsWon = room.handsWon ?? 0;
+        const handsLost = Math.max(0, room.handsCount - handsWon);
         // Compute bb/100 if we have big blind info
         const bb100 = room.bigBlind > 0 && room.handsCount > 0
           ? ((net / room.bigBlind) / room.handsCount * 100).toFixed(1)
@@ -84,6 +86,9 @@ export function RoomList({
                   net > 0 ? "text-emerald-400" : net < 0 ? "text-red-400" : "text-slate-400"
                 }`}>
                   {net > 0 ? "+" : ""}{net.toLocaleString()}
+                </div>
+                <div className="text-[10px] tabular-nums text-slate-500">
+                  W {handsWon} · L {handsLost}
                 </div>
                 {bb100 !== null && (
                   <div className={`text-[10px] tabular-nums ${

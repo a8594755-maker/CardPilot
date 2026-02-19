@@ -562,15 +562,22 @@ export class ClubRepo {
       _idempotency_key: idempotencyKey,
     });
 
-    // If RPC fails due to schema cache, use manual fallback
-    if (error && (error.message?.includes("schema cache") || error.message?.includes("Could not find"))) {
-      logInfo({ event: "club_repo.appendWalletTx.fallback", clubId, userId, type, amount });
-      return this.appendWalletTxManual(input);
-    }
-
     if (error) {
-      logWarn({ event: "club_repo.appendWalletTx.failed", message: error.message });
-      return null;
+      // Always attempt direct table fallback when RPC fails.
+      // This recovers from PostgREST schema cache issues AND RPC permission/availability drift.
+      logWarn({ 
+        event: "club_repo.appendWalletTx.rpc_failed", 
+        message: error.message, 
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        clubId, userId, type, amount 
+      });
+      const fallback = await this.appendWalletTxManual(input);
+      if (fallback) {
+        logInfo({ event: "club_repo.appendWalletTx.fallback_ok", clubId, userId, type, amount });
+      }
+      return fallback;
     }
 
     const row = Array.isArray(data) ? data[0] : null;
@@ -705,7 +712,12 @@ export class ClubRepo {
       .single();
 
     if (insertError || !insertedTx) {
-      logWarn({ event: "club_repo.appendWalletTxManual.insert_failed", message: insertError?.message });
+      logWarn({ 
+        event: "club_repo.appendWalletTxManual.insert_failed", 
+        message: insertError?.message,
+        details: insertError?.details,
+        code: insertError?.code
+      });
       return null;
     }
 

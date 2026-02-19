@@ -127,7 +127,7 @@ type PendingRunCountDecisionState = {
   underdogSeat: number;
   preferencesBySeat: Record<number, RunCountPreference | null>;
   targetRunCount: RunCountPreference | null;
-  equities: Array<{ seat: number; winRate: number; tieRate: number }>;
+  equities: Array<{ seat: number; winRate: number; tieRate: number; equityRate: number }>;
 };
 const pendingRunCountDecisions = new Map<string, PendingRunCountDecisionState>();
 const pendingRunCountTimeouts = new Map<string, ReturnType<typeof setTimeout>>();
@@ -428,9 +428,10 @@ function isClubAuthenticatedIdentity(identity: VerifiedIdentity): boolean {
   return identity.isAuthenticated && !identity.userId.startsWith("guest-");
 }
 
-function emitClubUnauthorized(socket: Socket): void {
-  socket.emit("club_error", { code: "UNAUTHORIZED", message: CLUB_AUTH_REQUIRED_MESSAGE });
-  socket.emit("error_event", { message: CLUB_AUTH_REQUIRED_MESSAGE });
+function emitClubUnauthorized(socket: Socket, reason?: string): void {
+  const msg = reason ? `${CLUB_AUTH_REQUIRED_MESSAGE}: ${reason}` : CLUB_AUTH_REQUIRED_MESSAGE;
+  socket.emit("club_error", { code: "UNAUTHORIZED", message: msg });
+  socket.emit("error_event", { message: msg });
 }
 
 function socketIdsForUser(userId: string): string[] {
@@ -1263,29 +1264,30 @@ function broadcastSnapshot(tableId: string) {
   });
 }
 
-function calculateAllPlayersEquity(table: GameTable, board: Card[]): Array<{ seat: number; winRate: number; tieRate: number }> {
+function calculateAllPlayersEquity(table: GameTable, board: Card[]): Array<{ seat: number; winRate: number; tieRate: number; equityRate: number }> {
   const state = table.getPublicState();
   const activeSeats = state.players
     .filter((p) => p.inHand && !p.folded)
     .map((p) => p.seat);
 
   if ((state.gameType ?? "texas") !== "texas") {
-    const fallbackWinRate = activeSeats.length > 0 ? 1 / activeSeats.length : 0;
+    const fallbackEquityRate = activeSeats.length > 0 ? 1 / activeSeats.length : 0;
     return activeSeats.map((seat) => ({
       seat,
-      winRate: Math.round(fallbackWinRate * 1000) / 1000,
+      winRate: Math.round(fallbackEquityRate * 1000) / 1000,
       tieRate: 0,
+      equityRate: Math.round(fallbackEquityRate * 1000) / 1000,
     }));
   }
 
-  const equities: Array<{ seat: number; winRate: number; tieRate: number }> = [];
+  const equities: Array<{ seat: number; winRate: number; tieRate: number; equityRate: number }> = [];
 
   for (const seat of activeSeats) {
     const heroCards = table.getHoleCards(seat);
     const opponentSeats = activeSeats.filter((s) => s !== seat);
 
     if (!heroCards || opponentSeats.length === 0) {
-      equities.push({ seat, winRate: 0.5, tieRate: 0 });
+      equities.push({ seat, winRate: 0.5, tieRate: 0, equityRate: 0.5 });
       continue;
     }
 
@@ -1295,7 +1297,7 @@ function calculateAllPlayersEquity(table: GameTable, board: Card[]): Array<{ sea
       .map((cards) => [cards[0], cards[1]] as [Card, Card]);
 
     if (villainHands.length === 0) {
-      equities.push({ seat, winRate: 1.0, tieRate: 0 });
+      equities.push({ seat, winRate: 1.0, tieRate: 0, equityRate: 1.0 });
       continue;
     }
 
@@ -1310,6 +1312,7 @@ function calculateAllPlayersEquity(table: GameTable, board: Card[]): Array<{ sea
       seat,
       winRate: Math.round(equity.win * 1000) / 1000,
       tieRate: Math.round(equity.tie * 1000) / 1000,
+      equityRate: Math.round(equity.equity * 1000) / 1000,
     });
   }
 
@@ -1349,7 +1352,7 @@ function buildAllInLockedPayload(pending: PendingRunCountDecisionState): {
   submittedPlayerIds: number[];
   underdogSeat: number;
   targetRunCount: RunCountPreference | null;
-  equities: Array<{ seat: number; winRate: number; tieRate: number }>;
+  equities: Array<{ seat: number; winRate: number; tieRate: number; equityRate: number }>;
 } {
   const submittedPlayerIds = pending.eligiblePlayers
     .map((player) => player.seat)
@@ -1624,6 +1627,10 @@ async function handleSequentialRunout(tableId: string, table: GameTable): Promis
             if (!card) continue;
             const street = (cardIndex <= 2 ? "FLOP" : cardIndex === 3 ? "TURN" : "RIVER") as TableState["street"];
             const board = boards[runIndex].slice(0, cardIndex + 1);
+            const equities = calculateAllPlayersEquity(table, [...board] as Card[]);
+            const hints = (street === "FLOP" || street === "TURN")
+              ? calculateAllInHandHints(table, [...board] as Card[])
+              : undefined;
 
             io.to(tableId).emit("reveal_board_card", {
               handId: finalState.handId,
@@ -1632,6 +1639,8 @@ async function handleSequentialRunout(tableId: string, table: GameTable): Promis
               boardSizeNow: cardIndex + 1,
               board,
               street,
+              equities,
+              hints,
             });
 
             // Backward-compatible mirror for old clients that still use run_twice_reveal.
@@ -1648,6 +1657,8 @@ async function handleSequentialRunout(tableId: string, table: GameTable): Promis
                   newCards: runIndex === 1 ? [card] : [],
                   board: runIndex === 1 ? board : boards[1].slice(0, alreadyDealt),
                 },
+                equities,
+                hints,
               });
             }
 
@@ -1707,6 +1718,8 @@ async function handleSequentialRunout(tableId: string, table: GameTable): Promis
           boardSizeNow: boardStart + i + 1,
           board: state.board.slice(0, boardStart + i + 1),
           street,
+          equities,
+          hints,
         });
       }
 
@@ -2385,7 +2398,7 @@ function initiateRunoutFlow(tableId: string, table: GameTable): void {
   }
 
   const equities = calculateAllPlayersEquity(table, [...state.board] as Card[]);
-  const equityBySeat = new Map<number, number>(equities.map((entry) => [entry.seat, entry.winRate]));
+  const equityBySeat = new Map<number, number>(equities.map((entry) => [entry.seat, entry.equityRate]));
   const underdogSeat = [...eligiblePlayers]
     .sort((a, b) => {
       const wa = equityBySeat.get(a.seat) ?? 1;
@@ -2860,7 +2873,8 @@ io.on("connection", (socket) => {
 
   const requireClubAuth = (): boolean => {
     if (isClubAuthenticatedIdentity(identity)) return true;
-    emitClubUnauthorized(socket);
+    const reason = identity.userId.startsWith("guest-") ? "Guest accounts cannot access club features. Please log in." : "Authentication required.";
+    emitClubUnauthorized(socket, reason);
     return false;
   };
 
