@@ -151,8 +151,21 @@ function isInvalidRefreshTokenError(err: unknown): boolean {
   return text.includes("invalid refresh token") || text.includes("refresh token not found");
 }
 
+
+function clearSupabaseLocalStorage() {
+  if (typeof window === "undefined") return;
+  // Clear Supabase auth tokens (pattern: sb-<project-ref>-auth-token)
+  Object.keys(window.localStorage).forEach((key) => {
+    if (key.startsWith("sb-") && key.endsWith("-auth-token")) {
+      window.localStorage.removeItem(key);
+    }
+  });
+}
+
 async function handleInvalidRefreshToken(err: unknown): Promise<void> {
   clearGuestSession();
+  clearSupabaseLocalStorage();
+  
   if (!supabase) return;
   if (invalidRefreshHandled) return;
   if (invalidRefreshSignOutInFlight) {
