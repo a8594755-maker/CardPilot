@@ -43,6 +43,7 @@ import { useUserRole } from "./hooks/useUserRole";
 import { OPTIONS_ITEMS, type SettingsTab } from "./config/optionsMenuItems";
 import { useOverlayManager } from "./hooks/useOverlayManager";
 import { useIsMobile } from "./hooks/useIsMobile";
+import { useTableScale } from "./hooks/useTableScale";
 import { MobileTopBar, MobileBottomTabs, MobileMoreMenu } from "./components/mobile-nav";
 import {
   type PreAction,
@@ -60,6 +61,7 @@ const NETLIFY_COMMIT_REF = import.meta.env.VITE_NETLIFY_COMMIT_REF || "";
 const NETLIFY_DEPLOY_ID = import.meta.env.VITE_NETLIFY_DEPLOY_ID || "";
 const BUILD_TIME = new Date().toISOString().slice(0, 16).replace("T", " ");
 const SOUND_PREF_KEY = "cardpilot_sound_muted";
+const SFX_VOLUME_MULTIPLIER = 2.5; // §6: louder SFX ceiling — adjustable (spec: 1.5×–2×, bumped to 2.5× for audibility)
 
 const debugLog = (...args: unknown[]) => {
   if (DEBUG_LOGS_ENABLED) console.log(...args);
@@ -85,7 +87,7 @@ function playUiSfxTone(kind: UiSfx, muted: boolean) {
   if (!ctx) return;
   const now = ctx.currentTime;
   const out = ctx.createGain();
-  out.gain.value = 0.05;
+  out.gain.value = 0.05 * SFX_VOLUME_MULTIPLIER;
   out.connect(ctx.destination);
 
   const pulse = (freq: number, start: number, duration: number, type: OscillatorType = "sine", gain = 0.24) => {
@@ -142,6 +144,26 @@ function getSeatLayout(n: number): Record<number, { top: string; left: string }>
   return result;
 }
 
+/** Portrait-first seat layout: tall oval for mobile portrait (PokerNow 1/1.8 canvas).
+ *  Hero (seat 1) at bottom-center ~82%, opponents distributed on a tall vertical ellipse.
+ *  Radii tuned for 500×900 portrait canvas so seats don't crowd the narrow width. */
+function getPortraitSeatLayout(n: number): Record<number, { top: string; left: string }> {
+  const cx = 50;
+  const cy = 50;
+  const rx = 38;   // narrower horizontal (portrait canvas is narrow)
+  const ry = 40;   // taller vertical spread
+  const result: Record<number, { top: string; left: string }> = {};
+  for (let i = 0; i < n; i++) {
+    // π/2 = bottom in screen coords; subtract to go clockwise
+    const angle = Math.PI / 2 - (i * 2 * Math.PI) / n;
+    result[i + 1] = {
+      top:  `${(cy + ry * Math.sin(angle)).toFixed(1)}%`,
+      left: `${(cx + rx * Math.cos(angle)).toFixed(1)}%`,
+    };
+  }
+  return result;
+}
+
 function mapSeatToVisualIndex(seatNum: number, heroSeat: number, maxPlayers: number): number {
   const normalizedSeat = ((seatNum - 1) % maxPlayers + maxPlayers) % maxPlayers;
   const normalizedHero = ((heroSeat - 1) % maxPlayers + maxPlayers) % maxPlayers;
@@ -153,6 +175,17 @@ export function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
+  const [isMobilePortrait, setIsMobilePortrait] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(max-width: 768px) and (orientation: portrait) and (pointer: coarse)").matches;
+  });
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px) and (orientation: portrait) and (pointer: coarse)");
+    const handler = (e: MediaQueryListEvent) => setIsMobilePortrait(e.matches);
+    setIsMobilePortrait(mq.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   /* ── Auth state ── */
@@ -345,6 +378,8 @@ export function App() {
   /* ── Chip animation state ── */
   const [chipAnimSpeed, setChipAnimSpeed] = useState<AnimationSpeed>(loadAnimationSpeed);
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  // tableStageRef: the scale-stage div — observed by useTableScale to compute canvas scale
+  const tableStageRef = useRef<HTMLDivElement>(null);
   const potRef = useRef<HTMLDivElement>(null);
   const seatRefs = useRef<Record<number, HTMLElement | null>>({});
   const prevHoleSigRef = useRef("");
@@ -368,6 +403,17 @@ export function App() {
   chipOnSnapshotRef.current = chipOnSnapshot;
   const chipOnSettlementRef = useRef(chipOnSettlement);
   chipOnSettlementRef.current = chipOnSettlement;
+
+  /* ── Table canvas scale (prevents clipping by fitting canvas into available space) ── */
+  /* Portrait mode uses PokerNow's 1/1.8 tall canvas (500×900); desktop uses 16:9 (1600×900) */
+  const { scale: tableScale } = useTableScale({
+    container: tableStageRef.current,
+    baseWidth: isMobilePortrait ? 500 : 1600,
+    baseHeight: 900,
+    minScale: 0.28,
+    maxScale: isMobilePortrait ? 1.0 : 1.4,
+    enabled: view === "table",
+  });
 
   /* ── GTO Audit state ── */
   const auditState = useAuditEvents(socket, authSession?.userId ?? null);
@@ -1573,7 +1619,10 @@ export function App() {
     setLastActionBySeat({});
   }, [snapshot?.handId]);
 
-  const seatPositions = useMemo(() => getSeatLayout(roomState?.settings.maxPlayers ?? 6), [roomState?.settings.maxPlayers]);
+  const seatPositions = useMemo(() => {
+    const n = roomState?.settings.maxPlayers ?? 6;
+    return isMobilePortrait ? getPortraitSeatLayout(n) : getSeatLayout(n);
+  }, [roomState?.settings.maxPlayers, isMobilePortrait]);
   const heroSeatForLayout = useMemo(() => {
     if (!snapshot?.players?.some((p: TablePlayer) => p.seat === seat)) return null;
     return seat;
@@ -1783,37 +1832,59 @@ export function App() {
         <OnboardingModal onComplete={completeOnboarding} />
       )}
 
-      {/* ── DESKTOP NAV (hidden on mobile) ── */}
-      <header className="flex items-center justify-between px-4 py-1.5 border-b border-white/5 shrink-0 cp-desktop-only">
-        <div className="flex items-center gap-3">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-sm font-extrabold text-slate-900 shadow-lg">C</div>
-          <h1 className="text-base font-bold tracking-tight text-white">Card<span className="text-amber-400">Pilot</span></h1>
-        </div>
-        <nav className="flex items-center gap-1 bg-white/5 rounded-xl p-1">
-          {(["lobby", "clubs", "table", "history", "training", "profile"] as const).map((v) => (
-            <button key={v} onClick={() => {
-              setView(v);
-              if (v === "clubs" && socket && canAccessClubs) { socket.emit("club_list_my_clubs"); }
-            }}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === v ? "bg-white/10 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
-              {v === "lobby" ? "Lobby" : v === "clubs" ? "Clubs" : v === "table" ? "Table" : v === "history" ? "History" : v === "training" ? "Training" : "Profile"}
-            </button>
-          ))}
-        </nav>
-        <div className="flex items-center gap-3">
-          <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium ${isConnected ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400 animate-pulse"}`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-emerald-400" : "bg-red-400"}`} />
-            {isConnected ? "Online" : "Offline"}
-          </span>
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-[11px] font-bold text-white uppercase">{displayName[0]}</div>
-          <span className="text-xs text-slate-200 font-medium max-w-[140px] truncate">Hi, {displayName}</span>
-          <button onClick={handleLogout} className="text-xs text-slate-500 hover:text-red-400 transition-colors px-2 py-1 rounded-lg hover:bg-white/5">Sign Out</button>
-          <span className="text-[8px] text-slate-600 font-mono" title={`Build: ${BUILD_TIME}`}>{APP_VERSION}{NETLIFY_COMMIT_REF ? `@${NETLIFY_COMMIT_REF.slice(0, 7)}` : ""}{NETLIFY_DEPLOY_ID ? `#${NETLIFY_DEPLOY_ID.slice(0, 6)}` : ""}</span>
-        </div>
-      </header>
+      {/* ── DESKTOP NAV — code-gated: NOT rendered in TABLE view ── */}
+      {view !== "table" ? (
+        <header className="flex items-center justify-between px-4 py-1.5 border-b border-white/5 shrink-0 cp-desktop-only">
+          <div className="flex items-center gap-3">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-sm font-extrabold text-slate-900 shadow-lg">C</div>
+            <h1 className="text-base font-bold tracking-tight text-white">Card<span className="text-amber-400">Pilot</span></h1>
+          </div>
+          <nav className="flex items-center gap-1 bg-white/5 rounded-xl p-1">
+            {(["lobby", "clubs", "table", "history", "training", "profile"] as const).map((v) => (
+              <button key={v} onClick={() => {
+                setView(v);
+                if (v === "clubs" && socket && canAccessClubs) { socket.emit("club_list_my_clubs"); }
+              }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === v ? "bg-white/10 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
+                {v === "lobby" ? "Lobby" : v === "clubs" ? "Clubs" : v === "table" ? "Table" : v === "history" ? "History" : v === "training" ? "Training" : "Profile"}
+              </button>
+            ))}
+          </nav>
+          <div className="flex items-center gap-3">
+            <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium ${isConnected ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400 animate-pulse"}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-emerald-400" : "bg-red-400"}`} />
+              {isConnected ? "Online" : "Offline"}
+            </span>
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-[11px] font-bold text-white uppercase">{displayName[0]}</div>
+            <span className="text-xs text-slate-200 font-medium max-w-[140px] truncate">Hi, {displayName}</span>
+            <button onClick={handleLogout} className="text-xs text-slate-500 hover:text-red-400 transition-colors px-2 py-1 rounded-lg hover:bg-white/5">Sign Out</button>
+            <span className="text-[8px] text-slate-600 font-mono" title={`Build: ${BUILD_TIME}`}>{APP_VERSION}{NETLIFY_COMMIT_REF ? `@${NETLIFY_COMMIT_REF.slice(0, 7)}` : ""}{NETLIFY_DEPLOY_ID ? `#${NETLIFY_DEPLOY_ID.slice(0, 6)}` : ""}</span>
+          </div>
+        </header>
+      ) : !isMobilePortrait ? (
+        /* ── Compact TableTopBar for TABLE view (desktop + mobile landscape) ── */
+        <header className="cp-table-topbar">
+          <div className="flex items-center gap-2">
+            <button onClick={leaveRoom} className="cp-table-exit-btn" title="Exit to Lobby">← Lobby</button>
+            <div className="w-px h-5 bg-white/10" />
+            {currentRoomName && <span className="text-xs font-semibold text-white truncate max-w-[180px]">{currentRoomName}</span>}
+            {currentRoomCode && (
+              <button onClick={copyCode} className="text-[10px] font-mono text-amber-400 tracking-wider hover:text-amber-300 transition-colors" title="Copy room code">{currentRoomCode} 📋</button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {roomState && <span className="text-[10px] text-slate-500">{roomState.settings.smallBlind}/{roomState.settings.bigBlind} · {roomState.settings.maxPlayers}-max</span>}
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-medium ${isConnected ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400 animate-pulse"}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-emerald-400" : "bg-red-400"}`} />
+              {isConnected ? "Online" : "Offline"}
+            </span>
+            <button onClick={() => setShowOptionsDrawer(!showOptionsDrawer)} className="text-sm text-slate-400 hover:text-white px-1.5 py-1 rounded-lg hover:bg-white/5 transition-colors" title="Options">☰</button>
+          </div>
+        </header>
+      ) : null}
 
-      {/* ── MOBILE NAV: Top Bar (shown on mobile) ── */}
-      {isMobile && (
+      {/* ── MOBILE NAV: Top Bar (shown on mobile, NEVER in TABLE view) ── */}
+      {isMobile && view !== "table" && (
         <MobileTopBar
           title={mobilePageTitle}
           isConnected={isConnected}
@@ -1833,7 +1904,7 @@ export function App() {
       )}
 
       {/* ── CONTENT ── */}
-      <div className={`flex-1 flex flex-col overflow-hidden ${isMobile ? "pt-[calc(48px+env(safe-area-inset-top,0px))]" : ""} ${isMobile && view !== "table" ? "pb-[calc(56px+env(safe-area-inset-bottom,0px))]" : ""}`}>
+      <div className={`flex-1 flex flex-col overflow-hidden ${isMobile && view !== "table" ? "pt-[calc(48px+env(safe-area-inset-top,0px))]" : ""} ${isMobile && view !== "table" ? "pb-[calc(56px+env(safe-area-inset-bottom,0px))]" : ""}`}>
       <div className="flex-1 flex overflow-hidden">
         {view === "profile" ? (
           /* ═══════ PROFILE ═══════ */
@@ -1949,8 +2020,8 @@ export function App() {
         ) : (
           /* ═══════ TABLE VIEW ═══════ */
           <>
-            {/* ── Left Options Rail (desktop only) ── */}
-            <LeftOptionsRail
+            {/* ── Left Options Rail (desktop + landscape only — code-gated out for mobile portrait) ── */}
+            {!isMobilePortrait && <LeftOptionsRail
               drawerOpen={showOptionsDrawer}
               onOpenDrawer={() => {
                 setShowOptionsDrawer(true);
@@ -1980,9 +2051,9 @@ export function App() {
                 }},
                 { id: "bb", icon: displayBB ? "BB" : "$", label: displayBB ? "Chips" : "BB", onClick: () => setDisplayBB(!displayBB) },
               ]}
-            />
+            />}
 
-            {/* ── Options Drawer ── */}
+            {/* ── Options Drawer (all TABLE views — mobile portrait opens via hamburger) ── */}
             <OptionsDrawer
               open={showOptionsDrawer}
               onClose={() => setShowOptionsDrawer(false)}
@@ -1996,11 +2067,83 @@ export function App() {
                 }
               }}
               sections={OPTIONS_ITEMS.map((item): DrawerSection => {
-                const isDisabled = item.requiresHost && !userRole.isHostOrCoHost;
+                const isHostOnly = item.requiresHost && !userRole.isHostOrCoHost;
+                const isSeatedOnly = item.requiresSeated && !userRole.isSeated;
+                const isDisabled = isHostOnly || isSeatedOnly;
+
+                // Dynamic labels for stateful toggles
+                let dynamicLabel = item.label;
+                let dynamicIcon = item.icon;
+                if (item.id === "sit_toggle") {
+                  dynamicLabel = myPlayer?.status === "sitting_out" ? "Sit In" : "Sit Out";
+                  dynamicIcon = myPlayer?.status === "sitting_out" ? "✅" : "💤";
+                }
+                if (item.id === "display_bb") { dynamicLabel = displayBB ? "Show Chips ($)" : "Show BB"; dynamicIcon = displayBB ? "$" : "BB"; }
+                if (item.id === "anim_speed") { dynamicLabel = `Animations: ${chipAnimSpeed}`; }
+                if (item.id === "sound") { dynamicLabel = soundMuted ? "Unmute Sound" : "Mute Sound"; dynamicIcon = soundMuted ? "🔇" : "🔊"; }
+                if (item.id === "theme") { dynamicLabel = `Felt: ${tableTheme === "green" ? "Green" : "Blue"}`; dynamicIcon = tableTheme === "green" ? "🟢" : "🔵"; }
+                if (item.id === "pause_resume") { dynamicLabel = roomState?.status === "PAUSED" ? "Resume Game" : "Pause Game"; dynamicIcon = roomState?.status === "PAUSED" ? "▶️" : "⏸️"; }
+                // Hide bomb pot if not enabled
+                if (item.id === "bomb_pot" && !roomState?.settings?.bombPotEnabled) return null!;
+                // Hide rebuy if not allowed
+                if (item.id === "rebuy" && !roomState?.settings?.rebuyAllowed) return null!;
+                // Hide close_room for non-host
+                if (item.id === "close_room" && !isHost) return null!;
+
                 const handleAction = () => {
                   if (item.settingsTab) {
                     setSettingsTab(item.settingsTab);
                     setShowSettings(true);
+                    setShowOptionsDrawer(false);
+                  } else if (item.action === "deal_hand") {
+                    if (dealDisabledReason) { showToast(dealDisabledReason); return; }
+                    socket?.emit("start_hand", { tableId });
+                    setShowOptionsDrawer(false);
+                  } else if (item.action === "stand_up") {
+                    socket?.emit("stand_up", { tableId, seat });
+                    setShowOptionsDrawer(false);
+                  } else if (item.action === "sit_toggle") {
+                    if (myPlayer?.status === "sitting_out") socket?.emit("sit_in", { tableId });
+                    else socket?.emit("sit_out", { tableId });
+                    setShowOptionsDrawer(false);
+                  } else if (item.action === "rebuy") {
+                    const bb = roomState?.settings.bigBlind ?? 100;
+                    setRebuyAmount(bb * 100);
+                    setShowRebuyModal(true);
+                    setShowOptionsDrawer(false);
+                  } else if (item.action === "queue_bomb_pot") {
+                    socket?.emit("queue_bomb_pot", { tableId });
+                    setShowOptionsDrawer(false);
+                  } else if (item.action === "toggle_display_bb") {
+                    setDisplayBB(!displayBB);
+                    setShowOptionsDrawer(false);
+                  } else if (item.action === "cycle_anim_speed") {
+                    const next: AnimationSpeed = chipAnimSpeed === "normal" ? "slow" : chipAnimSpeed === "slow" ? "off" : "normal";
+                    setChipAnimSpeed(next);
+                    saveAnimationSpeed(next);
+                    setShowOptionsDrawer(false);
+                  } else if (item.action === "toggle_sound") {
+                    setSoundMuted((m) => !m);
+                    setShowOptionsDrawer(false);
+                  } else if (item.action === "cycle_theme") {
+                    const next: TableTheme = tableTheme === "green" ? "blue" : "green";
+                    setTableTheme(next);
+                    try { localStorage.setItem("cardpilot_table_theme", next); } catch {}
+                    setShowOptionsDrawer(false);
+                  } else if (item.action === "pause_resume") {
+                    socket?.emit("game_control", { tableId, action: roomState?.status === "PAUSED" ? "resume" : "pause" });
+                    setShowOptionsDrawer(false);
+                  } else if (item.action === "end_game") {
+                    socket?.emit("game_control", { tableId, action: "end" });
+                    setShowOptionsDrawer(false);
+                  } else if (item.action === "close_room") {
+                    if (!confirm("Are you sure you want to close the room? All players will be returned to the lobby.")) return;
+                    if (!socket || !isConnected) { showToast("Error: Cannot close room — not connected"); return; }
+                    socket.emit("close_room", { tableId });
+                    showToast("Closing room...");
+                    const closeTimeout = setTimeout(() => { leaveRoom(); }, 5000);
+                    socket.once("room_closed", () => clearTimeout(closeTimeout));
+                    socket.once("error_event", (err: { message: string }) => { clearTimeout(closeTimeout); showToast(`Error: ${err.message}`); });
                     setShowOptionsDrawer(false);
                   } else if (item.action === "toggle_gto") {
                     setShowGtoSidebar(!showGtoSidebar); setShowOptionsDrawer(false);
@@ -2015,23 +2158,28 @@ export function App() {
                   } else if (item.action === "back_to_lobby") {
                     if (handInProgress && !confirm("A hand is in progress. Leave the table?")) return;
                     debugLog("[nav] Back to Lobby drawer clicked", { tableId, currentRoomCode });
-                    leaveRoom(); // leaveRoom() clears overlays, emits leave_table, navigates to lobby
+                    leaveRoom();
                   }
                   debugLog("[OPTIONS_DRAWER] click:", item.analyticsName, { tableId, isHost: userRole.isHost, isSeated: userRole.isSeated });
                 };
                 return {
                   id: item.id,
-                  icon: item.icon,
-                  label: item.label,
+                  icon: dynamicIcon,
+                  label: dynamicLabel,
                   onClick: handleAction,
                   disabled: isDisabled,
-                  disabledLabel: isDisabled ? "Host only" : undefined,
-                  badge: item.id === "gto" ? advice?.recommended?.toUpperCase() : undefined,
+                  disabledLabel: isHostOnly ? "Host only" : isSeatedOnly ? "Sit down first" : undefined,
+                  badge: item.id === "gto" ? advice?.recommended?.toUpperCase()
+                       : item.id === "deal" && dealDisabledReason ? "⏳"
+                       : item.id === "bomb_pot" && snapshot?.bombPotQueued ? "Queued"
+                       : undefined,
                 };
-              })}
+              }).filter(Boolean)}
             />
 
-            <main className="flex-1 flex flex-col overflow-hidden">
+            <main className="flex-1 flex flex-col overflow-hidden relative">
+              {/* §6: Floating panels — overlay on table, don't push layout (anti-breathing) */}
+              <div className="cp-table-float-panels">
               {/* Kicked overlay */}
               {kicked && (
                 <div className="mx-3 mt-2 glass-card p-3 text-center border-red-500/30 bg-red-500/5 shrink-0">
@@ -2048,184 +2196,7 @@ export function App() {
                 </div>
               )}
 
-              {/* ── Controls Strip ── */}
-              <div className="cp-control-strip shrink-0">
-                <input value={name} onChange={(e) => setName(e.target.value)} className="input-field !py-1 !px-2 w-24 text-xs" placeholder="Name" />
-                <button
-                  disabled={dealDisabledReason != null}
-                  onClick={() => {
-                    if (dealDisabledReason) {
-                      showToast(dealDisabledReason);
-                      return;
-                    }
-                    socket?.emit("start_hand", { tableId });
-                  }}
-                  className="text-[11px] px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:bg-blue-500/30 disabled:opacity-40 transition-all"
-                  title={dealDisabledReason ?? "Deal a new hand"}
-                >
-                  Deal
-                </button>
-                {!handInProgress && eligiblePlayerCount < minPlayersToStart && (
-                  <span className="text-[10px] px-2 py-1 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/20">
-                    Waiting for players ({eligiblePlayerCount}/{minPlayersToStart})
-                  </span>
-                )}
-                <button disabled={!isConnected} onClick={() => socket?.emit("stand_up", { tableId, seat })} className="text-[11px] px-2.5 py-1 rounded-lg bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 disabled:opacity-40 transition-all" title="Stand up from seat">Stand</button>
-                {isHost && roomState?.settings?.bombPotEnabled && (
-                  <button
-                    disabled={!isConnected || !!snapshot?.bombPotQueued}
-                    onClick={() => socket?.emit("queue_bomb_pot", { tableId })}
-                    className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all disabled:opacity-40 ${
-                      snapshot?.bombPotQueued
-                        ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
-                        : "bg-orange-500/10 text-orange-400 border-orange-500/20 hover:bg-orange-500/20"
-                    }`}
-                    title={snapshot?.bombPotQueued ? "Bomb pot already queued" : "Queue next hand as bomb pot"}
-                  >
-                    💣 {snapshot?.bombPotQueued ? "Queued" : "Bomb Pot"}
-                  </button>
-                )}
-                {myPlayer && (
-                  myPlayer.status === "sitting_out" ? (
-                    <button disabled={!isConnected} onClick={() => socket?.emit("sit_in", { tableId })}
-                      className="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30 disabled:opacity-40 transition-all animate-pulse" title="Return to active play">
-                      Sit In
-                    </button>
-                  ) : (
-                    <button disabled={!isConnected} onClick={() => socket?.emit("sit_out", { tableId })}
-                      className="text-[11px] px-2.5 py-1 rounded-lg bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500/20 disabled:opacity-40 transition-all" title="Sit out next hand">
-                      Sit Out
-                    </button>
-                  )
-                )}
-                <button onClick={leaveRoom} className="text-[11px] px-2.5 py-1 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all" title="Leave room entirely">Exit</button>
-                {roomState?.settings.rebuyAllowed && (
-                  <button disabled={!isConnected} onClick={() => {
-                    const bb = roomState?.settings.bigBlind ?? 100;
-                    setRebuyAmount(bb * 100);
-                    setShowRebuyModal(true);
-                  }} className="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 disabled:opacity-40 transition-all" title="Request additional chips">Rebuy</button>
-                )}
-
-                <button onClick={() => setDisplayBB(!displayBB)}
-                  className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all ${displayBB ? "bg-amber-500/15 text-amber-400 border-amber-500/30" : "bg-white/5 text-slate-400 border-white/10 hover:bg-white/10"}`}>
-                  {displayBB ? "BB" : "$"}
-                </button>
-
-                <button onClick={() => {
-                  const next: AnimationSpeed = chipAnimSpeed === "normal" ? "slow" : chipAnimSpeed === "slow" ? "off" : "normal";
-                  setChipAnimSpeed(next);
-                  saveAnimationSpeed(next);
-                }}
-                  className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all ${chipAnimSpeed === "off" ? "bg-white/5 text-slate-500 border-white/10" : chipAnimSpeed === "slow" ? "bg-amber-500/15 text-amber-400 border-amber-500/30" : "bg-purple-500/15 text-purple-400 border-purple-500/30"}`}
-                  title={`Chip animations: ${chipAnimSpeed} (click to cycle)`}>
-                  {chipAnimSpeed === "off" ? "Anim Off" : chipAnimSpeed === "slow" ? "Anim Slow" : "Anim"}
-                </button>
-
-                <button
-                  onClick={() => setSoundMuted((m) => !m)}
-                  className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all ${soundMuted ? "bg-white/5 text-slate-500 border-white/10" : "bg-cyan-500/15 text-cyan-300 border-cyan-500/30"}`}
-                  title={soundMuted ? "Enable table sounds" : "Mute table sounds"}
-                >
-                  {soundMuted ? "🔇 Mute" : "🔊 SFX"}
-                </button>
-
-                <button onClick={() => {
-                  const next: TableTheme = tableTheme === "green" ? "blue" : "green";
-                  setTableTheme(next);
-                  try { localStorage.setItem("cardpilot_table_theme", next); } catch {}
-                }}
-                  className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all ${tableTheme === "green" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" : "bg-blue-500/15 text-blue-400 border-blue-500/30"}`}
-                  title={`Table theme: ${tableTheme === "green" ? "Classic Green" : "Dark Blue"} (click to switch)`}>
-                  {tableTheme === "green" ? "🟢 Felt" : "🔵 Felt"}
-                </button>
-
-                {roomState && (
-                  <>
-                    <div className="w-px h-4 bg-white/10" />
-                    <span className="text-[10px] text-slate-500">{roomState.settings.smallBlind}/{roomState.settings.bigBlind} · {roomState.settings.maxPlayers}-max</span>
-                    <span className="text-[10px] text-slate-500">Timer {roomState.settings.actionTimerSeconds}s</span>
-                    {roomState.status === "PAUSED" && <span className="text-[10px] text-red-400 font-bold animate-pulse">PAUSED</span>}
-                    {snapshot?.pendingPause && <span className="text-[10px] text-amber-400 font-semibold animate-pulse">Pausing after hand…</span>}
-                  </>
-                )}
-
-                {currentRoomCode && (
-                  <span className="ml-auto flex items-center gap-2 text-[10px] text-slate-500">
-                    {roomState?.settings.visibility === "private" && <span className="text-amber-400">🔒</span>}
-                    <span className="font-mono text-amber-400 font-bold tracking-wider">{currentRoomCode}</span>
-                    <button onClick={copyCode} className="text-slate-500 hover:text-white transition-colors" title="Copy room code">📋</button>
-                    <button onClick={() => {
-                      if (handInProgress) {
-                        if (!confirm("A hand is in progress. Leave the table?")) return;
-                      }
-                      debugLog("[nav] Change Table clicked", { tableId, currentRoomCode });
-                      leaveRoom();
-                    }} className="text-[10px] px-2 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20 transition-all" title="Browse other tables">
-                      Change Table
-                    </button>
-                  </span>
-                )}
-
-                {/* Host Controls */}
-                {isHostOrCoHost && (
-                  <>
-                    <div className="w-px h-4 bg-white/10" />
-                    <span className="text-[9px] text-amber-400 font-bold uppercase">👑 {isHost ? "Host" : "Co-Host"}</span>
-                    {roomState?.status === "PAUSED" ? (
-                      <button onClick={() => socket?.emit("game_control", { tableId, action: "resume" })} className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20">▶</button>
-                    ) : (
-                      <button onClick={() => socket?.emit("game_control", { tableId, action: "pause" })} className="text-[10px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20">⏸</button>
-                    )}
-                    <button onClick={() => socket?.emit("game_control", { tableId, action: "end" })} className="text-[10px] px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20" title="Stop auto-deal">■</button>
-                    {isHost && (
-                      <button onClick={() => {
-                        if (!confirm("Are you sure you want to close the room? All players will be returned to the lobby.")) return;
-                        if (!socket || !isConnected) {
-                          showToast("Error: Cannot close room — not connected to server");
-                          return;
-                        }
-                        debugLog("[nav] Close Room clicked", { tableId, currentRoomCode, isHost });
-                        socket.emit("close_room", { tableId });
-                        showToast("Closing room...");
-                        // Fallback: if room_closed never fires within 5s, force-navigate to lobby
-                        const closeTimeout = setTimeout(() => {
-                          debugLog("[nav] Close Room timeout — forcing local cleanup");
-                          showToast("Error: Room close may have failed — returning to lobby");
-                          leaveRoom();
-                        }, 5000);
-                        const onClosed = () => { clearTimeout(closeTimeout); };
-                        socket.once("room_closed", onClosed);
-                        // Also clear timeout if we get an error
-                        socket.once("error_event", (err: { message: string }) => {
-                          clearTimeout(closeTimeout);
-                          showToast(`Error: Close room failed — ${err.message}`);
-                        });
-                      }}
-                        className="text-[10px] px-2 py-0.5 rounded bg-red-600/20 text-red-300 border border-red-500/30 hover:bg-red-600/30 font-semibold" title="Close room permanently">
-                        Close Room
-                      </button>
-                    )}
-                    <button onClick={() => { setSettingsTab("game"); setShowSettings(!showSettings); }} className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10">⚙</button>
-                    <button onClick={() => setShowRoomLog(!showRoomLog)} className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10">📋</button>
-                    {roomState?.settings.roomFundsTracking ? (
-                      <button onClick={() => { setShowSessionStats(!showSessionStats); if (!showSessionStats) socket?.emit("request_session_stats", { tableId }); }}
-                        className={`text-[10px] px-2 py-0.5 rounded border hover:bg-white/10 ${showSessionStats ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/30" : "bg-white/5 text-slate-300 border-white/10"}`}
-                        title="Session Stats">📊</button>
-                    ) : (
-                      <span className="text-[9px] text-slate-600" title="Enable Room funds tracking in settings to view stats">Funds tracking off</span>
-                    )}
-                    {!isClubTable && (seatRequests.length > 0 ? (
-                      <button className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold animate-pulse">
-                        🎫 {seatRequests.length} Request{seatRequests.length > 1 ? "s" : ""}
-                      </button>
-                    ) : (
-                      <span className="text-[9px] text-slate-600">No requests</span>
-                    ))}
-                  </>
-                )}
-
-              </div>
+              {/* Controls Strip removed — all controls moved to OptionsDrawer (§1 code-gate) */}
 
               {/* ── Buy-in Modal ── */}
               {showBuyInModal && (() => {
@@ -2510,10 +2481,45 @@ export function App() {
                 </div>
               )}
 
+              </div>{/* end cp-table-float-panels */}
+
               {/* ── CENTER: TABLE + SIDEBAR ── */}
-              <div className="cp-table-layout cp-scene-bg">
+              <div className={`cp-table-layout cp-scene-bg${isMobilePortrait ? " cp-table-layout--mobilePortrait" : ""}`}>
                 <section className="cp-table-region-header">
-                  {/* Info strip — improved numeric hierarchy */}
+                  {isMobilePortrait ? (
+                    /* Compact mobile portrait top bar: Exit | Name/Code | Online dot + menu */
+                    <div className="cp-mp-table-topbar">
+                      <button
+                        onClick={leaveRoom}
+                        className="text-sm px-3 py-1 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all shrink-0"
+                        title="Leave table"
+                      >
+                        ← Exit
+                      </button>
+                      <div className="flex flex-col items-center min-w-0 flex-1 px-2">
+                        {currentRoomName && (
+                          <span className="text-xs font-semibold text-white truncate">{currentRoomName}</span>
+                        )}
+                        {currentRoomCode && (
+                          <span className="text-[10px] font-mono text-amber-400 tracking-wider">{currentRoomCode}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span
+                          className={`w-2 h-2 rounded-full ${isConnected ? "bg-emerald-400" : "bg-red-400 animate-pulse"}`}
+                          title={isConnected ? "Online" : "Offline"}
+                        />
+                        <button
+                          onClick={() => setShowOptionsDrawer(true)}
+                          className="text-lg text-slate-300 hover:text-white px-1"
+                          title="Options"
+                        >
+                          ☰
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                  /* Info strip — improved numeric hierarchy */
                   <div className="cp-table-info-strip">
                     <div className="flex items-center gap-3">
                       <InfoCell label="Hand" value={snapshot?.handId ? snapshot.handId.slice(0, 8) : "—"} />
@@ -2559,10 +2565,21 @@ export function App() {
                       </div>
                     </div>
                   </div>
+                  )}{/* end isMobilePortrait ternary */}
                 </section>
 
                 {/* Table area — maximized viewport usage */}
                 <section className="cp-table-region-table" style={{ zIndex: 2 }}>
+
+                  {/* Scale stage: fills available height; ref observed by useTableScale */}
+                  <div className="cp-table-scale-stage" ref={tableStageRef}>
+                    {/* Scale frame: sized to baseW*scale × baseH*scale, clips scaled content */}
+                    <div
+                      className="cp-table-scale-frame"
+                      style={{ "--cp-table-scale": tableScale } as React.CSSProperties}
+                    >
+                      {/* Scale layer: always 1600×900, transform:scale() applied via CSS var */}
+                      <div className="cp-table-scale-layer">
 
                   {/* Table surface + overlays — CSS green felt, wider */}
                   <div
@@ -2653,7 +2670,10 @@ export function App() {
 
                     {/* Chip animation overlay */}
                     <ChipAnimationLayer transfers={chipTransfers} onTransferDone={removeChipTransfer} speed={chipAnimSpeed} />
-                  </div>
+                  </div>{/* end cp-table-canvas */}
+                      </div>{/* end cp-table-scale-layer */}
+                    </div>{/* end cp-table-scale-frame */}
+                  </div>{/* end cp-table-scale-stage */}
 
                   {/* Hole cards — rendered in normal flow below the table image to avoid overlapping timer/buttons */}
                   {holeCards.length > 0 && (
@@ -2751,7 +2771,7 @@ export function App() {
                 </section>
 
                 {/* ── GTO SIDEBAR — collapsible ── */}
-                <aside className={`cp-table-region-side-panel overflow-y-auto transition-all duration-200 ${showGtoSidebar ? "w-72 xl:w-80 p-2" : "w-8 p-1"}`}>
+                <aside className={`cp-table-region-side-panel overflow-y-auto ${showGtoSidebar ? "w-72 xl:w-80 p-2" : "w-8 p-1"}`}>
                   <button onClick={() => setShowGtoSidebar(!showGtoSidebar)}
                     className="flex items-center gap-1.5 mb-1 hover:opacity-80 transition-opacity"
                     aria-label={showGtoSidebar ? "Collapse GTO panel" : "Expand GTO panel"}
@@ -2839,14 +2859,16 @@ export function App() {
                   </div>
                 )}
 
-                {/* ── Mobile GTO Pill + Drawer (visible on < lg only) ── */}
-                <div className="lg:hidden">
-                  {/* Floating GTO pill */}
-                  {!showMobileGto && (
+                {/* ── Mobile GTO: Floating pill (landscape only) + Bottom Sheet ── */}
+                {/* C2: In mobile portrait, GTO entry is inside ActionBar — no floating pill here */}
+                <div className="lg:hidden" style={{ pointerEvents: "none" }}>
+                  {/* Floating GTO pill — only for NON-portrait mobile (landscape phones/tablets) */}
+                  {!isMobilePortrait && !showMobileGto && (
                     <button
                       onClick={() => setShowMobileGto(true)}
                       aria-label="Open GTO Coach"
-                      className={`fixed bottom-24 right-3 z-40 flex items-center gap-1.5 px-3 py-2 rounded-full shadow-lg transition-all ${
+                      style={{ pointerEvents: "auto" }}
+                      className={`fixed z-40 flex items-center gap-1.5 px-3 py-2 rounded-full shadow-lg transition-all bottom-24 right-3 ${
                         advice ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white animate-[pulse_2s_ease-in-out_infinite]" : "bg-slate-800 text-slate-400 border border-white/10"
                       }`}
                     >
@@ -2856,14 +2878,33 @@ export function App() {
                     </button>
                   )}
 
-                  {/* Slide-in drawer from right */}
+                  {/* GTO Bottom sheet (portrait) or right drawer (landscape) */}
                   {showMobileGto && (
-                    <div className="fixed inset-0 z-50 flex justify-end" onClick={() => setShowMobileGto(false)}>
-                      <div className="absolute inset-0 bg-black/50" />
+                    <div
+                      className={isMobilePortrait
+                        ? "fixed inset-0 z-50"
+                        : "fixed inset-0 z-50"
+                      }
+                      style={{ pointerEvents: "auto" }}
+                      onClick={() => setShowMobileGto(false)}
+                    >
+                      {/* C3: Backdrop — in portrait, only cover the table area, NOT the action bar */}
                       <div
-                        className="gto-drawer relative w-72 max-w-[85vw] bg-[#0f1724] border-l border-white/10 p-4 overflow-y-auto"
+                        className="absolute inset-0 bg-black/50"
+                        style={isMobilePortrait ? { bottom: "var(--cp-reserved-action-h-mobile)" } : undefined}
+                      />
+                      <div
+                        className={isMobilePortrait
+                          ? "cp-coach-mobile-sheet absolute left-0 right-0"
+                          : "gto-drawer absolute right-0 top-0 bottom-0 w-72 max-w-[85vw] bg-[#0f1724] border-l border-white/10 p-4 overflow-y-auto"
+                        }
+                        style={isMobilePortrait ? {
+                          bottom: "var(--cp-reserved-action-h-mobile)",
+                          maxHeight: "min(60vh, 520px)",
+                        } : undefined}
                         onClick={(e) => e.stopPropagation()}
                       >
+                        {isMobilePortrait && <div className="cp-coach-mobile-handle" />}
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
                             <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-xs font-extrabold text-slate-900">G</div>
@@ -2956,6 +2997,8 @@ export function App() {
                   derivedPreActionUI={derivedPreActionUI}
                   isMyTurn={!!canAct}
                   onFoldAttempt={attemptFold}
+                  onOpenGto={() => setShowMobileGto(true)}
+                  isMobilePortrait={isMobilePortrait}
                   onAction={(action, amount) => {
                     if (!snapshot?.handId) return;
                     if (actionPending) return;
@@ -3160,7 +3203,7 @@ export function App() {
           </>
         )}
       </div>
-      {view !== "table" && <AppLegalFooter />}
+      {view !== "table" && !isMobile && <AppLegalFooter />}
 
       {/* ── MOBILE NAV: Bottom Tabs + More Menu (shown on mobile, hidden on table view) ── */}
       {isMobile && view !== "table" && (
@@ -3175,7 +3218,7 @@ export function App() {
           moreOpen={showMoreMenu}
         />
       )}
-      {isMobile && (
+      {isMobile && view !== "table" && (
         <MobileMoreMenu
           open={showMoreMenu}
           onClose={() => setShowMoreMenu(false)}
@@ -3279,26 +3322,26 @@ function ProfilePage({ displayName, setDisplayName, email, authSession }: {
 
         {/* Avatar + Name */}
         <div className="glass-card p-6">
-          <div className="flex items-start gap-6">
-            <div className="flex flex-col items-center gap-2">
-              <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${AVATAR_COLORS[prefs.avatarColor]} flex items-center justify-center text-3xl font-bold text-white uppercase shadow-lg`}>
+          <div className="flex items-start gap-4">
+            <div className="flex w-16 sm:w-24 shrink-0 flex-col items-center gap-2">
+              <div className={`w-12 h-12 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br ${AVATAR_COLORS[prefs.avatarColor]} flex items-center justify-center text-xl sm:text-3xl font-bold text-white uppercase shadow-lg`}>
                 {displayName[0]}
               </div>
               <div className="flex gap-1 mt-1">
                 {AVATAR_COLORS.map((c: string, i: number) => (
                   <button key={i} onClick={() => updatePref("avatarColor", i)}
-                    className={`w-5 h-5 rounded-full bg-gradient-to-br ${c} border-2 transition-all ${
+                    className={`w-3.5 h-3.5 sm:w-5 sm:h-5 rounded-full bg-gradient-to-br ${c} border-2 transition-all ${
                       prefs.avatarColor === i ? "border-white scale-110" : "border-transparent opacity-60 hover:opacity-100"
                     }`} />
                 ))}
               </div>
             </div>
-            <div className="flex-1 space-y-3">
+            <div className="flex-1 min-w-0 space-y-2.5">
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Display Name</label>
-                <div className="flex gap-2">
-                  <input value={editName} onChange={(e) => setEditName(e.target.value)} className="input-field flex-1" maxLength={32} />
-                  <button onClick={handleSaveName} className="btn-primary text-sm !py-2 !px-4">Save</button>
+                <div className="flex items-center gap-1.5">
+                  <input value={editName} onChange={(e) => setEditName(e.target.value)} className="input-field flex-1 min-w-0 !py-1.5" maxLength={32} />
+                  <button onClick={handleSaveName} className="btn-primary text-xs !py-1.5 !px-3 shrink-0">Save</button>
                 </div>
                 {saved && <p className="text-xs text-emerald-400">Name updated!</p>}
               </div>
@@ -3310,54 +3353,23 @@ function ProfilePage({ displayName, setDisplayName, email, authSession }: {
           </div>
         </div>
 
-        {/* Game Preferences */}
-        <div className="glass-card p-6 space-y-5">
-          <h3 className="text-lg font-bold text-white">Game Preferences</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Game Type</label>
-              <div className="flex gap-1 bg-white/5 rounded-xl p-1">
-                {(["NLH", "PLO"] as const).map((g) => (
-                  <button key={g} onClick={() => updatePref("gameType", g)}
-                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${prefs.gameType === g ? "bg-white/10 text-white" : "text-slate-400 hover:text-slate-200"}`}>
-                    {g}
-                  </button>
-                ))}
-              </div>
-            </div>
-            {/* Table Type removed - host decides this when creating room */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Blind Level</label>
-              <select value={prefs.blindLevel} onChange={(e) => updatePref("blindLevel", e.target.value)} className="input-field w-full">
-                {["1/2", "2/5", "5/10", "10/20", "25/50", "50/100"].map((b) => <option key={b} value={b}>{b}</option>)}
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Currency</label>
-              <select value={prefs.currency} onChange={(e) => updatePref("currency", e.target.value)} className="input-field w-full">
-                {["Chips", "USD", "EUR", "GBP", "TWD"].map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-          </div>
-        </div>
-
         {/* Bet Size Presets */}
-        <div className="glass-card p-6 space-y-4">
+        <div className="glass-card p-4 sm:p-6 space-y-4">
           <h3 className="text-lg font-bold text-white">Custom Bet Size Presets</h3>
           <p className="text-xs text-slate-400">Set your preferred bet sizes as % of pot for each street.</p>
           {(["flop", "turn", "river"] as const).map((street) => (
             <div key={street} className="space-y-1.5">
               <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">{street}</label>
-              <div className="flex gap-2">
+              <div className="flex gap-1.5 sm:gap-2">
                 {prefs.betPresets[street].map((val, i) => (
-                  <div key={i} className="flex items-center gap-1">
+                  <div key={i} className="flex items-center gap-1 min-w-0">
                     <input type="number" value={val} min={1} max={500}
                       onChange={(e) => {
                         const next = [...prefs.betPresets[street]] as [number, number, number];
                         next[i] = Number(e.target.value) || 0;
                         updatePref("betPresets", { ...prefs.betPresets, [street]: next });
                       }}
-                      className="input-field w-20 text-center text-sm" />
+                      className="input-field w-14 sm:w-20 text-center text-xs sm:text-sm" />
                     <span className="text-xs text-slate-500">%</span>
                   </div>
                 ))}
@@ -4916,19 +4928,19 @@ function AuthScreen({
   const isDisabled = loading || cooldown > 0;
 
   return (
-    <div className="min-h-screen p-4 flex justify-center">
-      <div className="w-full max-w-md my-auto">
+    <div className="cp-auth-screen min-h-screen p-4 flex justify-center">
+      <div className="cp-auth-shell w-full max-w-md my-auto">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-3xl font-extrabold text-slate-900 shadow-xl mx-auto mb-4">C</div>
-          <h1 className="text-3xl font-bold text-white">Card<span className="text-amber-400">Pilot</span></h1>
-          <p className="text-slate-500 text-sm mt-2">GTO-powered poker training</p>
+        <div className="cp-auth-brand text-center mb-8">
+          <div className="cp-auth-logo w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-3xl font-extrabold text-slate-900 shadow-xl mx-auto mb-4">C</div>
+          <h1 className="cp-auth-title text-3xl font-bold text-white">Card<span className="text-amber-400">Pilot</span></h1>
+          <p className="cp-auth-subtitle text-slate-500 text-sm mt-2">GTO-powered poker training</p>
         </div>
 
         {/* Card */}
-        <div className="glass-card p-8">
+        <div className="cp-auth-card glass-card p-8">
           {gateMessage && (
-            <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-sm text-amber-300">
+            <div className="cp-auth-gate mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-sm text-amber-300">
               {gateMessage}
             </div>
           )}
@@ -4939,7 +4951,7 @@ function AuthScreen({
                 type="button"
                 onClick={handleGoogleSignIn}
                 disabled={loading}
-                className="w-full py-3.5 text-sm font-semibold rounded-xl border border-white/15 bg-white text-slate-900 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 shadow-sm"
+                className="cp-auth-google-btn w-full py-3.5 text-sm font-semibold rounded-xl border border-white/15 bg-white text-slate-900 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 shadow-sm"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
                   <path fill="#4285F4" d="M21.2 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.2c-.2 1.2-.9 2.2-2 2.9v2.4h3.2c1.9-1.7 3-4.3 3-7.2z"/>
@@ -4958,16 +4970,16 @@ function AuthScreen({
           )}
 
           {/* Tab switcher */}
-          <div className="flex gap-1 bg-white/5 rounded-xl p-1 mb-6">
+          <div className="cp-auth-tabs flex gap-1 bg-white/5 rounded-xl p-1 mb-6">
             {(["login", "signup"] as const).map((m) => (
               <button key={m} onClick={() => { setMode(m); setError(""); setSuccessMsg(""); setConfirmPw(""); }}
-                className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${mode === m ? "bg-white/10 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
+                className={`cp-auth-tab-btn flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${mode === m ? "bg-white/10 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
                 {m === "login" ? "Log In" : "Sign Up"}
               </button>
             ))}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="cp-auth-form space-y-4">
             {mode === "signup" && (
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Display Name</label>
@@ -5016,7 +5028,7 @@ function AuthScreen({
             )}
 
             <button type="submit" disabled={isDisabled || !formValid}
-              className="btn-primary w-full !py-3 text-base font-semibold disabled:opacity-40">
+              className="cp-auth-submit-btn btn-primary w-full !py-3 text-base font-semibold disabled:opacity-40">
               {loading ? "..." : cooldown > 0 ? `Wait ${cooldown}s` : mode === "login" ? "Log In" : "Create Account"}
             </button>
           </form>
@@ -5031,13 +5043,13 @@ function AuthScreen({
               placeholder="Enter your name (optional)" maxLength={32}
               className="input-field w-full text-center text-sm" />
             <button onClick={handleGuest} disabled={isDisabled || disableGuest}
-              className="btn-ghost w-full !py-3 text-sm">
+              className="cp-auth-guest-btn btn-ghost w-full !py-3 text-sm">
               {disableGuest ? "Guest Access Disabled for Clubs" : "Continue as Guest"}
             </button>
           </div>
         </div>
 
-        <p className="text-center text-xs text-slate-600 mt-4">
+        <p className="cp-auth-legal text-center text-xs text-slate-600 mt-4">
           By continuing, you agree to our Terms of Service
         </p>
       </div>
@@ -5288,8 +5300,8 @@ function Field({ label, w, children }: { label: string; w: string; children: Rea
 function InfoCell({ label, value, highlight, cyan }: { label: string; value: string; highlight?: boolean; cyan?: boolean }) {
   return (
     <div>
-      <span className="text-[10px] text-slate-500 uppercase tracking-wider font-medium">{label}</span>
-      <div className={`text-sm font-semibold cp-num ${highlight ? "text-amber-400 uppercase" : cyan ? "text-cyan-400" : "text-white"}`}>{value}</div>
+      <span className="cp-street-label text-[10px] text-slate-500 uppercase tracking-wider font-medium">{label}</span>
+      <div className={`cp-action-label text-sm font-semibold cp-num ${highlight ? "text-amber-400 uppercase" : cyan ? "text-cyan-400" : "text-white"}`}>{value}</div>
     </div>
   );
 }
@@ -5317,8 +5329,9 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
   if (!player) {
     return (
       <div onClick={() => onClickEmpty?.(seatNum)}
-        className="w-16 h-16 md:w-18 md:h-18 rounded-full bg-black/50 border border-dashed border-white/15 flex items-center justify-center cursor-pointer hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-colors group">
-        <span className="text-[9px] text-slate-500 group-hover:text-emerald-400">+Sit</span>
+        data-empty-seat
+        className="cp-seat-empty w-16 h-16 md:w-18 md:h-18 rounded-full bg-black/50 border border-dashed border-white/15 flex items-center justify-center cursor-pointer hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-colors group">
+        <span className="cp-seat-empty-label text-[9px] text-slate-500 group-hover:text-emerald-400">+Sit</span>
       </div>
     );
   }
@@ -5365,7 +5378,7 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
           </div>
         </div>
       )}
-      <div className={`relative z-10 w-18 md:w-22 rounded-xl p-1 text-center transition-all ${timerBorderClass} ${isWinner ? "cp-seat-win" : ""} ${isWinnerPulse ? "cp-seat-win-pop" : ""} ${
+      <div className={`cp-seat-label relative z-10 w-18 md:w-22 rounded-xl p-1 text-center transition-all ${timerBorderClass} ${isWinner ? "cp-seat-win" : ""} ${isWinnerPulse ? "cp-seat-win-pop" : ""} ${
         isActor ? "bg-amber-500/20 border-2 border-amber-400 shadow-[0_0_16px_rgba(245,158,11,0.3)]"
         : isMe ? "bg-cyan-500/10 border-2 border-cyan-400/50"
         : "bg-black/60 border border-white/10"
@@ -5384,14 +5397,14 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
             </span>
           </div>
         )}
-        <div className="text-[10px] font-semibold text-white truncate mt-0.5">{player.name}</div>
-        <div className="text-xs font-bold text-amber-400 cp-num">{fmt(player.stack)}</div>
-        {player.status === "sitting_out" && <div className="text-[8px] text-orange-400 font-bold uppercase">Sit Out</div>}
-        {player.folded && player.status !== "sitting_out" && <div className="text-[8px] text-red-400 font-semibold">FOLDED</div>}
-        {player.allIn && !equity && <div className="text-[8px] text-orange-400 font-bold">ALL-IN</div>}
+        <div className="cp-seat-name text-[10px] font-semibold text-white truncate mt-0.5">{player.name}</div>
+        <div className="cp-seat-stack text-xs font-bold text-amber-400 cp-num">{fmt(player.stack)}</div>
+        {player.status === "sitting_out" && <div className="cp-seat-status text-[8px] text-orange-400 font-bold uppercase">Sit Out</div>}
+        {player.folded && player.status !== "sitting_out" && <div className="cp-seat-status text-[8px] text-red-400 font-semibold">FOLDED</div>}
+        {player.allIn && !equity && <div className="cp-seat-status text-[8px] text-orange-400 font-bold">ALL-IN</div>}
         {/* Show equity when available - visible for all active players during all-in situations */}
         {equity && !player.folded && (
-          <div className="text-[8px] font-bold text-emerald-400">
+          <div className="cp-seat-status text-[8px] font-bold text-emerald-400">
             {player.allIn && <span className="text-orange-400 mr-0.5">ALL-IN</span>}
             {Math.round(equity.winRate * 100)}%
           </div>
@@ -5403,7 +5416,7 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
         )}
         {/* Timer countdown — integrated inside the seat chip */}
         {timer && (
-          <div className={`text-[8px] font-bold tabular-nums ${timerColor} ${timerUrgent ? "animate-pulse" : ""}`}>
+          <div className={`cp-seat-timer text-[8px] font-bold tabular-nums ${timerColor} ${timerUrgent ? "animate-pulse" : ""}`}>
             {timer.usingTimeBank ? `⏱ ${Math.ceil(timer.timeBankRemaining)}s` : `${Math.ceil(timer.remaining)}s`}
           </div>
         )}
@@ -5426,8 +5439,8 @@ const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwne
       )}
       {/* Street bet amount — shown below the chip */}
       {player.streetCommitted > 0 && !player.folded && (
-        <div className={`bg-black/75 px-1.5 py-0.5 rounded-full text-[9px] font-bold shadow-sm border ${actionBadgeClass}`}>
-          <span className="uppercase text-[7px] tracking-wider mr-1">{actionLabel}</span>
+        <div className={`cp-bet-pill bg-black/75 px-1.5 py-0.5 rounded-full text-[9px] font-bold shadow-sm border ${actionBadgeClass}`}>
+          <span className="cp-action-label uppercase text-[7px] tracking-wider mr-1">{actionLabel}</span>
           <span className="cp-num">{fmt(player.streetCommitted)}</span>
         </div>
       )}

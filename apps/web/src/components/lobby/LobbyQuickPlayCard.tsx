@@ -56,8 +56,8 @@ export const LobbyQuickPlayCard = memo(function LobbyQuickPlayCard({
         <button
           disabled={disabled}
           onClick={handleClick}
-          className="cp-btn cp-btn-success shrink-0 text-base font-bold px-8 py-3 shadow-lg"
-          style={{ minWidth: 140 }}
+          className="cp-btn cp-btn-success shrink-0 text-sm font-bold px-5 py-2 shadow-lg"
+          style={{ minWidth: 96, minHeight: 32 }}
         >
           Quick Play
         </button>

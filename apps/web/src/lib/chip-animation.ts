@@ -41,12 +41,12 @@ const SPEED_MAP: Record<AnimationSpeed, SpeedPreset> = {
     toWinner: { flight: 0, hold: 0, merge: 0, potPulse: 0, winnerGlow: 0 },
   },
   normal: {
-    toPot: { flight: 500, hold: 300, merge: 200, potPulse: 350, winnerGlow: 0 },
-    toWinner: { flight: 700, hold: 250, merge: 200, potPulse: 0, winnerGlow: 500 },
+    toPot: { flight: 240, hold: 110, merge: 90, potPulse: 240, winnerGlow: 0 },
+    toWinner: { flight: 300, hold: 120, merge: 100, potPulse: 0, winnerGlow: 300 },
   },
   slow: {
-    toPot: { flight: 700, hold: 400, merge: 280, potPulse: 450, winnerGlow: 0 },
-    toWinner: { flight: 950, hold: 350, merge: 280, potPulse: 0, winnerGlow: 650 },
+    toPot: { flight: 340, hold: 150, merge: 120, potPulse: 320, winnerGlow: 0 },
+    toWinner: { flight: 420, hold: 170, merge: 130, potPulse: 0, winnerGlow: 380 },
   },
 };
 

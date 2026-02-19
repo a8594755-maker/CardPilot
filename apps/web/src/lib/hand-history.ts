@@ -190,7 +190,7 @@ function normalizeHandRecord(input: unknown): HandRecord | null {
     gameType,
     stakes: typeof raw.stakes === "string" ? raw.stakes : "0/0",
     tableSize: Number(raw.tableSize ?? 0),
-    position: typeof raw.position === "string" ? raw.position : "?",
+    position: typeof raw.position === "string" ? raw.position : "Unknown",
     heroCards,
     startingHandBucket: typeof raw.startingHandBucket === "string"
       ? raw.startingHandBucket
@@ -385,7 +385,7 @@ export function formatHandAsPokerStars(hand: HandRecord): string {
   const ts = hand.endedAt ? new Date(hand.endedAt).toLocaleString() : new Date(hand.createdAt).toLocaleString();
   const hid = hand.handId || hand.id;
   lines.push(`PokerStars Hand #${hid}: Hold'em No Limit (${hand.stakes}) - ${ts}`);
-  lines.push(`Table '${hand.roomName || hand.roomCode || "CardPilot"}' ${hand.tableSize}-max Seat #${hand.heroSeat ?? "?"} is the button`);
+  lines.push(`Table '${hand.roomName || hand.roomCode || "CardPilot"}' ${hand.tableSize}-max Seat #${hand.heroSeat ?? "Unknown"} is the button`);
 
   // Player names if available
   if (hand.playerNames) {

@@ -1,15 +1,8 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+﻿import { useState, useEffect, useMemo, useCallback } from "react";
 import type { AdvicePayload, LegalActions } from "@cardpilot/shared-types";
 import { getSuggestedPresets, userPresetsToButtons } from "../../lib/bet-sizing.js";
 import type { DerivedActionBar, DerivedPreActionUI, PreAction, PreActionType } from "../../lib/action-derivations";
 import { formatChips } from "../../lib/format-chips";
-
-/* ═══════════════════════════════════════════════════════════════
-   BottomActionBar
-   Sticky bottom action bar with 44px+ touch targets.
-   Shows decision-critical info directly on buttons.
-   Integrates RaiseSheet as a bottom tray.
-   ═══════════════════════════════════════════════════════════════ */
 
 interface BottomActionBarProps {
   canAct: boolean;
@@ -30,16 +23,73 @@ interface BottomActionBarProps {
   onThinkExtension?: () => void;
   actionPending?: boolean;
   displayBB?: boolean;
-  // Pre-action
   preAction: PreAction | null;
   onSetPreAction: (action: PreActionType | null) => void;
   derivedActionBar: DerivedActionBar;
   derivedPreActionUI: DerivedPreActionUI;
   isMyTurn: boolean;
-  // Unnecessary fold
   onFoldAttempt: () => void;
-  // User prefs for bet presets
   userBetPresets?: { flop: number[]; turn: number[]; river: number[] };
+  onOpenGto?: () => void;
+  isMobilePortrait?: boolean;
+}
+
+const VALID_ACTION_HOTKEYS = ["F", "C", "R", "A", "K"] as const;
+type ActionHotkey = (typeof VALID_ACTION_HOTKEYS)[number];
+
+const PRE_ACTION_FALLBACK_LABEL: Record<PreActionType, string> = {
+  check: "Check",
+  "check/fold": "Check / Fold",
+  call: "Call",
+  fold: "Fold",
+};
+
+function isInvalidButtonLabel(value: string): boolean {
+  const normalized = value.trim();
+  if (!normalized) return true;
+  if (normalized === "?") return true;
+  if (/^\?{2,}$/.test(normalized)) return true;
+  if (/^\?\?.+\?\?$/.test(normalized)) return true;
+  if (/^(undefined|null|nan)$/i.test(normalized)) return true;
+  return false;
+}
+
+function safeButtonLabel(raw: unknown, fallback: string, context: string): string {
+  const candidate = typeof raw === "string" ? raw.trim() : "";
+  if (!candidate || isInvalidButtonLabel(candidate)) {
+    if (import.meta.env.DEV) {
+      console.warn(`[BottomActionBar] Missing button label for ${context}`, { raw, fallback });
+    }
+    return fallback;
+  }
+  return candidate;
+}
+
+function toValidHotkey(raw: string | null | undefined): ActionHotkey | null {
+  if (!raw) return null;
+  const normalized = raw.trim().toUpperCase();
+  return (VALID_ACTION_HOTKEYS as readonly string[]).includes(normalized)
+    ? (normalized as ActionHotkey)
+    : null;
+}
+
+function getActionHotkey(type: "fold" | "check" | "call" | "raise" | "all_in"): ActionHotkey | null {
+  if (type === "all_in") return "A";
+  if (type === "check") return "K";
+  return toValidHotkey(type.slice(0, 1).toUpperCase());
+}
+
+function getAriaShortcut(hotkey: ActionHotkey | null): string | undefined {
+  if (!hotkey) return undefined;
+  return hotkey;
+}
+
+function HotkeyBadge({ hotkey }: { hotkey: ActionHotkey }) {
+  return (
+    <span className="cp-hotkey-badge" aria-hidden="true">
+      {hotkey}
+    </span>
+  );
 }
 
 export function BottomActionBar({
@@ -68,19 +118,35 @@ export function BottomActionBar({
   isMyTurn,
   onFoldAttempt,
   userBetPresets,
+  onOpenGto,
+  isMobilePortrait,
 }: BottomActionBarProps) {
   const [showRaiseSheet, setShowRaiseSheet] = useState(false);
   const [allInConfirm, setAllInConfirm] = useState(false);
+  const [showUtilityMenu, setShowUtilityMenu] = useState(false);
 
   const min = legal?.minRaise ?? bigBlind * 2;
   const max = legal?.maxRaise ?? 10000;
   const callAmt = legal?.callAmount ?? 0;
   const bb = bigBlind || 1;
 
-  // Reset states when turn changes
-  useEffect(() => { if (!canAct) { setAllInConfirm(false); setShowRaiseSheet(false); } }, [canAct]);
+  useEffect(() => {
+    if (!canAct) {
+      setAllInConfirm(false);
+      setShowRaiseSheet(false);
+      setShowUtilityMenu(false);
+    }
+  }, [canAct]);
 
-  // Auto-clamp raiseTo
+  useEffect(() => {
+    if (!showRaiseSheet) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [showRaiseSheet]);
+
   useEffect(() => {
     if (legal?.canRaise) {
       if (raiseTo < min) setRaiseTo(min);
@@ -92,10 +158,15 @@ export function BottomActionBar({
     return formatChips(v, { mode: displayBB ? "bb" : "chips", bbSize: bb });
   }, [displayBB, bb]);
 
-  // Suggested presets
   const suggestedPresets = useMemo(() => {
     if (!legal?.canRaise || pot <= 0) return [];
-    return getSuggestedPresets({ street: street as "PREFLOP" | "FLOP" | "TURN" | "RIVER", pot, heroStack, board, numPlayers });
+    return getSuggestedPresets({
+      street: street as "PREFLOP" | "FLOP" | "TURN" | "RIVER",
+      pot,
+      heroStack,
+      board,
+      numPlayers,
+    });
   }, [legal, pot, street, board, heroStack, numPlayers]);
 
   const streetKey = street === "FLOP" ? "flop" : street === "TURN" ? "turn" : street === "RIVER" ? "river" : "flop";
@@ -104,30 +175,34 @@ export function BottomActionBar({
     return userPresetsToButtons(presets as [number, number, number]);
   }, [userBetPresets, streetKey]);
 
-  function presetToChips(pctOfPot: number): number {
+  const presetToChips = useCallback((pctOfPot: number): number => {
     const raw = Math.round(pot * pctOfPot / 100);
     return Math.max(min, Math.min(max, raw));
-  }
+  }, [pot, min, max]);
 
-  const handleFold = () => {
-    onFoldAttempt();
-  };
+  const formatActionAmount = useCallback((value: unknown): string | null => {
+    if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return null;
+    return fmtChips(value);
+  }, [fmtChips]);
 
   const handleRaiseConfirm = () => {
     onAction("raise", raiseTo);
     setShowRaiseSheet(false);
+    setShowUtilityMenu(false);
   };
 
-  const preActionLabel = preAction?.actionType ? preAction.actionType : null;
+  const preActionLabel = preAction?.actionType ?? null;
+  const canUseThinkExtension = canAct && !!thinkExtensionEnabled && (thinkExtensionRemainingUses ?? 0) > 0;
+  const hasGtoButton = isMobilePortrait && !!onOpenGto;
+  const hasUtilityActions = (canAct && !!advice) || canUseThinkExtension || hasGtoButton;
 
-  // ── Pre-action controls (when NOT your turn) ──
   if (!isMyTurn && !canAct) {
     if (!derivedPreActionUI.enabled) return null;
+
     return (
-      <div className="shrink-0 px-3 pb-2 pt-1.5" style={{ zIndex: 'var(--cp-z-action-bar)' }}>
-        {/* Pre-action indicator */}
+      <div className="cp-action-shell cp-action-shell--pre cp-action-shell--compact" style={{ zIndex: "var(--cp-z-action-bar)" }}>
         {preActionLabel && (
-          <div className="flex items-center justify-center gap-2 mb-2">
+          <div className="flex items-center justify-center gap-2 mb-1.5">
             <span className="cp-preaction-badge">
               Pre-action: {preActionLabel}
               <button
@@ -135,41 +210,46 @@ export function BottomActionBar({
                 className="ml-1 text-violet-300 hover:text-white"
                 aria-label="Clear pre-action"
               >
-                ✕
+                X
               </button>
             </span>
           </div>
         )}
-        <div className="cp-panel px-3 py-2">
-          <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mb-2 uppercase tracking-wider font-semibold">
-            <span style={{ fontSize: 14 }}>⏳</span>
-            Pre-action — set before your turn
+
+        <div className="cp-action-panel cp-action-panel--pre">
+          <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mb-1.5 uppercase tracking-wider font-semibold">
+            <span style={{ fontSize: 14 }}>+</span>
+            Pre-action - set before your turn
           </div>
-          <div className="flex items-center gap-2">
-            {derivedPreActionUI.options.map((opt) => (
-              <button
-                key={opt.type}
-                disabled={!opt.enabled}
-                onClick={() => onSetPreAction(preActionLabel === opt.type ? null : opt.type)}
-                className={`cp-btn flex-1 text-xs ${
-                  preActionLabel === opt.type
-                    ? "bg-violet-500/20 text-violet-300 border border-violet-500/40"
-                    : "cp-btn-ghost"
-                }`}
-              >
-                {opt.type === "call" && typeof opt.amount === "number" ? `Call ${fmtChips(opt.amount)}` : opt.label}
-              </button>
-            ))}
+          <div className="cp-action-row cp-action-row--compact">
+            {derivedPreActionUI.options.map((opt) => {
+              const callAmountLabel = opt.type === "call" ? formatActionAmount(opt.amount) : null;
+              const optionLabel = opt.type === "call" && callAmountLabel
+                ? `Call ${callAmountLabel}`
+                : safeButtonLabel(opt.label, PRE_ACTION_FALLBACK_LABEL[opt.type], `pre-action:${opt.type}`);
+              return (
+                <button
+                  key={opt.type}
+                  disabled={!opt.enabled}
+                  onClick={() => onSetPreAction(preActionLabel === opt.type ? null : opt.type)}
+                  className={`cp-btn cp-action-btn text-xs ${
+                    preActionLabel === opt.type
+                      ? "bg-violet-500/20 text-violet-300 border border-violet-500/40"
+                      : "cp-btn-ghost"
+                  }`}
+                >
+                  {optionLabel}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
     );
   }
 
-  // ── Main action bar (your turn) ──
   return (
-    <div className="shrink-0" style={{ zIndex: 'var(--cp-z-action-bar)' }}>
-      {/* Raise Sheet (bottom tray) */}
+    <div className="cp-action-shell cp-action-shell--compact" style={{ zIndex: "var(--cp-z-action-bar)" }}>
       {showRaiseSheet && legal?.canRaise && canAct && (
         <RaiseSheet
           raiseTo={raiseTo}
@@ -186,16 +266,18 @@ export function BottomActionBar({
           presetToChips={presetToChips}
           onConfirm={handleRaiseConfirm}
           onBack={() => setShowRaiseSheet(false)}
-          onAllIn={() => { onAction("all_in"); setShowRaiseSheet(false); }}
+          onAllIn={() => {
+            onAction("all_in");
+            setShowRaiseSheet(false);
+            setShowUtilityMenu(false);
+          }}
           actionPending={!!actionPending}
           street={street}
           displayBB={displayBB}
         />
       )}
 
-      {/* Action buttons row */}
-      <div className="px-3 pb-2 pt-1.5">
-        {/* Pre-action indicator (still visible when it's your turn, pre-action applied) */}
+      <div className="cp-action-panel-wrap">
         {preActionLabel && (
           <div className="flex items-center justify-center gap-2 mb-1.5">
             <span className="cp-preaction-badge">
@@ -205,49 +287,66 @@ export function BottomActionBar({
                 className="ml-1 text-violet-300 hover:text-white"
                 aria-label="Clear pre-action"
               >
-                ✕
+                X
               </button>
             </span>
           </div>
         )}
 
-        <div className={`cp-panel px-3 py-2.5 ${actionPending ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className={`cp-action-panel ${actionPending ? "opacity-50 pointer-events-none" : ""}`}>
           {actionPending && canAct && (
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <span className="text-xs text-amber-400 animate-pulse font-medium">Processing…</span>
+            <div className="flex items-center justify-center gap-2 mb-1.5">
+              <span className="text-[11px] text-amber-400 animate-pulse font-medium">Processing...</span>
             </div>
           )}
 
-          <div className="flex items-center gap-2">
+          <div className="cp-action-row">
             {derivedActionBar.visibleActions.map((a) => {
               if (a.type === "fold") {
+                const foldLabel = safeButtonLabel(a.label, "FOLD", "action:fold");
+                const foldHotkey = getActionHotkey("fold");
                 return (
                   <button
                     key={a.type}
                     disabled={!canAct || actionPending || !a.enabled}
-                    onClick={handleFold}
-                    className={`cp-btn cp-btn-fold flex-1 ${!a.enabled ? "opacity-50" : ""}`}
+                    onClick={() => {
+                      onFoldAttempt();
+                      setShowUtilityMenu(false);
+                    }}
+                    className={`cp-btn cp-btn-fold cp-action-btn ${!a.enabled ? "opacity-50" : ""}`}
                     aria-label="Fold"
                     title={a.reasonDisabled}
+                    data-hotkey={foldHotkey ?? undefined}
+                    aria-keyshortcuts={getAriaShortcut(foldHotkey)}
                   >
-                    <span className="flex flex-col items-center leading-tight">
-                      <span className="text-sm font-bold">FOLD</span>
+                    <span className="flex items-center gap-1 text-[13px] font-bold leading-tight">
+                      <span>{foldLabel}</span>
+                      {foldHotkey && <HotkeyBadge hotkey={foldHotkey} />}
                     </span>
                   </button>
                 );
               }
 
               if (a.type === "check") {
+                const checkLabel = safeButtonLabel(a.label, "CHECK", "action:check");
+                const checkHotkey = getActionHotkey("check");
                 return (
                   <button
                     key={a.type}
                     disabled={!canAct || actionPending || !a.enabled}
-                    onClick={() => { onAction("check"); setShowRaiseSheet(false); }}
-                    className="cp-btn cp-btn-check flex-1"
-                    aria-label="Check"
+                    onClick={() => {
+                      onAction("check");
+                      setShowRaiseSheet(false);
+                      setShowUtilityMenu(false);
+                    }}
+                    className="cp-btn cp-btn-check cp-action-btn"
+                    aria-label={checkLabel}
+                    data-hotkey={checkHotkey ?? undefined}
+                    aria-keyshortcuts={getAriaShortcut(checkHotkey)}
                   >
-                    <span className="flex flex-col items-center leading-tight">
-                      <span className="text-sm font-bold">CHECK</span>
+                    <span className="flex items-center gap-1 text-[13px] font-bold leading-tight">
+                      <span>{checkLabel}</span>
+                      {checkHotkey && <HotkeyBadge hotkey={checkHotkey} />}
                     </span>
                   </button>
                 );
@@ -255,17 +354,27 @@ export function BottomActionBar({
 
               if (a.type === "call") {
                 const amt = typeof a.amount === "number" ? a.amount : callAmt;
+                const callLabel = safeButtonLabel(a.label, "CALL", "action:call");
+                const callAmountLabel = formatActionAmount(amt);
+                const callHotkey = getActionHotkey("call");
                 return (
                   <button
                     key={a.type}
                     disabled={!canAct || actionPending || !a.enabled}
-                    onClick={() => { onAction("call"); setShowRaiseSheet(false); }}
-                    className="cp-btn cp-btn-call flex-1"
-                    aria-label={`Call ${amt}`}
+                    onClick={() => {
+                      onAction("call");
+                      setShowRaiseSheet(false);
+                      setShowUtilityMenu(false);
+                    }}
+                    className="cp-btn cp-btn-call cp-action-btn"
+                    aria-label={callAmountLabel ? `${callLabel} ${callAmountLabel}` : callLabel}
+                    data-hotkey={callHotkey ?? undefined}
+                    aria-keyshortcuts={getAriaShortcut(callHotkey)}
                   >
-                    <span className="flex flex-col items-center leading-tight">
-                      <span className="text-sm font-bold">CALL</span>
-                      <span className="text-[11px] font-semibold opacity-90 cp-num">{fmtChips(amt)}</span>
+                    <span className="flex items-center gap-1 text-[13px] font-bold leading-tight">
+                      <span>{callLabel}</span>
+                      {callAmountLabel ? <span className="cp-num">{callAmountLabel}</span> : null}
+                      {callHotkey && <HotkeyBadge hotkey={callHotkey} />}
                     </span>
                   </button>
                 );
@@ -273,33 +382,47 @@ export function BottomActionBar({
 
               if (a.type === "raise") {
                 if (showRaiseSheet) return null;
+                const raiseLabel = safeButtonLabel(a.label, "RAISE", "action:raise");
+                const raiseHotkey = getActionHotkey("raise");
                 return (
                   <button
                     key={a.type}
                     disabled={!canAct || actionPending || !a.enabled}
-                    onClick={() => setShowRaiseSheet(true)}
-                    className="cp-btn cp-btn-raise flex-1"
-                    aria-label={a.label}
+                    onClick={() => {
+                      setShowRaiseSheet(true);
+                      setShowUtilityMenu(false);
+                    }}
+                    className="cp-btn cp-btn-raise cp-action-btn"
+                    aria-label={raiseLabel}
+                    data-hotkey={raiseHotkey ?? undefined}
+                    aria-keyshortcuts={getAriaShortcut(raiseHotkey)}
                   >
-                    <span className="text-sm font-bold">{a.label}</span>
+                    <span className="flex items-center gap-1 text-[13px] font-bold leading-tight">
+                      <span>{raiseLabel}</span>
+                      {raiseHotkey && <HotkeyBadge hotkey={raiseHotkey} />}
+                    </span>
                   </button>
                 );
               }
 
               if (a.type === "all_in") {
                 if (showRaiseSheet) return null;
+                const allInLabel = safeButtonLabel(a.label, "ALL-IN", "action:all_in");
+                const allInHotkey = getActionHotkey("all_in");
                 if (!allInConfirm) {
                   return (
                     <button
                       key={a.type}
                       disabled={!canAct || actionPending || !a.enabled}
                       onClick={() => setAllInConfirm(true)}
-                      className="cp-btn cp-btn-allin"
-                      style={{ minWidth: 64 }}
-                      aria-label="All-In"
+                      className="cp-btn cp-btn-allin cp-action-meta-btn cp-action-meta-btn--tight"
+                      aria-label={allInLabel}
+                      data-hotkey={allInHotkey ?? undefined}
+                      aria-keyshortcuts={getAriaShortcut(allInHotkey)}
                     >
-                      <span className="flex flex-col items-center leading-tight">
-                        <span className="text-xs font-bold">ALL-IN</span>
+                      <span className="flex items-center gap-1 text-[12px] font-bold leading-tight">
+                        <span>{allInLabel}</span>
+                        {allInHotkey && <HotkeyBadge hotkey={allInHotkey} />}
                       </span>
                     </button>
                   );
@@ -309,17 +432,22 @@ export function BottomActionBar({
                   <div key={a.type} className="flex items-center gap-1.5 animate-[cpFadeSlideUp_0.2s_ease-out]">
                     <button
                       disabled={!canAct || actionPending || !a.enabled}
-                      onClick={() => { onAction("all_in"); setAllInConfirm(false); setShowRaiseSheet(false); }}
-                      className="cp-btn cp-btn-allin ring-2 ring-orange-400/50"
+                      onClick={() => {
+                        onAction("all_in");
+                        setAllInConfirm(false);
+                        setShowRaiseSheet(false);
+                        setShowUtilityMenu(false);
+                      }}
+                      className="cp-btn cp-btn-allin cp-action-meta-btn cp-action-meta-btn--tight ring-2 ring-orange-400/50"
                       aria-label="Confirm All-In"
                     >
-                      <span className="text-xs font-bold">CONFIRM</span>
+                      <span className="text-[11px] font-bold">CONFIRM</span>
                     </button>
                     <button
                       onClick={() => setAllInConfirm(false)}
-                      className="cp-btn cp-btn-ghost !min-h-[38px] !px-2"
+                      className="cp-btn cp-btn-ghost cp-action-meta-btn cp-action-meta-btn--tight"
                     >
-                      ✕
+                      X
                     </button>
                   </div>
                 );
@@ -327,48 +455,74 @@ export function BottomActionBar({
 
               return null;
             })}
-
-            {/* AI Suggestion pill */}
-            {canAct && advice && (
-              <button
-                onClick={() => {
-                  const rec = advice.recommended;
-                  if (rec) onAction(rec, rec === "raise" ? raiseTo : undefined);
-                }}
-                className="cp-btn text-xs bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/25"
-                title={`GTO: ${advice.recommended?.toUpperCase()} — ${advice.explanation}`}
-                style={{ minWidth: 44 }}
-              >
-                <span className="flex flex-col items-center leading-tight">
-                  <span className="text-[10px] font-bold">GTO</span>
-                  <span className="text-[9px] uppercase opacity-80">{advice.recommended}</span>
-                </span>
-              </button>
-            )}
-
-            {/* Think extension */}
-            {canAct && thinkExtensionEnabled && (thinkExtensionRemainingUses ?? 0) > 0 && (
-              <button
-                onClick={() => onThinkExtension?.()}
-                className="cp-btn text-xs bg-violet-500/10 text-violet-300 border border-violet-500/30"
-                aria-label="Think extension"
-                title="Request more time"
-                style={{ minWidth: 44 }}
-              >
-                +⏱ {thinkExtensionRemainingUses}
-              </button>
-            )}
           </div>
+
+          {hasUtilityActions ? (
+            <div className="cp-action-utility">
+              {/* C2: GTO entry inside ActionBar for mobile portrait */}
+              {hasGtoButton && (
+                <button
+                  onClick={() => { onOpenGto?.(); setShowUtilityMenu(false); }}
+                  className={`cp-btn cp-action-meta-btn cp-action-meta-btn--tight text-[11px] ${
+                    advice
+                      ? "bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-300 border border-amber-500/30"
+                      : "cp-btn-ghost"
+                  }`}
+                  aria-label="Open GTO Coach"
+                  title="GTO Coach"
+                >
+                  <span className="flex items-center gap-1">
+                    <span className="w-4 h-4 rounded bg-white/20 flex items-center justify-center text-[8px] font-extrabold shrink-0">G</span>
+                    <span>GTO</span>
+                    {advice?.recommended && <span className="text-[9px] font-bold uppercase bg-white/15 px-1 py-0.5 rounded-full">{advice.recommended}</span>}
+                  </span>
+                </button>
+              )}
+              <button
+                onClick={() => setShowUtilityMenu((prev) => !prev)}
+                className="cp-btn cp-btn-ghost cp-action-meta-btn cp-action-meta-btn--tight text-[11px]"
+                aria-expanded={showUtilityMenu}
+                aria-label="More actions"
+              >
+                More
+              </button>
+              {showUtilityMenu && (
+                <div className="cp-action-utility-menu">
+                  {canAct && advice && (
+                    <button
+                      onClick={() => {
+                        const rec = advice.recommended;
+                        if (rec) onAction(rec, rec === "raise" ? raiseTo : undefined);
+                        setShowUtilityMenu(false);
+                      }}
+                      className="cp-btn cp-btn-ghost cp-action-utility-item"
+                      title={`GTO: ${advice.recommended?.toUpperCase()} - ${advice.explanation}`}
+                    >
+                      GTO {advice.recommended?.toUpperCase() ?? "TIP"}
+                    </button>
+                  )}
+                  {canUseThinkExtension && (
+                    <button
+                      onClick={() => {
+                        onThinkExtension?.();
+                        setShowUtilityMenu(false);
+                      }}
+                      className="cp-btn cp-btn-ghost cp-action-utility-item"
+                      aria-label="Think extension"
+                      title="Request more time"
+                    >
+                      +Time ({thinkExtensionRemainingUses})
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
   );
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   RaiseSheet
-   Bottom tray with presets, slider, +/- buttons, BB equivalent.
-   ═══════════════════════════════════════════════════════════════ */
 
 interface RaiseSheetProps {
   raiseTo: number;
@@ -399,9 +553,7 @@ function RaiseSheet({
   pot,
   bigBlind,
   currentBet,
-  heroStack,
   fmtChips,
-  suggestedPresets,
   customPresets,
   presetToChips,
   onConfirm,
@@ -416,88 +568,75 @@ function RaiseSheet({
   const increment = () => setRaiseTo(Math.min(max, raiseTo + step));
   const decrement = () => setRaiseTo(Math.max(min, raiseTo - step));
 
-  // Determine preset buttons based on context
-  const facingBet = currentBet > 0 && (pot > 0);
+  const facingBet = currentBet > 0 && pot > 0;
   const preflop = !facingBet && pot <= bigBlind * 2;
 
   const presetButtons = useMemo(() => {
     const buttons: Array<{ label: string; chips: number }> = [];
 
-    // Min
     buttons.push({ label: "Min", chips: min });
 
     if (facingBet) {
-      // 2x, 3x current bet
-      [2, 3].forEach(mult => {
+      [2, 3].forEach((mult) => {
         const chips = Math.max(min, Math.min(max, Math.round(currentBet * mult)));
         buttons.push({ label: `${mult}x`, chips });
       });
     } else if (preflop) {
-      // 2x, 3x, 4x BB
-      [2, 3, 4].forEach(mult => {
+      [2, 3, 4].forEach((mult) => {
         const chips = Math.max(min, Math.min(max, Math.round(bigBlind * mult)));
         buttons.push({ label: `${mult}BB`, chips });
       });
     } else {
-      // Pot-based: 1/2, 3/4, Pot
       [
-        { label: "½ Pot", pct: 50 },
-        { label: "¾ Pot", pct: 75 },
+        { label: "1/2 Pot", pct: 50 },
+        { label: "3/4 Pot", pct: 75 },
         { label: "Pot", pct: 100 },
-      ].forEach(p => {
+      ].forEach((p) => {
         buttons.push({ label: p.label, chips: presetToChips(p.pct) });
       });
     }
 
-    // All-in
     buttons.push({ label: "All-in", chips: max });
 
     return buttons;
   }, [min, max, facingBet, preflop, currentBet, bigBlind, presetToChips]);
 
   return (
-    <div className="px-3 pb-1 cp-bottom-sheet">
-      <div className="cp-panel px-4 py-3 space-y-3">
-        {/* Your bet — big number + BB equivalent */}
+    <div className="cp-raise-sheet cp-bottom-sheet">
+      <div className="cp-raise-sheet-panel space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Your bet</div>
-            <div className="text-2xl font-extrabold text-white cp-num">{fmtChips(raiseTo)}</div>
-            {!displayBB && <div className="text-xs text-slate-400 cp-num">{(raiseTo / bb).toFixed(1)} BB</div>}
+            <div className="cp-raise-focus-label">Your Bet</div>
+            <div className="cp-raise-focus-value">{fmtChips(raiseTo)}</div>
+            {!displayBB && <div className="cp-raise-focus-sub">{(raiseTo / bb).toFixed(1)} BB</div>}
           </div>
           <div className="text-right">
-            <div className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Pot</div>
+            <div className="cp-raise-focus-label">Pot</div>
             <div className="text-lg font-bold text-amber-400 cp-num">{fmtChips(pot)}</div>
           </div>
         </div>
 
-        {/* Presets row */}
-        <div className="flex items-center gap-1.5 flex-wrap">
+        <div className="cp-raise-presets">
           {presetButtons.map((p) => (
             <button
               key={p.label}
-              onClick={() => p.label === "All-in" ? onAllIn() : setRaiseTo(p.chips)}
-              className={`cp-btn !min-h-[36px] !px-3 !py-1.5 text-xs font-semibold transition-all ${
-                raiseTo === p.chips && p.label !== "All-in"
-                  ? "bg-red-500/20 text-red-400 border border-red-500/30"
-                  : p.label === "All-in"
-                  ? "bg-orange-500/15 text-orange-400 border border-orange-500/30 hover:bg-orange-500/25"
-                  : "bg-white/5 text-slate-300 border border-white/10 hover:bg-white/10"
-              }`}
+              onClick={() => (p.label === "All-in" ? onAllIn() : setRaiseTo(p.chips))}
+              className="cp-raise-preset"
+              data-active={raiseTo === p.chips && p.label !== "All-in" ? "true" : "false"}
+              data-kind={p.label === "All-in" ? "allin" : "default"}
             >
               {p.label}
             </button>
           ))}
         </div>
 
-        {/* Slider with +/- buttons */}
-        <div className="flex items-center gap-3">
+        <div className="cp-raise-slider-row">
           <button
             onClick={decrement}
-            className="cp-btn cp-btn-ghost !min-h-[36px] !min-w-[36px] !px-0 text-lg font-bold"
+            className="cp-btn cp-btn-ghost cp-action-meta-btn text-lg font-bold"
             aria-label="Decrease bet"
           >
-            −
+            -
           </button>
           <input
             type="range"
@@ -511,7 +650,7 @@ function RaiseSheet({
           />
           <button
             onClick={increment}
-            className="cp-btn cp-btn-ghost !min-h-[36px] !min-w-[36px] !px-0 text-lg font-bold"
+            className="cp-btn cp-btn-ghost cp-action-meta-btn text-lg font-bold"
             aria-label="Increase bet"
           >
             +
@@ -524,49 +663,39 @@ function RaiseSheet({
             value={raiseTo}
             onChange={(e) => {
               const v = Number(e.target.value);
-              if (!isNaN(v)) setRaiseTo(Math.max(min, Math.min(max, v)));
+              if (!Number.isNaN(v)) setRaiseTo(Math.max(min, Math.min(max, v)));
             }}
-            className="w-20 text-center text-sm font-semibold cp-num text-white bg-white/5 border border-white/10 rounded-lg py-2 focus:border-red-500/50 focus:outline-none"
+            className="cp-raise-number cp-num"
             aria-label="Bet size input"
           />
         </div>
 
-        {/* Custom presets (from user preferences) */}
         {customPresets.length > 0 && (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap">
             <span className="text-[9px] text-slate-500 uppercase tracking-wider shrink-0">Custom</span>
-            {customPresets.slice(0, 3).map((p) => {
-              const chips = presetToChips(p.pctOfPot);
-              return (
-                <button
-                  key={p.label}
-                  onClick={() => setRaiseTo(chips)}
-                  className={`cp-btn !min-h-[32px] !px-2.5 !py-1 text-[10px] font-semibold ${
-                    raiseTo === chips
-                      ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
-                      : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"
-                  }`}
-                >
-                  {p.label}
-                </button>
-              );
-            })}
+            <div className="cp-raise-presets">
+              {customPresets.slice(0, 3).map((p) => {
+                const chips = presetToChips(p.pctOfPot);
+                return (
+                  <button
+                    key={p.label}
+                    onClick={() => setRaiseTo(chips)}
+                    className="cp-raise-preset"
+                    data-active={raiseTo === chips ? "true" : "false"}
+                  >
+                    {p.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
 
-        {/* Back / Confirm row */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onBack}
-            className="cp-btn cp-btn-ghost flex-1"
-          >
+        <div className="cp-raise-actions">
+          <button onClick={onBack} className="cp-btn cp-btn-ghost">
             Back
           </button>
-          <button
-            disabled={actionPending}
-            onClick={onConfirm}
-            className="cp-btn cp-btn-raise flex-[2]"
-          >
+          <button disabled={actionPending} onClick={onConfirm} className="cp-btn cp-btn-raise">
             <span className="flex flex-col items-center leading-tight">
               <span className="text-sm font-bold">RAISE TO {fmtChips(raiseTo)}</span>
               {!displayBB && <span className="text-[10px] opacity-80 cp-num">{(raiseTo / bb).toFixed(1)} BB</span>}

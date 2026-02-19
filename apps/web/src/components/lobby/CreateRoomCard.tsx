@@ -140,22 +140,22 @@ export const CreateRoomCard = memo(function CreateRoomCard({
               <button
                 key={p.label}
                 onClick={() => selectPreset(p)}
-                className={`cp-btn text-xs px-3 py-2 ${
+                className={`cp-btn text-[11px] px-2.5 py-1 ${
                   !customBlinds && p.sb === sb && p.bb === bb
                     ? "cp-btn-primary"
                     : "cp-btn-ghost"
                 }`}
-                style={{ minHeight: 36 }}
+                style={{ minHeight: 28 }}
               >
                 {p.label}
               </button>
             ))}
             <button
               onClick={() => setCustomBlinds(true)}
-              className={`cp-btn text-xs px-3 py-2 ${
+              className={`cp-btn text-[11px] px-2.5 py-1 ${
                 customBlinds ? "cp-btn-primary" : "cp-btn-ghost"
               }`}
-              style={{ minHeight: 36 }}
+              style={{ minHeight: 28 }}
             >
               Custom
             </button>
@@ -192,15 +192,15 @@ export const CreateRoomCard = memo(function CreateRoomCard({
               <button
                 key={p.label}
                 onClick={() => update({ buyInMin: p.min, buyInMax: p.max })}
-                className={`cp-btn text-xs px-3 py-2 ${
+                className={`cp-btn text-[11px] px-2.5 py-1 ${
                   buyInMin === p.min && buyInMax === p.max
                     ? "cp-btn-primary"
                     : "cp-btn-ghost"
                 }`}
-                style={{ minHeight: 36 }}
+                style={{ minHeight: 28 }}
               >
                 {p.label}
-                <span className="ml-1 text-slate-400 font-normal">
+                <span className="ml-1 text-[10px] text-slate-400 font-normal">
                   ({p.min}–{p.max})
                 </span>
               </button>
@@ -222,10 +222,10 @@ export const CreateRoomCard = memo(function CreateRoomCard({
               <button
                 key={n}
                 onClick={() => update({ maxPlayers: n })}
-                className={`cp-btn text-xs px-4 py-2 flex-1 ${
+                className={`cp-btn text-[11px] px-3 py-1 flex-1 ${
                   maxPlayers === n ? "cp-btn-primary" : "cp-btn-ghost"
                 }`}
-                style={{ minHeight: 36 }}
+                style={{ minHeight: 28 }}
               >
                 {label}
               </button>
@@ -276,19 +276,19 @@ export const CreateRoomCard = memo(function CreateRoomCard({
               <div className="flex gap-2">
                 <button
                   onClick={() => update({ visibility: "public" })}
-                  className={`cp-btn text-xs px-4 py-2 flex-1 ${
+                  className={`cp-btn text-[11px] px-3 py-1 flex-1 ${
                     visibility === "public" ? "cp-btn-success" : "cp-btn-ghost"
                   }`}
-                  style={{ minHeight: 36 }}
+                  style={{ minHeight: 28 }}
                 >
                   Public
                 </button>
                 <button
                   onClick={() => update({ visibility: "private" })}
-                  className={`cp-btn text-xs px-4 py-2 flex-1 ${
+                  className={`cp-btn text-[11px] px-3 py-1 flex-1 ${
                     visibility === "private" ? "cp-btn-primary" : "cp-btn-ghost"
                   }`}
-                  style={{ minHeight: 36 }}
+                  style={{ minHeight: 28 }}
                 >
                   Private
                 </button>
@@ -314,16 +314,19 @@ export const CreateRoomCard = memo(function CreateRoomCard({
         )}
 
         {/* ── Live summary line ── */}
-        <div className="cp-summary-line cp-num">
-          <span className="text-white">{maxPlayers}-max</span>
-          <span className="mx-2 text-white/20">·</span>
-          Blinds <span className="text-white">{sb}/{bb}</span>
-          <span className="mx-2 text-white/20">·</span>
-          Buy-in <span className="text-white">{buyInMin.toLocaleString()}–{buyInMax.toLocaleString()}</span>
-          <span className="mx-2 text-white/20">·</span>
-          <span className={visibility === "private" ? "text-amber-400" : "text-emerald-400"}>
-            {visibility === "private" ? "Private" : "Public"}
-          </span>
+        <div className="cp-summary-line cp-num text-left">
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[13px] leading-tight">
+            <span className="text-white whitespace-nowrap">{maxPlayers}-max</span>
+            <span className="whitespace-nowrap">
+              Blinds <span className="text-white">{sb}/{bb}</span>
+            </span>
+            <span className="whitespace-nowrap">
+              Buy-in <span className="text-white">{buyInMin.toLocaleString()}–{buyInMax.toLocaleString()}</span>
+            </span>
+            <span className={`whitespace-nowrap ${visibility === "private" ? "text-amber-400" : "text-emerald-400"}`}>
+              {visibility === "private" ? "Private" : "Public"}
+            </span>
+          </div>
         </div>
 
         {/* Validation error */}

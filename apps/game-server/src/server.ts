@@ -47,6 +47,7 @@ import type {
 } from "@cardpilot/shared-types";
 
 const runtimeConfig = getRuntimeConfig();
+const IDENTITY_DEBUG = process.env.CARDPILOT_DEBUG_IDENTITY === "1";
 
 type AnalyzeHandGTOFn = (
   handRecord: HistoryGTOHandRecord,
@@ -249,26 +250,63 @@ io.use(async (socket, next) => {
     userId?: string; // Accept userId from client
   };
 
+  const normalizedClientUserId = typeof auth.userId === "string" ? auth.userId.trim() : "";
+  let verifiedUserId: string | null = null;
+
   try {
-    const identity = await supabase.verifyAccessToken(auth.accessToken, auth.displayName);
-    // If client sends userId and server uses guest fallback, use client's userId instead
-    if (auth.userId && identity.userId.startsWith("guest-") && auth.userId.startsWith("guest-")) {
-      logInfo({
-        event: "auth.identity.override_guest",
-        userId: auth.userId,
-        message: "Using client-provided userId in guest fallback mode.",
-      });
-      socketIdentity.set(socket.id, {
-        userId: auth.userId,
-        displayName: identity.displayName,
-        isAuthenticated: false,
-      });
-    } else {
-      socketIdentity.set(socket.id, identity);
+    const verifiedIdentity = await supabase.verifyAccessToken(auth.accessToken, auth.displayName);
+    verifiedUserId = verifiedIdentity.userId;
+
+    let resolvedIdentity = verifiedIdentity;
+    // Only for unauthenticated identities, trust client guest id for stability.
+    if (!verifiedIdentity.isAuthenticated && normalizedClientUserId) {
+      resolvedIdentity = { ...verifiedIdentity, userId: normalizedClientUserId, isAuthenticated: false };
     }
+
+    if (IDENTITY_DEBUG) {
+      logInfo({
+        event: "auth.identity.resolved",
+        userId: resolvedIdentity.userId,
+        message: JSON.stringify({
+          handshakeUserId: normalizedClientUserId || null,
+          verifiedUserId,
+          resolvedUserId: resolvedIdentity.userId,
+          isAuthenticated: resolvedIdentity.isAuthenticated,
+          supabaseEnabled: supabase.enabled(),
+        }),
+      });
+    }
+
+    socketIdentity.set(socket.id, resolvedIdentity);
     next();
   } catch {
-    next(new Error("unauthorized"));
+    // Verification unavailable/failed: fall back to client-provided guest id (if any).
+    const fallbackUserId = normalizedClientUserId || `guest-${randomUUID().replace(/-/g, "").slice(0, 8)}`;
+    const fallbackDisplayName = typeof auth.displayName === "string" && auth.displayName.trim()
+      ? auth.displayName.trim().slice(0, 32)
+      : "Guest";
+    const resolvedIdentity: VerifiedIdentity = {
+      userId: fallbackUserId,
+      displayName: fallbackDisplayName,
+      isAuthenticated: false,
+    };
+
+    if (IDENTITY_DEBUG) {
+      logInfo({
+        event: "auth.identity.resolved",
+        userId: resolvedIdentity.userId,
+        message: JSON.stringify({
+          handshakeUserId: normalizedClientUserId || null,
+          verifiedUserId,
+          resolvedUserId: resolvedIdentity.userId,
+          isAuthenticated: false,
+          supabaseEnabled: supabase.enabled(),
+        }),
+      });
+    }
+
+    socketIdentity.set(socket.id, resolvedIdentity);
+    next();
   }
 });
 
@@ -378,6 +416,11 @@ function isClubOwnerOrAdmin(clubId: string, userId: string): boolean {
 }
 
 function isClubAuthenticatedIdentity(identity: VerifiedIdentity): boolean {
+  // Dev/offline fallback: when Supabase is disabled in non-production,
+  // allow local guest identities to use club features.
+  if (!supabase.enabled() && runtimeConfig.envName !== "production") {
+    return true;
+  }
   return identity.isAuthenticated && !identity.userId.startsWith("guest-");
 }
 
@@ -2840,6 +2883,13 @@ io.on("connection", (socket) => {
             visibility: payload.visibility ?? (payload.isPublic === false ? "private" : "public"),
           },
         });
+        if (IDENTITY_DEBUG) {
+          logInfo({
+            event: "room.create.ownership",
+            userId: identity.userId,
+            message: JSON.stringify({ tableId: room.tableId, roomCode: room.roomCode, ownerId: identity.userId }),
+          });
+        }
 
         // Persist to Supabase in background — don't block room creation
         supabase.upsertRoom(room).catch((e) => logWarn({
@@ -3223,6 +3273,13 @@ io.on("connection", (socket) => {
       }
       const managed = roomManager.getRoom(payload.tableId);
       if (!managed) throw new Error("Room not found");
+      if (IDENTITY_DEBUG) {
+        console.log("[SIT_DOWN] Identity/ownership check", {
+          requesterUserId: identity.userId,
+          ownerId: managed.ownership.ownerId,
+          isHostOrCoHost: roomManager.isHostOrCoHost(payload.tableId, identity.userId),
+        });
+      }
 
       if (payload.seat < 1 || payload.seat > managed.settings.maxPlayers) {
         throw new Error(`Seat must be between 1 and ${managed.settings.maxPlayers}`);
@@ -3279,7 +3336,13 @@ io.on("connection", (socket) => {
         throw new Error("Only active club members can request seats at this table");
       }
 
-      console.log("[SEAT_REQUEST] Room found, owner:", managed.ownership.ownerId);
+      if (IDENTITY_DEBUG) {
+        console.log("[SEAT_REQUEST] Identity/ownership check", {
+          requesterUserId: identity.userId,
+          ownerId: managed.ownership.ownerId,
+          isHostOrCoHost: roomManager.isHostOrCoHost(payload.tableId, identity.userId),
+        });
+      }
 
       const restoredStack = getRestorableStack(payload.tableId, identity.userId);
       const isRestore = restoredStack != null;
@@ -3302,6 +3365,22 @@ io.on("connection", (socket) => {
         if (state.players.some((p) => p.seat === payload.seat)) {
           throw new Error("Seat already occupied");
         }
+      }
+
+      // Hosts/co-hosts should never need approval, even if client emitted seat_request.
+      if (roomManager.isHostOrCoHost(payload.tableId, identity.userId)) {
+        await seatPlayerDirect({
+          tableId: payload.tableId,
+          seat: payload.seat,
+          buyIn: requestedStack,
+          userId: identity.userId,
+          userName: payload.name?.slice(0, 32) || identity.displayName,
+          socketId: socket.id,
+          isRestore,
+          approvedByUserId: identity.userId,
+        });
+        socket.emit("seat_approved", { seat: payload.seat, buyIn: requestedStack });
+        return;
       }
 
       if (clubInfo) {

@@ -1,18 +1,10 @@
 import { memo } from "react";
 
-/**
- * Unified poker card component used across the entire app.
- * Renders a crisp HTML card with rank + suit symbol on a dark gradient background.
- * Supports 4-color suits and multiple size variants.
- */
-
-// ── Suit mappings ──
-
 const SUIT_SYMBOL: Record<string, string> = {
-  s: "♠",
-  h: "♥",
-  d: "♦",
-  c: "♣",
+  s: "\u2660",
+  h: "\u2665",
+  d: "\u2666",
+  c: "\u2663",
 };
 
 const SUIT_COLOR_2: Record<string, string> = {
@@ -51,8 +43,6 @@ const RANK_DISPLAY: Record<string, string> = {
   Q: "Q",
   K: "K",
 };
-
-// ── Variant size presets ──
 
 export type PokerCardVariant = "mini" | "seat" | "table" | "modal";
 
@@ -100,26 +90,17 @@ const VARIANT_CONFIG: Record<PokerCardVariant, VariantConfig> = {
   },
 };
 
-// ── Props ──
-
 export interface PokerCardProps {
-  /** Card code, e.g. "Ah", "Ks", "Td", "2c" */
   card?: string;
-  /** Whether the card is face-down */
   faceDown?: boolean;
-  /** Size variant */
   variant?: PokerCardVariant;
-  /** Use 4-color suit mode (default true) */
   fourColor?: boolean;
-  /** Click handler (adds hover/active states) */
   onClick?: () => void;
-  /** Additional CSS classes */
   className?: string;
-  /** If true, show subtle hover effect even without onClick */
   interactive?: boolean;
+  showCenterPip?: boolean;
+  showCornerPips?: boolean;
 }
-
-// ── Component ──
 
 export const PokerCard = memo(function PokerCard({
   card,
@@ -129,10 +110,11 @@ export const PokerCard = memo(function PokerCard({
   onClick,
   className = "",
   interactive = false,
+  showCenterPip = false,
+  showCornerPips = true,
 }: PokerCardProps) {
   const cfg = VARIANT_CONFIG[variant];
 
-  // Face-down card
   if (faceDown || !card || card.length < 2) {
     return (
       <div
@@ -175,17 +157,23 @@ export const PokerCard = memo(function PokerCard({
       tabIndex={onClick ? 0 : undefined}
     >
       <div className={`absolute inset-[1px] rounded-[inherit] bg-gradient-to-b ${backTint} opacity-[0.06]`} />
-      <div className={`absolute top-[8%] left-[10%] flex flex-col items-center leading-none ${cfg.cornerGap}`}>
-        <span className={`${suitColor} ${cfg.rank} font-black tracking-tight`}>{rankStr}</span>
-        <span className={`${suitColor} ${cfg.cornerSuit} leading-none`}>{suitStr}</span>
-      </div>
-      <div className={`absolute bottom-[8%] right-[10%] rotate-180 flex flex-col items-center leading-none ${cfg.cornerGap}`}>
-        <span className={`${suitColor} ${cfg.rank} font-black tracking-tight`}>{rankStr}</span>
-        <span className={`${suitColor} ${cfg.cornerSuit} leading-none`}>{suitStr}</span>
-      </div>
-      <span className={`absolute inset-0 flex items-center justify-center ${suitColor} ${cfg.centerSuit} opacity-80`}>
-        {suitStr}
-      </span>
+      {showCornerPips && (
+        <>
+          <div className={`absolute top-[8%] left-[10%] flex flex-col items-center leading-none ${cfg.cornerGap}`}>
+            <span className={`${suitColor} ${cfg.rank} font-black tracking-tight`}>{rankStr}</span>
+            <span className={`${suitColor} ${cfg.cornerSuit} leading-none`}>{suitStr}</span>
+          </div>
+          <div className={`absolute bottom-[8%] right-[10%] rotate-180 flex flex-col items-center leading-none ${cfg.cornerGap}`}>
+            <span className={`${suitColor} ${cfg.rank} font-black tracking-tight`}>{rankStr}</span>
+            <span className={`${suitColor} ${cfg.cornerSuit} leading-none`}>{suitStr}</span>
+          </div>
+        </>
+      )}
+      {showCenterPip && (
+        <span className={`absolute inset-0 flex items-center justify-center ${suitColor} ${cfg.centerSuit} opacity-80`}>
+          {suitStr}
+        </span>
+      )}
     </div>
   );
 });

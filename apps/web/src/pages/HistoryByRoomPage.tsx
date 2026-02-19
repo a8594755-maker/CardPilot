@@ -151,7 +151,7 @@ export function HistoryByRoomPage(_props: {
   const positionSummary = useMemo(() => {
     const totals = new Map<string, number>();
     for (const hand of currentRoomHands) {
-      const position = hand.position || "?";
+      const position = hand.position || "Unknown";
       totals.set(position, (totals.get(position) ?? 0) + (hand.result ?? 0));
     }
     return [...totals.entries()]
@@ -271,22 +271,22 @@ export function HistoryByRoomPage(_props: {
   const selectedRoomData = rooms.find((r) => r.roomCode === selectedRoom);
 
   return (
-    <main className="flex-1 flex flex-col overflow-hidden">
+    <main className="history-page flex-1 flex flex-col overflow-hidden max-lg:overflow-y-auto">
       {/* Header */}
-      <div className="shrink-0 px-4 py-3 border-b border-white/[0.06] flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+      <div className="history-head shrink-0 px-2.5 py-1.5 border-b border-white/[0.06] flex items-center justify-between gap-1.5">
+        <div className="flex items-center gap-1.5 min-w-0">
           {/* Mobile back button */}
           {mobilePane !== "rooms" && (
             <button
               onClick={handleMobileBack}
-              className="lg:hidden text-xs px-2 py-1.5 rounded-lg bg-white/5 text-slate-300 border border-white/[0.08] hover:bg-white/10 transition-all min-w-[44px] min-h-[44px] flex items-center justify-center"
+              className="history-back-btn lg:hidden text-[9px] px-1.5 py-1 rounded-md bg-white/5 text-slate-300 border border-white/[0.08] hover:bg-white/10 transition-all min-w-[32px] min-h-[30px] flex items-center justify-center"
             >
               ← Back
             </button>
           )}
-          <div>
-            <h2 className="text-lg font-bold text-white">Hand History</h2>
-            <p className="text-[11px] text-slate-500">
+          <div className="min-w-0">
+            <h2 className="text-[14px] font-bold text-white truncate leading-tight">Hand History</h2>
+            <p className="text-[10px] text-slate-500 truncate leading-tight">
               {rooms.length} room{rooms.length !== 1 ? "s" : ""}
               {selectedRoomData ? ` · ${selectedRoomData.roomName} · ${currentRoomHands.length} hands` : ""}
             </p>
@@ -294,14 +294,14 @@ export function HistoryByRoomPage(_props: {
         </div>
         <button
           onClick={refresh}
-          className="text-[11px] px-3 py-2 rounded-lg bg-white/5 text-slate-400 border border-white/[0.08] hover:bg-white/10 transition-all"
+          className="history-refresh-btn text-[9px] px-2 py-1 rounded-md bg-white/5 text-slate-400 border border-white/[0.08] hover:bg-white/10 transition-all shrink-0 min-h-[30px]"
         >
           ↻ Refresh
         </button>
       </div>
 
       {/* 3-column layout (desktop) / stacked nav (mobile) */}
-      <div className="flex-1 min-h-0 overflow-hidden lg:grid lg:grid-cols-[minmax(14rem,clamp(14rem,22vw,18rem))_minmax(18rem,clamp(18rem,30vw,24rem))_minmax(0,1fr)]">
+      <div className="flex-1 min-h-0 overflow-hidden max-lg:overflow-y-auto lg:grid lg:grid-cols-[minmax(14rem,clamp(14rem,22vw,18rem))_minmax(18rem,clamp(18rem,30vw,24rem))_minmax(0,1fr)]">
         {/* Column 1: Rooms */}
         <div className={`
           min-w-0 border-r border-white/[0.06] flex flex-col overflow-hidden
@@ -320,27 +320,27 @@ export function HistoryByRoomPage(_props: {
 
         {/* Column 2: Hands */}
         <div className={`
-          min-w-0 border-r border-white/[0.06] flex flex-col overflow-hidden
+          min-w-0 border-r border-white/[0.06] flex flex-col overflow-hidden max-lg:overflow-y-auto
           ${mobilePane === "hands" ? "max-lg:flex max-lg:flex-1 max-lg:w-full" : "max-lg:hidden"} lg:flex
         `}>
           {/* Quick filters + search */}
-          <div className="shrink-0 px-3 py-2 border-b border-white/[0.06] space-y-2">
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search cards, position, tags..."
-              className="w-full text-[11px] bg-slate-800/40 border border-white/[0.08] rounded-lg px-3 py-2 text-slate-300 outline-none focus:border-sky-500/40 placeholder:text-slate-600"
-            />
-            <div className="flex items-center gap-2">
-              <label className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Bucket</label>
+          <div className="shrink-0 px-2.5 py-1.5 border-b border-white/[0.06] space-y-1.5">
+            <div className="history-search-bucket-row flex items-center gap-1">
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search cards, position, tags..."
+                className="history-search-input flex-[1.45] min-w-0 text-[10px] bg-slate-800/40 border border-white/[0.08] rounded-md px-2 py-1 text-slate-300 outline-none focus:border-sky-500/40 placeholder:text-slate-600 placeholder:text-[10px] h-[34px]"
+              />
+              <label className="text-[9px] uppercase tracking-wider text-slate-500 font-semibold shrink-0">Bucket</label>
               <select
                 value={startingHandFilter}
                 onChange={(e) => setStartingHandFilter(e.target.value)}
-                className="flex-1 min-w-0 text-[11px] bg-slate-800/40 border border-white/[0.08] rounded-lg px-2 py-1.5 text-slate-300 outline-none focus:border-sky-500/40"
+                className="history-bucket-select flex-1 min-w-0 text-[10px] bg-slate-800/40 border border-white/[0.08] rounded-md px-2 py-1 text-slate-300 outline-none focus:border-sky-500/40 h-[34px]"
               >
-                <option value="all">All buckets</option>
+                <option value="all" className="history-bucket-option">All buckets</option>
                 {startingHandBuckets.map((bucket) => (
-                  <option key={bucket} value={bucket}>{bucket}</option>
+                  <option key={bucket} value={bucket} className="history-bucket-option">{bucket}</option>
                 ))}
               </select>
             </div>
@@ -349,7 +349,7 @@ export function HistoryByRoomPage(_props: {
                 <button
                   key={f.key}
                   onClick={() => setQuickFilter(f.key)}
-                  className={`text-[10px] px-2 py-1 rounded-md transition-all ${
+                  className={`text-[10px] px-2 py-0.5 rounded-md transition-all ${
                     quickFilter === f.key
                       ? "bg-sky-500/20 text-sky-300 border border-sky-500/40"
                       : "text-slate-500 hover:text-slate-300 border border-transparent hover:border-white/[0.08]"
@@ -395,7 +395,7 @@ export function HistoryByRoomPage(_props: {
 
         {/* Column 3: Detail / Replay */}
         <div className={`
-          flex-1 flex flex-col overflow-hidden min-w-0
+          flex-1 flex flex-col overflow-hidden min-w-0 max-lg:overflow-y-auto
           ${mobilePane === "detail" ? "max-lg:flex" : "max-lg:hidden"} lg:flex
         `}>
           {/* Detail/Replay tabs */}

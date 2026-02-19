@@ -31,14 +31,14 @@ function formatAuditAction(actionType: string, payload: Record<string, unknown>)
     case "member_kicked": return `${target || "A member"} was removed`;
     case "member_banned": return `${target || "A member"} was banned`;
     case "member_unbanned": return `${target || "A member"} was unbanned`;
-    case "role_changed": return `${target || "Member"} role → ${payload.newRole ?? "?"}`;
-    case "table_created": return `Table "${payload.tableName ?? "?"}" created`;
-    case "table_closed": return `Table "${payload.tableName ?? "?"}" closed`;
+    case "role_changed": return `${target || "Member"} role → ${payload.newRole ?? "Unknown"}`;
+    case "table_created": return `Table "${payload.tableName ?? "Unknown"}" created`;
+    case "table_closed": return `Table "${payload.tableName ?? "Unknown"}" closed`;
     case "invite_created": return `Invite code created`;
     case "invite_revoked": return `Invite code revoked`;
     case "club_updated": return `Club settings updated`;
-    case "ruleset_created": return `Ruleset "${payload.rulesetName ?? "?"}" created`;
-    case "ruleset_updated": return `Ruleset "${payload.rulesetName ?? "?"}" updated`;
+    case "ruleset_created": return `Ruleset "${payload.rulesetName ?? "Unknown"}" created`;
+    case "ruleset_updated": return `Ruleset "${payload.rulesetName ?? "Unknown"}" updated`;
     default: return actionType.replace(/_/g, " ");
   }
 }
@@ -359,7 +359,7 @@ export function ClubDetailView({
               {detail.pendingMembers.map((m) => (
                 <div key={m.userId} className="flex items-center gap-3 text-sm bg-black/20 rounded-lg p-2">
                   <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[10px] font-bold text-white uppercase">
-                    {(m.displayName ?? "?")[0]}
+                    {((m.displayName ?? "").trim().charAt(0) || "U").toUpperCase()}
                   </div>
                   <span className="text-white flex-1">{m.displayName ?? m.userId.slice(0, 8)}</span>
                   <button onClick={() => handleApprove(m.userId)} className="px-2 py-1 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30">
@@ -460,7 +460,7 @@ export function ClubDetailView({
                         </div>
                         <div className="flex-1">
                           <div className="text-sm font-medium text-white">{t.name}</div>
-                          <div className="text-[10px] text-slate-400">{t.stakes ?? "—"} · {t.playerCount ?? 0}/{t.maxPlayers ?? "?"} players</div>
+                          <div className="text-[10px] text-slate-400">{t.stakes ?? "—"} · {t.playerCount ?? 0}/{t.maxPlayers ?? "—"} players</div>
                         </div>
                         {t.roomCode && (
                           <button onClick={() => onJoinTable(t.roomCode!)} className="btn-success text-xs !py-1.5 !px-4">
@@ -680,7 +680,7 @@ export function ClubDetailView({
                     <div key={m.userId} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors">
                       <div className="relative">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-[10px] font-bold text-white uppercase">
-                          {(m.displayName ?? m.nicknameInClub ?? "?")[0]}
+                          {((m.displayName ?? m.nicknameInClub ?? "").trim().charAt(0) || "U").toUpperCase()}
                         </div>
                         {online && (
                           <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-900" />
@@ -803,7 +803,7 @@ export function ClubDetailView({
                     <div className="flex-1">
                       <div className="text-sm font-medium text-white">{t.name}</div>
                       <div className="text-[10px] text-slate-400">
-                        {t.stakes ?? "—"} · {t.playerCount ?? 0}/{t.maxPlayers ?? "?"} players ·{" "}
+                        {t.stakes ?? "—"} · {t.playerCount ?? 0}/{t.maxPlayers ?? "—"} players ·{" "}
                         {t.status === "open" && (t.playerCount ?? 0) < (t.minPlayersToStart ?? 2) ? (
                           <span className="text-amber-300">Waiting for players</span>
                         ) : (

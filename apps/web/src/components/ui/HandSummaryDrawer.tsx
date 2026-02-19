@@ -107,7 +107,7 @@ export const HandSummaryDrawer = memo(function HandSummaryDrawer({
                 {run.winners.map((w) => (
                   <div key={`${run.run}-${w.seat}`} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/8 border border-amber-500/15 mb-1">
                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[9px] font-extrabold text-slate-900 shrink-0">
-                      {playerName(w.seat)[0]?.toUpperCase() ?? "?"}
+                      {playerName(w.seat)[0]?.toUpperCase() ?? "U"}
                     </div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-white font-semibold text-xs truncate">{playerName(w.seat)}</span>

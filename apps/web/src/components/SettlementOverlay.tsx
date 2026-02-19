@@ -354,7 +354,7 @@ function WinnerRow({
   return (
     <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-amber-500/8 border border-amber-500/15 animate-[fadeSlideUp_0.35s_ease-out]">
       <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-xs font-extrabold text-slate-900 shrink-0">
-        {name[0]?.toUpperCase() ?? "?"}
+        {name[0]?.toUpperCase() ?? "U"}
       </div>
       <div className="flex flex-col min-w-0">
         <span className="text-white font-bold text-sm truncate">{name}</span>

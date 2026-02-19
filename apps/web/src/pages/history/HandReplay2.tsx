@@ -96,14 +96,14 @@ export function HandReplay2({ hand }: { hand: HandRecord | null }) {
       <div className="rounded-xl bg-slate-800/40 border border-white/[0.06] p-3">
         <div className="flex items-center gap-2 mb-3">
           <button
-            className="text-xs px-3 py-2 rounded-lg bg-slate-700/50 text-slate-300 border border-white/[0.08] hover:bg-slate-700/70 transition-all disabled:opacity-30"
+            className="text-[11px] px-2.5 py-1 rounded-md bg-slate-700/50 text-slate-300 border border-white/[0.08] hover:bg-slate-700/70 transition-all disabled:opacity-30"
             disabled={index === 0}
             onClick={() => setIndex((v) => Math.max(0, v - 1))}
           >
             ◀ Prev
           </button>
           <button
-            className={`text-xs px-4 py-2 rounded-lg border transition-all font-semibold ${
+            className={`text-[11px] px-3 py-1 rounded-md border transition-all font-semibold ${
               playing
                 ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
                 : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
@@ -113,7 +113,7 @@ export function HandReplay2({ hand }: { hand: HandRecord | null }) {
             {playing ? "⏸ Pause" : "▶ Play"}
           </button>
           <button
-            className="text-xs px-3 py-2 rounded-lg bg-slate-700/50 text-slate-300 border border-white/[0.08] hover:bg-slate-700/70 transition-all disabled:opacity-30"
+            className="text-[11px] px-2.5 py-1 rounded-md bg-slate-700/50 text-slate-300 border border-white/[0.08] hover:bg-slate-700/70 transition-all disabled:opacity-30"
             disabled={index >= timeline.length - 1}
             onClick={() => setIndex((v) => Math.min(timeline.length - 1, v + 1))}
           >
@@ -133,7 +133,7 @@ export function HandReplay2({ hand }: { hand: HandRecord | null }) {
               <button
                 key={String(ms)}
                 onClick={() => setSpeed(Number(ms))}
-                className={`text-[9px] px-1.5 py-0.5 rounded transition-all ${
+                className={`text-[8px] px-1 py-0.5 rounded-sm transition-all ${
                   speed === Number(ms) ? "bg-sky-500/20 text-sky-300" : "text-slate-500 hover:text-slate-300"
                 }`}
               >

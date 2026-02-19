@@ -96,8 +96,8 @@ export function HandList2({
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Sort bar */}
-      <div className="flex items-center gap-1.5 px-3 py-2 border-b border-white/[0.06]">
-        <span className="text-[10px] text-slate-500 uppercase tracking-wider mr-1">Sort:</span>
+      <div className="flex items-center gap-1 px-2.5 py-1.5 border-b border-white/[0.06]">
+        <span className="text-[9px] text-slate-500 uppercase tracking-wider mr-0.5">Sort:</span>
         {([
           ["newest", "Newest"],
           ["oldest", "Oldest"],
@@ -108,7 +108,7 @@ export function HandList2({
           <button
             key={key}
             onClick={() => onSortChange(key)}
-            className={`text-[10px] px-2 py-1 rounded-md transition-all ${
+            className={`text-[9px] px-1.5 py-0.5 rounded-md transition-all ${
               sort === key
                 ? "bg-sky-500/20 text-sky-300 border border-sky-500/40"
                 : "text-slate-500 hover:text-slate-300 border border-transparent"

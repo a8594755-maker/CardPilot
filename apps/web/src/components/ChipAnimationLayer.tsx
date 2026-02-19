@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, memo } from "react";
-import type { ChipTransfer, AnimationSpeed } from "../lib/chip-animation.js";
+import { memo, useEffect, useRef, useState } from "react";
+import type { AnimationSpeed, ChipTransfer } from "../lib/chip-animation.js";
 
 interface ChipAnimationLayerProps {
   transfers: ChipTransfer[];
@@ -7,12 +7,6 @@ interface ChipAnimationLayerProps {
   speed: AnimationSpeed;
 }
 
-/**
- * Absolute overlay rendered on top of the table surface.
- * Renders animated chip tokens that fly from seat→pot or pot→seat.
- * 3-stage animation: flight → arrival hold → merge/fade.
- * pointer-events: none so clicks pass through.
- */
 export const ChipAnimationLayer = memo(function ChipAnimationLayer({
   transfers,
   onTransferDone,
@@ -33,21 +27,16 @@ export const ChipAnimationLayer = memo(function ChipAnimationLayer({
     return () => mq.removeListener(handleChange);
   }, []);
 
-  if (speed === "off" || transfers.length === 0 || prefersReducedMotion) return null;
+  if (speed === "off" || prefersReducedMotion || transfers.length === 0) return null;
 
   return (
-    <div
-      className="absolute inset-0 z-30 pointer-events-none overflow-hidden cp-chip-flight-layer"
-      aria-hidden="true"
-    >
-      {transfers.map((t) => (
-        <AnimatedChip key={t.id} transfer={t} onDone={onTransferDone} />
+    <div className="absolute inset-0 z-30 pointer-events-none overflow-hidden cp-chip-flight-layer" aria-hidden="true">
+      {transfers.map((transfer) => (
+        <AnimatedChip key={transfer.id} transfer={transfer} onDone={onTransferDone} />
       ))}
     </div>
   );
 });
-
-// ── 3-stage animated chip token ──
 
 type Phase = "init" | "flight" | "hold" | "merge" | "done";
 
@@ -64,12 +53,8 @@ function AnimatedChip({ transfer, onDone }: AnimatedChipProps) {
   const { id, from, to, amount, kind, timing } = transfer;
   const isWinner = kind === "toWinner";
 
-  // Phase state machine: init → flight → hold → merge → done
   useEffect(() => {
-    // Kick off flight on next frame (so browser renders at "from" first)
-    rafRef.current = requestAnimationFrame(() => {
-      setPhase("flight");
-    });
+    rafRef.current = requestAnimationFrame(() => setPhase("flight"));
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -87,26 +72,31 @@ function AnimatedChip({ transfer, onDone }: AnimatedChipProps) {
         onDone(id);
       }, timing.merge);
     }
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, [phase, timing, id, onDone]);
 
   if (phase === "done") return null;
 
-  // Move token using transform only (GPU-friendly), anchored at origin coordinates.
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   const isAtDestination = phase !== "init";
+  const arcHeight = Math.max(12, Math.min(64, (Math.abs(dx) * 0.05) + (Math.abs(dy) * 0.2)));
 
-  // Opacity/scale per phase
   let opacity = 1;
   let scale = 1;
-  if (phase === "init") { opacity = 0.7; scale = 0.8; }
-  if (phase === "merge") { opacity = 0; scale = 0.4; }
+  if (phase === "init") {
+    opacity = 0.7;
+    scale = 0.8;
+  }
+  if (phase === "merge") {
+    opacity = 0;
+    scale = 0.4;
+  }
 
-  // Format amount for display
   const label = amount >= 1000 ? `${(amount / 1000).toFixed(1)}k` : amount.toLocaleString();
 
-  // Transition timing depends on phase
   let transition = "none";
   if (phase === "flight") {
     transition = `transform ${timing.flight}ms cubic-bezier(0.22, 1, 0.36, 1), opacity ${timing.flight}ms ease`;
@@ -127,29 +117,29 @@ function AnimatedChip({ transfer, onDone }: AnimatedChipProps) {
         willChange: "transform, opacity",
       }}
     >
-      {/* Chip icon */}
-      <div className="cp-chip-token">
-        <span className="cp-chip-token-core">$</span>
+      <div
+        className={`cp-chip-flight-body ${phase === "flight" ? "cp-chip-flight-body--arc" : ""}`}
+        style={phase === "flight"
+          ? {
+              ["--cp-chip-arc" as string]: `${arcHeight}px`,
+              ["--cp-chip-flight-ms" as string]: `${timing.flight}ms`,
+            }
+          : undefined}
+      >
+        <div className="cp-chip-token">
+          <span className="cp-chip-token-core">$</span>
+        </div>
+        <span className="cp-chip-label">
+          {isWinner ? "+" : ""}{label}
+        </span>
+        {kind === "toPot" && phase === "hold" && (
+          <div className="cp-chip-ring cp-chip-ring--pot" style={{ animationDuration: `${timing.potPulse}ms` }} />
+        )}
+        {isWinner && phase === "hold" && (
+          <div className="cp-chip-ring cp-chip-ring--winner" style={{ animationDuration: `${timing.winnerGlow}ms` }} />
+        )}
+        {isWinner && phase === "hold" && <div className="cp-chip-winner-spark" />}
       </div>
-      {/* Amount label */}
-      <span className="cp-chip-label">
-        {isWinner ? "+" : ""}{label}
-      </span>
-      {/* Pot pulse ring — shows during hold phase for toPot transfers */}
-      {kind === "toPot" && phase === "hold" && (
-        <div
-          className="cp-chip-ring cp-chip-ring--pot"
-          style={{ animationDuration: `${timing.potPulse}ms` }}
-        />
-      )}
-      {/* Winner glow — shows during hold phase for toWinner transfers */}
-      {isWinner && phase === "hold" && (
-        <div
-          className="cp-chip-ring cp-chip-ring--winner"
-          style={{ animationDuration: `${timing.winnerGlow}ms` }}
-        />
-      )}
-      {isWinner && phase === "hold" && <div className="cp-chip-winner-spark" />}
     </div>
   );
 }

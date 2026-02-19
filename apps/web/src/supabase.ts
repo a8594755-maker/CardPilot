@@ -13,6 +13,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const DEV_MODE = import.meta.env.DEV;
 
 const GUEST_SESSION_STORAGE_KEY = "cardpilot_guest_session";
+const GUEST_USER_ID_STORAGE_KEY = "cardpilot_guest_user_id";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export function isUuid(value: string): boolean {
@@ -24,6 +25,25 @@ function generateGuestId(): string {
     return `guest-${crypto.randomUUID().slice(0, 8)}`;
   }
   return `guest-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export function getOrCreateGuestUserId(): string {
+  const generated = generateGuestId();
+  if (typeof window === "undefined") return generated;
+  try {
+    const raw = window.localStorage.getItem(GUEST_USER_ID_STORAGE_KEY);
+    if (raw && raw.startsWith("guest-")) return raw;
+    window.localStorage.setItem(GUEST_USER_ID_STORAGE_KEY, generated);
+    return generated;
+  } catch {
+    return generated;
+  }
+}
+
+export function normalizeClientUserId(userId: string, isGuest: boolean): string {
+  const trimmed = userId.trim();
+  if (!isGuest) return trimmed;
+  return getOrCreateGuestUserId();
 }
 
 function getStoredGuestSession(): AuthSession | null {
@@ -67,7 +87,7 @@ function clearGuestSession(): void {
 }
 
 function createLocalGuestSession(displayName?: string): AuthSession {
-  const guestId = generateGuestId();
+  const guestId = getOrCreateGuestUserId();
   const session: AuthSession = {
     accessToken: guestId,
     userId: guestId,
@@ -184,12 +204,13 @@ async function getSupabaseSession(): Promise<AuthSession | null> {
       clearGuestSession();
       const meta = existing.session.user.user_metadata;
       const dn = (typeof meta?.display_name === "string" && meta.display_name) || (typeof meta?.name === "string" && meta.name) || null;
+      const isGuest = Boolean((existing.session.user as { is_anonymous?: boolean }).is_anonymous);
       return {
         accessToken: existing.session.access_token,
-        userId: existing.session.user.id,
+        userId: normalizeClientUserId(existing.session.user.id, isGuest),
         email: existing.session.user.email,
         displayName: dn,
-        isGuest: Boolean((existing.session.user as { is_anonymous?: boolean }).is_anonymous),
+        isGuest,
       };
     }
     return null;
@@ -303,7 +324,7 @@ export async function getExistingSession(): Promise<AuthSession | null> {
         clearGuestSession();
         return {
           accessToken: data.session.access_token,
-          userId: data.user.id,
+          userId: normalizeClientUserId(data.user.id, true),
           email: data.user.email,
           displayName: cached.displayName || "Guest",
           isGuest: true,
@@ -338,7 +359,7 @@ export async function ensureGuestSession(displayName?: string): Promise<AuthSess
       clearGuestSession();
       return {
         accessToken: data.session.access_token,
-        userId: data.user.id,
+        userId: normalizeClientUserId(data.user.id, true),
         email: data.user.email,
         displayName: displayName || cached?.displayName || "Guest",
         isGuest: true,

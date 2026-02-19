@@ -81,13 +81,13 @@ export const JoinByCodeCard = memo(function JoinByCodeCard({
           autoComplete="off"
           autoCorrect="off"
           spellCheck={false}
-          className="cp-lobby-input flex-1 font-mono text-center tracking-[0.25em] text-lg uppercase"
+          className="cp-lobby-input flex-1 font-mono text-center tracking-[0.22em] text-base uppercase"
           style={{ maxWidth: 220 }}
         />
         <button
           disabled={!canSubmit}
           onClick={submit}
-          className="cp-btn cp-btn-primary shrink-0 px-5"
+          className="cp-btn cp-btn-primary shrink-0 text-[12px] px-3.5 py-1.5 min-h-[30px] rounded-md"
         >
           Join
         </button>

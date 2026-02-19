@@ -26,14 +26,14 @@ const RoomCard = memo(function RoomCard({
     <div className="cp-room-card group">
       {/* Left: seat count badge */}
       <div
-        className={`w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 border ${
+        className={`w-7 h-7 rounded-md flex items-center justify-center text-[9px] font-semibold shrink-0 border ${
           isFull
-            ? "bg-slate-700/30 border-slate-600/30 text-slate-500"
-            : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+            ? "bg-slate-700/20 border-slate-600/20 text-slate-500"
+            : "bg-emerald-500/8 border-emerald-500/20 text-emerald-400/80"
         }`}
       >
         <span className="cp-num">{room.playerCount}</span>
-        <span className="text-xs text-slate-500 font-normal">/{room.maxPlayers}</span>
+        <span className="text-[8px] text-slate-500/80 font-normal">/{room.maxPlayers}</span>
       </div>
 
       {/* Center: room info */}
@@ -44,26 +44,25 @@ const RoomCard = memo(function RoomCard({
             <span className="text-amber-400 text-xs" title="Private room">🔒</span>
           )}
         </div>
-        <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-500">
-          <span className="cp-num">
+        <div className="mt-0.5 space-y-0.5">
+          <div className="text-[11px] text-slate-500 leading-tight cp-num">
             Blinds <span className="text-slate-300">{room.smallBlind}/{room.bigBlind}</span>
-          </span>
-          <span className="text-white/15">·</span>
-          <span>
+          </div>
+          <div className="flex items-center gap-1.5 text-[11px] leading-tight">
             {isFull ? (
               <span className="text-red-400/70">Full</span>
             ) : (
-              <span className="text-emerald-400/70">
+              <span className="text-emerald-400/75">
                 {seatsAvailable} seat{seatsAvailable !== 1 ? "s" : ""} open
               </span>
             )}
-          </span>
-          {room.isClubTable && room.clubName && (
-            <>
-              <span className="text-white/15">·</span>
-              <span className="text-blue-400/70 truncate max-w-[100px]">{room.clubName}</span>
-            </>
-          )}
+            {room.isClubTable && room.clubName && (
+              <>
+                <span className="text-white/15">·</span>
+                <span className="text-blue-400/70 truncate max-w-[96px]">{room.clubName}</span>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -71,7 +70,7 @@ const RoomCard = memo(function RoomCard({
       <button
         disabled={disabled || isFull}
         onClick={() => onJoin(room.roomCode)}
-        className={`cp-btn text-xs px-4 shrink-0 transition-opacity ${
+        className={`cp-btn text-[10px] font-medium px-2.5 py-0.5 min-h-[24px] rounded shrink-0 mt-1.5 transition-opacity ${
           isFull
             ? "cp-btn-ghost opacity-40 cursor-not-allowed"
             : "cp-btn-primary opacity-70 group-hover:opacity-100"
