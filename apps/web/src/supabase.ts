@@ -380,7 +380,10 @@ export async function ensureGuestSession(displayName?: string): Promise<AuthSess
 export async function signUpWithEmail(email: string, password: string, displayName?: string): Promise<AuthSession> {
   if (!supabase) throw new Error("Supabase not configured");
 
-  const emailErr = validateEmail(email);
+  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedDisplayName = displayName?.trim();
+
+  const emailErr = validateEmail(normalizedEmail);
   if (emailErr) throw new Error(emailErr);
   const pwErr = validatePassword(password);
   if (pwErr) throw new Error(pwErr);
@@ -388,11 +391,25 @@ export async function signUpWithEmail(email: string, password: string, displayNa
   checkRateLimit();
 
   try {
-    const { data, error } = await supabase.auth.signUp({
-      email,
+    const signUpPayload = {
+      email: normalizedEmail,
       password,
-      options: displayName ? { data: { display_name: displayName } } : undefined,
-    });
+      options: normalizedDisplayName ? { data: { display_name: normalizedDisplayName } } : undefined,
+    };
+
+    let { data, error } = await supabase.auth.signUp(signUpPayload);
+
+    // Some Supabase projects reject metadata at signup (422). Retry once without metadata.
+    if (error && normalizedDisplayName) {
+      const details = extractAuthErrorDetails(error);
+      if (details.status === 422) {
+        ({ data, error } = await supabase.auth.signUp({
+          email: normalizedEmail,
+          password,
+        }));
+      }
+    }
+
     if (error) throw error;
     if (!data.session || !data.user) throw new Error("Sign up succeeded but no session returned. Check your email for confirmation.");
     invalidRefreshHandled = false;
@@ -400,7 +417,7 @@ export async function signUpWithEmail(email: string, password: string, displayNa
       accessToken: data.session.access_token,
       userId: data.user.id,
       email: data.user.email,
-      displayName: displayName || null,
+      displayName: normalizedDisplayName || null,
       isGuest: false,
     };
   } catch (err) {
