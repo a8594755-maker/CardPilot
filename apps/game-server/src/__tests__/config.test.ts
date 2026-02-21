@@ -10,22 +10,25 @@ const configModuleUrl = pathToFileURL(resolve(process.cwd(), "src/config.ts")).h
 const tsxLoaderUrl = pathToFileURL(resolve(process.cwd(), "../../node_modules/tsx/dist/loader.mjs")).href;
 const probeScript = `
 import { getRuntimeConfig } from "${configModuleUrl}";
-getRuntimeConfig();
+const runtime = getRuntimeConfig();
 console.log(JSON.stringify({
   url: process.env.SUPABASE_URL ?? null,
   anon: process.env.SUPABASE_ANON_KEY ?? null,
-  service: process.env.SUPABASE_SERVICE_ROLE_KEY ?? null
+  service: process.env.SUPABASE_SERVICE_ROLE_KEY ?? null,
+  cors: runtime.corsOrigin
 }));
 `;
 
-function runConfigProbe(extraEnv: Record<string, string | undefined>) {
+function runConfigProbe(extraEnv: Record<string, string | undefined>, nodeEnv = "development") {
   const workingDir = mkdtempSync(resolve(tmpdir(), "cardpilot-config-test-"));
   try {
-    const env: NodeJS.ProcessEnv = { ...process.env, NODE_ENV: "development" };
+    const env: NodeJS.ProcessEnv = { ...process.env, NODE_ENV: nodeEnv };
     delete env.SUPABASE_URL;
     delete env.SUPABASE_ANON_KEY;
     delete env.SUPABASE_SERVICE_ROLE_KEY;
     delete env.SUPABASE_STRICT_ENV;
+    delete env.CORS_ORIGIN;
+    delete env.FRONTEND_ORIGIN;
 
     for (const [key, value] of Object.entries(extraEnv)) {
       if (typeof value === "undefined") {
@@ -45,7 +48,7 @@ function runConfigProbe(extraEnv: Record<string, string | undefined>) {
   }
 }
 
-function parseLastJsonLine(stdout: string): { url: string | null; anon: string | null; service: string | null } {
+function parseLastJsonLine(stdout: string): { url: string | null; anon: string | null; service: string | null; cors: string[] | true } {
   const lastLine = stdout.trim().split("\n").at(-1);
   assert.ok(lastLine, "expected probe output");
   return JSON.parse(lastLine);
@@ -60,7 +63,9 @@ describe("Runtime config Supabase env handling", () => {
 
     assert.equal(result.status, 0, result.stderr);
     const parsed = parseLastJsonLine(result.stdout);
-    assert.deepEqual(parsed, { url: null, anon: null, service: null });
+    assert.equal(parsed.url, null);
+    assert.equal(parsed.anon, null);
+    assert.equal(parsed.service, null);
     assert.match(`${result.stdout}\n${result.stderr}`, /Supabase disabled; falling back to guest\/local mode/);
   });
 
@@ -84,10 +89,42 @@ describe("Runtime config Supabase env handling", () => {
 
     assert.equal(result.status, 0, result.stderr);
     const parsed = parseLastJsonLine(result.stdout);
-    assert.deepEqual(parsed, {
-      url: "https://example.supabase.co",
-      anon: "sb_publishable_test",
-      service: "sb_service_role_test",
+    assert.equal(parsed.url, "https://example.supabase.co");
+    assert.equal(parsed.anon, "sb_publishable_test");
+    assert.equal(parsed.service, "sb_service_role_test");
+  });
+
+  it("fails fast by default in production when Supabase env is partial", () => {
+    const result = runConfigProbe(
+      {
+        SUPABASE_URL: "https://example.supabase.co",
+        SUPABASE_ANON_KEY: "sb_publishable_test",
+      },
+      "production",
+    );
+
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /Incomplete Supabase env/);
+  });
+
+  it("includes FRONTEND_ORIGIN in the CORS allow-list", () => {
+    const result = runConfigProbe({
+      FRONTEND_ORIGIN: "http://127.0.0.1:3000",
     });
+
+    assert.equal(result.status, 0, result.stderr);
+    const parsed = parseLastJsonLine(result.stdout);
+    assert.ok(Array.isArray(parsed.cors));
+    assert.ok(parsed.cors.includes("http://127.0.0.1:3000"));
+  });
+
+  it("supports wildcard CORS_ORIGIN", () => {
+    const result = runConfigProbe({
+      CORS_ORIGIN: "*",
+    });
+
+    assert.equal(result.status, 0, result.stderr);
+    const parsed = parseLastJsonLine(result.stdout);
+    assert.equal(parsed.cors, true);
   });
 });

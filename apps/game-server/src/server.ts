@@ -154,8 +154,9 @@ const clubLeaderboardRefreshTimers = new Map<string, ReturnType<typeof setTimeou
 const CLUB_AUTH_REQUIRED_MESSAGE = "401 Unauthorized: authentication required for club access";
 
 // Rebuy requests: seated player asks for more chips; club tables auto-approve, non-club rooms use host approval.
-type RebuyRequest = { orderId: string; tableId: string; seat: number; userId: string; userName: string; amount: number; approved: boolean };
+type RebuyRequest = { orderId: string; tableId: string; seat: number; userId: string; userName: string; amount: number; approved: boolean; createdAt: number };
 const pendingRebuys = new Map<string, RebuyRequest>(); // orderId → request
+const REBUY_TTL_MS = 10 * 60 * 1000; // 10 minutes
 const supabase = new SupabasePersistence();
 if (!supabase.enabled()) {
   logWarn({
@@ -338,6 +339,7 @@ function createTableIfNeeded(room: RoomInfo): GameTable {
       rakeEnabled: simulatedFeeEnabled,
       rakePercent: simulatedFeeEnabled ? (settings?.simulatedFeePercent ?? 0) : 0,
       rakeCap: simulatedFeeEnabled && simulatedFeeCap > 0 ? simulatedFeeCap : undefined,
+      maxConsecutiveTimeouts: settings?.maxConsecutiveTimeouts ?? 3,
     });
     tables.set(room.tableId, table);
   }
@@ -420,9 +422,9 @@ function isClubOwnerOrAdmin(clubId: string, userId: string): boolean {
 }
 
 function isClubAuthenticatedIdentity(identity: VerifiedIdentity): boolean {
-  // Dev/offline fallback: when Supabase is disabled in non-production,
-  // allow local guest identities to use club features.
-  if (!supabase.enabled() && runtimeConfig.envName !== "production") {
+  // Runtime config can intentionally disable Supabase (e.g. partial env fallback),
+  // so club auth must honor guest/local mode in every environment.
+  if (!supabase.enabled()) {
     return true;
   }
   return identity.isAuthenticated && !identity.userId.startsWith("guest-");
@@ -788,16 +790,48 @@ async function applyApprovedRebuys(tableId: string): Promise<void> {
           });
           await emitWalletBalanceToUser(clubInfo.clubId, deposit.userId, tx.newBalance, "chips");
         } catch (error) {
+          const errMsg = (error as Error).message;
+          logWarn({ event: "applyApprovedRebuys.wallet_failed", message: errMsg, clubId: clubInfo.clubId, userId: deposit.userId, amount: deposit.amount, orderId });
           const seatSocket = socketIdBySeat(tableId, deposit.seat);
           if (seatSocket) {
-            io.to(seatSocket).emit("system_message", { message: "Rebuy skipped: unable to reserve club funds." });
+            io.to(seatSocket).emit("system_message", { message: `Rebuy failed: unable to reserve club funds. ${errMsg}` });
           }
           toRemove.push(orderId);
           continue;
         }
       }
 
-      table.addStack(deposit.seat, deposit.amount);
+      try {
+        table.addStack(deposit.seat, deposit.amount);
+      } catch (addStackErr) {
+        console.warn("applyApprovedRebuys: addStack failed after wallet debit, issuing refund:", (addStackErr as Error).message);
+        if (clubInfo) {
+          try {
+            const refundTx = await appendWalletTx({
+              clubId: clubInfo.clubId,
+              userId: deposit.userId,
+              type: "adjustment",
+              amount: Math.trunc(deposit.amount),
+              currency: "chips",
+              refType: "rebuy_refund",
+              refId: `${tableId}:${deposit.seat}:${orderId}:refund`,
+              createdBy: deposit.userId,
+              note: `Refund: rebuy addStack failed for seat ${deposit.seat}`,
+              metaJson: { tableId, seat: deposit.seat, orderId, reason: "addStack_failed" },
+            });
+            await emitWalletBalanceToUser(clubInfo.clubId, deposit.userId, refundTx.newBalance, "chips");
+            const seatSocket = socketIdBySeat(tableId, deposit.seat);
+            if (seatSocket) {
+              io.to(seatSocket).emit("system_message", { message: "Rebuy failed to apply. Your wallet has been refunded." });
+            }
+          } catch (refundErr) {
+            logWarn({ event: "applyApprovedRebuys.refund_failed", message: (refundErr as Error).message, clubId: clubInfo.clubId, userId: deposit.userId, amount: deposit.amount, orderId });
+          }
+        }
+        toRemove.push(orderId);
+        continue;
+      }
+
       recordSessionBuyIn(tableId, deposit.userId, deposit.userName, deposit.amount);
       setSessionLastStack(tableId, deposit.userId, deposit.userName, currentStack + deposit.amount);
       const sid = socketIdBySeat(tableId, deposit.seat);
@@ -805,7 +839,7 @@ async function applyApprovedRebuys(tableId: string): Promise<void> {
       io.to(tableId).emit("system_message", { message: `${deposit.userName} (Seat ${deposit.seat}) rebuy credited: ${deposit.amount}` });
       stackBySeatBefore.set(deposit.seat, currentStack + deposit.amount);
     } catch (err) {
-      console.warn("applyApprovedRebuys: addStack failed:", (err as Error).message);
+      console.warn("applyApprovedRebuys: unexpected error:", (err as Error).message);
     }
     toRemove.push(orderId);
   }
@@ -821,6 +855,21 @@ function getPendingRebuysForTable(tableId: string): Array<{ orderId: string; sea
   }
   return result;
 }
+
+function cleanupStaleRebuys(): void {
+  const now = Date.now();
+  for (const [orderId, deposit] of pendingRebuys.entries()) {
+    if (now - deposit.createdAt > REBUY_TTL_MS) {
+      logInfo({ event: "rebuy.stale_cleanup", orderId, tableId: deposit.tableId, userId: deposit.userId, ageSeconds: Math.round((now - deposit.createdAt) / 1000) });
+      const seatSocket = socketIdBySeat(deposit.tableId, deposit.seat);
+      if (seatSocket) {
+        io.to(seatSocket).emit("system_message", { message: "Your pending rebuy request has expired." });
+      }
+      pendingRebuys.delete(orderId);
+    }
+  }
+}
+setInterval(cleanupStaleRebuys, 2 * 60 * 1000);
 
 function hasVoluntaryPreflopAction(state: TableState): boolean {
   const blindSeats = new Set<number>();
@@ -2230,19 +2279,19 @@ function startTimerForActor(tableId: string): void {
 
   const actorBinding = bindingsByTable(tableId).find((e) => e.binding.seat === state.actorSeat);
   if (!actorBinding) {
-    // Away player was dealt in (dealToAwayPlayers=true): auto-fold so the hand cannot stall.
+    // Away player was dealt in (dealToAwayPlayers=true): auto-check/fold so the hand cannot stall.
     try {
-      const autoState = table.applyAction(state.actorSeat, "fold");
+      const { state: autoState, action: autoAction } = table.handleTimeout(state.actorSeat);
       io.to(tableId).emit("action_applied", {
         seat: state.actorSeat,
-        action: "fold",
+        action: autoAction,
         amount: 0,
         pot: autoState.pot,
         auto: true,
       });
       handlePostAction(tableId, table, autoState);
     } catch (err) {
-      console.warn("startTimerForActor: auto-fold for away actor failed:", (err as Error).message);
+      console.warn("startTimerForActor: auto-action for away actor failed:", (err as Error).message);
     }
     return;
   }
@@ -2252,7 +2301,7 @@ function startTimerForActor(tableId: string): void {
     state.actorSeat,
     actorBinding.binding.userId,
     () => {
-      // Timeout: always auto-fold, then stand the player up
+      // Timeout: use engine's handleTimeout (auto-check if possible, otherwise fold)
       const tbl = tables.get(tableId);
       if (!tbl) return;
       const s = tbl.getPublicState();
@@ -2260,17 +2309,30 @@ function startTimerForActor(tableId: string): void {
       if (s.actorSeat == null || s.actorSeat !== expectedSeat || !s.legalActions) return;
       const timedOutSeat = s.actorSeat;
       try {
-        const newState = tbl.applyAction(timedOutSeat, "fold");
+        const { state: newState, action: timeoutAction, autoSatOut } = tbl.handleTimeout(timedOutSeat);
         io.to(tableId).emit("action_applied", {
           seat: timedOutSeat,
-          action: "fold",
+          action: timeoutAction,
           amount: 0,
           pot: newState.pot,
           auto: true,
         });
 
-        // Stand the timed-out player up (remove from table)
-        void standUpPlayer(tableId, timedOutSeat, "Timed out — auto-folded and stood up");
+        // Engine tracks consecutive timeouts; mark as away (sitting_out) after repeated offenses
+        // Player stays at the table — they can press "I'm Back" to return
+        if (autoSatOut) {
+          io.to(tableId).emit("system_message", {
+            message: `Seat ${timedOutSeat} is away (timed out repeatedly).`,
+          });
+          const room = roomManager.getRoom(tableId);
+          if (room) {
+            roomManager.addLog(room, "PLAYER_SAT_OUT", {
+              targetId: actorBinding.binding.userId,
+              message: `Seat ${timedOutSeat} auto-away after consecutive timeouts`,
+            });
+          }
+          broadcastSnapshot(tableId);
+        }
 
         // Continue the hand
         handlePostAction(tableId, tbl, newState);
@@ -2423,7 +2485,11 @@ function initiateRunoutFlow(tableId: string, table: GameTable): void {
   };
   pendingRunCountDecisions.set(tableId, pending);
 
+  // Reveal hole cards immediately so all players can see cards + equity during all-in
+  revealLockedHoleCards(tableId, table, pending);
+
   emitAllInLocked(tableId, pending);
+  broadcastSnapshot(tableId);
 
   // Backward-compatible per-seat prompt for older clients that still listen to all_in_prompt.
   for (const player of eligiblePlayers) {
@@ -3599,7 +3665,7 @@ io.on("connection", (socket) => {
       const deposit: RebuyRequest = {
         orderId, tableId: payload.tableId, seat: binding.seat,
         userId: identity.userId, userName: identity.displayName,
-        amount: payload.amount, approved: false,
+        amount: payload.amount, approved: false, createdAt: Date.now(),
       };
       pendingRebuys.set(orderId, deposit);
 
@@ -3737,6 +3803,17 @@ io.on("connection", (socket) => {
       if (player.status === "active") throw new Error("Already active");
 
       table.setPlayerStatus(binding.seat, "active");
+      table.resetConsecutiveTimeouts(binding.seat);
+      // Also reset room-manager timeout count
+      const room = roomManager.getRoom(payload.tableId);
+      if (room) {
+        room.timeoutCounts.set(identity.userId, 0);
+        roomManager.addLog(room, "SYSTEM_MESSAGE", {
+          actorId: identity.userId,
+          actorName: identity.displayName,
+          message: `${identity.displayName} is back`,
+        });
+      }
       socket.emit("system_message", { message: "You are back in the game." });
       io.to(payload.tableId).emit("system_message", { message: `${identity.displayName} is back.` });
       broadcastSnapshot(payload.tableId);
@@ -4450,11 +4527,11 @@ io.on("connection", (socket) => {
 
   /* ═══════════ CLUBS ═══════════ */
 
-  socket.on("club_create", (payload: ClubCreatePayload) => {
+  socket.on("club_create", async (payload: ClubCreatePayload) => {
     try {
       if (!requireClubAuth()) return;
       logInfo({ event: "club_create.start", userId: identity.userId, name: payload.name });
-      const club = clubManager.createClub({
+      const club = await clubManager.createClub({
         ownerUserId: identity.userId,
         ownerDisplayName: identity.displayName,
         name: payload.name,
@@ -5364,18 +5441,17 @@ io.on("connection", (socket) => {
           binding.seat,
           identity.userId,
           () => {
-            // Grace expired — auto-fold and remove player
+            // Grace expired — auto-check/fold and remove player
             const tbl = tables.get(binding.tableId);
             if (tbl && tbl.isHandActive()) {
               const state = tbl.getPublicState();
               if (state.actorSeat === binding.seat) {
                 try {
-                  tbl.applyAction(binding.seat, "fold");
+                  const { state: newState, action: timeoutAction } = tbl.handleTimeout(binding.seat);
                   io.to(binding.tableId).emit("action_applied", {
-                    seat: binding.seat, action: "fold", amount: 0,
-                    pot: tbl.getPublicState().pot, auto: true,
+                    seat: binding.seat, action: timeoutAction, amount: 0,
+                    pot: newState.pot, auto: true,
                   });
-                  const newState = tbl.getPublicState();
                   handlePostAction(binding.tableId, tbl, newState);
                 } catch { /* already folded or hand ended */ }
               }

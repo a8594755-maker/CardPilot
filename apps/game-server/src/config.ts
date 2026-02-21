@@ -24,7 +24,11 @@ const DEFAULT_BUY_IN_MAX = 20_000;
 
 const DEFAULT_CORS_ORIGINS = [
   "http://127.0.0.1:5173",
+  "http://127.0.0.1:5174",
+  "http://127.0.0.1:4173",
   "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:4173",
   "https://cardpilotcouch.netlify.app",
   "https://cardpilotgame-server-production.up.railway.app",
 ];
@@ -169,7 +173,11 @@ function parseBooleanEnv(name: string, fallback: boolean): boolean {
 }
 
 function parseSupabaseEnvGuard(): void {
-  if ((process.env.NODE_ENV || "").toLowerCase() === "test") {
+  const envName = (process.env.NODE_ENV || "").toLowerCase();
+  const isTest = envName === "test";
+  const isProduction = envName === "production";
+
+  if (isTest) {
     return;
   }
 
@@ -180,13 +188,25 @@ function parseSupabaseEnvGuard(): void {
   ] as const;
 
   const defined = keys.filter((key) => typeof process.env[key] === "string" && process.env[key]!.trim().length > 0);
-  if (defined.length === 0 || defined.length === keys.length) return;
+  if (defined.length === 0) {
+    if (isProduction) {
+      console.warn(
+        `[config] Supabase env is not configured in production. ` +
+        `Set ${keys.join(", ")} (recommended) or keep all unset only if you intentionally run without Supabase.`,
+      );
+    }
+    return;
+  }
+
+  if (defined.length === keys.length) return;
 
   const missing = keys.filter((key) => !defined.includes(key));
   const message = `[config] Incomplete Supabase env: set ${keys.join(", ")} together (or leave all unset).`;
   const details = `Set: ${defined.join(", ")} | Missing: ${missing.join(", ")}`;
 
-  if (parseBooleanEnv("SUPABASE_STRICT_ENV", false)) {
+  // In production, fail fast by default on partial Supabase config.
+  // Override with SUPABASE_STRICT_ENV=false only if you explicitly accept fallback mode.
+  if (parseBooleanEnv("SUPABASE_STRICT_ENV", isProduction)) {
     throw new Error(`${message} ${details}`);
   }
 
@@ -197,16 +217,23 @@ function parseSupabaseEnvGuard(): void {
 }
 
 function parseCorsOrigin(): string[] | true {
+  const frontendOrigin = process.env.FRONTEND_ORIGIN?.trim() ?? "";
   const raw = process.env.CORS_ORIGIN?.trim();
-  if (!raw) return DEFAULT_CORS_ORIGINS;
   if (raw === "*") return true;
 
   const values = raw
-    .split(",")
-    .map((value) => value.trim())
-    .filter((value) => value.length > 0);
+    ? raw
+        .split(",")
+        .map((value) => value.trim())
+        .filter((value) => value.length > 0)
+    : [];
 
-  const merged = Array.from(new Set([...values, ...DEFAULT_CORS_ORIGINS]));
+  const merged = Array.from(new Set([
+    ...values,
+    ...(frontendOrigin ? [frontendOrigin] : []),
+    ...DEFAULT_CORS_ORIGINS,
+  ]));
+
   return merged;
 }
 

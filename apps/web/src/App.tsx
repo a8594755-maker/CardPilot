@@ -1,13 +1,8 @@
-import { useEffect, useMemo, useState, useCallback, useRef, memo } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { io, type Socket } from "socket.io-client";
 import { useLocation, useNavigate } from "react-router-dom";
 import type {
   AdvicePayload,
-  HistoryHandDetail,
-  HistoryHandSummary,
-  HistoryRoomSummary,
-  HistorySessionSummary,
-  LegalActions,
   LobbyRoomSummary,
   RoomFullState,
   RoomLogEntry,
@@ -17,20 +12,20 @@ import type {
   TimerState
 } from "@cardpilot/shared-types";
 import { getClockwiseSeatsFromButton } from "@cardpilot/shared-types";
-import { getExistingSession, ensureGuestSession, signUpWithEmail, signInWithEmail, signInWithGoogle, signOut, supabase, validateEmail, validatePassword, getRateLimitSecondsLeft, isUuid, normalizeClientUserId, type AuthSession } from "./supabase";
+import { getExistingSession, ensureGuestSession, signOut, supabase, isUuid, normalizeClientUserId, resetInvalidRefreshGuard, type AuthSession } from "./supabase";
 import { preloadCardImages } from "./lib/card-images.js";
 // SettlementOverlay removed — replaced by non-blocking linger feedback + HandSummaryDrawer
 import { PokerCard } from "./components/PokerCard";
-import { getSuggestedPresets, userPresetsToButtons, type BetPreset } from "./lib/bet-sizing.js";
 import { AppLegalFooter } from "./legal-pages";
 import { ClubsPage } from "./pages/clubs/ClubsPage";
 import { HistoryByRoomPage } from "./pages/HistoryByRoomPage";
+import { ProfilePage } from "./pages/ProfilePage";
 import type { ClubListItem, ClubDetailPayload } from "@cardpilot/shared-types";
-import { saveHand, getHands, autoTag, classifyStartingHandBucket, type HandRecord, type HandActionRecord } from "./lib/hand-history.js";
+import { saveHand, autoTag, classifyStartingHandBucket, type HandRecord, type HandActionRecord } from "./lib/hand-history.js";
 import { ChipAnimationLayer } from "./components/ChipAnimationLayer";
 import { useChipAnimationDriver, type ChipAnimationAnchors } from "./hooks/useChipAnimationDriver";
 import { type AnimationSpeed, loadAnimationSpeed, saveAnimationSpeed } from "./lib/chip-animation.js";
-import { formatChips, formatDelta, makeChipFormatter } from "./lib/format-chips";
+import { formatChips, makeChipFormatter } from "./lib/format-chips";
 import { describeHandStrength } from "@cardpilot/shared-types";
 import { TrainingDashboard } from "./pages/TrainingDashboard";
 import { useAuditEvents } from "./hooks/useAuditEvents";
@@ -38,9 +33,14 @@ import { BottomActionBar } from "./components/ui/BottomActionBar";
 import { LeftOptionsRail, OptionsDrawer, type RailAction, type DrawerSection } from "./components/ui/LeftOptionsRail";
 import { FoldConfirmModal } from "./components/ui/FoldConfirmModal";
 import { HandSummaryDrawer } from "./components/ui/HandSummaryDrawer";
+import { InGameHandHistory } from "./components/ui/InGameHandHistory";
+import { AuthScreen } from "./components/AuthScreen";
+import { OnboardingModal } from "./components/OnboardingModal";
+import { RoomSettingsPanel } from "./components/RoomSettingsPanel";
+import { SeatChip, InfoCell, Bar } from "./components/SeatChip";
 import { Lobby, type CreateRoomSettings } from "./components/lobby";
 import { useUserRole } from "./hooks/useUserRole";
-import { OPTIONS_ITEMS, type SettingsTab } from "./config/optionsMenuItems";
+import { OPTIONS_ITEMS, GROUP_LABELS, type SettingsTab } from "./config/optionsMenuItems";
 import { useOverlayManager } from "./hooks/useOverlayManager";
 import { useIsMobile } from "./hooks/useIsMobile";
 import { useTableScale } from "./hooks/useTableScale";
@@ -53,124 +53,19 @@ import {
   shouldAutoFirePreAction,
   shouldConfirmUnnecessaryFold,
 } from "./lib/action-derivations";
+import { haptic } from "./lib/haptic";
+import { type UiSfx, playUiSfxTone } from "./lib/audio";
+import { getSeatLayout, getPortraitSeatLayout, mapSeatToVisualIndex } from "./lib/seat-layout";
+import { debugLog } from "./lib/debug";
 
 // Use VITE_SERVER_URL if explicitly set; in dev mode use relative URL to go through Vite proxy
 const SERVER = import.meta.env.VITE_SERVER_URL || (import.meta.env.DEV ? "/" : "http://127.0.0.1:4000");
-const DEBUG_LOGS_ENABLED = import.meta.env.DEV;
 const APP_VERSION = "v0.4.1";
 const NETLIFY_COMMIT_REF = import.meta.env.VITE_NETLIFY_COMMIT_REF || "";
 const NETLIFY_DEPLOY_ID = import.meta.env.VITE_NETLIFY_DEPLOY_ID || "";
 const BUILD_TIME = new Date().toISOString().slice(0, 16).replace("T", " ");
 const SOUND_PREF_KEY = "cardpilot_sound_muted";
 const RECENT_NON_CLUB_TABLE_KEY = "cardpilot_recent_non_club_table";
-const SFX_VOLUME_MULTIPLIER = 2.5; // §6: louder SFX ceiling — adjustable (spec: 1.5×–2×, bumped to 2.5× for audibility)
-
-const debugLog = (...args: unknown[]) => {
-  if (DEBUG_LOGS_ENABLED) console.log(...args);
-};
-
-type UiSfx = "deal" | "flip" | "chipBet" | "chipWin" | "turn";
-let sharedAudioCtx: AudioContext | null = null;
-
-function getAudioCtx(): AudioContext | null {
-  if (typeof window === "undefined") return null;
-  const Ctx = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-  if (!Ctx) return null;
-  if (!sharedAudioCtx) sharedAudioCtx = new Ctx();
-  if (sharedAudioCtx.state === "suspended") {
-    void sharedAudioCtx.resume().catch(() => {});
-  }
-  return sharedAudioCtx;
-}
-
-function playUiSfxTone(kind: UiSfx, muted: boolean) {
-  if (muted) return;
-  const ctx = getAudioCtx();
-  if (!ctx) return;
-  const now = ctx.currentTime;
-  const out = ctx.createGain();
-  out.gain.value = 0.05 * SFX_VOLUME_MULTIPLIER;
-  out.connect(ctx.destination);
-
-  const pulse = (freq: number, start: number, duration: number, type: OscillatorType = "sine", gain = 0.24) => {
-    const osc = ctx.createOscillator();
-    const env = ctx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, start);
-    env.gain.setValueAtTime(0.0001, start);
-    env.gain.exponentialRampToValueAtTime(gain, start + 0.012);
-    env.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-    osc.connect(env);
-    env.connect(out);
-    osc.start(start);
-    osc.stop(start + duration + 0.02);
-  };
-
-  if (kind === "deal") {
-    pulse(520, now, 0.05, "triangle", 0.18);
-    pulse(660, now + 0.055, 0.05, "triangle", 0.16);
-    return;
-  }
-  if (kind === "flip") {
-    pulse(740, now, 0.06, "square", 0.1);
-    return;
-  }
-  if (kind === "chipBet") {
-    pulse(220, now, 0.06, "triangle", 0.18);
-    return;
-  }
-  if (kind === "chipWin") {
-    pulse(420, now, 0.07, "triangle", 0.14);
-    pulse(560, now + 0.06, 0.08, "triangle", 0.14);
-    return;
-  }
-  pulse(300, now, 0.08, "sine", 0.2); // turn
-}
-
-/** Compute evenly-spaced seat positions around an ellipse for the given player count.
- *  Seat 1 starts at bottom-center and proceeds clockwise. */
-function getSeatLayout(n: number): Record<number, { top: string; left: string }> {
-  const cx = 50;   // ellipse center X (%)
-  const cy = 46;   // ellipse center Y (%) — slightly above visual center of table image
-  const rx = 40;   // horizontal radius (%) (pulled inward)
-  const ry = 36;   // vertical radius (%) (pulled inward)
-  const result: Record<number, { top: string; left: string }> = {};
-  for (let i = 0; i < n; i++) {
-    // π/2 = bottom in screen coords; subtract to go clockwise
-    const angle = Math.PI / 2 - (i * 2 * Math.PI) / n;
-    result[i + 1] = {
-      top:  `${(cy + ry * Math.sin(angle)).toFixed(1)}%`,
-      left: `${(cx + rx * Math.cos(angle)).toFixed(1)}%`,
-    };
-  }
-  return result;
-}
-
-/** Portrait-first seat layout: tall oval for mobile portrait (PokerNow 1/1.8 canvas).
- *  Hero (seat 1) at bottom-center ~82%, opponents distributed on a tall vertical ellipse.
- *  Radii tuned for 500×900 portrait canvas so seats don't crowd the narrow width. */
-function getPortraitSeatLayout(n: number): Record<number, { top: string; left: string }> {
-  const cx = 50;
-  const cy = 50;
-  const rx = 38;   // narrower horizontal (portrait canvas is narrow)
-  const ry = 40;   // taller vertical spread
-  const result: Record<number, { top: string; left: string }> = {};
-  for (let i = 0; i < n; i++) {
-    // π/2 = bottom in screen coords; subtract to go clockwise
-    const angle = Math.PI / 2 - (i * 2 * Math.PI) / n;
-    result[i + 1] = {
-      top:  `${(cy + ry * Math.sin(angle)).toFixed(1)}%`,
-      left: `${(cx + rx * Math.cos(angle)).toFixed(1)}%`,
-    };
-  }
-  return result;
-}
-
-function mapSeatToVisualIndex(seatNum: number, heroSeat: number, maxPlayers: number): number {
-  const normalizedSeat = ((seatNum - 1) % maxPlayers + maxPlayers) % maxPlayers;
-  const normalizedHero = ((heroSeat - 1) % maxPlayers + maxPlayers) % maxPlayers;
-  return ((normalizedSeat - normalizedHero + maxPlayers) % maxPlayers) + 1;
-}
 
 /* ═══════════════════ MAIN APP ═══════════════════ */
 export function App() {
@@ -327,6 +222,7 @@ export function App() {
   const [seatRequests, setSeatRequests] = useState<Array<{ orderId: string; userId: string; userName: string; seat: number; buyIn: number }>>([]);
   const [showRoomLog, setShowRoomLog] = useState(false);
   const [showSessionStats, setShowSessionStats] = useState(false);
+  const [showInGameHistory, setShowInGameHistory] = useState(false);
   type SessionStatsEntry = { seat: number | null; userId: string; name: string; totalBuyIn: number; currentStack: number; net: number; handsPlayed: number; preservedBalance: number };
   const [sessionStatsData, setSessionStatsData] = useState<SessionStatsEntry[]>([]);
   const [showRebuyModal, setShowRebuyModal] = useState(false);
@@ -686,6 +582,9 @@ export function App() {
 
     if (latest.kind === "toWinner") {
       playUiSfx("chipWin");
+      if (typeof latest.seat === "number" && latest.seat === seat) {
+        haptic("win");
+      }
       setWinnerFlareActive(true);
       if (winnerFlareTimerRef.current) clearTimeout(winnerFlareTimerRef.current);
       winnerFlareTimerRef.current = setTimeout(() => setWinnerFlareActive(false), 420);
@@ -712,33 +611,42 @@ export function App() {
     };
   }, []);
 
-  /* ── Client-side timer tick: count down remaining every second ── */
+  /* ── Client-side timer tick: smooth countdown using ref to avoid jumps ── */
   const [timerDisplay, setTimerDisplay] = useState<TimerState | null>(null);
+  const timerRef = useRef<TimerState | null>(null);
+
+  // Keep ref in sync with server updates (no interval recreation)
+  // Replace server startedAt with client-local Date.now() to eliminate clock-skew jitter
   useEffect(() => {
-    if (!timerState) { setTimerDisplay(null); return; }
-    // Initialize display from server state
-    setTimerDisplay({ ...timerState });
+    timerRef.current = timerState ? { ...timerState, startedAt: Date.now() } : null;
+    if (!timerState) setTimerDisplay(null);
+  }, [timerState]);
+
+  // Single stable interval that reads from ref
+  useEffect(() => {
     const interval = setInterval(() => {
-      const elapsed = (Date.now() - timerState.startedAt) / 1000;
-      if (timerState.usingTimeBank) {
-        const bankLeft = Math.max(0, timerState.timeBankRemaining - elapsed);
+      const ts = timerRef.current;
+      if (!ts) { setTimerDisplay(null); return; }
+      const elapsed = (Date.now() - ts.startedAt) / 1000;
+      if (ts.usingTimeBank) {
+        const bankLeft = Math.max(0, ts.timeBankRemaining - elapsed);
         setTimerDisplay({
-          ...timerState,
+          ...ts,
           remaining: 0,
           timeBankRemaining: bankLeft,
           usingTimeBank: true,
         });
       } else {
-        const left = Math.max(0, timerState.remaining - elapsed);
+        const left = Math.max(0, ts.remaining - elapsed);
         setTimerDisplay({
-          ...timerState,
+          ...ts,
           remaining: left,
           usingTimeBank: left <= 0,
         });
       }
-    }, 500);
+    }, 250);
     return () => clearInterval(interval);
-  }, [timerState]);
+  }, []); // ← stable: never recreated
 
   // Defensive clear: if no active hand/actor, hide local timer immediately
   useEffect(() => {
@@ -786,6 +694,7 @@ export function App() {
         setAuthSession(s);
         setUserEmail(session.user.email ?? null);
         if (dn) setDisplayName(dn);
+        resetInvalidRefreshGuard();
       } else {
         setAuthSession(null);
         setUserEmail(null);
@@ -795,7 +704,8 @@ export function App() {
   }, []);
 
   const socketAuthUserId = authSession?.userId;
-  const socketAuthToken = authSession?.accessToken;
+  const socketAuthTokenRef = useRef(authSession?.accessToken);
+  useEffect(() => { socketAuthTokenRef.current = authSession?.accessToken; }, [authSession?.accessToken]);
 
   /* ── Socket: connect only when authenticated ── */
   useEffect(() => {
@@ -803,12 +713,12 @@ export function App() {
     debugLog("[SOCKET] Connecting with userId:", socketAuthUserId);
     // Use same-origin in dev (via Vite proxy) to avoid CORS; explicit URL in prod
     const serverUrl = import.meta.env.DEV ? window.location.origin : SERVER;
-    const s = io(serverUrl, { 
-      auth: { 
-        accessToken: socketAuthToken, 
+    const s = io(serverUrl, {
+      auth: {
+        accessToken: socketAuthTokenRef.current,
         displayName,
         userId: socketAuthUserId // Send userId to server
-      } 
+      }
     });
     setSocket(s);
 
@@ -817,9 +727,7 @@ export function App() {
       if (!targetTableId) return;
       if (snapshotResyncTimerRef.current) return;
       snapshotResyncReasonRef.current = reason;
-      if (DEBUG_LOGS_ENABLED) {
-        debugLog("[sync] schedule resync", { tableId: targetTableId, reason });
-      }
+      debugLog("[sync] schedule resync", { tableId: targetTableId, reason });
       snapshotResyncTimerRef.current = setTimeout(() => {
         snapshotResyncTimerRef.current = null;
         s.emit("request_table_snapshot", { tableId: targetTableId });
@@ -879,15 +787,13 @@ export function App() {
       latestSnapshotHashRef.current = incomingHash;
       snapshotResyncReasonRef.current = null;
 
-      if (DEBUG_LOGS_ENABLED) {
-        debugLog("[sync] apply snapshot", {
-          source,
-          tableId: d.tableId,
-          stateVersion: d.stateVersion,
-          handId: d.handId,
-          street: d.street,
-        });
-      }
+      debugLog("[sync] apply snapshot", {
+        source,
+        tableId: d.tableId,
+        stateVersion: d.stateVersion,
+        handId: d.handId,
+        street: d.street,
+      });
 
       chipOnSnapshotRef.current(d);
       setSnapshot(d);
@@ -924,6 +830,11 @@ export function App() {
       } else {
         debugLog("[reconnect] skipped resync, user on", curPath);
       }
+      // Re-fetch clubs on reconnect
+      if (!authSession?.isGuest) {
+        setClubsLoading(true);
+        s.emit("club_list_my_clubs");
+      }
     };
 
     s.io.on("reconnect", handleReconnect);
@@ -935,6 +846,13 @@ export function App() {
       if (!authSession?.isGuest) {
         setClubsLoading(true);
         s.emit("club_list_my_clubs");
+        // Failsafe: clear loading if response never arrives
+        setTimeout(() => {
+          setClubsLoading((prev) => {
+            if (prev) console.warn("[clubs] clubsLoading failsafe timeout triggered");
+            return false;
+          });
+        }, 10_000);
       } else {
         setClubsLoading(false);
       }
@@ -1320,7 +1238,14 @@ export function App() {
             startingHandBucket: classifyStartingHandBucket(cards, gameType),
             board: st.board,
             runoutBoards: st.runoutBoards,
-            doubleBoardPayouts: d.settlement.doubleBoardPayouts,
+            doubleBoardPayouts: d.settlement.doubleBoardPayouts
+              ?? (d.settlement.runCount > 1 && d.settlement.winnersByRun.length > 1
+                ? d.settlement.winnersByRun.map((r) => ({
+                    run: r.run as 1 | 2 | 3,
+                    board: [...r.board],
+                    winners: r.winners.map((w) => ({ seat: w.seat, amount: w.amount, handName: w.handName })),
+                  }))
+                : undefined),
             actions: actionRecords,
             potSize: d.settlement.totalPot,
             stackSize: heroLedger?.endStack ?? 0,
@@ -1488,6 +1413,7 @@ export function App() {
       }
     });
     s.on("club_error", (d: { code: string; message: string }) => {
+      setClubsLoading(false);
       showToast(`Error: ${d.message}`);
     });
     return () => {
@@ -1498,7 +1424,17 @@ export function App() {
       }
       s.disconnect();
     };
-  }, [socketAuthUserId, socketAuthToken, displayName, navigate, resetSnapshotSyncState, snapshotHash, authSession?.isGuest]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- socketAuthTokenRef is a ref, token updates are handled below without reconnecting
+  }, [socketAuthUserId, displayName, navigate, resetSnapshotSyncState, snapshotHash, authSession?.isGuest]);
+
+  // Update socket auth credentials on token refresh without tearing down the connection
+  useEffect(() => {
+    if (!socket || !authSession?.accessToken) return;
+    (socket as unknown as { auth: Record<string, unknown> }).auth = {
+      ...(socket as unknown as { auth: Record<string, unknown> }).auth,
+      accessToken: authSession.accessToken,
+    };
+  }, [socket, authSession?.accessToken]);
 
   const canAct = useMemo(() => snapshot?.actorSeat === seat && snapshot?.handId, [snapshot, seat]);
 
@@ -1840,7 +1776,9 @@ export function App() {
       const seatTimer = isActor && timerDisplay?.seat === seatNum ? timerDisplay : null;
       const posLabel = snapshot?.positions?.[seatNum] ?? "";
       const isButton = snapshot?.buttonSeat === seatNum && !!snapshot?.handId;
-      const equity = boardReveal?.equities.find((e) => e.seat === seatNum) ?? null;
+      const equity = boardReveal?.equities.find((e) => e.seat === seatNum)
+        ?? allInLockForCurrentHand?.equities?.find((e) => e.seat === seatNum)
+        ?? null;
       const isAllInLocked = Boolean(allInLockForCurrentHand);
       const handHint = boardReveal?.hints?.find((h) => h.seat === seatNum)?.label;
       const isPendingLeave = snapshot?.pendingStandUp?.includes(seatNum) ?? false;
@@ -1855,7 +1793,7 @@ export function App() {
       return (
         <div key={seatNum} ref={(el) => { seatRefs.current[seatNum] = el; }} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ top: pos.top, left: pos.left }}>
           <SeatChip player={player} seatNum={seatNum} isActor={isActor} isMe={isMe}
-            isOwner={!!isOwner} isCoHost={!!isCo} timer={seatTimer}
+            isOwner={!!isOwner} isCoHost={!!isCo} timer={seatTimer} timerTotal={roomState?.settings.actionTimerSeconds ?? 15}
             posLabel={posLabel} isButton={isButton} displayBB={displayBB} bigBlind={snapshot?.bigBlind ?? 3}
             lastAction={lastActionBySeat[seatNum] ?? null}
             equity={equity} isAllInLocked={isAllInLocked} handHint={handHint} pendingLeave={isPendingLeave} revealedCards={revealedCards} revealedHandName={revealedHandName} isMucked={isMucked}
@@ -2045,6 +1983,7 @@ export function App() {
               <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-emerald-400" : "bg-red-400"}`} />
               {isConnected ? "Online" : "Offline"}
             </span>
+            <button onClick={() => setShowInGameHistory(true)} className="text-sm text-slate-400 hover:text-white px-1.5 py-1 rounded-lg hover:bg-white/5 transition-colors" title="Hand History">📜</button>
             <button onClick={() => setShowOptionsDrawer(!showOptionsDrawer)} className="text-sm text-slate-400 hover:text-white px-1.5 py-1 rounded-lg hover:bg-white/5 transition-colors" title="Options">☰</button>
           </div>
         </header>
@@ -2300,6 +2239,8 @@ export function App() {
                     setShowOptionsDrawer(false);
                   } else if (item.action === "toggle_gto") {
                     setShowGtoSidebar(!showGtoSidebar); setShowOptionsDrawer(false);
+                  } else if (item.action === "toggle_hand_history") {
+                    setShowInGameHistory(!showInGameHistory); setShowOptionsDrawer(false);
                   } else if (item.action === "toggle_stats") {
                     setShowSessionStats(!showSessionStats);
                     if (!showSessionStats) socket?.emit("request_session_stats", { tableId });
@@ -2319,6 +2260,8 @@ export function App() {
                   id: item.id,
                   icon: dynamicIcon,
                   label: dynamicLabel,
+                  group: item.group,
+                  groupLabel: GROUP_LABELS[item.group],
                   onClick: handleAction,
                   disabled: isDisabled,
                   disabledLabel: isHostOnly ? "Host only" : isSeatedOnly ? "Sit down first" : undefined,
@@ -2345,7 +2288,7 @@ export function App() {
               {!isConnected && (
                 <div className="mx-3 mt-2 glass-card p-2 border-red-500/20 bg-red-500/5 flex items-center gap-2 shrink-0">
                   <span className="text-red-400 text-sm">⚠</span>
-                  <p className="text-xs text-red-400">Server not connected — run <code className="bg-white/10 px-1 rounded">./dev.sh start</code></p>
+                  <p className="text-xs text-red-400">Server not connected — run <code className="bg-white/10 px-1 rounded">npm run dev</code></p>
                 </div>
               )}
 
@@ -2663,6 +2606,13 @@ export function App() {
                           title={isConnected ? "Online" : "Offline"}
                         />
                         <button
+                          onClick={() => setShowInGameHistory(true)}
+                          className="text-lg text-slate-300 hover:text-white px-1"
+                          title="Hand History"
+                        >
+                          📜
+                        </button>
+                        <button
                           onClick={() => setShowOptionsDrawer(true)}
                           className="text-lg text-slate-300 hover:text-white px-1"
                           title="Options"
@@ -2744,33 +2694,73 @@ export function App() {
                     {/* Community cards — centered on table (supports up to 3 runout boards) */}
                     <div className="cp-table-center">
                       {snapshot?.runoutBoards && snapshot.runoutBoards.length > 1 ? (
-                        /* Multi-run: one row per run board, revealed sequentially by the server */
-                        <div className="cp-board-stack">
-                          {snapshot.runoutBoards.map((board, runIdx) => (
-                            <div key={runIdx} className={`cp-board-row w-full transition-all duration-200 ${board.length === 0 ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}>
-                              <span className={`cp-board-run-badge shrink-0 ${
-                                runIdx === 0 ? "text-cyan-400" : runIdx === 1 ? "text-amber-400" : "text-emerald-400"
-                              } ${resultRunFocus?.run === (runIdx + 1) ? "ring-1 ring-amber-300/60 bg-amber-500/10 animate-pulse" : ""}`}>
-                                R{runIdx + 1}
-                              </span>
-                              <div className="cp-board-row flex-1 justify-start">
-                                {board.map((c: string, i: number) => {
-                                  const slotKey = `run-${runIdx}-card-${i}`;
-                                  const revealToken = boardRevealTokens[slotKey] ?? 0;
-                                  return (
-                                    <div
-                                      key={`${snapshot?.handId ?? "h"}-${slotKey}-${revealToken}`}
-                                      className={revealToken > 0 ? "cp-card-flip-in" : ""}
-                                      style={revealToken > 0 ? { animationDelay: `${(runIdx * 2 + i) * 80}ms` } : undefined}
-                                    >
-                                      <PokerCard card={c} variant="table" />
-                                    </div>
-                                  );
-                                })}
-                              </div>
+                        /* Multi-run: show shared cards once, then branch for diverging cards */
+                        (() => {
+                          const boards = snapshot.runoutBoards;
+                          // Compute common prefix length
+                          let commonLen = 0;
+                          const minLen = Math.min(...boards.map((b) => b.length));
+                          for (let i = 0; i < minLen; i++) {
+                            if (boards.every((b) => b[i] === boards[0][i])) commonLen = i + 1;
+                            else break;
+                          }
+                          const commonCards = boards[0].slice(0, commonLen);
+                          const hasBranches = boards.some((b) => b.length > commonLen);
+                          return (
+                            <div className={hasBranches ? "cp-board-branched" : "cp-board-row cp-board-row--single"}>
+                              {/* Common cards shown once */}
+                              {commonCards.length > 0 && (
+                                <div className="cp-board-common">
+                                  {commonCards.map((c: string, i: number) => {
+                                    const slotKey = `run-0-card-${i}`;
+                                    const revealToken = boardRevealTokens[slotKey] ?? 0;
+                                    return (
+                                      <div
+                                        key={`${snapshot?.handId ?? "h"}-common-${i}-${revealToken}`}
+                                        className={revealToken > 0 ? "cp-card-flip-in" : ""}
+                                        style={revealToken > 0 ? { animationDelay: `${i * 140}ms` } : undefined}
+                                      >
+                                        <PokerCard card={c} variant="table" />
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                              {/* Branching cards per run */}
+                              {hasBranches && (
+                                <div className="cp-board-fork">
+                                  {boards.map((board, runIdx) => {
+                                    const unique = board.slice(commonLen);
+                                    if (unique.length === 0) return null;
+                                    return (
+                                      <div key={runIdx} className={`cp-board-branch transition-all duration-200 ${board.length === 0 ? "opacity-0 scale-95" : "opacity-100 scale-100"}`}>
+                                        <span className={`cp-board-run-badge shrink-0 ${
+                                          runIdx === 0 ? "text-cyan-400" : runIdx === 1 ? "text-amber-400" : "text-emerald-400"
+                                        } ${resultRunFocus?.run === (runIdx + 1) ? "ring-1 ring-amber-300/60 bg-amber-500/10 animate-pulse" : ""}`}>
+                                          R{runIdx + 1}
+                                        </span>
+                                        {unique.map((c: string, i: number) => {
+                                          const absIdx = commonLen + i;
+                                          const slotKey = `run-${runIdx}-card-${absIdx}`;
+                                          const revealToken = boardRevealTokens[slotKey] ?? 0;
+                                          return (
+                                            <div
+                                              key={`${snapshot?.handId ?? "h"}-${slotKey}-${revealToken}`}
+                                              className={revealToken > 0 ? "cp-card-flip-in" : ""}
+                                              style={revealToken > 0 ? { animationDelay: `${(commonLen + runIdx * 2 + i) * 140}ms` } : undefined}
+                                            >
+                                              <PokerCard card={c} variant="table" />
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
                             </div>
-                          ))}
-                        </div>
+                          );
+                        })()
                       ) : (
                         /* Standard single board */
                         <div className="cp-board-row cp-board-row--single">
@@ -2782,7 +2772,7 @@ export function App() {
                                   <div
                                     key={`${snapshot.handId ?? "h"}-${slotKey}-${revealToken}`}
                                     className={revealToken > 0 ? "cp-card-flip-in" : ""}
-                                    style={revealToken > 0 ? { animationDelay: `${i * 80}ms` } : undefined}
+                                    style={revealToken > 0 ? { animationDelay: `${i * 140}ms` } : undefined}
                                   >
                                     <PokerCard card={c} variant="table" />
                                   </div>
@@ -2810,14 +2800,14 @@ export function App() {
                     {/* Pot chip on table (always render anchor ref for animations) */}
                     <div ref={potRef} className="cp-pot-anchor">
                       {potNumbers.totalPot > 0 && (
-                        <div className={`cp-pot-pill text-[12px] ${potPulseActive ? "cp-pot-pill--pulse" : ""}`}>
-                          <div className="flex items-center justify-between gap-2 text-slate-300 uppercase tracking-wider text-[10px]">
-                            <span>Pushed</span>
-                            <span className="text-emerald-300 font-bold cp-num normal-case">{formatChips(potNumbers.pushedPot, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</span>
+                        <div className={`cp-pot-pill ${potPulseActive ? "cp-pot-pill--pulse" : ""}`}>
+                          <div className="flex items-center justify-between gap-4 text-slate-300 uppercase tracking-wider text-base">
+                            <span className="font-semibold">Pushed</span>
+                            <span className="text-emerald-300 font-bold cp-num normal-case text-xl">{formatChips(potNumbers.pushedPot, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</span>
                           </div>
-                          <div className="mt-0.5 flex items-center justify-between gap-2 text-slate-300 uppercase tracking-wider text-[10px]">
-                            <span>Total</span>
-                            <span className="text-amber-400 font-bold cp-num normal-case">{formatChips(potNumbers.totalPot, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</span>
+                          <div className="mt-1 flex items-center justify-between gap-4 text-slate-300 uppercase tracking-wider text-base">
+                            <span className="font-semibold">Total</span>
+                            <span className="text-amber-400 font-bold cp-num normal-case text-xl">{formatChips(potNumbers.totalPot, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</span>
                           </div>
                         </div>
                       )}
@@ -3392,6 +3382,13 @@ export function App() {
                 revealedHoles={settlementRevealedHoles}
                 winnerHandNames={settlementWinnerHandNames}
               />
+
+              {/* In-Game Hand History Drawer */}
+              <InGameHandHistory
+                open={showInGameHistory}
+                onClose={() => setShowInGameHistory(false)}
+                currentRoomCode={currentRoomCode}
+              />
             </main>
 
             {/* ── Room Settings Full-Screen Modal ── */}
@@ -3460,2234 +3457,5 @@ export function App() {
   );
 }
 
-/* ═══════════════════ PROFILE PAGE ═══════════════════ */
-const AVATAR_COLORS = [
-  "from-cyan-500 to-blue-600",
-  "from-amber-400 to-orange-500",
-  "from-emerald-400 to-green-600",
-  "from-purple-400 to-violet-600",
-  "from-rose-400 to-pink-600",
-  "from-teal-400 to-cyan-600",
-];
-
-const PROFILE_STORAGE_KEY = "cardpilot_profile";
-
-type UserPreferences = {
-  gameType: "NLH" | "PLO";
-  blindLevel: string;
-  tableType: "6-max" | "9-max";
-  currency: string;
-  avatarColor: number;
-  betPresets: {
-    flop: [number, number, number];
-    turn: [number, number, number];
-    river: [number, number, number];
-  };
-  dataRetention: boolean;
-};
-
-const DEFAULT_PREFS: UserPreferences = {
-  gameType: "NLH",
-  blindLevel: "50/100",
-  tableType: "6-max",
-  currency: "Chips",
-  avatarColor: 0,
-  betPresets: {
-    flop: [33, 66, 100],
-    turn: [50, 75, 125],
-    river: [50, 100, 200],
-  },
-  dataRetention: true,
-};
-
-function loadPrefs(): UserPreferences {
-  try {
-    const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
-    if (raw) return { ...DEFAULT_PREFS, ...JSON.parse(raw) };
-  } catch { /* ignore */ }
-  return { ...DEFAULT_PREFS };
-}
-
-function savePrefs(prefs: UserPreferences): void {
-  try { localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(prefs)); } catch { /* ignore */ }
-}
-
-function ProfilePage({ displayName, setDisplayName, email, authSession }: {
-  displayName: string;
-  setDisplayName: (n: string) => void;
-  email: string | null;
-  authSession: AuthSession | null;
-}) {
-  const [prefs, setPrefs] = useState<UserPreferences>(loadPrefs);
-  const [editName, setEditName] = useState(displayName);
-  const [saved, setSaved] = useState(false);
-
-  function updatePref<K extends keyof UserPreferences>(key: K, value: UserPreferences[K]) {
-    const next = { ...prefs, [key]: value };
-    setPrefs(next);
-    savePrefs(next);
-  }
-
-  function handleSaveName() {
-    const trimmed = editName.trim();
-    if (!trimmed) return;
-    setDisplayName(trimmed);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-    // Persist to Supabase in background
-    if (supabase && authSession && !authSession.isGuest) {
-      supabase.auth.updateUser({ data: { display_name: trimmed } }).catch(() => {});
-    }
-  }
-
-  return (
-    <main className="flex-1 p-6 overflow-y-auto">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <h2 className="text-2xl font-bold text-white">Profile</h2>
-
-        {/* Avatar + Name */}
-        <div className="glass-card p-6">
-          <div className="flex items-start gap-4">
-            <div className="flex w-16 sm:w-24 shrink-0 flex-col items-center gap-2">
-              <div className={`w-12 h-12 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br ${AVATAR_COLORS[prefs.avatarColor]} flex items-center justify-center text-xl sm:text-3xl font-bold text-white uppercase shadow-lg`}>
-                {displayName[0]}
-              </div>
-              <div className="flex gap-1 mt-1">
-                {AVATAR_COLORS.map((c: string, i: number) => (
-                  <button key={i} onClick={() => updatePref("avatarColor", i)}
-                    className={`w-3.5 h-3.5 sm:w-5 sm:h-5 rounded-full bg-gradient-to-br ${c} border-2 transition-all ${
-                      prefs.avatarColor === i ? "border-white scale-110" : "border-transparent opacity-60 hover:opacity-100"
-                    }`} />
-                ))}
-              </div>
-            </div>
-            <div className="flex-1 min-w-0 space-y-2.5">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Display Name</label>
-                <div className="flex items-center gap-1.5">
-                  <input value={editName} onChange={(e) => setEditName(e.target.value)} className="input-field flex-1 min-w-0 !py-1.5" maxLength={32} />
-                  <button onClick={handleSaveName} className="btn-primary text-xs !py-1.5 !px-3 shrink-0">Save</button>
-                </div>
-                {saved && <p className="text-xs text-emerald-400">Name updated!</p>}
-              </div>
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Email</label>
-                <p className="text-sm text-slate-300">{email || "Guest account"}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bet Size Presets */}
-        <div className="glass-card p-4 sm:p-6 space-y-4">
-          <h3 className="text-lg font-bold text-white">Custom Bet Size Presets</h3>
-          <p className="text-xs text-slate-400">Set your preferred bet sizes as % of pot for each street.</p>
-          {(["flop", "turn", "river"] as const).map((street) => (
-            <div key={street} className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">{street}</label>
-              <div className="flex gap-1.5 sm:gap-2">
-                {prefs.betPresets[street].map((val, i) => (
-                  <div key={i} className="flex items-center gap-1 min-w-0">
-                    <input type="number" value={val} min={1} max={500}
-                      onChange={(e) => {
-                        const next = [...prefs.betPresets[street]] as [number, number, number];
-                        next[i] = Number(e.target.value) || 0;
-                        updatePref("betPresets", { ...prefs.betPresets, [street]: next });
-                      }}
-                      className="input-field w-14 sm:w-20 text-center text-xs sm:text-sm" />
-                    <span className="text-xs text-slate-500">%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Data Retention */}
-        <div className="glass-card p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-bold text-white">Data Retention</h3>
-              <p className="text-xs text-slate-400 mt-1">Hand history is server-authored and visible by room permissions. Toggle this to hide local preference data only.</p>
-            </div>
-            <button onClick={() => updatePref("dataRetention", !prefs.dataRetention)}
-              className={`relative w-12 h-7 rounded-full transition-colors ${prefs.dataRetention ? "bg-emerald-500" : "bg-slate-600"}`}>
-              <div className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform ${prefs.dataRetention ? "translate-x-5" : "translate-x-0.5"}`} />
-            </button>
-          </div>
-          {prefs.dataRetention && (
-            <div className="mt-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400">
-              Local client preferences are stored in your browser. Hand history is stored on the server and follows room visibility rules.
-            </div>
-          )}
-        </div>
-      </div>
-    </main>
-  );
-}
-
-/* ═══════════════════ HISTORY PAGE ═══════════════════ */
-type HistoryRouteState = {
-  roomId: string;
-  sessionId: string;
-  handId: string;
-};
-
-const HISTORY_QUERY_KEYS = ["roomId", "sessionId", "handId"] as const;
-
-function normalizeHistoryRoute(input: Partial<HistoryRouteState>): HistoryRouteState {
-  const roomId = (input.roomId ?? "").trim();
-  const sessionId = roomId ? (input.sessionId ?? "").trim() : "";
-  const handId = roomId && sessionId ? (input.handId ?? "").trim() : "";
-  return { roomId, sessionId, handId };
-}
-
-function readHistoryRouteFromUrl(): HistoryRouteState {
-  if (typeof window === "undefined") {
-    return { roomId: "", sessionId: "", handId: "" };
-  }
-  const params = new URLSearchParams(window.location.search);
-  return normalizeHistoryRoute({
-    roomId: params.get("roomId") ?? "",
-    sessionId: params.get("sessionId") ?? "",
-    handId: params.get("handId") ?? "",
-  });
-}
-
-function writeHistoryRouteToUrl(route: HistoryRouteState, mode: "push" | "replace"): void {
-  if (typeof window === "undefined") return;
-  const url = new URL(window.location.href);
-  for (const key of HISTORY_QUERY_KEYS) {
-    url.searchParams.delete(key);
-  }
-  if (route.roomId) url.searchParams.set("roomId", route.roomId);
-  if (route.sessionId) url.searchParams.set("sessionId", route.sessionId);
-  if (route.handId) url.searchParams.set("handId", route.handId);
-  const next = `${url.pathname}${url.searchParams.toString() ? `?${url.searchParams.toString()}` : ""}${url.hash}`;
-  if (mode === "push") {
-    window.history.pushState({ historyRoute: route }, "", next);
-    return;
-  }
-  window.history.replaceState({ historyRoute: route }, "", next);
-}
-
-function useIsMobileViewport(): boolean {
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia("(max-width: 1023px)").matches;
-  });
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(max-width: 1023px)");
-    const onChange = (event: MediaQueryListEvent) => setIsMobile(event.matches);
-    setIsMobile(mq.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
-
-  return isMobile;
-}
-
-function LocalHistoryFallback() {
-  const [hands, setHands] = useState<HandRecord[]>([]);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  useEffect(() => {
-    setHands(getHands());
-  }, []);
-
-  const refresh = () => setHands(getHands());
-
-  if (hands.length === 0) {
-    return (
-      <div className="glass-card p-6 sm:p-8 text-center space-y-3">
-        <div className="text-3xl opacity-40">📋</div>
-        <h3 className="text-base font-semibold text-white">No Local History Yet</h3>
-        <p className="text-sm text-slate-400 max-w-md mx-auto">
-          Hands you play will be saved locally in your browser. Play a hand to see it here.
-        </p>
-        <p className="text-xs text-slate-500">
-          Local history is stored for 30 days. For full room-based history, configure Supabase on the server.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="glass-card flex-1 min-h-0 flex flex-col overflow-hidden">
-      <div className="sticky top-0 z-10 px-3 py-2 border-b border-white/5 bg-slate-950/70 backdrop-blur-sm flex items-center gap-2">
-        <div className="text-xs uppercase tracking-wider text-slate-400">Local History</div>
-        <span className="text-[11px] text-slate-500">{hands.length} hand{hands.length !== 1 ? "s" : ""} (browser storage)</span>
-        <button onClick={refresh} className="btn-ghost text-[11px] !py-1 !px-2 ml-auto">Refresh</button>
-      </div>
-      <div className="min-h-0 overflow-y-auto p-2 space-y-1.5">
-        {hands.map((h) => {
-          const isExpanded = expandedId === h.id;
-          const netColor = (h.result ?? 0) > 0 ? "text-emerald-400" : (h.result ?? 0) < 0 ? "text-red-400" : "text-slate-400";
-          const dateStr = new Date(h.createdAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-          return (
-            <button
-              key={h.id}
-              onClick={() => setExpandedId(isExpanded ? null : h.id)}
-              className="w-full text-left px-3 py-2.5 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-slate-500 w-[110px] shrink-0">{dateStr}</span>
-                <span className="text-xs font-mono text-slate-300">{h.heroCards.join(" ")}</span>
-                <span className="text-[11px] text-slate-500">{h.position}</span>
-                <span className="text-[11px] text-slate-500">{h.stakes}</span>
-                <span className={`text-xs font-medium ml-auto ${netColor}`}>
-                  {(h.result ?? 0) > 0 ? "+" : ""}{h.result ?? 0}
-                </span>
-              </div>
-              {isExpanded && (
-                <div className="mt-2 pt-2 border-t border-white/5 space-y-1">
-                  <div className="flex gap-3 text-[11px] text-slate-400">
-                    <span>Pot: {h.potSize}</span>
-                    <span>Board: {h.board.length > 0 ? h.board.join(" ") : "—"}</span>
-                    <span>Players: {h.tableSize}</span>
-                  </div>
-                  {h.tags.length > 0 && (
-                    <div className="flex gap-1 flex-wrap">
-                      {h.tags.map((t) => (
-                        <span key={t} className="px-1.5 py-0.5 rounded bg-white/5 text-[10px] text-slate-500">{t}</span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function HistoryPage({ socket, isConnected, userId, supabaseEnabled }: { socket: Socket | null; isConnected: boolean; userId: string; supabaseEnabled: boolean }) {
-  const initialRouteRef = useRef<HistoryRouteState>(readHistoryRouteFromUrl());
-
-  const [rooms, setRooms] = useState<HistoryRoomSummary[]>([]);
-  const [sessions, setSessions] = useState<HistorySessionSummary[]>([]);
-  const [hands, setHands] = useState<HistoryHandSummary[]>([]);
-  const [selectedRoomId, setSelectedRoomId] = useState(initialRouteRef.current.roomId);
-  const [selectedSessionId, setSelectedSessionId] = useState(initialRouteRef.current.sessionId);
-  const [selectedHandId, setSelectedHandId] = useState(initialRouteRef.current.handId);
-  const [detailById, setDetailById] = useState<Record<string, HistoryHandDetail>>({});
-  const [loadingRooms, setLoadingRooms] = useState(false);
-  const [loadingSessions, setLoadingSessions] = useState(false);
-  const [loadingHands, setLoadingHands] = useState(false);
-  const [loadingMoreHands, setLoadingMoreHands] = useState(false);
-  const [loadingDetailId, setLoadingDetailId] = useState("");
-  const [hasMoreHands, setHasMoreHands] = useState(false);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [sheetSnapPoint, setSheetSnapPoint] = useState<0.4 | 0.9>(0.4);
-
-  const sessionsCacheRef = useRef<Record<string, HistorySessionSummary[]>>({});
-  const handsCacheRef = useRef<Record<string, { hands: HistoryHandSummary[]; hasMore: boolean; nextCursor: string | null }>>({});
-  const selectedRoomRef = useRef(selectedRoomId);
-  const selectedSessionRef = useRef(selectedSessionId);
-  const pendingHandsRequestRef = useRef<{ roomSessionId: string; beforeEndedAt?: string } | null>(null);
-  const isMobile = useIsMobileViewport();
-
-  useEffect(() => { selectedRoomRef.current = selectedRoomId; }, [selectedRoomId]);
-  useEffect(() => { selectedSessionRef.current = selectedSessionId; }, [selectedSessionId]);
-
-  const setRouteState = useCallback((next: HistoryRouteState) => {
-    setSelectedRoomId(next.roomId);
-    setSelectedSessionId(next.sessionId);
-    setSelectedHandId(next.handId);
-  }, []);
-
-  const navigateHistory = useCallback((nextRoute: Partial<HistoryRouteState>, mode: "push" | "replace" = "push") => {
-    const normalized = normalizeHistoryRoute(nextRoute);
-    setRouteState(normalized);
-    writeHistoryRouteToUrl(normalized, mode);
-  }, [setRouteState]);
-
-  useEffect(() => {
-    writeHistoryRouteToUrl(initialRouteRef.current, "replace");
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const onPopState = () => {
-      setRouteState(readHistoryRouteFromUrl());
-    };
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
-  }, [setRouteState]);
-
-  const requestRooms = useCallback(() => {
-    if (!socket) return;
-    setLoadingRooms(true);
-    socket.emit("request_history_rooms", { limit: 100 });
-  }, [socket]);
-
-  const requestSessions = useCallback((roomId: string, force = false) => {
-    if (!socket || !roomId) return;
-    if (!force) {
-      const cached = sessionsCacheRef.current[roomId];
-      if (cached) {
-        setSessions(cached);
-        setLoadingSessions(false);
-        return;
-      }
-    }
-    setLoadingSessions(true);
-    socket.emit("request_history_sessions", { roomId, limit: 200 });
-  }, [socket]);
-
-  const requestHands = useCallback((roomSessionId: string, beforeEndedAt?: string, force = false) => {
-    if (!socket || !roomSessionId) return;
-    if (!beforeEndedAt && !force) {
-      const cached = handsCacheRef.current[roomSessionId];
-      if (cached) {
-        setHands(cached.hands);
-        setHasMoreHands(cached.hasMore);
-        setNextCursor(cached.nextCursor);
-        setLoadingHands(false);
-        return;
-      }
-    }
-
-    if (beforeEndedAt) {
-      setLoadingMoreHands(true);
-    } else {
-      setLoadingHands(true);
-    }
-    pendingHandsRequestRef.current = { roomSessionId, beforeEndedAt };
-    socket.emit("request_history_hands", { roomSessionId, limit: 40, beforeEndedAt });
-  }, [socket]);
-
-  useEffect(() => {
-    if (!socket) return;
-
-    const onHistoryRooms = (payload: { rooms: HistoryRoomSummary[]; error?: string }) => {
-      setLoadingRooms(false);
-      if (payload.error) {
-        debugLog("[history] rooms error:", payload.error);
-      }
-      const nextRooms = payload.rooms ?? [];
-      setRooms(nextRooms);
-      if (selectedRoomRef.current && !nextRooms.some((room) => room.roomId === selectedRoomRef.current)) {
-        navigateHistory({}, "replace");
-      }
-    };
-
-    const onHistorySessions = (payload: { roomId: string; sessions: HistorySessionSummary[] }) => {
-      sessionsCacheRef.current[payload.roomId] = payload.sessions ?? [];
-      if (payload.roomId !== selectedRoomRef.current) return;
-
-      setLoadingSessions(false);
-      const nextSessions = payload.sessions ?? [];
-      setSessions(nextSessions);
-      if (selectedSessionRef.current && !nextSessions.some((session) => session.roomSessionId === selectedSessionRef.current)) {
-        navigateHistory({ roomId: payload.roomId }, "replace");
-      }
-    };
-
-    const onHistoryHands = (payload: { roomSessionId: string; hands: HistoryHandSummary[]; hasMore: boolean; nextCursor?: string }) => {
-      if (payload.roomSessionId !== selectedSessionRef.current) return;
-
-      setLoadingHands(false);
-      setLoadingMoreHands(false);
-
-      const pending = pendingHandsRequestRef.current;
-      const append = pending?.roomSessionId === payload.roomSessionId && Boolean(pending.beforeEndedAt);
-
-      setHands((current) => {
-        let nextHands: HistoryHandSummary[];
-        if (!append) {
-          nextHands = payload.hands ?? [];
-        } else {
-          const seen = new Set(current.map((hand) => hand.id));
-          nextHands = [...current];
-          for (const hand of payload.hands ?? []) {
-            if (!seen.has(hand.id)) {
-              nextHands.push(hand);
-              seen.add(hand.id);
-            }
-          }
-        }
-        handsCacheRef.current[payload.roomSessionId] = {
-          hands: nextHands,
-          hasMore: Boolean(payload.hasMore),
-          nextCursor: payload.nextCursor ?? null,
-        };
-        return nextHands;
-      });
-      pendingHandsRequestRef.current = null;
-      setHasMoreHands(Boolean(payload.hasMore));
-      setNextCursor(payload.nextCursor ?? null);
-    };
-
-    const onHistoryHandDetail = (payload: { handHistoryId: string; hand: HistoryHandDetail | null }) => {
-      const handDetail = payload.hand;
-      if (handDetail) {
-        setDetailById((current) => ({ ...current, [payload.handHistoryId]: handDetail }));
-      }
-      setLoadingDetailId((current) => (current === payload.handHistoryId ? "" : current));
-    };
-
-    socket.on("history_rooms", onHistoryRooms);
-    socket.on("history_sessions", onHistorySessions);
-    socket.on("history_hands", onHistoryHands);
-    socket.on("history_hand_detail", onHistoryHandDetail);
-
-    return () => {
-      socket.off("history_rooms", onHistoryRooms);
-      socket.off("history_sessions", onHistorySessions);
-      socket.off("history_hands", onHistoryHands);
-      socket.off("history_hand_detail", onHistoryHandDetail);
-    };
-  }, [socket, navigateHistory]);
-
-  useEffect(() => {
-    if (!socket || !isConnected) return;
-    requestRooms();
-  }, [socket, isConnected, requestRooms]);
-
-  useEffect(() => {
-    const normalized = normalizeHistoryRoute({ roomId: selectedRoomId, sessionId: selectedSessionId, handId: selectedHandId });
-    if (
-      normalized.roomId !== selectedRoomId ||
-      normalized.sessionId !== selectedSessionId ||
-      normalized.handId !== selectedHandId
-    ) {
-      setRouteState(normalized);
-      writeHistoryRouteToUrl(normalized, "replace");
-    }
-  }, [selectedRoomId, selectedSessionId, selectedHandId, setRouteState]);
-
-  useEffect(() => {
-    if (!selectedRoomId) {
-      setSessions([]);
-      setHands([]);
-      setHasMoreHands(false);
-      setNextCursor(null);
-      return;
-    }
-
-    const cached = sessionsCacheRef.current[selectedRoomId];
-    if (cached) setSessions(cached);
-    requestSessions(selectedRoomId);
-  }, [selectedRoomId, requestSessions]);
-
-  useEffect(() => {
-    if (!selectedSessionId) {
-      setHands([]);
-      setHasMoreHands(false);
-      setNextCursor(null);
-      return;
-    }
-
-    const cached = handsCacheRef.current[selectedSessionId];
-    if (cached) {
-      setHands(cached.hands);
-      setHasMoreHands(cached.hasMore);
-      setNextCursor(cached.nextCursor);
-    }
-    requestHands(selectedSessionId);
-  }, [selectedSessionId, requestHands]);
-
-  useEffect(() => {
-    if (!selectedHandId || !socket) return;
-    if (detailById[selectedHandId]) return;
-    setLoadingDetailId(selectedHandId);
-    socket.emit("request_history_hand_detail", { handHistoryId: selectedHandId });
-  }, [selectedHandId, detailById, socket]);
-
-  useEffect(() => {
-    if (!selectedHandId) return;
-    setSheetSnapPoint(0.4);
-  }, [selectedHandId]);
-
-  useEffect(() => {
-    if (!(isMobile && selectedHandId)) return;
-    const prevBodyOverflow = document.body.style.overflow;
-    const prevHtmlOverflow = document.documentElement.style.overflow;
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prevBodyOverflow;
-      document.documentElement.style.overflow = prevHtmlOverflow;
-    };
-  }, [isMobile, selectedHandId]);
-
-  const selectedRoom = useMemo(
-    () => rooms.find((room) => room.roomId === selectedRoomId) ?? null,
-    [rooms, selectedRoomId]
-  );
-  const selectedSession = useMemo(
-    () => sessions.find((session) => session.roomSessionId === selectedSessionId) ?? null,
-    [sessions, selectedSessionId]
-  );
-  const selectedHand = selectedHandId ? detailById[selectedHandId] ?? null : null;
-  const mobileStage = !selectedRoomId ? "rooms" : !selectedSessionId ? "sessions" : "hands";
-
-  const selectRoom = useCallback((roomId: string) => {
-    navigateHistory({ roomId }, "push");
-  }, [navigateHistory]);
-
-  const selectSession = useCallback((roomSessionId: string) => {
-    if (!selectedRoomId) return;
-    navigateHistory({ roomId: selectedRoomId, sessionId: roomSessionId }, "push");
-  }, [selectedRoomId, navigateHistory]);
-
-  const openHandDetail = useCallback((handHistoryId: string) => {
-    if (!selectedRoomId || !selectedSessionId) return;
-    navigateHistory({ roomId: selectedRoomId, sessionId: selectedSessionId, handId: handHistoryId }, "push");
-  }, [selectedRoomId, selectedSessionId, navigateHistory]);
-
-  const closeHandDetail = useCallback((mode: "push" | "replace" = "push") => {
-    navigateHistory({ roomId: selectedRoomId, sessionId: selectedSessionId }, mode);
-  }, [selectedRoomId, selectedSessionId, navigateHistory]);
-
-  const handleMobileBack = useCallback(() => {
-    if (selectedHandId) {
-      closeHandDetail("push");
-      return;
-    }
-    if (selectedSessionId) {
-      navigateHistory({ roomId: selectedRoomId }, "push");
-      return;
-    }
-    if (selectedRoomId) {
-      navigateHistory({}, "push");
-    }
-  }, [selectedHandId, closeHandDetail, selectedSessionId, selectedRoomId, navigateHistory]);
-
-  const handleRefresh = useCallback(() => {
-    requestRooms();
-    if (selectedRoomId) requestSessions(selectedRoomId, true);
-    if (selectedSessionId) requestHands(selectedSessionId, undefined, true);
-  }, [requestRooms, requestSessions, requestHands, selectedRoomId, selectedSessionId]);
-
-  const handleLoadMoreHands = useCallback(() => {
-    if (!selectedSessionId || !nextCursor || loadingMoreHands) return;
-    requestHands(selectedSessionId, nextCursor, true);
-  }, [selectedSessionId, nextCursor, loadingMoreHands, requestHands]);
-
-  const roomListContent = (
-    <>
-      {loadingRooms ? (
-        <HistorySkeletonRows rows={6} />
-      ) : rooms.length === 0 ? (
-        <p className="text-xs text-slate-500 py-3 px-1">No visible room history.</p>
-      ) : (
-        rooms.map((room) => (
-          <button
-            key={room.roomId}
-            onClick={() => selectRoom(room.roomId)}
-            className={`w-full min-h-[52px] text-left p-2.5 rounded-lg border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 ${
-              selectedRoomId === room.roomId ? "bg-amber-500/10 border-amber-500/30" : "bg-white/[0.02] border-white/5 hover:border-white/20"
-            }`}
-          >
-            <div className="text-sm font-semibold text-white truncate">{room.roomName}</div>
-            <div className="text-[10px] text-slate-500 mt-0.5">
-              <span className="font-mono text-amber-400/80">{room.roomCode}</span>
-              <span className="mx-1.5">·</span>
-              {room.totalHands} hands
-            </div>
-            <div className="text-[10px] text-slate-600 mt-0.5">Last: {formatHistoryDateTime(room.lastPlayedAt)}</div>
-          </button>
-        ))
-      )}
-    </>
-  );
-
-  const sessionListContent = (
-    <>
-      {!selectedRoomId ? (
-        <p className="text-xs text-slate-500 py-3 px-1">Select a room.</p>
-      ) : loadingSessions ? (
-        <HistorySkeletonRows rows={6} />
-      ) : sessions.length === 0 ? (
-        <p className="text-xs text-slate-500 py-3 px-1">No sessions available.</p>
-      ) : (
-        sessions.map((session, idx) => {
-          const currentDay = historyDayKey(session.openedAt);
-          const prevDay = idx > 0 ? historyDayKey(sessions[idx - 1].openedAt) : "";
-          return (
-            <div key={session.roomSessionId}>
-              {idx === 0 || currentDay !== prevDay ? (
-                <div className="text-[10px] text-slate-600 uppercase tracking-wider mt-2 mb-1 px-1">
-                  {new Date(session.openedAt).toLocaleDateString()}
-                </div>
-              ) : null}
-              <button
-                onClick={() => selectSession(session.roomSessionId)}
-                className={`w-full min-h-[48px] text-left p-2.5 rounded-lg border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/40 ${
-                  selectedSessionId === session.roomSessionId ? "bg-cyan-500/10 border-cyan-500/30" : "bg-white/[0.02] border-white/5 hover:border-white/20"
-                }`}
-              >
-                <div className="text-xs text-white font-medium">
-                  {formatHistoryTime(session.openedAt)} - {session.closedAt ? formatHistoryTime(session.closedAt) : "Open"}
-                </div>
-                <div className="text-[10px] text-slate-500 mt-0.5">{session.handCount} visible hands</div>
-              </button>
-            </div>
-          );
-        })
-      )}
-    </>
-  );
-
-  const handListContent = (
-    <>
-      {!selectedSessionId ? (
-        <p className="text-xs text-slate-500 py-3 px-1">Select a session.</p>
-      ) : loadingHands ? (
-        <HistorySkeletonRows rows={8} />
-      ) : hands.length === 0 ? (
-        <p className="text-xs text-slate-500 py-3 px-1">No hands in this session.</p>
-      ) : (
-        hands.map((hand) => (
-          <HistoryHandRow
-            key={hand.id}
-            hand={hand}
-            userId={userId}
-            selected={selectedHandId === hand.id}
-            onOpen={openHandDetail}
-          />
-        ))
-      )}
-    </>
-  );
-
-  return (
-    <main className="flex-1 p-2 sm:p-4 overflow-hidden">
-      <div className="h-full flex flex-col gap-3">
-        <div className="glass-card p-3 sm:p-4 flex items-center gap-3">
-          <h2 className="text-lg sm:text-xl font-bold text-white">Hand History by Room</h2>
-          <span className="text-xs text-slate-500 hidden sm:inline">Summaries are lightweight; details load on demand.</span>
-          <button
-            onClick={handleRefresh}
-            className="btn-ghost text-xs !py-1.5 !px-3 ml-auto min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/40"
-          >
-            Refresh
-          </button>
-        </div>
-
-        {!isConnected || !socket ? (
-          <div className="glass-card p-8 text-center text-slate-400 text-sm">Connect to the game server to load hand history.</div>
-        ) : !supabaseEnabled || !isUuid(userId) ? (
-          <LocalHistoryFallback />
-        ) : (
-          <>
-            <div className="lg:hidden min-h-0 flex-1">
-              {mobileStage === "rooms" ? (
-                <section className="glass-card h-full min-h-0 flex flex-col overflow-hidden">
-                  <div className="sticky top-0 z-10 px-3 py-2 border-b border-white/5 bg-slate-950/70 backdrop-blur-sm">
-                    <div className="text-xs uppercase tracking-wider text-slate-400">Rooms</div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">Pick a room to continue</div>
-                  </div>
-                  <div className="min-h-0 overflow-y-auto p-2 space-y-2">{roomListContent}</div>
-                </section>
-              ) : null}
-
-              {mobileStage === "sessions" ? (
-                <section className="glass-card h-full min-h-0 flex flex-col overflow-hidden">
-                  <div className="sticky top-0 z-10 px-3 py-2 border-b border-white/5 bg-slate-950/70 backdrop-blur-sm">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={handleMobileBack}
-                        className="btn-ghost !py-0 !px-0 w-11 min-h-[44px] text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/40"
-                        aria-label="Back to rooms"
-                      >
-                        ←
-                      </button>
-                      <div className="min-w-0">
-                        <div className="text-xs uppercase tracking-wider text-slate-400">Sessions</div>
-                        <div className="text-sm text-white font-semibold truncate">{selectedRoom?.roomName ?? "Room"}</div>
-                      </div>
-                    </div>
-                    <div className="text-[11px] text-slate-500 mt-1 truncate">
-                      <span className="font-mono">{selectedRoom?.roomCode ?? ""}</span>
-                      <span className="mx-1">·</span>
-                      {selectedRoom?.totalHands ?? 0} hands
-                    </div>
-                  </div>
-                  <div className="min-h-0 overflow-y-auto p-2 space-y-2">{sessionListContent}</div>
-                </section>
-              ) : null}
-
-              {mobileStage === "hands" ? (
-                <section className="glass-card h-full min-h-0 flex flex-col overflow-hidden">
-                  <div className="sticky top-0 z-10 px-3 py-2 border-b border-white/5 bg-slate-950/70 backdrop-blur-sm">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={handleMobileBack}
-                        className="btn-ghost !py-0 !px-0 w-11 min-h-[44px] text-sm font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/40"
-                        aria-label="Back to sessions"
-                      >
-                        ←
-                      </button>
-                      <div className="min-w-0">
-                        <div className="text-xs uppercase tracking-wider text-slate-400">Hands</div>
-                        <div className="text-sm text-white font-semibold truncate">{selectedRoom?.roomName ?? "Room"}</div>
-                      </div>
-                    </div>
-                    <div className="text-[11px] text-slate-500 mt-1 truncate">
-                      {selectedSession ? `${formatHistoryDateTime(selectedSession.openedAt)} · ${selectedSession.handCount} hands` : "Select a session"}
-                    </div>
-                  </div>
-                  <div className="min-h-0 overflow-y-auto p-2 space-y-2">{handListContent}</div>
-                  {selectedSessionId && hasMoreHands ? (
-                    <div className="px-2 pb-2 border-t border-white/5">
-                      <button
-                        onClick={handleLoadMoreHands}
-                        disabled={loadingMoreHands || !nextCursor}
-                        className="w-full mt-2 btn-ghost text-xs !py-1.5 min-h-[44px] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/40"
-                      >
-                        {loadingMoreHands ? "Loading…" : "Load more"}
-                      </button>
-                    </div>
-                  ) : null}
-                </section>
-              ) : null}
-            </div>
-
-            <div className="hidden lg:grid min-h-0 flex-1 grid-cols-[260px_320px_minmax(0,1fr)] gap-3">
-              <section className="glass-card min-h-0 p-3 flex flex-col">
-                <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Rooms</div>
-                <div className="min-h-0 overflow-y-auto space-y-1.5">{roomListContent}</div>
-              </section>
-
-              <section className="glass-card min-h-0 p-3 flex flex-col">
-                <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Sessions</div>
-                <div className="min-h-0 overflow-y-auto space-y-1.5">{sessionListContent}</div>
-              </section>
-
-              <section className="glass-card min-h-0 p-3 flex flex-col">
-                <div className="text-xs text-slate-400 uppercase tracking-wider mb-2">Hands</div>
-                <div className="min-h-0 overflow-y-auto space-y-1.5">{handListContent}</div>
-                {selectedSessionId && hasMoreHands ? (
-                  <button
-                    onClick={handleLoadMoreHands}
-                    disabled={loadingMoreHands || !nextCursor}
-                    className="mt-2 btn-ghost text-xs !py-1.5 min-h-[44px] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/40"
-                  >
-                    {loadingMoreHands ? "Loading…" : "Load more"}
-                  </button>
-                ) : null}
-              </section>
-            </div>
-          </>
-        )}
-      </div>
-
-      {isMobile && selectedHandId ? (
-        <HistoryBottomSheet
-          open={Boolean(selectedHandId)}
-          snapPoint={sheetSnapPoint}
-          onSnapPointChange={setSheetSnapPoint}
-          onDismiss={() => closeHandDetail("push")}
-          title={selectedHand ? `Hand #${selectedHand.handNo}` : "Hand Detail"}
-        >
-          {!selectedHand && loadingDetailId === selectedHandId ? (
-            <HistorySkeletonRows rows={6} />
-          ) : selectedHand ? (
-            <HistoryHandDetailView hand={selectedHand} userId={userId} compact />
-          ) : (
-            <p className="text-sm text-slate-400">Hand detail is not available.</p>
-          )}
-        </HistoryBottomSheet>
-      ) : null}
-
-      {!isMobile && selectedHandId ? (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3" onClick={() => closeHandDetail("push")}>
-          <div className="glass-card w-full max-w-4xl max-h-[92vh] overflow-y-auto p-5" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white">Hand Detail</h3>
-              <button
-                onClick={() => closeHandDetail("push")}
-                className="btn-ghost text-xs !py-1 !px-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/40"
-              >
-                Close
-              </button>
-            </div>
-            {!selectedHand && loadingDetailId === selectedHandId ? (
-              <HistorySkeletonRows rows={6} />
-            ) : selectedHand ? (
-              <HistoryHandDetailView hand={selectedHand} userId={userId} />
-            ) : (
-              <p className="text-sm text-slate-400">Hand detail is not available.</p>
-            )}
-          </div>
-        </div>
-      ) : null}
-    </main>
-  );
-}
-
-function HistorySkeletonRows({ rows = 5 }: { rows?: number }) {
-  return (
-    <div className="space-y-2">
-      {Array.from({ length: rows }).map((_, idx) => (
-        <div key={idx} className="animate-pulse min-h-[48px] rounded-lg border border-white/5 bg-white/[0.03] p-2.5">
-          <div className="h-3 w-1/3 rounded bg-white/10" />
-          <div className="mt-2 h-2.5 w-2/3 rounded bg-white/8" />
-          <div className="mt-1.5 h-2 w-1/2 rounded bg-white/6" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function HistoryHandRow({
-  hand,
-  userId,
-  selected,
-  onOpen,
-}: {
-  hand: HistoryHandSummary;
-  userId: string;
-  selected: boolean;
-  onOpen: (handHistoryId: string) => void;
-}) {
-  const myNet = hand.summary.myNetByUser[userId] ?? 0;
-  const isChop = hand.summary.winners.length > 1;
-
-  return (
-    <button
-      onClick={() => onOpen(hand.id)}
-      className={`w-full min-h-[52px] text-left p-2.5 rounded-lg border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 ${
-        selected ? "border-amber-500/35 bg-amber-500/10" : "border-white/5 bg-white/[0.02] hover:border-amber-500/30"
-      }`}
-    >
-      <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-2 items-center">
-        <div className="min-w-0">
-          <div className="text-sm text-white font-semibold truncate">Hand #{hand.handNo}</div>
-          <div className="text-[10px] text-slate-500">{formatHistoryTime(hand.endedAt)}</div>
-        </div>
-        <div className="text-[11px] font-mono text-slate-300 whitespace-nowrap">Pot {hand.summary.totalPot.toLocaleString()}</div>
-        <div className="text-right min-w-[84px]">
-          <div className={`text-xs font-mono font-semibold ${myNet >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-            {myNet >= 0 ? "+" : ""}{myNet.toLocaleString()}
-          </div>
-          <div className="mt-1 flex items-center justify-end gap-1">
-            {hand.summary.flags.allIn ? <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-500/15 text-red-300">AI</span> : null}
-            {hand.summary.flags.runItTwice ? <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300">R2</span> : null}
-            {isChop ? <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300">CH</span> : null}
-          </div>
-        </div>
-      </div>
-    </button>
-  );
-}
-
-function HistoryBottomSheet({
-  open,
-  snapPoint,
-  onSnapPointChange,
-  onDismiss,
-  title,
-  children,
-}: {
-  open: boolean;
-  snapPoint: 0.4 | 0.9;
-  onSnapPointChange: (next: 0.4 | 0.9) => void;
-  onDismiss: () => void;
-  title: string;
-  children: React.ReactNode;
-}) {
-  const [dragPoint, setDragPoint] = useState<number | null>(null);
-  const dragStartYRef = useRef<number | null>(null);
-  const dragStartPointRef = useRef<number>(snapPoint);
-
-  useEffect(() => {
-    if (!open) setDragPoint(null);
-  }, [open]);
-
-  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
-    dragStartYRef.current = event.touches[0]?.clientY ?? null;
-    dragStartPointRef.current = dragPoint ?? snapPoint;
-  };
-
-  const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
-    const startY = dragStartYRef.current;
-    if (startY == null) return;
-    const currentY = event.touches[0]?.clientY ?? startY;
-    const viewportHeight = typeof window === "undefined" ? 1 : Math.max(1, window.innerHeight);
-    const delta = currentY - startY;
-    const nextPoint = Math.min(0.95, Math.max(0.22, dragStartPointRef.current - delta / viewportHeight));
-    setDragPoint(nextPoint);
-  };
-
-  const handleTouchEnd = () => {
-    if (dragPoint == null) {
-      dragStartYRef.current = null;
-      return;
-    }
-    const nextSnap: 0.4 | 0.9 = dragPoint > 0.66 ? 0.9 : 0.4;
-    if (dragPoint < 0.33) {
-      onDismiss();
-    } else {
-      onSnapPointChange(nextSnap);
-    }
-    dragStartYRef.current = null;
-    setDragPoint(null);
-  };
-
-  const activePoint = dragPoint ?? snapPoint;
-
-  return (
-    <div
-      className={`fixed inset-0 z-50 bg-black/55 backdrop-blur-sm transition-opacity duration-200 ${open ? "opacity-100" : "opacity-0 pointer-events-none"}`}
-      onClick={onDismiss}
-      aria-hidden={!open}
-    >
-      <div
-        className="history-bottom-sheet absolute inset-x-0 bottom-0 rounded-t-2xl border border-white/10 bg-[#0d1420] shadow-2xl overflow-hidden flex flex-col"
-        style={{ height: `${Math.round(activePoint * 100)}dvh`, maxHeight: "95dvh" }}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div
-          className="history-bottom-sheet-handle px-3 pt-2 pb-2 border-b border-white/5"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onTouchCancel={handleTouchEnd}
-        >
-          <div className="mx-auto mb-2 h-1.5 w-12 rounded-full bg-slate-500/60" />
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-white truncate">{title}</h3>
-            <button
-              onClick={() => onSnapPointChange(snapPoint === 0.4 ? 0.9 : 0.4)}
-              className="btn-ghost text-[10px] !py-1 !px-2 min-h-[44px] ml-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/40"
-            >
-              {snapPoint === 0.4 ? "Expand" : "Peek"}
-            </button>
-            <button
-              onClick={onDismiss}
-              className="btn-ghost text-[10px] !py-1 !px-2 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/40"
-              aria-label="Close hand detail sheet"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-
-        <div className="min-h-0 overflow-y-auto p-3 pb-[calc(env(safe-area-inset-bottom)+16px)]">
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function HistoryHandDetailView({ hand, userId, compact = false }: { hand: HistoryHandDetail; userId: string; compact?: boolean }) {
-  const myNet = hand.summary.myNetByUser[userId] ?? 0;
-
-  return (
-    <div className="space-y-3">
-      <div className={`glass-card ${compact ? "p-2.5" : "p-3"}`}>
-        <div className="flex flex-wrap items-center gap-3 text-sm">
-          <span className="font-semibold text-white">Hand #{hand.handNo}</span>
-          <span className="text-slate-400">{formatHistoryDateTime(hand.endedAt)}</span>
-          <span className="text-slate-400">Blinds {hand.blinds.sb}/{hand.blinds.bb}</span>
-          <span className="text-slate-400">Pot {hand.summary.totalPot.toLocaleString()}</span>
-          <span className={`font-mono font-semibold ${myNet >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-            My Net {myNet >= 0 ? "+" : ""}{myNet.toLocaleString()}
-          </span>
-        </div>
-      </div>
-
-      <div className={`glass-card ${compact ? "p-2.5" : "p-3"} space-y-2`}>
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Boards</h4>
-        {(hand.detail.runoutBoards.length > 0 ? hand.detail.runoutBoards : [hand.detail.board]).map((board, idx) => (
-          <div key={idx} className="flex items-center gap-2">
-            {hand.detail.runoutBoards.length > 1 ? (
-              <span className="text-[10px] text-slate-500 w-10">{`Run ${idx + 1}`}</span>
-            ) : null}
-            <div className="flex gap-1.5 overflow-x-auto">
-              {board.map((card, cardIdx) => <PokerCard key={cardIdx} card={card} variant="seat" />)}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <div className={`glass-card ${compact ? "p-2.5" : "p-3"}`}>
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Pot Breakdown</h4>
-          <div className="space-y-1.5">
-            {hand.detail.potLayers.map((layer, idx) => (
-              <div key={idx} className="text-xs text-slate-300 flex items-center justify-between">
-                <span>{layer.label}</span>
-                <span className="font-mono text-amber-300">{layer.amount.toLocaleString()}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className={`glass-card ${compact ? "p-2.5" : "p-3"}`}>
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Payout Ledger</h4>
-          <div className="space-y-1.5">
-            {hand.detail.payoutLedger.map((entry) => (
-              <div key={entry.seat} className="text-xs flex items-center justify-between">
-                <span className="text-slate-300">{entry.playerName}</span>
-                <span className={`font-mono ${entry.net >= 0 ? "text-emerald-400" : "text-red-400"}`}>
-                  {entry.net >= 0 ? "+" : ""}{entry.net.toLocaleString()}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className={`glass-card ${compact ? "p-2.5" : "p-3"}`}>
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Action Timeline</h4>
-        <div className={`space-y-1.5 overflow-y-auto ${compact ? "max-h-[40dvh]" : "max-h-64"}`}>
-          {hand.detail.actionTimeline.map((action, idx) => (
-            <div key={`${action.seat}-${action.at}-${idx}`} className="text-xs flex items-center gap-2">
-              <span className="text-slate-500 w-10">{action.street}</span>
-              <span className="text-slate-500 w-12">Seat {action.seat}</span>
-              <span className={`uppercase font-semibold ${
-                action.type === "fold" ? "text-slate-400" :
-                action.type === "raise" || action.type === "all_in" ? "text-red-400" :
-                action.type === "call" ? "text-blue-400" :
-                action.type === "check" ? "text-emerald-400" :
-                "text-slate-300"
-              }`}>
-                {action.type}
-              </span>
-              {action.amount > 0 ? <span className="text-slate-400 font-mono">{action.amount.toLocaleString()}</span> : null}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function historyDayKey(value: string): string {
-  const d = new Date(value);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
-function formatHistoryDateTime(value: string): string {
-  return new Date(value).toLocaleString([], { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-}
-
-function formatHistoryTime(value: string): string {
-  return new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-}
-
-/* ═══════════════════ ROOM SETTINGS PANEL ═══════════════════ */
-function RoomSettingsPanel({ roomState, isHost, readOnly = false, initialTab, players, authUserId, onUpdateSettings, onKick, onTransfer, onSetCoHost, onClose }: {
-  roomState: RoomFullState;
-  isHost: boolean;
-  readOnly?: boolean;
-  initialTab?: string;
-  players: TablePlayer[];
-  authUserId: string;
-  onUpdateSettings: (settings: Record<string, unknown>) => void;
-  onKick: (targetUserId: string, reason: string, ban: boolean) => void;
-  onTransfer: (newOwnerId: string) => void;
-  onSetCoHost: (userId: string, add: boolean) => void;
-  onClose: () => void;
-}) {
-  const tabMap: Record<string, "game" | "rules" | "special" | "players" | "moderation"> = {
-    game: "game", rules: "rules", special: "special", players: "players",
-    moderation: "moderation", preferences: "game",
-  };
-  const [tab, setTab] = useState<"game" | "rules" | "special" | "players" | "moderation">(tabMap[initialTab ?? ""] ?? "game");
-  const [kickReason, setKickReason] = useState("");
-
-  const s = roomState.settings;
-
-  function updateField(key: string, value: unknown) {
-    if (readOnly) return;
-    onUpdateSettings({ [key]: value });
-  }
-
-  /* ── Blind structure helpers ── */
-  const [blindLevels, setBlindLevels] = useState(
-    s.blindStructure ?? [{ smallBlind: s.smallBlind, bigBlind: s.bigBlind, ante: s.ante, durationMinutes: 20 }]
-  );
-
-  function addBlindLevel() {
-    if (readOnly) return;
-    const last = blindLevels[blindLevels.length - 1];
-    const next = { smallBlind: last.smallBlind * 2, bigBlind: last.bigBlind * 2, ante: last.ante, durationMinutes: last.durationMinutes };
-    const updated = [...blindLevels, next];
-    setBlindLevels(updated);
-    updateField("blindStructure", updated);
-  }
-
-  function removeBlindLevel(idx: number) {
-    if (readOnly) return;
-    if (blindLevels.length <= 1) return;
-    const updated = blindLevels.filter((_, i) => i !== idx);
-    setBlindLevels(updated);
-    updateField("blindStructure", updated);
-  }
-
-  function updateBlindLevel(idx: number, field: string, value: number) {
-    if (readOnly) return;
-    const updated = blindLevels.map((lvl, i) => i === idx ? { ...lvl, [field]: value } : lvl);
-    setBlindLevels(updated);
-    updateField("blindStructure", updated);
-    if (idx === 0) {
-      if (field === "smallBlind") updateField("smallBlind", value);
-      if (field === "bigBlind") updateField("bigBlind", value);
-      if (field === "ante") updateField("ante", value);
-    }
-  }
-
-  const SectionTitle = ({ children }: { children: React.ReactNode }) => (
-    <div className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold mt-2 mb-1">{children}</div>
-  );
-
-  const YesNo = ({ label, value, onChange, hint }: { label: string; value: boolean; onChange: (v: boolean) => void; hint?: string }) => (
-    <div className="flex items-center justify-between gap-3 min-h-[40px]">
-      <div className="flex items-center gap-1.5 min-w-0">
-        <span className="text-sm text-slate-300 truncate">{label}</span>
-        {hint && <span className="text-[9px] text-slate-600 cursor-help" title={hint}>?</span>}
-      </div>
-      <div className="cp-segmented shrink-0">
-        <button onClick={() => onChange(true)}
-          className="cp-segmented-item" data-active={value ? "true" : undefined}
-          style={value ? { background: 'rgba(34, 197, 94, 0.15)', color: '#4ade80' } : undefined}>
-          Yes
-        </button>
-        <button onClick={() => onChange(false)}
-          className="cp-segmented-item" data-active={!value ? "true" : undefined}
-          style={!value ? { background: 'rgba(239, 68, 68, 0.1)', color: '#f87171' } : undefined}>
-          No
-        </button>
-      </div>
-    </div>
-  );
-
-  const TriToggle = ({ label, value, options, onChange }: { label: string; value: string; options: { value: string; label: string }[]; onChange: (v: string) => void }) => (
-    <div className="space-y-1.5">
-      <span className="text-sm text-slate-300">{label}</span>
-      <div className="cp-segmented w-full">
-        {options.map((opt) => (
-          <button key={opt.value} onClick={() => onChange(opt.value)}
-            className="cp-segmented-item flex-1" data-active={value === opt.value ? "true" : undefined}>
-            {opt.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
-  return (
-    <div className="cp-panel p-6 space-y-5">
-      <div className="flex items-center justify-between">
-        <h3 className="text-base font-bold text-white">Room Settings {readOnly
-          ? <span className="text-xs text-slate-500 font-normal ml-1">(View Only)</span>
-          : <span className="text-xs text-amber-400 font-normal ml-1">(Host)</span>
-        }</h3>
-        <button onClick={onClose} className="cp-btn cp-btn-ghost !min-h-[36px] !min-w-[36px] !px-0 text-slate-400 hover:text-white" aria-label="Close settings">✕</button>
-      </div>
-
-      {/* Tabs — segmented control style */}
-      <div className="cp-segmented w-full overflow-x-auto">
-        {([
-          { key: "game" as const, label: "Blinds" },
-          { key: "rules" as const, label: "Rules" },
-          { key: "special" as const, label: "Special" },
-          { key: "players" as const, label: "Players" },
-          { key: "moderation" as const, label: "Mod" },
-        ]).map((t) => (
-          <button key={t.key} onClick={() => setTab(t.key)}
-            className="cp-segmented-item flex-1 whitespace-nowrap" data-active={tab === t.key ? "true" : undefined}>
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* ══ BLINDS & STRUCTURE TAB ══ */}
-      {tab === "game" && (
-        <div className="space-y-3">
-          <SectionTitle>Poker Variant</SectionTitle>
-          <SettingRow label="Game Type">
-            <select value={s.gameType} onChange={(e) => updateField("gameType", e.target.value)} className="input-field text-xs !py-1.5">
-              <option value="texas">No Limit Texas Hold'em</option>
-              <option value="omaha">Pot Limit Omaha</option>
-            </select>
-          </SettingRow>
-          <SettingRow label="Max Players">
-            <select value={s.maxPlayers} onChange={(e) => updateField("maxPlayers", Number(e.target.value))} className="input-field text-xs !py-1.5 w-20">
-              {[2, 3, 4, 5, 6, 7, 8, 9].map((n) => <option key={n} value={n}>{n}</option>)}
-            </select>
-          </SettingRow>
-
-          <SectionTitle>Blind Levels</SectionTitle>
-          <div className="space-y-2">
-            {/* Header row */}
-            <div className="grid grid-cols-[2rem_1fr_1fr_1fr_1fr_1.5rem] gap-1 text-[9px] text-slate-500 uppercase tracking-wider px-1">
-              <span>#</span><span>SB</span><span>BB</span><span>Ante</span><span>Min</span><span></span>
-            </div>
-            {blindLevels.map((lvl, i) => (
-              <div key={i} className="grid grid-cols-[2rem_1fr_1fr_1fr_1fr_1.5rem] gap-1 items-center">
-                <span className="text-[10px] text-slate-500 text-center">{i + 1}</span>
-                <input type="number" value={lvl.smallBlind} min={1}
-                  onChange={(e) => updateBlindLevel(i, "smallBlind", Number(e.target.value))}
-                  className="input-field text-[11px] !py-1 w-full text-center" />
-                <input type="number" value={lvl.bigBlind} min={2}
-                  onChange={(e) => updateBlindLevel(i, "bigBlind", Number(e.target.value))}
-                  className="input-field text-[11px] !py-1 w-full text-center" />
-                <input type="number" value={lvl.ante} min={0}
-                  onChange={(e) => updateBlindLevel(i, "ante", Number(e.target.value))}
-                  className="input-field text-[11px] !py-1 w-full text-center" />
-                <input type="number" value={lvl.durationMinutes} min={1}
-                  onChange={(e) => updateBlindLevel(i, "durationMinutes", Number(e.target.value))}
-                  className="input-field text-[11px] !py-1 w-full text-center" />
-                <button onClick={() => removeBlindLevel(i)}
-                  className="text-[10px] text-slate-600 hover:text-red-400 transition-colors text-center leading-none"
-                  title="Remove level">×</button>
-              </div>
-            ))}
-            <button onClick={addBlindLevel}
-              className="w-full text-[10px] py-1.5 rounded-md border border-dashed border-white/10 text-slate-400 hover:text-white hover:border-white/20 transition-all">
-              + Add Level
-            </button>
-          </div>
-
-          <SectionTitle>Buy-in</SectionTitle>
-          <div className="grid grid-cols-2 gap-3">
-            <SettingRow label="Min">
-              <input type="number" value={s.buyInMin} onChange={(e) => updateField("buyInMin", Number(e.target.value))} className="input-field text-xs !py-1.5 w-full" />
-            </SettingRow>
-            <SettingRow label="Max">
-              <input type="number" value={s.buyInMax} onChange={(e) => updateField("buyInMax", Number(e.target.value))} className="input-field text-xs !py-1.5 w-full" />
-            </SettingRow>
-          </div>
-        </div>
-      )}
-
-      {/* ══ GAME RULES TAB ══ */}
-      {tab === "rules" && (
-        <div className="space-y-3">
-          <SectionTitle>Hand Flow</SectionTitle>
-          <YesNo
-            label="Auto-start next hand?"
-            value={s.autoStartNextHand}
-            onChange={(v) => updateField("autoStartNextHand", v)}
-            hint="Automatically starts the next hand after showdown delay"
-          />
-          <TriToggle
-            label="Showdown speed"
-            value={s.showdownSpeed}
-            options={[
-              { value: "fast", label: "Fast (3s)" },
-              { value: "normal", label: "Normal (6s)" },
-              { value: "slow", label: "Slow (9s)" },
-            ]}
-            onChange={(v) => updateField("showdownSpeed", v)}
-          />
-          <YesNo
-            label="Deal to away players?"
-            value={s.dealToAwayPlayers}
-            onChange={(v) => updateField("dealToAwayPlayers", v)}
-            hint="When off, disconnected/away seats are excluded from auto-deal eligibility"
-          />
-          <YesNo
-            label="Reveal all at showdown?"
-            value={s.revealAllAtShowdown}
-            onChange={(v) => updateField("revealAllAtShowdown", v)}
-            hint="Force reveal on river-call or all-in runouts"
-          />
-          <YesNo
-            label="Room funds tracking?"
-            value={s.roomFundsTracking}
-            onChange={(v) => updateField("roomFundsTracking", v)}
-            hint="Tracks per-player buy-ins, net and stack restoration across rejoin"
-          />
-
-          <SectionTitle>Gameplay</SectionTitle>
-          <TriToggle label="Allow Run It Twice?"
-            value={s.runItTwiceMode}
-            options={[
-              { value: "always", label: "Always" },
-              { value: "ask_players", label: "Ask Players" },
-              { value: "off", label: "No" },
-            ]}
-            onChange={(v) => { updateField("runItTwiceMode", v); updateField("runItTwice", v !== "off"); }}
-          />
-          <YesNo
-            label="Auto reveal on all-in + called?"
-            value={s.autoRevealOnAllInCall}
-            onChange={(v) => updateField("autoRevealOnAllInCall", v)}
-            hint="Reveal live players' hole cards when no more betting decisions remain"
-          />
-          <YesNo
-            label="Allow show after fold?"
-            value={s.allowShowAfterFold}
-            onChange={(v) => updateField("allowShowAfterFold", v)}
-            hint="Folded players may voluntarily reveal before hand end"
-          />
-          <YesNo label="Allow UTG Straddle 2BB?" value={s.straddleAllowed} onChange={(v) => updateField("straddleAllowed", v)} />
-          <YesNo label="Rebuy allowed?" value={s.rebuyAllowed} onChange={(v) => updateField("rebuyAllowed", v)} />
-
-          <SectionTitle>Timers</SectionTitle>
-          <div className="grid grid-cols-2 gap-3">
-            <SettingRow label="Decision Time (sec)">
-              <input type="number" value={s.actionTimerSeconds} onChange={(e) => updateField("actionTimerSeconds", Number(e.target.value))} className="input-field text-xs !py-1.5 w-full" min={5} max={120} />
-            </SettingRow>
-            <SettingRow label="Time Bank (sec)">
-              <input type="number" value={s.timeBankSeconds} onChange={(e) => updateField("timeBankSeconds", Number(e.target.value))} className="input-field text-xs !py-1.5 w-full" min={0} max={300} />
-            </SettingRow>
-          </div>
-          <SettingRow label="Hands to fill Time Bank">
-            <input type="number" value={s.timeBankHandsToFill} onChange={(e) => updateField("timeBankHandsToFill", Number(e.target.value))} className="input-field text-xs !py-1.5 w-24" min={1} max={50} />
-          </SettingRow>
-          <div className="grid grid-cols-2 gap-3">
-            <SettingRow label="Extension/Use (sec)">
-              <input type="number" value={s.thinkExtensionSecondsPerUse} onChange={(e) => updateField("thinkExtensionSecondsPerUse", Number(e.target.value))} className="input-field text-xs !py-1.5 w-full" min={1} max={60} />
-            </SettingRow>
-            <SettingRow label="Extension Quota (/hr)">
-              <input type="number" value={s.thinkExtensionQuotaPerHour} onChange={(e) => updateField("thinkExtensionQuotaPerHour", Number(e.target.value))} className="input-field text-xs !py-1.5 w-full" min={0} max={20} />
-            </SettingRow>
-          </div>
-        </div>
-      )}
-
-      {/* ══ SPECIAL FEATURES TAB ══ */}
-      {tab === "special" && (
-        <div className="space-y-3">
-          <SectionTitle>Bomb Pot</SectionTitle>
-          <YesNo label="Bomb Pot enabled?" value={s.bombPotEnabled} onChange={(v) => updateField("bombPotEnabled", v)}
-            hint="All players put in a set amount pre-flop with no betting" />
-          {s.bombPotEnabled && (<>
-            <TriToggle label="Trigger mode"
-              value={s.bombPotTriggerMode ?? "frequency"}
-              options={[
-                { value: "frequency", label: "Every N" },
-                { value: "probability", label: "% Chance" },
-                { value: "manual", label: "Manual" },
-              ]}
-              onChange={(v) => updateField("bombPotTriggerMode", v)}
-            />
-            {(s.bombPotTriggerMode ?? "frequency") === "frequency" && (
-              <SettingRow label="Every N hands">
-                <input type="number" value={s.bombPotFrequency} onChange={(e) => updateField("bombPotFrequency", Number(e.target.value))} className="input-field text-xs !py-1.5 w-20" min={1} max={100} />
-              </SettingRow>
-            )}
-            {(s.bombPotTriggerMode ?? "frequency") === "probability" && (
-              <SettingRow label="Probability (%)">
-                <input type="number" value={s.bombPotProbability ?? 0} onChange={(e) => updateField("bombPotProbability", Number(e.target.value))} className="input-field text-xs !py-1.5 w-20" min={0} max={100} />
-              </SettingRow>
-            )}
-            <TriToggle label="Ante mode"
-              value={s.bombPotAnteMode ?? "bb_multiplier"}
-              options={[
-                { value: "bb_multiplier", label: "× BB" },
-                { value: "fixed", label: "Fixed" },
-              ]}
-              onChange={(v) => updateField("bombPotAnteMode", v)}
-            />
-            <SettingRow label={s.bombPotAnteMode === "fixed" ? "Ante (chips)" : "Ante (× BB)"}>
-              <input type="number" value={s.bombPotAnteValue ?? 1} onChange={(e) => updateField("bombPotAnteValue", Number(e.target.value))} className="input-field text-xs !py-1.5 w-20" min={1} max={100} />
-            </SettingRow>
-          </>)}
-
-          <SectionTitle>Double Board</SectionTitle>
-          <TriToggle label="Double Board?"
-            value={s.doubleBoardMode}
-            options={[
-              { value: "always", label: "Always" },
-              { value: "bomb_pot", label: "Bomb Pot Only" },
-              { value: "off", label: "Off" },
-            ]}
-            onChange={(v) => updateField("doubleBoardMode", v)}
-          />
-
-          <SectionTitle>7-2 Bounty</SectionTitle>
-          <SettingRow label="Bounty amount (0 = off)">
-            <input type="number" value={s.sevenTwoBounty} onChange={(e) => updateField("sevenTwoBounty", Number(e.target.value))} className="input-field text-xs !py-1.5 w-24" min={0} />
-          </SettingRow>
-          {s.sevenTwoBounty > 0 && (
-            <p className="text-[10px] text-slate-500">Each player pays {s.sevenTwoBounty} to the winner holding 7-2</p>
-          )}
-        </div>
-      )}
-
-      {/* ══ PLAYERS TAB ══ */}
-      {tab === "players" && (
-        <div className="space-y-2">
-          <p className="text-[10px] text-slate-500">Owner: <span className="text-amber-400 font-medium">{roomState.ownership.ownerName}</span></p>
-          {players.length === 0 ? (
-            <p className="text-xs text-slate-500 text-center py-4">No players seated</p>
-          ) : (
-            players.map((p) => {
-              const isMe = p.userId === authUserId;
-              const isPlayerOwner = p.userId === roomState.ownership.ownerId;
-              const isPlayerCoHost = roomState.ownership.coHostIds.includes(p.userId);
-              return (
-                <div key={p.seat} className="flex items-center gap-3 p-2 rounded-lg bg-white/[0.03] border border-white/5">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-xs font-bold text-white">{p.seat}</div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-white truncate">{p.name}</span>
-                      {isPlayerOwner && <span className="text-[9px] bg-amber-500/20 text-amber-400 px-1 rounded">👑 Host</span>}
-                      {isPlayerCoHost && <span className="text-[9px] bg-blue-500/20 text-blue-400 px-1 rounded">⭐ Co-Host</span>}
-                      {isMe && <span className="text-[9px] bg-cyan-500/20 text-cyan-400 px-1 rounded">You</span>}
-                    </div>
-                    <span className="text-[10px] text-slate-500">{p.stack.toLocaleString()} chips</span>
-                  </div>
-                  {!isMe && !isPlayerOwner && (
-                    <div className="flex gap-1 shrink-0">
-                      {isHost && (
-                        <button onClick={() => onSetCoHost(p.userId, !isPlayerCoHost)}
-                          className="text-[10px] px-2 py-1 rounded bg-white/5 text-slate-400 hover:text-white transition-colors">
-                          {isPlayerCoHost ? "Remove Co-Host" : "Make Co-Host"}
-                        </button>
-                      )}
-                      {isHost && (
-                        <button onClick={() => onTransfer(p.userId)}
-                          className="text-[10px] px-2 py-1 rounded bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-colors">
-                          Transfer Host
-                        </button>
-                      )}
-                      <button onClick={() => onKick(p.userId, kickReason, false)}
-                        className="text-[10px] px-2 py-1 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors">
-                        Kick
-                      </button>
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </div>
-      )}
-
-      {/* ══ MODERATION TAB ══ */}
-      {tab === "moderation" && (
-        <div className="space-y-3">
-          <SettingRow label="Room Visibility">
-            <select value={s.visibility} onChange={(e) => updateField("visibility", e.target.value)} className="input-field text-xs !py-1.5">
-              <option value="public">Public</option>
-              <option value="private">Private</option>
-            </select>
-          </SettingRow>
-          {s.visibility === "private" && (
-            <SettingRow label="Password">
-              <input type="text" value={s.password ?? ""} onChange={(e) => updateField("password", e.target.value || null)} className="input-field text-xs !py-1.5 w-40" placeholder="Set password..." />
-            </SettingRow>
-          )}
-          <SettingRow label="Kick Reason">
-            <input value={kickReason} onChange={(e) => setKickReason(e.target.value)} className="input-field text-xs !py-1.5 w-full" placeholder="Optional reason for kicks..." />
-          </SettingRow>
-          <SettingRow label="Max Consecutive Timeouts">
-            <input type="number" value={s.maxConsecutiveTimeouts} onChange={(e) => updateField("maxConsecutiveTimeouts", Number(e.target.value))} className="input-field text-xs !py-1.5 w-20" min={1} max={10} />
-          </SettingRow>
-          <SettingRow label="Disconnect Grace (sec)">
-            <input type="number" value={s.disconnectGracePeriod} onChange={(e) => updateField("disconnectGracePeriod", Number(e.target.value))} className="input-field text-xs !py-1.5 w-20" min={5} max={120} />
-          </SettingRow>
-
-          {/* Ban list */}
-          {roomState.banList.length > 0 && (
-            <div>
-              <span className="text-[10px] text-slate-500 uppercase font-medium">Banned Users ({roomState.banList.length})</span>
-              <div className="mt-1 flex flex-wrap gap-1">
-                {roomState.banList.map((uid) => (
-                  <span key={uid} className="text-[10px] bg-red-500/10 text-red-400 px-2 py-0.5 rounded">{uid.slice(0, 8)}...</span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SettingRow({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="text-xs text-slate-400 shrink-0">{label}</span>
-      {children}
-    </div>
-  );
-}
-
-function ToggleSetting({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button
-      onClick={() => onChange(!checked)}
-      className={`text-[11px] px-3 py-1.5 rounded-lg border transition-all ${
-        checked ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" : "bg-white/5 border-white/10 text-slate-500"
-      }`}
-    >
-      {checked ? "✓ " : ""}{label}
-    </button>
-  );
-}
-
-/* ═══════════════════ ONBOARDING MODAL ═══════════════════ */
-function OnboardingModal({ onComplete }: { onComplete: () => void }) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="glass-card p-8 w-full max-w-md mx-4 space-y-6">
-        <div className="space-y-5 text-center">
-          <div className="text-4xl">🚀</div>
-          <h2 className="text-xl font-bold text-white">You're All Set!</h2>
-          <p className="text-sm text-slate-400">Head to the lobby to create or join a room and start playing. The host will decide the table settings.</p>
-          <button onClick={onComplete} className="btn-success w-full !py-3 text-base font-bold">Start Playing</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ═══════════════════ AUTH SCREEN COMPONENT ═══════════════════ */
-function AuthScreen({
-  onAuth,
-  disableGuest = false,
-  gateMessage,
-}: {
-  onAuth: (s: AuthSession) => void;
-  disableGuest?: boolean;
-  gateMessage?: string;
-}) {
-  const [mode, setMode] = useState<"login" | "signup">("login");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPw, setConfirmPw] = useState("");
-  const [authDisplayName, setAuthDisplayName] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [successMsg, setSuccessMsg] = useState("");
-  const [cooldown, setCooldown] = useState(0);
-
-  /* Cooldown countdown timer */
-  useEffect(() => {
-    const secs = getRateLimitSecondsLeft();
-    if (secs > 0) setCooldown(secs);
-    if (cooldown <= 0) return;
-    const t = setInterval(() => {
-      const left = getRateLimitSecondsLeft();
-      setCooldown(left);
-      if (left <= 0) clearInterval(t);
-    }, 1000);
-    return () => clearInterval(t);
-  }, [cooldown]);
-
-  /* Real-time validation hints */
-  const emailHint = email ? validateEmail(email) : null;
-  const pwHint = password ? validatePassword(password) : null;
-  const confirmHint = mode === "signup" && confirmPw && confirmPw !== password ? "Passwords do not match." : null;
-
-  const nameHint = mode === "signup" && authDisplayName.length > 0 && authDisplayName.trim().length < 2 ? "Name must be at least 2 characters." : null;
-
-  const formValid =
-    !emailHint && !pwHint && !confirmHint && !nameHint &&
-    email.length > 0 && password.length > 0 &&
-    (mode === "login" || (confirmPw === password && authDisplayName.trim().length >= 2));
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(""); setSuccessMsg("");
-
-    if (!formValid) {
-      setError(emailHint || pwHint || confirmHint || "Please fill in all fields correctly.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      if (mode === "signup") {
-        const session = await signUpWithEmail(email, password, authDisplayName.trim());
-        onAuth(session);
-      } else {
-        const session = await signInWithEmail(email, password);
-        onAuth(session);
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes("Check your email")) {
-        setSuccessMsg(msg);
-      } else {
-        setError(msg);
-      }
-      /* Refresh cooldown in case rate limiter kicked in */
-      const secs = getRateLimitSecondsLeft();
-      if (secs > 0) setCooldown(secs);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleGoogleSignIn() {
-    setError("");
-    setSuccessMsg("");
-    setLoading(true);
-    try {
-      await signInWithGoogle();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : String(err));
-      setLoading(false);
-    }
-  }
-
-  async function handleGuest() {
-    if (disableGuest) {
-      setError("Club access requires a logged-in account.");
-      return;
-    }
-    setError(""); setLoading(true);
-    try {
-      const guestName = authDisplayName.trim() || "Guest";
-      const session = await ensureGuestSession(guestName);
-      if (session) onAuth(session);
-      else setError("Supabase not configured — cannot create guest session");
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const isDisabled = loading || cooldown > 0;
-
-  return (
-    <div className="cp-auth-screen min-h-screen p-4 flex justify-center">
-      <div className="cp-auth-shell w-full max-w-md my-auto">
-        {/* Logo */}
-        <div className="cp-auth-brand text-center mb-8">
-          <div className="cp-auth-logo w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-3xl font-extrabold text-slate-900 shadow-xl mx-auto mb-4">C</div>
-          <h1 className="cp-auth-title text-3xl font-bold text-white">Card<span className="text-amber-400">Pilot</span></h1>
-          <p className="cp-auth-subtitle text-slate-500 text-sm mt-2">GTO-powered poker training</p>
-        </div>
-
-        {/* Card */}
-        <div className="cp-auth-card glass-card p-8">
-          {gateMessage && (
-            <div className="cp-auth-gate mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-sm text-amber-300">
-              {gateMessage}
-            </div>
-          )}
-          {/* Google OAuth — prominent, above email form */}
-          {supabase && (
-            <>
-              <button
-                type="button"
-                onClick={handleGoogleSignIn}
-                disabled={loading}
-                className="cp-auth-google-btn w-full py-3.5 text-sm font-semibold rounded-xl border border-white/15 bg-white text-slate-900 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 shadow-sm"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                  <path fill="#4285F4" d="M21.2 12.2c0-.7-.1-1.4-.2-2H12v3.9h5.2c-.2 1.2-.9 2.2-2 2.9v2.4h3.2c1.9-1.7 3-4.3 3-7.2z"/>
-                  <path fill="#34A853" d="M12 22c2.7 0 4.9-.9 6.5-2.4l-3.2-2.4c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.5C4.7 19.8 8.1 22 12 22z"/>
-                  <path fill="#FBBC05" d="M6.4 14.1c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2V7.5H3.1C2.4 8.9 2 10.4 2 12s.4 3.1 1.1 4.5l3.3-2.4z"/>
-                  <path fill="#EA4335" d="M12 5.8c1.5 0 2.8.5 3.9 1.5l2.9-2.9C16.9 2.7 14.7 1.8 12 1.8 8.1 1.8 4.7 4 3.1 7.5l3.3 2.5c.8-2.4 3-4.2 5.6-4.2z"/>
-                </svg>
-                Continue with Google
-              </button>
-
-              <div className="relative my-6">
-                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10" /></div>
-                <div className="relative flex justify-center"><span className="bg-[#0f1724] px-3 text-xs text-slate-500">or continue with email</span></div>
-              </div>
-            </>
-          )}
-
-          {/* Tab switcher */}
-          <div className="cp-auth-tabs flex gap-1 bg-white/5 rounded-xl p-1 mb-6">
-            {(["login", "signup"] as const).map((m) => (
-              <button key={m} onClick={() => { setMode(m); setError(""); setSuccessMsg(""); setConfirmPw(""); }}
-                className={`cp-auth-tab-btn flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${mode === m ? "bg-white/10 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
-                {m === "login" ? "Log In" : "Sign Up"}
-              </button>
-            ))}
-          </div>
-
-          <form onSubmit={handleSubmit} className="cp-auth-form space-y-4">
-            {mode === "signup" && (
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Display Name</label>
-                <input value={authDisplayName} onChange={(e) => setAuthDisplayName(e.target.value)}
-                  placeholder="How others see you" maxLength={32}
-                  className="input-field w-full" />
-                {nameHint && <p className="text-xs text-amber-400 mt-1">{nameHint}</p>}
-              </div>
-            )}
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
-                placeholder="you@example.com"
-                className="input-field w-full" />
-              {emailHint && <p className="text-xs text-amber-400 mt-1">{emailHint}</p>}
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Password</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required
-                placeholder="Min 6 characters" minLength={6}
-                className="input-field w-full" />
-              {pwHint && <p className="text-xs text-amber-400 mt-1">{pwHint}</p>}
-            </div>
-
-            {mode === "signup" && (
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">Confirm Password</label>
-                <input type="password" value={confirmPw} onChange={(e) => setConfirmPw(e.target.value)} required
-                  placeholder="Re-enter password" minLength={6}
-                  className="input-field w-full" />
-                {confirmHint && <p className="text-xs text-red-400 mt-1">{confirmHint}</p>}
-              </div>
-            )}
-
-            {error && (
-              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400">{error}</div>
-            )}
-            {successMsg && (
-              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-400">{successMsg}</div>
-            )}
-
-            {cooldown > 0 && (
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-sm text-amber-400 text-center">
-                Rate limited — please wait {cooldown}s
-              </div>
-            )}
-
-            <button type="submit" disabled={isDisabled || !formValid}
-              className="cp-auth-submit-btn btn-primary w-full !py-3 text-base font-semibold disabled:opacity-40">
-              {loading ? "..." : cooldown > 0 ? `Wait ${cooldown}s` : mode === "login" ? "Log In" : "Create Account"}
-            </button>
-          </form>
-
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10" /></div>
-            <div className="relative flex justify-center"><span className="bg-[#0f1724] px-3 text-xs text-slate-500">or</span></div>
-          </div>
-
-          <div className="space-y-3">
-            <input value={authDisplayName} onChange={(e) => setAuthDisplayName(e.target.value)}
-              placeholder="Enter your name (optional)" maxLength={32}
-              className="input-field w-full text-center text-sm" />
-            <button onClick={handleGuest} disabled={isDisabled || disableGuest}
-              className="cp-auth-guest-btn btn-ghost w-full !py-3 text-sm">
-              {disableGuest ? "Guest Access Disabled for Clubs" : "Continue as Guest"}
-            </button>
-          </div>
-        </div>
-
-        <p className="cp-auth-legal text-center text-xs text-slate-600 mt-4">
-          By continuing, you agree to our Terms of Service
-        </p>
-      </div>
-    </div>
-  );
-}
-
-/* ═══════ ActionBar ═══════ */
-
-function ActionBar({
-  canAct,
-  legal,
-  pot,
-  bigBlind,
-  currentBet,
-  raiseTo,
-  setRaiseTo,
-  onAction,
-  street,
-  board,
-  heroStack,
-  numPlayers,
-  advice,
-  thinkExtensionEnabled,
-  thinkExtensionRemainingUses,
-  onThinkExtension,
-  actionPending,
-}: {
-  canAct: boolean;
-  legal: LegalActions | null;
-  pot: number;
-  bigBlind: number;
-  currentBet: number;
-  raiseTo: number;
-  setRaiseTo: (v: number) => void;
-  onAction: (action: "fold" | "check" | "call" | "raise" | "all_in", amount?: number) => void;
-  street: string;
-  board: string[];
-  heroStack: number;
-  numPlayers: number;
-  advice: AdvicePayload | null;
-  thinkExtensionEnabled?: boolean;
-  thinkExtensionRemainingUses?: number;
-  onThinkExtension?: () => void;
-  actionPending?: boolean;
-}) {
-  const min = legal?.minRaise ?? bigBlind * 2;
-  const max = legal?.maxRaise ?? 10000;
-  const callAmt = legal?.callAmount ?? 0;
-  const [showSuggest, setShowSuggest] = useState(false);
-
-  // Auto-clamp raiseTo to legal range when it changes
-  useEffect(() => {
-    if (legal?.canRaise) {
-      if (raiseTo < min) setRaiseTo(min);
-      else if (raiseTo > max) setRaiseTo(max);
-    }
-  }, [min, max, legal?.canRaise]);
-
-  const suggestedPresets = useMemo(() => {
-    if (!legal?.canRaise || pot <= 0) return [];
-    return getSuggestedPresets({ street: street as any, pot, heroStack, board, numPlayers });
-  }, [legal, pot, street, board, heroStack, numPlayers]);
-
-  const userPrefs = useMemo(() => loadPrefs(), []);
-  const streetKey = street === "FLOP" ? "flop" : street === "TURN" ? "turn" : street === "RIVER" ? "river" : "flop";
-  const customPresets = useMemo(() => {
-    return userPresetsToButtons(userPrefs.betPresets[streetKey as keyof typeof userPrefs.betPresets] ?? [33, 66, 100]);
-  }, [userPrefs, streetKey]);
-
-  function presetToChips(pctOfPot: number): number {
-    const raw = Math.round(pot * pctOfPot / 100);
-    return Math.max(min, Math.min(max, raw));
-  }
-
-  const recommendedAction = advice?.recommended;
-  const confidence = advice ? Math.max(advice.mix.raise, advice.mix.call, advice.mix.fold) : 0;
-  const confidenceLabel = confidence > 0.7 ? "High confidence" : confidence > 0.5 ? "Mixed spot" : "Marginal";
-
-  // Debug: log legal actions whenever they change so missing Call can be diagnosed
-  useEffect(() => {
-    if (canAct && legal) {
-      console.log("[ActionBar] Legal actions:", JSON.stringify(legal), "| canAct:", canAct);
-    }
-  }, [canAct, legal]);
-
-  // Determine the status hint: why is Call/Check shown or hidden?
-  const statusHint = useMemo(() => {
-    if (!canAct || !legal) return "";
-    if (legal.canCheck) return "You are caught up. You can check.";
-    if (legal.canCall) return `Call required: ${callAmt.toLocaleString()}`;
-    return "";
-  }, [canAct, legal, callAmt]);
-
-  const [allInConfirm, setAllInConfirm] = useState(false);
-  useEffect(() => { if (!canAct) setAllInConfirm(false); }, [canAct]);
-
-  const btnBase = "btn-action min-h-[38px] py-1.5 px-3 text-xs font-semibold rounded-lg active:scale-95 transition-transform focus:outline-none focus:ring-2 focus:ring-white/20";
-
-  return (
-    <div className="glass-card px-2.5 py-1.5 space-y-1.5" style={{ maxHeight: 140 }}>
-      {/* Row A: primary action buttons */}
-      <div className={`flex items-center gap-1 flex-wrap ${actionPending ? 'opacity-50 pointer-events-none' : ''}`}>
-        {actionPending && canAct && (
-          <span className="text-[10px] text-amber-400 animate-pulse mr-0.5">Processing…</span>
-        )}
-        <button disabled={!canAct || actionPending} onClick={() => { onAction("fold"); setShowSuggest(false); }}
-          aria-label="Fold" className={`${btnBase} bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600`}>Fold</button>
-
-        {legal?.canCheck && (
-          <button disabled={!canAct || actionPending} onClick={() => { onAction("check"); setShowSuggest(false); }}
-            aria-label="Check" className={`${btnBase} bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600`}>Check</button>
-        )}
-
-        {legal?.canCall && (
-          <button disabled={!canAct || actionPending} onClick={() => { onAction("call"); setShowSuggest(false); }}
-            aria-label={`Call ${callAmt}`} className={`${btnBase} bg-gradient-to-r from-sky-600 to-sky-700 hover:from-sky-500 hover:to-sky-600`}>
-            Call {callAmt.toLocaleString()}
-          </button>
-        )}
-
-        {legal?.canRaise && (
-          <button disabled={!canAct || actionPending} onClick={() => { onAction("raise", raiseTo); setShowSuggest(false); }}
-            aria-label={`Raise to ${raiseTo}`} className={`${btnBase} bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600`}>
-            Raise {raiseTo.toLocaleString()}
-          </button>
-        )}
-
-        {legal?.canRaise && !allInConfirm && (
-          <button disabled={!canAct || actionPending} onClick={() => setAllInConfirm(true)}
-            aria-label="All-In" className={`${btnBase} bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-500 hover:to-orange-600`}>All-In</button>
-        )}
-        {legal?.canRaise && allInConfirm && (
-          <div className="flex items-center gap-1 animate-[fadeSlideUp_0.2s_ease-out]">
-            <button disabled={!canAct || actionPending} onClick={() => { onAction("all_in"); setShowSuggest(false); setAllInConfirm(false); }}
-              aria-label="Confirm All-In" className={`${btnBase} font-bold bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-400 hover:to-orange-500 ring-2 ring-red-400/50 animate-pulse`}>Confirm All-In</button>
-            <button onClick={() => setAllInConfirm(false)}
-              className="min-h-[38px] py-1.5 px-2 text-[10px] rounded-lg bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10">✕</button>
-          </div>
-        )}
-
-        {canAct && advice && (
-          <button onClick={() => setShowSuggest(!showSuggest)}
-            aria-label="AI suggestion"
-            className={`${btnBase} ${
-              showSuggest ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white" : "bg-white/5 text-amber-400 border border-amber-500/30"
-            }`}>AI</button>
-        )}
-
-        {canAct && thinkExtensionEnabled && (thinkExtensionRemainingUses ?? 0) > 0 && (
-          <button onClick={() => onThinkExtension?.()} aria-label="Think extension"
-            className={`${btnBase} bg-white/5 text-violet-300 border border-violet-500/30`}>
-            +T({thinkExtensionRemainingUses})
-          </button>
-        )}
-      </div>
-
-      {/* Row B: raise sizing (slider + input + presets) — only when raise is legal */}
-      {legal?.canRaise && canAct && (
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <input type="range" min={min} max={max} step={bigBlind} value={raiseTo}
-            onChange={(e) => setRaiseTo(Number(e.target.value))}
-            aria-label="Bet size slider"
-            className="flex-1 min-w-[100px] h-1.5 rounded-full appearance-none bg-white/10 accent-red-500 cursor-pointer" />
-          <input type="number" min={min} max={max} step={bigBlind} value={raiseTo}
-            onChange={(e) => {
-              const v = Number(e.target.value);
-              if (!isNaN(v)) setRaiseTo(Math.max(min, Math.min(max, v)));
-            }}
-            aria-label="Bet size input"
-            className="w-16 text-center text-xs font-mono font-semibold text-white bg-white/5 border border-white/10 rounded-lg py-1 focus:border-red-500/50 focus:outline-none" />
-          <div className="w-px h-4 bg-white/10" />
-          {(() => {
-            const facingBet = callAmt > 0 && currentBet > 0;
-            const showBBMultipliers = !facingBet && (pot <= bigBlind * 2 || (!legal?.canCheck && !legal?.canCall));
-            if (facingBet) {
-              return [2, 3].map((mult) => {
-                const chips = Math.max(min, Math.min(max, Math.round(currentBet * mult)));
-                return (
-                  <button key={mult} onClick={() => setRaiseTo(chips)}
-                    className={`min-h-[30px] px-2 py-1 rounded-md text-[10px] font-semibold transition-all ${
-                      raiseTo === chips ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"
-                    }`}>{mult}x</button>
-                );
-              });
-            } else if (showBBMultipliers) {
-              return [2, 3, 4].map((mult) => {
-                const chips = Math.max(min, Math.min(max, Math.round(bigBlind * mult)));
-                return (
-                  <button key={mult} onClick={() => setRaiseTo(chips)}
-                    className={`min-h-[30px] px-2 py-1 rounded-md text-[10px] font-semibold transition-all ${
-                      raiseTo === chips ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"
-                    }`}>{mult}x</button>
-                );
-              });
-            } else {
-              return suggestedPresets.slice(0, 3).map((p) => {
-                const chips = presetToChips(p.pctOfPot);
-                return (
-                  <button key={p.label} onClick={() => setRaiseTo(chips)}
-                    className={`min-h-[30px] px-2 py-1 rounded-md text-[10px] font-semibold transition-all ${
-                      raiseTo === chips ? "bg-red-500/20 text-red-400 border border-red-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"
-                    }`}>{p.label}</button>
-                );
-              });
-            }
-          })()}
-          {customPresets.slice(0, 3).map((p) => {
-            const chips = presetToChips(p.pctOfPot);
-            return (
-              <button key={p.label} onClick={() => setRaiseTo(chips)}
-                className={`min-h-[30px] px-2 py-1 rounded-md text-[10px] font-semibold transition-all ${
-                  raiseTo === chips ? "bg-amber-500/20 text-amber-400 border border-amber-500/30" : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"
-                }`}>{p.label}</button>
-            );
-          })}
-        </div>
-      )}
-
-      {/* AI Suggestion — inline compact */}
-      {showSuggest && advice && (
-        <div className="px-2 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center gap-1.5 text-[10px]">
-          <span className="font-bold text-white uppercase">{recommendedAction ?? "—"}</span>
-          <span className="text-slate-300 flex-1 truncate">{advice.explanation}</span>
-          <span className="text-red-400">R{Math.round(advice.mix.raise * 100)}%</span>
-          <span className="text-blue-400">C{Math.round(advice.mix.call * 100)}%</span>
-          {recommendedAction && (
-            <button onClick={() => { onAction(recommendedAction, recommendedAction === "raise" ? raiseTo : undefined); setShowSuggest(false); }}
-              className="text-amber-400 hover:text-amber-300 font-semibold min-h-[30px] px-2 rounded-md bg-amber-500/10">Apply</button>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ═══════ Small helpers ═══════ */
-
-function Field({ label, w, children }: { label: string; w: string; children: React.ReactNode }) {
-  return (
-    <div className={`space-y-1 ${w}`}>
-      <label className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">{label}</label>
-      {children}
-    </div>
-  );
-}
-
-function InfoCell({ label, value, highlight, cyan }: { label: string; value: string; highlight?: boolean; cyan?: boolean }) {
-  return (
-    <div>
-      <span className="cp-street-label text-[10px] text-slate-500 uppercase tracking-wider font-medium">{label}</span>
-      <div className={`cp-action-label text-sm font-semibold cp-num ${highlight ? "text-amber-400 uppercase" : cyan ? "text-cyan-400" : "text-white"}`}>{value}</div>
-    </div>
-  );
-}
-
-const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, posLabel, isButton, displayBB, bigBlind, lastAction, equity, isAllInLocked, handHint, pendingLeave, revealedCards, revealedHandName, isMucked, onClickRevealed, onClickEmpty, isWinner, isWinnerPulse, netDelta }: {
-  player?: TablePlayer; seatNum: number; isActor: boolean; isMe: boolean;
-  isOwner?: boolean; isCoHost?: boolean; timer?: TimerState | null;
-  posLabel?: string; isButton?: boolean; displayBB?: boolean; bigBlind?: number;
-  lastAction?: { action: string; amount: number } | null;
-  equity?: { winRate: number; tieRate: number; equityRate: number } | null;
-  isAllInLocked?: boolean;
-  handHint?: string;
-  pendingLeave?: boolean;
-  revealedCards?: [string, string];
-  revealedHandName?: string;
-  isMucked?: boolean;
-  onClickRevealed?: () => void;
-  onClickEmpty?: (seatNum: number) => void;
-  isWinner?: boolean;
-  isWinnerPulse?: boolean;
-  netDelta?: number;
-}) {
-  const bb = bigBlind || 1;
-  const fmt = (v: number) => formatChips(v, { mode: displayBB ? "bb" : "chips", bbSize: bb });
-
-  if (!player) {
-    return (
-      <div onClick={() => onClickEmpty?.(seatNum)}
-        data-empty-seat
-        className="cp-seat-empty w-16 h-16 md:w-18 md:h-18 rounded-full bg-black/50 border border-dashed border-white/15 flex items-center justify-center cursor-pointer hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-colors group">
-        <span className="cp-seat-empty-label text-[9px] text-slate-500 group-hover:text-emerald-400">+Sit</span>
-      </div>
-    );
-  }
-
-  // Timer progress calculation (for border color + inline badge)
-  const timerUrgent = timer && timer.remaining <= 3;
-  const timerColor = timerUrgent ? "text-red-400" : timer?.usingTimeBank ? "text-amber-400" : "text-emerald-400";
-  // Border glow based on timer state
-  const timerBorderClass = timer
-    ? timerUrgent ? "ring-2 ring-red-500/60" : timer.usingTimeBank ? "ring-2 ring-amber-500/50" : "ring-2 ring-emerald-500/40"
-    : "";
-
-  // Position label colors
-  const posColor = posLabel === "BTN" ? "bg-amber-500 text-white" : posLabel === "SB" ? "bg-blue-500 text-white" : posLabel === "BB" ? "bg-red-500 text-white" : "bg-slate-600 text-slate-200";
-  const actionType = (lastAction?.action ?? "").toLowerCase();
-  let actionLabel = "BET";
-  let actionBadgeClass = "text-emerald-300 border-emerald-500/25";
-  if (actionType === "raise") {
-    actionLabel = "RAISE";
-    actionBadgeClass = "text-rose-300 border-rose-500/30";
-  } else if (actionType === "all_in") {
-    actionLabel = "ALL-IN";
-    actionBadgeClass = "text-orange-300 border-orange-500/30";
-  } else if (actionType === "call") {
-    actionLabel = "CALL";
-    actionBadgeClass = "text-sky-300 border-sky-500/30";
-  }
-
-  const fmtDelta = (v: number) => formatDelta(v, { mode: displayBB ? "bb" : "chips", bbSize: bb });
-  const equityText = isAllInLocked
-    ? (equity ? `${Math.round(equity.equityRate * 100)}%` : "—")
-    : "未鎖定";
-
-  return (
-    <div className="relative flex flex-col items-center gap-0.5">
-      {/* Delta tag (hand-end net change) */}
-      {netDelta !== undefined && netDelta !== 0 && (
-        <div className={`cp-delta-tag ${netDelta > 0 ? "cp-delta-tag--positive" : "cp-delta-tag--negative"}`}>
-          {fmtDelta(netDelta)}
-        </div>
-      )}
-      {/* BTN dealer chip */}
-      {isButton && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-30">
-          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-300 to-amber-500 border-2 border-amber-200 shadow-lg flex items-center justify-center">
-            <span className="text-[7px] font-black text-amber-900">D</span>
-          </div>
-        </div>
-      )}
-      <div className={`cp-seat-label relative z-10 w-40 md:w-44 rounded-xl p-4.5 text-center transition-all ${timerBorderClass} ${isWinner ? "cp-seat-win" : ""} ${isWinnerPulse ? "cp-seat-win-pop" : ""} ${
-        isActor ? "bg-amber-500/20 border-2 border-amber-400 shadow-[0_0_16px_rgba(245,158,11,0.3)]"
-        : isMe ? "bg-cyan-500/10 border-2 border-cyan-400/50"
-        : "bg-black/60 border border-white/10"
-      }`}>
-        {/* Position label */}
-        {posLabel && (
-          <div className="absolute -top-2 -left-1 z-20">
-            <span className={`text-[7px] px-1.5 py-0.5 rounded-full font-bold uppercase ${posColor}`}>{posLabel}</span>
-          </div>
-        )}
-        {/* Host badge */}
-        {(isOwner || isCoHost) && (
-          <div className="absolute -top-2 -right-1 z-20">
-            <span className={`text-[8px] px-1 py-0.5 rounded font-bold ${isOwner ? "bg-amber-500 text-white" : "bg-blue-500 text-white"}`}>
-              {isOwner ? "👑" : "⭐"}
-            </span>
-          </div>
-        )}
-        <div className="cp-seat-name text-xs font-semibold text-white mt-0.5 flex items-center justify-between gap-1">
-          <span className="truncate">{player.name}</span>
-          <span className={`shrink-0 text-[8px] font-bold ${isAllInLocked ? "text-emerald-300" : "text-slate-400"}`}>
-            {equityText}
-          </span>
-        </div>
-        <div className="cp-seat-stack text-sm font-bold text-amber-400 cp-num">{fmt(player.stack)}</div>
-        {player.status === "sitting_out" && <div className="cp-seat-status text-[8px] text-orange-400 font-bold uppercase">Sit Out</div>}
-        {player.folded && player.status !== "sitting_out" && <div className="cp-seat-status text-[8px] text-red-400 font-semibold">FOLDED</div>}
-        {player.allIn && !equity && <div className="cp-seat-status text-[8px] text-orange-400 font-bold">ALL-IN</div>}
-        {handHint && !player.folded && (
-          <div className="text-[7px] leading-tight text-cyan-200/90 max-w-[82px] truncate" title={handHint}>
-            {handHint}
-          </div>
-        )}
-        {/* Timer countdown — integrated inside the seat chip */}
-        {timer && (
-          <div className={`cp-seat-timer text-[8px] font-bold tabular-nums ${timerColor} ${timerUrgent ? "animate-pulse" : ""}`}>
-            {timer.usingTimeBank ? `⏱ ${Math.ceil(timer.timeBankRemaining)}s` : `${Math.ceil(timer.remaining)}s`}
-          </div>
-        )}
-        {/* Pending leave indicator */}
-        {pendingLeave && (
-          <div className="text-[7px] text-slate-300 italic">Leaving after hand</div>
-        )}
-      </div>
-      {revealedCards && (
-        <button onClick={onClickRevealed} className="flex flex-col items-center gap-0.5" title="Tap to zoom revealed hand">
-          <div className="flex items-center gap-1">
-            <PokerCard card={revealedCards[0]} variant="mini" className="border-emerald-500/40" />
-            <PokerCard card={revealedCards[1]} variant="mini" className="border-emerald-500/40" />
-          </div>
-          <div className="text-[8px] text-emerald-300 max-w-[72px] truncate">{revealedHandName ?? "Revealed"}</div>
-        </button>
-      )}
-      {!revealedCards && isMucked && (
-        <div className="text-[7px] uppercase tracking-wider text-slate-500">Mucked</div>
-      )}
-      {/* Street bet amount — shown below the chip */}
-      {player.streetCommitted > 0 && !player.folded && (
-        <div className={`cp-bet-pill bg-black/75 px-1.5 py-0.5 rounded-full text-[11px] font-bold shadow-sm border ${actionBadgeClass}`}>
-          <span className="cp-action-label uppercase text-[8px] tracking-wider mr-1">{actionLabel}</span>
-          <span className="cp-num">{fmt(player.streetCommitted)}</span>
-        </div>
-      )}
-    </div>
-  );
-});
-
-// CardImg removed — replaced by unified PokerCard component
-
-function Bar({ label, pct, color }: { label: string; pct: number; color: string }) {
-  const p = Math.round(pct * 100);
-  return (
-    <div className="flex items-center gap-2">
-      <span className="w-12 text-[11px] font-medium text-slate-400 uppercase">{label}</span>
-      <div className="flex-1 h-5 rounded-full bg-white/5 overflow-hidden">
-        <div className={`h-full rounded-full bg-gradient-to-r ${color} transition-all duration-500`} style={{ width: `${p}%` }} />
-      </div>
-      <span className="w-10 text-right text-xs font-semibold text-slate-300 tabular-nums">{p}%</span>
-    </div>
-  );
-}
 
 export default App;

@@ -1,8 +1,8 @@
 // Simple 5-card poker evaluator
 // For Texas Hold'em, we evaluate the best 5-card hand from 7 cards
 
-import { RANKS, type Card, parseCard } from './card-utils.js';
-import { HandRank, HAND_RANK_NAMES, type HandEvaluation } from './hand-rank.js';
+import { RANKS, type Card, parseCard } from "./card-utils";
+import { HandRank, HAND_RANK_NAMES, type HandEvaluation } from "./hand-rank";
 
 /**
  * 從 7 張牌中找出最強的 5 張組合
@@ -215,7 +215,7 @@ function isStraight(cards: ReturnType<typeof parseCard>[]):
   // Check regular straights
   for (let i = 0; i <= uniqueRanks.length - 5; i++) {
     if (uniqueRanks[i] - uniqueRanks[i + 4] === 4) {
-      return { isStraight: true, highCard: RANKS[uniqueRanks[i]] };
+      return { isStraight: true, highCard: RANKS[uniqueRanks[i + 4]] };
     }
   }
   
@@ -242,7 +242,7 @@ function calculateValue(rank: HandRank, ranks: string[]): number {
   let value = rank * 10000000000;
   
   for (let i = 0; i < ranks.length; i++) {
-    const rankValue = RANKS.indexOf(ranks[i]);
+    const rankValue = 12 - RANKS.indexOf(ranks[i]); // A=12, K=11, ..., 2=0
     value += rankValue * Math.pow(100, 4 - i);
   }
   

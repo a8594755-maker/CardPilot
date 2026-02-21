@@ -1,6 +1,6 @@
 // Board texture analysis for postflop decisions
 
-import { type Card, parseCard, RANKS } from './card-utils.js';
+import { type Card, parseCard, RANKS } from "./card-utils";
 
 export interface BoardTexture {
   // Structure

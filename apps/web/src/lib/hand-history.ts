@@ -12,7 +12,7 @@ export interface HandRecord {
   startingHandBucket?: string;
   board: string[];
   runoutBoards?: string[][];
-  doubleBoardPayouts?: Array<{ run: 1 | 2; board: string[]; winners: Array<{ seat: number; amount: number; handName?: string }> }>;
+  doubleBoardPayouts?: Array<{ run: 1 | 2 | 3; board: string[]; winners: Array<{ seat: number; amount: number; handName?: string }> }>;
   actions: HandActionRecord[];
   potSize: number;
   stackSize: number;
@@ -201,7 +201,7 @@ function normalizeHandRecord(input: unknown): HandRecord | null {
       ? raw.runoutBoards.map((run) => Array.isArray(run) ? run.map(String) : [])
       : undefined,
     doubleBoardPayouts: Array.isArray(raw.doubleBoardPayouts)
-      ? raw.doubleBoardPayouts.reduce<Array<{ run: 1 | 2; board: string[]; winners: Array<{ seat: number; amount: number; handName?: string }> }>>((acc, run) => {
+      ? raw.doubleBoardPayouts.reduce<Array<{ run: 1 | 2 | 3; board: string[]; winners: Array<{ seat: number; amount: number; handName?: string }> }>>((acc, run) => {
           if (!run || typeof run !== "object") return acc;
           const row = run as { run?: number; board?: unknown; winners?: unknown };
           const board = Array.isArray(row.board) ? row.board.map(String) : [];
@@ -217,7 +217,8 @@ function normalizeHandRecord(input: unknown): HandRecord | null {
               });
             }
           }
-          const runNo: 1 | 2 = Number(row.run ?? 1) === 2 ? 2 : 1;
+          const n = Number(row.run ?? 1);
+          const runNo: 1 | 2 | 3 = n === 3 ? 3 : n === 2 ? 2 : 1;
           acc.push({ run: runNo, board, winners });
           return acc;
         }, [])

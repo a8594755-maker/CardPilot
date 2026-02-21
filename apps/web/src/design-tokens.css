@@ -98,11 +98,11 @@
     --cp-reserved-action-h-mobile: 88px;
 
     /* ── Table-view typography tokens (clamp for viewport scaling) ── */
-    --cp-table-font-seat: clamp(30px, 2.4vw, 38px);
-    --cp-table-font-stack: clamp(32px, 2.6vw, 40px);
-    --cp-table-font-pot: clamp(24px, 2.4vw, 32px);
-    --cp-table-font-meta: clamp(11px, 1.2vw, 14px);
-    --cp-table-font-action: clamp(13px, 1.6vw, 18px);
+    --cp-table-font-seat: clamp(42px, 3.6vw, 54px);
+    --cp-table-font-stack: clamp(48px, 4vw, 60px);
+    --cp-table-font-pot: clamp(32px, 3.2vw, 42px);
+    --cp-table-font-meta: clamp(15px, 1.6vw, 20px);
+    --cp-table-font-action: clamp(17px, 2vw, 24px);
 
     /* ── Layout sizing tokens ── */
     --cp-control-strip-h: 40px;
@@ -529,11 +529,60 @@
     z-index: 3;
   }
   .cp-board-stack {
-    width: min(42%, 420px);
+    width: min(52%, 500px);
     display: flex;
     flex-direction: column;
     gap: var(--cp-space-1);
     pointer-events: auto;
+  }
+  /* Branched board layout: common cards + fork for diverging run cards */
+  .cp-board-branched {
+    width: min(58%, 540px);
+    display: flex;
+    align-items: center;
+    gap: 0;
+    pointer-events: auto;
+  }
+  .cp-board-common {
+    display: flex;
+    align-items: center;
+    gap: var(--cp-space-1);
+    perspective: 1000px;
+    shrink: 0;
+  }
+  .cp-board-fork {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-left: 4px;
+    position: relative;
+  }
+  .cp-board-fork::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: calc(100% - 16px);
+    background: rgba(255, 255, 255, 0.15);
+  }
+  .cp-board-branch {
+    display: flex;
+    align-items: center;
+    gap: var(--cp-space-1);
+    padding-left: 8px;
+    position: relative;
+    perspective: 1000px;
+  }
+  .cp-board-branch::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 6px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.15);
   }
   .cp-board-row {
     display: flex;
@@ -544,11 +593,11 @@
     perspective: 1000px;
   }
   .cp-board-row--single {
-    width: min(38%, 420px);
+    width: min(48%, 500px);
   }
   .cp-board-slot {
     flex: 1 1 0%;
-    max-width: 56px;
+    max-width: 68px;
     min-width: 0;
     aspect-ratio: 5 / 7;
     border-radius: var(--cp-radius-sm);
@@ -586,17 +635,21 @@
     transform: translateX(-50%);
     pointer-events: none;
     z-index: 4;
+    /* Ensure chip animations can target this center accurately */
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
   .cp-pot-pill {
     position: relative;
     overflow: hidden;
-    min-width: 200px;
-    padding: 12px 16px;
-    border-radius: 16px;
-    border: 1px solid rgba(245, 200, 66, 0.2);
-    background: rgba(2, 6, 23, 0.72);
-    box-shadow: var(--cp-shadow-sm);
-    backdrop-filter: blur(8px);
+    min-width: 220px;
+    padding: 12px 20px;
+    border-radius: 14px;
+    border: 1px solid rgba(245, 200, 66, 0.25);
+    background: linear-gradient(160deg, rgba(2, 6, 23, 0.78), rgba(15, 23, 42, 0.72));
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(10px);
   }
   .cp-pot-pill--pulse {
     animation: cpPotPulse 320ms var(--cp-ease-out);
@@ -605,6 +658,7 @@
     content: "";
     position: absolute;
     inset: 0;
+    border-radius: inherit;
     background: linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.36) 50%, transparent 70%);
     animation: cpPotSheen 320ms var(--cp-ease-out);
     pointer-events: none;
@@ -615,7 +669,7 @@
     z-index: var(--cp-z-seats);
   }
   .cp-seat-empty-label {
-    font-size: clamp(10px, calc(10px * var(--cp-table-scale)), 13px);
+    font-size: clamp(14px, calc(14px * var(--cp-table-scale)), 18px);
     font-weight: var(--cp-font-medium);
     letter-spacing: 0.01em;
   }
@@ -635,53 +689,66 @@
     line-height: 1.2;
   }
   .cp-seat-name {
-    font-size: clamp(30px, calc(30px * var(--cp-table-scale)), 38px);
-    font-weight: var(--cp-font-semibold);
-    line-height: 1.2;
+    font-size: clamp(42px, calc(42px * var(--cp-table-scale)), 54px);
+    font-weight: var(--cp-font-bold);
+    line-height: 1.15;
   }
   .cp-seat-stack {
-    font-size: clamp(32px, calc(32px * var(--cp-table-scale)), 40px);
-    font-weight: var(--cp-font-bold);
-    line-height: 1.2;
+    font-size: clamp(48px, calc(48px * var(--cp-table-scale)), 60px);
+    font-weight: 800;
+    line-height: 1.15;
   }
   .cp-seat-status {
-    font-size: clamp(9px, calc(9px * var(--cp-table-scale)), 12px);
-    font-weight: var(--cp-font-semibold);
+    font-size: clamp(18px, calc(18px * var(--cp-table-scale)), 24px);
+    font-weight: var(--cp-font-bold);
     line-height: 1.15;
   }
   .cp-seat-equity {
-    font-size: clamp(9px, calc(9px * var(--cp-table-scale)), 12px);
+    font-size: clamp(18px, calc(18px * var(--cp-table-scale)), 24px);
     font-weight: var(--cp-font-bold);
     line-height: 1.15;
   }
   .cp-seat-hint {
-    font-size: clamp(8px, calc(8px * var(--cp-table-scale)), 11px);
+    font-size: clamp(14px, calc(14px * var(--cp-table-scale)), 18px);
     line-height: 1.2;
   }
+  .cp-timer-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+  }
+  .cp-timer-ring {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+  }
   .cp-seat-timer {
-    font-size: clamp(9px, calc(9px * var(--cp-table-scale)), 12px);
+    font-size: clamp(18px, calc(18px * var(--cp-table-scale)), 24px);
     font-weight: var(--cp-font-bold);
     line-height: 1.15;
   }
   .cp-seat-pending {
-    font-size: clamp(8px, calc(8px * var(--cp-table-scale)), 11px);
+    font-size: clamp(14px, calc(14px * var(--cp-table-scale)), 18px);
     line-height: 1.2;
   }
   .cp-seat-revealed {
-    font-size: clamp(9px, calc(9px * var(--cp-table-scale)), 12px);
+    font-size: clamp(18px, calc(18px * var(--cp-table-scale)), 24px);
     line-height: 1.2;
   }
   .cp-seat-mucked {
-    font-size: clamp(8px, calc(8px * var(--cp-table-scale)), 11px);
+    font-size: clamp(14px, calc(14px * var(--cp-table-scale)), 18px);
     line-height: 1.2;
   }
   .cp-seat-action {
-    font-size: clamp(10px, calc(10px * var(--cp-table-scale)), 13px);
+    font-size: clamp(18px, calc(18px * var(--cp-table-scale)), 24px);
     font-weight: var(--cp-font-bold);
     line-height: 1.2;
   }
   .cp-seat-action-label {
-    font-size: 0.72em;
+    font-size: 0.75em;
     letter-spacing: 0.05em;
   }
   .cp-poker-card {
@@ -694,7 +761,7 @@
     will-change: transform, opacity;
   }
   .cp-card-flip-in {
-    animation: cpCardFlipIn 240ms var(--cp-ease-out) both;
+    animation: cpCardFlipIn 280ms var(--cp-ease-out) both;
     transform-style: preserve-3d;
     backface-visibility: hidden;
     transform-origin: 50% 50%;
@@ -788,8 +855,11 @@
   }
   .cp-chip-flight--winner .cp-chip-label {
     border-color: rgba(245, 158, 11, 0.5);
-    background: rgba(245, 158, 11, 0.88);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.92), rgba(251, 191, 36, 0.88));
     color: #1f2937;
+    font-size: 11px;
+    padding: 2px 8px;
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
   }
   .cp-chip-ring {
     position: absolute;
@@ -802,15 +872,15 @@
     animation: cpChipPotRing 300ms ease-out 1;
   }
   .cp-chip-ring--winner {
-    inset: -12px;
-    border: 2px solid rgba(250, 204, 21, 0.65);
+    inset: -16px;
+    border: 2.5px solid rgba(250, 204, 21, 0.7);
     animation: cpChipWinnerRing 420ms ease-out 1;
   }
   .cp-chip-winner-spark {
     position: absolute;
-    inset: -15px;
+    inset: -20px;
     border-radius: 999px;
-    background: radial-gradient(circle, rgba(250, 204, 21, 0.32) 0%, rgba(250, 204, 21, 0) 65%);
+    background: radial-gradient(circle, rgba(250, 204, 21, 0.38) 0%, rgba(250, 204, 21, 0) 65%);
     pointer-events: none;
     animation: cpChipWinnerSpark 420ms ease-out 1;
   }
@@ -1320,10 +1390,13 @@
       padding: var(--cp-space-2);
     }
     .cp-board-row--single {
-      width: min(58%, 360px);
+      width: min(65%, 440px);
     }
     .cp-board-stack {
-      width: min(66%, 360px);
+      width: min(72%, 440px);
+    }
+    .cp-board-branched {
+      width: min(76%, 460px);
     }
     .cp-hero-inline {
       bottom: 4px;
@@ -1344,10 +1417,13 @@
       justify-content: space-between;
     }
     .cp-table-shell--portrait .cp-board-row--single {
-      width: min(48%, 320px);
+      width: min(56%, 400px);
     }
     .cp-table-shell--portrait .cp-board-stack {
-      width: min(54%, 340px);
+      width: min(62%, 420px);
+    }
+    .cp-table-shell--portrait .cp-board-branched {
+      width: min(68%, 440px);
     }
     .cp-table-shell--portrait .cp-pot-anchor {
       top: 36%;
@@ -1416,10 +1492,13 @@
     top: 28%;
   }
   .cp-table-layout--mobilePortrait .cp-board-row--single {
-    width: min(72%, 280px);
+    width: min(80%, 360px);
   }
   .cp-table-layout--mobilePortrait .cp-board-stack {
-    width: min(78%, 300px);
+    width: min(85%, 380px);
+  }
+  .cp-table-layout--mobilePortrait .cp-board-branched {
+    width: min(90%, 400px);
   }
 
   /* E: Table-scoped pot typography */
@@ -1478,16 +1557,50 @@
     .cp-chip-ring--winner,
     .cp-chip-winner-spark,
     .cp-chip-flight-body--arc,
-    .cp-seat-win-pop {
+    .cp-seat-win-pop,
+    .cp-result-label,
+    .cp-winner-banner,
+    .cp-delta-tag {
       animation: none !important;
       transform: none !important;
       opacity: 1 !important;
+    }
+    .cp-winner-banner {
+      transform: translateX(-50%) !important;
+    }
+    .cp-delta-tag {
+      transform: translateX(-50%) !important;
+    }
+    .cp-timer-ring circle {
+      transition: none !important;
+    }
+    .cp-card-winner-highlight {
+      animation: none !important;
+    }
+    .cp-action-btn--confirmed {
+      animation: none !important;
+    }
+    .cp-action-panel--your-turn {
+      animation: none !important;
+      box-shadow: 0 0 12px 2px rgba(245, 158, 11, 0.25);
     }
     .cp-gto-dock,
     .cp-gto-panel,
     .cp-coach-mobile-sheet {
       transition: none !important;
     }
+  }
+
+  /* ── Action confirmation flash ── */
+  .cp-action-btn--confirmed {
+    animation: cpActionConfirm 300ms ease-out;
+    pointer-events: none;
+  }
+
+  /* ── "Your Turn" entrance animation ── */
+  .cp-action-panel--your-turn {
+    animation: cpTurnEntrance 320ms var(--cp-ease-out) both;
+    box-shadow: 0 0 12px 2px rgba(245, 158, 11, 0.25);
   }
 
   /* Action bar composition */
@@ -1613,8 +1726,8 @@
     gap: var(--cp-space-1);
   }
   .cp-raise-preset {
-    min-height: 36px;
-    padding: 6px 12px;
+    min-height: var(--cp-touch-min);
+    padding: 8px 14px;
     border-radius: var(--cp-radius-sm);
     border: 1px solid var(--cp-border-default);
     background: rgba(148, 163, 184, 0.08);
@@ -2405,27 +2518,72 @@
 
   /* ── Seat Win Highlight ── */
   .cp-seat-win {
-    animation: cpWinGlow 1.5s ease-in-out;
+    animation: cpWinGlow 2s ease-in-out;
     border-color: var(--cp-gold) !important;
-    box-shadow: 0 0 16px 2px rgba(251, 191, 36, 0.3);
+    box-shadow: 0 0 20px 4px rgba(251, 191, 36, 0.35), inset 0 0 12px rgba(251, 191, 36, 0.08);
   }
   .cp-seat-win-pop {
     animation: cpSeatWinPop 760ms var(--cp-ease-out);
     border-color: rgba(250, 204, 21, 0.7) !important;
-    box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.55), 0 0 24px rgba(250, 204, 21, 0.48);
+    box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.55), 0 0 32px rgba(250, 204, 21, 0.5);
+  }
+  /* ── Winner Card Highlight ── */
+  .cp-card-winner-highlight {
+    border: 2px solid rgba(251, 191, 36, 0.7) !important;
+    box-shadow: 0 0 10px 2px rgba(251, 191, 36, 0.3),
+                inset 0 0 6px rgba(251, 191, 36, 0.1);
+    animation: cpWinCardPulse 1.5s ease-in-out 2;
   }
 
-  /* ── Stack Delta Tag ── */
+  /* ── Seat Lose Highlight ── */
+  .cp-seat-lose {
+    opacity: 0.55;
+    filter: saturate(0.4) brightness(0.75);
+    border-color: rgba(239, 68, 68, 0.35) !important;
+    transition: opacity 0.5s ease, filter 0.5s ease;
+  }
+
+  /* ── Winner / Loser label under seat ── */
+  .cp-result-label {
+    position: absolute;
+    bottom: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 36;
+    padding: 2px 10px;
+    border-radius: var(--cp-radius-full);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    pointer-events: none;
+    animation: cpDeltaPopIn 0.45s var(--cp-ease-out) both;
+    animation-delay: 0.15s;
+  }
+  .cp-result-label--winner {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.25), rgba(245, 158, 11, 0.2));
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.4);
+    text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+  }
+  .cp-result-label--loser {
+    background: rgba(239, 68, 68, 0.12);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+  }
+
+  /* ── Stack Delta Tag (enhanced) ── */
   .cp-delta-tag {
     position: absolute;
-    top: -14px;
+    top: -20px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 35;
-    padding: 1px 8px;
+    padding: 3px 12px;
     border-radius: var(--cp-radius-full);
-    font-size: var(--cp-text-2xs);
-    font-weight: var(--cp-font-extrabold);
+    font-size: 13px;
+    font-weight: 800;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
     pointer-events: none;
@@ -2433,19 +2591,69 @@
     will-change: transform, opacity;
   }
   .cp-delta-tag--positive {
-    background: rgba(34, 197, 94, 0.2);
-    color: var(--cp-success);
-    border: 1px solid rgba(34, 197, 94, 0.3);
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(16, 185, 129, 0.2));
+    color: #4ade80;
+    border: 1px solid rgba(34, 197, 94, 0.45);
+    text-shadow: 0 0 6px rgba(34, 197, 94, 0.3);
   }
   .cp-delta-tag--negative {
-    background: rgba(239, 68, 68, 0.15);
-    color: var(--cp-danger);
-    border: 1px solid rgba(239, 68, 68, 0.25);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.15));
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    text-shadow: 0 0 6px rgba(239, 68, 68, 0.2);
   }
   .cp-delta-tag--zero {
     background: rgba(148, 163, 184, 0.1);
     color: var(--cp-text-muted);
     border: 1px solid rgba(148, 163, 184, 0.15);
+  }
+
+  /* ── Center Winner Banner ── */
+  .cp-winner-banner {
+    position: absolute;
+    top: 18%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 38;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 24px 10px;
+    border-radius: 16px;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(245, 158, 11, 0.08), rgba(0, 0, 0, 0.7));
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 32px rgba(251, 191, 36, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+    animation: cpBannerIn 0.5s var(--cp-ease-out) both;
+    white-space: nowrap;
+  }
+  .cp-winner-banner-title {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #fbbf24;
+    text-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+  }
+  .cp-winner-banner-name {
+    font-size: 16px;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  }
+  .cp-winner-banner-detail {
+    font-size: 11px;
+    font-weight: 600;
+    color: #fcd34d;
+    letter-spacing: 0.02em;
+  }
+  .cp-winner-banner-hand {
+    font-size: 10px;
+    font-weight: 600;
+    color: #94a3b8;
+    letter-spacing: 0.03em;
   }
 
   /* ── Hand-end linger pill (skip hint) ── */
@@ -2527,7 +2735,7 @@
   .cp-table-layout .cp-table-info-strip { font-size: var(--cp-table-font-meta); }
   .cp-table-layout .cp-action-shell,
   .cp-table-layout .cp-btn { font-size: var(--cp-table-font-action); }
-  .cp-table-layout .cp-seat-status { font-size: clamp(10px, 1.1vw, 13px); }
+  .cp-table-layout .cp-seat-status { font-size: clamp(18px, 1.8vw, 24px); }
 
   /* ── Mobile Portrait Table Layout ─────────────────────────────────────────
      isMobilePortrait = (max-width: 768px) AND (orientation: portrait) AND
@@ -2670,12 +2878,12 @@
       padding: 2px;
     }
     .cp-table-layout--mobilePortrait .cp-action-btn {
-      min-height: 32px;
-      padding-inline: 8px;
+      min-height: 40px;
+      padding-inline: 10px;
     }
     .cp-table-layout--mobilePortrait .cp-action-meta-btn {
-      min-height: 28px;
-      padding-inline: 6px;
+      min-height: 36px;
+      padding-inline: 8px;
     }
     .cp-table-layout--mobilePortrait .cp-action-utility {
       margin-top: 1px;
@@ -2711,10 +2919,13 @@
 
     /* Board cards: slightly wider on portrait to use available width */
     .cp-table-layout--mobilePortrait .cp-board-row--single {
-      width: min(52%, 340px);
+      width: min(62%, 400px);
     }
     .cp-table-layout--mobilePortrait .cp-board-stack {
-      width: min(60%, 350px);
+      width: min(68%, 420px);
+    }
+    .cp-table-layout--mobilePortrait .cp-board-branched {
+      width: min(74%, 440px);
     }
     .cp-table-layout--mobilePortrait .cp-pot-anchor {
       top: 34%;
@@ -2771,8 +2982,13 @@
 }
 @keyframes cpWinGlow {
   0% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.5); }
-  50% { box-shadow: 0 0 24px 4px rgba(251, 191, 36, 0.35); }
-  100% { box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); }
+  30% { box-shadow: 0 0 28px 6px rgba(251, 191, 36, 0.4); }
+  60% { box-shadow: 0 0 20px 3px rgba(251, 191, 36, 0.25); }
+  100% { box-shadow: 0 0 16px 2px rgba(251, 191, 36, 0.15); }
+}
+@keyframes cpBannerIn {
+  0% { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.92); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
 }
 @keyframes cpDeltaPopIn {
   0% { opacity: 0; transform: translateY(6px) scale(0.85); }
@@ -2781,6 +2997,20 @@
 @keyframes cpDeltaFadeOut {
   0% { opacity: 1; transform: translateY(0); }
   100% { opacity: 0; transform: translateY(-8px); }
+}
+@keyframes cpWinCardPulse {
+  0%, 100% { box-shadow: 0 0 10px 2px rgba(251, 191, 36, 0.3); }
+  50% { box-shadow: 0 0 16px 4px rgba(251, 191, 36, 0.5); }
+}
+@keyframes cpActionConfirm {
+  0% { box-shadow: inset 0 0 0 0 rgba(255,255,255,0.5); }
+  40% { box-shadow: inset 0 0 30px 4px rgba(255,255,255,0.3); }
+  100% { box-shadow: inset 0 0 0 0 rgba(255,255,255,0); }
+}
+@keyframes cpTurnEntrance {
+  0% { opacity: 0; transform: translateY(12px) scale(0.97); }
+  60% { opacity: 1; transform: translateY(-2px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 @keyframes cpCardDealIn {
   from {
@@ -2801,9 +3031,12 @@
     opacity: 0;
     transform: rotateY(-90deg) scale(0.94);
   }
-  65% {
+  60% {
     opacity: 1;
-    transform: rotateY(10deg) scale(1.02);
+    transform: rotateY(8deg) scale(1.03);
+  }
+  82% {
+    transform: rotateY(-2deg) scale(1);
   }
   100% {
     opacity: 1;

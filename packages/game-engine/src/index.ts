@@ -86,6 +86,7 @@ export class GameTable {
   private doubleBoardPayouts: RunoutPayout[] | null = null;
   private pendingBlindLevel: { smallBlind: number; bigBlind: number; ante: number } | null = null;
   private consecutiveTimeouts = new Map<number, number>();
+  private maxConsecutiveTimeouts: number;
   private allInRunCount: 1 | 2 | 3 = 1;
   private runoutPending = false;
   private collectedFee = 0;
@@ -110,6 +111,7 @@ export class GameTable {
     rakeEnabled?: boolean;
     rakePercent?: number;
     rakeCap?: number;
+    maxConsecutiveTimeouts?: number;
   }) {
     this.ante = Math.max(0, params.ante ?? 0);
     this.runItTwiceEnabled = params.runItTwiceEnabled ?? false;
@@ -124,6 +126,7 @@ export class GameTable {
     this.holeCardCount = this.gameType === "omaha" ? 4 : 2;
     this.rakePercent = Math.max(0, params.rakePercent ?? 0);
     this.rakeEnabled = params.rakeEnabled ?? this.rakePercent > 0;
+    this.maxConsecutiveTimeouts = Math.max(1, params.maxConsecutiveTimeouts ?? 3);
     // rakeCap<=0 means uncapped rake
     this.rakeCap = params.rakeCap != null && params.rakeCap > 0
       ? params.rakeCap
@@ -874,6 +877,11 @@ export class GameTable {
     player.status = status;
   }
 
+  /** Reset consecutive timeout counter for a seat (called when player comes back). */
+  resetConsecutiveTimeouts(seat: number): void {
+    this.consecutiveTimeouts.set(seat, 0);
+  }
+
   /** Post a dead blind to allow a new player to enter the game immediately.
    *  Policy: dead blind is forced and non-live. It is added to the next hand's pot,
    *  does NOT count toward streetCommitted, and does NOT grant blind option rights. */
@@ -1108,8 +1116,8 @@ export class GameTable {
 
   private isSolverHandBetter(candidate: { descr: string; rank: number }, current: { descr: string; rank: number }): boolean {
     const winners = Hand.winners([candidate, current]);
-    const candidateWins = winners.some((winner) => winner.descr === candidate.descr && winner.rank === candidate.rank);
-    const currentWins = winners.some((winner) => winner.descr === current.descr && winner.rank === current.rank);
+    const candidateWins = winners.some((w) => w === candidate);
+    const currentWins = winners.some((w) => w === current);
     return candidateWins && !currentWins;
   }
 
@@ -1121,7 +1129,7 @@ export class GameTable {
     if (eligible.length === 0) return [];
     const winners = Hand.winners(eligible.map((s) => s.hand));
     return eligible
-      .filter((s) => winners.some((w: { descr: string; rank: number }) => w.descr === s.hand.descr && w.rank === s.hand.rank))
+      .filter((s) => winners.some((w) => w === s.hand))
       .map((s) => s.seat);
   }
 
@@ -1752,7 +1760,7 @@ export class GameTable {
   }
 
   private applyTimeoutSitOutIfNeeded(seat: number, timeoutCount: number): boolean {
-    if (timeoutCount < 2) return false;
+    if (timeoutCount < this.maxConsecutiveTimeouts) return false;
     const player = this.playerBySeat(seat);
     player.status = "sitting_out";
     return true;

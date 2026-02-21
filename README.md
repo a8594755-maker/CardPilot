@@ -44,7 +44,13 @@ npm run typecheck
 npm run test
 npm run build:web
 npm run build:server
+npm run env:doctor
 npm run ci:verify
+```
+
+Deployment health check example:
+```bash
+npm run env:doctor -- --server-url https://your-railway-app.up.railway.app
 ```
 
 ## Supabase Auth Setup (Google OAuth)
@@ -73,8 +79,10 @@ To enable Google sign-in you need a Supabase project with the Google provider co
    - Server: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 
 When Supabase is not configured (env vars unset), the Google button is hidden and the app falls back to guest/local mode.
-If only part of the server Supabase env is set, the server now disables Supabase and falls back to guest/local mode with a warning.
-Set `SUPABASE_STRICT_ENV=true` to fail fast on partial Supabase config.
+If only part of the server Supabase env is set, startup behavior depends on environment:
+- `NODE_ENV=production`: fails fast by default.
+- non-production: falls back to guest/local mode with a warning.
+Set `SUPABASE_STRICT_ENV=false` only if you intentionally want fallback in production.
 
 ### Auth Regression Checklist (Refresh + Signup)
 

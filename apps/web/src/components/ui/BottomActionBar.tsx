@@ -1,8 +1,9 @@
-﻿import { useState, useEffect, useMemo, useCallback } from "react";
+﻿import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import type { AdvicePayload, LegalActions } from "@cardpilot/shared-types";
 import { getSuggestedPresets, userPresetsToButtons } from "../../lib/bet-sizing.js";
 import type { DerivedActionBar, DerivedPreActionUI, PreAction, PreActionType } from "../../lib/action-derivations";
 import { formatChips } from "../../lib/format-chips";
+import { haptic } from "../../lib/haptic";
 
 interface BottomActionBarProps {
   canAct: boolean;
@@ -124,17 +125,35 @@ export function BottomActionBar({
   const [showRaiseSheet, setShowRaiseSheet] = useState(false);
   const [allInConfirm, setAllInConfirm] = useState(false);
   const [showUtilityMenu, setShowUtilityMenu] = useState(false);
+  const [confirmedAction, setConfirmedAction] = useState<string | null>(null);
 
   const min = legal?.minRaise ?? bigBlind * 2;
   const max = legal?.maxRaise ?? 10000;
   const callAmt = legal?.callAmount ?? 0;
   const bb = bigBlind || 1;
 
+  // Haptic feedback when it becomes your turn
+  const prevIsMyTurn = useRef(isMyTurn);
+  useEffect(() => {
+    if (isMyTurn && !prevIsMyTurn.current) {
+      haptic("turn");
+    }
+    prevIsMyTurn.current = isMyTurn;
+  }, [isMyTurn]);
+
+  const confirmAndAct = useCallback((action: "fold" | "check" | "call" | "raise" | "all_in", amount?: number) => {
+    setConfirmedAction(action);
+    haptic("action");
+    onAction(action, amount);
+    setTimeout(() => setConfirmedAction(null), 350);
+  }, [onAction]);
+
   useEffect(() => {
     if (!canAct) {
       setAllInConfirm(false);
       setShowRaiseSheet(false);
       setShowUtilityMenu(false);
+      setConfirmedAction(null);
     }
   }, [canAct]);
 
@@ -186,7 +205,7 @@ export function BottomActionBar({
   }, [fmtChips]);
 
   const handleRaiseConfirm = () => {
-    onAction("raise", raiseTo);
+    confirmAndAct("raise", raiseTo);
     setShowRaiseSheet(false);
     setShowUtilityMenu(false);
   };
@@ -293,7 +312,7 @@ export function BottomActionBar({
           </div>
         )}
 
-        <div className={`cp-action-panel ${actionPending ? "opacity-50 pointer-events-none" : ""}`}>
+        <div className={`cp-action-panel ${isMyTurn && canAct ? "cp-action-panel--your-turn" : ""} ${actionPending ? "opacity-50 pointer-events-none" : ""}`}>
           {actionPending && canAct && (
             <div className="flex items-center justify-center gap-2 mb-1.5">
               <span className="text-[11px] text-amber-400 animate-pulse font-medium">Processing...</span>
@@ -335,11 +354,11 @@ export function BottomActionBar({
                     key={a.type}
                     disabled={!canAct || actionPending || !a.enabled}
                     onClick={() => {
-                      onAction("check");
+                      confirmAndAct("check");
                       setShowRaiseSheet(false);
                       setShowUtilityMenu(false);
                     }}
-                    className="cp-btn cp-btn-check cp-action-btn"
+                    className={`cp-btn cp-btn-check cp-action-btn ${confirmedAction === "check" ? "cp-action-btn--confirmed" : ""}`}
                     aria-label={checkLabel}
                     data-hotkey={checkHotkey ?? undefined}
                     aria-keyshortcuts={getAriaShortcut(checkHotkey)}
@@ -362,11 +381,11 @@ export function BottomActionBar({
                     key={a.type}
                     disabled={!canAct || actionPending || !a.enabled}
                     onClick={() => {
-                      onAction("call");
+                      confirmAndAct("call");
                       setShowRaiseSheet(false);
                       setShowUtilityMenu(false);
                     }}
-                    className="cp-btn cp-btn-call cp-action-btn"
+                    className={`cp-btn cp-btn-call cp-action-btn ${confirmedAction === "call" ? "cp-action-btn--confirmed" : ""}`}
                     aria-label={callAmountLabel ? `${callLabel} ${callAmountLabel}` : callLabel}
                     data-hotkey={callHotkey ?? undefined}
                     aria-keyshortcuts={getAriaShortcut(callHotkey)}
@@ -433,7 +452,7 @@ export function BottomActionBar({
                     <button
                       disabled={!canAct || actionPending || !a.enabled}
                       onClick={() => {
-                        onAction("all_in");
+                        confirmAndAct("all_in");
                         setAllInConfirm(false);
                         setShowRaiseSheet(false);
                         setShowUtilityMenu(false);

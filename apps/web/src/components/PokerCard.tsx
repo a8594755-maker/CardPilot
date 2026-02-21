@@ -57,28 +57,28 @@ interface VariantConfig {
 
 const VARIANT_CONFIG: Record<PokerCardVariant, VariantConfig> = {
   mini: {
-    card: "w-[24px] h-[34px] rounded-[4px]",
-    rank: "text-[9px]",
-    cornerSuit: "text-[8px]",
-    centerSuit: "text-[10px]",
-    cornerGap: "gap-0",
-    backInner: "w-3.5 h-5",
-  },
-  seat: {
-    card: "w-10 h-[56px] rounded-[7px]",
+    card: "w-[38px] h-[54px] rounded-[5px]",
     rank: "text-[13px]",
     cornerSuit: "text-[11px]",
-    centerSuit: "text-base",
-    cornerGap: "gap-0.5",
-    backInner: "w-6 h-9",
+    centerSuit: "text-[14px]",
+    cornerGap: "gap-0",
+    backInner: "w-5 h-8",
   },
-  table: {
-    card: "w-12 h-[70px] rounded-[8px]",
+  seat: {
+    card: "w-12 h-[68px] rounded-[7px]",
     rank: "text-[15px]",
-    cornerSuit: "text-xs",
+    cornerSuit: "text-[13px]",
     centerSuit: "text-lg",
     cornerGap: "gap-0.5",
     backInner: "w-7 h-10",
+  },
+  table: {
+    card: "w-14 h-[84px] rounded-[8px]",
+    rank: "text-[18px]",
+    cornerSuit: "text-sm",
+    centerSuit: "text-xl",
+    cornerGap: "gap-0.5",
+    backInner: "w-8 h-12",
   },
   modal: {
     card: "w-24 h-36 rounded-2xl",

@@ -145,19 +145,43 @@ export async function grantChips(
     return { success: false, message: "Amount must be non-zero" };
   }
 
-  // Note: In the full V2 schema, balance is not tracked on club_members.
-  // This is a stub for V1 spec compliance. The actual DB update would use:
-  //   UPDATE club_members SET balance = balance + amount WHERE club_id = ? AND user_id = ?
-  // and INSERT into club_ledger.
+  try {
+    const tx = await repo.appendWalletTx({
+      clubId,
+      userId: targetId,
+      type: "admin_grant",
+      amount: Math.trunc(amount),
+      currency: "chips",
+      createdBy: adminId,
+      note: `Admin grant by ${adminId}`,
+      metaJson: { grantedBy: adminId },
+    });
 
-  logInfo({
-    event: "club.grant_chips",
-    message: `Admin ${adminId} granted ${amount} chips to ${targetId} in club ${clubId}`,
-  });
+    if (!tx) {
+      return { success: false, message: "Club wallet repository is not enabled" };
+    }
 
-  return {
-    success: true,
-    newBalance: amount, // placeholder — real implementation reads from DB
-    message: `Granted ${amount} chips`,
-  };
+    clubManager.setMemberBalance(clubId, targetId, tx.newBalance);
+
+    logInfo({
+      event: "club.grant_chips",
+      message: `Admin ${adminId} granted ${Math.trunc(amount)} chips to ${targetId} in club ${clubId}`,
+    });
+
+    return {
+      success: true,
+      newBalance: tx.newBalance,
+      message: `Granted ${Math.trunc(amount)} chips`,
+    };
+  } catch (error) {
+    const message = (error as Error).message;
+    logWarn({
+      event: "club.grant_chips.failed",
+      message,
+      clubId,
+      adminId,
+      targetId,
+    });
+    return { success: false, message: `Grant failed: ${message}` };
+  }
 }

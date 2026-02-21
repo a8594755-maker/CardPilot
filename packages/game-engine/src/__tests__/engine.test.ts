@@ -486,6 +486,187 @@ describe("Positions", () => {
   });
 });
 
+// ────────── Timeout handling ──────────
+
+describe("Timeout handling", () => {
+  it("should auto-check (not fold) when player can check on timeout", () => {
+    const t = makeTable(50, 100);
+    t.startHand();
+    let s = t.getPublicState();
+
+    // HU preflop: SB/button acts first. Call to go to BB.
+    t.applyAction(s.actorSeat!, "call");
+    s = t.getPublicState();
+    // BB can check here (no raise to face)
+    const bbSeat = s.actorSeat!;
+    assert.ok(s.legalActions?.canCheck, "BB should be able to check");
+
+    // Simulate timeout — should check, not fold
+    const { action, state: resultState } = t.handleTimeout(bbSeat);
+    assert.equal(action, "check", "timeout should auto-check when check is available");
+    assert.equal(resultState.street, "FLOP", "hand should advance to flop after check");
+  });
+
+  it("should auto-fold when player faces a bet on timeout", () => {
+    const t = make6Max(50, 100);
+    t.startHand();
+    let s = t.getPublicState();
+
+    // UTG faces BB bet (100) and cannot check
+    const utg = s.actorSeat!;
+    assert.ok(!s.legalActions?.canCheck, "UTG should not be able to check");
+    assert.ok(s.legalActions?.canCall, "UTG should be able to call");
+
+    // Simulate timeout — should fold
+    const { action } = t.handleTimeout(utg);
+    assert.equal(action, "fold", "timeout should auto-fold when facing a bet");
+  });
+
+  it("should auto-check on flop when no bet has been made", () => {
+    const t = makeTable(50, 100);
+    t.startHand();
+    let s = t.getPublicState();
+
+    // Advance to flop: SB calls, BB checks
+    t.applyAction(s.actorSeat!, "call");
+    s = t.getPublicState();
+    t.applyAction(s.actorSeat!, "check");
+    s = t.getPublicState();
+    assert.equal(s.street, "FLOP");
+
+    // First actor on flop can check
+    const flopActor = s.actorSeat!;
+    assert.ok(s.legalActions?.canCheck, "flop actor should be able to check");
+
+    const { action } = t.handleTimeout(flopActor);
+    assert.equal(action, "check", "timeout on flop with no bet should auto-check");
+  });
+
+  it("should track consecutive timeouts and auto-sit-out after 2", () => {
+    const t = new GameTable({ tableId: "test", smallBlind: 50, bigBlind: 100, maxConsecutiveTimeouts: 2 });
+    t.addPlayer({ seat: 1, userId: "u1", name: "Alice", stack: 10000 });
+    t.addPlayer({ seat: 2, userId: "u2", name: "Bob", stack: 10000 });
+    t.startHand();
+    let s = t.getPublicState();
+
+    // First timeout
+    const actor1 = s.actorSeat!;
+    const { autoSatOut: satOut1 } = t.handleTimeout(actor1);
+    assert.equal(satOut1, false, "first timeout should NOT auto-sit-out");
+
+    // Need to complete the hand and start a new one
+    s = t.getPublicState();
+    if (s.actorSeat !== null) {
+      t.applyAction(s.actorSeat, "fold");
+    }
+    t.clearHand();
+
+    // Start a new hand
+    t.startHand();
+    s = t.getPublicState();
+    const actor2 = s.actorSeat!;
+    // Same seat as before should get a second consecutive timeout
+    if (actor2 === actor1) {
+      const { autoSatOut: satOut2 } = t.handleTimeout(actor2);
+      assert.equal(satOut2, true, "second consecutive timeout should auto-sit-out");
+      const player = t.getPublicState().players.find(p => p.seat === actor2);
+      assert.equal(player?.status, "sitting_out", "player should be sitting_out after 2 timeouts");
+    }
+  });
+
+  it("should reset consecutive timeout counter when player acts voluntarily", () => {
+    const t = make6Max(50, 100);
+    t.startHand();
+    let s = t.getPublicState();
+
+    // First actor times out
+    const firstActor = s.actorSeat!;
+    t.handleTimeout(firstActor);
+
+    // Complete the hand
+    for (let i = 0; i < 20; i++) {
+      s = t.getPublicState();
+      if (!s.handId || s.actorSeat === null) break;
+      if (t.isRunoutPending()) break;
+      const la = s.legalActions;
+      if (!la) break;
+      if (la.canCheck) t.applyAction(s.actorSeat, "check");
+      else if (la.canCall) t.applyAction(s.actorSeat, "call");
+      else t.applyAction(s.actorSeat, "fold");
+    }
+    if (t.isRunoutPending()) t.performRunout();
+    s = t.getPublicState();
+    if (s.showdownPhase === "decision") {
+      t.finalizeShowdownReveals({ autoMuckLosingHands: true });
+    }
+    t.clearHand();
+
+    // Start new hand and the same seat acts voluntarily
+    const eligible = t.getPublicState().players.filter(p => p.stack > 0 && p.status === 'active');
+    if (eligible.length >= 2) {
+      t.startHand();
+      s = t.getPublicState();
+      if (s.actorSeat === firstActor) {
+        // Voluntary action resets the counter
+        if (s.legalActions?.canCall) t.applyAction(firstActor, "call");
+        else if (s.legalActions?.canCheck) t.applyAction(firstActor, "check");
+      }
+
+      // Complete this hand
+      for (let i = 0; i < 20; i++) {
+        s = t.getPublicState();
+        if (!s.handId || s.actorSeat === null) break;
+        if (t.isRunoutPending()) break;
+        const la = s.legalActions;
+        if (!la) break;
+        if (la.canCheck) t.applyAction(s.actorSeat, "check");
+        else if (la.canCall) t.applyAction(s.actorSeat, "call");
+        else t.applyAction(s.actorSeat, "fold");
+      }
+      if (t.isRunoutPending()) t.performRunout();
+      s = t.getPublicState();
+      if (s.showdownPhase === "decision") {
+        t.finalizeShowdownReveals({ autoMuckLosingHands: true });
+      }
+      t.clearHand();
+
+      // Now a timeout should NOT trigger auto-sit-out (counter was reset by voluntary action)
+      if (t.getPublicState().players.filter(p => p.stack > 0 && p.status === 'active').length >= 2) {
+        t.startHand();
+        s = t.getPublicState();
+        if (s.actorSeat === firstActor) {
+          const { autoSatOut } = t.handleTimeout(firstActor);
+          assert.equal(autoSatOut, false,
+            "timeout after voluntary action should NOT auto-sit-out (counter reset)");
+        }
+      }
+    }
+  });
+
+  it("should preserve chip conservation through timeout actions", () => {
+    const t = makeTable(50, 100);
+    const initialTotal = 20000;
+    t.startHand();
+    let s = t.getPublicState();
+
+    // Use timeout for all actions in the hand
+    for (let i = 0; i < 40; i++) {
+      s = t.getPublicState();
+      if (!s.handId || s.actorSeat === null) break;
+      if (t.isRunoutPending()) break;
+      t.handleTimeout(s.actorSeat);
+    }
+    if (t.isRunoutPending()) t.performRunout();
+    s = t.getPublicState();
+    if (s.showdownPhase === "decision") {
+      t.finalizeShowdownReveals({ autoMuckLosingHands: true });
+    }
+
+    const totalStacks = s.players.reduce((sum, p) => sum + p.stack, 0);
+    assert.equal(totalStacks, initialTotal, "chip conservation must hold with all-timeout hand");
+  });
+});
+
 // ────────── Mode ──────────
 
 describe("Mode", () => {

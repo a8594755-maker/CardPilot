@@ -161,22 +161,74 @@ export const HandSummaryDrawer = memo(function HandSummaryDrawer({
             <h4 className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1.5">
               Board{settlement.runCount > 1 ? "s" : ""}
             </h4>
-            {settlement.boards.map((board, idx) => (
-              <div key={idx} className="flex items-center gap-1 mb-1">
-                {settlement.runCount > 1 && (
-                  <span className={`text-[9px] font-bold uppercase w-10 shrink-0 ${
-                    idx === 0 ? "text-cyan-400" : idx === 1 ? "text-amber-400" : "text-emerald-400"
-                  }`}>
-                    Run {idx + 1}
-                  </span>
-                )}
-                <div className="flex gap-1">
-                  {board.map((c, i) => (
-                    <PokerCard key={i} card={c} variant="mini" />
-                  ))}
+            {settlement.runCount > 1 && settlement.boards.length > 1 ? (() => {
+              // Compute common prefix
+              const boards = settlement.boards;
+              let commonLen = 0;
+              const minLen = Math.min(...boards.map((b) => b.length));
+              for (let i = 0; i < minLen; i++) {
+                if (boards.every((b) => b[i] === boards[0][i])) commonLen = i + 1;
+                else break;
+              }
+              const commonCards = boards[0].slice(0, commonLen);
+              const RUN_COLORS = ["text-cyan-400", "text-amber-400", "text-emerald-400"];
+              const RUN_BG = ["bg-cyan-500/10 border-cyan-500/20", "bg-amber-500/10 border-amber-500/20", "bg-emerald-500/10 border-emerald-500/20"];
+              return (
+                <div className="space-y-1.5">
+                  {/* Common cards */}
+                  {commonCards.length > 0 && (
+                    <div className="flex gap-0.5">
+                      {commonCards.map((c, i) => (
+                        <PokerCard key={i} card={c} variant="mini" />
+                      ))}
+                    </div>
+                  )}
+                  {/* Per-run boards with winners */}
+                  {boards.map((board, idx) => {
+                    const unique = board.slice(commonLen);
+                    const displayCards = commonLen === 0 ? board : unique;
+                    const runWinners = settlement.winnersByRun.find((r) => r.run === idx + 1)?.winners ?? [];
+                    return (
+                      <div key={idx} className={`rounded-md border px-2 py-1.5 ${RUN_BG[idx] ?? RUN_BG[0]}`}>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`text-[9px] font-bold uppercase shrink-0 ${RUN_COLORS[idx] ?? RUN_COLORS[0]}`}>
+                            R{idx + 1}
+                          </span>
+                          <div className="flex gap-0.5">
+                            {displayCards.map((c, i) => (
+                              <PokerCard key={i} card={c} variant="mini" />
+                            ))}
+                          </div>
+                        </div>
+                        {runWinners.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                            {runWinners.map((w, wi) => (
+                              <span key={wi} className="text-[9px] flex items-center gap-1">
+                                <span className="text-slate-300">{playerName(w.seat)}</span>
+                                <span className="text-emerald-400 font-bold">+{w.amount.toLocaleString()}</span>
+                                {(w.handName || winnerHandNames?.[w.seat]) && (
+                                  <span className="text-slate-500">({w.handName || winnerHandNames?.[w.seat]})</span>
+                                )}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
-            ))}
+              );
+            })() : (
+              settlement.boards.map((board, idx) => (
+                <div key={idx} className="flex items-center gap-1 mb-1">
+                  <div className="flex gap-1">
+                    {board.map((c, i) => (
+                      <PokerCard key={i} card={c} variant="mini" />
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
           {/* Payout Ledger */}

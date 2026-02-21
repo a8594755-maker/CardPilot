@@ -190,10 +190,11 @@ create policy clubs_select on public.clubs
   );
 
 -- Service role writes
-drop policy if exists clubs_write_service on public.clubs;
-create policy clubs_write_service on public.clubs
-  for all using (auth.role() = 'service_role')
-  with check (auth.role() = 'service_role');
+drop policy if exists clubs_service_role_all on public.clubs;
+create policy clubs_service_role_all on public.clubs
+  for all to service_role
+  using (true)
+  with check (true);
 
 -- ── club_members ──
 drop policy if exists club_members_select on public.club_members;
@@ -204,10 +205,11 @@ create policy club_members_select on public.club_members
     or public.is_club_member(club_id)
   );
 
-drop policy if exists club_members_write_service on public.club_members;
-create policy club_members_write_service on public.club_members
-  for all using (auth.role() = 'service_role')
-  with check (auth.role() = 'service_role');
+drop policy if exists club_members_service_role_all on public.club_members;
+create policy club_members_service_role_all on public.club_members
+  for all to service_role
+  using (true)
+  with check (true);
 
 -- ── club_invites ──
 drop policy if exists club_invites_select on public.club_invites;
@@ -215,10 +217,11 @@ create policy club_invites_select on public.club_invites
   for select to authenticated
   using (public.is_club_member(club_id));
 
-drop policy if exists club_invites_write_service on public.club_invites;
-create policy club_invites_write_service on public.club_invites
-  for all using (auth.role() = 'service_role')
-  with check (auth.role() = 'service_role');
+drop policy if exists club_invites_service_role_all on public.club_invites;
+create policy club_invites_service_role_all on public.club_invites
+  for all to service_role
+  using (true)
+  with check (true);
 
 -- ── club_bans ──
 drop policy if exists club_bans_select on public.club_bans;
@@ -226,10 +229,11 @@ create policy club_bans_select on public.club_bans
   for select to authenticated
   using (public.is_club_mod(club_id));
 
-drop policy if exists club_bans_write_service on public.club_bans;
-create policy club_bans_write_service on public.club_bans
-  for all using (auth.role() = 'service_role')
-  with check (auth.role() = 'service_role');
+drop policy if exists club_bans_service_role_all on public.club_bans;
+create policy club_bans_service_role_all on public.club_bans
+  for all to service_role
+  using (true)
+  with check (true);
 
 -- ── club_rulesets ──
 drop policy if exists club_rulesets_select on public.club_rulesets;
@@ -237,10 +241,11 @@ create policy club_rulesets_select on public.club_rulesets
   for select to authenticated
   using (public.is_club_member(club_id));
 
-drop policy if exists club_rulesets_write_service on public.club_rulesets;
-create policy club_rulesets_write_service on public.club_rulesets
-  for all using (auth.role() = 'service_role')
-  with check (auth.role() = 'service_role');
+drop policy if exists club_rulesets_service_role_all on public.club_rulesets;
+create policy club_rulesets_service_role_all on public.club_rulesets
+  for all to service_role
+  using (true)
+  with check (true);
 
 -- ── club_tables ──
 drop policy if exists club_tables_select on public.club_tables;
@@ -248,10 +253,11 @@ create policy club_tables_select on public.club_tables
   for select to authenticated
   using (public.is_club_member(club_id));
 
-drop policy if exists club_tables_write_service on public.club_tables;
-create policy club_tables_write_service on public.club_tables
-  for all using (auth.role() = 'service_role')
-  with check (auth.role() = 'service_role');
+drop policy if exists club_tables_service_role_all on public.club_tables;
+create policy club_tables_service_role_all on public.club_tables
+  for all to service_role
+  using (true)
+  with check (true);
 
 -- ── club_audit_log ──
 drop policy if exists club_audit_log_select on public.club_audit_log;
@@ -259,7 +265,8 @@ create policy club_audit_log_select on public.club_audit_log
   for select to authenticated
   using (public.is_club_mod(club_id));
 
-drop policy if exists club_audit_log_write_service on public.club_audit_log;
-create policy club_audit_log_write_service on public.club_audit_log
-  for all using (auth.role() = 'service_role')
-  with check (auth.role() = 'service_role');
+drop policy if exists club_audit_log_service_role_all on public.club_audit_log;
+create policy club_audit_log_service_role_all on public.club_audit_log
+  for all to service_role
+  using (true)
+  with check (true);

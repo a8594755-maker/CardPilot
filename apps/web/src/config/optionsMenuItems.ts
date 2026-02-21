@@ -10,10 +10,21 @@
 
 export type SettingsTab = "game" | "players" | "preferences";
 
+export type MenuGroup = "player" | "display" | "host" | "tools" | "nav";
+
+export const GROUP_LABELS: Record<MenuGroup, string> = {
+  player: "Player",
+  display: "Display",
+  host: "Host Controls",
+  tools: "Tools",
+  nav: "",
+};
+
 export interface OptionsMenuItem {
   id: string;
   label: string;
   icon: string;
+  group: MenuGroup;
   /** If true, item is disabled (with "Host only" label) for non-host/co-host users */
   requiresHost: boolean;
   /** If true, item is disabled when user is not seated */
@@ -31,11 +42,12 @@ export interface OptionsMenuItem {
  * Order here = render order in the drawer.
  */
 export const OPTIONS_ITEMS: readonly OptionsMenuItem[] = [
-  /* ── Table controls (moved from pill toolbar) ── */
+  /* ── Player actions ── */
   {
     id: "deal",
     label: "Deal Hand",
     icon: "🃏",
+    group: "player",
     requiresHost: false,
     requiresSeated: true,
     action: "deal_hand",
@@ -45,6 +57,7 @@ export const OPTIONS_ITEMS: readonly OptionsMenuItem[] = [
     id: "stand",
     label: "Stand Up",
     icon: "🧍",
+    group: "player",
     requiresHost: false,
     requiresSeated: true,
     action: "stand_up",
@@ -54,6 +67,7 @@ export const OPTIONS_ITEMS: readonly OptionsMenuItem[] = [
     id: "sit_toggle",
     label: "Sit In / Sit Out",
     icon: "💺",
+    group: "player",
     requiresHost: false,
     requiresSeated: true,
     action: "sit_toggle",
@@ -63,25 +77,18 @@ export const OPTIONS_ITEMS: readonly OptionsMenuItem[] = [
     id: "rebuy",
     label: "Rebuy",
     icon: "💰",
+    group: "player",
     requiresHost: false,
     requiresSeated: true,
     action: "rebuy",
     analyticsName: "drawer_rebuy",
-  },
-  {
-    id: "bomb_pot",
-    label: "Bomb Pot",
-    icon: "💣",
-    requiresHost: true,
-    requiresSeated: false,
-    action: "queue_bomb_pot",
-    analyticsName: "drawer_bomb_pot",
   },
   /* ── Display & audio toggles ── */
   {
     id: "display_bb",
     label: "Toggle BB / Chips",
     icon: "🔢",
+    group: "display",
     requiresHost: false,
     requiresSeated: false,
     action: "toggle_display_bb",
@@ -91,6 +98,7 @@ export const OPTIONS_ITEMS: readonly OptionsMenuItem[] = [
     id: "anim_speed",
     label: "Animation Speed",
     icon: "✨",
+    group: "display",
     requiresHost: false,
     requiresSeated: false,
     action: "cycle_anim_speed",
@@ -100,6 +108,7 @@ export const OPTIONS_ITEMS: readonly OptionsMenuItem[] = [
     id: "sound",
     label: "Toggle Sound",
     icon: "🔊",
+    group: "display",
     requiresHost: false,
     requiresSeated: false,
     action: "toggle_sound",
@@ -109,16 +118,28 @@ export const OPTIONS_ITEMS: readonly OptionsMenuItem[] = [
     id: "theme",
     label: "Table Theme",
     icon: "🎨",
+    group: "display",
     requiresHost: false,
     requiresSeated: false,
     action: "cycle_theme",
     analyticsName: "drawer_theme",
   },
-  /* ── Host game controls ── */
+  /* ── Host controls ── */
+  {
+    id: "bomb_pot",
+    label: "Bomb Pot",
+    icon: "💣",
+    group: "host",
+    requiresHost: true,
+    requiresSeated: false,
+    action: "queue_bomb_pot",
+    analyticsName: "drawer_bomb_pot",
+  },
   {
     id: "pause_resume",
     label: "Pause / Resume",
     icon: "⏸️",
+    group: "host",
     requiresHost: true,
     requiresSeated: false,
     action: "pause_resume",
@@ -128,25 +149,17 @@ export const OPTIONS_ITEMS: readonly OptionsMenuItem[] = [
     id: "end_game",
     label: "End Auto-Deal",
     icon: "⏹️",
+    group: "host",
     requiresHost: true,
     requiresSeated: false,
     action: "end_game",
     analyticsName: "drawer_end_game",
   },
   {
-    id: "close_room",
-    label: "Close Room",
-    icon: "🔒",
-    requiresHost: true,
-    requiresSeated: false,
-    action: "close_room",
-    analyticsName: "drawer_close_room",
-  },
-  /* ── Original settings & navigation ── */
-  {
     id: "settings",
     label: "Game Settings",
     icon: "⚙️",
+    group: "host",
     requiresHost: true,
     requiresSeated: false,
     settingsTab: "game",
@@ -156,33 +169,48 @@ export const OPTIONS_ITEMS: readonly OptionsMenuItem[] = [
     id: "players",
     label: "Players",
     icon: "👥",
+    group: "host",
     requiresHost: true,
     requiresSeated: false,
     settingsTab: "players",
     analyticsName: "drawer_players",
   },
   {
-    id: "preferences",
-    label: "Preferences",
-    icon: "🎨",
-    requiresHost: false,
+    id: "close_room",
+    label: "Close Room",
+    icon: "🔒",
+    group: "host",
+    requiresHost: true,
     requiresSeated: false,
-    settingsTab: "preferences",
-    analyticsName: "drawer_preferences",
+    action: "close_room",
+    analyticsName: "drawer_close_room",
   },
+  /* ── Tools & info ── */
   {
     id: "gto",
     label: "GTO Coach",
     icon: "🎯",
+    group: "tools",
     requiresHost: false,
     requiresSeated: false,
     action: "toggle_gto",
     analyticsName: "drawer_gto_coach",
   },
   {
+    id: "hand_history",
+    label: "Hand History",
+    icon: "📜",
+    group: "tools",
+    requiresHost: false,
+    requiresSeated: false,
+    action: "toggle_hand_history",
+    analyticsName: "drawer_hand_history",
+  },
+  {
     id: "stats",
     label: "Session Stats",
     icon: "📊",
+    group: "tools",
     requiresHost: false,
     requiresSeated: false,
     action: "toggle_stats",
@@ -192,15 +220,18 @@ export const OPTIONS_ITEMS: readonly OptionsMenuItem[] = [
     id: "log",
     label: "Room Log",
     icon: "📋",
+    group: "tools",
     requiresHost: false,
     requiresSeated: false,
     action: "toggle_log",
     analyticsName: "drawer_room_log",
   },
+  /* ── Navigation ── */
   {
     id: "profile",
     label: "Profile & Preferences",
     icon: "👤",
+    group: "nav",
     requiresHost: false,
     requiresSeated: false,
     action: "open_profile",
@@ -210,6 +241,7 @@ export const OPTIONS_ITEMS: readonly OptionsMenuItem[] = [
     id: "lobby",
     label: "Back to Lobby",
     icon: "🏠",
+    group: "nav",
     requiresHost: false,
     requiresSeated: false,
     action: "back_to_lobby",

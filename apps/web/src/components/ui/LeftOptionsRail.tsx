@@ -1,4 +1,4 @@
-import { useEffect, memo } from "react";
+import React, { useEffect, memo } from "react";
 
 /* ═══════════════════════════════════════════════════════════════
    LeftOptionsRail + OptionsDrawer
@@ -69,6 +69,8 @@ export interface DrawerSection {
   id: string;
   icon: string;
   label: string;
+  group?: string;
+  groupLabel?: string;
   onClick: () => void;
   badge?: string;
   disabled?: boolean;
@@ -166,50 +168,76 @@ export const OptionsDrawer = memo(function OptionsDrawer({
           </div>
         )}
 
-        {/* Navigation sections */}
-        <div className="p-3 space-y-1" data-testid="options-drawer-sections">
-          {sections.map((section) => (
-            <button
-              key={section.id}
-              data-testid={`drawer-item-${section.id}`}
-              onClick={section.disabled ? undefined : section.onClick}
-              disabled={section.disabled}
-              aria-disabled={section.disabled}
-              className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left transition-colors group ${
-                section.disabled
-                  ? "opacity-50 cursor-not-allowed"
-                  : "hover:bg-white/5"
-              }`}
-            >
-              <span className={`text-lg transition-opacity ${
-                section.disabled ? "opacity-40" : "opacity-70 group-hover:opacity-100"
-              }`}>
-                {section.icon}
-              </span>
-              <div className="flex-1 min-w-0">
-                <span className={`text-sm font-medium block transition-colors ${
-                  section.disabled
-                    ? "text-slate-500"
-                    : "text-slate-300 group-hover:text-white"
-                }`}>
-                  {section.label}
-                </span>
-                {section.disabledLabel && (
-                  <span className="text-[10px] text-slate-600 block mt-0.5">
-                    {section.disabledLabel}
+        {/* Grouped navigation sections */}
+        <div className="p-3" data-testid="options-drawer-sections">
+          {sections.reduce<{ lastGroup: string | undefined; elements: React.ReactNode[] }>(
+            (acc, section) => {
+              const isNewGroup = section.group && section.group !== acc.lastGroup;
+              if (isNewGroup) {
+                // Add divider between groups (not before the first)
+                if (acc.elements.length > 0) {
+                  acc.elements.push(
+                    <div key={`div-${section.group}`} className="h-px bg-white/8 my-2" />
+                  );
+                }
+                // Add group label if it exists
+                if (section.groupLabel) {
+                  acc.elements.push(
+                    <div key={`hdr-${section.group}`} className="px-3 pt-2 pb-1">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                        {section.groupLabel}
+                      </span>
+                    </div>
+                  );
+                }
+              }
+              acc.elements.push(
+                <button
+                  key={section.id}
+                  data-testid={`drawer-item-${section.id}`}
+                  onClick={section.disabled ? undefined : section.onClick}
+                  disabled={section.disabled}
+                  aria-disabled={section.disabled}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors group ${
+                    section.disabled
+                      ? "opacity-50 cursor-not-allowed"
+                      : "hover:bg-white/5"
+                  }`}
+                >
+                  <span className={`text-lg transition-opacity ${
+                    section.disabled ? "opacity-40" : "opacity-70 group-hover:opacity-100"
+                  }`}>
+                    {section.icon}
                   </span>
-                )}
-              </div>
-              {section.badge && (
-                <span className="cp-badge bg-amber-500/15 text-amber-400 border border-amber-500/25">
-                  {section.badge}
-                </span>
-              )}
-              {!section.disabled && (
-                <span className="text-slate-600 text-xs group-hover:text-slate-400 transition-colors">›</span>
-              )}
-            </button>
-          ))}
+                  <div className="flex-1 min-w-0">
+                    <span className={`text-sm font-medium block transition-colors ${
+                      section.disabled
+                        ? "text-slate-500"
+                        : "text-slate-300 group-hover:text-white"
+                    }`}>
+                      {section.label}
+                    </span>
+                    {section.disabledLabel && (
+                      <span className="text-[10px] text-slate-600 block mt-0.5">
+                        {section.disabledLabel}
+                      </span>
+                    )}
+                  </div>
+                  {section.badge && (
+                    <span className="cp-badge bg-amber-500/15 text-amber-400 border border-amber-500/25">
+                      {section.badge}
+                    </span>
+                  )}
+                  {!section.disabled && (
+                    <span className="text-slate-600 text-xs group-hover:text-slate-400 transition-colors">›</span>
+                  )}
+                </button>
+              );
+              acc.lastGroup = section.group;
+              return acc;
+            },
+            { lastGroup: undefined, elements: [] }
+          ).elements}
         </div>
       </aside>
     </>

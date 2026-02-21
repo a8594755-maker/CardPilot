@@ -499,3 +499,8 @@ export async function signOut(): Promise<void> {
   invalidRefreshHandled = false;
   clearGuestSession();
 }
+
+/** Reset the invalid-refresh guard. Call after any successful auth state transition. */
+export function resetInvalidRefreshGuard(): void {
+  invalidRefreshHandled = false;
+}
