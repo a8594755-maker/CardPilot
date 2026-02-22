@@ -33,6 +33,7 @@ const PER_BOT_GB = 0.005;          // ~5 MB per in-process bot (shared model, no
 const RAM_TARGET_USAGE = 0.85;     // use up to 85% of total RAM (safe with watchdog)
 const SCALE_CHECK_MS = 30_000;     // check every 30s for faster scaling response
 const RAM_CRITICAL_PCT = 0.92;     // emergency scale-down threshold
+const MAX_ROOMS_PER_SERVER = 30;   // single game server event-loop saturates beyond ~30 rooms
 
 // ── CLI args ──
 
@@ -79,15 +80,16 @@ function parseArgs(): SelfPlayConfig {
   };
 }
 
-function calcIdealRooms(botsPerRoom: number, currentRooms: number = 0): number {
+function calcIdealRooms(botsPerRoom: number, currentRooms: number = 0, numServers: number = 1): number {
   const totalGB = totalmem() / (1024 ** 3);
   const usedGB = totalGB - freemem() / (1024 ** 3);
-  const budgetGB = totalGB * RAM_TARGET_USAGE;       // 80% of total
+  const budgetGB = totalGB * RAM_TARGET_USAGE;       // 85% of total
   const ourUsageGB = currentRooms * botsPerRoom * PER_BOT_GB;
   const availableGB = budgetGB - (usedGB - ourUsageGB); // budget minus other processes
   const perRoomGB = botsPerRoom * PER_BOT_GB;
-  const rooms = Math.floor(availableGB / perRoomGB);
-  return Math.max(1, rooms);
+  const ramRooms = Math.floor(availableGB / perRoomGB);
+  const serverCap = MAX_ROOMS_PER_SERVER * numServers;
+  return Math.max(1, Math.min(ramRooms, serverCap));
 }
 
 // ── Profiles to rotate across seats ──
@@ -471,7 +473,7 @@ async function main(): Promise<void> {
   log('║       CardPilot Self-Play Training Pipeline      ║');
   log('╚══════════════════════════════════════════════════╝');
   const freeGB = freemem() / (1024 ** 3);
-  const initialRooms = calcIdealRooms(config.botsPerRoom);
+  const initialRooms = calcIdealRooms(config.botsPerRoom, 0, config.servers.length);
   log(`Servers:      ${config.servers.join(', ')}`);
   log(`Mode:         ${config.mode} | Version: ${config.version}`);
   log(`Profiles:     ${config.mode === 'train' ? 'all gto_balanced (TRAIN)' : 'mixed (PLAY)'}`);
@@ -544,21 +546,19 @@ async function main(): Promise<void> {
     }
   }
 
-  // ── Spawn initial rooms in parallel (round-robin across servers) ──
-  const roomPromises = Array.from({ length: initialRooms }, (_, r) => {
+  // ── Spawn initial rooms sequentially (server can't handle 30+ parallel creates) ──
+  for (let r = 0; r < initialRooms; r++) {
     const serverUrl = config.servers[r % config.servers.length];
-    return spawnRoom(config, serverUrl)
-      .then(room => {
-        liveRooms.push(room);
-        syncDashboardRooms(liveRooms, config.botsPerRoom);
-        const port = new URL(serverUrl).port;
-        addEvent('ROOM', 'success', `Room ${room.roomCode} on :${port} (${config.botsPerRoom} in-process bots)`);
-      })
-      .catch(err => {
-        log(`Failed to create room on ${serverUrl}: ${(err as Error).message}`);
-      });
-  });
-  await Promise.allSettled(roomPromises);
+    try {
+      const room = await spawnRoom(config, serverUrl);
+      liveRooms.push(room);
+      syncDashboardRooms(liveRooms, config.botsPerRoom);
+      const port = new URL(serverUrl).port;
+      addEvent('ROOM', 'success', `Room ${room.roomCode} on :${port} (${config.botsPerRoom} in-process bots)`);
+    } catch (err) {
+      log(`Failed to create room on ${serverUrl}: ${(err as Error).message}`);
+    }
+  }
 
   if (liveRooms.length === 0) {
     log('No rooms created. Exiting.');
@@ -591,27 +591,26 @@ async function main(): Promise<void> {
         return;
       }
 
-      const ideal = calcIdealRooms(config.botsPerRoom, liveRooms.length);
+      const ideal = calcIdealRooms(config.botsPerRoom, liveRooms.length, config.servers.length);
       log(`[auto-scale] RAM: ${currentFreeGB.toFixed(1)} GB free (${usagePct.toFixed(0)}% used) | rooms: ${liveRooms.length} → ideal: ${ideal}`);
 
-      // Scale UP in parallel (round-robin across servers)
+      // Scale UP sequentially, max 3 per cycle (allow memory to settle)
       if (ideal > liveRooms.length) {
-        const toAdd = ideal - liveRooms.length;
-        const scalePromises = Array.from({ length: toAdd }, (_, i) => {
-          const serverUrl = config.servers[(liveRooms.length + i) % config.servers.length];
-          return spawnRoom(config, serverUrl)
-            .then(room => {
-              liveRooms.push(room);
-              syncDashboardRooms(liveRooms, config.botsPerRoom);
-              const port = new URL(serverUrl).port;
-              addEvent('SCALE', 'success', `Scaled UP → ${liveRooms.length} rooms on :${port} (${currentFreeGB.toFixed(1)} GB free)`);
-              log(`[auto-scale] +1 room on :${port} → ${liveRooms.length} total`);
-            })
-            .catch(err => {
-              log(`[auto-scale] Failed to add room: ${(err as Error).message}`);
-            });
-        });
-        await Promise.allSettled(scalePromises);
+        const toAdd = Math.min(ideal - liveRooms.length, 3);
+        for (let i = 0; i < toAdd; i++) {
+          const serverUrl = config.servers[(liveRooms.length) % config.servers.length];
+          try {
+            const room = await spawnRoom(config, serverUrl);
+            liveRooms.push(room);
+            syncDashboardRooms(liveRooms, config.botsPerRoom);
+            const port = new URL(serverUrl).port;
+            addEvent('SCALE', 'success', `Scaled UP → ${liveRooms.length} rooms on :${port} (${currentFreeGB.toFixed(1)} GB free)`);
+            log(`[auto-scale] +1 room on :${port} → ${liveRooms.length} total`);
+          } catch (err) {
+            log(`[auto-scale] Failed to add room: ${(err as Error).message}`);
+            break;
+          }
+        }
       }
 
       // Scale DOWN
