@@ -71,11 +71,13 @@ To enable Google sign-in you need a Supabase project with the Google provider co
    - **Site URL**: your production URL (e.g. `https://cardpilot.app`)
    - **Redirect URLs**: add all environments, e.g.:
      - `http://localhost:5173` (local dev)
+     - `http://127.0.0.1:5173` (local dev, if Vite runs on 127.0.0.1)
      - `https://cardpilot.app` (production)
      - Any Netlify preview URLs if needed
 
 4. **Set environment variables** (see `.env.example`):
    - Web: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
+   - Optional Web override: `VITE_OAUTH_REDIRECT_URL` (forces OAuth callback origin)
    - Server: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 
 When Supabase is not configured (env vars unset), the Google button is hidden and the app falls back to guest/local mode.

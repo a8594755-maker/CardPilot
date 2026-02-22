@@ -8,6 +8,7 @@ const __dirname = dirname(__filename);
 const ROOT_DIR = resolve(__dirname, "..");
 const WEB_DIR = resolve(ROOT_DIR, "apps/web");
 const npmCmd = process.platform === "win32" ? "npm.cmd" : "npm";
+const BACKEND_HEALTH_URL = "http://127.0.0.1:4000/healthz";
 
 function isPortListening(port, host = "127.0.0.1", timeoutMs = 500) {
   return new Promise((resolvePromise) => {
@@ -29,6 +30,42 @@ function isPortListening(port, host = "127.0.0.1", timeoutMs = 500) {
   });
 }
 
+function delay(ms) {
+  return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
+}
+
+async function isCardPilotBackendHealthy({ attempts = 3, timeoutMs = 800 } = {}) {
+  for (let i = 0; i < attempts; i += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await fetch(BACKEND_HEALTH_URL, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+        signal: controller.signal,
+      });
+
+      if (response.ok) {
+        const payload = await response.json().catch(() => null);
+        if (payload?.ok === true && payload?.service === "cardpilot-game-server") {
+          return true;
+        }
+      }
+    } catch {
+      // ignore and retry
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    if (i < attempts - 1) {
+      await delay(200);
+    }
+  }
+
+  return false;
+}
+
 function run(cmd, args, cwd) {
   return spawn(cmd, args, {
     cwd,
@@ -47,8 +84,19 @@ function terminate(child) {
 }
 
 async function main() {
-  const backendRunning = await isPortListening(4000);
+  const backendPortListening = await isPortListening(4000);
+  const backendRunning = backendPortListening
+    ? await isCardPilotBackendHealthy()
+    : false;
   const webRunning = await isPortListening(5173);
+
+  if (backendPortListening && !backendRunning) {
+    console.error(
+      `[dev] Port :4000 is occupied, but ${BACKEND_HEALTH_URL} is not a healthy CardPilot backend.`,
+    );
+    console.error("[dev] Stop the process on :4000 or set VITE_DEV_SERVER_TARGET to the correct backend.");
+    process.exit(1);
+  }
 
   if (backendRunning && webRunning) {
     console.log("[dev] Existing stack detected on :4000 and :5173. Nothing to start.");

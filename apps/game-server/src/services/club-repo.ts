@@ -791,7 +791,30 @@ export class ClubRepo {
       }
     }
 
-    // Step 1: Insert the transaction record
+    // Step 1: Ensure wallet account row exists and check balance for debits
+    await this.db
+      .from("club_wallet_accounts")
+      .upsert(
+        { club_id: clubId, user_id: userId, currency, current_balance: 0, updated_at: new Date().toISOString() },
+        { onConflict: "club_id,user_id,currency", ignoreDuplicates: true },
+      );
+
+    if (truncatedAmount < 0) {
+      const { data: balCheck } = await this.db
+        .from("club_wallet_accounts")
+        .select("current_balance")
+        .eq("club_id", clubId)
+        .eq("user_id", userId)
+        .eq("currency", currency)
+        .maybeSingle();
+
+      const curBal = Number(balCheck?.current_balance ?? 0);
+      if (curBal + truncatedAmount < 0) {
+        throw new Error("insufficient_wallet_balance");
+      }
+    }
+
+    // Step 2: Insert the transaction record
     const txData = {
       club_id: clubId,
       user_id: userId,
@@ -818,7 +841,9 @@ export class ClubRepo {
       throw new Error(`Wallet DB insert failed: ${msg}`);
     }
 
-    // Step 2: Atomic balance increment via helper RPC (avoids read-then-write race)
+    // Step 3: Try atomic balance increment via RPC, fall back to direct table update
+    let newBalance: number;
+
     const { data: incrementResult, error: incrementError } = await this.db
       .rpc("club_wallet_atomic_increment", {
         _club_id: clubId,
@@ -827,14 +852,43 @@ export class ClubRepo {
         _delta: truncatedAmount,
       });
 
-    if (incrementError) {
-      // Balance update failed — attempt to clean up the inserted transaction
-      logWarn({ event: "club_repo.appendWalletTxManual.increment_failed", message: incrementError.message, clubId, userId, amount: truncatedAmount });
-      await this.db.from("club_wallet_transactions").delete().eq("id", (insertedTx as Record<string, unknown>).id);
-      throw new Error(`Insufficient funds or balance update failed: ${incrementError.message}`);
+    if (!incrementError) {
+      newBalance = Number(incrementResult ?? 0);
+    } else {
+      // RPC unavailable (schema cache miss) — fall back to direct table update
+      logWarn({ event: "club_repo.appendWalletTxManual.rpc_fallback", message: incrementError.message });
+
+      const { data: curRow } = await this.db
+        .from("club_wallet_accounts")
+        .select("current_balance")
+        .eq("club_id", clubId)
+        .eq("user_id", userId)
+        .eq("currency", currency)
+        .maybeSingle();
+
+      const curBal = Number(curRow?.current_balance ?? 0);
+      const computed = curBal + truncatedAmount;
+
+      if (computed < 0) {
+        await this.db.from("club_wallet_transactions").delete().eq("id", (insertedTx as Record<string, unknown>).id);
+        throw new Error("insufficient_wallet_balance");
+      }
+
+      const { error: writeError } = await this.db
+        .from("club_wallet_accounts")
+        .update({ current_balance: computed, updated_at: new Date().toISOString() })
+        .eq("club_id", clubId)
+        .eq("user_id", userId)
+        .eq("currency", currency);
+
+      if (writeError) {
+        await this.db.from("club_wallet_transactions").delete().eq("id", (insertedTx as Record<string, unknown>).id);
+        throw new Error(`Balance update failed: ${writeError.message}`);
+      }
+
+      newBalance = computed;
     }
 
-    const newBalance = Number(incrementResult ?? 0);
     return {
       tx: rowToWalletTx(insertedTx as Record<string, unknown>),
       newBalance,

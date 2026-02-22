@@ -12,7 +12,12 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     {legalRoute ? (
       <LegalStandalonePage route={legalRoute} />
     ) : (
-      <BrowserRouter>
+      <BrowserRouter
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
         <App />
       </BrowserRouter>
     )}

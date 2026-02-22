@@ -145,6 +145,7 @@ type PlayerSessionEntry = {
   userId: string;
   name: string;
   totalBuyIn: number;
+  totalCashOut: number;
   handsPlayed: number;
   lastStack: number;
   lastStackUpdatedAt: number;
@@ -668,6 +669,7 @@ function recordSessionBuyIn(tableId: string, userId: string, name: string, amoun
       userId,
       name,
       totalBuyIn: amount,
+      totalCashOut: 0,
       handsPlayed: 0,
       lastStack: 0,
       lastStackUpdatedAt: 0,
@@ -690,10 +692,47 @@ function setSessionLastStack(tableId: string, userId: string, name: string, stac
     userId,
     name,
     totalBuyIn: 0,
+    totalCashOut: 0,
     handsPlayed: 0,
     lastStack: stack,
     lastStackUpdatedAt: updatedAt,
   });
+}
+
+function recordSessionCashOut(tableId: string, userId: string, amount: number): void {
+  const roomStats = getRoomSessionStats(tableId, true);
+  if (!roomStats) return;
+  const existing = roomStats.get(userId);
+  if (existing) {
+    existing.totalCashOut += amount;
+  }
+}
+
+function broadcastSessionStats(tableId: string): void {
+  const table = tables.get(tableId);
+  const currentPlayers = table ? table.getPublicState().players : [];
+  const roomStats = getRoomSessionStats(tableId, false);
+  const entries: Array<{ seat: number | null; userId: string; name: string; totalBuyIn: number; totalCashOut: number; currentStack: number; net: number; handsPlayed: number; status: string }> = [];
+
+  if (roomStats) {
+    for (const [uid, entry] of roomStats.entries()) {
+      const seated = currentPlayers.find((p) => p.userId === uid);
+      const currentStack = seated ? seated.stack : 0;
+      entries.push({
+        seat: seated?.seat ?? null,
+        userId: entry.userId,
+        name: entry.name,
+        totalBuyIn: entry.totalBuyIn,
+        totalCashOut: entry.totalCashOut,
+        currentStack,
+        net: currentStack + entry.totalCashOut - entry.totalBuyIn,
+        handsPlayed: entry.handsPlayed,
+        status: seated ? "seated" : "away",
+      });
+    }
+  }
+
+  io.to(tableId).emit("session_stats", { tableId, entries });
 }
 
 function getRestorableStack(tableId: string, userId: string): number | null {
@@ -837,6 +876,7 @@ async function applyApprovedRebuys(tableId: string): Promise<void> {
       const sid = socketIdBySeat(tableId, deposit.seat);
       if (sid) io.to(sid).emit("system_message", { message: `Rebuy of ${deposit.amount} credited for this hand.` });
       io.to(tableId).emit("system_message", { message: `${deposit.userName} (Seat ${deposit.seat}) rebuy credited: ${deposit.amount}` });
+      broadcastSessionStats(tableId);
       stackBySeatBefore.set(deposit.seat, currentStack + deposit.amount);
     } catch (err) {
       console.warn("applyApprovedRebuys: unexpected error:", (err as Error).message);
@@ -2156,6 +2196,7 @@ async function finalizeHandEndAsync(tableId: string, state: TableState): Promise
   // Increment hands played for session stats
   incrementHandsPlayed(tableId, state.players.filter((p) => p.inHand).map((p) => p.userId));
   syncSessionStacksFromState(tableId, state);
+  broadcastSessionStats(tableId);
 
   // Club leaderboard stats: hands + net per player are recorded at hand end.
   const clubInfo = getClubInfoForTableId(tableId);
@@ -2393,6 +2434,7 @@ async function standUpPlayer(tableId: string, seatNum: number, reason: string): 
   }
 
   table.removePlayer(seatNum);
+  recordSessionCashOut(tableId, leavingPlayer.userId, leavingPlayer.stack);
   setSessionLastStack(tableId, leavingPlayer.userId, leavingPlayer.name, leavingPlayer.stack);
 
   io.to(tableId).emit("system_message", { message: `Seat ${seatNum}: ${reason}` });
@@ -2410,6 +2452,7 @@ async function standUpPlayer(tableId: string, seatNum: number, reason: string): 
 
   touchLocalRoom(tableId);
   broadcastSnapshot(tableId);
+  broadcastSessionStats(tableId);
   maybeCheckRoomEmpty(tableId, currentPlayerCount(tableId));
   void emitLobbySnapshot();
   return true;
@@ -3385,6 +3428,7 @@ io.on("connection", (socket) => {
 
     touchLocalRoom(params.tableId);
     broadcastSnapshot(params.tableId);
+    broadcastSessionStats(params.tableId);
     scheduleAutoDealIfNeeded(params.tableId);
     void emitLobbySnapshot();
   };
@@ -4123,29 +4167,27 @@ io.on("connection", (socket) => {
 
   socket.on("request_session_stats", (payload: { tableId: string }) => {
     try {
-      if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId)) {
-        throw new Error("Only host or co-host can view session stats");
-      }
       const room = roomManager.getRoom(payload.tableId);
       if (!room) throw new Error("Room not found");
       const table = tables.get(payload.tableId);
       const currentPlayers = table ? table.getPublicState().players : [];
       const roomStats = getRoomSessionStats(payload.tableId, false);
-      const entries: Array<{ seat: number | null; userId: string; name: string; totalBuyIn: number; currentStack: number; net: number; handsPlayed: number; preservedBalance: number }> = [];
+      const entries: Array<{ seat: number | null; userId: string; name: string; totalBuyIn: number; totalCashOut: number; currentStack: number; net: number; handsPlayed: number; status: string }> = [];
 
       if (roomStats) {
         for (const [uid, entry] of roomStats.entries()) {
           const seated = currentPlayers.find((p) => p.userId === uid);
-          const currentStack = seated ? seated.stack : entry.lastStack;
+          const currentStack = seated ? seated.stack : 0;
           entries.push({
             seat: seated?.seat ?? null,
             userId: entry.userId,
             name: entry.name,
             totalBuyIn: entry.totalBuyIn,
+            totalCashOut: entry.totalCashOut,
             currentStack,
-            net: currentStack - entry.totalBuyIn,
+            net: currentStack + entry.totalCashOut - entry.totalBuyIn,
             handsPlayed: entry.handsPlayed,
-            preservedBalance: entry.lastStack,
+            status: seated ? "seated" : "away",
           });
         }
       }

@@ -223,7 +223,7 @@ export function App() {
   const [showRoomLog, setShowRoomLog] = useState(false);
   const [showSessionStats, setShowSessionStats] = useState(false);
   const [showInGameHistory, setShowInGameHistory] = useState(false);
-  type SessionStatsEntry = { seat: number | null; userId: string; name: string; totalBuyIn: number; currentStack: number; net: number; handsPlayed: number; preservedBalance: number };
+  type SessionStatsEntry = { seat: number | null; userId: string; name: string; totalBuyIn: number; totalCashOut: number; currentStack: number; net: number; handsPlayed: number; status: string };
   const [sessionStatsData, setSessionStatsData] = useState<SessionStatsEntry[]>([]);
   const [showRebuyModal, setShowRebuyModal] = useState(false);
   const [rebuyAmount, setRebuyAmount] = useState(0);
@@ -904,6 +904,7 @@ export function App() {
       }
       s.emit("request_table_snapshot", { tableId: d.tableId });
       s.emit("request_room_state", { tableId: d.tableId });
+      s.emit("request_session_stats", { tableId: d.tableId });
     });
     s.on("room_joined", (d: { tableId: string; roomCode: string; roomName: string }) => {
       resetSnapshotSyncState();
@@ -919,6 +920,7 @@ export function App() {
       }
       s.emit("request_table_snapshot", { tableId: d.tableId });
       s.emit("request_room_state", { tableId: d.tableId });
+      s.emit("request_session_stats", { tableId: d.tableId });
     });
     s.on("table_snapshot", (d: TableState) => {
       applyAuthoritativeSnapshot(d, "table_snapshot");
@@ -1279,7 +1281,7 @@ export function App() {
       setActionPending(false);
       showToast(`Error: ${d.message}`);
     });
-    s.on("session_stats", (d: { tableId: string; entries: Array<{ seat: number | null; userId: string; name: string; totalBuyIn: number; currentStack: number; net: number; handsPlayed: number; preservedBalance: number }> }) => {
+    s.on("session_stats", (d: { tableId: string; entries: Array<{ seat: number | null; userId: string; name: string; totalBuyIn: number; totalCashOut: number; currentStack: number; net: number; handsPlayed: number; status: string }> }) => {
       setSessionStatsData(d.entries);
     });
     s.on("rejoin_stack_info", (d: { tableId: string; stack: number | null }) => {
@@ -1660,11 +1662,6 @@ export function App() {
     setSeatRequests([]);
     setRebuyRequests([]);
   }, [isClubTable]);
-  useEffect(() => {
-    if (roomState?.settings.roomFundsTracking === false) {
-      setShowSessionStats(false);
-    }
-  }, [roomState?.settings.roomFundsTracking]);
   useEffect(() => {
     if (!socket || !snapshot?.handId) return;
     if (!isMyShowdownDecision) return;
@@ -2533,46 +2530,67 @@ export function App() {
               )}
 
               {/* ── Session Stats Panel ── */}
-              {showSessionStats && roomState?.settings.roomFundsTracking && (
-                <div className="mx-3 mt-1 glass-card p-3 max-h-48 overflow-y-auto shrink-0">
+              {showSessionStats && (
+                <div className="mx-3 mt-1 glass-card p-3 max-h-72 overflow-y-auto shrink-0" onKeyDown={(e) => { if (e.key === "Escape") setShowSessionStats(false); }} tabIndex={-1}>
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-xs font-bold text-cyan-400">Session Stats</h3>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => socket?.emit("request_session_stats", { tableId })} className="text-[9px] text-slate-400 hover:text-white">↻ Refresh</button>
-                      <button onClick={() => setShowSessionStats(false)} className="text-xs text-slate-500 hover:text-white">✕</button>
+                      <button onClick={() => socket?.emit("request_session_stats", { tableId })} className="text-[9px] text-slate-400 hover:text-white transition-colors">↻</button>
+                      <button onClick={() => setShowSessionStats(false)} className="text-xs text-slate-500 hover:text-white transition-colors">✕</button>
                     </div>
                   </div>
                   {sessionStatsData.length === 0 ? (
                     <p className="text-[10px] text-slate-500 text-center py-2">No session data yet</p>
                   ) : (
-                    <table className="w-full text-[10px]">
-                      <thead>
-                        <tr className="text-slate-500 border-b border-white/5">
-                          <th className="text-left py-1 font-medium">Seat</th>
-                          <th className="text-left py-1 font-medium">Player</th>
-                          <th className="text-right py-1 font-medium">Buy-ins</th>
-                          <th className="text-right py-1 font-medium">Stack</th>
-                          <th className="text-right py-1 font-medium">Preserved</th>
-                          <th className="text-right py-1 font-medium">Net</th>
-                          <th className="text-right py-1 font-medium">Hands</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {sessionStatsData.map((e) => (
-                          <tr key={e.userId} className="border-b border-white/5 last:border-0">
-                            <td className="py-1 text-slate-400">{e.seat ?? "—"}</td>
-                            <td className="py-1 text-slate-200 font-medium truncate max-w-[100px]">{e.name}</td>
-                            <td className="py-1 text-right text-slate-400 font-mono">{formatChips(e.totalBuyIn, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</td>
-                            <td className="py-1 text-right text-slate-300 font-mono">{formatChips(e.currentStack, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</td>
-                            <td className="py-1 text-right text-cyan-300 font-mono">{formatChips(e.preservedBalance, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</td>
-                            <td className={`py-1 text-right font-mono font-semibold ${e.net > 0 ? "text-emerald-400" : e.net < 0 ? "text-red-400" : "text-slate-400"}`}>
-                              {e.net > 0 ? "+" : ""}{formatChips(Math.abs(e.net), { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}
-                            </td>
-                            <td className="py-1 text-right text-slate-500">{e.handsPlayed}</td>
+                    <>
+                      <table className="w-full text-[10px]">
+                        <thead>
+                          <tr className="text-slate-500 border-b border-white/5">
+                            <th className="text-left py-1 font-medium">Player</th>
+                            <th className="text-right py-1 font-medium">Buy-in</th>
+                            <th className="text-right py-1 font-medium">Stack</th>
+                            <th className="text-right py-1 font-medium">Net</th>
+                            <th className="text-right py-1 font-medium">Hands</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {sessionStatsData.map((e) => {
+                            const isMe = e.userId === socketAuthUserId;
+                            return (
+                              <tr key={e.userId} className={`border-b border-white/5 last:border-0 ${isMe ? "bg-cyan-500/8" : ""}`}>
+                                <td className="py-1.5">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${e.status === "seated" ? "bg-emerald-400" : "bg-slate-600"}`} title={e.status === "seated" ? "Seated" : "Away"} />
+                                    <span className={`font-medium truncate max-w-[90px] ${isMe ? "text-cyan-300" : "text-slate-200"}`}>
+                                      {e.name}{isMe ? " (You)" : ""}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="py-1.5 text-right text-slate-400 font-mono">{formatChips(e.totalBuyIn, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</td>
+                                <td className="py-1.5 text-right text-slate-300 font-mono">{formatChips(e.currentStack, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</td>
+                                <td className={`py-1.5 text-right font-mono font-semibold ${e.net > 0 ? "text-emerald-400" : e.net < 0 ? "text-red-400" : "text-slate-400"}`}>
+                                  {e.net > 0 ? "+" : ""}{formatChips(e.net, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}
+                                </td>
+                                <td className="py-1.5 text-right text-slate-500">{e.handsPlayed}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                      {/* Summary row */}
+                      {sessionStatsData.length > 1 && (() => {
+                        const totalNet = sessionStatsData.reduce((sum, e) => sum + e.net, 0);
+                        const totalHands = Math.max(...sessionStatsData.map(e => e.handsPlayed));
+                        return (
+                          <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5 text-[10px]">
+                            <span className="text-slate-500">{sessionStatsData.length} players | {totalHands} hands dealt</span>
+                            <span className={`font-mono font-semibold ${totalNet > 0 ? "text-emerald-400" : totalNet < 0 ? "text-red-400" : "text-slate-400"}`}>
+                              Table net: {totalNet > 0 ? "+" : ""}{formatChips(totalNet, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}
+                            </span>
+                          </div>
+                        );
+                      })()}
+                    </>
                   )}
                 </div>
               )}

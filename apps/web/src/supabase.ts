@@ -10,6 +10,7 @@ export type AuthSession = {
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const oauthRedirectOverride = import.meta.env.VITE_OAUTH_REDIRECT_URL;
 const DEV_MODE = import.meta.env.DEV;
 
 const GUEST_SESSION_STORAGE_KEY = "cardpilot_guest_session";
@@ -143,6 +144,21 @@ function extractAuthErrorDetails(err: unknown): AuthErrorDetails {
 
   const message = err instanceof Error ? err.message : String(err);
   return { message, description: null, code: null, status: null };
+}
+
+function shouldRetrySignUpWithoutMetadata(details: AuthErrorDetails): boolean {
+  if (details.status !== 422) return false;
+  const code = (details.code ?? "").toLowerCase();
+  const combined = `${details.message} ${details.description ?? ""}`.toLowerCase();
+
+  if (code.includes("validation")) return true;
+  return (
+    combined.includes("metadata") ||
+    combined.includes("user_metadata") ||
+    combined.includes("additional properties") ||
+    combined.includes("schema validation") ||
+    combined.includes("invalid request payload")
+  );
 }
 
 function isInvalidRefreshTokenError(err: unknown): boolean {
@@ -314,6 +330,15 @@ function friendlyAuthError(err: unknown): Error {
   if (msg.includes("Invalid login credentials")) {
     return new Error("Incorrect email or password.");
   }
+  if (details.status === 422) {
+    if (combined.includes("database error saving new user")) {
+      return new Error("Signup failed while creating the user record. Check Supabase auth triggers/functions in your project.");
+    }
+    if (combined.includes("captcha")) {
+      return new Error("Signup captcha verification failed. Disable captcha for local dev or provide a valid captcha token.");
+    }
+    return new Error("Signup request was rejected by Supabase (422). Check Email auth settings and any auth-user database triggers.");
+  }
   if (details.description) {
     return new Error(`${msg} (${details.description})`);
   }
@@ -415,7 +440,7 @@ export async function signUpWithEmail(email: string, password: string, displayNa
     // Some Supabase projects reject metadata at signup (422). Retry once without metadata.
     if (error && normalizedDisplayName) {
       const details = extractAuthErrorDetails(error);
-      if (details.status === 422) {
+      if (shouldRetrySignUpWithoutMetadata(details)) {
         ({ data, error } = await supabase.auth.signUp({
           email: normalizedEmail,
           password,
@@ -481,7 +506,12 @@ export async function signInWithGoogle(): Promise<void> {
   if (!supabase) throw new Error("Supabase not configured");
 
   try {
-    const redirectTo = typeof window !== "undefined" ? window.location.origin : undefined;
+    const fromEnv =
+      typeof oauthRedirectOverride === "string" && oauthRedirectOverride.trim().length > 0
+        ? oauthRedirectOverride.trim()
+        : undefined;
+    const redirectTo =
+      fromEnv || (typeof window !== "undefined" ? window.location.origin : undefined);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: redirectTo ? { redirectTo } : undefined,
