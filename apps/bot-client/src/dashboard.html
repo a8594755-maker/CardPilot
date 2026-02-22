@@ -168,6 +168,45 @@
   .stat-card .value.accent { color: var(--accent2); }
   .stat-card .value.yellow { color: var(--yellow); }
 
+  /* ── Street Distribution ── */
+  .street-section {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .street-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .street-item {
+    text-align: center;
+  }
+  .street-item .street-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+  .street-item .street-value {
+    font-size: 22px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .street-item .street-pct {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
+  .street-item .street-value.preflop { color: var(--yellow); }
+  .street-item .street-value.flop { color: var(--green); }
+  .street-item .street-value.turn { color: var(--accent2); }
+  .street-item .street-value.river { color: var(--accent); }
+  .street-item .street-value.postflop-pct { color: var(--green); }
+
   /* ── Rooms Grid ── */
   .section-title {
     font-size: 16px;
@@ -468,6 +507,38 @@
     </div>
   </div>
 
+  <!-- Street Distribution -->
+  <div class="street-section">
+    <div class="section-title">Street Distribution</div>
+    <div class="street-grid">
+      <div class="street-item">
+        <div class="street-label">Preflop</div>
+        <div class="street-value preflop" id="streetPreflop">0</div>
+        <div class="street-pct" id="streetPreflopPct">0%</div>
+      </div>
+      <div class="street-item">
+        <div class="street-label">Flop</div>
+        <div class="street-value flop" id="streetFlop">0</div>
+        <div class="street-pct" id="streetFlopPct">0%</div>
+      </div>
+      <div class="street-item">
+        <div class="street-label">Turn</div>
+        <div class="street-value turn" id="streetTurn">0</div>
+        <div class="street-pct" id="streetTurnPct">0%</div>
+      </div>
+      <div class="street-item">
+        <div class="street-label">River</div>
+        <div class="street-value river" id="streetRiver">0</div>
+        <div class="street-pct" id="streetRiverPct">0%</div>
+      </div>
+      <div class="street-item">
+        <div class="street-label">Postflop</div>
+        <div class="street-value postflop-pct" id="streetPostflop">0%</div>
+        <div class="street-pct" id="streetPostflopSub">F+T+R</div>
+      </div>
+    </div>
+  </div>
+
   <!-- Model Metrics Comparison -->
   <div class="metrics-section" id="metricsSection" style="display:none">
     <div class="section-title">Model Metrics Comparison</div>
@@ -525,9 +596,7 @@ let prevSamples = 0;
 let logEntries = [];
 
 function fmt(n) {
-  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
-  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
-  return String(n);
+  return Number(n).toLocaleString('en-US');
 }
 
 // Exact number with thousand separators (e.g., 105,932)
@@ -869,6 +938,29 @@ async function fetchStats() {
       const mb = $('modeBadge');
       mb.textContent = data.pipelineMode.toUpperCase();
       mb.className = 'pipeline-badge ' + data.pipelineMode;
+    }
+
+    // Street distribution
+    if (data.streetCounts) {
+      const sc = data.streetCounts;
+      const total = (sc.PREFLOP || 0) + (sc.FLOP || 0) + (sc.TURN || 0) + (sc.RIVER || 0);
+      const pf = sc.PREFLOP || 0;
+      const fl = sc.FLOP || 0;
+      const tu = sc.TURN || 0;
+      const ri = sc.RIVER || 0;
+      const postflop = fl + tu + ri;
+      $('streetPreflop').textContent = fmt(pf);
+      $('streetFlop').textContent = fmt(fl);
+      $('streetTurn').textContent = fmt(tu);
+      $('streetRiver').textContent = fmt(ri);
+      if (total > 0) {
+        $('streetPreflopPct').textContent = (pf / total * 100).toFixed(1) + '%';
+        $('streetFlopPct').textContent = (fl / total * 100).toFixed(1) + '%';
+        $('streetTurnPct').textContent = (tu / total * 100).toFixed(1) + '%';
+        $('streetRiverPct').textContent = (ri / total * 100).toFixed(1) + '%';
+        $('streetPostflop').textContent = (postflop / total * 100).toFixed(1) + '%';
+        $('streetPostflopSub').textContent = fmt(postflop) + ' samples';
+      }
     }
 
     // Model metrics

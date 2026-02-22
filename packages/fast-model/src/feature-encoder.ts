@@ -150,56 +150,53 @@ export interface PlayerRecord {
   folded: boolean;
 }
 
-// ── V2 helper functions ──
+// ── V2 helper: single-pass action history aggregation ──
 
-function countPreflopRaises(actions: ActionRecord[]): number {
-  let count = 0;
-  for (const a of actions) {
-    if (a.street === 'PREFLOP' && (a.type === 'raise' || a.type === 'all_in')) count++;
-  }
-  return count;
+interface ActionAggregates {
+  preflopRaises: number;
+  isCheckRaised: boolean;
+  raisesOnStreet: number;
+  totalRaises: number;
+  lastBetAmount: number;
 }
 
-function detectCheckRaise(actions: ActionRecord[], street: string): boolean {
-  const streetActions = actions.filter(a => a.street === street);
-  // Track per-seat: if a seat checked and later raised on the same street
-  const checkedSeats = new Set<number>();
-  for (const a of streetActions) {
-    if (a.type === 'check') {
-      checkedSeats.add(a.seat);
-    } else if ((a.type === 'raise' || a.type === 'all_in') && checkedSeats.has(a.seat)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-function countRaisesOnStreet(actions: ActionRecord[], street: string): number {
-  let count = 0;
-  for (const a of actions) {
-    if (a.street === street && (a.type === 'raise' || a.type === 'all_in')) count++;
-  }
-  return count;
-}
-
-function countAllRaises(actions: ActionRecord[]): number {
-  let count = 0;
-  for (const a of actions) {
-    if (a.type === 'raise' || a.type === 'all_in') count++;
-  }
-  return count;
-}
-
-function computeLastBetPotFraction(actions: ActionRecord[], street: string, currentPot: number): number {
-  // Find last raise/bet/all_in on current street
+/**
+ * Aggregate all betting history stats in a single pass through actions.
+ * Replaces 5 separate iterations with one.
+ */
+function aggregateActions(actions: ActionRecord[], street: string): ActionAggregates {
+  let preflopRaises = 0;
+  let raisesOnStreet = 0;
+  let totalRaises = 0;
   let lastBetAmount = 0;
-  for (const a of actions) {
-    if (a.street === street && (a.type === 'raise' || a.type === 'all_in') && a.amount > 0) {
-      lastBetAmount = a.amount;
+  let isCheckRaised = false;
+
+  // For check-raise detection: track seats that checked on this street
+  let checkedSeats = 0; // bitmask for seats 0-9
+
+  const streetUpper = street.toUpperCase();
+
+  for (let i = 0; i < actions.length; i++) {
+    const a = actions[i];
+    const isRaise = a.type === 'raise' || a.type === 'all_in';
+
+    if (isRaise) {
+      totalRaises++;
+      if (a.street === 'PREFLOP') preflopRaises++;
+      if (a.street === streetUpper) {
+        raisesOnStreet++;
+        if (a.amount > 0) lastBetAmount = a.amount;
+        // Check-raise: this seat previously checked on this street
+        if (a.seat < 30 && (checkedSeats & (1 << a.seat))) {
+          isCheckRaised = true;
+        }
+      }
+    } else if (a.type === 'check' && a.street === streetUpper && a.seat < 30) {
+      checkedSeats |= (1 << a.seat);
     }
   }
-  if (lastBetAmount === 0 || currentPot <= 0) return 0;
-  return Math.min(lastBetAmount / currentPot, 2.0) / 2.0;
+
+  return { preflopRaises, isCheckRaised, raisesOnStreet, totalRaises, lastBetAmount };
 }
 
 /**
@@ -228,25 +225,35 @@ export function encodeFeaturesV2(
     effectiveStack, heroPosition, heroInPosition, numVillains, isAggressor,
   );
 
-  // ── V2 betting history summary (6 features) ──
+  // ── V2 betting history summary (6 features, single-pass aggregation) ──
+  const agg = aggregateActions(actions, street);
 
   // [48] is3betPot: preflop had 2+ raises
-  features.push(countPreflopRaises(actions) >= 2 ? 1 : 0);
+  features.push(agg.preflopRaises >= 2 ? 1 : 0);
 
   // [49] isCheckRaised: someone check-raised on this street
-  features.push(detectCheckRaise(actions, street.toUpperCase()) ? 1 : 0);
+  features.push(agg.isCheckRaised ? 1 : 0);
 
   // [50] raiseCountStreet: raises on current street, normalized
-  features.push(Math.min(countRaisesOnStreet(actions, street.toUpperCase()), 5) / 5);
+  features.push(Math.min(agg.raisesOnStreet, 5) / 5);
 
   // [51] raiseCountTotal: total raises across all streets, normalized
-  features.push(Math.min(countAllRaises(actions), 10) / 10);
+  features.push(Math.min(agg.totalRaises, 10) / 10);
 
   // [52] lastBetPotFrac: last bet as fraction of pot, capped at 2.0
-  features.push(computeLastBetPotFraction(actions, street.toUpperCase(), pot));
+  const lastBetFrac = (agg.lastBetAmount > 0 && pot > 0)
+    ? Math.min(agg.lastBetAmount / pot, 2.0) / 2.0
+    : 0;
+  features.push(lastBetFrac);
 
   // [53] allInPressure: any opponent is all-in
-  const hasAllInOpponent = players.some(p => p.allIn && !p.folded && p.seat !== mySeat);
+  let hasAllInOpponent = false;
+  for (let i = 0; i < players.length; i++) {
+    if (players[i].allIn && !players[i].folded && players[i].seat !== mySeat) {
+      hasAllInOpponent = true;
+      break;
+    }
+  }
   features.push(hasAllInOpponent ? 1 : 0);
 
   return features;

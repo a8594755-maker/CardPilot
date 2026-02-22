@@ -11,8 +11,7 @@
  *     anti-bias sampling, hard example mining, evaluation metrics.
  */
 
-import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync, createReadStream } from 'node:fs';
-import { createInterface } from 'node:readline';
+import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRandomModel, createRandomModelV2 } from './mlp.js';
@@ -30,7 +29,7 @@ const SIZING_RAISE_THRESHOLD = 0.2; // only train sizing when raise label > this
 const LEARNING_RATE_INIT = 0.01;
 const LR_DECAY_FACTOR = 0.5;
 const LR_DECAY_EVERY = 20;
-const BATCH_SIZE = 256;             // 64→256: better CPU cache utilization, ~3-4x throughput
+const BATCH_SIZE = 64;
 const MAX_EPOCHS = 100;
 const EARLY_STOP_PATIENCE = 10;
 const TRAIN_SPLIT = 0.9;
@@ -42,6 +41,7 @@ interface TrainerArgs {
   dataDir: string;
   outPath: string;
   isV2: boolean;
+  warmStart: string | null; // path to V1 model for transfer learning
 }
 
 function parseTrainerArgs(): TrainerArgs {
@@ -49,20 +49,22 @@ function parseTrainerArgs(): TrainerArgs {
   let dataDir = join(__dirname, '..', '..', '..', 'data');
   let outPath = join(__dirname, '..', 'models', 'model-latest.json');
   let isV2 = false;
+  let warmStart: string | null = null;
 
   const argv = process.argv.slice(2);
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--data' && argv[i + 1]) dataDir = argv[++i];
     if (argv[i] === '--out' && argv[i + 1]) outPath = argv[++i];
     if (argv[i] === '--v2') isV2 = true;
+    if (argv[i] === '--warm-start' && argv[i + 1]) warmStart = argv[++i];
   }
 
-  return { dataDir, outPath, isV2 };
+  return { dataDir, outPath, isV2, warmStart };
 }
 
 // ── Data loading ──
 
-async function loadSamplesAsync(dataDir: string, expectedFeatureCount: number): Promise<TrainingSample[]> {
+function loadSamples(dataDir: string, expectedFeatureCount: number): TrainingSample[] {
   if (!existsSync(dataDir)) {
     console.error(`Data directory not found: ${dataDir}`);
     process.exit(1);
@@ -75,18 +77,13 @@ async function loadSamplesAsync(dataDir: string, expectedFeatureCount: number): 
   }
 
   const samples: TrainingSample[] = [];
-
-  // Stream files line-by-line to avoid loading entire files into memory
   for (const file of files) {
-    const filePath = join(dataDir, file);
-    const rl = createInterface({
-      input: createReadStream(filePath, { encoding: 'utf-8', highWaterMark: 256 * 1024 }),
-      crlfDelay: Infinity,
-    });
-    for await (const line of rl) {
-      if (!line) continue;
+    const lines = readFileSync(join(dataDir, file), 'utf-8').split('\n');
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
       try {
-        const sample = JSON.parse(line) as TrainingSample;
+        const sample = JSON.parse(trimmed) as TrainingSample;
         if (sample.f && sample.l && sample.f.length === expectedFeatureCount && sample.l.length === 3) {
           samples.push(sample);
         }
@@ -94,7 +91,6 @@ async function loadSamplesAsync(dataDir: string, expectedFeatureCount: number): 
         // skip malformed lines
       }
     }
-    console.log(`  Loaded ${file}: ${samples.length} samples so far`);
   }
 
   return samples;
@@ -119,6 +115,8 @@ function argmax(arr: number[]): number {
   return maxIdx;
 }
 
+const MAX_OVERSAMPLE_RATIO = 3; // cap at 3x original dataset size
+
 function balanceSamples(samples: TrainingSample[]): TrainingSample[] {
   // Step 1: Group by street
   const byStreet = new Map<string, TrainingSample[]>();
@@ -128,14 +126,17 @@ function balanceSamples(samples: TrainingSample[]): TrainingSample[] {
     byStreet.get(street)!.push(s);
   }
 
+  // Cap target to avoid massive oversampling (e.g. 6K PREFLOP vs 100 RIVER)
   const maxStreetCount = Math.max(...[...byStreet.values()].map(g => g.length));
+  const medianCount = [...byStreet.values()].map(g => g.length).sort((a, b) => a - b)[Math.floor(byStreet.size / 2)];
+  const streetTarget = Math.min(maxStreetCount, medianCount * 4);
 
-  // Step 2: Oversample minority streets to match majority
+  // Step 2: Oversample minority streets to capped target
   const streetBalanced: TrainingSample[] = [];
   for (const [, group] of byStreet) {
+    const target = Math.min(streetTarget, group.length * 10); // never oversample a single street more than 10x
     streetBalanced.push(...group);
-    // Oversample to reach target
-    let needed = maxStreetCount - group.length;
+    let needed = target - group.length;
     while (needed > 0) {
       streetBalanced.push(group[Math.floor(Math.random() * group.length)]);
       needed--;
@@ -152,7 +153,6 @@ function balanceSamples(samples: TrainingSample[]): TrainingSample[] {
     byStreetAction.get(key)!.push(s);
   }
 
-  // Find max per street-action pair across streets
   const streetActionCounts = new Map<string, number>();
   for (const [key, group] of byStreetAction) {
     const street = key.split(':')[0];
@@ -170,6 +170,13 @@ function balanceSamples(samples: TrainingSample[]): TrainingSample[] {
       balanced.push(group[Math.floor(Math.random() * group.length)]);
       needed--;
     }
+  }
+
+  // Final safety cap: don't exceed MAX_OVERSAMPLE_RATIO × original size
+  const maxTotal = samples.length * MAX_OVERSAMPLE_RATIO;
+  if (balanced.length > maxTotal) {
+    shuffle(balanced);
+    return balanced.slice(0, maxTotal);
   }
 
   return balanced;
@@ -194,39 +201,28 @@ function forwardWithCache(model: ModelWeights, features: number[]): ForwardCache
     const layer = model.layers[l];
     const isOutput = l === model.layers.length - 1;
     const outDim = layer.weights.length;
-    const inDim = current.length;
+    const preAct = new Array<number>(outDim);
+
+    for (let j = 0; j < outDim; j++) {
+      let sum = layer.biases[j];
+      const w = layer.weights[j];
+      for (let i = 0; i < current.length; i++) {
+        sum += current[i] * w[i];
+      }
+      preAct[j] = sum;
+    }
 
     inputs.push(current);
 
     if (isOutput) {
-      // Output layer: compute logits, then softmax
-      let maxVal = -Infinity;
-      const logits = new Array<number>(outDim);
-      for (let j = 0; j < outDim; j++) {
-        let sum = layer.biases[j];
-        const w = layer.weights[j];
-        for (let i = 0; i < inDim; i++) sum += current[i] * w[i];
-        logits[j] = sum;
-        if (sum > maxVal) maxVal = sum;
-      }
-      let expSum = 0;
-      const probs = new Array<number>(outDim);
-      for (let j = 0; j < outDim; j++) {
-        probs[j] = Math.exp(logits[j] - maxVal);
-        expSum += probs[j];
-      }
-      for (let j = 0; j < outDim; j++) probs[j] /= expSum;
+      const maxVal = Math.max(...preAct);
+      const exps = preAct.map(v => Math.exp(v - maxVal));
+      const sum = exps.reduce((a, b) => a + b, 0);
+      const probs = exps.map(e => e / sum);
       outputs.push(probs);
       return { inputs, outputs, probs };
     } else {
-      // Hidden layer: ReLU activation
-      const activated = new Array<number>(outDim);
-      for (let j = 0; j < outDim; j++) {
-        let sum = layer.biases[j];
-        const w = layer.weights[j];
-        for (let i = 0; i < inDim; i++) sum += current[i] * w[i];
-        activated[j] = sum > 0 ? sum : 0;
-      }
+      const activated = preAct.map(v => v > 0 ? v : 0);
       outputs.push(activated);
       current = activated;
     }
@@ -329,18 +325,21 @@ function evaluateV1(model: ModelWeights, samples: TrainingSample[]): number {
   return totalLoss / samples.length;
 }
 
-function cloneWeights(model: ModelWeights): ModelWeights {
-  const cloneLayer = (l: LayerWeights): LayerWeights => ({
+function cloneLayer(l: LayerWeights): LayerWeights {
+  return {
     weights: l.weights.map(row => row.slice()),
     biases: l.biases.slice(),
-  });
+  };
+}
+
+function cloneWeights(model: ModelWeights): ModelWeights {
   const clone: ModelWeights = {
     layers: model.layers.map(cloneLayer),
     inputSize: model.inputSize,
-    version: model.version,
-    valLoss: model.valLoss,
     trainedAt: model.trainedAt,
     trainingSamples: model.trainingSamples,
+    valLoss: model.valLoss,
+    version: model.version,
   };
   if (model.actionHead) clone.actionHead = cloneLayer(model.actionHead);
   if (model.sizingHead) clone.sizingHead = cloneLayer(model.sizingHead);
@@ -357,7 +356,6 @@ function trainV1(trainSet: TrainingSample[], valSet: TrainingSample[]): ModelWei
   let lr = LEARNING_RATE_INIT;
 
   for (let epoch = 1; epoch <= MAX_EPOCHS; epoch++) {
-    const epochStart = Date.now();
     if (epoch > 1 && (epoch - 1) % LR_DECAY_EVERY === 0) {
       lr *= LR_DECAY_FACTOR;
       console.log(`  LR decay → ${lr.toExponential(2)}`);
@@ -384,13 +382,12 @@ function trainV1(trainSet: TrainingSample[], valSet: TrainingSample[]): ModelWei
 
     const trainLoss = epochLoss / trainSet.length;
     const valLoss = evaluateV1(model, valSet);
-    const epochMs = Date.now() - epochStart;
 
     const indicator = valLoss < bestValLoss ? ' *' : '';
     console.log(
       `Epoch ${String(epoch).padStart(3)}/${MAX_EPOCHS}  ` +
       `train_loss=${trainLoss.toFixed(4)}  val_loss=${valLoss.toFixed(4)}  ` +
-      `lr=${lr.toExponential(2)}  ${epochMs}ms${indicator}`
+      `lr=${lr.toExponential(2)}${indicator}`
     );
 
     if (valLoss < bestValLoss) {
@@ -414,271 +411,427 @@ function trainV1(trainSet: TrainingSample[], valSet: TrainingSample[]): ModelWei
 }
 
 // ══════════════════════════════════════════════
-//   V2 MULTI-HEAD TRAINING
+//   V1→V2 WARM-START (TRANSFER LEARNING)
 // ══════════════════════════════════════════════
 
-interface ForwardCacheV2 {
-  /** Inputs to each backbone layer */
-  backboneInputs: number[][];
-  /** Outputs of each backbone layer (post-ReLU) */
-  backboneOutputs: number[][];
-  /** Final backbone output (input to both heads) */
-  backbone: number[];
-  /** Action head softmax probabilities */
-  actionProbs: number[];
-  /** Sizing head softmax probabilities */
-  sizingProbs: number[];
-}
+/**
+ * Create a V2 model by transferring weights from a trained V1 model.
+ *
+ * V1 layout: layers[0] (48→64), layers[1] (64→32), layers[2] (32→3)
+ * V2 layout: layers[0] (54→64), layers[1] (64→32), actionHead (32→3), sizingHead (32→5)
+ *
+ * Transfer strategy:
+ *   - layers[0]: copy V1 weights, pad 6 new feature columns with zeros
+ *   - layers[1]: copy directly (64→32 is identical)
+ *   - actionHead: copy from V1 layers[2] (32→3 is identical)
+ *   - sizingHead: Xavier-initialize (new capability)
+ */
+function warmStartV2FromV1(v1Path: string): ModelWeights {
+  const raw = readFileSync(v1Path, 'utf-8');
+  const v1: ModelWeights = JSON.parse(raw);
 
-function softmaxArr(preAct: number[]): number[] {
-  const len = preAct.length;
-  let maxVal = preAct[0];
-  for (let i = 1; i < len; i++) if (preAct[i] > maxVal) maxVal = preAct[i];
-  const result = new Array<number>(len);
-  let sum = 0;
-  for (let i = 0; i < len; i++) { result[i] = Math.exp(preAct[i] - maxVal); sum += result[i]; }
-  for (let i = 0; i < len; i++) result[i] /= sum;
-  return result;
-}
-
-function forwardV2WithCache(model: ModelWeights, features: number[]): ForwardCacheV2 {
-  const backboneInputs: number[][] = [];
-  const backboneOutputs: number[][] = [];
-  let current = features;
-
-  // Backbone forward (all layers use ReLU)
-  for (const layer of model.layers) {
-    backboneInputs.push(current);
-    const outDim = layer.weights.length;
-    const inDim = current.length;
-    const activated = new Array<number>(outDim);
-    for (let j = 0; j < outDim; j++) {
-      let sum = layer.biases[j];
-      const w = layer.weights[j];
-      for (let i = 0; i < inDim; i++) sum += current[i] * w[i];
-      activated[j] = sum > 0 ? sum : 0;
-    }
-    backboneOutputs.push(activated);
-    current = activated;
+  if (!v1.layers || v1.layers.length < 3) {
+    throw new Error(`Invalid V1 model: expected 3 layers, got ${v1.layers?.length}`);
   }
 
-  const backbone = current;
+  const v1Layer0 = v1.layers[0]; // 48→64
+  const v1Layer1 = v1.layers[1]; // 64→32
+  const v1Layer2 = v1.layers[2]; // 32→3
 
-  // Action head forward
-  const actionHead = model.actionHead!;
-  const actionPreAct = new Array<number>(actionHead.weights.length);
-  for (let j = 0; j < actionHead.weights.length; j++) {
-    let sum = actionHead.biases[j];
-    const w = actionHead.weights[j];
-    for (let i = 0; i < backbone.length; i++) {
-      sum += backbone[i] * w[i];
+  // Pad layers[0] weights: each row gets 6 extra zeros for new V2 features
+  const paddedWeights0 = v1Layer0.weights.map(row => {
+    const padded = [...row];
+    for (let i = 0; i < FEATURE_COUNT_V2 - FEATURE_COUNT; i++) {
+      padded.push(0);
     }
-    actionPreAct[j] = sum;
-  }
-  const actionProbs = softmaxArr(actionPreAct);
+    return padded;
+  });
 
-  // Sizing head forward
-  const sizingHead = model.sizingHead!;
-  const sizingPreAct = new Array<number>(sizingHead.weights.length);
-  for (let j = 0; j < sizingHead.weights.length; j++) {
-    let sum = sizingHead.biases[j];
-    const w = sizingHead.weights[j];
-    for (let i = 0; i < backbone.length; i++) {
-      sum += backbone[i] * w[i];
+  // Xavier-initialize sizingHead (32→5)
+  const sizingScale = Math.sqrt(2 / (HIDDEN_SIZES[HIDDEN_SIZES.length - 1] + SIZING_OUTPUT_SIZE));
+  const sizingWeights: number[][] = [];
+  for (let j = 0; j < SIZING_OUTPUT_SIZE; j++) {
+    const row: number[] = [];
+    for (let i = 0; i < HIDDEN_SIZES[HIDDEN_SIZES.length - 1]; i++) {
+      const u1 = Math.random() || 1e-10;
+      const u2 = Math.random();
+      row.push(Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2) * sizingScale);
     }
-    sizingPreAct[j] = sum;
+    sizingWeights.push(row);
   }
-  const sizingProbs = softmaxArr(sizingPreAct);
 
-  return { backboneInputs, backboneOutputs, backbone, actionProbs, sizingProbs };
-}
+  console.log('  Warm-start transfer:');
+  console.log(`    layers[0]: ${FEATURE_COUNT}→64 padded to ${FEATURE_COUNT_V2}→64`);
+  console.log(`    layers[1]: 64→32 copied directly`);
+  console.log(`    actionHead: 32→3 copied from V1 output layer`);
+  console.log(`    sizingHead: 32→5 Xavier-initialized (new)`);
 
-interface GradientsV2 {
-  layers: LayerWeights[];       // backbone
-  actionHead: LayerWeights;
-  sizingHead: LayerWeights;
-}
-
-function zeroGradsV2(model: ModelWeights): GradientsV2 {
   return {
-    layers: model.layers.map(l => ({
-      weights: l.weights.map(row => new Array<number>(row.length).fill(0)),
-      biases: new Array<number>(l.biases.length).fill(0),
-    })),
+    layers: [
+      { weights: paddedWeights0, biases: [...v1Layer0.biases] },
+      { weights: v1Layer1.weights.map(r => [...r]), biases: [...v1Layer1.biases] },
+    ],
     actionHead: {
-      weights: model.actionHead!.weights.map(row => new Array<number>(row.length).fill(0)),
-      biases: new Array<number>(model.actionHead!.biases.length).fill(0),
+      weights: v1Layer2.weights.map(r => [...r]),
+      biases: [...v1Layer2.biases],
     },
     sizingHead: {
-      weights: model.sizingHead!.weights.map(row => new Array<number>(row.length).fill(0)),
-      biases: new Array<number>(model.sizingHead!.biases.length).fill(0),
+      weights: sizingWeights,
+      biases: new Array<number>(SIZING_OUTPUT_SIZE).fill(0),
     },
+    inputSize: FEATURE_COUNT_V2,
+    version: 'v2',
+    trainedAt: new Date().toISOString(),
+    trainingSamples: 0,
+    valLoss: Infinity,
   };
 }
 
-function backpropV2(
+// ══════════════════════════════════════════════
+//   V2 MULTI-HEAD TRAINING (optimized: pre-allocated buffers, Float64Array)
+// ══════════════════════════════════════════════
+
+/**
+ * Pre-allocated scratch buffers for V2 forward/backward passes.
+ * Avoids creating thousands of temporary arrays per epoch.
+ */
+interface V2Buffers {
+  // Forward cache
+  backboneInputs: Float64Array[];   // one per backbone layer
+  backboneOutputs: Float64Array[];  // one per backbone layer
+  actionPreAct: Float64Array;
+  actionProbs: Float64Array;
+  sizingPreAct: Float64Array;
+  sizingProbs: Float64Array;
+  // Backward scratch
+  actionDelta: Float64Array;
+  sizingDelta: Float64Array;
+  backboneDeltaAction: Float64Array;
+  backboneDeltaSizing: Float64Array;
+  delta: Float64Array;
+  prevDelta: Float64Array;  // for largest input dim
+}
+
+interface GradientsV2Flat {
+  /** Flat Float64Arrays for each backbone layer's weights and biases */
+  layerWeights: Float64Array[];   // [outDim * inDim] per layer
+  layerBiases: Float64Array[];    // [outDim] per layer
+  layerInDims: number[];          // input dim per layer
+  actionWeights: Float64Array;    // [ACTION_OUTPUT_SIZE * backboneDim]
+  actionBiases: Float64Array;
+  sizingWeights: Float64Array;    // [SIZING_OUTPUT_SIZE * backboneDim]
+  sizingBiases: Float64Array;
+  backboneDim: number;
+}
+
+function createV2Buffers(model: ModelWeights): V2Buffers {
+  const backboneInputs: Float64Array[] = [];
+  const backboneOutputs: Float64Array[] = [];
+
+  // Determine dimensions from model
+  let inDim = model.layers[0].weights[0].length; // input feature count
+  let maxInDim = inDim;
+  for (const layer of model.layers) {
+    backboneInputs.push(new Float64Array(inDim));
+    const outDim = layer.weights.length;
+    backboneOutputs.push(new Float64Array(outDim));
+    inDim = outDim;
+    if (inDim > maxInDim) maxInDim = inDim;
+  }
+
+  const backboneDim = model.layers[model.layers.length - 1].weights.length;
+  const actionDim = model.actionHead!.weights.length;
+  const sizingDim = model.sizingHead!.weights.length;
+
+  return {
+    backboneInputs,
+    backboneOutputs,
+    actionPreAct: new Float64Array(actionDim),
+    actionProbs: new Float64Array(actionDim),
+    sizingPreAct: new Float64Array(sizingDim),
+    sizingProbs: new Float64Array(sizingDim),
+    actionDelta: new Float64Array(actionDim),
+    sizingDelta: new Float64Array(sizingDim),
+    backboneDeltaAction: new Float64Array(backboneDim),
+    backboneDeltaSizing: new Float64Array(backboneDim),
+    delta: new Float64Array(Math.max(backboneDim, maxInDim)),
+    prevDelta: new Float64Array(Math.max(backboneDim, maxInDim)),
+  };
+}
+
+function createGradsV2Flat(model: ModelWeights): GradientsV2Flat {
+  const layerWeights: Float64Array[] = [];
+  const layerBiases: Float64Array[] = [];
+  const layerInDims: number[] = [];
+
+  for (const layer of model.layers) {
+    const outDim = layer.weights.length;
+    const inDim = layer.weights[0].length;
+    layerWeights.push(new Float64Array(outDim * inDim));
+    layerBiases.push(new Float64Array(outDim));
+    layerInDims.push(inDim);
+  }
+
+  const backboneDim = model.layers[model.layers.length - 1].weights.length;
+  const actionDim = model.actionHead!.weights.length;
+  const sizingDim = model.sizingHead!.weights.length;
+
+  return {
+    layerWeights,
+    layerBiases,
+    layerInDims,
+    actionWeights: new Float64Array(actionDim * backboneDim),
+    actionBiases: new Float64Array(actionDim),
+    sizingWeights: new Float64Array(sizingDim * backboneDim),
+    sizingBiases: new Float64Array(sizingDim),
+    backboneDim,
+  };
+}
+
+function zeroGradsV2Flat(grads: GradientsV2Flat): void {
+  for (let l = 0; l < grads.layerWeights.length; l++) {
+    grads.layerWeights[l].fill(0);
+    grads.layerBiases[l].fill(0);
+  }
+  grads.actionWeights.fill(0);
+  grads.actionBiases.fill(0);
+  grads.sizingWeights.fill(0);
+  grads.sizingBiases.fill(0);
+}
+
+function softmaxInto(preAct: Float64Array, out: Float64Array, len: number): void {
+  let maxVal = preAct[0];
+  for (let i = 1; i < len; i++) if (preAct[i] > maxVal) maxVal = preAct[i];
+  let sum = 0;
+  for (let i = 0; i < len; i++) { out[i] = Math.exp(preAct[i] - maxVal); sum += out[i]; }
+  for (let i = 0; i < len; i++) out[i] /= sum;
+}
+
+function forwardV2Into(model: ModelWeights, features: number[], buf: V2Buffers): void {
+  // Copy input features into first backbone input
+  const firstInput = buf.backboneInputs[0];
+  for (let i = 0; i < features.length; i++) firstInput[i] = features[i];
+
+  // Backbone forward (all layers use ReLU)
+  for (let l = 0; l < model.layers.length; l++) {
+    const layer = model.layers[l];
+    const input = buf.backboneInputs[l];
+    const output = buf.backboneOutputs[l];
+    const outDim = layer.weights.length;
+    const inDim = layer.weights[0].length;
+
+    for (let j = 0; j < outDim; j++) {
+      let sum = layer.biases[j];
+      const w = layer.weights[j];
+      for (let i = 0; i < inDim; i++) sum += input[i] * w[i];
+      output[j] = sum > 0 ? sum : 0; // ReLU
+    }
+
+    // Feed output as next layer's input
+    if (l < model.layers.length - 1) {
+      const nextInput = buf.backboneInputs[l + 1];
+      for (let i = 0; i < outDim; i++) nextInput[i] = output[i];
+    }
+  }
+
+  // Backbone output = last backbone layer output
+  const backbone = buf.backboneOutputs[model.layers.length - 1];
+  const backboneDim = model.layers[model.layers.length - 1].weights.length;
+
+  // Action head forward
+  const actionHead = model.actionHead!;
+  const actionDim = actionHead.weights.length;
+  for (let j = 0; j < actionDim; j++) {
+    let sum = actionHead.biases[j];
+    const w = actionHead.weights[j];
+    for (let i = 0; i < backboneDim; i++) sum += backbone[i] * w[i];
+    buf.actionPreAct[j] = sum;
+  }
+  softmaxInto(buf.actionPreAct, buf.actionProbs, actionDim);
+
+  // Sizing head forward
+  const sizingHead = model.sizingHead!;
+  const sizingDim = sizingHead.weights.length;
+  for (let j = 0; j < sizingDim; j++) {
+    let sum = sizingHead.biases[j];
+    const w = sizingHead.weights[j];
+    for (let i = 0; i < backboneDim; i++) sum += backbone[i] * w[i];
+    buf.sizingPreAct[j] = sum;
+  }
+  softmaxInto(buf.sizingPreAct, buf.sizingProbs, sizingDim);
+}
+
+function backpropV2Into(
   model: ModelWeights,
-  cache: ForwardCacheV2,
+  buf: V2Buffers,
+  grads: GradientsV2Flat,
   actionTarget: number[],
   sizingTarget: number[] | null,
   sizingWeight: number,
-): GradientsV2 {
-  const grads = zeroGradsV2(model);
-  const backboneDim = cache.backbone.length;
+): void {
+  const backboneDim = grads.backboneDim;
+  const backbone = buf.backboneOutputs[model.layers.length - 1];
 
-  // ── Action head gradients: dL/dz = probs - target ──
-  const actionDelta = cache.actionProbs.map((p, i) => p - actionTarget[i]);
+  // ── Action head gradients ──
   const actionHead = model.actionHead!;
-  for (let j = 0; j < actionHead.weights.length; j++) {
-    grads.actionHead.biases[j] = actionDelta[j];
+  const actionDim = actionHead.weights.length;
+  for (let j = 0; j < actionDim; j++) {
+    const d = buf.actionProbs[j] - actionTarget[j];
+    buf.actionDelta[j] = d;
+    grads.actionBiases[j] += d;
+    const off = j * backboneDim;
     for (let i = 0; i < backboneDim; i++) {
-      grads.actionHead.weights[j][i] = actionDelta[j] * cache.backbone[i];
+      grads.actionWeights[off + i] += d * backbone[i];
     }
   }
 
   // Backbone delta from action head
-  const backboneDeltaFromAction = new Array<number>(backboneDim).fill(0);
+  const bda = buf.backboneDeltaAction;
   for (let i = 0; i < backboneDim; i++) {
-    for (let j = 0; j < actionHead.weights.length; j++) {
-      backboneDeltaFromAction[i] += actionDelta[j] * actionHead.weights[j][i];
+    let sum = 0;
+    for (let j = 0; j < actionDim; j++) {
+      sum += buf.actionDelta[j] * actionHead.weights[j][i];
     }
+    bda[i] = sum;
   }
 
-  // ── Sizing head gradients (only when sizing target exists) ──
-  const backboneDeltaFromSizing = new Array<number>(backboneDim).fill(0);
+  // ── Sizing head gradients ──
+  const bds = buf.backboneDeltaSizing;
   if (sizingTarget && sizingWeight > 0) {
-    const sizingDelta = cache.sizingProbs.map((p, i) => p - sizingTarget[i]);
     const sizingHead = model.sizingHead!;
-    for (let j = 0; j < sizingHead.weights.length; j++) {
-      grads.sizingHead.biases[j] = sizingDelta[j] * sizingWeight;
+    const sizingDim = sizingHead.weights.length;
+    for (let j = 0; j < sizingDim; j++) {
+      const d = (buf.sizingProbs[j] - sizingTarget[j]) * sizingWeight;
+      buf.sizingDelta[j] = d;
+      grads.sizingBiases[j] += d;
+      const off = j * backboneDim;
       for (let i = 0; i < backboneDim; i++) {
-        grads.sizingHead.weights[j][i] = sizingDelta[j] * cache.backbone[i] * sizingWeight;
+        grads.sizingWeights[off + i] += d * backbone[i];
       }
     }
 
     for (let i = 0; i < backboneDim; i++) {
-      for (let j = 0; j < sizingHead.weights.length; j++) {
-        backboneDeltaFromSizing[i] += sizingDelta[j] * sizingHead.weights[j][i] * sizingWeight;
+      let sum = 0;
+      for (let j = 0; j < sizingDim; j++) {
+        sum += buf.sizingDelta[j] * sizingHead.weights[j][i];
       }
+      bds[i] = sum;
     }
+  } else {
+    bds.fill(0);
   }
 
   // ── Combined backbone delta ──
-  let delta = new Array<number>(backboneDim);
+  const delta = buf.delta;
+  const lastIdx = model.layers.length - 1;
+  const lastOutput = buf.backboneOutputs[lastIdx];
   for (let i = 0; i < backboneDim; i++) {
-    // Apply ReLU derivative for last backbone layer
-    const lastBackboneIdx = model.layers.length - 1;
-    const activated = cache.backboneOutputs[lastBackboneIdx][i] > 0 ? 1 : 0;
-    delta[i] = (backboneDeltaFromAction[i] + backboneDeltaFromSizing[i]) * activated;
+    delta[i] = (bda[i] + bds[i]) * (lastOutput[i] > 0 ? 1 : 0);
   }
 
-  // ── Backprop through backbone layers (reverse) ──
+  // ── Backprop through backbone layers ──
   for (let l = model.layers.length - 1; l >= 0; l--) {
-    const input = cache.backboneInputs[l];
+    const input = buf.backboneInputs[l];
     const layer = model.layers[l];
     const outDim = layer.weights.length;
-    const inDim = input.length;
+    const inDim = grads.layerInDims[l];
 
     for (let j = 0; j < outDim; j++) {
-      grads.layers[l].biases[j] = delta[j];
+      grads.layerBiases[l][j] += delta[j];
+      const off = j * inDim;
       for (let i = 0; i < inDim; i++) {
-        grads.layers[l].weights[j][i] = delta[j] * input[i];
+        grads.layerWeights[l][off + i] += delta[j] * input[i];
       }
     }
 
     if (l > 0) {
-      const prevDelta = new Array<number>(inDim).fill(0);
+      const prevDelta = buf.prevDelta;
+      const prevOutput = buf.backboneOutputs[l - 1];
       for (let i = 0; i < inDim; i++) {
         let sum = 0;
         for (let j = 0; j < outDim; j++) {
           sum += delta[j] * layer.weights[j][i];
         }
-        prevDelta[i] = cache.backboneOutputs[l - 1][i] > 0 ? sum : 0;
+        prevDelta[i] = prevOutput[i] > 0 ? sum : 0;
       }
-      delta = prevDelta;
-    }
-  }
-
-  return grads;
-}
-
-function accumulateGradsV2(acc: GradientsV2, grads: GradientsV2): void {
-  // Backbone
-  for (let l = 0; l < acc.layers.length; l++) {
-    for (let j = 0; j < acc.layers[l].biases.length; j++) {
-      acc.layers[l].biases[j] += grads.layers[l].biases[j];
-      for (let i = 0; i < acc.layers[l].weights[j].length; i++) {
-        acc.layers[l].weights[j][i] += grads.layers[l].weights[j][i];
-      }
-    }
-  }
-  // Action head
-  for (let j = 0; j < acc.actionHead.biases.length; j++) {
-    acc.actionHead.biases[j] += grads.actionHead.biases[j];
-    for (let i = 0; i < acc.actionHead.weights[j].length; i++) {
-      acc.actionHead.weights[j][i] += grads.actionHead.weights[j][i];
-    }
-  }
-  // Sizing head
-  for (let j = 0; j < acc.sizingHead.biases.length; j++) {
-    acc.sizingHead.biases[j] += grads.sizingHead.biases[j];
-    for (let i = 0; i < acc.sizingHead.weights[j].length; i++) {
-      acc.sizingHead.weights[j][i] += grads.sizingHead.weights[j][i];
+      // Swap delta ↔ prevDelta
+      for (let i = 0; i < inDim; i++) { delta[i] = prevDelta[i]; }
     }
   }
 }
 
-function sgdUpdateV2(model: ModelWeights, grads: GradientsV2, lr: number, batchSize: number): void {
+function sgdUpdateV2Flat(model: ModelWeights, grads: GradientsV2Flat, lr: number, batchSize: number): void {
   const scale = lr / batchSize;
 
   // Backbone
   for (let l = 0; l < model.layers.length; l++) {
     const layer = model.layers[l];
-    const grad = grads.layers[l];
-    for (let j = 0; j < layer.weights.length; j++) {
-      layer.biases[j] -= scale * grad.biases[j];
-      for (let i = 0; i < layer.weights[j].length; i++) {
-        layer.weights[j][i] -= scale * grad.weights[j][i];
+    const inDim = grads.layerInDims[l];
+    const outDim = layer.weights.length;
+    for (let j = 0; j < outDim; j++) {
+      layer.biases[j] -= scale * grads.layerBiases[l][j];
+      const off = j * inDim;
+      const w = layer.weights[j];
+      for (let i = 0; i < inDim; i++) {
+        w[i] -= scale * grads.layerWeights[l][off + i];
       }
     }
   }
+
   // Action head
   const ah = model.actionHead!;
-  const ahg = grads.actionHead;
+  const backboneDim = grads.backboneDim;
   for (let j = 0; j < ah.weights.length; j++) {
-    ah.biases[j] -= scale * ahg.biases[j];
-    for (let i = 0; i < ah.weights[j].length; i++) {
-      ah.weights[j][i] -= scale * ahg.weights[j][i];
+    ah.biases[j] -= scale * grads.actionBiases[j];
+    const off = j * backboneDim;
+    const w = ah.weights[j];
+    for (let i = 0; i < backboneDim; i++) {
+      w[i] -= scale * grads.actionWeights[off + i];
     }
   }
+
   // Sizing head
   const sh = model.sizingHead!;
-  const shg = grads.sizingHead;
   for (let j = 0; j < sh.weights.length; j++) {
-    sh.biases[j] -= scale * shg.biases[j];
-    for (let i = 0; i < sh.weights[j].length; i++) {
-      sh.weights[j][i] -= scale * shg.weights[j][i];
+    sh.biases[j] -= scale * grads.sizingBiases[j];
+    const off = j * backboneDim;
+    const w = sh.weights[j];
+    for (let i = 0; i < backboneDim; i++) {
+      w[i] -= scale * grads.sizingWeights[off + i];
     }
   }
 }
 
 function evaluateV2Loss(model: ModelWeights, samples: TrainingSample[]): number {
+  const buf = createV2Buffers(model);
   let totalLoss = 0;
   for (const sample of samples) {
-    const cache = forwardV2WithCache(model, sample.f);
-    let loss = crossEntropyLoss(cache.actionProbs, sample.l);
+    forwardV2Into(model, sample.f, buf);
+    let loss = 0;
+    for (let i = 0; i < sample.l.length; i++) {
+      loss -= sample.l[i] * Math.log(Math.max(buf.actionProbs[i], 1e-10));
+    }
     if (sample.sz && sample.l[0] > SIZING_RAISE_THRESHOLD) {
-      loss += SIZING_LOSS_WEIGHT * crossEntropyLoss(cache.sizingProbs, sample.sz);
+      for (let i = 0; i < sample.sz.length; i++) {
+        loss += SIZING_LOSS_WEIGHT * (-sample.sz[i] * Math.log(Math.max(buf.sizingProbs[i], 1e-10)));
+      }
     }
     totalLoss += loss;
   }
   return totalLoss / samples.length;
 }
 
-function trainV2(trainSet: TrainingSample[], valSet: TrainingSample[]): ModelWeights {
-  console.log(`Initializing V2 MLP: input=${FEATURE_COUNT_V2} → [${HIDDEN_SIZES.join(', ')}] → action(${ACTION_OUTPUT_SIZE}) + sizing(${SIZING_OUTPUT_SIZE})`);
+function trainV2(trainSet: TrainingSample[], valSet: TrainingSample[], warmStartModel?: ModelWeights): ModelWeights {
+  const model = warmStartModel
+    ? warmStartModel
+    : createRandomModelV2(FEATURE_COUNT_V2, HIDDEN_SIZES, ACTION_OUTPUT_SIZE, SIZING_OUTPUT_SIZE);
 
-  const model = createRandomModelV2(FEATURE_COUNT_V2, HIDDEN_SIZES, ACTION_OUTPUT_SIZE, SIZING_OUTPUT_SIZE);
+  console.log(`Initializing V2 MLP: input=${FEATURE_COUNT_V2} → [${HIDDEN_SIZES.join(', ')}] → action(${ACTION_OUTPUT_SIZE}) + sizing(${SIZING_OUTPUT_SIZE})${warmStartModel ? ' [warm-started from V1]' : ''}`);
+
+  // Pre-allocate all scratch buffers once
+  const buf = createV2Buffers(model);
+  const accGrads = createGradsV2Flat(model);
+
   let bestModel = cloneWeights(model);
   let bestValLoss = Infinity;
   let patience = 0;
@@ -686,18 +839,21 @@ function trainV2(trainSet: TrainingSample[], valSet: TrainingSample[]): ModelWei
   let workingTrainSet = [...trainSet];
 
   for (let epoch = 1; epoch <= MAX_EPOCHS; epoch++) {
-    const epochStart = Date.now();
     if (epoch > 1 && (epoch - 1) % LR_DECAY_EVERY === 0) {
       lr *= LR_DECAY_FACTOR;
       console.log(`  LR decay → ${lr.toExponential(2)}`);
     }
 
-    // Hard example mining after epoch 1
+    // Hard example mining after epoch 1 (reuses pre-allocated buffers)
     if (epoch === 2) {
       console.log('  Hard example mining: identifying difficult samples...');
       const losses = trainSet.map(s => {
-        const cache = forwardV2WithCache(model, s.f);
-        return { sample: s, loss: crossEntropyLoss(cache.actionProbs, s.l) };
+        forwardV2Into(model, s.f, buf);
+        let loss = 0;
+        for (let i = 0; i < s.l.length; i++) {
+          loss -= s.l[i] * Math.log(Math.max(buf.actionProbs[i], 1e-10));
+        }
+        return { sample: s, loss };
       });
       losses.sort((a, b) => b.loss - a.loss);
       const hardCount = Math.floor(losses.length * HARD_EXAMPLE_FRACTION);
@@ -712,42 +868,45 @@ function trainV2(trainSet: TrainingSample[], valSet: TrainingSample[]): ModelWei
     for (let start = 0; start < workingTrainSet.length; start += BATCH_SIZE) {
       const end = Math.min(start + BATCH_SIZE, workingTrainSet.length);
       const batchSize = end - start;
-      const accGrads = zeroGradsV2(model);
+      zeroGradsV2Flat(accGrads);
 
       for (let b = start; b < end; b++) {
         const sample = workingTrainSet[b];
-        const cache = forwardV2WithCache(model, sample.f);
+        forwardV2Into(model, sample.f, buf);
 
-        // Action loss
-        let loss = crossEntropyLoss(cache.actionProbs, sample.l);
+        // Action loss (inline for speed)
+        let loss = 0;
+        for (let i = 0; i < sample.l.length; i++) {
+          loss -= sample.l[i] * Math.log(Math.max(buf.actionProbs[i], 1e-10));
+        }
 
         // Sizing target: only when raise label is significant
         const hasSizing = sample.sz && sample.l[0] > SIZING_RAISE_THRESHOLD;
         if (hasSizing) {
-          loss += SIZING_LOSS_WEIGHT * crossEntropyLoss(cache.sizingProbs, sample.sz!);
+          for (let i = 0; i < sample.sz!.length; i++) {
+            loss += SIZING_LOSS_WEIGHT * (-sample.sz![i] * Math.log(Math.max(buf.sizingProbs[i], 1e-10)));
+          }
         }
         epochLoss += loss;
 
-        const grads = backpropV2(
-          model, cache, sample.l,
+        backpropV2Into(
+          model, buf, accGrads, sample.l,
           hasSizing ? sample.sz! : null,
           SIZING_LOSS_WEIGHT,
         );
-        accumulateGradsV2(accGrads, grads);
       }
 
-      sgdUpdateV2(model, accGrads, lr, batchSize);
+      sgdUpdateV2Flat(model, accGrads, lr, batchSize);
     }
 
     const trainLoss = epochLoss / workingTrainSet.length;
     const valLoss = evaluateV2Loss(model, valSet);
-    const epochMs = Date.now() - epochStart;
 
     const indicator = valLoss < bestValLoss ? ' *' : '';
     console.log(
       `Epoch ${String(epoch).padStart(3)}/${MAX_EPOCHS}  ` +
       `train_loss=${trainLoss.toFixed(4)}  val_loss=${valLoss.toFixed(4)}  ` +
-      `lr=${lr.toExponential(2)}  ${epochMs}ms${indicator}`
+      `lr=${lr.toExponential(2)}${indicator}`
     );
 
     if (valLoss < bestValLoss) {
@@ -772,16 +931,14 @@ function trainV2(trainSet: TrainingSample[], valSet: TrainingSample[]): ModelWei
 
 // ── Entry point ──
 
-async function main(): Promise<void> {
-  const { dataDir, outPath, isV2 } = parseTrainerArgs();
+function main(): void {
+  const { dataDir, outPath, isV2, warmStart } = parseTrainerArgs();
   const featureCount = isV2 ? FEATURE_COUNT_V2 : FEATURE_COUNT;
 
   console.log(`Loading samples from: ${dataDir}`);
   console.log(`Mode: ${isV2 ? 'V2 (multi-head + anti-bias)' : 'V1 (single-head)'}`);
-  console.log(`Batch size: ${BATCH_SIZE}`);
-  const t0 = Date.now();
-  let allSamples = await loadSamplesAsync(dataDir, featureCount);
-  console.log(`Loaded ${allSamples.length} samples in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
+  let allSamples = loadSamples(dataDir, featureCount);
+  console.log(`Loaded ${allSamples.length} samples`);
 
   if (allSamples.length < 100) {
     console.error('Need at least 100 samples to train. Collect more data first.');
@@ -803,8 +960,27 @@ async function main(): Promise<void> {
   const valSet = allSamples.slice(splitIdx);
   console.log(`Split: ${trainSet.length} train / ${valSet.length} validation\n`);
 
+  // Warm-start: transfer V1 weights to V2 model
+  let warmStartModel: ModelWeights | undefined;
+  if (isV2 && warmStart) {
+    console.log(`Warm-starting V2 from V1 model: ${warmStart}`);
+    warmStartModel = warmStartV2FromV1(warmStart);
+  } else if (isV2 && !warmStart) {
+    // Auto-detect V1 model for warm-start
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    const defaultV1Path = join(__dirname, '..', 'models', 'model-latest.json');
+    if (existsSync(defaultV1Path)) {
+      console.log(`Auto-detected V1 model for warm-start: ${defaultV1Path}`);
+      try {
+        warmStartModel = warmStartV2FromV1(defaultV1Path);
+      } catch (err) {
+        console.log(`  Warm-start failed (using random init): ${(err as Error).message}`);
+      }
+    }
+  }
+
   // Train
-  const bestModel = isV2 ? trainV2(trainSet, valSet) : trainV1(trainSet, valSet);
+  const bestModel = isV2 ? trainV2(trainSet, valSet, warmStartModel) : trainV1(trainSet, valSet);
 
   // Save model
   const outDir = dirname(outPath);
@@ -826,7 +1002,4 @@ async function main(): Promise<void> {
   console.log(`\nMetrics saved: ${metricsPath}`);
 }
 
-main().catch(err => {
-  console.error('Training failed:', err);
-  process.exit(1);
-});
+main();
