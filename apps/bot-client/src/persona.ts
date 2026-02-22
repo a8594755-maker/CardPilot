@@ -58,6 +58,13 @@ export const PERSONA_ANCHORS: Record<string, PersonaAnchors> = {
     heroCallCenter: 0.02,
     variance: 0.08,
   },
+  postflop_trainer: {
+    looseTightCenter: -0.5,
+    passiveAggressiveCenter: -0.2,
+    bluffCenter: 0.05,
+    heroCallCenter: 0.25,
+    variance: 0.10,
+  },
 };
 
 // ===== Simple seeded PRNG (Mulberry32) =====

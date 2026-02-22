@@ -13,24 +13,26 @@
  * Prerequisites: game server must be running (pnpm --filter game-server dev)
  */
 
-import { spawn, type ChildProcess } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
-import { readdirSync, readFileSync, existsSync } from 'node:fs';
+import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { freemem, totalmem } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { io, type Socket } from 'socket.io-client';
+import { PokerBot } from './main.js';
+import { loadModel, type MLP } from '@cardpilot/fast-model';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..', '..', '..');
 const DATA_DIR = join(ROOT, 'data');
-const BOT_MAIN = join(__dirname, 'main.ts');
 
 // ── Constants ──
 
-const PER_BOT_GB = 0.15;           // ~150 MB per bot process
-const RAM_TARGET_USAGE = 0.80;     // use up to 80% of total RAM
-const SCALE_CHECK_MS = 1 * 60_000; // check every 1 minute
+const PER_BOT_GB = 0.005;          // ~5 MB per in-process bot (shared model, no process overhead)
+const RAM_TARGET_USAGE = 0.85;     // use up to 85% of total RAM (safe with watchdog)
+const SCALE_CHECK_MS = 30_000;     // check every 30s for faster scaling response
+const RAM_CRITICAL_PCT = 0.92;     // emergency scale-down threshold
 
 // ── CLI args ──
 
@@ -67,8 +69,8 @@ function parseArgs(): SelfPlayConfig {
   return {
     servers,
     botsPerRoom: parseInt(args['bots-per-room'] ?? '6', 10),
-    trainEvery: parseInt(args['train-every'] ?? '50000', 10),
-    target: parseInt(args['target'] ?? '100000', 10),
+    trainEvery: parseInt(args['train-every'] ?? '100000', 10),
+    target: parseInt(args['target'] ?? '1000000', 10),
     bigBlind: parseInt(args['big-blind'] ?? '100', 10),
     buyIn: parseInt(args['buy-in'] ?? '10000', 10),
     dashboardPort: parseInt(args['dashboard-port'] ?? '3456', 10),
@@ -95,11 +97,12 @@ const PLAY_PROFILES = [
   'gto_balanced', 'lag', 'tag', 'nit',
 ];
 
-// TRAIN mode: all GTO-balanced for clean, representative game states
+// TRAIN mode: mix GTO + postflop_trainer for balanced data collection
+// postflop_trainers call loosely preflop → more multiway flops → more postflop samples
 const TRAIN_PROFILES = [
-  'gto_balanced', 'gto_balanced', 'gto_balanced',
-  'gto_balanced', 'gto_balanced', 'gto_balanced',
-  'gto_balanced', 'gto_balanced', 'gto_balanced',
+  'gto_balanced', 'postflop_trainer', 'gto_balanced',
+  'postflop_trainer', 'gto_balanced', 'postflop_trainer',
+  'gto_balanced', 'postflop_trainer', 'gto_balanced',
 ];
 
 // Active profile list (set in main based on config.mode)
@@ -114,22 +117,62 @@ function log(msg: string): void {
 
 // ── Count samples in data directory ──
 
+interface StreetCounts {
+  total: number;
+  PREFLOP: number;
+  FLOP: number;
+  TURN: number;
+  RIVER: number;
+}
+
 function countSamples(dataDir: string = DATA_DIR): number {
+  return countSamplesDetailed(dataDir).total;
+}
+
+// Incremental counter: cache file sizes to only re-read changed/new files
+const _fileCache = new Map<string, { size: number; counts: StreetCounts }>();
+
+function countSamplesDetailed(dataDir: string = DATA_DIR): StreetCounts {
+  const counts: StreetCounts = { total: 0, PREFLOP: 0, FLOP: 0, TURN: 0, RIVER: 0 };
   try {
-    if (!existsSync(dataDir)) return 0;
+    if (!existsSync(dataDir)) return counts;
     const files = readdirSync(dataDir).filter(f => f.endsWith('.jsonl'));
-    let total = 0;
     for (const file of files) {
-      const content = readFileSync(join(dataDir, file), 'utf-8');
+      const fullPath = join(dataDir, file);
+      const stat = statSync(fullPath);
+      const cached = _fileCache.get(fullPath);
+
+      // If file size unchanged, use cached counts
+      if (cached && cached.size === stat.size) {
+        counts.total += cached.counts.total;
+        counts.PREFLOP += cached.counts.PREFLOP;
+        counts.FLOP += cached.counts.FLOP;
+        counts.TURN += cached.counts.TURN;
+        counts.RIVER += cached.counts.RIVER;
+        continue;
+      }
+
+      // Re-read changed file
+      const fileCounts: StreetCounts = { total: 0, PREFLOP: 0, FLOP: 0, TURN: 0, RIVER: 0 };
+      const content = readFileSync(fullPath, 'utf-8');
       const lines = content.split('\n');
       for (const line of lines) {
-        if (line.trim()) total++;
+        if (!line.trim()) continue;
+        fileCounts.total++;
+        const sMatch = line.match(/"s":"(PREFLOP|FLOP|TURN|RIVER)"/);
+        if (sMatch) {
+          fileCounts[sMatch[1] as keyof Omit<StreetCounts, 'total'>]++;
+        }
       }
+      _fileCache.set(fullPath, { size: stat.size, counts: fileCounts });
+      counts.total += fileCounts.total;
+      counts.PREFLOP += fileCounts.PREFLOP;
+      counts.FLOP += fileCounts.FLOP;
+      counts.TURN += fileCounts.TURN;
+      counts.RIVER += fileCounts.RIVER;
     }
-    return total;
-  } catch {
-    return 0;
-  }
+  } catch {}
+  return counts;
 }
 
 // ── LiveRoom: bundles all resources for one room ──
@@ -140,10 +183,12 @@ interface LiveRoom {
   roomCode: string;
   tableId: string;
   socket: Socket;
-  children: ChildProcess[];
+  bots: PokerBot[];
 }
 
 let roomCounter = 0; // monotonically increasing room index
+let sharedModel: MLP | null = null; // shared model loaded once, used by all in-process bots
+let activeDataDir: string = DATA_DIR; // set in main()
 
 async function spawnRoom(config: SelfPlayConfig, serverUrl: string): Promise<LiveRoom> {
   const idx = roomCounter++;
@@ -185,94 +230,55 @@ async function spawnRoom(config: SelfPlayConfig, serverUrl: string): Promise<Liv
     });
   });
 
-  // Configure for maximum speed
+  // Configure for maximum speed (selfPlayTurbo = zero delays)
   socket.emit('update_settings', {
     tableId,
     settings: {
       autoStartNextHand: true,
       showdownSpeed: 'turbo',
-      actionTimerSeconds: 5,
+      actionTimerSeconds: 1,          // selfPlayTurbo allows <5s; bots act in <50ms
       maxConsecutiveTimeouts: 100,
+      selfPlayTurbo: true,            // zero showdown/runout delays
     },
   });
 
-  // Spawn bots
-  const children: ChildProcess[] = [];
+  // Spawn in-process bots (no child processes — all bots run in this event loop)
+  const bots: PokerBot[] = [];
   for (let i = 0; i < config.botsPerRoom; i++) {
     const seat = i + 1;
     const profile = BOT_PROFILES[(idx * config.botsPerRoom + i) % BOT_PROFILES.length];
 
-    await new Promise(r => setTimeout(r, i === 0 ? 0 : 600));
-
-    const args = [
-      'tsx', BOT_MAIN,
-      '--server', serverUrl,
-      '--room', roomCode,
-      '--seat', String(seat),
-      '--buyin', String(config.buyIn),
-      '--profile', profile,
-      '--delay', '0',
-      '--mode', config.mode,
-      '--version', config.version,
-      '--name', `SP-${profile}-s${seat}`,
-      '--userId', `sp-${profile}-${seat}-${Date.now()}`,
-    ];
-
-    const child = spawn('npx', args, {
-      stdio: ['ignore', 'pipe', 'pipe'],
-      cwd: resolve(__dirname, '..'),
-      shell: true,
+    const bot = new PokerBot({
+      server: serverUrl,
+      room: roomCode,
+      seat,
+      buyin: config.buyIn,
+      profile,
+      delay: 0,
+      mode: config.mode,
+      version: config.version,
+      name: `SP-${profile}-s${seat}`,
+      userId: `sp-${profile}-${seat}-${Date.now()}`,
+      sharedModel,
+      dataDir: activeDataDir,
+      skipPersistStats: true,
     });
 
-    const prefix = `[r${idx}/s${seat}]`;
-    child.stdout?.on('data', (data: Buffer) => {
-      for (const line of data.toString().split('\n').filter(l => l.trim())) {
-        if (line.includes('Connected') || line.includes('Joined') || line.includes('Sitting') ||
-            line.includes('Stats:') || line.includes('Model') ||
-            line.includes('error') || line.includes('Error')) {
-          console.log(`  ${prefix} ${line.trim()}`);
-        }
-      }
-    });
-
-    child.stderr?.on('data', (data: Buffer) => {
-      const text = data.toString().trim();
-      if (text && !text.includes('ExperimentalWarning') && !text.includes('--experimental')
-          && !text.includes('npm warn')) {
-        console.error(`  ${prefix} ERR: ${text}`);
-      }
-    });
-
-    // Auto-restart crashed bots
-    child.on('exit', (code) => {
-      if (code !== 0 && code !== null) {
-        log(`Bot crashed r${idx}/s${seat}/${profile}, restarting...`);
-        const replacement = spawn('npx', args, {
-          stdio: ['ignore', 'pipe', 'pipe'],
-          cwd: resolve(__dirname, '..'),
-          shell: true,
-        });
-        const ci = children.indexOf(child);
-        if (ci !== -1) children[ci] = replacement;
-        addEvent('RESTART', 'train', `Bot restarted: s${seat}/${profile} in ${roomCode}`);
-      }
-    });
-
-    children.push(child);
+    bots.push(bot);
   }
 
   // Start first hand after bots connect
-  setTimeout(() => socket.emit('start_hand', { tableId }), 5000);
+  setTimeout(() => socket.emit('start_hand', { tableId }), 2500);
 
   const port = new URL(serverUrl).port;
-  log(`Room ${roomCode} live on :${port}: ${config.botsPerRoom} bots, autoDeal=on`);
-  return { index: idx, serverUrl, roomCode, tableId, socket, children };
+  log(`Room ${roomCode} live on :${port}: ${config.botsPerRoom} in-process bots, autoDeal=on`);
+  return { index: idx, serverUrl, roomCode, tableId, socket, bots };
 }
 
 function teardownRoom(room: LiveRoom): void {
   log(`Tearing down room ${room.roomCode}...`);
-  for (const child of room.children) {
-    try { child.kill('SIGTERM'); } catch {}
+  for (const bot of room.bots) {
+    bot.destroy();
   }
   try {
     room.socket.emit('close_room', { tableId: room.tableId });
@@ -390,6 +396,7 @@ interface DashboardState {
   pipelineMode: 'train' | 'play';
   v1Metrics?: Record<string, unknown>;
   v2Metrics?: Record<string, unknown>;
+  streetCounts: { PREFLOP: number; FLOP: number; TURN: number; RIVER: number };
 }
 
 const dashboardState: DashboardState = {
@@ -399,6 +406,7 @@ const dashboardState: DashboardState = {
   freeRAM: 0,
   rooms: [], history: [], events: [],
   pipelineVersion: 'v1', pipelineMode: 'play',
+  streetCounts: { PREFLOP: 0, FLOP: 0, TURN: 0, RIVER: 0 },
 };
 
 function addEvent(badge: string, badgeClass: string, message: string): void {
@@ -422,6 +430,9 @@ function syncDashboardRooms(liveRooms: LiveRoom[], botsPerRoom: number): void {
 function startDashboardServer(port: number): void {
   const dashboardHtml = readFileSync(join(__dirname, 'dashboard.html'), 'utf-8');
 
+  let currentPort = port;
+  const maxRetries = 5;
+
   const server = createServer((req: IncomingMessage, res: ServerResponse) => {
     if (req.url === '/api/stats') {
       res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
@@ -432,11 +443,14 @@ function startDashboardServer(port: number): void {
     }
   });
 
-  server.listen(port, () => log(`Dashboard running at http://localhost:${port}`));
+  server.listen(currentPort, () => log(`Dashboard running at http://localhost:${currentPort}`));
   server.on('error', (err: NodeJS.ErrnoException) => {
-    if (err.code === 'EADDRINUSE') {
-      log(`Dashboard port ${port} in use, trying ${port + 1}...`);
-      server.listen(port + 1);
+    if (err.code === 'EADDRINUSE' && currentPort < port + maxRetries) {
+      currentPort++;
+      log(`Dashboard port ${currentPort - 1} in use, trying ${currentPort}...`);
+      server.listen(currentPort);
+    } else if (err.code === 'EADDRINUSE') {
+      log(`Dashboard: all ports ${port}-${currentPort} in use, giving up`);
     }
   });
 }
@@ -449,8 +463,8 @@ async function main(): Promise<void> {
   // Set profile list based on mode
   BOT_PROFILES = config.mode === 'train' ? TRAIN_PROFILES : PLAY_PROFILES;
 
-  // Data directory depends on version
-  const activeDataDir = config.version === 'v2' ? join(DATA_DIR, 'v2') : DATA_DIR;
+  // Data directory depends on version (set module-level var for spawnRoom access)
+  activeDataDir = config.version === 'v2' ? join(DATA_DIR, 'v2') : DATA_DIR;
 
   console.log('');
   log('╔══════════════════════════════════════════════════╗');
@@ -467,6 +481,12 @@ async function main(): Promise<void> {
   log(`Train every:  ${formatNumber(config.trainEvery)} samples`);
   log(`Target:       ${formatNumber(config.target)} samples`);
   console.log('');
+
+  // ── Load shared model once for all in-process bots ──
+  const modelFileName = config.version === 'v2' ? 'model-v2-latest.json' : 'model-latest.json';
+  const modelPath = join(ROOT, 'packages', 'fast-model', 'models', modelFileName);
+  sharedModel = loadModel(modelPath);
+  log(`Shared model: ${sharedModel ? 'loaded' : 'not found (heuristic fallback)'}`);
 
   const initialSamples = countSamples(activeDataDir);
   log(`Existing samples: ${formatNumber(initialSamples)}`);
@@ -489,6 +509,26 @@ async function main(): Promise<void> {
   let isShuttingDown = false;
   let isScaling = false;
 
+  // ── Centralized model hot-reload (every 5 min, updates all bots at once) ──
+  let lastModelMtime = 0;
+  try { lastModelMtime = statSync(modelPath).mtimeMs; } catch {}
+  const modelReloadInterval = setInterval(() => {
+    try {
+      const mtime = statSync(modelPath).mtimeMs;
+      if (mtime > lastModelMtime) {
+        const newModel = loadModel(modelPath);
+        if (newModel) {
+          sharedModel = newModel;
+          lastModelMtime = mtime;
+          log('Shared model hot-reloaded — updating all bots');
+          for (const room of liveRooms) {
+            for (const bot of room.bots) bot.setModel(sharedModel);
+          }
+        }
+      }
+    } catch {}
+  }, 5 * 60 * 1000);
+
   // ── Wait for all game servers to be ready ──
   log('Waiting for game servers...');
   for (const serverUrl of config.servers) {
@@ -504,20 +544,21 @@ async function main(): Promise<void> {
     }
   }
 
-  // ── Spawn initial rooms (round-robin across servers) ──
-  for (let r = 0; r < initialRooms; r++) {
+  // ── Spawn initial rooms in parallel (round-robin across servers) ──
+  const roomPromises = Array.from({ length: initialRooms }, (_, r) => {
     const serverUrl = config.servers[r % config.servers.length];
-    try {
-      const room = await spawnRoom(config, serverUrl);
-      liveRooms.push(room);
-      syncDashboardRooms(liveRooms, config.botsPerRoom);
-      const port = new URL(serverUrl).port;
-      addEvent('ROOM', 'success', `Room ${room.roomCode} on :${port} (${config.botsPerRoom} bots)`);
-      if (r < initialRooms - 1) await new Promise(r => setTimeout(r, 2000));
-    } catch (err) {
-      log(`Failed to create room on ${serverUrl}: ${(err as Error).message}`);
-    }
-  }
+    return spawnRoom(config, serverUrl)
+      .then(room => {
+        liveRooms.push(room);
+        syncDashboardRooms(liveRooms, config.botsPerRoom);
+        const port = new URL(serverUrl).port;
+        addEvent('ROOM', 'success', `Room ${room.roomCode} on :${port} (${config.botsPerRoom} in-process bots)`);
+      })
+      .catch(err => {
+        log(`Failed to create room on ${serverUrl}: ${(err as Error).message}`);
+      });
+  });
+  await Promise.allSettled(roomPromises);
 
   if (liveRooms.length === 0) {
     log('No rooms created. Exiting.');
@@ -539,27 +580,38 @@ async function main(): Promise<void> {
       const usagePct = ((totalGB - currentFreeGB) / totalGB) * 100;
       dashboardState.freeRAM = currentFreeGB;
 
+      // Emergency scale-down if RAM critically high (prevent OOM/crash)
+      if (usagePct / 100 >= RAM_CRITICAL_PCT && liveRooms.length > 1) {
+        const room = liveRooms.pop()!;
+        teardownRoom(room);
+        syncDashboardRooms(liveRooms, config.botsPerRoom);
+        log(`[auto-scale] EMERGENCY scale-down (RAM ${usagePct.toFixed(0)}%) → ${liveRooms.length} rooms`);
+        addEvent('WARN', 'error', `Emergency scale-down: RAM ${usagePct.toFixed(0)}% → ${liveRooms.length} rooms`);
+        isScaling = false;
+        return;
+      }
+
       const ideal = calcIdealRooms(config.botsPerRoom, liveRooms.length);
       log(`[auto-scale] RAM: ${currentFreeGB.toFixed(1)} GB free (${usagePct.toFixed(0)}% used) | rooms: ${liveRooms.length} → ideal: ${ideal}`);
 
-      // Scale UP (round-robin across servers)
+      // Scale UP in parallel (round-robin across servers)
       if (ideal > liveRooms.length) {
         const toAdd = ideal - liveRooms.length;
-        for (let i = 0; i < toAdd; i++) {
+        const scalePromises = Array.from({ length: toAdd }, (_, i) => {
           const serverUrl = config.servers[(liveRooms.length + i) % config.servers.length];
-          try {
-            const room = await spawnRoom(config, serverUrl);
-            liveRooms.push(room);
-            syncDashboardRooms(liveRooms, config.botsPerRoom);
-            const port = new URL(serverUrl).port;
-            addEvent('SCALE', 'success', `Scaled UP → ${liveRooms.length} rooms on :${port} (${currentFreeGB.toFixed(1)} GB free)`);
-            log(`[auto-scale] +1 room on :${port} → ${liveRooms.length} total`);
-            await new Promise(r => setTimeout(r, 2000));
-          } catch (err) {
-            log(`[auto-scale] Failed to add room: ${(err as Error).message}`);
-            break;
-          }
-        }
+          return spawnRoom(config, serverUrl)
+            .then(room => {
+              liveRooms.push(room);
+              syncDashboardRooms(liveRooms, config.botsPerRoom);
+              const port = new URL(serverUrl).port;
+              addEvent('SCALE', 'success', `Scaled UP → ${liveRooms.length} rooms on :${port} (${currentFreeGB.toFixed(1)} GB free)`);
+              log(`[auto-scale] +1 room on :${port} → ${liveRooms.length} total`);
+            })
+            .catch(err => {
+              log(`[auto-scale] Failed to add room: ${(err as Error).message}`);
+            });
+        });
+        await Promise.allSettled(scalePromises);
       }
 
       // Scale DOWN
@@ -587,7 +639,8 @@ async function main(): Promise<void> {
   const monitorInterval = setInterval(async () => {
     if (isShuttingDown) return;
 
-    const currentSamples = countSamples(activeDataDir);
+    const detailed = countSamplesDetailed(activeDataDir);
+    const currentSamples = detailed.total;
     const newSamples = currentSamples - initialSamples;
     const elapsedHours = (Date.now() - startTime) / 3_600_000;
     const rate = elapsedHours > 0.001 ? newSamples / elapsedHours : 0;
@@ -599,12 +652,20 @@ async function main(): Promise<void> {
     const bar = '█'.repeat(Math.floor(progress / 5)) + '░'.repeat(20 - Math.floor(progress / 5));
     const ramGB = (freemem() / (1024 ** 3)).toFixed(1);
 
+    const postflopTotal = detailed.FLOP + detailed.TURN + detailed.RIVER;
+    const postflopPct = currentSamples > 0 ? (postflopTotal / currentSamples * 100).toFixed(1) : '0.0';
+
     log(
       `[${bar}] ${progress.toFixed(1)}% | ` +
       `${formatNumber(currentSamples)} (+${deltaSinceLast}) | ` +
       `${formatNumber(Math.round(rate))}/hr | ` +
       `ETA: ${remaining > 0 ? formatDuration(etaHours) : 'DONE!'} | ` +
       `${liveRooms.length} rooms | RAM: ${ramGB} GB`
+    );
+    log(
+      `  Streets: PRE=${formatNumber(detailed.PREFLOP)} ` +
+      `F=${formatNumber(detailed.FLOP)} T=${formatNumber(detailed.TURN)} R=${formatNumber(detailed.RIVER)} ` +
+      `(postflop ${postflopPct}%)`
     );
 
     // Update dashboard
@@ -615,6 +676,12 @@ async function main(): Promise<void> {
     dashboardState.elapsedHours = elapsedHours;
     dashboardState.nextTrainThreshold = nextTrainThreshold;
     dashboardState.freeRAM = parseFloat(ramGB);
+    dashboardState.streetCounts = {
+      PREFLOP: detailed.PREFLOP,
+      FLOP: detailed.FLOP,
+      TURN: detailed.TURN,
+      RIVER: detailed.RIVER,
+    };
     dashboardState.history.push({ t: Date.now(), samples: currentSamples });
     if (dashboardState.history.length > 500) dashboardState.history.shift();
 
@@ -674,6 +741,7 @@ async function main(): Promise<void> {
     log('Shutting down...');
     clearInterval(monitorInterval);
     clearInterval(scaleInterval);
+    clearInterval(modelReloadInterval);
 
     for (const room of liveRooms) teardownRoom(room);
 

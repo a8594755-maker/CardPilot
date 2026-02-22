@@ -1839,7 +1839,7 @@ function emitShowdownResults(
 async function handleSequentialRunout(tableId: string, table: GameTable): Promise<void> {
   try {
     const room = roomManager.getRoom(tableId);
-    const isTurbo = room?.settings.showdownSpeed === "turbo";
+    const isTurbo = room?.settings.showdownSpeed === "turbo" || room?.settings.selfPlayTurbo === true;
 
     const runCount = table.getAllInRunCount();
     if (runCount > 1) {
@@ -2266,7 +2266,8 @@ function scheduleAutoDealIfNeeded(tableId: string, delayOverrideMs?: number): vo
     return;
   }
 
-  const delayMs = delayOverrideMs ?? (SHOWDOWN_SPEED_DELAYS_MS[room.settings.showdownSpeed] ?? SHOWDOWN_SPEED_DELAYS_MS.normal);
+  const baseDelay = SHOWDOWN_SPEED_DELAYS_MS[room.settings.showdownSpeed] ?? SHOWDOWN_SPEED_DELAYS_MS.normal;
+  const delayMs = delayOverrideMs ?? (room.settings.selfPlayTurbo ? 0 : baseDelay);
 
   const handle = setTimeout(() => {
     autoDealSchedule.delete(tableId);

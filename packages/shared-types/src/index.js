@@ -54,6 +54,7 @@ export const DEFAULT_ROOM_SETTINGS = {
     roomFundsTracking: false,
     botSeats: [],
     botBuyIn: undefined,
+    selfPlayTurbo: false,
 };
 // Re-export socket events
 export * from './socket-events.js';

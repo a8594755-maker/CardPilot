@@ -273,6 +273,7 @@ export interface RoomSettings {
     allowGuestChat: boolean;
     autoTrimExcessBets: boolean;
     roomFundsTracking: boolean;
+    selfPlayTurbo?: boolean;
 }
 export declare const DEFAULT_ROOM_SETTINGS: RoomSettings;
 export interface RoomOwnership {

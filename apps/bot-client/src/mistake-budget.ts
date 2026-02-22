@@ -48,6 +48,12 @@ export const DEFAULT_MISTAKE_CONFIGS: Record<string, MistakeConfig> = {
     maxMistakeMagnitude: 0.2,
     allowedSpots: 'non_critical_only',
   },
+  postflop_trainer: {
+    enabled: false,
+    mistakeEveryNHands: 999,
+    maxMistakeMagnitude: 0,
+    allowedSpots: 'non_critical_only',
+  },
 };
 
 function normalize(m: Mix): Mix {

@@ -107,6 +107,27 @@ const nit: BotProfile = {
   },
 };
 
+// ===== (6) Postflop Trainer (very loose preflop — designed to generate postflop data) =====
+const postflopTrainer: BotProfile = {
+  id: 'postflop_trainer',
+  displayName: 'Postflop Trainer (loose caller)',
+  actionWeights: { raise: 0.80, call: 1.80, fold: 0.45 },
+  unopenedLimpShare: 0.55,
+  stochastic: true,
+  personaAnchors: PERSONA_ANCHORS['postflop_trainer'],
+  mistakeConfig: DEFAULT_MISTAKE_CONFIGS['postflop_trainer'],
+  chooseRaiseTo(ctx: RaiseSizingContext): number {
+    if (ctx.street === 'preflop') {
+      // Smaller raises preflop → more callers → more multiway flops
+      const target = Math.round(2.2 * ctx.bigBlind);
+      return clamp(target, ctx.minRaiseTo, ctx.maxRaiseTo);
+    }
+    const betSize = Math.round(ctx.pot * 0.45);
+    const raiseTo = ctx.toCall + betSize;
+    return clamp(raiseTo, ctx.minRaiseTo, ctx.maxRaiseTo);
+  },
+};
+
 // ===== Registry =====
 export const PROFILES: Record<string, BotProfile> = {
   gto_balanced: gtoBalanced,
@@ -114,6 +135,7 @@ export const PROFILES: Record<string, BotProfile> = {
   tag,
   lag,
   nit,
+  postflop_trainer: postflopTrainer,
 };
 
 export function getProfile(id: string): BotProfile {

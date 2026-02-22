@@ -612,6 +612,8 @@ export interface RoomSettings {
   // ── GTO Bot Settings (Host-only) ──
   botSeats: BotSeatConfig[];               // [] = no bots
   botBuyIn?: number;                       // bot buy-in in chips; undefined = 100 * bigBlind
+  // ── Self-Play Turbo (zero delays for bot-only training rooms) ──
+  selfPlayTurbo?: boolean;
 }
 
 export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
@@ -668,6 +670,7 @@ export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
   roomFundsTracking: false,
   botSeats: [],
   botBuyIn: undefined,
+  selfPlayTurbo: false,
 };
 
 export interface RoomOwnership {

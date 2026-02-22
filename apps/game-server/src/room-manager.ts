@@ -293,7 +293,8 @@ export class RoomManager {
     // Clamp timer-related settings
     room.settings.maxPlayers = Math.min(runtimeConfig.maxPlayers, Math.max(runtimeConfig.minPlayers, Math.floor(room.settings.maxPlayers)));
     room.settings.minPlayersToStart = Math.min(room.settings.maxPlayers, Math.max(2, Math.floor(room.settings.minPlayersToStart ?? 2)));
-    room.settings.actionTimerSeconds = Math.max(5, Math.min(120, Math.floor(room.settings.actionTimerSeconds)));
+    const minTimer = room.settings.selfPlayTurbo ? 1 : 5;
+    room.settings.actionTimerSeconds = Math.max(minTimer, Math.min(120, Math.floor(room.settings.actionTimerSeconds)));
     room.settings.timeBankSeconds = Math.max(0, Math.min(300, Math.floor(room.settings.timeBankSeconds)));
     room.settings.timeBankRefillPerHand = Math.max(0, Math.min(60, Math.floor(room.settings.timeBankRefillPerHand)));
     room.settings.thinkExtensionSecondsPerUse = Math.max(1, Math.min(60, Math.floor(room.settings.thinkExtensionSecondsPerUse)));

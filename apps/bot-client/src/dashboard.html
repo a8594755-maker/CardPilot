@@ -88,9 +88,10 @@
   }
   .progress-header h2 { font-size: 16px; color: var(--text-dim); font-weight: 500; }
   .progress-header .count {
-    font-size: 36px;
+    font-size: 32px;
     font-weight: 700;
     font-variant-numeric: tabular-nums;
+    letter-spacing: -0.5px;
   }
   .progress-header .count .target {
     font-size: 18px;
@@ -461,6 +462,10 @@
       <div class="value accent" id="roomCount">--</div>
       <div class="sub" id="ramInfo">Auto-scaling</div>
     </div>
+    <div class="stat-card">
+      <div class="label">Street Breakdown</div>
+      <div class="value" id="streetInfo" style="font-size:14px;line-height:1.6">--</div>
+    </div>
   </div>
 
   <!-- Model Metrics Comparison -->
@@ -523,6 +528,11 @@ function fmt(n) {
   if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
   if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
   return String(n);
+}
+
+// Exact number with thousand separators (e.g., 105,932)
+function fmtExact(n) {
+  return n.toLocaleString('en-US');
 }
 
 function fmtDur(hours) {
@@ -770,19 +780,19 @@ async function fetchStats() {
     $('connStatus').classList.remove('offline');
     $('connText').textContent = 'Connected';
 
-    // Progress
+    // Progress — use exact numbers so user can see every sample tick
     const pct = Math.min(100, (data.currentSamples / data.target) * 100);
-    $('sampleCount').textContent = fmt(data.currentSamples);
+    $('sampleCount').textContent = fmtExact(data.currentSamples);
     $('targetCount').textContent = fmt(data.target);
     $('progressBar').style.width = pct + '%';
-    $('progressPct').textContent = pct.toFixed(1) + '%';
+    $('progressPct').textContent = pct.toFixed(2) + '%';
 
     // Stats
     $('rate').textContent = fmt(Math.round(data.rate));
-    $('newSamples').textContent = fmt(data.newThisSession);
+    $('newSamples').textContent = fmtExact(data.newThisSession);
     const delta = data.currentSamples - prevSamples;
     if (prevSamples > 0) {
-      $('sessionDelta').textContent = `+${delta} since last update`;
+      $('sessionDelta').textContent = `+${fmtExact(delta)} since last update`;
     }
     $('eta').textContent = fmtDur(data.etaHours);
     $('elapsed').textContent = 'Elapsed: ' + fmtDur(data.elapsedHours);
@@ -800,6 +810,20 @@ async function fetchStats() {
       if (servers.length > 0) parts.push(`${servers.length} servers`);
       if (ram > 0) parts.push(`${ram.toFixed(1)} GB free`);
       $('ramInfo').textContent = parts.length > 0 ? parts.join(' · ') : 'Auto-scaling';
+    }
+
+    // Street breakdown
+    if (data.streetCounts && $('streetInfo')) {
+      const sc = data.streetCounts;
+      const total = data.currentSamples || 1;
+      const postflop = (sc.FLOP || 0) + (sc.TURN || 0) + (sc.RIVER || 0);
+      const postflopPct = ((postflop / total) * 100).toFixed(1);
+      $('streetInfo').innerHTML =
+        `<span style="color:var(--text)">PRE</span> ${fmtExact(sc.PREFLOP||0)} · ` +
+        `<span style="color:var(--green)">F</span> ${fmtExact(sc.FLOP||0)} · ` +
+        `<span style="color:var(--accent2)">T</span> ${fmtExact(sc.TURN||0)} · ` +
+        `<span style="color:var(--yellow)">R</span> ${fmtExact(sc.RIVER||0)}` +
+        `<br><span style="font-size:12px;color:var(--text-dim)">Postflop: ${postflopPct}%</span>`;
     }
 
     // Chart

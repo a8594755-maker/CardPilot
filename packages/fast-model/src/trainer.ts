@@ -11,7 +11,8 @@
  *     anti-bias sampling, hard example mining, evaluation metrics.
  */
 
-import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync, createReadStream } from 'node:fs';
+import { createInterface } from 'node:readline';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRandomModel, createRandomModelV2 } from './mlp.js';
@@ -29,7 +30,7 @@ const SIZING_RAISE_THRESHOLD = 0.2; // only train sizing when raise label > this
 const LEARNING_RATE_INIT = 0.01;
 const LR_DECAY_FACTOR = 0.5;
 const LR_DECAY_EVERY = 20;
-const BATCH_SIZE = 64;
+const BATCH_SIZE = 256;             // 64→256: better CPU cache utilization, ~3-4x throughput
 const MAX_EPOCHS = 100;
 const EARLY_STOP_PATIENCE = 10;
 const TRAIN_SPLIT = 0.9;
@@ -61,7 +62,7 @@ function parseTrainerArgs(): TrainerArgs {
 
 // ── Data loading ──
 
-function loadSamples(dataDir: string, expectedFeatureCount: number): TrainingSample[] {
+async function loadSamplesAsync(dataDir: string, expectedFeatureCount: number): Promise<TrainingSample[]> {
   if (!existsSync(dataDir)) {
     console.error(`Data directory not found: ${dataDir}`);
     process.exit(1);
@@ -74,13 +75,18 @@ function loadSamples(dataDir: string, expectedFeatureCount: number): TrainingSam
   }
 
   const samples: TrainingSample[] = [];
+
+  // Stream files line-by-line to avoid loading entire files into memory
   for (const file of files) {
-    const lines = readFileSync(join(dataDir, file), 'utf-8').split('\n');
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed) continue;
+    const filePath = join(dataDir, file);
+    const rl = createInterface({
+      input: createReadStream(filePath, { encoding: 'utf-8', highWaterMark: 256 * 1024 }),
+      crlfDelay: Infinity,
+    });
+    for await (const line of rl) {
+      if (!line) continue;
       try {
-        const sample = JSON.parse(trimmed) as TrainingSample;
+        const sample = JSON.parse(line) as TrainingSample;
         if (sample.f && sample.l && sample.f.length === expectedFeatureCount && sample.l.length === 3) {
           samples.push(sample);
         }
@@ -88,6 +94,7 @@ function loadSamples(dataDir: string, expectedFeatureCount: number): TrainingSam
         // skip malformed lines
       }
     }
+    console.log(`  Loaded ${file}: ${samples.length} samples so far`);
   }
 
   return samples;
@@ -187,28 +194,39 @@ function forwardWithCache(model: ModelWeights, features: number[]): ForwardCache
     const layer = model.layers[l];
     const isOutput = l === model.layers.length - 1;
     const outDim = layer.weights.length;
-    const preAct = new Array<number>(outDim);
-
-    for (let j = 0; j < outDim; j++) {
-      let sum = layer.biases[j];
-      const w = layer.weights[j];
-      for (let i = 0; i < current.length; i++) {
-        sum += current[i] * w[i];
-      }
-      preAct[j] = sum;
-    }
+    const inDim = current.length;
 
     inputs.push(current);
 
     if (isOutput) {
-      const maxVal = Math.max(...preAct);
-      const exps = preAct.map(v => Math.exp(v - maxVal));
-      const sum = exps.reduce((a, b) => a + b, 0);
-      const probs = exps.map(e => e / sum);
+      // Output layer: compute logits, then softmax
+      let maxVal = -Infinity;
+      const logits = new Array<number>(outDim);
+      for (let j = 0; j < outDim; j++) {
+        let sum = layer.biases[j];
+        const w = layer.weights[j];
+        for (let i = 0; i < inDim; i++) sum += current[i] * w[i];
+        logits[j] = sum;
+        if (sum > maxVal) maxVal = sum;
+      }
+      let expSum = 0;
+      const probs = new Array<number>(outDim);
+      for (let j = 0; j < outDim; j++) {
+        probs[j] = Math.exp(logits[j] - maxVal);
+        expSum += probs[j];
+      }
+      for (let j = 0; j < outDim; j++) probs[j] /= expSum;
       outputs.push(probs);
       return { inputs, outputs, probs };
     } else {
-      const activated = preAct.map(v => v > 0 ? v : 0);
+      // Hidden layer: ReLU activation
+      const activated = new Array<number>(outDim);
+      for (let j = 0; j < outDim; j++) {
+        let sum = layer.biases[j];
+        const w = layer.weights[j];
+        for (let i = 0; i < inDim; i++) sum += current[i] * w[i];
+        activated[j] = sum > 0 ? sum : 0;
+      }
       outputs.push(activated);
       current = activated;
     }
@@ -312,7 +330,21 @@ function evaluateV1(model: ModelWeights, samples: TrainingSample[]): number {
 }
 
 function cloneWeights(model: ModelWeights): ModelWeights {
-  return JSON.parse(JSON.stringify(model));
+  const cloneLayer = (l: LayerWeights): LayerWeights => ({
+    weights: l.weights.map(row => row.slice()),
+    biases: l.biases.slice(),
+  });
+  const clone: ModelWeights = {
+    layers: model.layers.map(cloneLayer),
+    inputSize: model.inputSize,
+    version: model.version,
+    valLoss: model.valLoss,
+    trainedAt: model.trainedAt,
+    trainingSamples: model.trainingSamples,
+  };
+  if (model.actionHead) clone.actionHead = cloneLayer(model.actionHead);
+  if (model.sizingHead) clone.sizingHead = cloneLayer(model.sizingHead);
+  return clone;
 }
 
 function trainV1(trainSet: TrainingSample[], valSet: TrainingSample[]): ModelWeights {
@@ -325,6 +357,7 @@ function trainV1(trainSet: TrainingSample[], valSet: TrainingSample[]): ModelWei
   let lr = LEARNING_RATE_INIT;
 
   for (let epoch = 1; epoch <= MAX_EPOCHS; epoch++) {
+    const epochStart = Date.now();
     if (epoch > 1 && (epoch - 1) % LR_DECAY_EVERY === 0) {
       lr *= LR_DECAY_FACTOR;
       console.log(`  LR decay → ${lr.toExponential(2)}`);
@@ -351,12 +384,13 @@ function trainV1(trainSet: TrainingSample[], valSet: TrainingSample[]): ModelWei
 
     const trainLoss = epochLoss / trainSet.length;
     const valLoss = evaluateV1(model, valSet);
+    const epochMs = Date.now() - epochStart;
 
     const indicator = valLoss < bestValLoss ? ' *' : '';
     console.log(
       `Epoch ${String(epoch).padStart(3)}/${MAX_EPOCHS}  ` +
       `train_loss=${trainLoss.toFixed(4)}  val_loss=${valLoss.toFixed(4)}  ` +
-      `lr=${lr.toExponential(2)}${indicator}`
+      `lr=${lr.toExponential(2)}  ${epochMs}ms${indicator}`
     );
 
     if (valLoss < bestValLoss) {
@@ -397,10 +431,14 @@ interface ForwardCacheV2 {
 }
 
 function softmaxArr(preAct: number[]): number[] {
-  const maxVal = Math.max(...preAct);
-  const exps = preAct.map(v => Math.exp(v - maxVal));
-  const sum = exps.reduce((a, b) => a + b, 0);
-  return exps.map(e => e / sum);
+  const len = preAct.length;
+  let maxVal = preAct[0];
+  for (let i = 1; i < len; i++) if (preAct[i] > maxVal) maxVal = preAct[i];
+  const result = new Array<number>(len);
+  let sum = 0;
+  for (let i = 0; i < len; i++) { result[i] = Math.exp(preAct[i] - maxVal); sum += result[i]; }
+  for (let i = 0; i < len; i++) result[i] /= sum;
+  return result;
 }
 
 function forwardV2WithCache(model: ModelWeights, features: number[]): ForwardCacheV2 {
@@ -412,16 +450,14 @@ function forwardV2WithCache(model: ModelWeights, features: number[]): ForwardCac
   for (const layer of model.layers) {
     backboneInputs.push(current);
     const outDim = layer.weights.length;
-    const preAct = new Array<number>(outDim);
+    const inDim = current.length;
+    const activated = new Array<number>(outDim);
     for (let j = 0; j < outDim; j++) {
       let sum = layer.biases[j];
       const w = layer.weights[j];
-      for (let i = 0; i < current.length; i++) {
-        sum += current[i] * w[i];
-      }
-      preAct[j] = sum;
+      for (let i = 0; i < inDim; i++) sum += current[i] * w[i];
+      activated[j] = sum > 0 ? sum : 0;
     }
-    const activated = preAct.map(v => v > 0 ? v : 0);
     backboneOutputs.push(activated);
     current = activated;
   }
@@ -650,6 +686,7 @@ function trainV2(trainSet: TrainingSample[], valSet: TrainingSample[]): ModelWei
   let workingTrainSet = [...trainSet];
 
   for (let epoch = 1; epoch <= MAX_EPOCHS; epoch++) {
+    const epochStart = Date.now();
     if (epoch > 1 && (epoch - 1) % LR_DECAY_EVERY === 0) {
       lr *= LR_DECAY_FACTOR;
       console.log(`  LR decay → ${lr.toExponential(2)}`);
@@ -704,12 +741,13 @@ function trainV2(trainSet: TrainingSample[], valSet: TrainingSample[]): ModelWei
 
     const trainLoss = epochLoss / workingTrainSet.length;
     const valLoss = evaluateV2Loss(model, valSet);
+    const epochMs = Date.now() - epochStart;
 
     const indicator = valLoss < bestValLoss ? ' *' : '';
     console.log(
       `Epoch ${String(epoch).padStart(3)}/${MAX_EPOCHS}  ` +
       `train_loss=${trainLoss.toFixed(4)}  val_loss=${valLoss.toFixed(4)}  ` +
-      `lr=${lr.toExponential(2)}${indicator}`
+      `lr=${lr.toExponential(2)}  ${epochMs}ms${indicator}`
     );
 
     if (valLoss < bestValLoss) {
@@ -734,14 +772,16 @@ function trainV2(trainSet: TrainingSample[], valSet: TrainingSample[]): ModelWei
 
 // ── Entry point ──
 
-function main(): void {
+async function main(): Promise<void> {
   const { dataDir, outPath, isV2 } = parseTrainerArgs();
   const featureCount = isV2 ? FEATURE_COUNT_V2 : FEATURE_COUNT;
 
   console.log(`Loading samples from: ${dataDir}`);
   console.log(`Mode: ${isV2 ? 'V2 (multi-head + anti-bias)' : 'V1 (single-head)'}`);
-  let allSamples = loadSamples(dataDir, featureCount);
-  console.log(`Loaded ${allSamples.length} samples`);
+  console.log(`Batch size: ${BATCH_SIZE}`);
+  const t0 = Date.now();
+  let allSamples = await loadSamplesAsync(dataDir, featureCount);
+  console.log(`Loaded ${allSamples.length} samples in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 
   if (allSamples.length < 100) {
     console.error('Need at least 100 samples to train. Collect more data first.');
@@ -786,4 +826,7 @@ function main(): void {
   console.log(`\nMetrics saved: ${metricsPath}`);
 }
 
-main();
+main().catch(err => {
+  console.error('Training failed:', err);
+  process.exit(1);
+});
