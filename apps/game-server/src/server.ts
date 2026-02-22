@@ -22,6 +22,7 @@ import { ClubManager } from "./club-manager";
 import { ClubRepo, type AppendWalletTxInput } from "./services/club-repo";
 import { ClubRepoJson } from "./services/club-repo-json";
 import { AuditService } from "./services/audit-service";
+import { syncBots, removeAllBots, shutdownAllBots, getBotUserIds } from "./services/bot-orchestrator.js";
 import type {
   ClubCreatePayload,
   ClubUpdatePayload,
@@ -486,6 +487,53 @@ function maybeCheckRoomEmpty(tableId: string, currentCount: number): void {
   });
 }
 
+/**
+ * If only bots remain at the table (no human players), remove all bots and clear botSeats.
+ */
+function checkBotsOnlyAndRemove(tableId: string): void {
+  const table = tables.get(tableId);
+  if (!table) return;
+
+  const state = table.getPublicState();
+  if (state.players.length === 0) return;
+
+  const botUserIds = getBotUserIds(tableId);
+  if (botUserIds.size === 0) return;
+
+  const hasHuman = state.players.some((p) => !botUserIds.has(p.userId));
+  if (hasHuman) return;
+
+  logInfo({
+    event: "bot.no_humans_remaining",
+    message: `No human players remain at table=${tableId}, removing all bots`,
+  });
+
+  // Clear bot seats from settings
+  const managed = roomManager.getRoom(tableId);
+  if (managed) {
+    managed.settings.botSeats = [];
+  }
+
+  // Remove all bot processes
+  removeAllBots(tableId);
+
+  // Stand up all bot players from the table
+  for (const player of [...state.players]) {
+    if (botUserIds.has(player.userId)) {
+      table.removePlayer(player.seat);
+      for (const [sid, binding] of socketSeat.entries()) {
+        if (binding.tableId === tableId && binding.seat === player.seat) {
+          socketSeat.delete(sid);
+          break;
+        }
+      }
+    }
+  }
+
+  broadcastSnapshot(tableId);
+  maybeCheckRoomEmpty(tableId, currentPlayerCount(tableId));
+}
+
 function isClubOwnerOrAdmin(clubId: string, userId: string): boolean {
   const role = clubManager.getMemberRole(clubId, userId);
   return role === "owner" || role === "admin";
@@ -604,15 +652,16 @@ async function buildClubDetailPayload(clubId: string, viewerUserId: string) {
     const enriched = { ...t };
     const tbl = tables.get(t.id);
     const managed = roomManager.getRoom(t.id);
+    const cfg = t.config ?? ({} as any);
     if (tbl) {
       const state = tbl.getPublicState();
       enriched.playerCount = state.players.length;
-      enriched.maxPlayers = managed?.settings.maxPlayers ?? t.config.maxSeats;
+      enriched.maxPlayers = managed?.settings.maxPlayers ?? cfg.maxSeats ?? 6;
       enriched.stakes = `${state.smallBlind}/${state.bigBlind}`;
-      enriched.minPlayersToStart = managed?.settings.minPlayersToStart ?? t.config.minPlayersToStart ?? 2;
+      enriched.minPlayersToStart = managed?.settings.minPlayersToStart ?? cfg.minPlayersToStart ?? 2;
     } else {
       enriched.playerCount = 0;
-      enriched.minPlayersToStart = managed?.settings.minPlayersToStart ?? t.config.minPlayersToStart ?? 2;
+      enriched.minPlayersToStart = managed?.settings.minPlayersToStart ?? cfg.minPlayersToStart ?? 2;
     }
     return enriched;
   });
@@ -1362,6 +1411,15 @@ function buildSnapshotForSync(tableId: string, source: "hydrate" | "broadcast"):
   if (!table) return null;
 
   let snapshot = table.getPublicState();
+
+  // Stamp isBot flag on bot players
+  const botIds = getBotUserIds(tableId);
+  if (botIds.size > 0) {
+    snapshot.players = snapshot.players.map((p) =>
+      botIds.has(p.userId) ? { ...p, isBot: true } : p
+    );
+  }
+
   // Attach deferred stand-up seats and pending pause for client UI
   const deferredSeats = pendingStandUps.get(tableId);
   if (deferredSeats && deferredSeats.size > 0) {
@@ -1699,6 +1757,23 @@ function beginShowdownDecision(tableId: string, table: GameTable, state: TableSt
   if (state.showdownPhase !== "decision" || !state.handId) {
     finalizeHandEnd(tableId, state);
     return;
+  }
+
+  // Auto-reveal bot hands for transparency (bots always show their cards)
+  const showdownBotIds = getBotUserIds(tableId);
+  if (showdownBotIds.size > 0) {
+    const contenderSeats = table.getShowdownContenderSeats();
+    for (const seat of contenderSeats) {
+      const p = state.players.find((pl) => pl.seat === seat);
+      if (p && showdownBotIds.has(p.userId)) {
+        table.revealPublicHand(seat);
+      }
+    }
+    state = table.getPublicState();
+    if (state.showdownPhase !== "decision") {
+      finalizeHandEnd(tableId, state);
+      return;
+    }
   }
 
   if (shouldForceRevealAtShowdown(tableId, state)) {
@@ -2432,6 +2507,7 @@ function handleRoomAutoClose(tableId: string): void {
   clearShowdownDecisionTimeout(tableId);
   clearPendingRunCountDecision(tableId);
   clearHandIdleWatchdog(tableId);
+  removeAllBots(tableId);
   pendingStandUps.delete(tableId);
   pendingTableLeaves.delete(tableId);
   pendingPause.delete(tableId);
@@ -2618,6 +2694,7 @@ async function standUpPlayer(tableId: string, seatNum: number, reason: string): 
   touchLocalRoom(tableId);
   broadcastSnapshot(tableId);
   broadcastSessionStats(tableId);
+  checkBotsOnlyAndRemove(tableId);
   maybeCheckRoomEmpty(tableId, currentPlayerCount(tableId));
   void emitLobbySnapshot();
   return true;
@@ -3032,6 +3109,20 @@ async function persistHandHistory(
     }
   }
 
+  // Ensure ALL bot hole cards are in revealedHoles for transparency
+  const revealedHolesForHistory: Record<number, [string, string]> = { ...(state.revealedHoles ?? {}) };
+  const persistBotIds = getBotUserIds(tableId);
+  if (persistBotIds.size > 0) {
+    for (const player of state.players) {
+      if (!persistBotIds.has(player.userId)) continue;
+      if (revealedHolesForHistory[player.seat]) continue; // already revealed
+      const botCards = table?.getPrivateHoleCards(player.seat) ?? table?.getHoleCards(player.seat);
+      if (botCards && botCards.length >= 2) {
+        revealedHolesForHistory[player.seat] = [botCards[0], botCards[1]];
+      }
+    }
+  }
+
   const detail: HistoryHandDetailCore = {
     board: [...state.board],
     runoutBoards: state.runoutBoards ? state.runoutBoards.map((board) => [...board]) : [],
@@ -3045,16 +3136,17 @@ async function persistHandHistory(
     })),
     contributionsBySeat: { ...settlement.contributions },
     actionTimeline: [...state.actions],
-    revealedHoles: { ...(state.revealedHoles ?? {}) },
+    revealedHoles: revealedHolesForHistory,
     privateHoleCardsByUser: Object.keys(privateHoleCardsByUser).length > 0 ? privateHoleCardsByUser : undefined,
     payoutLedger: settlement.ledger.map((entry) => ({ ...entry })),
   };
 
+  const viewerBotIds = getBotUserIds(tableId);
   const viewerUserIds = [...new Set([
     ...state.players.map((player) => player.userId),
     managed?.ownership.ownerId ?? "",
     ...(managed?.ownership.coHostIds ?? []),
-  ])].filter((userId) => userId.length > 0);
+  ])].filter((userId) => userId.length > 0 && !viewerBotIds.has(userId));
 
   const payload: PersistHandHistoryPayload = {
     roomId: tableId,
@@ -3965,27 +4057,67 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("stand_up", async (payload: { tableId: string; seat: number }) => {
+  // Host adds chips to a bot player
+  socket.on("bot_add_chips", (payload: { tableId: string; seat: number; amount: number }) => {
+    try {
+      if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId)) {
+        throw new Error("Only host/co-host can add chips to bots");
+      }
+      const table = tables.get(payload.tableId);
+      if (!table) throw new Error("Table not found");
+
+      const state = table.getPublicState();
+      const player = state.players.find((p) => p.seat === payload.seat);
+      if (!player) throw new Error("No player at that seat");
+
+      const botIds = getBotUserIds(payload.tableId);
+      if (!botIds.has(player.userId)) {
+        throw new Error("Target player is not a bot");
+      }
+      if (payload.amount <= 0) throw new Error("Amount must be positive");
+
+      const managed = roomManager.getRoom(payload.tableId);
+      if (managed) {
+        const { buyInMax } = managed.settings;
+        if (player.stack + payload.amount > buyInMax) {
+          throw new Error(`Adding chips would exceed max buy-in (${buyInMax})`);
+        }
+      }
+
+      table.addStack(payload.seat, payload.amount);
+
+      io.to(payload.tableId).emit("system_message", {
+        message: `Host added ${payload.amount} chips to ${player.name} (Seat ${payload.seat})`,
+      });
+      broadcastSnapshot(payload.tableId);
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
+  socket.on("stand_up", async (payload: { tableId: string; seat?: number }) => {
     const table = tables.get(payload.tableId);
     if (!table) return;
 
     const binding = socketSeat.get(socket.id);
-    if (!binding || binding.tableId !== payload.tableId || binding.seat !== payload.seat) {
+    if (!binding || binding.tableId !== payload.tableId) {
       socket.emit("error_event", { message: "You can only stand up from your own seat" });
       return;
     }
+
+    const seatNum = binding.seat;
 
     // Defer if hand is active — mark as pending and process after hand ends
     if (table.isHandActive()) {
       let pending = pendingStandUps.get(payload.tableId);
       if (!pending) { pending = new Set(); pendingStandUps.set(payload.tableId, pending); }
-      pending.add(payload.seat);
+      pending.add(seatNum);
       socket.emit("system_message", { message: "Leaving after this hand." });
       broadcastSnapshot(payload.tableId);
       return;
     }
 
-    await standUpPlayer(payload.tableId, payload.seat, "Stood up");
+    await standUpPlayer(payload.tableId, seatNum, "Stood up");
   });
 
   /* ═══════════ SIT OUT / SIT IN ═══════════ */
@@ -4543,6 +4675,23 @@ io.on("connection", (socket) => {
         roomInfo.updatedAt = new Date().toISOString();
       }
 
+      // Sync bot seats if botSeats or botBuyIn changed
+      if ((payload.settings.botSeats !== undefined || payload.settings.botBuyIn !== undefined) && managed) {
+        const room = roomsByTableId.get(payload.tableId);
+        if (room) {
+          syncBots(
+            payload.tableId,
+            room.roomCode,
+            managed.settings.bigBlind,
+            managed.settings.botSeats,
+            runtimeConfig.port,
+            managed.settings.buyInMin,
+            managed.settings.buyInMax,
+            managed.settings.botBuyIn,
+          );
+        }
+      }
+
       socket.emit("settings_updated", { applied: result.applied, deferred: result.deferred });
       if (Object.keys(result.deferred).length > 0) {
         socket.emit("system_message", { message: `Some settings will apply next hand: ${Object.keys(result.deferred).join(", ")}` });
@@ -4728,12 +4877,15 @@ io.on("connection", (socket) => {
         if (!requireClubAuth()) {
           return;
         }
-        if (!isClubOwnerOrAdmin(clubInfo.clubId, identity.userId)) {
-          throw new Error("Only club owner/admin can close persistent club tables");
+        // Club tables: allow club owner/admin OR room owner
+        if (!isClubOwnerOrAdmin(clubInfo.clubId, identity.userId) && !roomManager.isOwner(payload.tableId, identity.userId)) {
+          throw new Error("Only club owner/admin or room host can close this table");
         }
-      }
-      if (!roomManager.isOwner(payload.tableId, identity.userId)) {
-        throw new Error("Only the host can close the room");
+      } else {
+        // Regular rooms: only room owner
+        if (!roomManager.isOwner(payload.tableId, identity.userId)) {
+          throw new Error("Only the host can close the room");
+        }
       }
 
       logInfo({
@@ -4743,9 +4895,15 @@ io.on("connection", (socket) => {
         message: identity.displayName,
       });
 
+      // For club tables, also update club manager state
+      if (clubInfo) {
+        clubManager.closeTable(clubInfo.clubId, identity.userId, clubInfo.clubTableId);
+      }
+
       // Stop auto-deal and timers
       clearAutoDealSchedule(payload.tableId);
       clearShowdownDecisionTimeout(payload.tableId);
+      removeAllBots(payload.tableId);
       roomManager.endGame(payload.tableId, identity.userId, identity.displayName);
 
       // Notify all players and send them back to lobby
@@ -4800,6 +4958,11 @@ io.on("connection", (socket) => {
       }).catch(() => {});
 
       void emitLobbySnapshot();
+
+      // Refresh club detail for members so the table list updates
+      if (clubInfo) {
+        void emitClubDetail(socket.id, clubInfo.clubId, identity.userId);
+      }
     } catch (error) {
       socket.emit("error_event", { message: (error as Error).message });
     }
@@ -4853,10 +5016,15 @@ io.on("connection", (socket) => {
 
   socket.on("club_list_my_clubs", () => {
     try {
-      if (!requireClubAuth()) return;
+      if (!requireClubAuth()) {
+        console.log("[clubs] club_list_my_clubs denied for", identity.userId, "(not club-authenticated)");
+        return;
+      }
       const clubs = clubManager.listMyClubs(identity.userId);
+      console.log("[clubs] club_list_my_clubs →", identity.userId, "clubs:", clubs.length);
       socket.emit("club_list", { clubs });
     } catch (error) {
+      console.warn("[clubs] club_list_my_clubs error for", identity.userId, (error as Error).message);
       socket.emit("club_error", { code: "LIST_FAILED", message: (error as Error).message });
     }
   });
@@ -5744,10 +5912,12 @@ io.on("connection", (socket) => {
         supabase.setDisconnected(binding.tableId, binding.seat).catch((e) => console.warn("disconnect: setDisconnected failed:", (e as Error).message));
       }
 
-      // Ownership transfer if disconnected player is the owner
+      // Ownership transfer if disconnected player is the owner (exclude bots)
       if (roomManager.isOwner(binding.tableId, identity.userId)) {
+        const disconnectBotIds = getBotUserIds(binding.tableId);
         const onlinePlayers = bindingsByTable(binding.tableId)
           .filter(({ socketId: sid }) => sid !== socket.id)
+          .filter(({ binding: b }) => !disconnectBotIds.has(b.userId))
           .map(({ binding: b }) => ({ userId: b.userId, name: b.name }));
         roomManager.autoTransferOwnership(binding.tableId, onlinePlayers);
       }
@@ -5816,6 +5986,7 @@ async function gracefulShutdown(signal: NodeJS.Signals): Promise<void> {
     pendingPause.clear();
     pendingSeatRequests.clear();
     pendingRebuys.clear();
+    shutdownAllBots();
     tableSnapshotVersions.clear();
     for (const handle of clubLeaderboardRefreshTimers.values()) {
       clearTimeout(handle);

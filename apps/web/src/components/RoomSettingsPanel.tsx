@@ -23,7 +23,7 @@ export function ToggleSetting({ label, checked, onChange }: { label: string; che
   );
 }
 
-export function RoomSettingsPanel({ roomState, isHost, readOnly = false, initialTab, players, authUserId, onUpdateSettings, onKick, onTransfer, onSetCoHost, onClose }: {
+export function RoomSettingsPanel({ roomState, isHost, readOnly = false, initialTab, players, authUserId, onUpdateSettings, onKick, onTransfer, onSetCoHost, onBotAddChips, onClose }: {
   roomState: RoomFullState;
   isHost: boolean;
   readOnly?: boolean;
@@ -34,13 +34,14 @@ export function RoomSettingsPanel({ roomState, isHost, readOnly = false, initial
   onKick: (targetUserId: string, reason: string, ban: boolean) => void;
   onTransfer: (newOwnerId: string) => void;
   onSetCoHost: (userId: string, add: boolean) => void;
+  onBotAddChips?: (seat: number, amount: number) => void;
   onClose: () => void;
 }) {
-  const tabMap: Record<string, "game" | "rules" | "special" | "players" | "moderation"> = {
+  const tabMap: Record<string, "game" | "rules" | "special" | "players" | "moderation" | "bots"> = {
     game: "game", rules: "rules", special: "special", players: "players",
-    moderation: "moderation", preferences: "game",
+    moderation: "moderation", bots: "bots", preferences: "game",
   };
-  const [tab, setTab] = useState<"game" | "rules" | "special" | "players" | "moderation">(tabMap[initialTab ?? ""] ?? "game");
+  const [tab, setTab] = useState<"game" | "rules" | "special" | "players" | "moderation" | "bots">(tabMap[initialTab ?? ""] ?? "game");
   const [kickReason, setKickReason] = useState("");
 
   const s = roomState.settings;
@@ -141,6 +142,7 @@ export function RoomSettingsPanel({ roomState, isHost, readOnly = false, initial
           { key: "special" as const, label: "Special" },
           { key: "players" as const, label: "Players" },
           { key: "moderation" as const, label: "Mod" },
+          { key: "bots" as const, label: "Bots" },
         ]).map((t) => (
           <button key={t.key} onClick={() => setTab(t.key)}
             className="cp-segmented-item flex-1 whitespace-nowrap" data-active={tab === t.key ? "true" : undefined}>
@@ -441,6 +443,96 @@ export function RoomSettingsPanel({ roomState, isHost, readOnly = false, initial
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ══ BOTS TAB ══ */}
+      {tab === "bots" && (
+        <div className="space-y-3">
+          <SectionTitle>GTO Bot Seats</SectionTitle>
+          <p className="text-[10px] text-slate-400">
+            Assign GTO bots to empty seats. Bots play using GTO advice with personality-based adjustments.
+          </p>
+
+          <SettingRow label="Bot Buy-in">
+            <input
+              type="number"
+              value={s.botBuyIn ?? s.bigBlind * 100}
+              onChange={(e) => updateField("botBuyIn", Number(e.target.value))}
+              className="input-field text-xs !py-1.5 w-28"
+              min={s.buyInMin}
+              max={s.buyInMax}
+              disabled={readOnly}
+            />
+          </SettingRow>
+          <p className="text-[10px] text-slate-500">
+            Default: {s.bigBlind * 100} chips (100 BB). Range: {s.buyInMin} – {s.buyInMax}.
+          </p>
+
+          {Array.from({ length: s.maxPlayers }, (_, i) => i + 1).map((seat) => {
+            const botSeats = s.botSeats ?? [];
+            const existing = botSeats.find((b) => b.seat === seat);
+            const seatPlayer = players.find((p) => p.seat === seat);
+            const isOccupiedByHuman = !!seatPlayer && !seatPlayer.isBot;
+
+            return (
+              <div key={seat} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.03] border border-white/5">
+                <span className="text-xs text-slate-400 w-14">Seat {seat}</span>
+
+                {isOccupiedByHuman ? (
+                  <span className="text-[10px] text-slate-500 italic flex-1">
+                    Player: {seatPlayer.name}
+                  </span>
+                ) : (
+                  <select
+                    value={existing?.profile ?? ""}
+                    onChange={(e) => {
+                      const prev = (botSeats ?? []).filter((b) => b.seat !== seat);
+                      if (e.target.value) {
+                        prev.push({ seat, profile: e.target.value });
+                      }
+                      updateField("botSeats", prev);
+                    }}
+                    className="input-field text-xs !py-1 flex-1"
+                    disabled={readOnly}
+                  >
+                    <option value="">-- None --</option>
+                    <option value="gto_balanced">GTO Balanced</option>
+                    <option value="limp_fish">Limp-Fish (passive caller)</option>
+                    <option value="tag">TAG (tight-aggressive)</option>
+                    <option value="lag">LAG (loose-aggressive)</option>
+                    <option value="nit">Nit (very tight)</option>
+                  </select>
+                )}
+
+                {existing && !isOccupiedByHuman && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-[9px] bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded">
+                      Active
+                    </span>
+                    {isHost && seatPlayer && onBotAddChips && (
+                      <button
+                        onClick={() => {
+                          const amount = prompt(`Add chips to ${seatPlayer.name} (Seat ${seat}):`, String(s.bigBlind * 50));
+                          if (amount && Number(amount) > 0) {
+                            onBotAddChips(seat, Number(amount));
+                          }
+                        }}
+                        className="text-[9px] bg-blue-500/10 text-blue-400 px-1.5 py-0.5 rounded hover:bg-blue-500/20 transition-colors"
+                      >
+                        +Chips
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <p className="text-[10px] text-slate-500 mt-2">
+            Bots use GTO probabilities weighted by personality (actionWeights).
+            E.g. Limp-Fish shifts raise probability toward call/limp.
+          </p>
         </div>
       )}
     </div>

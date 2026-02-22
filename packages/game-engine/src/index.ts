@@ -361,7 +361,7 @@ export class GameTable {
     this.state.showdownPhase = "none";
   }
 
-  addPlayer(player: { seat: number; userId: string; name: string; stack: number; status?: PlayerStatus; isNewPlayer?: boolean }): void {
+  addPlayer(player: { seat: number; userId: string; name: string; stack: number; status?: PlayerStatus; isNewPlayer?: boolean; isBot?: boolean }): void {
     if (this.state.players.some((p) => p.seat === player.seat)) {
       throw new Error("seat already occupied");
     }
@@ -379,6 +379,7 @@ export class GameTable {
       streetCommitted: 0,
       status: player.status ?? 'active',
       isNewPlayer: player.isNewPlayer ?? false,
+      isBot: player.isBot ?? false,
     });
     this.consecutiveTimeouts.set(player.seat, 0);
     this.state.players.sort((a, b) => a.seat - b.seat);

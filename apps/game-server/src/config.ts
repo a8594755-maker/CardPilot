@@ -85,6 +85,7 @@ const DEFAULTS: RoomSettings = {
   allowGuestChat: true,
   autoTrimExcessBets: true,
   roomFundsTracking: false,
+  botSeats: [],
 };
 
 export type RuntimeConfig = {

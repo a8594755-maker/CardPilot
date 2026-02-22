@@ -55,6 +55,8 @@ export interface TablePlayer {
   status: PlayerStatus;
   /** True if player has not yet played a hand at this table (must wait for BB or post dead) */
   isNewPlayer: boolean;
+  /** True if this player is a GTO bot */
+  isBot?: boolean;
 }
 
 export interface AllInPrompt {
@@ -547,6 +549,12 @@ export interface BlindStructureLevel {
   durationMinutes: number;
 }
 
+export interface BotSeatConfig {
+  seat: number;               // 1–9
+  profile: string;            // 'gto_balanced' | 'limp_fish' | 'tag' | 'lag' | 'nit'
+  displayName?: string;       // custom name, e.g. "Bot-1"
+}
+
 export interface RoomSettings {
   gameType: GameType;
   maxPlayers: number;
@@ -600,6 +608,9 @@ export interface RoomSettings {
   allowGuestChat: boolean;                 // allow guests to send chat messages
   autoTrimExcessBets: boolean;             // auto trim bets exceeding pot/call
   roomFundsTracking: boolean;              // track session funds and allow rejoin stack restoration
+  // ── GTO Bot Settings (Host-only) ──
+  botSeats: BotSeatConfig[];               // [] = no bots
+  botBuyIn?: number;                       // bot buy-in in chips; undefined = 100 * bigBlind
 }
 
 export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
@@ -654,6 +665,8 @@ export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
   allowGuestChat: true,
   autoTrimExcessBets: true,
   roomFundsTracking: false,
+  botSeats: [],
+  botBuyIn: undefined,
 };
 
 export interface RoomOwnership {

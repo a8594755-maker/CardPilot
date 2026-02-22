@@ -37,6 +37,7 @@ import { LeftOptionsRail, OptionsDrawer, type RailAction, type DrawerSection } f
 import { FoldConfirmModal } from "./components/ui/FoldConfirmModal";
 import { HandSummaryDrawer } from "./components/ui/HandSummaryDrawer";
 import { InGameHandHistory } from "./components/ui/InGameHandHistory";
+import { SessionScoreboard, type SessionStatsEntry } from "./components/ui/SessionScoreboard";
 import { AuthScreen } from "./components/AuthScreen";
 import { OnboardingModal } from "./components/OnboardingModal";
 import { RoomSettingsPanel } from "./components/RoomSettingsPanel";
@@ -196,7 +197,9 @@ export function App() {
     const tableMatch = location.pathname.match(/^\/table\/([^/]+)$/);
     if (tableMatch) {
       const routeTableId = decodeURIComponent(tableMatch[1]);
-      if (routeTableId && routeTableId !== tableId) {
+      // Guard: skip sync if pathnameRef already points away (user is leaving the table
+      // but React Router hasn't propagated the navigation yet)
+      if (routeTableId && routeTableId !== tableId && pathnameRef.current.startsWith("/table")) {
         setTableId(routeTableId);
       }
       return;
@@ -226,7 +229,6 @@ export function App() {
   const [showRoomLog, setShowRoomLog] = useState(false);
   const [showSessionStats, setShowSessionStats] = useState(false);
   const [showInGameHistory, setShowInGameHistory] = useState(false);
-  type SessionStatsEntry = { seat: number | null; userId: string; name: string; totalBuyIn: number; totalCashOut: number; currentStack: number; net: number; handsPlayed: number; status: string };
   const [sessionStatsData, setSessionStatsData] = useState<SessionStatsEntry[]>([]);
   const [showRebuyModal, setShowRebuyModal] = useState(false);
   const [rebuyAmount, setRebuyAmount] = useState(0);
@@ -817,6 +819,15 @@ export function App() {
       if (!d.handId) {
         setMyRunPreference(null);
       }
+
+      // Restore hero seat from snapshot (fixes desync after reconnect / page refresh)
+      if (socketAuthUserId && d.players) {
+        const heroPlayer = d.players.find((p) => p.userId === socketAuthUserId);
+        if (heroPlayer && heroPlayer.seat !== seatRef.current) {
+          setSeat(heroPlayer.seat);
+        }
+      }
+
       return true;
     };
 
@@ -845,11 +856,7 @@ export function App() {
       } else {
         debugLog("[reconnect] skipped resync, user on", curPath);
       }
-      // Re-fetch clubs on reconnect
-      if (!authSession?.isGuest) {
-        setClubsLoading(true);
-        s.emit("club_list_my_clubs");
-      }
+      // Club re-fetch on reconnect is handled by the connect handler below
     };
 
     s.io.on("reconnect", handleReconnect);
@@ -865,13 +872,26 @@ export function App() {
       if (!authSession?.isGuest) {
         setClubsLoading(true);
         s.emit("club_list_my_clubs");
-        // Failsafe: clear loading if response never arrives
-        setTimeout(() => {
+        // Retry once after 5s if no response, then failsafe at 10s
+        const retryTimer = setTimeout(() => {
+          setClubsLoading((prev) => {
+            if (prev) {
+              debugLog("[clubs] no club_list response after 5s, retrying");
+              s.emit("club_list_my_clubs");
+            }
+            return prev;
+          });
+        }, 5_000);
+        const failsafeTimer = setTimeout(() => {
           setClubsLoading((prev) => {
             if (prev) console.warn("[clubs] clubsLoading failsafe timeout triggered");
             return false;
           });
         }, 10_000);
+        // Clear timers when response arrives (via club_list or club_error handlers)
+        const clearClubTimers = () => { clearTimeout(retryTimer); clearTimeout(failsafeTimer); };
+        s.once("club_list", clearClubTimers);
+        s.once("club_error", clearClubTimers);
       } else {
         setClubsLoading(false);
       }
@@ -975,7 +995,11 @@ export function App() {
       const activeTableId = (tableIdRef.current ?? "").trim();
       if (!activeTableId || d.tableId !== activeTableId) return;
       resetSnapshotSyncState();
+      // Clear refs synchronously to prevent reconnection handlers from auto-rejoining
       tableIdRef.current = "";
+      currentRoomCodeRef.current = "";
+      currentRoomNameRef.current = "";
+      pathnameRef.current = "/lobby";
       setTableId("");
       setClubRoomHintCode("");
       setCurrentRoomCode(""); setCurrentRoomName("");
@@ -1391,8 +1415,14 @@ export function App() {
     s.on("room_log", (d: RoomLogEntry) => setRoomLog((prev) => [...prev.slice(-99), d]));
     s.on("kicked", (d: { reason: string; banned: boolean }) => {
       resetSnapshotSyncState();
+      // Clear refs synchronously to prevent reconnection handlers from auto-rejoining
+      tableIdRef.current = "";
+      currentRoomCodeRef.current = "";
+      currentRoomNameRef.current = "";
+      pathnameRef.current = "/lobby";
       setKicked(d);
       setView("lobby");
+      setTableId("");
       setClubRoomHintCode("");
       setCurrentRoomCode(""); setCurrentRoomName("");
       setRoomState(null);
@@ -1402,8 +1432,12 @@ export function App() {
     s.on("room_closed", (d?: { reason?: string }) => {
       resetSnapshotSyncState();
       setActionPending(false);
-      setView("lobby");
+      // Clear refs synchronously to prevent reconnection handlers from auto-rejoining
       tableIdRef.current = "";
+      currentRoomCodeRef.current = "";
+      currentRoomNameRef.current = "";
+      pathnameRef.current = "/lobby";
+      setView("lobby");
       setTableId("");
       setClubRoomHintCode("");
       setCurrentRoomCode(""); setCurrentRoomName("");
@@ -1882,7 +1916,7 @@ export function App() {
       return (
         <div key={seatNum} ref={(el) => { seatRefs.current[seatNum] = el; }} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ top: pos.top, left: pos.left }}>
           <SeatChip player={player} seatNum={seatNum} isActor={isActor} isMe={isMe}
-            isOwner={!!isOwner} isCoHost={!!isCo} timer={seatTimer} timerTotal={roomState?.settings.actionTimerSeconds ?? 15}
+            isOwner={!!isOwner} isCoHost={!!isCo} isBot={player?.isBot} timer={seatTimer} timerTotal={roomState?.settings.actionTimerSeconds ?? 15}
             posLabel={posLabel} isButton={isButton} displayBB={displayBB} bigBlind={snapshot?.bigBlind ?? 3}
             lastAction={lastActionBySeat[seatNum] ?? null}
             equity={equity} isAllInLocked={isAllInLocked} handHint={handHint} pendingLeave={isPendingLeave} revealedCards={revealedCards} revealedHandName={revealedHandName} isMucked={isMucked}
@@ -2627,71 +2661,6 @@ export function App() {
                 </div>
               )}
 
-              {/* ── Session Stats Panel ── */}
-              {showSessionStats && (
-                <div className="mx-3 mt-1 glass-card p-3 max-h-72 overflow-y-auto shrink-0" onKeyDown={(e) => { if (e.key === "Escape") setShowSessionStats(false); }} tabIndex={-1}>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xs font-bold text-cyan-400">Session Stats</h3>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => socket?.emit("request_session_stats", { tableId })} className="text-[9px] text-slate-400 hover:text-white transition-colors">↻</button>
-                      <button onClick={() => setShowSessionStats(false)} className="text-xs text-slate-500 hover:text-white transition-colors">✕</button>
-                    </div>
-                  </div>
-                  {sessionStatsData.length === 0 ? (
-                    <p className="text-[10px] text-slate-500 text-center py-2">No session data yet</p>
-                  ) : (
-                    <>
-                      <table className="w-full text-[10px]">
-                        <thead>
-                          <tr className="text-slate-500 border-b border-white/5">
-                            <th className="text-left py-1 font-medium">Player</th>
-                            <th className="text-right py-1 font-medium">Buy-in</th>
-                            <th className="text-right py-1 font-medium">Stack</th>
-                            <th className="text-right py-1 font-medium">Net</th>
-                            <th className="text-right py-1 font-medium">Hands</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {sessionStatsData.map((e) => {
-                            const isMe = e.userId === socketAuthUserId;
-                            return (
-                              <tr key={e.userId} className={`border-b border-white/5 last:border-0 ${isMe ? "bg-cyan-500/8" : ""}`}>
-                                <td className="py-1.5">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${e.status === "seated" ? "bg-emerald-400" : "bg-slate-600"}`} title={e.status === "seated" ? "Seated" : "Away"} />
-                                    <span className={`font-medium truncate max-w-[90px] ${isMe ? "text-cyan-300" : "text-slate-200"}`}>
-                                      {e.name}{isMe ? " (You)" : ""}
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className="py-1.5 text-right text-slate-400 font-mono">{formatChips(e.totalBuyIn, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</td>
-                                <td className="py-1.5 text-right text-slate-300 font-mono">{formatChips(e.currentStack, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}</td>
-                                <td className={`py-1.5 text-right font-mono font-semibold ${e.net > 0 ? "text-emerald-400" : e.net < 0 ? "text-red-400" : "text-slate-400"}`}>
-                                  {e.net > 0 ? "+" : ""}{formatChips(e.net, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}
-                                </td>
-                                <td className="py-1.5 text-right text-slate-500">{e.handsPlayed}</td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                      {/* Summary row */}
-                      {sessionStatsData.length > 1 && (() => {
-                        const totalNet = sessionStatsData.reduce((sum, e) => sum + e.net, 0);
-                        const totalHands = Math.max(...sessionStatsData.map(e => e.handsPlayed));
-                        return (
-                          <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5 text-[10px]">
-                            <span className="text-slate-500">{sessionStatsData.length} players | {totalHands} hands dealt</span>
-                            <span className={`font-mono font-semibold ${totalNet > 0 ? "text-emerald-400" : totalNet < 0 ? "text-red-400" : "text-slate-400"}`}>
-                              Table net: {totalNet > 0 ? "+" : ""}{formatChips(totalNet, { mode: displayBB ? "bb" : "chips", bbSize: snapshot?.bigBlind ?? 3 })}
-                            </span>
-                          </div>
-                        );
-                      })()}
-                    </>
-                  )}
-                </div>
-              )}
 
               </div>{/* end cp-table-float-panels */}
 
@@ -3547,6 +3516,17 @@ export function App() {
                 onClose={() => setShowInGameHistory(false)}
                 currentRoomCode={currentRoomCode}
               />
+
+              {/* Session Scoreboard Drawer */}
+              <SessionScoreboard
+                open={showSessionStats}
+                onClose={() => setShowSessionStats(false)}
+                entries={sessionStatsData}
+                currentUserId={socketAuthUserId}
+                displayBB={displayBB}
+                bigBlind={snapshot?.bigBlind ?? 3}
+                onRefresh={() => socket?.emit("request_session_stats", { tableId })}
+              />
             </main>
 
             {/* ── Room Settings Full-Screen Modal ── */}
@@ -3575,6 +3555,7 @@ export function App() {
                     onKick={(targetUserId: string, reason: string, ban: boolean) => socket?.emit("kick_player", { tableId, targetUserId, reason, ban })}
                     onTransfer={(newOwnerId: string) => socket?.emit("transfer_ownership", { tableId, newOwnerId })}
                     onSetCoHost={(userId: string, add: boolean) => socket?.emit("set_cohost", { tableId, userId, add })}
+                    onBotAddChips={(seat: number, amount: number) => socket?.emit("bot_add_chips", { tableId, seat, amount })}
                     onClose={() => setShowSettings(false)}
                   />
                 </div>

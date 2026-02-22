@@ -2,6 +2,10 @@
 import { io, type Socket } from 'socket.io-client';
 import { getProfile } from './profiles.js';
 import { decide } from './decision.js';
+import {
+  createSessionStats, recordAction, recordHandResult,
+  computeAdaptiveAdjustments, type SessionStats,
+} from './session-stats.js';
 import type { TableState, AdvicePayload, StrategyMix } from './types.js';
 
 // ===== CLI argument parsing =====
@@ -52,10 +56,14 @@ class PokerBot {
   private myName: string;
   private latestState: TableState | null = null;
   private pendingAdvice: StrategyMix | null = null;
+  private myCards: [string, string] | null = null;
   private profile;
   private actDelay: number;
   private seated = false;
   private handActedMap = new Set<string>(); // handId:street to avoid double-acting
+  private sessionStats: SessionStats = createSessionStats();
+  private lastHandStack: number | null = null;
+  private lastHandId: string | null = null;
 
   constructor(private args: BotArgs) {
     this.mySeat = args.seat;
@@ -122,6 +130,24 @@ class PokerBot {
       }
     });
 
+    // ── Hole cards: know our own hand ──
+    this.socket.on('hole_cards', (data: { handId: string; cards: string[]; seat: number }) => {
+      if (data.seat === this.mySeat && data.cards && data.cards.length >= 2) {
+        this.myCards = [data.cards[0], data.cards[1]];
+        this.log(`Hole cards: ${this.myCards[0]} ${this.myCards[1]}`);
+      }
+    });
+
+    // ── Hand started: reset per-hand state ──
+    this.socket.on('hand_started', (data: { handId: string }) => {
+      this.myCards = null;
+      this.pendingAdvice = null;
+      this.lastHandId = data.handId;
+      // Snapshot stack at hand start for P&L tracking
+      const me = this.latestState?.players.find(p => p.seat === this.mySeat);
+      this.lastHandStack = me?.stack ?? null;
+    });
+
     this.socket.on('table_snapshot', (state: TableState) => {
       this.latestState = state;
 
@@ -140,6 +166,26 @@ class PokerBot {
           this.trySitDown();
           return;
         }
+      }
+
+      // Detect hand ending for session stats
+      if (!state.handId && this.lastHandStack !== null && this.lastHandId) {
+        const me = state.players.find(p => p.seat === this.mySeat);
+        if (me) {
+          const net = me.stack - this.lastHandStack;
+          recordHandResult(this.sessionStats, net, net > 0);
+          if (this.sessionStats.handsPlayed % 10 === 0) {
+            const ftr = this.sessionStats.facingRaiseCount > 0
+              ? (this.sessionStats.foldToRaiseCount / this.sessionStats.facingRaiseCount * 100).toFixed(0)
+              : '0';
+            this.log(
+              `Stats: hands=${this.sessionStats.handsPlayed} wins=${this.sessionStats.handsWon} ` +
+              `net=${this.sessionStats.netChips} foldToRaise=${ftr}%`
+            );
+          }
+        }
+        this.lastHandStack = null;
+        this.lastHandId = null;
       }
 
       // Check if it's our turn to act
@@ -197,9 +243,27 @@ class PokerBot {
       entries.slice(0, 100).forEach(k => this.handActedMap.delete(k));
     }
 
-    // Delay to appear more human
+    // Wait for advice with polling, then act
+    const adviceDeadline = Date.now() + 3500; // 3.5s max total wait
+    const checkAndAct = () => {
+      // If advice arrived, act immediately
+      if (this.pendingAdvice) {
+        this.act(state);
+        return;
+      }
+      // If deadline not reached, keep polling
+      if (Date.now() < adviceDeadline) {
+        setTimeout(checkAndAct, 200);
+        return;
+      }
+      // Timeout: act with fallback
+      this.log('Advice timeout, using fallback');
+      this.act(state);
+    };
+
+    // Initial humanization delay, then start polling
     const delay = this.actDelay + Math.floor(Math.random() * 500);
-    setTimeout(() => this.act(state), delay);
+    setTimeout(checkAndAct, delay);
   }
 
   private act(state: TableState): void {
@@ -209,12 +273,19 @@ class PokerBot {
     const advice = this.pendingAdvice;
     this.pendingAdvice = null;
 
-    const result = decide(state, this.profile, advice);
+    // Compute adaptive adjustments from session stats
+    const adaptiveAdj = computeAdaptiveAdjustments(this.sessionStats);
+
+    const result = decide(state, this.profile, advice, this.myCards, adaptiveAdj);
 
     this.log(
       `Hand ${state.handId.slice(0, 8)} ${state.street} pot=${state.pot} → ${result.action}` +
       `${result.amount != null ? ` ${result.amount}` : ''} (${result.reasoning})`
     );
+
+    // Track action in session stats
+    const facingRaise = (state.legalActions.callAmount ?? 0) > (state.bigBlind || 1);
+    recordAction(this.sessionStats, result.action, facingRaise);
 
     const payload: { tableId: string; handId: string; action: string; amount?: number } = {
       tableId: this.tableId,

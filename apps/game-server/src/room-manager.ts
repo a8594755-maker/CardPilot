@@ -252,6 +252,8 @@ export class RoomManager {
       "autoRevealOnAllInCall", "autoRevealWinningHands", "autoMuckLosingHands",
       "allowShowAfterFold", "allowShowCalledHandRequest",
       "roomFundsTracking",
+      "botSeats",
+      "botBuyIn",
     ];
 
     // Fields that can only change pre-game or apply next hand

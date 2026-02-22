@@ -167,6 +167,33 @@ export class ClubManager {
       }
     }
 
+    // Self-heal: ensure every club has its owner as an active member
+    // (fixes clubs where the owner member row failed to persist due to race condition)
+    for (const [clubId, state] of this.clubs) {
+      const ownerUserId = state.club.ownerUserId;
+      const ownerMember = state.members.get(ownerUserId);
+      if (!ownerMember || ownerMember.status !== "active") {
+        const now = new Date().toISOString();
+        const repaired: ClubMember = {
+          clubId,
+          userId: ownerUserId,
+          role: "owner",
+          status: "active",
+          nicknameInClub: null,
+          balance: ownerMember?.balance ?? 0,
+          createdAt: ownerMember?.createdAt ?? state.club.createdAt,
+          lastSeenAt: now,
+        };
+        state.members.set(ownerUserId, repaired);
+        this.addUserClub(ownerUserId, clubId);
+        logWarn({ event: "club_manager.hydrate.repair_owner", clubId, ownerUserId });
+        // Persist the repaired owner member
+        this.repo?.upsertMember(repaired).catch((e) =>
+          logWarn({ event: "club_repo.persist.repair_owner", message: (e as Error).message }),
+        );
+      }
+    }
+
     // Index invites
     for (const inv of data.invites) {
       const state = this.clubs.get(inv.clubId);
@@ -1094,8 +1121,10 @@ export class ClubManager {
 
   private persistCreateClub(club: Club, ownerMember: ClubMember): void {
     if (!this.repo) return;
-    this.repo.createClub(club).catch((e) => logWarn({ event: "club_repo.persist.createClub", message: (e as Error).message }));
-    this.repo.upsertMember(ownerMember).catch((e) => logWarn({ event: "club_repo.persist.createOwnerMember", message: (e as Error).message }));
+    // Must be sequential: club row must exist before upserting the owner member (FK constraint)
+    this.repo.createClub(club).then(() => {
+      return this.repo!.upsertMember(ownerMember);
+    }).catch((e) => logWarn({ event: "club_repo.persist.createClub", message: (e as Error).message }));
   }
 
   private writeAudit(clubId: string, actorUserId: string, actionType: string, payload: Record<string, unknown>): void {

@@ -988,7 +988,7 @@ export function ClubDetailView({
                       )}
                       {canManageTables && t.status !== "closed" && (
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                          <span className="text-[10px] text-slate-400">{t.config.smallBlind}/{t.config.bigBlind} · {t.config.maxSeats}-max</span>
+                          <span className="text-[10px] text-slate-400">{t.config?.smallBlind ?? 1}/{t.config?.bigBlind ?? 2} · {t.config?.maxSeats ?? 6}-max</span>
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleRenameTable(t.id, t.name)}

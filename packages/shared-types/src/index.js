@@ -51,6 +51,8 @@ export const DEFAULT_ROOM_SETTINGS = {
     allowGuestChat: true,
     autoTrimExcessBets: true,
     roomFundsTracking: false,
+    botSeats: [],
+    botBuyIn: undefined,
 };
 // Re-export socket events
 export * from './socket-events.js';
