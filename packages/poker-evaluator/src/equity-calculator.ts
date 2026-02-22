@@ -1,7 +1,7 @@
 // Monte Carlo equity calculator for Texas Hold'em
 
-import { createShuffledDeck, type Card, parseCard } from "./card-utils";
-import { evaluateBestHand, compareHands } from "./evaluator";
+import { createShuffledDeck, type Card, parseCard } from "./card-utils.js";
+import { evaluateBestHand, compareHands } from "./evaluator.js";
 
 export interface EquityResult {
   win: number;      // Win probability (0-1)

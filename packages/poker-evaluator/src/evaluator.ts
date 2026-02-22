@@ -1,8 +1,8 @@
 // Simple 5-card poker evaluator
 // For Texas Hold'em, we evaluate the best 5-card hand from 7 cards
 
-import { RANKS, type Card, parseCard } from "./card-utils";
-import { HandRank, HAND_RANK_NAMES, type HandEvaluation } from "./hand-rank";
+import { RANKS, type Card, parseCard } from "./card-utils.js";
+import { HandRank, HAND_RANK_NAMES, type HandEvaluation } from "./hand-rank.js";
 
 /**
  * 從 7 張牌中找出最強的 5 張組合

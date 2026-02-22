@@ -92,7 +92,17 @@ export interface RaiseSizingContext {
   currentBet: number;
   minRaiseTo: number;
   maxRaiseTo: number;
+  // Extended context (optional, for enhanced sizing)
+  handStrength?: number;
+  boardWetness?: number;
+  position?: string;
 }
+
+// Re-export types from new modules for convenience
+import type { BotPersona, PersonaAnchors } from './persona.js';
+import type { MistakeConfig } from './mistake-budget.js';
+import type { DecisionTrace } from './trace-logger.js';
+export type { BotPersona, PersonaAnchors, MistakeConfig, DecisionTrace };
 
 export interface BotProfile {
   id: string;
@@ -104,9 +114,22 @@ export interface BotProfile {
   /** Only for preflop unopened: shift part of raise probability to call */
   unopenedLimpShare?: number;
 
-  /** Betting/raising sizing preference */
+  /** Betting/raising sizing preference (legacy fallback) */
   chooseRaiseTo: (ctx: RaiseSizingContext) => number;
 
   /** true = sample action by probabilities; false = always pick max-prob action */
   stochastic: boolean;
+
+  /** Persona anchors for personality generation */
+  personaAnchors?: PersonaAnchors;
+
+  /** Mistake injection configuration */
+  mistakeConfig?: MistakeConfig;
+}
+
+export interface DecisionResult {
+  action: PlayerActionType;
+  amount?: number;
+  reasoning: string;
+  trace?: DecisionTrace;
 }

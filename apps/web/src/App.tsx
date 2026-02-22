@@ -474,6 +474,7 @@ export function App() {
   const latestSnapshotHashRef = useRef("");
   const snapshotResyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const snapshotResyncReasonRef = useRef<string | null>(null);
+  const lastSocketConnectErrorToastRef = useRef(0);
 
   const resetSnapshotSyncState = useCallback(() => {
     if (snapshotResyncTimerRef.current) {
@@ -862,6 +863,22 @@ export function App() {
     s.io.on("reconnect", handleReconnect);
     s.io.on("reconnect_attempt", () => {
       setSocketReconnecting(true);
+    });
+    s.on("connect_error", (err) => {
+      setSocketConnected(false);
+      setSocketReconnecting(true);
+
+      const now = Date.now();
+      if (now - lastSocketConnectErrorToastRef.current < 10_000) return;
+      lastSocketConnectErrorToastRef.current = now;
+
+      const message = err?.message ?? "unknown connection error";
+      if (import.meta.env.DEV) {
+        showToast("Server unavailable at http://127.0.0.1:4000. Start @cardpilot/game-server.");
+        console.warn("[socket] connect_error", { message, target: "http://127.0.0.1:4000" });
+      } else {
+        showToast(`Connection failed: ${message}`);
+      }
     });
 
     s.on("connect", () => {

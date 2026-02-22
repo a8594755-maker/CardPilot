@@ -1,12 +1,27 @@
 #!/usr/bin/env node
 import { io, type Socket } from 'socket.io-client';
+import { appendFileSync, existsSync, mkdirSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { getProfile } from './profiles.js';
-import { decide } from './decision.js';
+import { decide, quickHandStrength } from './decision.js';
 import {
-  createSessionStats, recordAction, recordHandResult,
+  createSessionStats, loadSessionStats, saveSessionStats,
+  recordAction, recordHandResult,
   computeAdaptiveAdjustments, type SessionStats,
 } from './session-stats.js';
+import { encodeFeatures, loadModel, type MLP } from '@cardpilot/fast-model';
+import type { TrainingSample } from '@cardpilot/fast-model';
 import type { TableState, AdvicePayload, StrategyMix } from './types.js';
+
+// New module imports
+import { generatePersona, type BotPersona } from './persona.js';
+import { createMoodState, updateMood, type MoodState } from './mood.js';
+import { OpponentTracker } from './opponent-model.js';
+import { computeThinkingTime } from './thinking-time.js';
+import { analyzeRaiseContext } from './raise-context.js';
+import { getBoardTexture } from './board-integration.js';
+import { TraceLogger } from './trace-logger.js';
 
 // ===== CLI argument parsing =====
 interface BotArgs {
@@ -60,16 +75,64 @@ class PokerBot {
   private profile;
   private actDelay: number;
   private seated = false;
-  private handActedMap = new Set<string>(); // handId:street to avoid double-acting
-  private sessionStats: SessionStats = createSessionStats();
+  private handActedMap = new Set<string>();
+  private sessionStats: SessionStats;
   private lastHandStack: number | null = null;
   private lastHandId: string | null = null;
+  private fastModel: MLP | null = null;
+  private dataDir: string;
+  private sampleCount = 0;
+  private readonly MAX_SAMPLES_PER_FILE = 100_000;
+
+  // New enhancement state
+  private persona: BotPersona;
+  private moodState: MoodState;
+  private opponentTracker: OpponentTracker;
+  private traceLogger: TraceLogger;
+  private handNumber = 0;
+  private lastProcessedActionCount = 0; // track observed actions for opponent model
+  private lastHandStrength: number | null = null; // for bad beat detection
 
   constructor(private args: BotArgs) {
     this.mySeat = args.seat;
     this.profile = getProfile(args.profile);
     this.myName = args.name ?? `Bot-${this.profile.displayName}`;
     this.actDelay = args.delay ?? 800;
+
+    // ── Load persistent session stats ──
+    this.sessionStats = loadSessionStats(this.profile.id);
+    if (this.sessionStats.handsPlayed > 0) {
+      this.log(`Loaded stats: hands=${this.sessionStats.handsPlayed} net=${this.sessionStats.netChips}`);
+    }
+
+    // ── Initialize persona (fixed for entire session) ──
+    this.persona = generatePersona(this.profile.id);
+    this.log(`Persona: L/T=${this.persona.looseTightBias.toFixed(2)} P/A=${this.persona.passiveAggressiveBias.toFixed(2)} bluff=${this.persona.bluffFrequency.toFixed(2)} hero=${this.persona.heroCallTendency.toFixed(2)}`);
+
+    // ── Initialize mood state ──
+    this.moodState = createMoodState();
+
+    // ── Initialize opponent tracker ──
+    this.opponentTracker = new OpponentTracker();
+
+    // ── Initialize trace logger ──
+    this.traceLogger = new TraceLogger();
+
+    // ── Load fast model if available ──
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    const modelPath = join(__dirname, '..', '..', '..', 'packages', 'fast-model', 'models', 'model-latest.json');
+    this.fastModel = loadModel(modelPath);
+    if (this.fastModel) {
+      this.log('Fast model loaded successfully');
+    } else {
+      this.log('No fast model found, will use heuristic fallback');
+    }
+
+    // ── Data collection directory ──
+    this.dataDir = join(__dirname, '..', '..', '..', 'data');
+    if (!existsSync(this.dataDir)) {
+      mkdirSync(this.dataDir, { recursive: true });
+    }
 
     const botUserId = args.userId ?? `bot-${this.profile.id}-${this.mySeat}-${Date.now()}`;
 
@@ -123,7 +186,6 @@ class PokerBot {
 
     this.socket.on('error_event', (data: { message: string }) => {
       this.log(`Server error: ${data.message}`);
-      // Retry sit_down if seat-related error and we're not seated
       if (!this.seated && data.message.includes('seat') || data.message.includes('Seat')) {
         this.log('Will retry sit_down in 3s...');
         setTimeout(() => this.trySitDown(), 3000);
@@ -143,15 +205,23 @@ class PokerBot {
       this.myCards = null;
       this.pendingAdvice = null;
       this.lastHandId = data.handId;
+      this.handNumber++;
+      this.lastProcessedActionCount = 0;
+      this.lastHandStrength = null;
+
       // Snapshot stack at hand start for P&L tracking
       const me = this.latestState?.players.find(p => p.seat === this.mySeat);
       this.lastHandStack = me?.stack ?? null;
+
+      // Notify opponent tracker of new hand
+      if (this.latestState) {
+        this.opponentTracker.observeHandStart(this.latestState);
+      }
     });
 
     this.socket.on('table_snapshot', (state: TableState) => {
       this.latestState = state;
 
-      // If tableId wasn't set from room_joined, grab it from snapshot
       if (!this.tableId && state.tableId) {
         this.tableId = state.tableId;
       }
@@ -168,19 +238,35 @@ class PokerBot {
         }
       }
 
-      // Detect hand ending for session stats
+      // Feed new actions to opponent tracker
+      this.observeNewActions(state);
+
+      // Detect hand ending for session stats + mood update
       if (!state.handId && this.lastHandStack !== null && this.lastHandId) {
         const me = state.players.find(p => p.seat === this.mySeat);
         if (me) {
           const net = me.stack - this.lastHandStack;
-          recordHandResult(this.sessionStats, net, net > 0);
+          const won = net > 0;
+          recordHandResult(this.sessionStats, net, won);
+          saveSessionStats(this.sessionStats, this.profile.id);
+
+          // Update mood with hand result
+          const wasBadBeat = !won && this.lastHandStrength != null && this.lastHandStrength >= 0.65;
+          this.moodState = updateMood(
+            this.moodState,
+            { net, wasShowdown: this.lastHandStrength != null, wasBadBeat },
+            this.handNumber,
+            state.bigBlind || 1,
+            this.persona,
+          );
+
           if (this.sessionStats.handsPlayed % 10 === 0) {
             const ftr = this.sessionStats.facingRaiseCount > 0
               ? (this.sessionStats.foldToRaiseCount / this.sessionStats.facingRaiseCount * 100).toFixed(0)
               : '0';
             this.log(
               `Stats: hands=${this.sessionStats.handsPlayed} wins=${this.sessionStats.handsWon} ` +
-              `net=${this.sessionStats.netChips} foldToRaise=${ftr}%`
+              `net=${this.sessionStats.netChips} foldToRaise=${ftr}% mood=${this.moodState.value.toFixed(2)}`
             );
           }
         }
@@ -196,7 +282,10 @@ class PokerBot {
       if (advice.seat === this.mySeat && advice.mix) {
         this.log(`Received advice: R=${advice.mix.raise.toFixed(2)} C=${advice.mix.call.toFixed(2)} F=${advice.mix.fold.toFixed(2)}`);
         this.pendingAdvice = advice.mix;
-        // Re-check if we should act (advice may arrive after snapshot)
+
+        // Collect training sample
+        this.collectSample(advice);
+
         this.maybeAct();
       }
     });
@@ -207,11 +296,21 @@ class PokerBot {
       }
     });
 
-    // Handle reconnection: re-join room
     this.socket.io.on('reconnect', () => {
       this.log('Reconnected, re-joining room...');
       this.socket.emit('join_room_code', { roomCode: this.args.room });
     });
+  }
+
+  // ── Feed new actions to opponent tracker ──
+  private observeNewActions(state: TableState): void {
+    if (!state.handId) return;
+    const actions = state.actions;
+    // Only process new actions since last check
+    for (let i = this.lastProcessedActionCount; i < actions.length; i++) {
+      this.opponentTracker.observeAction(actions[i], state, this.mySeat);
+    }
+    this.lastProcessedActionCount = actions.length;
   }
 
   private trySitDown(): void {
@@ -223,7 +322,6 @@ class PokerBot {
       buyIn: this.args.buyin,
       name: this.myName,
     });
-    // Optimistically mark as seated; error_event will reset
     this.seated = true;
   }
 
@@ -243,27 +341,105 @@ class PokerBot {
       entries.slice(0, 100).forEach(k => this.handActedMap.delete(k));
     }
 
+    // ── Context-dependent thinking time (Enhancement #5) ──
+    const raiseContext = analyzeRaiseContext(state, this.mySeat);
+    const boardTexture = getBoardTexture(state.board);
+    const handStrength = this.myCards
+      ? quickHandStrength(this.myCards, state.board, state.street)
+      : null;
+
+    const myPlayer = state.players.find(p => p.seat === this.mySeat);
+    const myStack = myPlayer?.stack ?? 0;
+    const isAllInDecision = (state.legalActions.callAmount ?? 0) >= myStack * 0.9;
+
+    const thinkingTime = computeThinkingTime({
+      street: state.street,
+      pot: state.pot,
+      bigBlind: state.bigBlind || 1,
+      toCall: state.legalActions.callAmount ?? 0,
+      handStrength,
+      boardTexture,
+      raiseContext,
+      numPlayersInHand: state.players.filter(p => p.inHand && !p.folded).length,
+      isAllInDecision,
+      baseDelay: this.actDelay,
+    });
+
     // Wait for advice with polling, then act
-    const adviceDeadline = Date.now() + 3500; // 3.5s max total wait
+    const adviceDeadline = Date.now() + 3500;
+
     const checkAndAct = () => {
-      // If advice arrived, act immediately
       if (this.pendingAdvice) {
         this.act(state);
         return;
       }
-      // If deadline not reached, keep polling
       if (Date.now() < adviceDeadline) {
         setTimeout(checkAndAct, 200);
         return;
       }
-      // Timeout: act with fallback
       this.log('Advice timeout, using fallback');
       this.act(state);
     };
 
-    // Initial humanization delay, then start polling
-    const delay = this.actDelay + Math.floor(Math.random() * 500);
-    setTimeout(checkAndAct, delay);
+    // Two-stage thinking time
+    if (thinkingTime.twoStage) {
+      setTimeout(() => {
+        // First stage pause, then second stage before polling
+        setTimeout(checkAndAct, thinkingTime.secondStageMs);
+      }, thinkingTime.firstStageMs);
+    } else {
+      setTimeout(checkAndAct, thinkingTime.delayMs);
+    }
+  }
+
+  private collectSample(advice: AdvicePayload): void {
+    try {
+      const state = this.latestState;
+      if (!state || !this.myCards || !state.handId) return;
+      if (state.actorSeat !== this.mySeat && !this.pendingAdvice) return;
+      if (state.street === 'SHOWDOWN' || state.street === 'RUN_IT_TWICE_PROMPT') return;
+
+      const me = state.players.find(p => p.seat === this.mySeat);
+      if (!me) return;
+
+      const heroPosition = state.positions?.[this.mySeat] ?? 'BTN';
+      const villains = state.players.filter(p => p.inHand && !p.folded && p.seat !== this.mySeat);
+      const numVillains = villains.length || 1;
+      const heroInPosition = heroPosition === 'BTN' || heroPosition === 'CO';
+      const heroRaisedPreflop = state.actions.some(
+        a => a.seat === this.mySeat && a.street === 'PREFLOP' && a.type === 'raise'
+      );
+      const effectiveStack = Math.min(me.stack, ...villains.map(v => v.stack));
+      const bb = state.bigBlind || 1;
+
+      const features = encodeFeatures(
+        this.myCards,
+        state.board,
+        state.street,
+        state.pot,
+        bb,
+        state.legalActions?.callAmount ?? 0,
+        effectiveStack,
+        heroPosition,
+        heroInPosition,
+        numVillains,
+        heroRaisedPreflop,
+      );
+
+      const sample: TrainingSample = {
+        f: features.map(v => Math.round(v * 10000) / 10000),
+        l: [advice.mix.raise, advice.mix.call, advice.mix.fold],
+        h: state.handId.slice(0, 8),
+        s: state.street,
+      };
+
+      const fileIdx = Math.floor(this.sampleCount / this.MAX_SAMPLES_PER_FILE);
+      const filePath = join(this.dataDir, `training-samples${fileIdx > 0 ? `-${fileIdx}` : ''}.jsonl`);
+      appendFileSync(filePath, JSON.stringify(sample) + '\n');
+      this.sampleCount++;
+    } catch {
+      // Never let data collection crash the bot
+    }
   }
 
   private act(state: TableState): void {
@@ -276,12 +452,46 @@ class PokerBot {
     // Compute adaptive adjustments from session stats
     const adaptiveAdj = computeAdaptiveAdjustments(this.sessionStats);
 
-    const result = decide(state, this.profile, advice, this.myCards, adaptiveAdj);
+    // Compute opponent adjustment for the raiser (if facing one)
+    const raiseContext = analyzeRaiseContext(state, this.mySeat);
+    let opponentAdj;
+    if (raiseContext.raiserSeat != null) {
+      const situation = state.street === 'FLOP' && raiseContext.facingType === 'facing_open'
+        ? 'facing_cbet' as const
+        : raiseContext.facingType !== 'unopened'
+          ? 'facing_raise' as const
+          : 'general' as const;
+      opponentAdj = this.opponentTracker.computeAdjustment(raiseContext.raiserSeat, situation);
+    }
+
+    // Track hand strength for bad beat detection
+    if (this.myCards) {
+      this.lastHandStrength = quickHandStrength(this.myCards, state.board, state.street);
+    }
+
+    const result = decide({
+      state,
+      profile: this.profile,
+      advice,
+      holeCards: this.myCards,
+      mySeat: this.mySeat,
+      adaptiveAdj,
+      persona: this.persona,
+      moodState: this.moodState,
+      opponentAdj,
+      handNumber: this.handNumber,
+      fastModel: this.fastModel,
+    });
 
     this.log(
       `Hand ${state.handId.slice(0, 8)} ${state.street} pot=${state.pot} → ${result.action}` +
       `${result.amount != null ? ` ${result.amount}` : ''} (${result.reasoning})`
     );
+
+    // Log structured trace
+    if (result.trace) {
+      this.traceLogger.log(result.trace);
+    }
 
     // Track action in session stats
     const facingRaise = (state.legalActions.callAmount ?? 0) > (state.bigBlind || 1);

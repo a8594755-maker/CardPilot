@@ -1,5 +1,9 @@
 // ===== Session statistics tracking for adaptive bot learning =====
 
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
+
 export interface SessionStats {
   handsPlayed: number;
   handsWon: number;
@@ -108,4 +112,41 @@ export function computeAdaptiveAdjustments(stats: SessionStats): AdaptiveAdjustm
     callAdj: clamp(callAdj),
     foldAdj: clamp(foldAdj),
   };
+}
+
+// ===== Persistent stats: load/save to disk =====
+
+function getStatsFilePath(profileId: string): string {
+  return join(homedir(), '.cardpilot', `bot-stats-${profileId}.json`);
+}
+
+/**
+ * Load stats from disk. Returns fresh stats if file doesn't exist or is corrupt.
+ */
+export function loadSessionStats(profileId: string): SessionStats {
+  const filePath = getStatsFilePath(profileId);
+  try {
+    if (!existsSync(filePath)) return createSessionStats();
+    const raw = readFileSync(filePath, 'utf-8');
+    const parsed = JSON.parse(raw) as Partial<SessionStats>;
+    // Merge with defaults to handle schema additions gracefully
+    return { ...createSessionStats(), ...parsed };
+  } catch {
+    console.warn(`[session-stats] Could not load stats from ${filePath}, starting fresh`);
+    return createSessionStats();
+  }
+}
+
+/**
+ * Save stats to disk. Never throws — bot should never crash due to file I/O.
+ */
+export function saveSessionStats(stats: SessionStats, profileId: string): void {
+  const filePath = getStatsFilePath(profileId);
+  try {
+    const dir = join(homedir(), '.cardpilot');
+    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+    writeFileSync(filePath, JSON.stringify(stats, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn(`[session-stats] Could not save stats: ${(err as Error).message}`);
+  }
 }

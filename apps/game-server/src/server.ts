@@ -79,7 +79,9 @@ async function getAnalyzeHandGTO(): Promise<AnalyzeHandGTOFn | null> {
 
 const app = express();
 app.use(cors({ origin: runtimeConfig.corsOrigin, credentials: true }));
-app.get("/health", (_req, res) => res.json({ ok: true }));
+const healthPayload = { ok: true, service: "cardpilot-game-server" };
+app.get("/health", (_req, res) => res.json(healthPayload));
+app.get("/healthz", (_req, res) => res.json(healthPayload));
 const DEPLOY_COMMIT_REF =
   process.env.RAILWAY_GIT_COMMIT_SHA ||
   process.env.NETLIFY_COMMIT_REF ||
@@ -2392,6 +2394,21 @@ async function finalizeHandEndAsync(tableId: string, state: TableState): Promise
   // Attach bounty info to settlement if auto-applied
   if (bountyInfo && settlement) {
     settlement.sevenTwoBounty = bountyInfo;
+  }
+
+  // ── Inject bot hole cards into revealedHoles so clients see them ──
+  const botIds = getBotUserIds(tableId);
+  if (botIds.size > 0 && table) {
+    const revealed: Record<number, [string, string]> = { ...(finalState.revealedHoles ?? {}) };
+    for (const p of finalState.players) {
+      if (!botIds.has(p.userId)) continue;
+      if (revealed[p.seat]) continue; // already revealed at showdown
+      const cards = table.getPrivateHoleCards(p.seat) ?? table.getHoleCards(p.seat);
+      if (cards && cards.length >= 2) {
+        revealed[p.seat] = [cards[0], cards[1]];
+      }
+    }
+    finalState.revealedHoles = revealed;
   }
 
   logInfo({
