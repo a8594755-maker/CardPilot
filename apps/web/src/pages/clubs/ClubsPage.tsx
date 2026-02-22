@@ -15,7 +15,7 @@ interface ClubsPageProps {
   clubDetail: ClubDetailPayload | null;
   onSelectClub: (clubId: string) => void;
   onRefreshClubs: () => void;
-  onJoinClubTable: (roomCode: string) => void;
+  onJoinClubTable: (clubId: string, tableId: string) => void;
   showToast: (msg: string) => void;
 }
 

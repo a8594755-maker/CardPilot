@@ -7,6 +7,7 @@ import type {
   TableState,
   RunoutPayout,
   SettlementResult,
+  SevenTwoBountyInfo,
   AdvicePayload as AdvicePayloadFromIndex,
   LobbyRoomSummary as LobbyRoomSummaryFromIndex,
   HistoryRoomSummary,
@@ -215,7 +216,9 @@ export const SOCKET_EVENT_NAMES = {
     'request_history_sessions',
     'request_history_hands',
     'request_history_hand_detail',
-    'history_gto_analyze'
+    'history_gto_analyze',
+    'show_hand_post',
+    'claim_seven_two_bounty'
   ] as const,
   serverToClient: [
     'connected',
@@ -264,7 +267,12 @@ export const SOCKET_EVENT_NAMES = {
     'history_hand_detail',
     'history_gto_result',
     'hand_audit_complete',
-    'session_leak_update'
+    'session_leak_update',
+    'player_disconnected',
+    'player_reconnected',
+    'player_auto_sitout',
+    'seven_two_bounty_claimed',
+    'post_hand_reveal'
   ] as const,
 };
 
@@ -312,6 +320,8 @@ export interface ClientToServerEvents {
   request_history_hands: (payload: { roomSessionId: string; limit?: number; beforeEndedAt?: string }) => void;
   request_history_hand_detail: (payload: { handHistoryId: string }) => void;
   history_gto_analyze: (payload: { handId: string; handRecord: HistoryGTOHandRecord; precision: 'fast' | 'deep' }) => void;
+  show_hand_post: (payload: { tableId: string; seat: number }) => void;
+  claim_seven_two_bounty: (payload: { tableId: string; seat: number }) => void;
 }
 
 export interface ServerToClientEvents {
@@ -420,4 +430,9 @@ export interface ServerToClientEvents {
   history_gto_result: (payload: { handId: string; gtoAnalysis: HistoryGTOAnalysis | null; error?: string }) => void;
   hand_audit_complete: (payload: { userId: string; summary: HandAuditSummary }) => void;
   session_leak_update: (payload: { userId: string; summary: SessionLeakSummary }) => void;
+  player_disconnected: (payload: { seat: number; userId: string; graceSeconds: number }) => void;
+  player_reconnected: (payload: { seat: number; userId: string }) => void;
+  player_auto_sitout: (payload: { seat: number; userId: string; reason: string }) => void;
+  seven_two_bounty_claimed: (payload: { tableId: string; handId: string; bounty: SevenTwoBountyInfo }) => void;
+  post_hand_reveal: (payload: { tableId: string; seat: number; cards: [string, string] }) => void;
 }

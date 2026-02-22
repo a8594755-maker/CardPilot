@@ -666,6 +666,21 @@ export class RoomManager {
     return true;
   }
 
+  /**
+   * Find a disconnected seat across all rooms for a given userId.
+   * Used by the reconnect flow to auto-restore seats.
+   */
+  getDisconnectedSeatByUserId(userId: string): { tableId: string; seat: number } | null {
+    for (const [tableId, room] of this.rooms) {
+      for (const [seat, grace] of room.disconnectGrace) {
+        if (grace.userId === userId) {
+          return { tableId, seat };
+        }
+      }
+    }
+    return null;
+  }
+
   /* ═══════════ ROOM EMPTY AUTO-CLOSE ═══════════ */
 
   checkRoomEmpty(tableId: string, currentPlayerCount: number, onDestroy: () => void): void {

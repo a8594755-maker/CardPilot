@@ -31,20 +31,20 @@ export type ClubAccessResult = ClubAccessDenied | ClubAccessAllowed;
 
 /**
  * Single helper to gate all club table entry points.
- * Call this from join_room_code, join_table, sit_down, seat_request.
+ * Call this from club_table_join, join_table, sit_down, seat_request.
  *
  * Returns { allowed: true, ... } if access is granted,
  * or { allowed: false, reason, code } if denied.
  *
- * If the room is NOT a club table, returns { allowed: false, code: "NOT_CLUB_TABLE" }
+ * If the tableId is NOT a club table, returns { allowed: false, code: "NOT_CLUB_TABLE" }
  * — callers should treat this as "no restriction applies" and proceed normally.
  */
 export function requireActiveClubMember(
   clubManager: ClubManager,
-  roomCode: string,
+  tableId: string,
   userId: string,
 ): ClubAccessResult {
-  const clubInfo = clubManager.getClubForTable(roomCode);
+  const clubInfo = clubManager.getClubForTableById(tableId);
   if (!clubInfo) {
     return { allowed: false, reason: "Not a club table", code: "NOT_CLUB_TABLE" };
   }

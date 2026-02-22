@@ -5,6 +5,7 @@ import type {
   ClubInvite,
   ClubRuleset,
   ClubTable,
+  ClubTableConfig,
   ClubAuditLogEntry,
   ClubDetail,
   ClubListItem,
@@ -14,8 +15,13 @@ import type {
   ClubVisibility,
   ClubTableStatus,
 } from "@cardpilot/shared-types";
-import { canPerformClubAction, hasClubPermission, DEFAULT_CLUB_RULES } from "@cardpilot/shared-types";
-import { logError, logInfo, logWarn } from "./logger";
+import {
+  canPerformClubAction,
+  hasClubPermission,
+  DEFAULT_CLUB_RULES,
+  clubTableConfigToClubRules,
+} from "@cardpilot/shared-types";
+import { logInfo, logWarn } from "./logger";
 import type { ClubRepo } from "./services/club-repo";
 
 // ── In-memory store (mirrors DB; authoritative for real-time) ──
@@ -85,6 +91,28 @@ function normalizeClubRules(input: Partial<ClubRules>): ClubRules {
   return normalized;
 }
 
+function normalizeClubTableConfig(input: ClubTableConfig): ClubTableConfig {
+  const maxSeats = Math.min(9, Math.max(2, Math.trunc(input.maxSeats)));
+  return {
+    ...input,
+    maxSeats,
+    gameType: input.gameType === "omaha" ? "omaha" : "texas",
+    smallBlind: Math.max(1, input.smallBlind),
+    bigBlind: Math.max(input.smallBlind + 1, input.bigBlind),
+    minBuyIn: Math.max(1, input.minBuyIn),
+    maxBuyIn: Math.max(input.minBuyIn, input.maxBuyIn),
+    defaultBuyIn: Math.min(input.maxBuyIn, Math.max(input.minBuyIn, input.defaultBuyIn)),
+    actionTimeSec: Math.max(5, Math.min(120, input.actionTimeSec)),
+    timeBankSec: Math.max(0, input.timeBankSec),
+    disconnectGraceSec: Math.max(5, input.disconnectGraceSec),
+    minPlayersToStart: Math.max(2, Math.min(maxSeats, input.minPlayersToStart)),
+    autoDealDelaySec: Math.max(1, Math.min(30, input.autoDealDelaySec)),
+    sevenTwoBounty: Math.max(0, Math.trunc(input.sevenTwoBounty ?? 0)),
+    maxHands: input.maxHands != null ? Math.max(1, Math.trunc(input.maxHands)) : null,
+    timeLimitMin: input.timeLimitMin != null ? Math.max(1, Math.trunc(input.timeLimitMin)) : null,
+  };
+}
+
 function generateCode(len: number, chars: string): string {
   let code = "";
   for (let i = 0; i < len; i++) {
@@ -98,6 +126,7 @@ export class ClubManager {
   private clubByCode = new Map<string, string>(); // club code -> clubId
   private inviteCodeToClub = new Map<string, string>(); // invite code -> clubId
   private userClubs = new Map<string, Set<string>>(); // userId -> set of clubIds
+  private tableIdToClub = new Map<string, string>(); // clubTableId -> clubId (O(1) lookup)
   private repo: ClubRepo | null = null;
 
   /** Attach a persistence adapter. Call before hydrate(). */
@@ -160,6 +189,7 @@ export class ClubManager {
       const state = this.clubs.get(t.clubId);
       if (!state) continue;
       state.tables.set(t.id, t);
+      this.tableIdToClub.set(t.id, t.clubId);
     }
 
     logInfo({
@@ -662,7 +692,8 @@ export class ClubManager {
     clubId: string,
     actorUserId: string,
     name: string,
-    rulesetId?: string,
+    config: ClubTableConfig,
+    templateRulesetId?: string,
   ): { clubTable: ClubTable; rules: ClubRules } | null {
     const state = this.clubs.get(clubId);
     if (!state) return null;
@@ -672,49 +703,34 @@ export class ClubManager {
       return null;
     }
 
-    // Resolve ruleset
-    let ruleset: ClubRuleset | undefined;
-    if (rulesetId) {
-      ruleset = state.rulesets.get(rulesetId);
-    }
-    if (!ruleset && state.club.defaultRulesetId) {
-      ruleset = state.rulesets.get(state.club.defaultRulesetId);
-    }
-
-    const rules: ClubRules = normalizeClubRules(ruleset?.rulesJson ?? { ...DEFAULT_CLUB_RULES });
+    const normalizedConfig = normalizeClubTableConfig(config);
+    const rules = clubTableConfigToClubRules(normalizedConfig);
 
     const clubTable: ClubTable = {
       id: randomUUID(),
       clubId,
-      roomCode: null, // Will be set by server.ts when creating the actual game room
       name: name.trim().slice(0, 80) || "Club Table",
-      rulesetId: ruleset?.id ?? null,
+      config: normalizedConfig,
       status: "open",
       createdBy: actorUserId,
       createdAt: new Date().toISOString(),
+      handsPlayed: 0,
+      startedAt: null,
+      finishedAt: null,
     };
 
     state.tables.set(clubTable.id, clubTable);
+    this.tableIdToClub.set(clubTable.id, clubId);
     this.writeAudit(clubId, actorUserId, "table_created", { tableId: clubTable.id, name: clubTable.name });
     this.repo?.createTable(clubTable).catch((e) => logWarn({ event: "club_repo.persist.createTable", message: (e as Error).message }));
     return { clubTable, rules };
-  }
-
-  setTableRoomCode(clubId: string, clubTableId: string, roomCode: string): void {
-    const state = this.clubs.get(clubId);
-    if (!state) return;
-    const table = state.tables.get(clubTableId);
-    if (table) {
-      table.roomCode = roomCode;
-      this.repo?.setTableRoomCode(clubTableId, roomCode).catch((e) => logWarn({ event: "club_repo.persist.setTableRoomCode", message: (e as Error).message }));
-    }
   }
 
   updateTable(
     clubId: string,
     actorUserId: string,
     clubTableId: string,
-    updates: { name?: string; rulesetId?: string | null },
+    updates: { name?: string; config?: Partial<ClubTableConfig> },
   ): { table: ClubTable; rules: ClubRules } | null {
     const state = this.clubs.get(clubId);
     if (!state) return null;
@@ -725,37 +741,26 @@ export class ClubManager {
     }
 
     const table = state.tables.get(clubTableId);
-    if (!table || table.status === "closed") return null;
-
-    const persistedUpdates: { name?: string; rulesetId?: string | null } = {};
+    if (!table || table.status === "closed" || table.status === "finished") return null;
 
     if (updates.name !== undefined) {
       table.name = updates.name.trim().slice(0, 80) || table.name;
-      persistedUpdates.name = table.name;
     }
 
-    if (updates.rulesetId !== undefined) {
-      if (updates.rulesetId !== null && !state.rulesets.get(updates.rulesetId)) {
-        return null;
-      }
-      table.rulesetId = updates.rulesetId;
-      persistedUpdates.rulesetId = updates.rulesetId;
+    if (updates.config) {
+      table.config = normalizeClubTableConfig({ ...table.config, ...updates.config });
     }
 
-    const rules = this.getRulesForTable(clubId, clubTableId);
-    if (!rules) return null;
+    const rules = clubTableConfigToClubRules(table.config);
 
-    if (Object.keys(persistedUpdates).length > 0) {
-      this.repo?.updateTable(clubTableId, persistedUpdates).catch((e) => logWarn({
-        event: "club_repo.persist.updateTable",
-        message: (e as Error).message,
-      }));
-    }
+    this.repo?.updateTable(clubTableId, { name: table.name, config: table.config }).catch((e) => logWarn({
+      event: "club_repo.persist.updateTable",
+      message: (e as Error).message,
+    }));
 
     this.writeAudit(clubId, actorUserId, "table_updated", {
       tableId: clubTableId,
       name: table.name,
-      rulesetId: table.rulesetId,
     });
 
     return { table: { ...table }, rules };
@@ -837,14 +842,10 @@ export class ClubManager {
     return m?.status === "active" ? m.role : null;
   }
 
-  getClubForTable(roomCode: string): { clubId: string; clubTableId: string } | null {
-    for (const [clubId, state] of this.clubs) {
-      for (const [tableId, table] of state.tables) {
-        if (table.roomCode === roomCode && table.status !== "closed") {
-          return { clubId, clubTableId: tableId };
-        }
-      }
-    }
+  /** O(1) lookup by clubTableId. */
+  getClubForTableById(clubTableId: string): { clubId: string; clubTableId: string } | null {
+    const clubId = this.tableIdToClub.get(clubTableId);
+    if (clubId) return { clubId, clubTableId };
     return null;
   }
 
@@ -859,46 +860,63 @@ export class ClubManager {
     if (!state) return null;
     const table = state.tables.get(clubTableId);
     if (!table) return null;
-
-    if (table.rulesetId) {
-      const rs = state.rulesets.get(table.rulesetId);
-      if (rs) return normalizeClubRules(rs.rulesJson);
-    }
-    if (state.club.defaultRulesetId) {
-      const rs = state.rulesets.get(state.club.defaultRulesetId);
-      if (rs) return normalizeClubRules(rs.rulesJson);
-    }
-    return normalizeClubRules({ ...DEFAULT_CLUB_RULES });
+    return clubTableConfigToClubRules(table.config);
   }
 
   listOpenTables(): Array<{ clubId: string; table: ClubTable }> {
     const rows: Array<{ clubId: string; table: ClubTable }> = [];
     for (const [clubId, state] of this.clubs) {
       for (const table of state.tables.values()) {
-        if (table.status === "closed") continue;
+        if (table.status === "closed" || table.status === "finished") continue;
         rows.push({ clubId, table });
       }
     }
     return rows;
   }
 
-  getRulesForRoom(roomCode: string): ClubRules | null {
-    const info = this.getClubForTable(roomCode);
-    if (!info) return null;
-    const state = this.clubs.get(info.clubId);
-    if (!state) return null;
-    const table = state.tables.get(info.clubTableId);
-    if (!table) return null;
+  incrementHandsPlayed(clubId: string, clubTableId: string): number {
+    const state = this.clubs.get(clubId);
+    if (!state) return 0;
+    const table = state.tables.get(clubTableId);
+    if (!table) return 0;
+    table.handsPlayed = (table.handsPlayed ?? 0) + 1;
+    if (!table.startedAt) {
+      table.startedAt = new Date().toISOString();
+    }
+    this.repo?.incrementHandsPlayed(clubTableId, table.handsPlayed).catch(() => {});
+    return table.handsPlayed;
+  }
 
-    if (table.rulesetId) {
-      const rs = state.rulesets.get(table.rulesetId);
-      if (rs) return normalizeClubRules(rs.rulesJson);
+  shouldAutoFinish(clubId: string, clubTableId: string): boolean {
+    const state = this.clubs.get(clubId);
+    if (!state) return false;
+    const table = state.tables.get(clubTableId);
+    if (!table || !table.config) return false;
+
+    if (table.config.maxHands != null && (table.handsPlayed ?? 0) >= table.config.maxHands) {
+      return true;
     }
-    if (state.club.defaultRulesetId) {
-      const rs = state.rulesets.get(state.club.defaultRulesetId);
-      if (rs) return normalizeClubRules(rs.rulesJson);
+    if (table.config.timeLimitMin != null && table.startedAt) {
+      const elapsedMin = (Date.now() - new Date(table.startedAt).getTime()) / 60_000;
+      if (elapsedMin >= table.config.timeLimitMin) return true;
     }
-    return normalizeClubRules({ ...DEFAULT_CLUB_RULES });
+    return false;
+  }
+
+  finishTable(clubId: string, clubTableId: string): boolean {
+    const state = this.clubs.get(clubId);
+    if (!state) return false;
+    const table = state.tables.get(clubTableId);
+    if (!table || table.status === "closed" || table.status === "finished") return false;
+    table.status = "finished";
+    table.finishedAt = new Date().toISOString();
+    this.writeAudit(clubId, "", "table_finished", {
+      tableId: clubTableId,
+      name: table.name,
+      handsPlayed: table.handsPlayed,
+    });
+    this.repo?.updateTableFinished(clubTableId, table.finishedAt, table.handsPlayed ?? 0).catch(() => {});
+    return true;
   }
 
   listMyClubs(userId: string): ClubListItem[] {
@@ -972,13 +990,10 @@ export class ClubManager {
       members: activeMembers.map((m) => ({ ...m })),
       invites: canPerformClubAction(member.role, "create_invite") ? invites : [],
       rulesets,
-      tables: openTables.map((t) => {
-        const rules = this.getRulesForTable(clubId, t.id);
-        return {
-          ...t,
-          minPlayersToStart: rules?.dealing?.minPlayersToStart ?? 2,
-        };
-      }),
+      tables: openTables.map((t) => ({
+        ...t,
+        minPlayersToStart: t.config.minPlayersToStart ?? 2,
+      })),
       pendingMembers: canPerformClubAction(member.role, "approve_joins") ? pendingMembers : [],
       auditLog,
     };

@@ -12,7 +12,7 @@ import type {
   UpdateSettingsPayload, KickPlayerPayload, TransferOwnershipPayload,
   SetCoHostPayload, GameControlPayload, JoinRoomWithPasswordPayload, AllInPrompt,
   RoomFullState, TimerState, HistoryHandDetailCore, HistoryHandPlayerSummary, HistoryHandSummaryCore,
-  HistoryGTOHandRecord,
+  HistoryGTOHandRecord, SevenTwoBountyInfo,
 } from "@cardpilot/shared-types";
 import { getRuntimeConfig } from "./config";
 import { logError, logInfo, logWarn } from "./logger";
@@ -40,6 +40,7 @@ import type {
   ClubTableUpdatePayload,
   ClubTableClosePayload,
   ClubTablePausePayload,
+  ClubTableJoinPayload,
   ClubRules,
   ClubWalletTransaction,
   ClubLeaderboardMetric,
@@ -113,6 +114,8 @@ const roomCodeToTableId = new Map<string, string>();
 const socketSeat = new Map<string, SeatBinding>();
 const socketIdentity = new Map<string, VerifiedIdentity>();
 const lastAdvice = new Map<string, AdvicePayload>(); // key: `${tableId}:${seat}`
+// Reconnect info: userId -> { tableId, seat, roomCode } — cached on disconnect for auto-restore
+const rejoinInfo = new Map<string, { tableId: string; seat: number; roomCode: string }>();
 const tableSnapshotVersions = new Map<string, number>();
 
 // Pending seat requests: orderId -> request data
@@ -158,6 +161,18 @@ const CLUB_AUTH_REQUIRED_MESSAGE = "401 Unauthorized: authentication required fo
 type RebuyRequest = { orderId: string; tableId: string; seat: number; userId: string; userName: string; amount: number; approved: boolean; createdAt: number };
 const pendingRebuys = new Map<string, RebuyRequest>(); // orderId → request
 const REBUY_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+/** Saved hole cards from the last completed hand, for post-hand reveal */
+const lastHandHoleCards = new Map<string, Map<number, [string, string]>>();
+/** Pending 7-2 bounty claim: tableId -> claim info */
+const pendingBountyClaim = new Map<string, {
+  handId: string;
+  winnerSeat: number;
+  cards: [string, string];
+  dealtInSeats: number[];
+  bountyPerPlayer: number;
+  timeout: ReturnType<typeof setTimeout>;
+}>();
 const supabase = new SupabasePersistence();
 if (!supabase.enabled()) {
   logWarn({
@@ -224,25 +239,9 @@ if (!primaryClubRepo.enabled()) {
 clubManager.setRepo(clubDataRepo as unknown as ClubRepo);
 void (async () => {
   await clubManager.hydrate();
-  // Ensure every open club table has a bound room code and restored OPEN runtime.
+  // Create runtime rooms for all open club tables (clubTable.id = room tableId).
   for (const { clubId, table } of clubManager.listOpenTables()) {
-    const roomCode = await ensureClubTableRoomBound(clubId, table.id);
-    if (!roomCode) continue;
-    const room = await ensureRoomByCode(roomCode);
-    if (!room) continue;
-
-    if (room.status !== "OPEN") {
-      room.status = "OPEN";
-      room.updatedAt = new Date().toISOString();
-      registerRoom(room);
-      supabase.upsertRoom(room).catch((e) => logWarn({
-        event: "club_table.restore.reopen_failed",
-        tableId: room.tableId,
-        message: (e as Error).message,
-      }));
-    }
-
-    ensureManagedRoom(room, { userId: table.createdBy, displayName: "Club Host", isAuthenticated: true });
+    ensureClubTableRoom(clubId, table.id);
   }
 })().catch((e) => logWarn({
   event: "club_manager.hydrate_or_restore.failed",
@@ -392,14 +391,84 @@ function socketIdBySeat(tableId: string, seat: number): string {
   return "";
 }
 
+function isSevenTwo(cards: string[]): boolean {
+  if (!cards || cards.length < 2) return false;
+  const r0 = cards[0][0], r1 = cards[1][0];
+  return (r0 === "7" && r1 === "2") || (r0 === "2" && r1 === "7");
+}
+
+function applySevenTwoBounty(tableId: string, claim: {
+  handId: string;
+  winnerSeat: number;
+  cards: [string, string];
+  dealtInSeats: number[];
+  bountyPerPlayer: number;
+  timeout: ReturnType<typeof setTimeout>;
+}): void {
+  const table = tables.get(tableId);
+  if (!table) return;
+
+  clearTimeout(claim.timeout);
+  pendingBountyClaim.delete(tableId);
+
+  const state = table.getPublicState();
+  const bountyBySeat: Record<number, number> = {};
+  let totalBounty = 0;
+
+  for (const payerSeat of claim.dealtInSeats) {
+    const payer = state.players.find((p) => p.seat === payerSeat);
+    const payerStack = payer?.stack ?? 0;
+    const amount = Math.min(claim.bountyPerPlayer, payerStack);
+    if (amount > 0) {
+      table.addStack(payerSeat, -amount);
+      totalBounty += amount;
+      bountyBySeat[payerSeat] = -amount;
+    }
+  }
+
+  if (totalBounty > 0) {
+    table.addStack(claim.winnerSeat, totalBounty);
+    bountyBySeat[claim.winnerSeat] = totalBounty;
+  }
+
+  const bountyInfo: SevenTwoBountyInfo = {
+    bountyPerPlayer: claim.bountyPerPlayer,
+    winnerSeat: claim.winnerSeat,
+    winnerCards: claim.cards,
+    payingSeats: claim.dealtInSeats,
+    totalBounty,
+    bountyBySeat,
+  };
+
+  // Broadcast bounty claimed and reveal the cards
+  io.to(tableId).emit("seven_two_bounty_claimed", {
+    tableId,
+    handId: claim.handId,
+    bounty: bountyInfo,
+  });
+  io.to(tableId).emit("post_hand_reveal", {
+    tableId,
+    seat: claim.winnerSeat,
+    cards: claim.cards,
+  });
+
+  logInfo({
+    event: "seven_two_bounty.claimed",
+    tableId,
+    handId: claim.handId,
+    winnerSeat: claim.winnerSeat,
+    totalBounty,
+  });
+
+  broadcastSnapshot(tableId);
+}
+
 function roomCodeForTable(tableId: string): string | null {
   return roomsByTableId.get(tableId)?.roomCode ?? null;
 }
 
 function getClubInfoForTableId(tableId: string): { clubId: string; clubTableId: string } | null {
-  const roomCode = roomCodeForTable(tableId);
-  if (!roomCode) return null;
-  return clubManager.getClubForTable(roomCode);
+  return clubManager.getClubForTableById(tableId);
 }
 
 function isPersistentClubTable(tableId: string): boolean {
@@ -445,20 +514,21 @@ function socketIdsForUser(userId: string): string[] {
   return ids;
 }
 
-async function ensureClubTableRoomBound(clubId: string, clubTableId: string): Promise<string | null> {
+/** Ensure a runtime room exists for this club table. Uses clubTable.id as the room's tableId (1:1 mapping). */
+function ensureClubTableRoom(clubId: string, clubTableId: string): string | null {
+  // Already has a runtime room?
+  if (roomsByTableId.has(clubTableId)) return clubTableId;
+
   const tableMeta = clubManager.getClubTable(clubId, clubTableId);
-  if (!tableMeta || tableMeta.status === "closed") return null;
-  if (tableMeta.roomCode) return tableMeta.roomCode;
+  if (!tableMeta || tableMeta.status === "closed" || tableMeta.status === "finished") return null;
 
   const rules = clubManager.getRulesForTable(clubId, clubTableId);
   if (!rules) return null;
 
-  const roomCode = await generateUniqueRoomCode();
-  const tableId = `tbl_${randomUUID().replace(/-/g, "").slice(0, 10)}`;
   const club = clubManager.getClub(clubId);
   const room: RoomInfo = {
-    tableId,
-    roomCode,
+    tableId: clubTableId,
+    roomCode: clubTableId, // Club tables use their own ID as roomCode (never exposed to users)
     roomName: `${club?.name ?? "Club"} — ${tableMeta.name}`,
     maxPlayers: rules.maxSeats,
     smallBlind: rules.stakes.smallBlind,
@@ -473,8 +543,8 @@ async function ensureClubTableRoomBound(clubId: string, clubTableId: string): Pr
   registerRoom(room);
   createTableIfNeeded(room);
   roomManager.createRoom({
-    tableId: room.tableId,
-    roomCode: room.roomCode,
+    tableId: clubTableId,
+    roomCode: clubTableId,
     roomName: room.roomName,
     ownerId: tableMeta.createdBy,
     ownerName: "Club Host",
@@ -499,24 +569,22 @@ async function ensureClubTableRoomBound(clubId: string, clubTableId: string): Pr
     },
   });
 
-  clubManager.setTableRoomCode(clubId, clubTableId, roomCode);
   supabase.upsertRoom(room).catch((e) => logWarn({
-    event: "club_table.bind_room.persist_failed",
-    tableId: room.tableId,
+    event: "club_table.create_room.persist_failed",
+    tableId: clubTableId,
     message: (e as Error).message,
   }));
-  return roomCode;
+  return clubTableId;
 }
 
 async function buildClubDetailPayload(clubId: string, viewerUserId: string) {
   const detail = clubManager.getClubDetail(clubId, viewerUserId);
   if (!detail) return null;
 
-  // Ensure persistent table bindings exist before returning detail.
+  // Ensure runtime rooms exist for all open tables.
   for (const t of detail.tables) {
-    if (!t.roomCode && t.status !== "closed") {
-      const bound = await ensureClubTableRoomBound(clubId, t.id);
-      if (bound) t.roomCode = bound;
+    if (t.status !== "closed" && t.status !== "finished") {
+      ensureClubTableRoom(clubId, t.id);
     }
   }
 
@@ -531,27 +599,20 @@ async function buildClubDetailPayload(clubId: string, viewerUserId: string) {
     detail.detail.myMembership.balance = walletBalances.get(detail.detail.myMembership.userId) ?? 0;
   }
 
+  // Enrich tables with live room state (clubTable.id = room tableId)
   detail.tables = detail.tables.map((t) => {
     const enriched = { ...t };
-    if (enriched.roomCode) {
-      const tid = roomCodeToTableId.get(enriched.roomCode);
-      if (tid) {
-        const tbl = tables.get(tid);
-        const managed = roomManager.getRoom(tid);
-        if (tbl) {
-          const state = tbl.getPublicState();
-          enriched.playerCount = state.players.length;
-          enriched.maxPlayers = managed?.settings.maxPlayers ?? 6;
-          enriched.stakes = `${state.smallBlind}/${state.bigBlind}`;
-          enriched.minPlayersToStart = managed?.settings.minPlayersToStart ?? enriched.minPlayersToStart ?? 2;
-        } else {
-          enriched.playerCount = 0;
-          enriched.minPlayersToStart = managed?.settings.minPlayersToStart ?? enriched.minPlayersToStart ?? 2;
-        }
-      }
-    }
-    if (!enriched.minPlayersToStart) {
-      enriched.minPlayersToStart = 2;
+    const tbl = tables.get(t.id);
+    const managed = roomManager.getRoom(t.id);
+    if (tbl) {
+      const state = tbl.getPublicState();
+      enriched.playerCount = state.players.length;
+      enriched.maxPlayers = managed?.settings.maxPlayers ?? t.config.maxSeats;
+      enriched.stakes = `${state.smallBlind}/${state.bigBlind}`;
+      enriched.minPlayersToStart = managed?.settings.minPlayersToStart ?? t.config.minPlayersToStart ?? 2;
+    } else {
+      enriched.playerCount = 0;
+      enriched.minPlayersToStart = managed?.settings.minPlayersToStart ?? t.config.minPlayersToStart ?? 2;
     }
     return enriched;
   });
@@ -1226,10 +1287,7 @@ function currentPlayerCount(tableId: string): number {
 
 function toLobbySummary(room: RoomInfo): LobbyRoomSummary {
   const managed = roomManager.getRoom(room.tableId);
-  const roomWithClub = room as RoomInfo & { clubId?: string };
-  const clubInfo = roomWithClub.clubId
-    ? { clubId: roomWithClub.clubId, clubTableId: "" }
-    : clubManager.getClubForTable(room.roomCode);
+  const clubInfo = clubManager.getClubForTableById(room.tableId);
   const club = clubInfo ? clubManager.getClub(clubInfo.clubId) : null;
   return {
     tableId: room.tableId,
@@ -2056,6 +2114,14 @@ async function startHandFlow(tableId: string, actorUserId: string, source: "manu
   clearPendingRunCountDecision(tableId);
   clearShowdownDecisionTimeout(tableId);
 
+  // Clear any pending 7-2 bounty claim from previous hand
+  const prevBounty = pendingBountyClaim.get(tableId);
+  if (prevBounty) {
+    clearTimeout(prevBounty.timeout);
+    pendingBountyClaim.delete(tableId);
+  }
+  lastHandHoleCards.delete(tableId);
+
   roomManager.setHandActive(tableId, true);
   const playerUserIds = bindingsByTable(tableId).map((b) => b.binding.userId);
   roomManager.refillTimeBanks(tableId, playerUserIds);
@@ -2154,6 +2220,105 @@ async function finalizeHandEndAsync(tableId: string, state: TableState): Promise
   const table = tables.get(tableId);
   const finalState = withSnapshotVersion(state, nextSnapshotVersion(tableId));
   const settlement = table?.getSettlementResult() ?? null;
+
+  // ── Save hole cards for post-hand reveal (before clearHand) ──
+  if (table) {
+    const savedCards = new Map<number, [string, string]>();
+    for (const p of state.players) {
+      if (!p.inHand) continue;
+      const cards = table.getPrivateHoleCards(p.seat) ?? table.getHoleCards(p.seat);
+      if (cards && cards.length >= 2) {
+        savedCards.set(p.seat, [cards[0], cards[1]]);
+      }
+    }
+    lastHandHoleCards.set(tableId, savedCards);
+  }
+
+  // ── 7-2 Bounty detection ──
+  const room = roomsByTableId.get(tableId);
+  const managedRoomForBounty = roomManager.getRoom(tableId);
+  const bountyPerPlayer = managedRoomForBounty?.settings?.sevenTwoBounty ?? 0;
+  const isTexas = (state.gameType ?? "texas") === "texas";
+  let bountyInfo: SevenTwoBountyInfo | undefined;
+  let hasPendingBountyClaim = false;
+
+  if (bountyPerPlayer > 0 && isTexas && table && settlement) {
+    // Collect unique winner seats from settlement
+    const winnerSeats = new Set<number>();
+    for (const runWinners of settlement.winnersByRun) {
+      for (const w of runWinners.winners) winnerSeats.add(w.seat);
+    }
+
+    // All dealt-in seats (excluding the winner being checked)
+    const dealtInSeats = state.players.filter((p) => p.inHand).map((p) => p.seat);
+    const revealed = state.revealedHoles ?? {};
+
+    for (const winnerSeat of winnerSeats) {
+      const holeCards = lastHandHoleCards.get(tableId)?.get(winnerSeat);
+      if (!holeCards || !isSevenTwo(holeCards)) continue;
+
+      const payingSeats = dealtInSeats.filter((s) => s !== winnerSeat);
+      if (payingSeats.length === 0) continue;
+
+      // Check if winner's cards are already revealed at showdown
+      const alreadyRevealed = Boolean(revealed[winnerSeat]);
+      if (alreadyRevealed) {
+        // Auto-apply bounty immediately
+        const bountyBySeat: Record<number, number> = {};
+        let totalBounty = 0;
+        for (const payerSeat of payingSeats) {
+          const payer = state.players.find((p) => p.seat === payerSeat);
+          const payerStack = payer?.stack ?? 0;
+          const amount = Math.min(bountyPerPlayer, payerStack);
+          if (amount > 0) {
+            table.addStack(payerSeat, -amount);
+            totalBounty += amount;
+            bountyBySeat[payerSeat] = -amount;
+          }
+        }
+        if (totalBounty > 0) {
+          table.addStack(winnerSeat, totalBounty);
+          bountyBySeat[winnerSeat] = totalBounty;
+          bountyInfo = {
+            bountyPerPlayer,
+            winnerSeat,
+            winnerCards: holeCards,
+            payingSeats,
+            totalBounty,
+            bountyBySeat,
+          };
+        }
+      } else {
+        // Winner has 7-2 but cards not revealed — set up pending claim
+        // Clear any existing claim first
+        const existing = pendingBountyClaim.get(tableId);
+        if (existing) clearTimeout(existing.timeout);
+
+        const claimTimeout = setTimeout(() => {
+          pendingBountyClaim.delete(tableId);
+          logInfo({ event: "seven_two_bounty.forfeited", tableId, handId: state.handId, winnerSeat });
+        }, 10_000);
+
+        pendingBountyClaim.set(tableId, {
+          handId: state.handId ?? "",
+          winnerSeat,
+          cards: holeCards,
+          dealtInSeats: payingSeats,
+          bountyPerPlayer,
+          timeout: claimTimeout,
+        });
+        hasPendingBountyClaim = true;
+      }
+      // Only process the first 7-2 winner (simplification for common case)
+      break;
+    }
+  }
+
+  // Attach bounty info to settlement if auto-applied
+  if (bountyInfo && settlement) {
+    settlement.sevenTwoBounty = bountyInfo;
+  }
+
   logInfo({
     event: "hand.ended",
     tableId,
@@ -2634,58 +2799,28 @@ async function ensureRoomByTableId(tableId: string): Promise<RoomInfo> {
 
 async function ensureRoomByCode(roomCode: string): Promise<RoomInfo | null> {
   const normalized = normalizeRoomCode(roomCode);
+
+  // Club tables: roomCode = clubTable.id — try direct lookup first
+  const clubInfo = clubManager.getClubForTableById(normalized);
+  if (clubInfo) {
+    ensureClubTableRoom(clubInfo.clubId, clubInfo.clubTableId);
+    return roomsByTableId.get(normalized) ?? null;
+  }
+
+  // Non-club rooms: standard lookup
   const localTableId = roomCodeToTableId.get(normalized);
   if (localTableId) {
     return roomsByTableId.get(localTableId) ?? null;
   }
 
-  const clubInfo = clubManager.getClubForTable(normalized);
   const remote = await supabase.findRoomByCode(normalized);
-  if (!remote) {
-    if (!clubInfo) return null;
-    const rules = clubManager.getRulesForTable(clubInfo.clubId, clubInfo.clubTableId);
-    const tableMeta = clubManager.getClubTable(clubInfo.clubId, clubInfo.clubTableId);
-    if (!rules || !tableMeta || tableMeta.status === "closed") return null;
-
-    const club = clubManager.getClub(clubInfo.clubId);
-    const room: RoomInfo = {
-      tableId: `tbl_${randomUUID().replace(/-/g, "").slice(0, 10)}`,
-      roomCode: normalized,
-      roomName: `${club?.name ?? "Club"} — ${tableMeta.name}`,
-      maxPlayers: rules.maxSeats,
-      smallBlind: rules.stakes.smallBlind,
-      bigBlind: rules.stakes.bigBlind,
-      status: "OPEN",
-      isPublic: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      createdBy: tableMeta.createdBy,
-    };
-
-    registerRoom(room);
-    createTableIfNeeded(room);
-    supabase.upsertRoom(room).catch((e) => logWarn({
-      event: "club_table.ensureRoomByCode.recreate.persist_failed",
-      tableId: room.tableId,
-      message: (e as Error).message,
-    }));
-    return room;
-  }
+  if (!remote) return null;
 
   const hydrated: RoomInfo = {
     ...remote,
     createdAt: remote.updatedAt ?? new Date().toISOString(),
     updatedAt: remote.updatedAt ?? new Date().toISOString()
   };
-  if (clubInfo && hydrated.status !== "OPEN") {
-    hydrated.status = "OPEN";
-    hydrated.updatedAt = new Date().toISOString();
-    supabase.upsertRoom(hydrated).catch((e) => logWarn({
-      event: "club_table.ensureRoomByCode.reopen.persist_failed",
-      tableId: hydrated.tableId,
-      message: (e as Error).message,
-    }));
-  }
   registerRoom(hydrated);
   createTableIfNeeded(hydrated);
   return hydrated;
@@ -2700,7 +2835,7 @@ function touchLocalRoom(tableId: string): void {
 
 function ensureManagedRoom(room: RoomInfo, ownerFallback: VerifiedIdentity): void {
   if (roomManager.getRoom(room.tableId)) return;
-  const clubInfo = clubManager.getClubForTable(room.roomCode);
+  const clubInfo = clubManager.getClubForTableById(room.tableId);
   if (clubInfo) {
     const rules = clubManager.getRulesForTable(clubInfo.clubId, clubInfo.clubTableId);
     const club = clubManager.getClub(clubInfo.clubId);
@@ -3001,6 +3136,66 @@ io.on("connection", (socket) => {
   });
   void emitLobbySnapshot(socket.id);
 
+  // ── Auto-restore seat on reconnect ──
+  const graceSeat = roomManager.getDisconnectedSeatByUserId(identity.userId);
+  if (graceSeat) {
+    const { tableId: graceTableId, seat: graceSeatNo } = graceSeat;
+    // Skip auto-restore if the player explicitly requested to leave (pending stand-up)
+    const hasPendingStandUp = pendingStandUps.get(graceTableId)?.has(graceSeatNo);
+    if (hasPendingStandUp) {
+      // Player intentionally left — cancel grace, don't pull them back
+      roomManager.cancelDisconnectGrace(graceTableId, graceSeatNo);
+      rejoinInfo.delete(identity.userId);
+      logInfo({
+        event: "player.skip_auto_restore",
+        userId: identity.userId,
+        tableId: graceTableId,
+        message: `Seat ${graceSeatNo} has pending leave — skipping auto-restore`,
+      });
+    } else {
+      const graceRoom = roomsByTableId.get(graceTableId);
+      if (graceRoom) {
+        // Re-bind socket to room and seat
+        socket.join(graceTableId);
+        socketSeat.set(socket.id, {
+          tableId: graceTableId,
+          seat: graceSeatNo,
+          userId: identity.userId,
+          name: identity.displayName,
+        });
+        roomManager.cancelDisconnectGrace(graceTableId, graceSeatNo);
+        rejoinInfo.delete(identity.userId);
+
+        // Notify the reconnected player
+        socket.emit("room_joined", {
+          tableId: graceTableId,
+          roomCode: graceRoom.roomCode,
+          roomName: graceRoom.roomName,
+        });
+        emitHydratedSnapshot(socket.id, graceTableId);
+        const fullState = roomManager.getFullState(graceTableId);
+        if (fullState) socket.emit("room_state_update", withClubRoomStateMetadata(fullState, graceTableId, identity.userId));
+
+        // Update Supabase
+        supabase.upsertSeat({
+          table_id: graceTableId,
+          seat_no: graceSeatNo,
+          user_id: identity.userId,
+          display_name: identity.displayName,
+          stack: tables.get(graceTableId)?.getPublicState().players.find((p) => p.seat === graceSeatNo)?.stack ?? 0,
+          is_connected: true,
+        }).catch((e) => console.warn("reconnect: upsertSeat failed:", (e as Error).message));
+
+        logInfo({
+          event: "player.auto_reconnected",
+          userId: identity.userId,
+          tableId: graceTableId,
+          message: `Seat ${graceSeatNo} auto-restored`,
+        });
+      }
+    }
+  }
+
   socket.on(
     "create_room",
     async (payload: { roomName?: string; maxPlayers?: number; smallBlind?: number; bigBlind?: number; isPublic?: boolean; buyInMin?: number; buyInMax?: number; visibility?: "public" | "private" }) => {
@@ -3194,7 +3389,7 @@ io.on("connection", (socket) => {
         throw new Error("Room not found or closed");
       }
 
-      const clubInfo = clubManager.getClubForTable(room.roomCode);
+      const clubInfo = clubManager.getClubForTableById(room.tableId);
       if (clubInfo && !requireClubAuth()) {
         return;
       }
@@ -3278,13 +3473,10 @@ io.on("connection", (socket) => {
     ensureManagedRoom(room, identity);
 
     // Club membership gate: if the room belongs to a club, only active members can join
-    const joinTableRoomCode = roomCodeForTable(payload.tableId) ?? room.roomCode;
-    if (joinTableRoomCode) {
-      const clubInfo = clubManager.getClubForTable(joinTableRoomCode);
-      if (clubInfo && !requireClubAuth()) {
-        return;
-      }
-      if (clubInfo && !clubManager.isActiveMember(clubInfo.clubId, identity.userId)) {
+    const clubInfo = clubManager.getClubForTableById(payload.tableId);
+    if (clubInfo) {
+      if (!requireClubAuth()) return;
+      if (!clubManager.isActiveMember(clubInfo.clubId, identity.userId)) {
         socket.emit("error_event", { message: "Club members only: this table is restricted to active club members." });
         return;
       }
@@ -3346,8 +3538,7 @@ io.on("connection", (socket) => {
       throw new Error("Seat already occupied");
     }
 
-    const roomCode = roomCodeForTable(params.tableId) ?? room.roomCode;
-    const clubInfo = roomCode ? clubManager.getClubForTable(roomCode) : null;
+    const clubInfo = clubManager.getClubForTableById(params.tableId);
     if (clubInfo) {
       if (!clubManager.isActiveMember(clubInfo.clubId, params.userId)) {
         throw new Error("Only active club members can sit at this table");
@@ -3403,6 +3594,11 @@ io.on("connection", (socket) => {
       name: params.userName,
     });
 
+    // Cancel disconnect grace if this seat was in grace period (reconnect scenario)
+    roomManager.cancelDisconnectGrace(params.tableId, params.seat);
+    // Clear rejoin info since player is now seated
+    rejoinInfo.delete(params.userId);
+
     supabase.upsertSeat({
       table_id: params.tableId,
       seat_no: params.seat,
@@ -3438,8 +3634,7 @@ io.on("connection", (socket) => {
       console.log("[SIT_DOWN] Request from", identity.userId, "payload:", payload);
       const room = await ensureRoomByTableId(payload.tableId);
       ensureManagedRoom(room, identity);
-      const sitDownRoomCode = roomCodeForTable(payload.tableId) ?? room.roomCode;
-      const clubInfo = sitDownRoomCode ? clubManager.getClubForTable(sitDownRoomCode) : null;
+      const clubInfo = clubManager.getClubForTableById(payload.tableId);
       if (clubInfo && !requireClubAuth()) {
         return;
       }
@@ -3502,8 +3697,7 @@ io.on("connection", (socket) => {
       }
 
       // Club membership gate
-      const seatReqRoomCode = roomCodeForTable(payload.tableId) ?? managed.roomCode;
-      const clubInfo = seatReqRoomCode ? clubManager.getClubForTable(seatReqRoomCode) : null;
+      const clubInfo = clubManager.getClubForTableById(payload.tableId);
       if (clubInfo && !requireClubAuth()) {
         return;
       }
@@ -3687,8 +3881,7 @@ io.on("connection", (socket) => {
         throw new Error(`Rebuy would exceed max buy-in (${buyInMax})`);
       }
 
-      const roomCode = roomCodeForTable(payload.tableId) ?? managed.roomCode;
-      const clubInfo = roomCode ? clubManager.getClubForTable(roomCode) : null;
+      const clubInfo = clubManager.getClubForTableById(payload.tableId);
       if (clubInfo && !requireClubAuth()) {
         return;
       }
@@ -4061,6 +4254,54 @@ io.on("connection", (socket) => {
     }
   });
 
+  // ── Post-hand show cards (after hand ended) ──
+  socket.on("show_hand_post", (payload: { tableId: string; seat: number }) => {
+    try {
+      const binding = socketSeat.get(socket.id);
+      if (!binding || binding.tableId !== payload.tableId || binding.seat !== payload.seat) {
+        throw new Error("You can only show your own hand");
+      }
+
+      const savedCards = lastHandHoleCards.get(payload.tableId);
+      const cards = savedCards?.get(payload.seat);
+      if (!cards) throw new Error("No saved cards to show");
+
+      // Broadcast the reveal to everyone
+      io.to(payload.tableId).emit("post_hand_reveal", {
+        tableId: payload.tableId,
+        seat: payload.seat,
+        cards,
+      });
+
+      // Check if this seat has a pending 7-2 bounty claim
+      const claim = pendingBountyClaim.get(payload.tableId);
+      if (claim && claim.winnerSeat === payload.seat) {
+        applySevenTwoBounty(payload.tableId, claim);
+      }
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
+  // ── Explicit 7-2 bounty claim (dedicated button) ──
+  socket.on("claim_seven_two_bounty", (payload: { tableId: string; seat: number }) => {
+    try {
+      const binding = socketSeat.get(socket.id);
+      if (!binding || binding.tableId !== payload.tableId || binding.seat !== payload.seat) {
+        throw new Error("You can only claim your own bounty");
+      }
+
+      const claim = pendingBountyClaim.get(payload.tableId);
+      if (!claim || claim.winnerSeat !== payload.seat) {
+        throw new Error("No pending bounty claim for this seat");
+      }
+
+      applySevenTwoBounty(payload.tableId, claim);
+    } catch (error) {
+      socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
   const handleRunPreferenceSubmit = (payload: { tableId: string; handId: string; runCount: 1 | 2 | 3 }): void => {
     const table = tables.get(payload.tableId);
     if (!table) throw new Error("table not found");
@@ -4217,6 +4458,8 @@ io.on("connection", (socket) => {
       if (!pending) { pending = new Set(); pendingStandUps.set(payload.tableId, pending); }
       pending.add(binding.seat);
       queueLeaveTableAfterHand(payload.tableId, socket.id);
+      // Prevent auto-restore on reconnect — player explicitly chose to leave
+      rejoinInfo.delete(identity.userId);
       socket.emit("system_message", { message: "Leaving after this hand." });
       touchLocalRoom(payload.tableId);
       broadcastSnapshot(payload.tableId);
@@ -4227,6 +4470,8 @@ io.on("connection", (socket) => {
       await standUpPlayer(payload.tableId, binding.seat, "Left table");
     }
 
+    // Prevent auto-restore on reconnect — player explicitly chose to leave
+    rejoinInfo.delete(identity.userId);
     socket.leave(payload.tableId);
     supabase.logEvent({
       tableId: payload.tableId,
@@ -4247,7 +4492,7 @@ io.on("connection", (socket) => {
       }
       const room = await ensureRoomByTableId(payload.tableId);
       ensureManagedRoom(room, identity);
-      const clubInfo = room.roomCode ? clubManager.getClubForTable(room.roomCode) : null;
+      const clubInfo = clubManager.getClubForTableById(payload.tableId);
       if (clubInfo && !requireClubAuth()) {
         return;
       }
@@ -4265,14 +4510,7 @@ io.on("connection", (socket) => {
       if (!payload?.tableId) {
         throw new Error("tableId is required");
       }
-      const localRoomCode = roomCodeForTable(payload.tableId);
-      let clubInfo = localRoomCode ? clubManager.getClubForTable(localRoomCode) : null;
-      if (!clubInfo && !localRoomCode) {
-        const remote = await supabase.findRoomByTableId(payload.tableId);
-        if (remote?.roomCode) {
-          clubInfo = clubManager.getClubForTable(remote.roomCode);
-        }
-      }
+      const clubInfo = clubManager.getClubForTableById(payload.tableId);
       if (clubInfo && !requireClubAuth()) {
         return;
       }
@@ -4833,79 +5071,20 @@ io.on("connection", (socket) => {
   socket.on("club_table_create", async (payload: ClubTableCreatePayload) => {
     try {
       if (!requireClubAuth()) return;
-      const result = clubManager.createTable(payload.clubId, identity.userId, payload.name, payload.rulesetId);
+      const result = clubManager.createTable(payload.clubId, identity.userId, payload.name, payload.config, payload.templateRulesetId);
       if (!result) {
         socket.emit("club_error", { code: "TABLE_DENIED", message: "Cannot create table — insufficient permissions" });
         return;
       }
 
       const { clubTable, rules } = result;
-      const club = clubManager.getClub(payload.clubId);
 
-      // Create the actual game room using the club rules
-      const roomCode = await generateUniqueRoomCode();
-      const tableId = `tbl_${randomUUID().replace(/-/g, "").slice(0, 10)}`;
-      const room: RoomInfo = {
-        tableId,
-        roomCode,
-        roomName: `${club?.name ?? "Club"} — ${clubTable.name}`,
-        maxPlayers: rules.maxSeats,
-        smallBlind: rules.stakes.smallBlind,
-        bigBlind: rules.stakes.bigBlind,
-        status: "OPEN",
-        isPublic: false, // Club tables are always private
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        createdBy: identity.userId,
-      };
-
-      registerRoom(room);
-      createTableIfNeeded(room);
-
-      // Register with room manager using club rules
-      roomManager.createRoom({
-        tableId: room.tableId,
-        roomCode: room.roomCode,
-        roomName: room.roomName,
-        ownerId: identity.userId,
-        ownerName: identity.displayName,
-        settings: {
-          gameType: rules.extras.gameType,
-          maxPlayers: rules.maxSeats,
-          smallBlind: rules.stakes.smallBlind,
-          bigBlind: rules.stakes.bigBlind,
-          buyInMin: rules.buyIn.minBuyIn,
-          buyInMax: rules.buyIn.maxBuyIn,
-          actionTimerSeconds: rules.time.actionTimeSec,
-          timeBankSeconds: rules.time.timeBankSec,
-          disconnectGracePeriod: rules.time.disconnectGraceSec,
-          autoStartNextHand: rules.dealing.autoStartNextHand && rules.dealing.autoDealEnabled,
-          minPlayersToStart: Math.max(2, Math.min(rules.maxSeats, rules.dealing.minPlayersToStart ?? 2)),
-          spectatorAllowed: rules.moderation.allowSpectators,
-          runItTwice: rules.runit.allowRunItTwice,
-          runItTwiceMode: rules.runit.allowRunItTwice ? "ask_players" : "off",
-          straddleAllowed: rules.extras.straddleAllowed,
-          bombPotEnabled: rules.extras.bombPotEnabled,
-          rabbitHunting: rules.extras.rabbitHuntEnabled,
-          sevenTwoBounty: rules.extras.sevenTwoBounty,
-          visibility: "private",
-        },
-      });
-
-      // Link back to club
-      clubManager.setTableRoomCode(payload.clubId, clubTable.id, roomCode);
-
-      // Persist to Supabase
-      supabase.upsertRoom(room).catch((e) => logWarn({
-        event: "club_table.create.persist_failed",
-        tableId: room.tableId,
-        message: (e as Error).message,
-      }));
+      // Create runtime room using clubTable.id as the room's tableId (1:1 mapping)
+      ensureClubTableRoom(payload.clubId, clubTable.id);
 
       socket.emit("club_table_created", {
         clubId: payload.clubId,
-        table: { ...clubTable, roomCode },
-        roomCode,
+        table: clubTable,
       });
 
       // Refresh club detail
@@ -4950,35 +5129,17 @@ io.on("connection", (socket) => {
         return;
       }
 
-      let nextRules: ClubRules | null = null;
-      if (payload.rulesetId === undefined) {
-        nextRules = clubManager.getRulesForTable(payload.clubId, payload.tableId);
-      } else if (payload.rulesetId === null) {
-        nextRules = detailForRules.detail.defaultRuleset?.rulesJson ?? { ...DEFAULT_CLUB_RULES };
-      } else {
-        const targetRuleset = detailForRules.rulesets.find((ruleset) => ruleset.id === payload.rulesetId);
-        if (!targetRuleset) {
-          socket.emit("club_error", { code: "TABLE_UPDATE_DENIED", message: "Ruleset not found" });
-          return;
-        }
-        nextRules = targetRuleset.rulesJson;
-      }
-
-      if (!nextRules) {
-        socket.emit("club_error", { code: "TABLE_UPDATE_DENIED", message: "Unable to resolve table rules" });
+      // Pre-check: prevent update while hand is active or reducing seats below occupancy
+      const serverTableId = payload.tableId; // clubTable.id = room tableId
+      const liveTable = tables.get(serverTableId);
+      if (liveTable?.isHandActive()) {
+        socket.emit("club_error", { code: "TABLE_UPDATE_DENIED", message: "Cannot update table while a hand is active" });
         return;
       }
-
-      const roomCode = currentTable.roomCode;
-      const serverTableId = roomCode ? roomCodeToTableId.get(roomCode) : null;
-      if (serverTableId) {
-        const liveTable = tables.get(serverTableId);
-        if (liveTable?.isHandActive()) {
-          socket.emit("club_error", { code: "TABLE_UPDATE_DENIED", message: "Cannot update table while a hand is active" });
-          return;
-        }
+      const currentRules = clubManager.getRulesForTable(payload.clubId, payload.tableId);
+      if (currentRules && payload.config?.maxSeats != null) {
         const occupiedSeats = liveTable?.getPublicState().players.length ?? 0;
-        if (nextRules.maxSeats < occupiedSeats) {
+        if (payload.config.maxSeats < occupiedSeats) {
           socket.emit("club_error", {
             code: "TABLE_UPDATE_DENIED",
             message: `Cannot reduce seats below occupied count (${occupiedSeats})`,
@@ -4989,19 +5150,19 @@ io.on("connection", (socket) => {
 
       const result = clubManager.updateTable(payload.clubId, identity.userId, payload.tableId, {
         name: payload.name,
-        rulesetId: payload.rulesetId,
+        config: payload.config,
       });
       if (!result) {
         socket.emit("club_error", { code: "TABLE_UPDATE_DENIED", message: "Cannot update table" });
         return;
       }
 
-      if (serverTableId) {
-        const managed = roomManager.getRoom(serverTableId);
-        const liveTable = tables.get(serverTableId);
-        const roomInfo = roomsByTableId.get(serverTableId);
-        const club = clubManager.getClub(payload.clubId);
+      // Sync runtime room with updated rules
+      const managed = roomManager.getRoom(serverTableId);
+      const roomInfo = roomsByTableId.get(serverTableId);
+      const club = clubManager.getClub(payload.clubId);
 
+      if (managed) {
         roomManager.updateSettings(serverTableId, {
           gameType: result.rules.extras.gameType,
           maxPlayers: result.rules.maxSeats,
@@ -5023,30 +5184,29 @@ io.on("connection", (socket) => {
           sevenTwoBounty: result.rules.extras.sevenTwoBounty,
           visibility: "private",
         }, identity.userId, identity.displayName);
+      }
 
-        if (roomInfo) {
-          roomInfo.roomName = `${club?.name ?? "Club"} — ${result.table.name}`;
-          roomInfo.smallBlind = result.rules.stakes.smallBlind;
-          roomInfo.bigBlind = result.rules.stakes.bigBlind;
-          roomInfo.maxPlayers = result.rules.maxSeats;
-          roomInfo.isPublic = false;
-          roomInfo.updatedAt = new Date().toISOString();
-          roomsByTableId.set(serverTableId, roomInfo);
-          if (managed) {
-            managed.roomName = roomInfo.roomName;
-          }
-          supabase.upsertRoom(roomInfo).catch((e) => logWarn({
-            event: "club_table.update.persist_failed",
-            tableId: serverTableId,
-            message: (e as Error).message,
-          }));
+      if (roomInfo) {
+        roomInfo.roomName = `${club?.name ?? "Club"} — ${result.table.name}`;
+        roomInfo.smallBlind = result.rules.stakes.smallBlind;
+        roomInfo.bigBlind = result.rules.stakes.bigBlind;
+        roomInfo.maxPlayers = result.rules.maxSeats;
+        roomInfo.isPublic = false;
+        roomInfo.updatedAt = new Date().toISOString();
+        if (managed) {
+          managed.roomName = roomInfo.roomName;
         }
+        supabase.upsertRoom(roomInfo).catch((e) => logWarn({
+          event: "club_table.update.persist_failed",
+          tableId: serverTableId,
+          message: (e as Error).message,
+        }));
+      }
 
-        if (liveTable) {
-          liveTable.updateBlindStructure(result.rules.stakes.smallBlind, result.rules.stakes.bigBlind, managed?.settings.ante ?? 0);
-          applyRoomVariantSettings(serverTableId, liveTable);
-          broadcastSnapshot(serverTableId);
-        }
+      if (liveTable) {
+        liveTable.updateBlindStructure(result.rules.stakes.smallBlind, result.rules.stakes.bigBlind, managed?.settings.ante ?? 0);
+        applyRoomVariantSettings(serverTableId, liveTable);
+        broadcastSnapshot(serverTableId);
       }
 
       for (const [sid, ident] of socketIdentity.entries()) {
@@ -5071,10 +5231,10 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // Closing a persistent club table also closes its bound live room.
-      const roomCode = tableBeforeClose?.roomCode;
-      const serverTableId = roomCode ? roomCodeToTableId.get(roomCode) : null;
-      if (serverTableId) {
+      // Closing a persistent club table also closes its runtime room.
+      // clubTable.id = room tableId (direct 1:1 mapping)
+      const serverTableId = payload.tableId;
+      if (roomsByTableId.has(serverTableId)) {
         clearAutoDealSchedule(serverTableId);
         clearShowdownDecisionTimeout(serverTableId);
         roomManager.endGame(serverTableId, identity.userId, identity.displayName);
@@ -5139,6 +5299,62 @@ io.on("connection", (socket) => {
       void emitClubDetail(socket.id, payload.clubId, identity.userId);
     } catch (error) {
       socket.emit("club_error", { code: "TABLE_PAUSE_FAILED", message: (error as Error).message });
+    }
+  });
+
+  /* ═══════════ CLUB TABLE JOIN ═══════════ */
+
+  socket.on("club_table_join", async (payload: ClubTableJoinPayload) => {
+    try {
+      if (!requireClubAuth()) return;
+      if (!clubManager.isActiveMember(payload.clubId, identity.userId)) {
+        socket.emit("club_error", { code: "TABLE_JOIN_DENIED", message: "Only active club members can join tables" });
+        return;
+      }
+
+      const tableId = ensureClubTableRoom(payload.clubId, payload.tableId);
+      if (!tableId) {
+        socket.emit("club_error", { code: "TABLE_JOIN_DENIED", message: "Table not found or closed" });
+        return;
+      }
+
+      const room = roomsByTableId.get(tableId);
+      if (!room) {
+        socket.emit("club_error", { code: "TABLE_JOIN_DENIED", message: "Room not available" });
+        return;
+      }
+
+      if (roomManager.isBanned(tableId, identity.userId)) {
+        socket.emit("error_event", { message: "You are banned from this table" });
+        return;
+      }
+
+      socket.join(tableId);
+      createTableIfNeeded(room);
+      maybeCheckRoomEmpty(tableId, currentPlayerCount(tableId) + 1);
+
+      supabase.touchRoom(tableId, "OPEN").catch(() => {});
+      openRoomSessionIfNeeded(tableId, "club_table_join").catch(() => {});
+
+      const club = clubManager.getClub(payload.clubId);
+      socket.emit("room_joined", {
+        tableId,
+        roomCode: tableId,
+        roomName: room.roomName,
+      });
+      socket.emit("club_table_joined", {
+        tableId,
+        clubId: payload.clubId,
+        roomName: room.roomName,
+      });
+
+      emitHydratedSnapshot(socket.id, tableId);
+      const fullState = roomManager.getFullState(tableId);
+      if (fullState) socket.emit("room_state_update", withClubRoomStateMetadata(fullState, tableId, identity.userId));
+      emitPresence(tableId);
+      void emitLobbySnapshot();
+    } catch (error) {
+      socket.emit("club_error", { code: "TABLE_JOIN_FAILED", message: (error as Error).message });
     }
   });
 
@@ -5475,6 +5691,19 @@ io.on("connection", (socket) => {
     if (binding) {
       const managed = roomManager.getRoom(binding.tableId);
       const table = tables.get(binding.tableId);
+
+      // Cache rejoin info for auto-restore on reconnect —
+      // but NOT if the player explicitly requested to leave (pending stand-up / table leave)
+      const hasPendingLeave = pendingTableLeaves.get(binding.tableId)?.has(socket.id) ||
+                              pendingStandUps.get(binding.tableId)?.has(binding.seat);
+      const roomCode = roomCodeForTable(binding.tableId);
+      if (roomCode && !hasPendingLeave) {
+        rejoinInfo.set(identity.userId, {
+          tableId: binding.tableId,
+          seat: binding.seat,
+          roomCode,
+        });
+      }
 
       // If hand is active, use disconnect grace period instead of immediate removal
       if (managed && table && table.isHandActive()) {

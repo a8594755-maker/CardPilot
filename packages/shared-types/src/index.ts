@@ -142,6 +142,16 @@ export interface SettlementResult {
   showdown: boolean;
   buttonSeat: number;
   timestamp: number;
+  sevenTwoBounty?: SevenTwoBountyInfo;
+}
+
+export interface SevenTwoBountyInfo {
+  bountyPerPlayer: number;
+  winnerSeat: number;
+  winnerCards: [string, string];
+  payingSeats: number[];
+  totalBounty: number;
+  bountyBySeat: Record<number, number>;
 }
 
 export interface TableState {

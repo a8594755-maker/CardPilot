@@ -40,7 +40,7 @@ function TimerRing({ remaining, total, urgent, usingTimeBank }: {
   );
 }
 
-export const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, timerTotal, posLabel, isButton, displayBB, bigBlind, lastAction, equity, isAllInLocked, handHint, pendingLeave, revealedCards, revealedHandName, isMucked, onClickRevealed, onClickEmpty, isWinner, isWinnerPulse, netDelta }: {
+export const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe, isOwner, isCoHost, timer, timerTotal, posLabel, isButton, displayBB, bigBlind, lastAction, equity, isAllInLocked, handHint, pendingLeave, revealedCards, revealedHandName, isMucked, onClickRevealed, onClickEmpty, isWinner, isWinnerPulse, netDelta, isDisconnected }: {
   player?: TablePlayer; seatNum: number; isActor: boolean; isMe: boolean;
   isOwner?: boolean; isCoHost?: boolean; timer?: TimerState | null; timerTotal?: number;
   posLabel?: string; isButton?: boolean; displayBB?: boolean; bigBlind?: number;
@@ -57,6 +57,7 @@ export const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe,
   isWinner?: boolean;
   isWinnerPulse?: boolean;
   netDelta?: number;
+  isDisconnected?: boolean;
 }) {
   const bb = bigBlind || 1;
   const fmt = (v: number) => formatChips(v, { mode: displayBB ? "bb" : "chips", bbSize: bb });
@@ -122,8 +123,9 @@ export const SeatChip = memo(function SeatChip({ player, seatNum, isActor, isMe,
           </span>
         </div>
       )}
-      <div className="cp-seat-name text-xl font-bold text-white truncate max-w-full">
-        {player.name}
+      <div className="cp-seat-name text-xl font-bold text-white truncate max-w-full flex items-center gap-1 justify-center">
+        {isDisconnected && <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse flex-shrink-0" title="Disconnected" />}
+        <span className={isDisconnected ? "opacity-50" : ""}>{player.name}</span>
       </div>
       <div className="flex items-center justify-center gap-2">
         <div className="cp-seat-stack text-2xl font-extrabold text-amber-400 cp-num">{fmt(player.stack)}</div>

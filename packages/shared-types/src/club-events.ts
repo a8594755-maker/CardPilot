@@ -8,6 +8,7 @@ import type {
   ClubInvite,
   ClubRuleset,
   ClubTable,
+  ClubTableConfig,
   ClubAuditLogEntry,
   ClubRules,
   ClubRole,
@@ -106,14 +107,15 @@ export interface ClubRulesetSetDefaultPayload {
 export interface ClubTableCreatePayload {
   clubId: string;
   name: string;
-  rulesetId?: string;
+  config: ClubTableConfig;
+  templateRulesetId?: string;
 }
 
 export interface ClubTableUpdatePayload {
   clubId: string;
   tableId: string;
   name?: string;
-  rulesetId?: string | null;
+  config?: Partial<ClubTableConfig>;
 }
 
 export interface ClubTableClosePayload {
@@ -203,7 +205,17 @@ export interface ClubMemberUpdatePayload {
 export interface ClubTableCreatedPayload {
   clubId: string;
   table: ClubTable;
-  roomCode: string;
+}
+
+export interface ClubTableJoinPayload {
+  clubId: string;
+  tableId: string;
+}
+
+export interface ClubTableJoinedPayload {
+  tableId: string;
+  clubId: string;
+  roomName: string;
 }
 
 export interface ClubErrorPayload {
@@ -253,6 +265,7 @@ export interface ClubClientToServerEvents {
   club_table_list: (payload: { clubId: string }) => void;
   club_table_close: (payload: ClubTableClosePayload) => void;
   club_table_pause: (payload: ClubTablePausePayload) => void;
+  club_table_join: (payload: ClubTableJoinPayload) => void;
   club_ruleset_create: (payload: ClubRulesetCreatePayload) => void;
   club_ruleset_update: (payload: ClubRulesetUpdatePayload) => void;
   club_ruleset_set_default: (payload: ClubRulesetSetDefaultPayload) => void;
@@ -272,6 +285,7 @@ export interface ClubServerToClientEvents {
   club_member_update: (payload: ClubMemberUpdatePayload) => void;
   club_table_created: (payload: ClubTableCreatedPayload) => void;
   club_table_updated: (payload: { clubId: string; table: ClubTable }) => void;
+  club_table_joined: (payload: ClubTableJoinedPayload) => void;
   club_error: (payload: ClubErrorPayload) => void;
   club_wallet_balance: (payload: ClubWalletBalancePayload) => void;
   club_wallet_transactions: (payload: ClubWalletLedgerPayload) => void;

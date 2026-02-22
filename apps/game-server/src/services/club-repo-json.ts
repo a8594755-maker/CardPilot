@@ -281,26 +281,16 @@ export class ClubRepoJson {
     this.scheduleSave();
   }
 
-  async setTableRoomCode(clubTableId: string, roomCode: string): Promise<void> {
-    const t = this.store.tables.find((t) => t.id === clubTableId);
-    if (t) t.roomCode = roomCode;
-    this.scheduleSave();
-  }
-
-  async updateTable(clubTableId: string, updates: { name?: string; rulesetId?: string | null }): Promise<void> {
+  async updateTable(clubTableId: string, updates: { name?: string; config?: import("@cardpilot/shared-types").ClubTableConfig }): Promise<void> {
     const t = this.store.tables.find((table) => table.id === clubTableId);
     if (!t) return;
     if (updates.name !== undefined) t.name = updates.name;
-    if (updates.rulesetId !== undefined) t.rulesetId = updates.rulesetId;
+    if (updates.config !== undefined) t.config = updates.config;
     this.scheduleSave();
   }
 
   async fetchTables(clubId: string): Promise<ClubTable[]> {
     return this.store.tables.filter((t) => t.clubId === clubId && t.status !== "closed");
-  }
-
-  async fetchTableByRoomCode(roomCode: string): Promise<ClubTable | null> {
-    return this.store.tables.find((t) => t.roomCode === roomCode && t.status !== "closed") ?? null;
   }
 
   // ═══════════════ AUDIT LOG ═══════════════

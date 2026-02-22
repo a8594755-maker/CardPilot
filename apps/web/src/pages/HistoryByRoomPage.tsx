@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   getHandsByRoom,
   updateHand,
   classifyStartingHandBucket,
+  exportHands,
+  importHands,
   type HandRecord,
   type LocalRoomSummary,
   type GTOAnalysis,
@@ -61,6 +63,10 @@ export function HistoryByRoomPage(_props: {
 
   // Mobile nav
   const [mobilePane, setMobilePane] = useState<MobilePane>("rooms");
+
+  // Import / export
+  const importInputRef = useRef<HTMLInputElement>(null);
+  const [statusMsg, setStatusMsg] = useState<{ text: string; isError: boolean } | null>(null);
 
   // Load data from localStorage
   const refresh = useCallback(() => {
@@ -250,6 +256,57 @@ export function HistoryByRoomPage(_props: {
     });
   }, [selectedRoom]);
 
+  // Export all hands as a JSON file download
+  const handleExport = useCallback(() => {
+    try {
+      const json = exportHands();
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `cardpilot-hands-${dateStr}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setStatusMsg({ text: "Hands exported successfully.", isError: false });
+    } catch {
+      setStatusMsg({ text: "Failed to export hands.", isError: true });
+    }
+  }, []);
+
+  // Import hands from a JSON file
+  const handleImportFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const json = reader.result as string;
+        const added = importHands(json);
+        setStatusMsg({ text: `Imported ${added} new hand${added !== 1 ? "s" : ""}.`, isError: false });
+        refresh();
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Unknown error";
+        setStatusMsg({ text: `Import failed: ${msg}`, isError: true });
+      }
+    };
+    reader.onerror = () => {
+      setStatusMsg({ text: "Failed to read file.", isError: true });
+    };
+    reader.readAsText(file);
+    // Reset input so the same file can be re-selected
+    e.target.value = "";
+  }, [refresh]);
+
+  // Auto-dismiss status message after 5 seconds
+  useEffect(() => {
+    if (!statusMsg) return;
+    const timer = setTimeout(() => setStatusMsg(null), 5000);
+    return () => clearTimeout(timer);
+  }, [statusMsg]);
+
   // Mobile back handler
   const handleMobileBack = () => {
     if (routeHandId) {
@@ -299,6 +356,45 @@ export function HistoryByRoomPage(_props: {
           ↻ Refresh
         </button>
       </div>
+
+      {/* Info banner — local storage notice + export/import */}
+      <div className="shrink-0 px-2.5 py-1.5 border-b border-white/[0.06] bg-slate-800/30 flex items-center justify-between gap-2 flex-wrap">
+        <span className="text-[10px] text-slate-400 leading-tight">
+          Stored locally on this device. 30-day retention, max 500 hands.
+        </span>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={handleExport}
+            className="text-[9px] px-2 py-1 rounded-md bg-white/5 text-slate-400 border border-white/[0.08] hover:bg-white/10 transition-all min-h-[26px]"
+          >
+            Export All
+          </button>
+          <button
+            onClick={() => importInputRef.current?.click()}
+            className="text-[9px] px-2 py-1 rounded-md bg-white/5 text-slate-400 border border-white/[0.08] hover:bg-white/10 transition-all min-h-[26px]"
+          >
+            Import
+          </button>
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".json,application/json"
+            onChange={handleImportFile}
+            className="hidden"
+          />
+        </div>
+      </div>
+
+      {/* Status message (toast-like) */}
+      {statusMsg && (
+        <div className={`shrink-0 px-2.5 py-1 border-b border-white/[0.06] text-[10px] ${
+          statusMsg.isError
+            ? "bg-rose-500/10 text-rose-300 border-rose-500/20"
+            : "bg-emerald-500/10 text-emerald-300 border-emerald-500/20"
+        }`}>
+          {statusMsg.text}
+        </div>
+      )}
 
       {/* 3-column layout (desktop) / stacked nav (mobile) */}
       <div className="flex-1 min-h-0 overflow-hidden max-lg:overflow-y-auto lg:grid lg:grid-cols-[minmax(14rem,clamp(14rem,22vw,18rem))_minmax(18rem,clamp(18rem,30vw,24rem))_minmax(0,1fr)]">

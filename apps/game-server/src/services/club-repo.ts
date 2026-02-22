@@ -13,6 +13,7 @@ import type {
   ClubInvite,
   ClubRuleset,
   ClubTable,
+  ClubTableConfig,
   ClubAuditLogEntry,
   ClubWalletBalance,
   ClubWalletTransaction,
@@ -26,7 +27,7 @@ import type {
   ClubTableStatus,
   ClubRules,
 } from "@cardpilot/shared-types";
-import { normalizeClubRole } from "@cardpilot/shared-types";
+import { normalizeClubRole, DEFAULT_CLUB_TABLE_CONFIG } from "@cardpilot/shared-types";
 import { logInfo, logWarn } from "../logger";
 
 // ── Row ↔ Domain mappers ──────────────────────────────────────────
@@ -93,12 +94,14 @@ function rowToTable(r: Record<string, unknown>): ClubTable {
   return {
     id: String(r.id),
     clubId: String(r.club_id),
-    roomCode: r.room_code ? String(r.room_code) : null,
     name: String(r.name),
-    rulesetId: r.ruleset_id ? String(r.ruleset_id) : null,
+    config: (r.config_json as ClubTableConfig) ?? { ...DEFAULT_CLUB_TABLE_CONFIG },
     status: (r.status as ClubTableStatus) ?? "open",
     createdBy: String(r.created_by),
     createdAt: String(r.created_at),
+    handsPlayed: r.hands_played != null ? Number(r.hands_played) : undefined,
+    startedAt: r.started_at ? String(r.started_at) : undefined,
+    finishedAt: r.finished_at ? String(r.finished_at) : undefined,
   };
 }
 
@@ -533,12 +536,14 @@ export class ClubRepo {
     const { error } = await this.db.from("club_tables").insert({
       id: ct.id,
       club_id: ct.clubId,
-      room_code: ct.roomCode,
       name: ct.name,
-      ruleset_id: ct.rulesetId,
+      config_json: ct.config,
       status: ct.status,
       created_by: ct.createdBy,
       created_at: ct.createdAt,
+      hands_played: ct.handsPlayed ?? 0,
+      started_at: ct.startedAt ?? null,
+      finished_at: ct.finishedAt ?? null,
     });
     if (error) {
       logWarn({ event: "club_repo.createTable.failed", message: error.message });
@@ -555,20 +560,11 @@ export class ClubRepo {
     }
   }
 
-  async setTableRoomCode(clubTableId: string, roomCode: string): Promise<void> {
-    if (!this.db) return;
-    const { error } = await this.db.from("club_tables").update({ room_code: roomCode }).eq("id", clubTableId);
-    if (error) {
-      logWarn({ event: "club_repo.setTableRoomCode.failed", message: error.message });
-      throw new Error(`Failed to set table room code: ${error.message}`);
-    }
-  }
-
-  async updateTable(clubTableId: string, updates: { name?: string; rulesetId?: string | null }): Promise<void> {
+  async updateTable(clubTableId: string, updates: { name?: string; config?: ClubTableConfig }): Promise<void> {
     if (!this.db) return;
     const payload: Record<string, unknown> = {};
     if (updates.name !== undefined) payload.name = updates.name;
-    if (updates.rulesetId !== undefined) payload.ruleset_id = updates.rulesetId;
+    if (updates.config !== undefined) payload.config_json = updates.config;
     if (Object.keys(payload).length === 0) return;
     const { error } = await this.db.from("club_tables").update(payload).eq("id", clubTableId);
     if (error) {
@@ -592,19 +588,27 @@ export class ClubRepo {
     return (data ?? []).map(rowToTable);
   }
 
-  async fetchTableByRoomCode(roomCode: string): Promise<ClubTable | null> {
-    if (!this.db) return null;
-    const { data, error } = await this.db
-      .from("club_tables")
-      .select("*")
-      .eq("room_code", roomCode)
-      .neq("status", "closed")
-      .maybeSingle();
+  async incrementHandsPlayed(clubTableId: string, handsPlayed: number): Promise<void> {
+    if (!this.db) return;
+    const { error } = await this.db.from("club_tables").update({
+      hands_played: handsPlayed,
+      started_at: new Date().toISOString(),
+    }).eq("id", clubTableId);
     if (error) {
-      logWarn({ event: "club_repo.fetchTableByRoomCode.failed", message: error.message });
-      throw new Error(`Failed to fetch table by code: ${error.message}`);
+      logWarn({ event: "club_repo.incrementHandsPlayed.failed", message: error.message });
     }
-    return data ? rowToTable(data) : null;
+  }
+
+  async updateTableFinished(clubTableId: string, finishedAt: string, handsPlayed: number): Promise<void> {
+    if (!this.db) return;
+    const { error } = await this.db.from("club_tables").update({
+      status: "finished",
+      finished_at: finishedAt,
+      hands_played: handsPlayed,
+    }).eq("id", clubTableId);
+    if (error) {
+      logWarn({ event: "club_repo.updateTableFinished.failed", message: error.message });
+    }
   }
 
   // ═══════════════ AUDIT LOG ═══════════════

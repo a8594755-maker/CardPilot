@@ -9,12 +9,14 @@ import type {
   ClubLeaderboardEntry,
   ClubLeaderboardMetric,
   ClubLeaderboardRange,
+  ClubWalletTransaction,
+  ClubWalletLedgerPayload,
 } from "@cardpilot/shared-types";
 import { DEFAULT_CLUB_RULES } from "@cardpilot/shared-types";
 import { canPerformClubAction } from "@cardpilot/shared-types";
 import { useIsMobile } from "../../hooks/useIsMobile";
 
-type Tab = "overview" | "credits" | "leaderboard" | "members" | "tables" | "rulesets" | "invites" | "audit" | "settings";
+type Tab = "overview" | "credits" | "transactions" | "leaderboard" | "members" | "tables" | "rulesets" | "invites" | "audit" | "settings";
 
 /** Consider a member "recently online" if lastSeenAt is within this many minutes */
 const ONLINE_THRESHOLD_MIN = 15;
@@ -57,7 +59,7 @@ interface ClubDetailViewProps {
   userId: string;
   detail: ClubDetailPayload;
   onBack: () => void;
-  onJoinTable: (roomCode: string) => void;
+  onJoinTable: (clubId: string, tableId: string) => void;
   showToast: (msg: string) => void;
 }
 
@@ -94,6 +96,8 @@ export function ClubDetailView({
   const [leaderboardMetric, setLeaderboardMetric] = useState<ClubLeaderboardMetric>("net");
   const [leaderboardRows, setLeaderboardRows] = useState<ClubLeaderboardEntry[]>([]);
   const [myRank, setMyRank] = useState<number | null>(null);
+  const [transactions, setTransactions] = useState<ClubWalletTransaction[]>([]);
+  const [txLoading, setTxLoading] = useState(false);
 
   const { club, myMembership } = detail.detail;
   const myRole = myMembership?.role ?? "member";
@@ -145,7 +149,7 @@ export function ClubDetailView({
     socket.emit("club_table_create", {
       clubId: club.id,
       name: newTableName.trim(),
-      rulesetId: newTableRulesetId || undefined,
+      templateRulesetId: newTableRulesetId || undefined,
     });
     setShowCreateTable(false);
     setNewTableName("");
@@ -250,11 +254,6 @@ export function ClubDetailView({
     showToast("Updating table...");
   }, [socket, club.id, showToast]);
 
-  const handleUpdateTableRuleset = useCallback((tableId: string, rulesetId: string | null) => {
-    if (!socket) return;
-    socket.emit("club_table_update", { clubId: club.id, tableId, rulesetId });
-    showToast("Updating table rules...");
-  }, [socket, club.id, showToast]);
 
   const handleSetDefaultRuleset = useCallback(() => {
     if (!socket || !selectedDefaultRulesetId) return;
@@ -285,11 +284,19 @@ export function ClubDetailView({
       setMyRank(payload.myRank ?? null);
     };
 
+    const onWalletTransactions = (payload: ClubWalletLedgerPayload) => {
+      if (payload.clubId !== club.id) return;
+      setTransactions(payload.transactions ?? []);
+      setTxLoading(false);
+    };
+
     socket.on("club_wallet_balance", onCreditBalance);
     socket.on("club_leaderboard", onLeaderboard);
+    socket.on("club_wallet_transactions", onWalletTransactions);
     return () => {
       socket.off("club_wallet_balance", onCreditBalance);
       socket.off("club_leaderboard", onLeaderboard);
+      socket.off("club_wallet_transactions", onWalletTransactions);
     };
   }, [socket, club.id, userId, leaderboardRange, leaderboardMetric]);
 
@@ -297,6 +304,13 @@ export function ClubDetailView({
     if (!socket) return;
     if (tab !== "credits") return;
     socket.emit("club_wallet_balance_get", { clubId: club.id });
+  }, [socket, tab, club.id]);
+
+  useEffect(() => {
+    if (!socket) return;
+    if (tab !== "transactions") return;
+    setTxLoading(true);
+    socket.emit("club_wallet_transactions_list", { clubId: club.id, limit: 50 });
   }, [socket, tab, club.id]);
 
   useEffect(() => {
@@ -313,6 +327,7 @@ export function ClubDetailView({
   const tabs: { id: Tab; label: string; show: boolean }[] = [
     { id: "overview", label: "Home", show: isAdminRole },
     { id: "credits", label: "Credits", show: true },
+    { id: "transactions", label: "Transactions", show: true },
     { id: "leaderboard", label: "Leaderboard", show: true },
     { id: "members", label: `Members (${detail.members.length})`, show: isAdminRole },
     { id: "tables", label: `Tables (${detail.tables.length})`, show: true },
@@ -538,11 +553,9 @@ export function ClubDetailView({
                           <div className="text-sm font-medium text-white">{t.name}</div>
                           <div className="text-[10px] text-slate-400">{t.stakes ?? "—"} · {t.playerCount ?? 0}/{t.maxPlayers ?? "—"} players</div>
                         </div>
-                        {t.roomCode && (
-                          <button onClick={() => onJoinTable(t.roomCode!)} className="btn-success text-xs !py-1.5 !px-4">
-                            Quick Join
-                          </button>
-                        )}
+                        <button onClick={() => onJoinTable(club.id, t.id)} className="btn-success text-xs !py-1.5 !px-4">
+                          Quick Join
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -663,6 +676,74 @@ export function ClubDetailView({
                   >
                     Adjust Credits
                   </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === "transactions" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-semibold text-white">Transaction History</h3>
+                <button
+                  onClick={() => {
+                    setTxLoading(true);
+                    socket?.emit("club_wallet_transactions_list", { clubId: club.id, limit: 50 });
+                    showToast("Refreshing transactions...");
+                  }}
+                  className="btn-secondary text-xs"
+                >
+                  Refresh
+                </button>
+              </div>
+
+              {txLoading ? (
+                <div className="text-center py-8 text-sm text-slate-400">Loading transactions...</div>
+              ) : transactions.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-2xl mb-2 opacity-20">--</div>
+                  <p className="text-sm text-slate-400">No transactions yet.</p>
+                  <p className="text-xs text-slate-500 mt-1">Wallet transactions will appear here as they occur.</p>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-white/10 overflow-hidden">
+                  <div className="grid grid-cols-4 gap-2 text-[10px] uppercase tracking-wider text-slate-500 bg-white/5 px-3 py-2">
+                    <span>Time</span>
+                    <span>Type</span>
+                    <span className="text-right">Amount</span>
+                    <span className="text-right">Status</span>
+                  </div>
+                  {transactions.map((tx) => {
+                    const txStatus = tx.status ?? "success";
+                    const statusColors: Record<string, string> = {
+                      success: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+                      pending: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+                      failed: "bg-red-500/20 text-red-300 border-red-500/30",
+                    };
+                    return (
+                      <div key={tx.id} className="grid grid-cols-4 gap-2 text-xs px-3 py-2 border-t border-white/5 items-center">
+                        <span className="text-slate-400 text-[11px]">
+                          {new Date(tx.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                          {" "}
+                          <span className="text-[10px] text-slate-600">
+                            {new Date(tx.createdAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </span>
+                        <span className="text-slate-300 capitalize text-[11px]">{tx.type.replace(/_/g, " ")}</span>
+                        <span className={`text-right font-mono font-semibold ${tx.amount >= 0 ? "text-emerald-400" : "text-red-400"}`}>
+                          {tx.amount >= 0 ? "+" : ""}{tx.amount.toLocaleString()}
+                        </span>
+                        <div className="flex justify-end">
+                          <span
+                            className={`inline-block text-[9px] px-1.5 py-0.5 rounded border font-semibold uppercase ${statusColors[txStatus] ?? statusColors.success}`}
+                            title={tx.errorDetail ?? undefined}
+                          >
+                            {txStatus}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -900,24 +981,14 @@ export function ClubDetailView({
                       )}
                     </div>
                     <div className="flex flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-                      {t.roomCode && t.status === "open" && (
-                        <button onClick={() => onJoinTable(t.roomCode!)} className="btn-success text-xs !py-1.5">
+                      {t.status === "open" && (
+                        <button onClick={() => onJoinTable(club.id, t.id)} className="btn-success text-xs !py-1.5">
                           Join Table
                         </button>
                       )}
                       {canManageTables && t.status !== "closed" && (
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                          <select
-                            value={t.rulesetId ?? ""}
-                            onChange={(e) => handleUpdateTableRuleset(t.id, e.target.value || null)}
-                            className="rounded border border-white/10 bg-white/5 px-2 py-1 text-[11px] text-slate-200"
-                            title="Assigned ruleset"
-                          >
-                            <option value="">Default ruleset</option>
-                            {detail.rulesets.map((rs) => (
-                              <option key={rs.id} value={rs.id}>{rs.name}</option>
-                            ))}
-                          </select>
+                          <span className="text-[10px] text-slate-400">{t.config.smallBlind}/{t.config.bigBlind} · {t.config.maxSeats}-max</span>
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleRenameTable(t.id, t.name)}

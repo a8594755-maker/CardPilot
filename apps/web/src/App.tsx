@@ -7,12 +7,15 @@ import type {
   RoomFullState,
   RoomLogEntry,
   SettlementResult,
+  SevenTwoBountyInfo,
   TablePlayer,
   TableState,
   TimerState
 } from "@cardpilot/shared-types";
 import { getClockwiseSeatsFromButton } from "@cardpilot/shared-types";
 import { getExistingSession, ensureGuestSession, signOut, supabase, isUuid, normalizeClientUserId, resetInvalidRefreshGuard, type AuthSession } from "./supabase";
+// NOTE: useAuthSession hook is ready at ./hooks/useAuthSession.ts
+// Integration deferred to dedicated refactoring session to avoid hook-ordering risks
 import { preloadCardImages } from "./lib/card-images.js";
 // SettlementOverlay removed — replaced by non-blocking linger feedback + HandSummaryDrawer
 import { PokerCard } from "./components/PokerCard";
@@ -232,6 +235,8 @@ export function App() {
   const [rejoinStackInfo, setRejoinStackInfo] = useState<{ tableId: string; stack: number | null; loading: boolean } | null>(null);
   const [revealedZoom, setRevealedZoom] = useState<{ seat: number; name: string; cards: [string, string]; handName?: string } | null>(null);
   const [socketConnected, setSocketConnected] = useState(false);
+  const [socketReconnecting, setSocketReconnecting] = useState(false);
+  const [disconnectedSeats, setDisconnectedSeats] = useState<Map<number, { userId: string; graceSeconds: number; disconnectedAt: number }>>(new Map());
   const [supabaseEnabled, setSupabaseEnabled] = useState(true);
   const [showGtoSidebar, setShowGtoSidebar] = useState(() => {
     try { return localStorage.getItem("cardpilot_show_gto") !== "false"; } catch { return true; }
@@ -264,6 +269,14 @@ export function App() {
   const [showHandSummaryDrawer, setShowHandSummaryDrawer] = useState(false);
   const lingerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSettlementRef = useRef<SettlementResult | null>(null);
+
+  /* ── Post-hand show & 7-2 bounty state ── */
+  const [postHandShowAvailable, setPostHandShowAvailable] = useState(false);
+  const [sevenTwoBountyPrompt, setSevenTwoBountyPrompt] = useState<{
+    bountyPerPlayer: number; totalBounty: number;
+  } | null>(null);
+  const [sevenTwoBountyResult, setSevenTwoBountyResult] = useState<SevenTwoBountyInfo | null>(null);
+  const [postHandRevealedCards, setPostHandRevealedCards] = useState<Record<number, [string, string]>>({});
 
   /* ── Table theme ── */
   type TableTheme = "green" | "blue";
@@ -454,6 +467,7 @@ export function App() {
   const pathnameRef = useRef(location.pathname);
   const currentRoomCodeRef = useRef(currentRoomCode);
   const currentRoomNameRef = useRef(currentRoomName);
+  const roomStateRef = useRef(roomState);
   const latestSnapshotVersionRef = useRef(-1);
   const latestSnapshotHashRef = useRef("");
   const snapshotResyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -494,6 +508,7 @@ export function App() {
   useEffect(() => { tableIdRef.current = tableId; }, [tableId]);
   useEffect(() => { pathnameRef.current = location.pathname; }, [location.pathname]);
   useEffect(() => { currentRoomCodeRef.current = currentRoomCode; }, [currentRoomCode]);
+  useEffect(() => { roomStateRef.current = roomState; }, [roomState]);
   useEffect(() => { currentRoomNameRef.current = currentRoomName; }, [currentRoomName]);
 
   const totalVisibleBoardCards = useMemo(() => {
@@ -838,9 +853,13 @@ export function App() {
     };
 
     s.io.on("reconnect", handleReconnect);
+    s.io.on("reconnect_attempt", () => {
+      setSocketReconnecting(true);
+    });
 
     s.on("connect", () => {
       setSocketConnected(true);
+      setSocketReconnecting(false);
       showToast("Connected");
       s.emit("request_lobby");
       if (!authSession?.isGuest) {
@@ -888,7 +907,34 @@ export function App() {
       setSupabaseEnabled(d.supabaseEnabled);
       if (!d.supabaseEnabled) showToast("Connected (no Supabase persistence)");
     });
-    s.on("disconnect", () => { setSocketConnected(false); });
+    s.on("disconnect", () => {
+      setSocketConnected(false);
+      setSocketReconnecting(true);
+    });
+
+    // ── Disconnect grace tracking ──
+    s.on("player_disconnected", (d: { seat: number; userId: string; graceSeconds: number }) => {
+      setDisconnectedSeats((prev) => {
+        const next = new Map(prev);
+        next.set(d.seat, { userId: d.userId, graceSeconds: d.graceSeconds, disconnectedAt: Date.now() });
+        return next;
+      });
+    });
+    s.on("player_reconnected", (d: { seat: number; userId: string }) => {
+      setDisconnectedSeats((prev) => {
+        const next = new Map(prev);
+        next.delete(d.seat);
+        return next;
+      });
+    });
+    s.on("player_auto_sitout", (d: { seat: number; userId: string; reason: string }) => {
+      setDisconnectedSeats((prev) => {
+        const next = new Map(prev);
+        next.delete(d.seat);
+        return next;
+      });
+    });
+
     s.on("lobby_snapshot", (d: { rooms: LobbyRoomSummary[] }) => setLobbyRooms(d.rooms ?? []));
     s.on("room_created", (d: { tableId: string; roomCode: string; roomName: string }) => {
       resetSnapshotSyncState();
@@ -968,6 +1014,11 @@ export function App() {
       setShowFoldConfirm(false);
       setPreAction(null);
       setLastActionBySeat({});
+      setDisconnectedSeats(new Map());
+      setPostHandShowAvailable(false);
+      setSevenTwoBountyPrompt(null);
+      setSevenTwoBountyResult(null);
+      setPostHandRevealedCards({});
     });
     s.on("board_reveal", (d: {
       handId: string;
@@ -1042,6 +1093,15 @@ export function App() {
         if (!prev || prev.handId !== d.handId) return prev;
         return { ...prev, revealedHoles: { ...(prev.revealedHoles ?? {}), ...(d.revealed ?? {}) } };
       });
+    });
+    s.on("post_hand_reveal", (d: { tableId: string; seat: number; cards: [string, string] }) => {
+      setPostHandRevealedCards((prev) => ({ ...prev, [d.seat]: d.cards }));
+    });
+    s.on("seven_two_bounty_claimed", (d: { tableId: string; handId: string; bounty: SevenTwoBountyInfo }) => {
+      setSevenTwoBountyResult(d.bounty);
+      setSevenTwoBountyPrompt(null);
+      const winnerName = snapshotRef.current?.players.find((p) => p.seat === d.bounty.winnerSeat)?.name ?? `Seat ${d.bounty.winnerSeat}`;
+      showToast(`7-2 Bounty! ${winnerName} collected +${d.bounty.totalBounty}`);
     });
     s.on("reveal_board_card", (d: {
       handId: string;
@@ -1199,6 +1259,31 @@ export function App() {
           setWinners(null);
           setSettlement(null);
         }, lingerMs);
+
+        // 7-2 bounty: if auto-applied at showdown, display result immediately
+        if (d.settlement.sevenTwoBounty) {
+          setSevenTwoBountyResult(d.settlement.sevenTwoBounty);
+        } else {
+          // Hero won with unrevealed 7-2 → server has pending claim, show prompt
+          const heroSeatNow = seatRef.current;
+          const heroWon = winSeats.has(heroSeatNow);
+          const cards = holeCardsRef.current;
+          if (heroWon && cards.length >= 2) {
+            const r0 = cards[0][0], r1 = cards[1][0];
+            const heroHas72 = (r0 === "7" && r1 === "2") || (r0 === "2" && r1 === "7");
+            const bountyAmount = roomStateRef.current?.settings.sevenTwoBounty ?? 0;
+            if (heroHas72 && bountyAmount > 0) {
+              const dealtIn = d.finalState?.players.filter((p) => p.inHand && p.seat !== heroSeatNow).length ?? 0;
+              setSevenTwoBountyPrompt({ bountyPerPlayer: bountyAmount, totalBounty: bountyAmount * dealtIn });
+            }
+          }
+        }
+      }
+
+      // Enable post-hand show if hero had hole cards
+      if (holeCardsRef.current.length >= 2) {
+        setPostHandShowAvailable(true);
+        setPostHandRevealedCards({});
       }
 
       // Save to local hand history (localStorage fallback)
@@ -1405,7 +1490,7 @@ export function App() {
       const cid = selectedClubIdRef.current;
       if (cid) s.emit("club_get_detail", { clubId: cid });
     });
-    s.on("club_table_created", (d: { clubId: string; roomCode: string }) => {
+    s.on("club_table_created", (d: { clubId: string; table: unknown }) => {
       showToast("Club table created!");
     });
     s.on("club_table_updated", (d: { clubId: string }) => {
@@ -1414,9 +1499,14 @@ export function App() {
         s.emit("club_get_detail", { clubId: cid });
       }
     });
+    // Wallet error feedback: all wallet operation failures (admin_deposit, admin_adjust,
+    // balance_get, buy-in insufficient funds, etc.) are surfaced through club_error.
+    // The error_event handler covers game-level buy-in failures, and seat_rejected covers
+    // seat request denials. All error paths already show user-facing toasts.
     s.on("club_error", (d: { code: string; message: string }) => {
       setClubsLoading(false);
-      showToast(`Error: ${d.message}`);
+      const isWalletError = d.code.startsWith("WALLET_") || d.code.startsWith("wallet_") || d.code === "INSUFFICIENT_FUNDS";
+      showToast(isWalletError ? `Wallet error: ${d.message}` : `Error: ${d.message}`);
     });
     return () => {
       s.io.off("reconnect", handleReconnect);
@@ -1531,6 +1621,8 @@ export function App() {
     }
   }, [preAction, snapshot?.handId, derivedPreActionUI.enabled]);
   const isConnected = socketConnected;
+  const connectionLabel = isConnected ? "Online" : socketReconnecting ? "Reconnecting..." : "Offline";
+  const connectionColor = isConnected ? "emerald" : socketReconnecting ? "yellow" : "red";
   const isHost = useMemo(() => roomState?.ownership.ownerId === authSession?.userId, [roomState, authSession]);
   const isCoHost = useMemo(() => roomState?.ownership.coHostIds.includes(authSession?.userId ?? "") ?? false, [roomState, authSession]);
   const isHostOrCoHost = isHost || isCoHost;
@@ -1797,6 +1889,7 @@ export function App() {
             isWinner={lingerActive && lingerWinnerSeats.has(seatNum)}
             isWinnerPulse={winnerSeatPulse === seatNum}
             netDelta={lingerActive ? lingerSeatDeltas[seatNum] : undefined}
+            isDisconnected={disconnectedSeats.has(seatNum)}
             onClickRevealed={revealedCards ? () => {
               setRevealedZoom({
                 seat: seatNum,
@@ -1830,7 +1923,11 @@ export function App() {
       socket.emit("leave_table", { tableId });
     }
     resetSnapshotSyncState();
+    // Clear refs synchronously to prevent reconnection handlers from auto-rejoining
     tableIdRef.current = "";
+    currentRoomCodeRef.current = "";
+    currentRoomNameRef.current = "";
+    pathnameRef.current = "/lobby";
     setTableId("");
     setClubRoomHintCode("");
     setCurrentRoomCode(""); setCurrentRoomName("");
@@ -1850,6 +1947,7 @@ export function App() {
     setAdvice(null);
     setDeviation(null);
     setView("lobby");
+    navigate("/lobby");
     showToast("Left room");
     socket?.emit("request_lobby");
   }
@@ -1953,9 +2051,9 @@ export function App() {
             ))}
           </nav>
           <div className="flex items-center gap-3">
-            <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium ${isConnected ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400 animate-pulse"}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-emerald-400" : "bg-red-400"}`} />
-              {isConnected ? "Online" : "Offline"}
+            <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium ${isConnected ? "bg-emerald-500/10 text-emerald-400" : socketReconnecting ? "bg-yellow-500/10 text-yellow-400 animate-pulse" : "bg-red-500/10 text-red-400 animate-pulse"}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-emerald-400" : socketReconnecting ? "bg-yellow-400" : "bg-red-400"}`} />
+              {connectionLabel}
             </span>
             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-[11px] font-bold text-white uppercase">{displayName[0]}</div>
             <span className="text-xs text-slate-200 font-medium max-w-[140px] truncate">Hi, {displayName}</span>
@@ -1976,9 +2074,9 @@ export function App() {
           </div>
           <div className="flex items-center gap-2">
             {roomState && <span className="text-[10px] text-slate-500">{roomState.settings.smallBlind}/{roomState.settings.bigBlind} · {roomState.settings.maxPlayers}-max</span>}
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-medium ${isConnected ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400 animate-pulse"}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-emerald-400" : "bg-red-400"}`} />
-              {isConnected ? "Online" : "Offline"}
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-medium ${isConnected ? "bg-emerald-500/10 text-emerald-400" : socketReconnecting ? "bg-yellow-500/10 text-yellow-400 animate-pulse" : "bg-red-500/10 text-red-400 animate-pulse"}`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-emerald-400" : socketReconnecting ? "bg-yellow-400" : "bg-red-400"}`} />
+              {connectionLabel}
             </span>
             <button onClick={() => setShowInGameHistory(true)} className="text-sm text-slate-400 hover:text-white px-1.5 py-1 rounded-lg hover:bg-white/5 transition-colors" title="Hand History">📜</button>
             <button onClick={() => setShowOptionsDrawer(!showOptionsDrawer)} className="text-sm text-slate-400 hover:text-white px-1.5 py-1 rounded-lg hover:bg-white/5 transition-colors" title="Options">☰</button>
@@ -2055,10 +2153,10 @@ export function App() {
                 socket.emit("club_list_my_clubs");
               }
             }}
-            onJoinClubTable={(roomCode) => {
+            onJoinClubTable={(clubId, tableId) => {
               if (socket) {
-                setClubRoomHintCode(roomCode);
-                socket.emit("join_room_code", { roomCode });
+                setClubRoomHintCode(tableId);
+                socket.emit("club_table_join", { clubId, tableId });
                 setView("table");
               }
             }}
@@ -2932,6 +3030,48 @@ export function App() {
                       <span className="text-[9px] text-slate-600 ml-1">
                         Press Space to skip
                       </span>
+                    </div>
+                  )}
+
+                  {/* Post-hand show cards & 7-2 bounty claim */}
+                  {postHandShowAvailable && !snapshot?.handId && seat != null && (
+                    <div className="cp-hero-linger animate-[cpFadeSlideUp_0.3s_ease-out]">
+                      {sevenTwoBountyPrompt && !sevenTwoBountyResult ? (
+                        <button
+                          onClick={() => {
+                            socket?.emit("claim_seven_two_bounty", { tableId, seat });
+                            setPostHandShowAvailable(false);
+                          }}
+                          className="text-[11px] px-4 py-2 rounded-lg bg-amber-500/25 text-amber-200 border border-amber-400/50 hover:bg-amber-500/40 transition-all font-bold animate-pulse"
+                        >
+                          SHOW 7-2 &amp; Collect Bounty (+{sevenTwoBountyPrompt.totalBounty})
+                        </button>
+                      ) : (
+                        !postHandRevealedCards[seat] && (
+                          <button
+                            onClick={() => {
+                              socket?.emit("show_hand_post", { tableId, seat });
+                              setPostHandShowAvailable(false);
+                            }}
+                            className="text-[10px] px-3 py-1.5 rounded-lg bg-white/5 text-amber-300 border border-amber-500/30 hover:bg-amber-500/15 transition-all"
+                          >
+                            SHOW
+                          </button>
+                        )
+                      )}
+                    </div>
+                  )}
+
+                  {/* 7-2 bounty result banner */}
+                  {sevenTwoBountyResult && (
+                    <div className="cp-hero-linger animate-[cpFadeSlideUp_0.3s_ease-out]">
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/15 border border-amber-500/30">
+                        <span className="text-[10px] font-bold text-amber-300 uppercase tracking-wider">7-2 Bounty</span>
+                        <span className="text-[11px] text-amber-100">
+                          {snapshot?.players.find((p) => p.seat === sevenTwoBountyResult.winnerSeat)?.name ?? `Seat ${sevenTwoBountyResult.winnerSeat}`}
+                          {" "}collected +{sevenTwoBountyResult.totalBounty}
+                        </span>
+                      </div>
                     </div>
                   )}
 

@@ -130,6 +130,35 @@ export const HandSummaryDrawer = memo(function HandSummaryDrawer({
             ))}
           </div>
 
+          {/* 7-2 Bounty */}
+          {settlement.sevenTwoBounty && settlement.sevenTwoBounty.totalBounty > 0 && (() => {
+            const b = settlement.sevenTwoBounty;
+            return (
+              <div className="space-y-1.5">
+                <h4 className="text-[10px] uppercase tracking-wider font-semibold">
+                  <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400">7-2 Bounty</span>
+                </h4>
+                <div className="px-3 py-2 rounded-lg bg-amber-500/8 border border-amber-500/20">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs text-white font-semibold">{playerName(b.winnerSeat)}</span>
+                    <div className="flex gap-0.5 shrink-0">
+                      <PokerCard card={b.winnerCards[0]} variant="mini" />
+                      <PokerCard card={b.winnerCards[1]} variant="mini" />
+                    </div>
+                    <span className="ml-auto text-amber-400 font-extrabold text-sm cp-num">+{b.totalBounty.toLocaleString()}</span>
+                  </div>
+                  <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+                    {b.payingSeats.map((s) => (
+                      <span key={s} className="text-[9px] text-slate-400">
+                        {playerName(s)} <span className="text-red-400/70 font-mono cp-num">{(b.bountyBySeat[s] ?? 0).toLocaleString()}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Revealed non-winner hands */}
           {revealedHoles && (() => {
             const winnerSeats = new Set(allWinners.map((w) => w.seat));

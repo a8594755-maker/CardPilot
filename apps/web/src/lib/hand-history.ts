@@ -43,6 +43,7 @@ export interface HandRecord {
   actionTimeline?: HandActionTimelineRecord[];
   potLayers?: unknown;
   payoutLedger?: unknown;
+  source?: "local" | "cloud";
 }
 
 export interface HandActionRecord {
@@ -243,6 +244,7 @@ function normalizeHandRecord(input: unknown): HandRecord | null {
     isBombPotHand: Boolean(raw.isBombPotHand),
     isDoubleBoardHand: Boolean(raw.isDoubleBoardHand),
     actionTimeline: Array.isArray(raw.actionTimeline) ? raw.actionTimeline : undefined,
+    source: raw.source === "cloud" ? "cloud" : "local",
   };
 
   if (!record.actionTimeline) {
@@ -459,4 +461,49 @@ export function autoTag(actions: HandActionRecord[]): string[] {
   if (allIns.length > 0) tags.push("all_in");
 
   return tags;
+}
+
+/** Export all hand records as a JSON string. */
+export function exportHands(): string {
+  const records = pruneExpired(readAll());
+  return JSON.stringify(records, null, 2);
+}
+
+/** Import hands from a JSON string, deduplicating by handId (or id). Returns count of newly added hands. */
+export function importHands(json: string): number {
+  const parsed = JSON.parse(json) as unknown;
+  if (!Array.isArray(parsed)) throw new Error("Invalid format: expected an array of hand records.");
+
+  const incoming = parsed
+    .map((entry) => normalizeHandRecord(entry))
+    .filter((entry): entry is HandRecord => entry !== null);
+
+  if (incoming.length === 0) throw new Error("No valid hand records found in the imported file.");
+
+  let existing = pruneExpired(readAll());
+
+  // Build a set of existing keys for deduplication
+  const existingKeys = new Set<string>();
+  for (const h of existing) {
+    existingKeys.add(h.handId ?? h.id);
+  }
+
+  let added = 0;
+  for (const h of incoming) {
+    const key = h.handId ?? h.id;
+    if (!existingKeys.has(key)) {
+      existing.push(h);
+      existingKeys.add(key);
+      added++;
+    }
+  }
+
+  // Enforce max records (keep newest)
+  if (existing.length > MAX_RECORDS) {
+    existing.sort((a, b) => a.createdAt - b.createdAt);
+    existing = existing.slice(existing.length - MAX_RECORDS);
+  }
+
+  writeAll(existing);
+  return added;
 }
