@@ -3316,9 +3316,71 @@ io.on("connection", (socket) => {
           payload,
         });
 
+        // Auto-close any stale room the user already owns
         const ownedRoom = roomManager.getActiveRoomOwnedBy(identity.userId);
         if (ownedRoom) {
-          throw new Error(`You already own a room (${ownedRoom.roomCode}). Close it or transfer ownership first.`);
+          const staleTableId = ownedRoom.tableId;
+          logInfo({
+            event: "room.auto_close.stale",
+            tableId: staleTableId,
+            userId: identity.userId,
+            message: `Auto-closing stale room ${ownedRoom.roomCode} before creating new room`,
+          });
+
+          clearAutoDealSchedule(staleTableId);
+          clearShowdownDecisionTimeout(staleTableId);
+          clearPendingRunCountDecision(staleTableId);
+          clearHandIdleWatchdog(staleTableId);
+          removeAllBots(staleTableId);
+          roomManager.endGame(staleTableId, identity.userId, identity.displayName);
+
+          io.to(staleTableId).emit("room_closed", { tableId: staleTableId, reason: "Host created a new room" });
+
+          const staleTable = tables.get(staleTableId);
+          if (staleTable) {
+            const state = staleTable.getPublicState();
+            for (const player of state.players) {
+              staleTable.removePlayer(player.seat);
+            }
+          }
+
+          for (const [sid, binding] of socketSeat.entries()) {
+            if (binding.tableId === staleTableId) {
+              socketSeat.delete(sid);
+              const sock = io.sockets.sockets.get(sid);
+              if (sock) sock.leave(staleTableId);
+            }
+          }
+
+          const staleRoomInfo = roomsByTableId.get(staleTableId);
+          if (staleRoomInfo) {
+            roomCodeToTableId.delete(staleRoomInfo.roomCode);
+            sessionStatsByRoomCode.delete(staleRoomInfo.roomCode);
+            roomsByTableId.delete(staleTableId);
+          }
+          pendingStandUps.delete(staleTableId);
+          pendingTableLeaves.delete(staleTableId);
+          pendingPause.delete(staleTableId);
+          for (const [orderId, request] of pendingSeatRequests.entries()) {
+            if (request.tableId === staleTableId) pendingSeatRequests.delete(orderId);
+          }
+          for (const [orderId, deposit] of pendingRebuys.entries()) {
+            if (deposit.tableId === staleTableId) pendingRebuys.delete(orderId);
+          }
+          tables.delete(staleTableId);
+          tableSnapshotVersions.delete(staleTableId);
+          roomManager.deleteRoom(staleTableId);
+
+          closeRoomSessionIfOpen(staleTableId, "auto_close_stale").catch(() => {});
+          supabase.touchRoom(staleTableId, "CLOSED").catch(() => {});
+          supabase.logEvent({
+            tableId: staleTableId,
+            eventType: "ROOM_CLOSED",
+            actorUserId: identity.userId,
+            payload: { reason: "auto_closed_stale_before_create" },
+          }).catch(() => {});
+
+          void emitLobbySnapshot();
         }
 
         const roomCode = await generateUniqueRoomCode();
