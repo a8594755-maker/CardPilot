@@ -1,4 +1,4 @@
-export type UiSfx = "deal" | "flip" | "chipBet" | "chipWin" | "turn" | "actionConfirm";
+export type UiSfx = "deal" | "flip" | "chipBet" | "chipWin" | "turn" | "actionConfirm" | "bounty72";
 
 const SFX_VOLUME_MULTIPLIER = 2.5;
 
@@ -58,6 +58,13 @@ export function playUiSfxTone(kind: UiSfx, muted: boolean) {
   }
   if (kind === "actionConfirm") {
     pulse(880, now, 0.04, "sine", 0.12);
+    return;
+  }
+  if (kind === "bounty72") {
+    // Rising three-note fanfare for 7-2 bounty
+    pulse(440, now, 0.08, "triangle", 0.2);
+    pulse(554, now + 0.1, 0.08, "triangle", 0.2);
+    pulse(880, now + 0.2, 0.12, "sine", 0.24);
     return;
   }
   pulse(300, now, 0.08, "sine", 0.2); // turn

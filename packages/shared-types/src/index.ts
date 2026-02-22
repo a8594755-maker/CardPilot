@@ -520,9 +520,10 @@ export type GameType = 'texas' | 'omaha';
 
 export type RunItTwiceMode = 'always' | 'ask_players' | 'off';
 
-export type ShowdownSpeed = 'fast' | 'normal' | 'slow';
+export type ShowdownSpeed = 'turbo' | 'fast' | 'normal' | 'slow';
 
 export const SHOWDOWN_SPEED_DELAYS_MS: Record<ShowdownSpeed, number> = {
+  turbo: 300,
   fast: 3_000,
   normal: 6_000,
   slow: 9_000,

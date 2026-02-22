@@ -7,7 +7,7 @@ export interface ChipTransfer {
   from: { x: number; y: number };
   to: { x: number; y: number };
   amount: number;
-  kind: "toPot" | "toWinner";
+  kind: "toPot" | "toWinner" | "bountyToWinner" | "bombPotAnte";
   seat?: number;
   createdAt: number;
   /** Stage durations derived from speed setting */
@@ -33,25 +33,36 @@ export interface StageTiming {
 interface SpeedPreset {
   toPot: StageTiming;
   toWinner: StageTiming;
+  bountyToWinner: StageTiming;
+  bombPotAnte: StageTiming;
 }
 
 const SPEED_MAP: Record<AnimationSpeed, SpeedPreset> = {
   off: {
     toPot: { flight: 0, hold: 0, merge: 0, potPulse: 0, winnerGlow: 0 },
     toWinner: { flight: 0, hold: 0, merge: 0, potPulse: 0, winnerGlow: 0 },
+    bountyToWinner: { flight: 0, hold: 0, merge: 0, potPulse: 0, winnerGlow: 0 },
+    bombPotAnte: { flight: 0, hold: 0, merge: 0, potPulse: 0, winnerGlow: 0 },
   },
   normal: {
     toPot: { flight: 240, hold: 110, merge: 90, potPulse: 240, winnerGlow: 0 },
     toWinner: { flight: 300, hold: 120, merge: 100, potPulse: 0, winnerGlow: 300 },
+    bountyToWinner: { flight: 400, hold: 200, merge: 120, potPulse: 0, winnerGlow: 350 },
+    bombPotAnte: { flight: 300, hold: 140, merge: 100, potPulse: 280, winnerGlow: 0 },
   },
   slow: {
     toPot: { flight: 340, hold: 150, merge: 120, potPulse: 320, winnerGlow: 0 },
     toWinner: { flight: 420, hold: 170, merge: 130, potPulse: 0, winnerGlow: 380 },
+    bountyToWinner: { flight: 550, hold: 250, merge: 160, potPulse: 0, winnerGlow: 450 },
+    bombPotAnte: { flight: 420, hold: 190, merge: 140, potPulse: 360, winnerGlow: 0 },
   },
 };
 
 export function getTiming(speed: AnimationSpeed, kind: ChipTransfer["kind"]): StageTiming {
-  return SPEED_MAP[speed][kind];
+  const preset = SPEED_MAP[speed];
+  if (kind === "bountyToWinner") return preset.bountyToWinner;
+  if (kind === "bombPotAnte") return preset.bombPotAnte;
+  return preset[kind];
 }
 
 /** Total duration of all 3 stages combined */

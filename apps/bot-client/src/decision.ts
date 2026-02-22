@@ -311,10 +311,44 @@ function computeRawFallbackMix(
   raiseContext: RaiseContext,
   mcEquity?: number,
 ): Mix {
-  // If can check → check-heavy, with some raises for aggressive profiles
+  // If can check → decide between check and bet/raise based on hand strength
+  // fold resolves to check via resolveWithLegality when canCheck is true
   if (la.canCheck) {
-    const raiseChance = la.canRaise ? (profile.actionWeights.raise > 1.2 ? 0.20 : 0.05) : 0;
-    return { raise: raiseChance, call: 0, fold: 0 };
+    if (!la.canRaise) {
+      // Can only check
+      return { raise: 0, call: 0, fold: 1 };
+    }
+
+    const str = mcEquity ?? (holeCards ? quickHandStrength(holeCards, state.board, state.street) : 0.5);
+    const aggressive = profile.actionWeights.raise > 1.2;
+
+    let raiseChance: number;
+    if (state.street === 'PREFLOP') {
+      // Preflop unopened: prefer raising (opening) over limping
+      if (str >= 0.65) {
+        raiseChance = aggressive ? 0.80 : 0.65;
+      } else if (str >= 0.50) {
+        raiseChance = aggressive ? 0.55 : 0.40;
+      } else if (str >= 0.35) {
+        raiseChance = aggressive ? 0.30 : 0.15;
+      } else {
+        raiseChance = aggressive ? 0.12 : 0.05;
+      }
+    } else {
+      // Postflop: check vs bet based on hand strength
+      if (str >= 0.75) {
+        raiseChance = aggressive ? 0.75 : 0.60;
+      } else if (str >= 0.55) {
+        raiseChance = aggressive ? 0.40 : 0.25;
+      } else if (str >= 0.35) {
+        raiseChance = aggressive ? 0.20 : 0.10;
+      } else {
+        // Weak: mostly check, small bluff frequency
+        raiseChance = aggressive ? 0.10 : 0.05;
+      }
+    }
+
+    return { raise: raiseChance, call: 0, fold: 1 - raiseChance };
   }
 
   // If we don't know our cards, use generic heuristic

@@ -518,6 +518,37 @@
       0 0 0 6px #12122a,
       0 16px 48px rgba(0, 0, 0, 0.5);
   }
+  /* Game mode badges on table surface */
+  .cp-game-mode-badges {
+    position: absolute;
+    top: 12%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .cp-game-mode-badge {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+    opacity: 0.55;
+    backdrop-filter: blur(2px);
+  }
+  .cp-game-mode-badge--bomb {
+    color: #fdba74;
+    background: rgba(234, 88, 12, 0.15);
+    border: 1px solid rgba(251, 146, 60, 0.25);
+  }
+  .cp-game-mode-badge--72 {
+    color: #fde68a;
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(252, 211, 77, 0.25);
+  }
   .cp-table-center {
     position: absolute;
     inset: 0;
@@ -883,6 +914,52 @@
     background: radial-gradient(circle, rgba(250, 204, 21, 0.38) 0%, rgba(250, 204, 21, 0) 65%);
     pointer-events: none;
     animation: cpChipWinnerSpark 420ms ease-out 1;
+  }
+  /* 7-2 Bounty chip — amber/gold variant */
+  .cp-chip-token--bounty {
+    background:
+      radial-gradient(circle at 35% 30%, rgba(255,255,255,0.38), transparent 42%),
+      repeating-conic-gradient(from 0deg, rgba(255,255,255,0.32) 0deg 12deg, transparent 12deg 24deg),
+      linear-gradient(145deg, #f59e0b, #d97706) !important;
+    border-color: rgba(245, 158, 11, 0.7);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+  }
+  .cp-chip-flight--bounty .cp-chip-label {
+    border-color: rgba(245, 158, 11, 0.6);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.9));
+    color: #1f2937;
+    font-size: 11px;
+    padding: 2px 8px;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+  }
+  /* Bomb Pot Ante chip — orange variant */
+  .cp-chip-token--bomb-pot {
+    background:
+      radial-gradient(circle at 35% 30%, rgba(255,255,255,0.38), transparent 42%),
+      repeating-conic-gradient(from 0deg, rgba(255,255,255,0.32) 0deg 12deg, transparent 12deg 24deg),
+      linear-gradient(145deg, #f97316, #ea580c) !important;
+    border-color: rgba(249, 115, 22, 0.7);
+    box-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+  }
+  .cp-chip-flight--bomb-pot .cp-chip-label {
+    border-color: rgba(249, 115, 22, 0.6);
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.95), rgba(234, 88, 12, 0.9));
+    color: #1f2937;
+    font-weight: 800;
+    padding: 2px 8px;
+    box-shadow: 0 0 8px rgba(249, 115, 22, 0.3);
+  }
+  .cp-chip-ring--bomb-pot {
+    position: absolute;
+    inset: -9px;
+    border-radius: 999px;
+    border: 2px solid rgba(249, 115, 22, 0.6);
+    pointer-events: none;
+    animation: cpChipBombPotRing 300ms ease-out 1;
+  }
+  @keyframes cpChipBombPotRing {
+    from { opacity: 0.8; transform: scale(0.5); }
+    to { opacity: 0; transform: scale(1.6); }
   }
   .cp-hero-strip {
     display: none;
@@ -1555,6 +1632,7 @@
     .cp-table-canvas--winner-flare::after,
     .cp-chip-ring--pot,
     .cp-chip-ring--winner,
+    .cp-chip-ring--bomb-pot,
     .cp-chip-winner-spark,
     .cp-chip-flight-body--arc,
     .cp-seat-win-pop,
@@ -3090,6 +3168,53 @@
   0% { opacity: 0.75; transform: scale(0.65); }
   100% { opacity: 0; transform: scale(1.5); }
 }
+/* ── 7-2 Bounty Reveal Animations ── */
+@keyframes cp72CardReveal {
+  0%   { opacity: 0; transform: rotateY(-90deg) scale(0.7); }
+  50%  { opacity: 1; transform: rotateY(10deg) scale(1.08); }
+  75%  { transform: rotateY(-3deg) scale(1.02); }
+  100% { opacity: 1; transform: rotateY(0deg) scale(1); }
+}
+@keyframes cp72Glow {
+  0%   { box-shadow: 0 0 20px 4px rgba(251, 191, 36, 0.3); }
+  100% { box-shadow: 0 0 40px 12px rgba(251, 191, 36, 0.6); }
+}
+@keyframes cp72TitleIn {
+  0%   { opacity: 0; transform: translateY(12px) scale(0.9); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes cp72BadgeIn {
+  0%   { opacity: 0; transform: scale(0.5); }
+  60%  { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.cp-72-card-reveal {
+  animation: cp72CardReveal 600ms var(--cp-ease-out) both;
+  perspective: 600px;
+}
+.cp-72-glow {
+  animation: cp72Glow 1.5s ease-in-out infinite alternate;
+  border-radius: var(--cp-radius-md);
+}
+.cp-72-title {
+  animation: cp72TitleIn 400ms var(--cp-ease-out) both;
+}
+.cp-72-bounty-badge {
+  animation: cp72BadgeIn 500ms var(--cp-ease-out) both;
+  animation-delay: 600ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cp-72-card-reveal,
+  .cp-72-glow,
+  .cp-72-title,
+  .cp-72-bounty-badge {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+    box-shadow: 0 0 20px 4px rgba(251, 191, 36, 0.4);
+  }
+}
+
 @keyframes cpToastIn {
   from { opacity: 0; transform: translateY(-8px) scale(0.98); }
   to { opacity: 1; transform: translateY(0) scale(1); }
@@ -3275,8 +3400,107 @@
   display: inline-block;
   animation: cp-bomb-pulse 350ms ease-in-out;
 }
+
+/* ── Bomb Pot Table Glow ── */
+.cp-table-canvas--bomb-pot {
+  box-shadow:
+    0 0 30px rgba(249, 115, 22, 0.15),
+    0 0 60px rgba(249, 115, 22, 0.08),
+    inset 0 0 40px rgba(249, 115, 22, 0.05);
+}
+.cp-table-canvas--bomb-pot::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  border: 2px solid rgba(249, 115, 22, 0.25);
+  animation: cpBombPotGlow 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+@keyframes cpBombPotGlow {
+  0%, 100% { opacity: 0.4; border-color: rgba(249, 115, 22, 0.2); }
+  50% { opacity: 1; border-color: rgba(249, 115, 22, 0.45); }
+}
+
+/* ── Bomb Pot Announcement Overlay ── */
+.cp-bomb-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.cp-bomb-overlay__backdrop {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(249, 115, 22, 0.08) 0%, rgba(0, 0, 0, 0.4) 70%);
+}
+.cp-bomb-overlay__content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.cp-bomb-overlay__title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #f97316;
+  text-shadow: 0 0 30px rgba(249, 115, 22, 0.6), 0 0 60px rgba(249, 115, 22, 0.3);
+}
+.cp-bomb-overlay__subtitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(251, 191, 36, 0.8);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.cp-bomb-overlay--enter .cp-bomb-overlay__backdrop {
+  animation: cpBombBackdropIn 400ms ease-out both;
+}
+.cp-bomb-overlay--enter .cp-bomb-overlay__title {
+  animation: cpBombTitleIn 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.cp-bomb-overlay--enter .cp-bomb-overlay__subtitle {
+  animation: cpBombTitleIn 350ms cubic-bezier(0.22, 1, 0.36, 1) 100ms both;
+}
+.cp-bomb-overlay--hold .cp-bomb-overlay__title {
+  animation: cpBombTitlePulse 600ms ease-in-out 1;
+}
+.cp-bomb-overlay--exit {
+  animation: cpBombOverlayOut 250ms ease-in both;
+}
+@keyframes cpBombBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes cpBombTitleIn {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes cpBombTitlePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); text-shadow: 0 0 40px rgba(249, 115, 22, 0.8), 0 0 80px rgba(249, 115, 22, 0.4); }
+}
+@keyframes cpBombOverlayOut {
+  from { opacity: 1; }
+  to { opacity: 0; transform: scale(0.95); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .cp-bomb-icon { animation: none; }
+  .cp-bomb-icon,
+  .cp-table-canvas--bomb-pot::after,
+  .cp-bomb-overlay--enter .cp-bomb-overlay__backdrop,
+  .cp-bomb-overlay--enter .cp-bomb-overlay__title,
+  .cp-bomb-overlay--enter .cp-bomb-overlay__subtitle,
+  .cp-bomb-overlay--hold .cp-bomb-overlay__title,
+  .cp-bomb-overlay--exit,
+  .cp-chip-ring--bomb-pot { animation: none !important; }
 }
 
 /* ── Responsive visibility ── */

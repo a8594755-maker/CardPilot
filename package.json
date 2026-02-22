@@ -18,7 +18,11 @@
     "typecheck": "npm run typecheck --workspaces",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "ci:verify": "npm run lint && npm run typecheck && npm run test && npm run build:web && npm run build:server"
+    "ci:verify": "npm run lint && npm run typecheck && npm run test && npm run build:web && npm run build:server",
+    "self-play": "pnpm --filter bot-client self-play",
+    "self-play:v2": "pnpm --filter bot-client self-play -- --mode train --version v2 --target 100000",
+    "train": "pnpm --filter fast-model train",
+    "train:v2": "pnpm --filter fast-model train:v2"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

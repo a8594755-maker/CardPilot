@@ -1,5 +1,5 @@
 import { useRef, useCallback, useState, useEffect } from "react";
-import type { TableState, SettlementResult } from "@cardpilot/shared-types";
+import type { TableState, SettlementResult, SevenTwoBountyInfo } from "@cardpilot/shared-types";
 import {
   type ChipTransfer,
   type AnimationSpeed,
@@ -21,6 +21,8 @@ interface UseChipAnimationDriverResult {
   onSnapshot: (next: TableState) => void;
   /** Call when hand_ended with settlement fires */
   onSettlement: (settlement: SettlementResult) => void;
+  /** Call when 7-2 bounty is claimed — animates chips from paying seats to winner */
+  onBountyClaim: (bounty: SevenTwoBountyInfo) => void;
 }
 
 /**
@@ -73,6 +75,42 @@ export function useChipAnimationDriver(
         for (const p of next.players) committed[p.seat] = p.streetCommitted;
         prevCommitted.current = committed;
         prevHandId.current = next.handId;
+
+        // Bomb pot ante animation: ante uses countToStreet=false so streetCommitted
+        // stays at 0 — detect from the actions array instead
+        if (next.isBombPotHand && next.actions && next.actions.length > 0) {
+          const anteActions = next.actions.filter(
+            (a) => a.type === "ante" && a.amount > 0,
+          );
+          if (anteActions.length > 0) {
+            const potPos = getAnchorCenter(pot, container);
+            if (potPos) {
+              const timing = getTiming(spd, "bombPotAnte");
+              const STAGGER_MS = 60;
+              anteActions.forEach((action, idx) => {
+                const seatEl = seats[action.seat];
+                const fromPos = getAnchorCenter(seatEl, container);
+                if (!fromPos) return;
+                setTimeout(() => {
+                  setTransfers((prev) => [
+                    ...prev,
+                    {
+                      id: nextTransferId(),
+                      from: fromPos,
+                      to: potPos,
+                      amount: action.amount,
+                      kind: "bombPotAnte" as const,
+                      seat: action.seat,
+                      createdAt: Date.now(),
+                      timing,
+                    },
+                  ]);
+                }, idx * STAGGER_MS);
+              });
+            }
+          }
+        }
+
         return;
       }
 
@@ -163,6 +201,49 @@ export function useChipAnimationDriver(
     [], // stable — reads from refs
   );
 
+  // ── Bounty-driven: paying seats → winner seat ──
+  const onBountyClaim = useCallback(
+    (bounty: SevenTwoBountyInfo) => {
+      const spd = speedRef.current;
+      if (spd === "off") return;
+
+      const { container, seats } = anchorsRef.current;
+      if (!container) return;
+
+      const winnerSeatEl = seats[bounty.winnerSeat];
+      const toPos = getAnchorCenter(winnerSeatEl, container);
+      if (!toPos) return;
+
+      const timing = getTiming(spd, "bountyToWinner");
+
+      bounty.payingSeats.forEach((payerSeat, idx) => {
+        const payerEl = seats[payerSeat];
+        const fromPos = getAnchorCenter(payerEl, container);
+        if (!fromPos) return;
+
+        const amount = Math.abs(bounty.bountyBySeat[payerSeat] ?? bounty.bountyPerPlayer);
+
+        // Stagger: each payer chip launches 200ms after the previous
+        setTimeout(() => {
+          setTransfers((prev) => [
+            ...prev,
+            {
+              id: nextTransferId(),
+              from: fromPos,
+              to: toPos,
+              amount,
+              kind: "bountyToWinner" as const,
+              seat: payerSeat,
+              createdAt: Date.now(),
+              timing,
+            },
+          ]);
+        }, idx * 200);
+      });
+    },
+    [], // stable — reads from refs
+  );
+
   // Clean up stale transfers (safety: remove any older than 8s)
   useEffect(() => {
     const interval = setInterval(() => {
@@ -172,5 +253,5 @@ export function useChipAnimationDriver(
     return () => clearInterval(interval);
   }, []);
 
-  return { transfers, removeTransfer, onSnapshot, onSettlement };
+  return { transfers, removeTransfer, onSnapshot, onSettlement, onBountyClaim };
 }

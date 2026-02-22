@@ -26,6 +26,8 @@ import { ProfilePage } from "./pages/ProfilePage";
 import type { ClubListItem, ClubDetailPayload } from "@cardpilot/shared-types";
 import { saveHand, autoTag, classifyStartingHandBucket, type HandRecord, type HandActionRecord } from "./lib/hand-history.js";
 import { ChipAnimationLayer } from "./components/ChipAnimationLayer";
+import { SevenTwoRevealOverlay } from "./components/SevenTwoRevealOverlay";
+import { BombPotOverlay } from "./components/BombPotOverlay";
 import { useChipAnimationDriver, type ChipAnimationAnchors } from "./hooks/useChipAnimationDriver";
 import { type AnimationSpeed, loadAnimationSpeed, saveAnimationSpeed } from "./lib/chip-animation.js";
 import { formatChips, makeChipFormatter } from "./lib/format-chips";
@@ -278,7 +280,12 @@ export function App() {
     bountyPerPlayer: number; totalBounty: number;
   } | null>(null);
   const [sevenTwoBountyResult, setSevenTwoBountyResult] = useState<SevenTwoBountyInfo | null>(null);
+  const [sevenTwoRevealActive, setSevenTwoRevealActive] = useState<SevenTwoBountyInfo | null>(null);
   const [postHandRevealedCards, setPostHandRevealedCards] = useState<Record<number, [string, string]>>({});
+
+  /* ── Bomb pot overlay state ── */
+  const [bombPotOverlayActive, setBombPotOverlayActive] = useState<{ anteAmount: number } | null>(null);
+  const lastBombPotOverlayHandIdRef = useRef<string | null>(null);
 
   /* ── Table theme ── */
   type TableTheme = "green" | "blue";
@@ -319,11 +326,13 @@ export function App() {
     pot: potRef.current,
     seats: seatRefs.current,
   };
-  const { transfers: chipTransfers, removeTransfer: removeChipTransfer, onSnapshot: chipOnSnapshot, onSettlement: chipOnSettlement } = useChipAnimationDriver(chipAnchorsLive, chipAnimSpeed);
+  const { transfers: chipTransfers, removeTransfer: removeChipTransfer, onSnapshot: chipOnSnapshot, onSettlement: chipOnSettlement, onBountyClaim: chipOnBountyClaim } = useChipAnimationDriver(chipAnchorsLive, chipAnimSpeed);
   const chipOnSnapshotRef = useRef(chipOnSnapshot);
   chipOnSnapshotRef.current = chipOnSnapshot;
   const chipOnSettlementRef = useRef(chipOnSettlement);
   chipOnSettlementRef.current = chipOnSettlement;
+  const chipOnBountyClaimRef = useRef(chipOnBountyClaim);
+  chipOnBountyClaimRef.current = chipOnBountyClaim;
 
   /* ── Table canvas scale (prevents clipping by fitting canvas into available space) ── */
   /* Portrait mode uses PokerNow's 1/1.8 tall canvas (500×900); desktop uses 16:9 (1600×900) */
@@ -815,6 +824,19 @@ export function App() {
 
       chipOnSnapshotRef.current(d);
       setSnapshot(d);
+
+      // Bomb pot overlay: show dramatic announcement when a new bomb pot hand starts
+      if (
+        d.isBombPotHand &&
+        d.handId &&
+        d.handId !== lastBombPotOverlayHandIdRef.current
+      ) {
+        lastBombPotOverlayHandIdRef.current = d.handId;
+        const anteAction = d.actions?.find((a: { type: string; amount: number }) => a.type === "ante");
+        const anteAmount = anteAction?.amount ?? 0;
+        setBombPotOverlayActive({ anteAmount });
+      }
+
       if (d.winners) setWinners(d.winners);
       setAllInLock((prev) => (prev && prev.handId !== d.handId ? null : prev));
       if (!d.handId) {
@@ -1137,12 +1159,25 @@ export function App() {
     });
     s.on("post_hand_reveal", (d: { tableId: string; seat: number; cards: [string, string] }) => {
       setPostHandRevealedCards((prev) => ({ ...prev, [d.seat]: d.cards }));
+      // Auto-clear after 8s so revealed cards stay visible long enough
+      setTimeout(() => {
+        setPostHandRevealedCards((prev: Record<number, [string, string]>) => {
+          const next = { ...prev };
+          delete next[d.seat];
+          return next;
+        });
+      }, 8000);
     });
     s.on("seven_two_bounty_claimed", (d: { tableId: string; handId: string; bounty: SevenTwoBountyInfo }) => {
       setSevenTwoBountyResult(d.bounty);
       setSevenTwoBountyPrompt(null);
       const winnerName = snapshotRef.current?.players.find((p) => p.seat === d.bounty.winnerSeat)?.name ?? `Seat ${d.bounty.winnerSeat}`;
       showToast(`7-2 Bounty! ${winnerName} collected +${d.bounty.totalBounty}`);
+      // Trigger 7-2 reveal overlay + bounty chip animations + SFX
+      setSevenTwoRevealActive(d.bounty);
+      chipOnBountyClaimRef.current(d.bounty);
+      playUiSfx("bounty72");
+      haptic("bounty");
     });
     s.on("reveal_board_card", (d: {
       handId: string;
@@ -1288,8 +1323,8 @@ export function App() {
           showToast(winnerNames.length === 1 ? `Winner: ${winnerNames[0]}` : `Winners: ${winnerNames.join(", ")}`);
         }
 
-        // Auto-advance timer: 2s normal, 4s all-in
-        const lingerMs = wasAllIn ? 4000 : 2000;
+        // Auto-advance timer: 4s normal, 6s all-in
+        const lingerMs = wasAllIn ? 6000 : 4000;
         if (lingerTimerRef.current) clearTimeout(lingerTimerRef.current);
         lingerTimerRef.current = setTimeout(() => {
           setLingerActive(false);
@@ -1304,6 +1339,8 @@ export function App() {
         // 7-2 bounty: if auto-applied at showdown, display result immediately
         if (d.settlement.sevenTwoBounty) {
           setSevenTwoBountyResult(d.settlement.sevenTwoBounty);
+          setSevenTwoRevealActive(d.settlement.sevenTwoBounty);
+          chipOnBountyClaimRef.current(d.settlement.sevenTwoBounty);
         } else {
           // Hero won with unrevealed 7-2 → server has pending claim, show prompt
           const heroSeatNow = seatRef.current;
@@ -1493,6 +1530,9 @@ export function App() {
       showToast(d.reason);
     });
     s.on("system_message", (d: { message: string }) => showToast(d.message));
+    s.on("bomb_pot_queued", (d: { queuedBy: string }) => {
+      showToast(`\u{1F4A3} Bomb Pot queued for next hand by ${d.queuedBy}`);
+    });
     s.on("settings_updated", (d: { applied: Record<string, unknown>; deferred: Record<string, unknown> }) => {
       const keys = [...Object.keys(d.applied), ...Object.keys(d.deferred)];
       if (keys.length > 0) showToast(`Settings updated: ${keys.join(", ")}`);
@@ -2789,9 +2829,25 @@ export function App() {
                   {/* Table surface + overlays — CSS green felt, wider */}
                   <div
                     ref={tableContainerRef}
-                    className={`cp-table-canvas ${lingerActive ? "cursor-pointer" : ""} ${winnerFlareActive ? "cp-table-canvas--winner-flare" : ""}`}
+                    className={`cp-table-canvas ${lingerActive ? "cursor-pointer" : ""} ${winnerFlareActive ? "cp-table-canvas--winner-flare" : ""} ${snapshot?.isBombPotHand ? "cp-table-canvas--bomb-pot" : ""}`}
                     onClick={lingerActive ? () => { clearLinger(); setWinners(null); setSettlement(null); } : undefined}>
                     <div className={`cp-table-felt ${tableTheme === "blue" ? "cp-table-felt--blue" : "cp-table-felt--green"}`} />
+
+                    {/* Active game mode badges on table surface */}
+                    {(roomState?.settings.bombPotEnabled || (roomState?.settings.sevenTwoBounty ?? 0) > 0) && (
+                      <div className="cp-game-mode-badges">
+                        {roomState?.settings.bombPotEnabled && (
+                          <span className="cp-game-mode-badge cp-game-mode-badge--bomb">
+                            💣 Bomb Pot
+                          </span>
+                        )}
+                        {(roomState?.settings.sevenTwoBounty ?? 0) > 0 && (
+                          <span className="cp-game-mode-badge cp-game-mode-badge--72">
+                            🃏 7-2 Bounty
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                     {/* Community cards — centered on table (supports up to 3 runout boards) */}
                     <div className="cp-table-center">
@@ -3028,7 +3084,7 @@ export function App() {
                             socket?.emit("claim_seven_two_bounty", { tableId, seat });
                             setPostHandShowAvailable(false);
                           }}
-                          className="text-[11px] px-4 py-2 rounded-lg bg-amber-500/25 text-amber-200 border border-amber-400/50 hover:bg-amber-500/40 transition-all font-bold animate-pulse"
+                          className="text-base px-6 py-3 rounded-lg bg-amber-500/25 text-amber-200 border-2 border-amber-400/50 ring-2 ring-amber-400/60 hover:bg-amber-500/40 transition-all font-extrabold animate-pulse min-h-[48px]"
                         >
                           SHOW 7-2 &amp; Collect Bounty (+{sevenTwoBountyPrompt.totalBounty})
                         </button>
@@ -3039,7 +3095,7 @@ export function App() {
                               socket?.emit("show_hand_post", { tableId, seat });
                               setPostHandShowAvailable(false);
                             }}
-                            className="text-[10px] px-3 py-1.5 rounded-lg bg-white/5 text-amber-300 border border-amber-500/30 hover:bg-amber-500/15 transition-all"
+                            className="text-sm px-5 py-2.5 rounded-lg bg-white/5 text-amber-300 border border-amber-500/30 hover:bg-amber-500/15 transition-all font-semibold min-h-[44px]"
                           >
                             SHOW
                           </button>
@@ -3052,13 +3108,31 @@ export function App() {
                   {sevenTwoBountyResult && (
                     <div className="cp-hero-linger animate-[cpFadeSlideUp_0.3s_ease-out]">
                       <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/15 border border-amber-500/30">
-                        <span className="text-[10px] font-bold text-amber-300 uppercase tracking-wider">7-2 Bounty</span>
-                        <span className="text-[11px] text-amber-100">
+                        <span className="text-xs font-bold text-amber-300 uppercase tracking-wider">7-2 Bounty</span>
+                        <span className="text-sm text-amber-100">
                           {snapshot?.players.find((p) => p.seat === sevenTwoBountyResult.winnerSeat)?.name ?? `Seat ${sevenTwoBountyResult.winnerSeat}`}
                           {" "}collected +{sevenTwoBountyResult.totalBounty}
                         </span>
                       </div>
                     </div>
+                  )}
+
+                  {/* 7-2 bounty reveal overlay animation */}
+                  {sevenTwoRevealActive && (
+                    <SevenTwoRevealOverlay
+                      winnerName={snapshot?.players.find((p) => p.seat === sevenTwoRevealActive.winnerSeat)?.name ?? `Seat ${sevenTwoRevealActive.winnerSeat}`}
+                      winnerCards={sevenTwoRevealActive.winnerCards}
+                      totalBounty={sevenTwoRevealActive.totalBounty}
+                      onDismiss={() => setSevenTwoRevealActive(null)}
+                    />
+                  )}
+
+                  {/* Bomb Pot announcement overlay */}
+                  {bombPotOverlayActive && (
+                    <BombPotOverlay
+                      anteAmount={bombPotOverlayActive.anteAmount}
+                      onDismiss={() => setBombPotOverlayActive(null)}
+                    />
                   )}
 
                   {/* First-hand manual start gate (normal tables only). Club tables stay auto-start. */}
@@ -3367,28 +3441,28 @@ export function App() {
                 />
 
                 {isMyShowdownDecision && snapshot?.handId && (
-                  <div className="mt-2 p-3 rounded-xl border border-indigo-500/30 bg-indigo-500/10">
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <div className="text-[10px] uppercase tracking-wider text-indigo-200">Showdown Decision</div>
+                  <div className="mt-2 p-4 rounded-xl border-2 border-indigo-400/50 bg-indigo-500/15 shadow-lg shadow-indigo-500/10">
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <div className="text-xs uppercase tracking-wider text-indigo-200 font-semibold">Showdown Decision</div>
                       {!myIsWinner && (roomState?.settings.autoMuckLosingHands ?? true) && !myRevealedCards && !myIsMucked && (
-                        <div className="text-[10px] text-slate-300">Auto-muck in ~4s</div>
+                        <div className="text-xs text-slate-300 font-mono tabular-nums">Auto-muck in ~4s</div>
                       )}
                     </div>
                     {myRevealedCards ? (
-                      <div className="text-xs text-emerald-300">Your hand is revealed to the table.</div>
+                      <div className="text-sm text-emerald-300 font-semibold">Your hand is revealed to the table.</div>
                     ) : myIsMucked ? (
-                      <div className="text-xs text-slate-300">You mucked your hand.</div>
+                      <div className="text-sm text-slate-300">You mucked your hand.</div>
                     ) : (
-                      <div className="flex gap-2">
+                      <div className="flex gap-3">
                         <button
                           onClick={() => socket?.emit("show_hand", { tableId, handId: snapshot.handId!, seat, scope: "table" })}
-                          className="btn-action flex-1 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600"
+                          className="cp-btn cp-action-btn cp-btn-call flex-1 text-sm font-bold min-h-[48px]"
                         >
                           SHOW
                         </button>
                         <button
                           onClick={() => socket?.emit("muck_hand", { tableId, handId: snapshot.handId!, seat })}
-                          className="btn-action flex-1 bg-white/10 border border-white/20 text-slate-200 hover:bg-white/15"
+                          className="cp-btn cp-action-btn cp-btn-fold flex-1 text-sm font-bold min-h-[48px]"
                         >
                           MUCK
                         </button>

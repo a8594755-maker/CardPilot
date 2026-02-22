@@ -1,5 +1,6 @@
 // ===== Core Poker Types =====
 export const SHOWDOWN_SPEED_DELAYS_MS = {
+    turbo: 300,
     fast: 3_000,
     normal: 6_000,
     slow: 9_000,

@@ -261,7 +261,9 @@ export class RoomManager {
       "gameType", "maxPlayers", "smallBlind", "bigBlind", "ante",
       "blindStructure", "buyInMin", "buyInMax", "rebuyAllowed", "addOnAllowed",
       "straddleAllowed", "runItTwice", "runItTwiceMode",
-      "bombPotEnabled", "bombPotFrequency", "doubleBoardMode",
+      "bombPotEnabled", "bombPotTriggerMode", "bombPotFrequency",
+      "bombPotProbability", "bombPotAnteMode", "bombPotAnteValue",
+      "doubleBoardMode",
       "sevenTwoBounty",
     ];
 

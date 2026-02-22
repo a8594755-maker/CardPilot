@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { io, type Socket } from 'socket.io-client';
-import { appendFileSync, existsSync, mkdirSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getProfile } from './profiles.js';
@@ -10,8 +10,9 @@ import {
   recordAction, recordHandResult,
   computeAdaptiveAdjustments, type SessionStats,
 } from './session-stats.js';
-import { encodeFeatures, loadModel, type MLP } from '@cardpilot/fast-model';
+import { encodeFeatures, encodeFeaturesV2, loadModel, type MLP } from '@cardpilot/fast-model';
 import type { TrainingSample } from '@cardpilot/fast-model';
+import { computeEvLabels } from './ev-teacher.js';
 import type { TableState, AdvicePayload, StrategyMix } from './types.js';
 
 // New module imports
@@ -33,6 +34,8 @@ interface BotArgs {
   name?: string;
   userId?: string;
   delay?: number; // ms to wait before acting (humanize)
+  mode?: 'train' | 'play';       // V2: train=clean labels, play=full personality
+  version?: 'v1' | 'v2';         // V2: model/data version
 }
 
 function parseArgs(argv: string[]): BotArgs {
@@ -54,13 +57,15 @@ function parseArgs(argv: string[]): BotArgs {
   const name = args['name'];
   const userId = args['userId'];
   const delay = parseInt(args['delay'] ?? '800', 10);
+  const mode = (args['mode'] ?? 'play') as 'train' | 'play';
+  const version = (args['version'] ?? 'v1') as 'v1' | 'v2';
 
   if (!room) {
-    console.error('Usage: --room <ROOM_CODE> [--server url] [--seat N] [--buyin N] [--profile id] [--name str] [--userId str] [--delay ms]');
+    console.error('Usage: --room <ROOM_CODE> [--server url] [--seat N] [--buyin N] [--profile id] [--name str] [--userId str] [--delay ms] [--mode train|play] [--version v1|v2]');
     process.exit(1);
   }
 
-  return { server, room, seat, buyin, profile, name, userId, delay };
+  return { server, room, seat, buyin, profile, name, userId, delay, mode, version };
 }
 
 // ===== Bot class =====
@@ -93,11 +98,18 @@ class PokerBot {
   private lastProcessedActionCount = 0; // track observed actions for opponent model
   private lastHandStrength: number | null = null; // for bad beat detection
 
+  // V2 mode/version
+  private mode: 'train' | 'play';
+  private version: 'v1' | 'v2';
+  private v2DataDir: string = '';
+
   constructor(private args: BotArgs) {
     this.mySeat = args.seat;
     this.profile = getProfile(args.profile);
     this.myName = args.name ?? `Bot-${this.profile.displayName}`;
     this.actDelay = args.delay ?? 800;
+    this.mode = args.mode ?? 'play';
+    this.version = args.version ?? 'v1';
 
     // ── Load persistent session stats ──
     this.sessionStats = loadSessionStats(this.profile.id);
@@ -118,25 +130,49 @@ class PokerBot {
     // ── Initialize trace logger ──
     this.traceLogger = new TraceLogger();
 
-    // ── Load fast model if available ──
+    // ── Load fast model if available (version-aware) ──
     const __dirname = dirname(fileURLToPath(import.meta.url));
-    const modelPath = join(__dirname, '..', '..', '..', 'packages', 'fast-model', 'models', 'model-latest.json');
+    const modelFileName = this.version === 'v2' ? 'model-v2-latest.json' : 'model-latest.json';
+    const modelPath = join(__dirname, '..', '..', '..', 'packages', 'fast-model', 'models', modelFileName);
     this.fastModel = loadModel(modelPath);
     if (this.fastModel) {
-      this.log('Fast model loaded successfully');
+      this.log(`Fast model loaded (${this.version})`);
     } else {
       this.log('No fast model found, will use heuristic fallback');
     }
 
-    // ── Data collection directory ──
+    // ── Hot-reload model every 5 minutes ──
+    let lastModelMtime = 0;
+    try { lastModelMtime = statSync(modelPath).mtimeMs; } catch {}
+    setInterval(() => {
+      try {
+        const currentMtime = statSync(modelPath).mtimeMs;
+        if (currentMtime > lastModelMtime) {
+          const newModel = loadModel(modelPath);
+          if (newModel) {
+            this.fastModel = newModel;
+            lastModelMtime = currentMtime;
+            this.log('Model hot-reloaded!');
+          }
+        }
+      } catch {}
+    }, 5 * 60 * 1000);
+
+    // ── Data collection directories ──
     this.dataDir = join(__dirname, '..', '..', '..', 'data');
     if (!existsSync(this.dataDir)) {
       mkdirSync(this.dataDir, { recursive: true });
     }
+    if (this.version === 'v2') {
+      this.v2DataDir = join(this.dataDir, 'v2');
+      if (!existsSync(this.v2DataDir)) {
+        mkdirSync(this.v2DataDir, { recursive: true });
+      }
+    }
 
     const botUserId = args.userId ?? `bot-${this.profile.id}-${this.mySeat}-${Date.now()}`;
 
-    this.log(`Connecting to ${args.server} as "${this.myName}" (profile=${this.profile.id}, seat=${this.mySeat})`);
+    this.log(`Connecting to ${args.server} as "${this.myName}" (profile=${this.profile.id}, seat=${this.mySeat}, mode=${this.mode}, version=${this.version})`);
 
     this.socket = io(args.server, {
       auth: {
@@ -411,31 +447,57 @@ class PokerBot {
       );
       const effectiveStack = Math.min(me.stack, ...villains.map(v => v.stack));
       const bb = state.bigBlind || 1;
+      const callAmount = state.legalActions?.callAmount ?? 0;
 
-      const features = encodeFeatures(
-        this.myCards,
-        state.board,
-        state.street,
-        state.pot,
-        bb,
-        state.legalActions?.callAmount ?? 0,
-        effectiveStack,
-        heroPosition,
-        heroInPosition,
-        numVillains,
-        heroRaisedPreflop,
-      );
+      if (this.version === 'v2') {
+        // V2: 54 features + EV-based labels with sizing
+        const features = encodeFeaturesV2(
+          this.myCards, state.board, state.street, state.pot, bb, callAmount,
+          effectiveStack, heroPosition, heroInPosition, numVillains, heroRaisedPreflop,
+          state.actions, state.players, this.mySeat,
+        );
 
-      const sample: TrainingSample = {
-        f: features.map(v => Math.round(v * 10000) / 10000),
-        l: [advice.mix.raise, advice.mix.call, advice.mix.fold],
-        h: state.handId.slice(0, 8),
-        s: state.street,
-      };
+        const evResult = computeEvLabels({
+          holeCards: this.myCards,
+          board: state.board,
+          street: state.street,
+          pot: state.pot,
+          callAmount,
+          numOpponents: numVillains,
+          minRaise: state.legalActions?.minRaise ?? 0,
+          maxRaise: state.legalActions?.maxRaise ?? 0,
+          bigBlind: bb,
+        });
 
-      const fileIdx = Math.floor(this.sampleCount / this.MAX_SAMPLES_PER_FILE);
-      const filePath = join(this.dataDir, `training-samples${fileIdx > 0 ? `-${fileIdx}` : ''}.jsonl`);
-      appendFileSync(filePath, JSON.stringify(sample) + '\n');
+        const sample: TrainingSample = {
+          f: features.map(v => Math.round(v * 10000) / 10000),
+          l: evResult.actionMix,
+          sz: evResult.sizingMix,
+          h: state.handId.slice(0, 8),
+          s: state.street,
+        };
+
+        const fileIdx = Math.floor(this.sampleCount / this.MAX_SAMPLES_PER_FILE);
+        const filePath = join(this.v2DataDir, `training-samples${fileIdx > 0 ? `-${fileIdx}` : ''}.jsonl`);
+        appendFileSync(filePath, JSON.stringify(sample) + '\n');
+      } else {
+        // V1: 48 features + GTO advice labels
+        const features = encodeFeatures(
+          this.myCards, state.board, state.street, state.pot, bb, callAmount,
+          effectiveStack, heroPosition, heroInPosition, numVillains, heroRaisedPreflop,
+        );
+
+        const sample: TrainingSample = {
+          f: features.map(v => Math.round(v * 10000) / 10000),
+          l: [advice.mix.raise, advice.mix.call, advice.mix.fold],
+          h: state.handId.slice(0, 8),
+          s: state.street,
+        };
+
+        const fileIdx = Math.floor(this.sampleCount / this.MAX_SAMPLES_PER_FILE);
+        const filePath = join(this.dataDir, `training-samples${fileIdx > 0 ? `-${fileIdx}` : ''}.jsonl`);
+        appendFileSync(filePath, JSON.stringify(sample) + '\n');
+      }
       this.sampleCount++;
     } catch {
       // Never let data collection crash the bot
@@ -449,39 +511,52 @@ class PokerBot {
     const advice = this.pendingAdvice;
     this.pendingAdvice = null;
 
-    // Compute adaptive adjustments from session stats
-    const adaptiveAdj = computeAdaptiveAdjustments(this.sessionStats);
-
-    // Compute opponent adjustment for the raiser (if facing one)
-    const raiseContext = analyzeRaiseContext(state, this.mySeat);
-    let opponentAdj;
-    if (raiseContext.raiserSeat != null) {
-      const situation = state.street === 'FLOP' && raiseContext.facingType === 'facing_open'
-        ? 'facing_cbet' as const
-        : raiseContext.facingType !== 'unopened'
-          ? 'facing_raise' as const
-          : 'general' as const;
-      opponentAdj = this.opponentTracker.computeAdjustment(raiseContext.raiserSeat, situation);
-    }
-
     // Track hand strength for bad beat detection
     if (this.myCards) {
       this.lastHandStrength = quickHandStrength(this.myCards, state.board, state.street);
     }
 
-    const result = decide({
-      state,
-      profile: this.profile,
-      advice,
-      holeCards: this.myCards,
-      mySeat: this.mySeat,
-      adaptiveAdj,
-      persona: this.persona,
-      moodState: this.moodState,
-      opponentAdj,
-      handNumber: this.handNumber,
-      fastModel: this.fastModel,
-    });
+    let result;
+    if (this.mode === 'train') {
+      // TRAIN mode: clean decision without personality layers
+      result = decide({
+        state,
+        profile: this.profile,
+        advice,
+        holeCards: this.myCards,
+        mySeat: this.mySeat,
+        fastModel: this.fastModel,
+        // Omit: adaptiveAdj, persona, moodState, opponentAdj, handNumber
+        // This skips persona/mood/opponent/adaptive/mistake layers
+      });
+    } else {
+      // PLAY mode: full personality pipeline
+      const adaptiveAdj = computeAdaptiveAdjustments(this.sessionStats);
+      const raiseContext = analyzeRaiseContext(state, this.mySeat);
+      let opponentAdj;
+      if (raiseContext.raiserSeat != null) {
+        const situation = state.street === 'FLOP' && raiseContext.facingType === 'facing_open'
+          ? 'facing_cbet' as const
+          : raiseContext.facingType !== 'unopened'
+            ? 'facing_raise' as const
+            : 'general' as const;
+        opponentAdj = this.opponentTracker.computeAdjustment(raiseContext.raiserSeat, situation);
+      }
+
+      result = decide({
+        state,
+        profile: this.profile,
+        advice,
+        holeCards: this.myCards,
+        mySeat: this.mySeat,
+        adaptiveAdj,
+        persona: this.persona,
+        moodState: this.moodState,
+        opponentAdj,
+        handNumber: this.handNumber,
+        fastModel: this.fastModel,
+      });
+    }
 
     this.log(
       `Hand ${state.handId.slice(0, 8)} ${state.street} pot=${state.pot} → ${result.action}` +

@@ -2,7 +2,7 @@
  * Feature encoder: converts poker game state into a fixed-length numeric vector
  * suitable for MLP input. All values normalized to roughly [0, 1].
  *
- * Feature layout (48 features total):
+ * V1 Feature layout (48 features):
  *   [0..4]   Hole cards: rank1, rank2, suited, paired, gap
  *   [5..29]  Board: 5 slots × 5 (rank + suit one-hot×4)
  *   [30..32] Street one-hot: flop, turn, river
@@ -10,6 +10,14 @@
  *   [40]     In position (0/1)
  *   [41..44] Pot geometry: pot/100bb, toCall/100bb, SPR, potOdds
  *   [45..47] Action context: numVillains/5, facingBet, isAggressor
+ *
+ * V2 extends with betting history summary (54 features):
+ *   [48]     is3betPot (0/1)
+ *   [49]     isCheckRaised (0/1) — this street
+ *   [50]     raiseCountStreet / 5
+ *   [51]     raiseCountTotal / 10
+ *   [52]     lastBetPotFrac / 2 — last bet as fraction of pot, capped
+ *   [53]     allInPressure (0/1) — any opponent all-in
  */
 
 const RANK_VALUES: Record<string, number> = {
@@ -23,8 +31,11 @@ const POSITION_INDEX: Record<string, number> = {
   'UTG': 0, 'MP': 1, 'HJ': 2, 'CO': 3, 'BTN': 4, 'SB': 5, 'BB': 6,
 };
 
-/** Total number of features in the encoded vector */
+/** Total number of features in V1 encoded vector */
 export const FEATURE_COUNT = 48;
+
+/** Total number of features in V2 encoded vector (with betting history) */
+export const FEATURE_COUNT_V2 = 54;
 
 function rankNorm(card: string): number {
   const r = RANK_VALUES[card[0]] ?? 0;
@@ -120,6 +131,123 @@ export function encodeFeatures(
     toCall > 0 ? 1 : 0,     // facing bet
     isAggressor ? 1 : 0,
   );
+
+  return features;
+}
+
+// ── V2 action history types (minimal, matching game state) ──
+
+export interface ActionRecord {
+  seat: number;
+  street: string;
+  type: string;     // 'fold' | 'check' | 'call' | 'raise' | 'all_in' | ...
+  amount: number;
+}
+
+export interface PlayerRecord {
+  seat: number;
+  allIn: boolean;
+  folded: boolean;
+}
+
+// ── V2 helper functions ──
+
+function countPreflopRaises(actions: ActionRecord[]): number {
+  let count = 0;
+  for (const a of actions) {
+    if (a.street === 'PREFLOP' && (a.type === 'raise' || a.type === 'all_in')) count++;
+  }
+  return count;
+}
+
+function detectCheckRaise(actions: ActionRecord[], street: string): boolean {
+  const streetActions = actions.filter(a => a.street === street);
+  // Track per-seat: if a seat checked and later raised on the same street
+  const checkedSeats = new Set<number>();
+  for (const a of streetActions) {
+    if (a.type === 'check') {
+      checkedSeats.add(a.seat);
+    } else if ((a.type === 'raise' || a.type === 'all_in') && checkedSeats.has(a.seat)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function countRaisesOnStreet(actions: ActionRecord[], street: string): number {
+  let count = 0;
+  for (const a of actions) {
+    if (a.street === street && (a.type === 'raise' || a.type === 'all_in')) count++;
+  }
+  return count;
+}
+
+function countAllRaises(actions: ActionRecord[]): number {
+  let count = 0;
+  for (const a of actions) {
+    if (a.type === 'raise' || a.type === 'all_in') count++;
+  }
+  return count;
+}
+
+function computeLastBetPotFraction(actions: ActionRecord[], street: string, currentPot: number): number {
+  // Find last raise/bet/all_in on current street
+  let lastBetAmount = 0;
+  for (const a of actions) {
+    if (a.street === street && (a.type === 'raise' || a.type === 'all_in') && a.amount > 0) {
+      lastBetAmount = a.amount;
+    }
+  }
+  if (lastBetAmount === 0 || currentPot <= 0) return 0;
+  return Math.min(lastBetAmount / currentPot, 2.0) / 2.0;
+}
+
+/**
+ * V2 feature encoder: extends V1 with 6 betting history summary features.
+ * Returns a 54-dimensional vector.
+ */
+export function encodeFeaturesV2(
+  holeCards: [string, string],
+  board: string[],
+  street: string,
+  pot: number,
+  bigBlind: number,
+  toCall: number,
+  effectiveStack: number,
+  heroPosition: string,
+  heroInPosition: boolean,
+  numVillains: number,
+  isAggressor: boolean,
+  actions: ActionRecord[],
+  players: PlayerRecord[],
+  mySeat: number,
+): number[] {
+  // Start with the V1 48-feature base
+  const features = encodeFeatures(
+    holeCards, board, street, pot, bigBlind, toCall,
+    effectiveStack, heroPosition, heroInPosition, numVillains, isAggressor,
+  );
+
+  // ── V2 betting history summary (6 features) ──
+
+  // [48] is3betPot: preflop had 2+ raises
+  features.push(countPreflopRaises(actions) >= 2 ? 1 : 0);
+
+  // [49] isCheckRaised: someone check-raised on this street
+  features.push(detectCheckRaise(actions, street.toUpperCase()) ? 1 : 0);
+
+  // [50] raiseCountStreet: raises on current street, normalized
+  features.push(Math.min(countRaisesOnStreet(actions, street.toUpperCase()), 5) / 5);
+
+  // [51] raiseCountTotal: total raises across all streets, normalized
+  features.push(Math.min(countAllRaises(actions), 10) / 10);
+
+  // [52] lastBetPotFrac: last bet as fraction of pot, capped at 2.0
+  features.push(computeLastBetPotFraction(actions, street.toUpperCase(), pot));
+
+  // [53] allInPressure: any opponent is all-in
+  const hasAllInOpponent = players.some(p => p.allIn && !p.folded && p.seat !== mySeat);
+  features.push(hasAllInOpponent ? 1 : 0);
 
   return features;
 }

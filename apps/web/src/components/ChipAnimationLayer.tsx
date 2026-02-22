@@ -51,7 +51,9 @@ function AnimatedChip({ transfer, onDone }: AnimatedChipProps) {
   const rafRef = useRef<number>();
 
   const { id, from, to, amount, kind, timing } = transfer;
-  const isWinner = kind === "toWinner";
+  const isBombPot = kind === "bombPotAnte";
+  const isBounty = kind === "bountyToWinner";
+  const isWinner = kind === "toWinner" || isBounty;
 
   useEffect(() => {
     rafRef.current = requestAnimationFrame(() => setPhase("flight"));
@@ -107,7 +109,7 @@ function AnimatedChip({ transfer, onDone }: AnimatedChipProps) {
 
   return (
     <div
-      className={`absolute cp-chip-flight ${isWinner ? "cp-chip-flight--winner" : "cp-chip-flight--pot"}`}
+      className={`absolute cp-chip-flight ${isBombPot ? "cp-chip-flight--bomb-pot" : isBounty ? "cp-chip-flight--bounty" : isWinner ? "cp-chip-flight--winner" : "cp-chip-flight--pot"}`}
       style={{
         left: from.x,
         top: from.y,
@@ -126,14 +128,17 @@ function AnimatedChip({ transfer, onDone }: AnimatedChipProps) {
             }
           : undefined}
       >
-        <div className="cp-chip-token">
-          <span className="cp-chip-token-core">$</span>
+        <div className={`cp-chip-token ${isBombPot ? "cp-chip-token--bomb-pot" : isBounty ? "cp-chip-token--bounty" : ""}`}>
+          <span className="cp-chip-token-core">{isBombPot ? "B" : isBounty ? "7" : "$"}</span>
         </div>
         <span className="cp-chip-label">
           {isWinner ? "+" : ""}{label}
         </span>
         {kind === "toPot" && phase === "hold" && (
           <div className="cp-chip-ring cp-chip-ring--pot" style={{ animationDuration: `${timing.potPulse}ms` }} />
+        )}
+        {kind === "bombPotAnte" && phase === "hold" && (
+          <div className="cp-chip-ring cp-chip-ring--bomb-pot" style={{ animationDuration: `${timing.potPulse}ms` }} />
         )}
         {isWinner && phase === "hold" && (
           <div className="cp-chip-ring cp-chip-ring--winner" style={{ animationDuration: `${timing.winnerGlow}ms` }} />

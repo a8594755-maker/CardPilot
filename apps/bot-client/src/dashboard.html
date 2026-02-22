@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CardPilot Self-Play Monitor</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d28;
+    --card-border: #2a2d3a;
+    --accent: #6c5ce7;
+    --accent2: #00cec9;
+    --green: #00b894;
+    --yellow: #fdcb6e;
+    --red: #e17055;
+    --text: #dfe6e9;
+    --text-dim: #636e72;
+    --bar-bg: #2d3436;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .header {
+    background: linear-gradient(135deg, #1a1d28 0%, #2d1b69 100%);
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--card-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .header h1 .icon { font-size: 28px; }
+  .header .status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .header .status .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+  .header .status.offline .dot {
+    background: var(--red);
+    animation: none;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* ── Progress Section ── */
+  .progress-section {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 28px;
+  }
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 16px;
+  }
+  .progress-header h2 { font-size: 16px; color: var(--text-dim); font-weight: 500; }
+  .progress-header .count {
+    font-size: 36px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .progress-header .count .target {
+    font-size: 18px;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+  .progress-bar-container {
+    width: 100%;
+    height: 28px;
+    background: var(--bar-bg);
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent2) 100%);
+    border-radius: 14px;
+    transition: width 1s ease-out;
+    position: relative;
+  }
+  .progress-bar-fill::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+    animation: shimmer 2s infinite;
+  }
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+  .progress-pct {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+
+  /* ── Stats Cards ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .stat-card .label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+  .stat-card .value {
+    font-size: 28px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-card .sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+  .stat-card .value.green { color: var(--green); }
+  .stat-card .value.accent { color: var(--accent2); }
+  .stat-card .value.yellow { color: var(--yellow); }
+
+  /* ── Rooms Grid ── */
+  .section-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .rooms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+  }
+  .room-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .room-card .room-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .room-card .room-name {
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .room-card .room-code {
+    background: var(--accent);
+    color: white;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+  .room-card .bots-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .bot-tag {
+    background: var(--bar-bg);
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .bot-tag.gto_balanced { border-left: 3px solid var(--green); }
+  .bot-tag.lag { border-left: 3px solid var(--red); }
+  .bot-tag.tag { border-left: 3px solid var(--accent2); }
+  .bot-tag.nit { border-left: 3px solid var(--yellow); }
+  .bot-tag.limp_fish { border-left: 3px solid #a29bfe; }
+
+  /* ── Chart ── */
+  .chart-section {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .chart-container {
+    width: 100%;
+    height: 200px;
+    position: relative;
+  }
+  canvas#chart {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ── Training Log ── */
+  .log-section {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .log-list {
+    max-height: 240px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .log-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    padding: 6px 10px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 6px;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+  }
+  .log-item .time {
+    color: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .log-item .badge {
+    padding: 1px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .log-item .badge.train { background: var(--accent); color: white; }
+  .log-item .badge.success { background: var(--green); color: white; }
+  .log-item .badge.error { background: var(--red); color: white; }
+  .log-item .badge.milestone { background: var(--yellow); color: #2d3436; }
+
+  .log-list::-webkit-scrollbar { width: 6px; }
+  .log-list::-webkit-scrollbar-track { background: transparent; }
+  .log-list::-webkit-scrollbar-thumb { background: var(--card-border); border-radius: 3px; }
+
+  /* ── Pipeline Badge ── */
+  .pipeline-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .pipeline-badge.v1 { background: var(--accent); color: white; }
+  .pipeline-badge.v2 { background: var(--accent2); color: #0f1117; }
+  .pipeline-badge.train { background: var(--green); color: #0f1117; }
+  .pipeline-badge.play { background: var(--yellow); color: #0f1117; }
+
+  /* ── Metrics Comparison ── */
+  .metrics-section {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 768px) {
+    .metrics-grid { grid-template-columns: 1fr; }
+  }
+  .metrics-col {
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .metrics-col h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .metrics-col h3 .tag {
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+  }
+  .metrics-col h3 .tag.v1 { background: var(--accent); color: white; }
+  .metrics-col h3 .tag.v2 { background: var(--accent2); color: #0f1117; }
+  .metric-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    font-size: 13px;
+  }
+  .metric-row:last-child { border-bottom: none; }
+  .metric-row .metric-label { color: var(--text-dim); }
+  .metric-row .metric-value {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .metric-row .metric-value.good { color: var(--green); }
+  .metric-row .metric-value.warn { color: var(--yellow); }
+  .metric-row .metric-value.bad { color: var(--red); }
+  .no-metrics {
+    color: var(--text-dim);
+    font-size: 13px;
+    text-align: center;
+    padding: 20px;
+  }
+  .calibration-bars {
+    display: flex;
+    gap: 2px;
+    align-items: flex-end;
+    height: 40px;
+    margin-top: 8px;
+  }
+  .cal-bar {
+    flex: 1;
+    background: var(--accent);
+    border-radius: 2px 2px 0 0;
+    min-height: 2px;
+    position: relative;
+  }
+  .cal-bar .cal-ideal {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-top: 1px dashed rgba(255,255,255,0.3);
+  }
+
+  /* ── Bottom bar ── */
+  .bottom-bar {
+    text-align: center;
+    padding: 16px;
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+
+  /* ── Two-col layout ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 768px) {
+    .two-col { grid-template-columns: 1fr; }
+    .container { padding: 12px; }
+    .progress-header .count { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span class="icon">&#9824;</span> CardPilot Self-Play Monitor</h1>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span class="pipeline-badge v1" id="versionBadge">V1</span>
+    <span class="pipeline-badge play" id="modeBadge">PLAY</span>
+    <div class="status" id="connStatus">
+      <span class="dot"></span>
+      <span id="connText">Connected</span>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <!-- Progress -->
+  <div class="progress-section">
+    <div class="progress-header">
+      <h2>Training Samples Collected</h2>
+      <div class="count">
+        <span id="sampleCount">0</span>
+        <span class="target"> / <span id="targetCount">1.0M</span></span>
+      </div>
+    </div>
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="progressBar" style="width: 0%">
+        <span class="progress-pct" id="progressPct">0%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="label">Collection Rate</div>
+      <div class="value green" id="rate">--</div>
+      <div class="sub">samples / hour</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">New This Session</div>
+      <div class="value accent" id="newSamples">0</div>
+      <div class="sub" id="sessionDelta">+0 since last update</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Estimated Time Remaining</div>
+      <div class="value yellow" id="eta">--</div>
+      <div class="sub" id="elapsed">Elapsed: 0 min</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Training Runs</div>
+      <div class="value" id="trainCount">0</div>
+      <div class="sub" id="trainStatus">No training yet</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Rooms / Servers</div>
+      <div class="value accent" id="roomCount">--</div>
+      <div class="sub" id="ramInfo">Auto-scaling</div>
+    </div>
+  </div>
+
+  <!-- Model Metrics Comparison -->
+  <div class="metrics-section" id="metricsSection" style="display:none">
+    <div class="section-title">Model Metrics Comparison</div>
+    <div class="metrics-grid">
+      <div class="metrics-col" id="v1MetricsCol">
+        <h3><span class="tag v1">V1</span> model-latest.json</h3>
+        <div id="v1MetricsBody" class="no-metrics">No metrics available</div>
+      </div>
+      <div class="metrics-col" id="v2MetricsCol">
+        <h3><span class="tag v2">V2</span> model-v2-latest.json</h3>
+        <div id="v2MetricsBody" class="no-metrics">No metrics available</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <!-- Chart -->
+    <div class="chart-section">
+      <div class="section-title">Sample Growth</div>
+      <div class="chart-container">
+        <canvas id="chart"></canvas>
+      </div>
+    </div>
+
+    <!-- Training Log -->
+    <div class="log-section">
+      <div class="section-title">Event Log</div>
+      <div class="log-list" id="logList">
+        <div class="log-item">
+          <span class="time">--:--:--</span>
+          <span class="badge milestone">INIT</span>
+          <span>Waiting for data...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rooms -->
+  <div>
+    <div class="section-title">Active Rooms</div>
+    <div class="rooms-grid" id="roomsGrid">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+</div>
+
+<div class="bottom-bar">
+  CardPilot Self-Play Training Pipeline &mdash; Auto-refreshes every 5 seconds
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let chartData = [];
+let prevSamples = 0;
+let logEntries = [];
+
+function fmt(n) {
+  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return String(n);
+}
+
+function fmtDur(hours) {
+  if (!isFinite(hours) || hours < 0) return '--';
+  if (hours < 1) return Math.round(hours * 60) + ' min';
+  if (hours < 24) return hours.toFixed(1) + ' hrs';
+  return (hours / 24).toFixed(1) + ' days';
+}
+
+function drawChart() {
+  const canvas = $('chart');
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * window.devicePixelRatio;
+  canvas.height = rect.height * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  const W = rect.width, H = rect.height;
+
+  ctx.clearRect(0, 0, W, H);
+
+  if (chartData.length < 2) {
+    ctx.fillStyle = '#636e72';
+    ctx.font = '14px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText('Collecting data points...', W / 2, H / 2);
+    return;
+  }
+
+  const pad = { top: 20, right: 20, bottom: 30, left: 60 };
+  const cw = W - pad.left - pad.right;
+  const ch = H - pad.top - pad.bottom;
+
+  const vals = chartData.map(d => d.samples);
+  const minV = Math.min(...vals);
+  const maxV = Math.max(...vals);
+  const range = maxV - minV || 1;
+  const timeMin = chartData[0].t;
+  const timeMax = chartData[chartData.length - 1].t;
+  const timeRange = timeMax - timeMin || 1;
+
+  // Grid lines
+  ctx.strokeStyle = '#2a2d3a';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + ch - (i / 4) * ch;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(pad.left + cw, y);
+    ctx.stroke();
+
+    ctx.fillStyle = '#636e72';
+    ctx.font = '11px system-ui';
+    ctx.textAlign = 'right';
+    const label = fmt(minV + (i / 4) * range);
+    ctx.fillText(label, pad.left - 8, y + 4);
+  }
+
+  // Area fill
+  const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + ch);
+  grad.addColorStop(0, 'rgba(108, 92, 231, 0.4)');
+  grad.addColorStop(1, 'rgba(108, 92, 231, 0.02)');
+
+  ctx.beginPath();
+  ctx.moveTo(pad.left, pad.top + ch);
+  for (let i = 0; i < chartData.length; i++) {
+    const x = pad.left + ((chartData[i].t - timeMin) / timeRange) * cw;
+    const y = pad.top + ch - ((chartData[i].samples - minV) / range) * ch;
+    ctx.lineTo(x, y);
+  }
+  ctx.lineTo(pad.left + cw, pad.top + ch);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  for (let i = 0; i < chartData.length; i++) {
+    const x = pad.left + ((chartData[i].t - timeMin) / timeRange) * cw;
+    const y = pad.top + ch - ((chartData[i].samples - minV) / range) * ch;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.strokeStyle = '#6c5ce7';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+
+  // Last point dot
+  if (chartData.length > 0) {
+    const last = chartData[chartData.length - 1];
+    const x = pad.left + ((last.t - timeMin) / timeRange) * cw;
+    const y = pad.top + ch - ((last.samples - minV) / range) * ch;
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#00cec9';
+    ctx.fill();
+  }
+
+  // Time labels
+  ctx.fillStyle = '#636e72';
+  ctx.font = '11px system-ui';
+  ctx.textAlign = 'center';
+  const nLabels = Math.min(5, chartData.length);
+  for (let i = 0; i < nLabels; i++) {
+    const idx = Math.floor(i * (chartData.length - 1) / Math.max(nLabels - 1, 1));
+    const d = chartData[idx];
+    const x = pad.left + ((d.t - timeMin) / timeRange) * cw;
+    const date = new Date(d.t);
+    const label = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    ctx.fillText(label, x, pad.top + ch + 20);
+  }
+}
+
+function addLogEntry(badge, badgeClass, message) {
+  const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  logEntries.unshift({ time: now, badge, badgeClass, message });
+  if (logEntries.length > 50) logEntries.length = 50;
+  renderLog();
+}
+
+function renderLog() {
+  const list = $('logList');
+  list.innerHTML = logEntries.map(e =>
+    `<div class="log-item">
+      <span class="time">${e.time}</span>
+      <span class="badge ${e.badgeClass}">${e.badge}</span>
+      <span>${e.message}</span>
+    </div>`
+  ).join('');
+}
+
+function renderRooms(rooms) {
+  const grid = $('roomsGrid');
+  if (!rooms || rooms.length === 0) {
+    grid.innerHTML = '<div style="color: var(--text-dim); padding: 20px;">No rooms active</div>';
+    return;
+  }
+  grid.innerHTML = rooms.map((r, i) =>
+    `<div class="room-card">
+      <div class="room-header">
+        <span class="room-name">Room ${i + 1} <span style="color:var(--text-dim);font-size:12px;font-weight:400">${r.server || ''}</span></span>
+        <span class="room-code">${r.roomCode}</span>
+      </div>
+      <div class="bots-list">
+        ${r.bots.map(b => `<div class="bot-tag ${b.profile}">${b.name}</div>`).join('')}
+      </div>
+    </div>`
+  ).join('');
+}
+
+let firstFetch = true;
+
+function renderMetricsBody(m) {
+  if (!m) return '<div class="no-metrics">No metrics available</div>';
+
+  function valClass(val, thresholds) {
+    // thresholds: [goodBelow, warnBelow] for "lower is better"
+    // or [goodAbove, warnAbove] for "higher is better"
+    if (thresholds.higher) {
+      if (val >= thresholds.good) return 'good';
+      if (val >= thresholds.warn) return 'warn';
+      return 'bad';
+    }
+    if (val <= thresholds.good) return 'good';
+    if (val <= thresholds.warn) return 'warn';
+    return 'bad';
+  }
+
+  let html = '';
+
+  // KL Divergence (lower is better)
+  if (m.klDivergence != null) {
+    const cls = valClass(m.klDivergence, { good: 0.1, warn: 0.3 });
+    html += `<div class="metric-row">
+      <span class="metric-label">KL Divergence</span>
+      <span class="metric-value ${cls}">${m.klDivergence.toFixed(4)}</span>
+    </div>`;
+  }
+
+  // Top-1 Accuracy (higher is better)
+  if (m.top1Accuracy != null) {
+    const pct = (m.top1Accuracy * 100).toFixed(1);
+    const cls = valClass(m.top1Accuracy, { good: 0.7, warn: 0.5, higher: true });
+    html += `<div class="metric-row">
+      <span class="metric-label">Top-1 Accuracy</span>
+      <span class="metric-value ${cls}">${pct}%</span>
+    </div>`;
+  }
+
+  // Sizing Top-1 (V2 only)
+  if (m.sizingTop1Accuracy != null) {
+    const pct = (m.sizingTop1Accuracy * 100).toFixed(1);
+    const cls = valClass(m.sizingTop1Accuracy, { good: 0.6, warn: 0.4, higher: true });
+    html += `<div class="metric-row">
+      <span class="metric-label">Sizing Top-1</span>
+      <span class="metric-value ${cls}">${pct}%</span>
+    </div>`;
+  }
+
+  // Per-street breakdown
+  if (m.perStreet) {
+    html += '<div style="margin-top:10px;font-size:12px;color:var(--text-dim);font-weight:600;">Per Street</div>';
+    for (const [street, sm] of Object.entries(m.perStreet)) {
+      const acc = sm.top1Accuracy != null ? (sm.top1Accuracy * 100).toFixed(0) + '%' : '--';
+      const kl = sm.klDivergence != null ? sm.klDivergence.toFixed(3) : '--';
+      html += `<div class="metric-row">
+        <span class="metric-label">${street}</span>
+        <span class="metric-value" style="font-size:12px">Acc: ${acc} · KL: ${kl}</span>
+      </div>`;
+    }
+  }
+
+  // Calibration mini-bars
+  if (m.calibration && m.calibration.length > 0) {
+    html += '<div style="margin-top:10px;font-size:12px;color:var(--text-dim);font-weight:600;">Calibration</div>';
+    html += '<div class="calibration-bars">';
+    for (const bin of m.calibration) {
+      const h = Math.max(2, (bin.avgAccuracy || 0) * 40);
+      const idealH = (bin.avgConfidence || 0) * 40;
+      html += `<div class="cal-bar" style="height:${h}px" title="Conf: ${((bin.avgConfidence||0)*100).toFixed(0)}% Acc: ${((bin.avgAccuracy||0)*100).toFixed(0)}%">
+        <div class="cal-ideal" style="bottom:${idealH}px"></div>
+      </div>`;
+    }
+    html += '</div>';
+  }
+
+  return html || '<div class="no-metrics">No metrics available</div>';
+}
+
+function renderMetrics(v1, v2) {
+  const section = $('metricsSection');
+  if (!v1 && !v2) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = '';
+  $('v1MetricsBody').innerHTML = renderMetricsBody(v1);
+  $('v2MetricsBody').innerHTML = renderMetricsBody(v2);
+}
+
+async function fetchStats() {
+  try {
+    const res = await fetch('/api/stats');
+    if (!res.ok) throw new Error('fetch failed');
+    const data = await res.json();
+
+    $('connStatus').classList.remove('offline');
+    $('connText').textContent = 'Connected';
+
+    // Progress
+    const pct = Math.min(100, (data.currentSamples / data.target) * 100);
+    $('sampleCount').textContent = fmt(data.currentSamples);
+    $('targetCount').textContent = fmt(data.target);
+    $('progressBar').style.width = pct + '%';
+    $('progressPct').textContent = pct.toFixed(1) + '%';
+
+    // Stats
+    $('rate').textContent = fmt(Math.round(data.rate));
+    $('newSamples').textContent = fmt(data.newThisSession);
+    const delta = data.currentSamples - prevSamples;
+    if (prevSamples > 0) {
+      $('sessionDelta').textContent = `+${delta} since last update`;
+    }
+    $('eta').textContent = fmtDur(data.etaHours);
+    $('elapsed').textContent = 'Elapsed: ' + fmtDur(data.elapsedHours);
+    $('trainCount').textContent = String(data.trainingSessions);
+    $('trainStatus').textContent = data.isTraining ? 'Training in progress...' :
+      (data.trainingSessions > 0 ? `Last: ${fmt(data.nextTrainThreshold - data.trainEvery)} samples` : 'No training yet');
+
+    // Rooms & RAM
+    if ($('roomCount')) {
+      const nRooms = data.rooms ? data.rooms.length : 0;
+      const servers = data.rooms ? [...new Set(data.rooms.map(r => r.server).filter(Boolean))] : [];
+      $('roomCount').textContent = `${nRooms} rooms`;
+      const ram = data.freeRAM || 0;
+      const parts = [];
+      if (servers.length > 0) parts.push(`${servers.length} servers`);
+      if (ram > 0) parts.push(`${ram.toFixed(1)} GB free`);
+      $('ramInfo').textContent = parts.length > 0 ? parts.join(' · ') : 'Auto-scaling';
+    }
+
+    // Chart
+    chartData = data.history || [];
+    drawChart();
+
+    // Log new events
+    if (data.events && !firstFetch) {
+      // Only add events we haven't seen
+      for (const ev of data.events) {
+        const exists = logEntries.some(l => l.message === ev.message && l.time === ev.time);
+        if (!exists) {
+          logEntries.unshift(ev);
+        }
+      }
+      if (logEntries.length > 50) logEntries.length = 50;
+      renderLog();
+    } else if (data.events) {
+      logEntries = data.events.slice(0, 50);
+      renderLog();
+    }
+
+    // Rooms
+    renderRooms(data.rooms);
+
+    // Auto-log on progress milestones
+    if (!firstFetch && delta > 0) {
+      // Detect milestone crossings
+      const prev10k = Math.floor(prevSamples / 10000);
+      const curr10k = Math.floor(data.currentSamples / 10000);
+      if (curr10k > prev10k) {
+        addLogEntry('MILESTONE', 'milestone', `Reached ${fmt(curr10k * 10000)} samples!`);
+      }
+    }
+
+    // Pipeline badges
+    if (data.pipelineVersion) {
+      const vb = $('versionBadge');
+      vb.textContent = data.pipelineVersion.toUpperCase();
+      vb.className = 'pipeline-badge ' + data.pipelineVersion;
+    }
+    if (data.pipelineMode) {
+      const mb = $('modeBadge');
+      mb.textContent = data.pipelineMode.toUpperCase();
+      mb.className = 'pipeline-badge ' + data.pipelineMode;
+    }
+
+    // Model metrics
+    renderMetrics(data.v1Metrics, data.v2Metrics);
+
+    prevSamples = data.currentSamples;
+    firstFetch = false;
+
+  } catch (err) {
+    $('connStatus').classList.add('offline');
+    $('connText').textContent = 'Disconnected';
+  }
+}
+
+// Initial fetch + interval
+fetchStats();
+setInterval(fetchStats, 5000);
+
+// Redraw chart on resize
+window.addEventListener('resize', drawChart);
+</script>
+</body>
+</html>

@@ -1838,6 +1838,9 @@ function emitShowdownResults(
 
 async function handleSequentialRunout(tableId: string, table: GameTable): Promise<void> {
   try {
+    const room = roomManager.getRoom(tableId);
+    const isTurbo = room?.settings.showdownSpeed === "turbo";
+
     const runCount = table.getAllInRunCount();
     if (runCount > 1) {
       const boardBefore = [...table.getPublicState().board];
@@ -1848,8 +1851,8 @@ async function handleSequentialRunout(tableId: string, table: GameTable): Promis
 
       if (boards.length === runCount) {
         const alreadyDealt = Math.min(5, boardBefore.length);
-        const CARD_STAGGER_MS = 320;
-        const STREET_PAUSE_MS = 1_500;
+        const CARD_STAGGER_MS = isTurbo ? 0 : 320;
+        const STREET_PAUSE_MS = isTurbo ? 0 : 1_500;
 
         for (let runIndex = 0; runIndex < runCount; runIndex += 1) {
           for (let cardIndex = alreadyDealt; cardIndex < 5; cardIndex += 1) {
@@ -1898,12 +1901,12 @@ async function handleSequentialRunout(tableId: string, table: GameTable): Promis
             }
           }
 
-          if (runIndex < runCount - 1) {
+          if (runIndex < runCount - 1 && !isTurbo) {
             await new Promise((resolve) => setTimeout(resolve, 900));
           }
         }
 
-        await new Promise((resolve) => setTimeout(resolve, 1_000));
+        if (!isTurbo) await new Promise((resolve) => setTimeout(resolve, 1_000));
       }
 
       emitShowdownResults(tableId, finalState, settlement);
@@ -1911,7 +1914,9 @@ async function handleSequentialRunout(tableId: string, table: GameTable): Promis
       return;
     }
 
-    const delays: Record<string, number> = { PREFLOP: 0, FLOP: 1500, TURN: 2000, RIVER: 2000, SHOWDOWN: 1500 };
+    const delays: Record<string, number> = isTurbo
+      ? { PREFLOP: 0, FLOP: 0, TURN: 0, RIVER: 0, SHOWDOWN: 0 }
+      : { PREFLOP: 0, FLOP: 1500, TURN: 2000, RIVER: 2000, SHOWDOWN: 1500 };
 
     const revealNextStreetWithDelay = async (): Promise<void> => {
       const result = table.revealNextStreet();
