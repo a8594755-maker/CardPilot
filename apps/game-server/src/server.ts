@@ -2847,10 +2847,14 @@ async function generateUniqueRoomCode(): Promise<string> {
     const candidate = randomRoomCode(runtimeConfig.roomCodeLength);
     if (roomCodeToTableId.has(candidate)) continue;
     try {
-      const existing = await supabase.findRoomByCode(candidate);
+      // Race Supabase check against a 3s timeout to avoid hanging when Supabase is slow
+      const existing = await Promise.race([
+        supabase.findRoomByCode(candidate),
+        new Promise<null>((_, rej) => setTimeout(() => rej(new Error("findRoomByCode timeout (3s)")), 3000)),
+      ]);
       if (!existing) return candidate;
     } catch (err) {
-      // Supabase unavailable or table missing — fall back to in-memory uniqueness only
+      // Supabase unavailable, slow, or table missing — fall back to in-memory uniqueness only
       logWarn({
         event: "room_code.generate.fallback_in_memory",
         message: (err as Error).message,
@@ -3523,6 +3527,19 @@ io.on("connection", (socket) => {
       socket.emit("history_hands", { roomSessionId: payload.roomSessionId, hands, hasMore, nextCursor });
     } catch (error) {
       socket.emit("error_event", { message: (error as Error).message });
+    }
+  });
+
+  socket.on("request_room_hands", async (payload: { roomId: string; limit?: number }) => {
+    try {
+      if (!payload?.roomId) throw new Error("roomId is required");
+      // Verify user is in the room
+      const room = roomManager.getRoom(payload.roomId);
+      if (!room) throw new Error("Room not found");
+      const hands = await supabase.listHandsByRoom(payload.roomId, payload.limit ?? 100);
+      socket.emit("room_hands", { roomId: payload.roomId, hands });
+    } catch (error) {
+      socket.emit("room_hands", { roomId: payload?.roomId ?? "", hands: [] });
     }
   });
 

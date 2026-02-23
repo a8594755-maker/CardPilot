@@ -70,13 +70,14 @@ export class SupabasePersistence {
   private readonly authClient: SupabaseClient | null;
 
   constructor() {
-    const url = process.env.SUPABASE_URL;
-    const anonKey = process.env.SUPABASE_ANON_KEY;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const disabled = process.env.DISABLE_SUPABASE === "1";
+    const url = disabled ? undefined : process.env.SUPABASE_URL;
+    const anonKey = disabled ? undefined : process.env.SUPABASE_ANON_KEY;
+    const serviceKey = disabled ? undefined : process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     this.admin = url && serviceKey ? createClient(url, serviceKey, { auth: { persistSession: false } }) : null;
     this.authClient = url && anonKey ? createClient(url, anonKey, { auth: { persistSession: false } }) : null;
-    console.log(`[supabase] admin=${!!this.admin} authClient=${!!this.authClient} url=${url ? "set" : "missing"} anonKey=${anonKey ? "set" : "missing"}`);
+    console.log(`[supabase] admin=${!!this.admin} authClient=${!!this.authClient} url=${url ? "set" : "missing"} anonKey=${anonKey ? "set" : "missing"}${disabled ? " (DISABLED via env)" : ""}`);
   }
 
   enabled(): boolean {
@@ -413,6 +414,21 @@ export class SupabasePersistence {
     const nextCursor = hasMore && hands.length > 0 ? hands[hands.length - 1].endedAt : undefined;
 
     return { hands, hasMore, nextCursor };
+  }
+
+  async listHandsByRoom(roomId: string, limit = 100): Promise<HistoryHandSummary[]> {
+    if (!this.admin) return [];
+    const { data, error } = await this.admin
+      .from("hand_histories")
+      .select("id, room_id, room_session_id, hand_id, hand_no, ended_at, blinds_json, players_summary_json, summary_json")
+      .eq("room_id", roomId)
+      .order("ended_at", { ascending: false })
+      .limit(Math.max(1, Math.min(limit, 500)));
+    if (error || !Array.isArray(data)) {
+      if (error) console.warn("listHandsByRoom failed:", error.message);
+      return [];
+    }
+    return data.map((row) => mapHistorySummaryRow(row as Record<string, unknown>));
   }
 
   async getHistoryHandDetail(userId: string, handHistoryId: string): Promise<HistoryHandDetail | null> {

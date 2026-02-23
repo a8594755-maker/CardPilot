@@ -4,36 +4,37 @@
  *
  * Creates rooms on the game server, spawns bots to play against each other,
  * monitors training sample collection, and triggers model training at milestones.
- * Dynamically scales rooms up/down based on available RAM and server count.
+ * Dynamically scales rooms up/down based on available RAM.
  *
  * Usage:
  *   pnpm --filter bot-client self-play
- *   pnpm --filter bot-client self-play -- --rooms auto --servers "4000,4001,4002"
- *   pnpm --filter bot-client self-play -- --rooms 12 --max-rooms-per-server 4 --servers "4000,4001,4002,4003,4004,4005"
- *   pnpm --filter bot-client self-play -- --ram-target 0.90 --per-bot-mb 120
+ *   pnpm --filter bot-client self-play -- --rooms auto --server http://127.0.0.1:4000
  *
  * Prerequisites: game server must be running (pnpm --filter game-server dev)
  */
 
-import { spawn, type ChildProcess } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import { randomUUID } from 'node:crypto';
 import { readdirSync, readFileSync, existsSync, statSync, openSync, readSync, closeSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { freemem, totalmem } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { io, type Socket } from 'socket.io-client';
+import { PokerBot, getRuntimeSampleCounts, resetRuntimeSampleCounts, resolveModelFileName } from './main.js';
+import { loadModel, type MLP } from '@cardpilot/fast-model';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..', '..', '..');
 const DATA_DIR = join(ROOT, 'data');
-const BOT_MAIN = join(__dirname, 'main.ts');
 
 // ── Constants ──
 
-const DEFAULT_PER_BOT_GB = 0.08;           // ~80 MB per bot process (tsx shared runtime)
-const DEFAULT_RAM_TARGET = 0.95;           // use up to 95% of total RAM
-const DEFAULT_MAX_ROOMS_PER_SERVER = 10;   // Node.js event-loop safety cap per server
-const SCALE_CHECK_MS = 30_000;             // check every 30 seconds
+const PER_BOT_GB = 0.005;          // ~5 MB per in-process bot (shared model, no process overhead)
+const RAM_TARGET_USAGE = 0.85;     // use up to 85% of total RAM (safe with watchdog)
+const SCALE_CHECK_MS = 30_000;     // check every 30s for faster scaling response
+const RAM_CRITICAL_PCT = 0.92;     // emergency scale-down threshold
+const MAX_ROOMS_PER_SERVER = 30;   // single game server event-loop saturates beyond ~30 rooms
 
 // ── CLI args ──
 
@@ -47,10 +48,7 @@ interface SelfPlayConfig {
   dashboardPort: number;
   mode: 'train' | 'play';
   version: 'v1' | 'v2';
-  rooms: number | 'auto';
-  maxRoomsPerServer: number;
-  ramTarget: number;
-  perBotMb: number;
+  model?: string;              // model name: 'v1', 'v2', 'latest' (overrides version-based default)
 }
 
 function parseArgs(): SelfPlayConfig {
@@ -71,44 +69,30 @@ function parseArgs(): SelfPlayConfig {
     return s;
   });
 
-  const rawRooms = args['rooms'] ?? 'auto';
-  const rooms: number | 'auto' = rawRooms === 'auto'
-    ? 'auto'
-    : Math.max(1, parseInt(rawRooms, 10));
-
   return {
     servers,
     botsPerRoom: parseInt(args['bots-per-room'] ?? '6', 10),
-    trainEvery: parseInt(args['train-every'] ?? '50000', 10),
+    trainEvery: parseInt(args['train-every'] ?? '100000', 10),
     target: parseInt(args['target'] ?? '1000000', 10),
     bigBlind: parseInt(args['big-blind'] ?? '100', 10),
     buyIn: parseInt(args['buy-in'] ?? '10000', 10),
     dashboardPort: parseInt(args['dashboard-port'] ?? '3456', 10),
-    mode: (args['mode'] ?? 'play') as 'train' | 'play',
+    mode: (args['mode'] ?? 'train') as 'train' | 'play',
     version: (args['version'] ?? 'v1') as 'v1' | 'v2',
-    rooms,
-    maxRoomsPerServer: parseInt(args['max-rooms-per-server'] ?? String(DEFAULT_MAX_ROOMS_PER_SERVER), 10),
-    ramTarget: parseFloat(args['ram-target'] ?? String(DEFAULT_RAM_TARGET)),
-    perBotMb: parseFloat(args['per-bot-mb'] ?? String(DEFAULT_PER_BOT_GB * 1024)),
+    model: args['model'],
   };
 }
 
-function calcIdealRooms(botsPerRoom: number, currentRooms: number, config: SelfPlayConfig): number {
-  const perBotGB = config.perBotMb / 1024;
-  const perRoomGB = botsPerRoom * perBotGB;
-
-  // RAM-based limit
+function calcIdealRooms(botsPerRoom: number, currentRooms: number = 0, numServers: number = 1): number {
   const totalGB = totalmem() / (1024 ** 3);
   const usedGB = totalGB - freemem() / (1024 ** 3);
-  const budgetGB = totalGB * config.ramTarget;
-  const ourUsageGB = currentRooms * perRoomGB;
-  const availableGB = budgetGB - (usedGB - ourUsageGB);
-  const ramLimit = Math.floor(availableGB / perRoomGB);
-
-  // Server-capacity limit
-  const serverLimit = config.servers.length * config.maxRoomsPerServer;
-
-  return Math.min(Math.max(1, ramLimit), serverLimit);
+  const budgetGB = totalGB * RAM_TARGET_USAGE;       // 85% of total
+  const ourUsageGB = currentRooms * botsPerRoom * PER_BOT_GB;
+  const availableGB = budgetGB - (usedGB - ourUsageGB); // budget minus other processes
+  const perRoomGB = botsPerRoom * PER_BOT_GB;
+  const ramRooms = Math.floor(availableGB / perRoomGB);
+  const serverCap = MAX_ROOMS_PER_SERVER * numServers;
+  return Math.max(1, Math.min(ramRooms, serverCap));
 }
 
 // ── Profiles to rotate across seats ──
@@ -118,11 +102,12 @@ const PLAY_PROFILES = [
   'gto_balanced', 'lag', 'tag', 'nit',
 ];
 
-// TRAIN mode: all GTO-balanced for clean, representative game states
+// TRAIN mode: mix GTO + postflop_trainer for balanced data collection
+// postflop_trainers call loosely preflop → more multiway flops → more postflop samples
 const TRAIN_PROFILES = [
-  'gto_balanced', 'gto_balanced', 'gto_balanced',
-  'gto_balanced', 'gto_balanced', 'gto_balanced',
-  'gto_balanced', 'gto_balanced', 'gto_balanced',
+  'gto_balanced', 'postflop_trainer', 'gto_balanced',
+  'postflop_trainer', 'gto_balanced', 'postflop_trainer',
+  'gto_balanced', 'postflop_trainer', 'gto_balanced',
 ];
 
 // Active profile list (set in main based on config.mode)
@@ -130,75 +115,94 @@ let BOT_PROFILES = PLAY_PROFILES;
 
 // ── Logging ──
 
+const logRingBuffer: string[] = [];
+const LOG_RING_MAX = 200;
+
 function log(msg: string): void {
   const ts = new Date().toISOString().slice(11, 23);
-  console.log(`[${ts}] [self-play] ${msg}`);
+  const line = `[${ts}] [self-play] ${msg}`;
+  console.log(line);
+  logRingBuffer.push(line);
+  if (logRingBuffer.length > LOG_RING_MAX) logRingBuffer.shift();
+}
+
+/** Push a bot-level message to the log ring without the overhead of a global interceptor. */
+function botLog(msg: string): void {
+  logRingBuffer.push(msg);
+  if (logRingBuffer.length > LOG_RING_MAX) logRingBuffer.shift();
 }
 
 // ── Count samples in data directory ──
 
-/**
- * Count lines in JSONL files by scanning for newline bytes.
- * Much faster than readFileSync + split — avoids UTF-8 decoding and string allocation.
- */
-function countSamples(dataDir: string = DATA_DIR): number {
-  try {
-    if (!existsSync(dataDir)) return 0;
-    const files = readdirSync(dataDir).filter(f => f.endsWith('.jsonl'));
-    let total = 0;
-    const chunkSize = 65536; // 64 KB read chunks
-    const buf = Buffer.alloc(chunkSize);
-
-    for (const file of files) {
-      const filePath = join(dataDir, file);
-      const size = statSync(filePath).size;
-      if (size === 0) continue;
-
-      const fd = openSync(filePath, 'r');
-      let pos = 0;
-      let lastCharWasNewline = true; // track whether we ended on a newline
-
-      while (pos < size) {
-        const bytesRead = readSync(fd, buf, 0, chunkSize, pos);
-        for (let i = 0; i < bytesRead; i++) {
-          if (buf[i] === 0x0A) { // '\n'
-            total++;
-            lastCharWasNewline = true;
-          } else {
-            lastCharWasNewline = false;
-          }
-        }
-        pos += bytesRead;
-      }
-
-      // Count last line if file doesn't end with newline
-      if (!lastCharWasNewline) total++;
-      closeSync(fd);
-    }
-    return total;
-  } catch {
-    return 0;
-  }
+interface StreetCounts {
+  total: number;
+  PREFLOP: number;
+  FLOP: number;
+  TURN: number;
+  RIVER: number;
 }
 
-/** Count samples grouped by street using fast string matching (no JSON.parse). */
-function countSamplesByStreet(dataDir: string = DATA_DIR): Record<string, number> {
-  const counts: Record<string, number> = { PREFLOP: 0, FLOP: 0, TURN: 0, RIVER: 0 };
+function countSamples(dataDir: string = DATA_DIR): number {
+  return countSamplesDetailed(dataDir).total;
+}
+
+// Incremental counter: read only new bytes since last check (avoids re-reading 40MB+ files)
+const _fileCache = new Map<string, { bytesRead: number; counts: StreetCounts }>();
+
+function countSamplesDetailed(dataDir: string = DATA_DIR): StreetCounts {
+  const counts: StreetCounts = { total: 0, PREFLOP: 0, FLOP: 0, TURN: 0, RIVER: 0 };
   try {
     if (!existsSync(dataDir)) return counts;
     const files = readdirSync(dataDir).filter(f => f.endsWith('.jsonl'));
     for (const file of files) {
-      const content = readFileSync(join(dataDir, file), 'utf-8');
-      const lines = content.split('\n');
-      for (const line of lines) {
-        if (!line) continue;
-        if (line.includes('"s":"PREFLOP"')) counts.PREFLOP++;
-        else if (line.includes('"s":"FLOP"')) counts.FLOP++;
-        else if (line.includes('"s":"TURN"')) counts.TURN++;
-        else if (line.includes('"s":"RIVER"')) counts.RIVER++;
+      const fullPath = join(dataDir, file);
+      let stat: ReturnType<typeof statSync>;
+      try { stat = statSync(fullPath); } catch { continue; }
+      const cached = _fileCache.get(fullPath);
+      const prevBytes = cached?.bytesRead ?? 0;
+      const prevCounts = cached?.counts ?? { total: 0, PREFLOP: 0, FLOP: 0, TURN: 0, RIVER: 0 };
+
+      if (stat.size <= prevBytes) {
+        // File unchanged or shrank (rotation) – use cached
+        counts.total += prevCounts.total;
+        counts.PREFLOP += prevCounts.PREFLOP;
+        counts.FLOP += prevCounts.FLOP;
+        counts.TURN += prevCounts.TURN;
+        counts.RIVER += prevCounts.RIVER;
+        continue;
       }
+
+      // Read only the delta bytes
+      const newCounts = { ...prevCounts };
+      try {
+        const fd = openSync(fullPath, 'r');
+        const deltaSize = stat.size - prevBytes;
+        const buf = Buffer.alloc(deltaSize);
+        readSync(fd, buf, 0, deltaSize, prevBytes);
+        closeSync(fd);
+        const chunk = buf.toString('utf-8');
+        for (const line of chunk.split('\n')) {
+          if (!line.trim()) continue;
+          newCounts.total++;
+          if (line.includes('"s":"PREFLOP"')) newCounts.PREFLOP++;
+          else if (line.includes('"s":"FLOP"')) newCounts.FLOP++;
+          else if (line.includes('"s":"TURN"')) newCounts.TURN++;
+          else if (line.includes('"s":"RIVER"')) newCounts.RIVER++;
+        }
+      } catch (err) {
+        console.error(`[countSamples] delta read failed for ${file}:`, (err as Error).message);
+        // Fall back to cached counts
+      }
+      _fileCache.set(fullPath, { bytesRead: stat.size, counts: newCounts });
+      counts.total += newCounts.total;
+      counts.PREFLOP += newCounts.PREFLOP;
+      counts.FLOP += newCounts.FLOP;
+      counts.TURN += newCounts.TURN;
+      counts.RIVER += newCounts.RIVER;
     }
-  } catch { /* ignore */ }
+  } catch (err) {
+    console.error('[countSamples] top-level error:', (err as Error).message);
+  }
   return counts;
 }
 
@@ -210,10 +214,12 @@ interface LiveRoom {
   roomCode: string;
   tableId: string;
   socket: Socket;
-  children: ChildProcess[];
+  bots: PokerBot[];
 }
 
 let roomCounter = 0; // monotonically increasing room index
+let sharedModel: MLP | null = null; // shared model loaded once, used by all in-process bots
+let activeDataDir: string = DATA_DIR; // set in main()
 
 async function spawnRoom(config: SelfPlayConfig, serverUrl: string): Promise<LiveRoom> {
   const idx = roomCounter++;
@@ -222,7 +228,7 @@ async function spawnRoom(config: SelfPlayConfig, serverUrl: string): Promise<Liv
     const s = io(serverUrl, {
       auth: {
         displayName: `SelfPlay-Host-${idx}`,
-        userId: `self-play-host-${idx}-${Date.now()}`,
+        userId: randomUUID(),
       },
       transports: ['websocket'],
       reconnection: true,
@@ -235,7 +241,7 @@ async function spawnRoom(config: SelfPlayConfig, serverUrl: string): Promise<Liv
   });
 
   const { tableId, roomCode } = await new Promise<{ tableId: string; roomCode: string }>((res, rej) => {
-    const timer = setTimeout(() => rej(new Error('Room creation timeout')), 15_000);
+    const timer = setTimeout(() => rej(new Error('Room creation timeout')), 30_000);
     socket.once('room_created', (data: { tableId: string; roomCode: string }) => {
       clearTimeout(timer);
       res(data);
@@ -255,101 +261,57 @@ async function spawnRoom(config: SelfPlayConfig, serverUrl: string): Promise<Liv
     });
   });
 
-  // Configure for maximum speed
+  // Configure for maximum speed (selfPlayTurbo = zero delays)
   socket.emit('update_settings', {
     tableId,
     settings: {
       autoStartNextHand: true,
       showdownSpeed: 'turbo',
-      actionTimerSeconds: 2,
-      maxConsecutiveTimeouts: 9999,
-      rebuyAllowed: true,
+      actionTimerSeconds: 2,          // slightly safer under load while still very fast
+      maxConsecutiveTimeouts: 100,
+      selfPlayTurbo: true,            // zero showdown/runout delays
     },
   });
 
-  // Spawn bots
-  const children: ChildProcess[] = [];
+  // Spawn in-process bots (no child processes — all bots run in this event loop)
+  const bots: PokerBot[] = [];
   for (let i = 0; i < config.botsPerRoom; i++) {
     const seat = i + 1;
     const profile = BOT_PROFILES[(idx * config.botsPerRoom + i) % BOT_PROFILES.length];
 
-    await new Promise(r => setTimeout(r, i === 0 ? 0 : 150));
-
-    const args = [
-      'tsx', BOT_MAIN,
-      '--server', serverUrl,
-      '--room', roomCode,
-      '--seat', String(seat),
-      '--buyin', String(config.buyIn),
-      '--profile', profile,
-      '--delay', '0',
-      '--mode', config.mode,
-      '--version', config.version,
-      '--name', `SP-${profile}-s${seat}`,
-      '--userId', `sp-${profile}-${seat}-${Date.now()}`,
-    ];
-
-    const child = spawn('npx', args, {
-      stdio: ['ignore', 'pipe', 'pipe'],
-      cwd: resolve(__dirname, '..'),
-      shell: true,
+    const bot = new PokerBot({
+      server: serverUrl,
+      room: roomCode,
+      seat,
+      buyin: config.buyIn,
+      profile,
+      delay: 0,
+      mode: config.mode,
+      version: config.version,
+      name: `SP-${profile}-s${seat}`,
+      userId: randomUUID(),
+      sharedModel,
+      dataDir: activeDataDir,
+      skipPersistStats: true,
+      quiet: true,
+      bufferFlushSize: 120,
     });
 
-    const prefix = `[r${idx}/s${seat}]`;
-    child.stdout?.on('data', (data: Buffer) => {
-      for (const line of data.toString().split('\n').filter(l => l.trim())) {
-        if (line.includes('Connected') || line.includes('Joined') || line.includes('Sitting') ||
-            line.includes('Stats:') || line.includes('Model') ||
-            line.includes('error') || line.includes('Error')) {
-          console.log(`  ${prefix} ${line.trim()}`);
-        }
-      }
-    });
-
-    child.stderr?.on('data', (data: Buffer) => {
-      const text = data.toString().trim();
-      if (text && !text.includes('ExperimentalWarning') && !text.includes('--experimental')
-          && !text.includes('npm warn')) {
-        console.error(`  ${prefix} ERR: ${text}`);
-      }
-    });
-
-    // Auto-restart crashed bots
-    child.on('exit', (code) => {
-      if (code !== 0 && code !== null) {
-        log(`Bot crashed r${idx}/s${seat}/${profile}, restarting...`);
-        const replacement = spawn('npx', args, {
-          stdio: ['ignore', 'pipe', 'pipe'],
-          cwd: resolve(__dirname, '..'),
-          shell: true,
-        });
-        const ci = children.indexOf(child);
-        if (ci !== -1) children[ci] = replacement;
-        addEvent('RESTART', 'train', `Bot restarted: s${seat}/${profile} in ${roomCode}`);
-      }
-    });
-
-    children.push(child);
+    bots.push(bot);
   }
 
-  // Auto-approve all rebuy (deposit) requests from bots
-  socket.on('deposit_request_pending', (data: { orderId: string; seat: number; amount: number }) => {
-    log(`Auto-approving rebuy: room ${roomCode} seat ${data.seat} amount ${data.amount}`);
-    socket.emit('approve_deposit', { tableId, orderId: data.orderId });
-  });
-
   // Start first hand after bots connect
-  setTimeout(() => socket.emit('start_hand', { tableId }), 1500);
+  setTimeout(() => socket.emit('start_hand', { tableId }), 1200);
 
   const port = new URL(serverUrl).port;
-  log(`Room ${roomCode} live on :${port}: ${config.botsPerRoom} bots, autoDeal=on`);
-  return { index: idx, serverUrl, roomCode, tableId, socket, children };
+  log(`Room ${roomCode} live on :${port}: ${config.botsPerRoom} in-process bots, autoDeal=on`);
+  return { index: idx, serverUrl, roomCode, tableId, socket, bots };
 }
 
 function teardownRoom(room: LiveRoom): void {
   log(`Tearing down room ${room.roomCode}...`);
-  for (const child of room.children) {
-    try { child.kill('SIGTERM'); } catch {}
+  for (const bot of room.bots) {
+    bot.destroy();
   }
   try {
     room.socket.emit('close_room', { tableId: room.tableId });
@@ -365,7 +327,7 @@ function runTrainer(): Promise<void> {
     log('  TRAINING TRIGGERED');
     log('========================================');
 
-    const child = spawn('npx', ['tsx', join(ROOT, 'packages', 'fast-model', 'src', 'trainer.ts')], {
+    const child = spawn('pnpm', ['--filter', 'fast-model', 'train'], {
       stdio: 'inherit',
       cwd: ROOT,
       shell: true,
@@ -389,26 +351,16 @@ function runTrainer(): Promise<void> {
 function runTrainerV2(): Promise<void> {
   return new Promise((res, rej) => {
     log('========================================');
-    log('  V2 TRAINING TRIGGERED (warm-start enabled)');
+    log('  V2 TRAINING TRIGGERED');
     log('========================================');
 
     const v2DataDir = join(ROOT, 'data', 'v2');
     const v2OutPath = join(ROOT, 'packages', 'fast-model', 'models', 'model-v2-latest.json');
-    const v1ModelPath = join(ROOT, 'packages', 'fast-model', 'models', 'model-latest.json');
 
-    // Auto warm-start from V1 if V2 model doesn't exist yet
-    const v2ModelExists = existsSync(v2OutPath);
-    const trainerScript = join(ROOT, 'packages', 'fast-model', 'src', 'trainer.ts');
-    const trainerArgs = [
-      'tsx', trainerScript,
+    const child = spawn('pnpm', [
+      '--filter', 'fast-model', 'train', '--',
       '--v2', '--data', v2DataDir, '--out', v2OutPath,
-    ];
-    if (!v2ModelExists && existsSync(v1ModelPath)) {
-      trainerArgs.push('--warm-start', v1ModelPath);
-      log('  Using V1 model for warm-start transfer learning');
-    }
-
-    const child = spawn('npx', trainerArgs, {
+    ], {
       stdio: 'inherit',
       cwd: ROOT,
       shell: true,
@@ -442,7 +394,9 @@ function loadMetrics(modelName: string): Record<string, unknown> | undefined {
 // ── Format helpers ──
 
 function formatNumber(n: number): string {
-  return n.toLocaleString('en-US');
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(2)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return String(n);
 }
 
 function formatDuration(hours: number): string {
@@ -475,7 +429,7 @@ interface DashboardState {
   pipelineMode: 'train' | 'play';
   v1Metrics?: Record<string, unknown>;
   v2Metrics?: Record<string, unknown>;
-  streetCounts: Record<string, number>;
+  streetCounts: { PREFLOP: number; FLOP: number; TURN: number; RIVER: number };
 }
 
 const dashboardState: DashboardState = {
@@ -509,29 +463,29 @@ function syncDashboardRooms(liveRooms: LiveRoom[], botsPerRoom: number): void {
 function startDashboardServer(port: number): void {
   const dashboardHtml = readFileSync(join(__dirname, 'dashboard.html'), 'utf-8');
 
+  let currentPort = port;
+  const maxRetries = 5;
+
   const server = createServer((req: IncomingMessage, res: ServerResponse) => {
     if (req.url === '/api/stats') {
       res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
-      res.end(JSON.stringify(dashboardState));
+      res.end(JSON.stringify({ ...dashboardState, logs: logRingBuffer.slice(-100) }));
     } else {
-      res.writeHead(200, {
-        'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'no-store, no-cache, must-revalidate',
-        'Pragma': 'no-cache',
-      });
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(dashboardHtml);
     }
   });
 
-  let dashPort = port;
+  server.listen(currentPort, () => log(`Dashboard running at http://localhost:${currentPort}`));
   server.on('error', (err: NodeJS.ErrnoException) => {
-    if (err.code === 'EADDRINUSE' && dashPort < port + 10) {
-      dashPort++;
-      log(`Dashboard port ${dashPort - 1} in use, trying ${dashPort}...`);
-      server.listen(dashPort);
+    if (err.code === 'EADDRINUSE' && currentPort < port + maxRetries) {
+      currentPort++;
+      log(`Dashboard port ${currentPort - 1} in use, trying ${currentPort}...`);
+      server.listen(currentPort);
+    } else if (err.code === 'EADDRINUSE') {
+      log(`Dashboard: all ports ${port}-${currentPort} in use, giving up`);
     }
   });
-  server.listen(dashPort, () => log(`Dashboard running at http://localhost:${dashPort}`));
 }
 
 // ── Main ──
@@ -542,36 +496,35 @@ async function main(): Promise<void> {
   // Set profile list based on mode
   BOT_PROFILES = config.mode === 'train' ? TRAIN_PROFILES : PLAY_PROFILES;
 
-  // Data directory depends on version
-  const activeDataDir = config.version === 'v2' ? join(DATA_DIR, 'v2') : DATA_DIR;
+  // Data directory depends on version (set module-level var for spawnRoom access)
+  activeDataDir = config.version === 'v2' ? join(DATA_DIR, 'v2') : DATA_DIR;
 
   console.log('');
   log('╔══════════════════════════════════════════════════╗');
   log('║       CardPilot Self-Play Training Pipeline      ║');
   log('╚══════════════════════════════════════════════════╝');
   const freeGB = freemem() / (1024 ** 3);
-  const initialRooms = config.rooms === 'auto'
-    ? calcIdealRooms(config.botsPerRoom, 0, config)
-    : config.rooms;
-  if (config.rooms !== 'auto') {
-    const ramEstimate = calcIdealRooms(config.botsPerRoom, 0, config);
-    if (config.rooms > ramEstimate) {
-      log(`⚠ WARNING: --rooms ${config.rooms} exceeds RAM estimate (${ramEstimate}). Proceeding anyway.`);
-    }
-  }
+  const initialRooms = calcIdealRooms(config.botsPerRoom, 0, config.servers.length);
   log(`Servers:      ${config.servers.join(', ')}`);
   log(`Mode:         ${config.mode} | Version: ${config.version}`);
   log(`Profiles:     ${config.mode === 'train' ? 'all gto_balanced (TRAIN)' : 'mixed (PLAY)'}`);
   log(`Free RAM:     ${freeGB.toFixed(1)} GB`);
   log(`Initial rooms: ${initialRooms} (${initialRooms * config.botsPerRoom} bots)`);
-  log(`Room cap:     ${config.servers.length} servers × ${config.maxRoomsPerServer}/server = ${config.servers.length * config.maxRoomsPerServer} max`);
-  log(`Rooms mode:   ${config.rooms === 'auto' ? 'auto (RAM + server-count bounded)' : `fixed (${config.rooms})`}`);
-  log(`Auto-scale:   ON (every ${SCALE_CHECK_MS / 60000} min, RAM ≤ ${config.ramTarget * 100}%)`);
+  log(`Auto-scale:   ON (every ${SCALE_CHECK_MS / 60000} min, RAM ≤ ${RAM_TARGET_USAGE * 100}%)`);
   log(`Train every:  ${formatNumber(config.trainEvery)} samples`);
   log(`Target:       ${formatNumber(config.target)} samples`);
   console.log('');
 
-  const initialSamples = countSamples(activeDataDir);
+  // ── Load shared model once for all in-process bots ──
+  const modelFileName = resolveModelFileName(config.model, config.version);
+  const modelPath = join(ROOT, 'packages', 'fast-model', 'models', modelFileName);
+  sharedModel = loadModel(modelPath);
+  log(`Shared model: ${sharedModel ? modelFileName : 'not found (heuristic fallback)'}`);
+
+  const initialDetailed = countSamplesDetailed(activeDataDir);
+  const initialStreetCounts: StreetCounts = { ...initialDetailed };
+  const initialSamples = initialDetailed.total;
+  resetRuntimeSampleCounts();
   log(`Existing samples: ${formatNumber(initialSamples)}`);
 
   // Dashboard
@@ -582,7 +535,7 @@ async function main(): Promise<void> {
   dashboardState.pipelineVersion = config.version;
   dashboardState.pipelineMode = config.mode;
   dashboardState.history.push({ t: Date.now(), samples: initialSamples });
-  addEvent('START', 'milestone', `Pipeline started (${config.version}/${config.mode}) — ${formatNumber(initialSamples)} existing, ${config.servers.length} servers, cap ${config.servers.length * config.maxRoomsPerServer} rooms`);
+  addEvent('START', 'milestone', `Pipeline started (${config.version}/${config.mode}) — ${formatNumber(initialSamples)} existing, ${config.servers.length} servers`);
   startDashboardServer(config.dashboardPort);
 
   // State
@@ -591,6 +544,28 @@ async function main(): Promise<void> {
   let nextTrainThreshold = Math.ceil((initialSamples + 1) / config.trainEvery) * config.trainEvery;
   let isShuttingDown = false;
   let isScaling = false;
+  let isMonitoring = false;
+  let stalledIntervals = 0;
+
+  // ── Centralized model hot-reload (every 5 min, updates all bots at once) ──
+  let lastModelMtime = 0;
+  try { lastModelMtime = statSync(modelPath).mtimeMs; } catch {}
+  const modelReloadInterval = setInterval(() => {
+    try {
+      const mtime = statSync(modelPath).mtimeMs;
+      if (mtime > lastModelMtime) {
+        const newModel = loadModel(modelPath);
+        if (newModel) {
+          sharedModel = newModel;
+          lastModelMtime = mtime;
+          log('Shared model hot-reloaded — updating all bots');
+          for (const room of liveRooms) {
+            for (const bot of room.bots) bot.setModel(sharedModel);
+          }
+        }
+      }
+    } catch {}
+  }, 5 * 60 * 1000);
 
   // ── Wait for all game servers to be ready ──
   log('Waiting for game servers...');
@@ -607,7 +582,7 @@ async function main(): Promise<void> {
     }
   }
 
-  // ── Spawn initial rooms (round-robin across servers) ──
+  // ── Spawn initial rooms sequentially (server can't handle 30+ parallel creates) ──
   for (let r = 0; r < initialRooms; r++) {
     const serverUrl = config.servers[r % config.servers.length];
     try {
@@ -615,8 +590,7 @@ async function main(): Promise<void> {
       liveRooms.push(room);
       syncDashboardRooms(liveRooms, config.botsPerRoom);
       const port = new URL(serverUrl).port;
-      addEvent('ROOM', 'success', `Room ${room.roomCode} on :${port} (${config.botsPerRoom} bots)`);
-      if (r < initialRooms - 1) await new Promise(r => setTimeout(r, 1000));
+      addEvent('ROOM', 'success', `Room ${room.roomCode} on :${port} (${config.botsPerRoom} in-process bots)`);
     } catch (err) {
       log(`Failed to create room on ${serverUrl}: ${(err as Error).message}`);
     }
@@ -642,16 +616,25 @@ async function main(): Promise<void> {
       const usagePct = ((totalGB - currentFreeGB) / totalGB) * 100;
       dashboardState.freeRAM = currentFreeGB;
 
-      const ideal = config.rooms === 'auto'
-        ? calcIdealRooms(config.botsPerRoom, liveRooms.length, config)
-        : config.rooms;
+      // Emergency scale-down if RAM critically high (prevent OOM/crash)
+      if (usagePct / 100 >= RAM_CRITICAL_PCT && liveRooms.length > 1) {
+        const room = liveRooms.pop()!;
+        teardownRoom(room);
+        syncDashboardRooms(liveRooms, config.botsPerRoom);
+        log(`[auto-scale] EMERGENCY scale-down (RAM ${usagePct.toFixed(0)}%) → ${liveRooms.length} rooms`);
+        addEvent('WARN', 'error', `Emergency scale-down: RAM ${usagePct.toFixed(0)}% → ${liveRooms.length} rooms`);
+        isScaling = false;
+        return;
+      }
+
+      const ideal = calcIdealRooms(config.botsPerRoom, liveRooms.length, config.servers.length);
       log(`[auto-scale] RAM: ${currentFreeGB.toFixed(1)} GB free (${usagePct.toFixed(0)}% used) | rooms: ${liveRooms.length} → ideal: ${ideal}`);
 
-      // Scale UP (round-robin across servers)
+      // Scale UP sequentially, max 3 per cycle (allow memory to settle)
       if (ideal > liveRooms.length) {
-        const toAdd = ideal - liveRooms.length;
+        const toAdd = Math.min(ideal - liveRooms.length, 3);
         for (let i = 0; i < toAdd; i++) {
-          const serverUrl = config.servers[(liveRooms.length + i) % config.servers.length];
+          const serverUrl = config.servers[(liveRooms.length) % config.servers.length];
           try {
             const room = await spawnRoom(config, serverUrl);
             liveRooms.push(room);
@@ -659,7 +642,6 @@ async function main(): Promise<void> {
             const port = new URL(serverUrl).port;
             addEvent('SCALE', 'success', `Scaled UP → ${liveRooms.length} rooms on :${port} (${currentFreeGB.toFixed(1)} GB free)`);
             log(`[auto-scale] +1 room on :${port} → ${liveRooms.length} total`);
-            await new Promise(r => setTimeout(r, 1000));
           } catch (err) {
             log(`[auto-scale] Failed to add room: ${(err as Error).message}`);
             break;
@@ -690,26 +672,46 @@ async function main(): Promise<void> {
   let lastSampleCount = initialSamples;
 
   const monitorInterval = setInterval(async () => {
-    if (isShuttingDown) return;
+    if (isShuttingDown || isMonitoring) return;
+    isMonitoring = true;
+    try {
 
-    const currentSamples = countSamples(activeDataDir);
+    const runtime = getRuntimeSampleCounts();
+    const detailed: StreetCounts = {
+      total: initialStreetCounts.total + runtime.total,
+      PREFLOP: initialStreetCounts.PREFLOP + runtime.PREFLOP,
+      FLOP: initialStreetCounts.FLOP + runtime.FLOP,
+      TURN: initialStreetCounts.TURN + runtime.TURN,
+      RIVER: initialStreetCounts.RIVER + runtime.RIVER,
+    };
+    const currentSamples = detailed.total;
     const newSamples = currentSamples - initialSamples;
     const elapsedHours = (Date.now() - startTime) / 3_600_000;
     const rate = elapsedHours > 0.001 ? newSamples / elapsedHours : 0;
     const remaining = config.target - currentSamples;
     const etaHours = rate > 0 ? remaining / rate : Infinity;
     const deltaSinceLast = currentSamples - lastSampleCount;
+    if (deltaSinceLast > 0) stalledIntervals = 0;
+    else stalledIntervals++;
 
     const progress = Math.min(100, (currentSamples / config.target) * 100);
     const bar = '█'.repeat(Math.floor(progress / 5)) + '░'.repeat(20 - Math.floor(progress / 5));
     const ramGB = (freemem() / (1024 ** 3)).toFixed(1);
 
+    const postflopTotal = detailed.FLOP + detailed.TURN + detailed.RIVER;
+    const postflopPct = currentSamples > 0 ? (postflopTotal / currentSamples * 100).toFixed(1) : '0.0';
+
     log(
       `[${bar}] ${progress.toFixed(1)}% | ` +
-      `${formatNumber(currentSamples)} / ${formatNumber(config.target)} (+${formatNumber(deltaSinceLast)}) | ` +
+      `${formatNumber(currentSamples)} (+${deltaSinceLast}) | ` +
       `${formatNumber(Math.round(rate))}/hr | ` +
       `ETA: ${remaining > 0 ? formatDuration(etaHours) : 'DONE!'} | ` +
       `${liveRooms.length} rooms | RAM: ${ramGB} GB`
+    );
+    log(
+      `  Streets: PRE=${formatNumber(detailed.PREFLOP)} ` +
+      `F=${formatNumber(detailed.FLOP)} T=${formatNumber(detailed.TURN)} R=${formatNumber(detailed.RIVER)} ` +
+      `(postflop ${postflopPct}%)`
     );
 
     // Update dashboard
@@ -720,9 +722,33 @@ async function main(): Promise<void> {
     dashboardState.elapsedHours = elapsedHours;
     dashboardState.nextTrainThreshold = nextTrainThreshold;
     dashboardState.freeRAM = parseFloat(ramGB);
+    dashboardState.streetCounts = {
+      PREFLOP: detailed.PREFLOP,
+      FLOP: detailed.FLOP,
+      TURN: detailed.TURN,
+      RIVER: detailed.RIVER,
+    };
     dashboardState.history.push({ t: Date.now(), samples: currentSamples });
     if (dashboardState.history.length > 500) dashboardState.history.shift();
-    dashboardState.streetCounts = countSamplesByStreet(activeDataDir);
+
+    // Room watchdog: recover automatically if sample growth stalls
+    if (stalledIntervals >= 4 && !isTraining && !isScaling && liveRooms.length > 0) {
+      stalledIntervals = 0;
+      const staleRoom = liveRooms.shift()!;
+      const port = new URL(staleRoom.serverUrl).port;
+      log(`[watchdog] No sample growth for 2 min. Recycling ${staleRoom.roomCode} on :${port}`);
+      addEvent('WATCH', 'error', `No growth for 2 min; recycling ${staleRoom.roomCode} on :${port}`);
+      teardownRoom(staleRoom);
+      syncDashboardRooms(liveRooms, config.botsPerRoom);
+      try {
+        const replacement = await spawnRoom(config, staleRoom.serverUrl);
+        liveRooms.push(replacement);
+        syncDashboardRooms(liveRooms, config.botsPerRoom);
+        addEvent('WATCH', 'success', `Recovered by replacing room on :${port}`);
+      } catch (err) {
+        log(`[watchdog] Failed to respawn room on :${port}: ${(err as Error).message}`);
+      }
+    }
 
     lastSampleCount = currentSamples;
 
@@ -770,7 +796,12 @@ async function main(): Promise<void> {
       isTraining = false;
       dashboardState.isTraining = false;
     }
-  }, 10_000);
+    } catch (err) {
+      log(`[monitor] Error: ${(err as Error).message}`);
+    } finally {
+      isMonitoring = false;
+    }
+  }, 30_000);
 
   // ── Graceful shutdown ──
   function shutdown(): void {
@@ -780,6 +811,7 @@ async function main(): Promise<void> {
     log('Shutting down...');
     clearInterval(monitorInterval);
     clearInterval(scaleInterval);
+    clearInterval(modelReloadInterval);
 
     for (const room of liveRooms) teardownRoom(room);
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { io, type Socket } from 'socket.io-client';
-import { appendFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
+import { appendFileSync, appendFile, existsSync, mkdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getProfile } from './profiles.js';
@@ -24,8 +24,44 @@ import { analyzeRaiseContext } from './raise-context.js';
 import { getBoardTexture } from './board-integration.js';
 import { TraceLogger } from './trace-logger.js';
 
+export interface RuntimeStreetCounts {
+  total: number;
+  PREFLOP: number;
+  FLOP: number;
+  TURN: number;
+  RIVER: number;
+}
+
+const runtimeSampleCounts: RuntimeStreetCounts = {
+  total: 0,
+  PREFLOP: 0,
+  FLOP: 0,
+  TURN: 0,
+  RIVER: 0,
+};
+
+function recordRuntimeSample(street: string): void {
+  runtimeSampleCounts.total++;
+  if (street === 'PREFLOP') runtimeSampleCounts.PREFLOP++;
+  else if (street === 'FLOP') runtimeSampleCounts.FLOP++;
+  else if (street === 'TURN') runtimeSampleCounts.TURN++;
+  else if (street === 'RIVER') runtimeSampleCounts.RIVER++;
+}
+
+export function getRuntimeSampleCounts(): RuntimeStreetCounts {
+  return { ...runtimeSampleCounts };
+}
+
+export function resetRuntimeSampleCounts(): void {
+  runtimeSampleCounts.total = 0;
+  runtimeSampleCounts.PREFLOP = 0;
+  runtimeSampleCounts.FLOP = 0;
+  runtimeSampleCounts.TURN = 0;
+  runtimeSampleCounts.RIVER = 0;
+}
+
 // ===== CLI argument parsing =====
-interface BotArgs {
+export interface BotArgs {
   server: string;
   room: string;
   seat: number;
@@ -36,6 +72,22 @@ interface BotArgs {
   delay?: number; // ms to wait before acting (humanize)
   mode?: 'train' | 'play';       // V2: train=clean labels, play=full personality
   version?: 'v1' | 'v2';         // V2: model/data version
+  model?: string;                // model name: 'v1', 'latest', 'v2' (overrides version-based default)
+  sharedModel?: MLP | null;      // injected shared model (skip per-bot loading)
+  dataDir?: string;              // explicit data directory override
+  skipPersistStats?: boolean;    // skip session stats file I/O (for in-process bots)
+  quiet?: boolean;               // suppress routine logs (self-play optimization)
+  bufferFlushSize?: number;      // sample buffer flush threshold
+}
+
+/** Resolve model name to filename. */
+export function resolveModelFileName(model?: string, version?: 'v1' | 'v2'): string {
+  if (model === 'v1') return 'model-v1.json';
+  if (model === 'v2') return 'model-v2-latest.json';
+  if (model === 'latest') return 'model-latest.json';
+  if (model) return model.endsWith('.json') ? model : `${model}.json`;
+  // Default: version-based fallback
+  return version === 'v2' ? 'model-v2-latest.json' : 'model-v1.json';
 }
 
 function parseArgs(argv: string[]): BotArgs {
@@ -59,17 +111,23 @@ function parseArgs(argv: string[]): BotArgs {
   const delay = parseInt(args['delay'] ?? '800', 10);
   const mode = (args['mode'] ?? 'play') as 'train' | 'play';
   const version = (args['version'] ?? 'v1') as 'v1' | 'v2';
+  const model = args['model'];
+  const quiet = args['quiet'] === '1' || args['quiet'] === 'true';
+  const parsedFlushSize = parseInt(args['buffer-flush-size'] ?? '', 10);
+  const bufferFlushSize = Number.isFinite(parsedFlushSize) && parsedFlushSize > 0
+    ? parsedFlushSize
+    : undefined;
 
   if (!room) {
-    console.error('Usage: --room <ROOM_CODE> [--server url] [--seat N] [--buyin N] [--profile id] [--name str] [--userId str] [--delay ms] [--mode train|play] [--version v1|v2]');
+    console.error('Usage: --room <ROOM_CODE> [--server url] [--seat N] [--buyin N] [--profile id] [--name str] [--userId str] [--delay ms] [--mode train|play] [--version v1|v2] [--model v1|v2|latest]');
     process.exit(1);
   }
 
-  return { server, room, seat, buyin, profile, name, userId, delay, mode, version };
+  return { server, room, seat, buyin, profile, name, userId, delay, mode, version, model, quiet, bufferFlushSize };
 }
 
 // ===== Bot class =====
-class PokerBot {
+export class PokerBot {
   private socket: Socket;
   private tableId: string | null = null;
   private mySeat: number;
@@ -88,6 +146,8 @@ class PokerBot {
   private dataDir: string;
   private sampleCount = 0;
   private readonly MAX_SAMPLES_PER_FILE = 100_000;
+  private sampleBuffer: string[] = [];
+  private readonly bufferFlushSize: number;
 
   // New enhancement state
   private persona: BotPersona;
@@ -97,12 +157,14 @@ class PokerBot {
   private handNumber = 0;
   private lastProcessedActionCount = 0; // track observed actions for opponent model
   private lastHandStrength: number | null = null; // for bad beat detection
-  private preflopSampleCount = 0; // track ALL preflop samples for downsampling
 
   // V2 mode/version
   private mode: 'train' | 'play';
   private version: 'v1' | 'v2';
   private v2DataDir: string = '';
+  private skipPersistStats: boolean;
+  private quiet: boolean;
+  private hotReloadTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(private args: BotArgs) {
     this.mySeat = args.seat;
@@ -111,16 +173,25 @@ class PokerBot {
     this.actDelay = args.delay ?? 800;
     this.mode = args.mode ?? 'play';
     this.version = args.version ?? 'v1';
+    this.skipPersistStats = args.skipPersistStats ?? false;
+    this.quiet = args.quiet ?? false;
+    this.bufferFlushSize = Math.max(10, args.bufferFlushSize ?? 20);
 
     // ── Load persistent session stats ──
-    this.sessionStats = loadSessionStats(this.profile.id);
-    if (this.sessionStats.handsPlayed > 0) {
-      this.log(`Loaded stats: hands=${this.sessionStats.handsPlayed} net=${this.sessionStats.netChips}`);
+    if (this.skipPersistStats) {
+      this.sessionStats = createSessionStats();
+    } else {
+      this.sessionStats = loadSessionStats(this.profile.id);
+      if (this.sessionStats.handsPlayed > 0) {
+        this.log(`Loaded stats: hands=${this.sessionStats.handsPlayed} net=${this.sessionStats.netChips}`);
+      }
     }
 
     // ── Initialize persona (fixed for entire session) ──
     this.persona = generatePersona(this.profile.id);
-    this.log(`Persona: L/T=${this.persona.looseTightBias.toFixed(2)} P/A=${this.persona.passiveAggressiveBias.toFixed(2)} bluff=${this.persona.bluffFrequency.toFixed(2)} hero=${this.persona.heroCallTendency.toFixed(2)}`);
+    if (this.mode !== 'train') {
+      this.log(`Persona: L/T=${this.persona.looseTightBias.toFixed(2)} P/A=${this.persona.passiveAggressiveBias.toFixed(2)} bluff=${this.persona.bluffFrequency.toFixed(2)} hero=${this.persona.heroCallTendency.toFixed(2)}`);
+    }
 
     // ── Initialize mood state ──
     this.moodState = createMoodState();
@@ -132,35 +203,48 @@ class PokerBot {
     this.traceLogger = new TraceLogger();
 
     // ── Load fast model if available (version-aware) ──
-    const __dirname = dirname(fileURLToPath(import.meta.url));
-    const modelFileName = this.version === 'v2' ? 'model-v2-latest.json' : 'model-latest.json';
-    const modelPath = join(__dirname, '..', '..', '..', 'packages', 'fast-model', 'models', modelFileName);
-    this.fastModel = loadModel(modelPath);
-    if (this.fastModel) {
-      this.log(`Fast model loaded (${this.version})`);
+    if (args.sharedModel !== undefined) {
+      // In-process mode: use injected shared model, skip hot-reload
+      this.fastModel = args.sharedModel;
+      if (this.fastModel) this.log(`Fast model shared (${this.version})`);
+      else this.log('No shared model, will use heuristic fallback');
     } else {
-      this.log('No fast model found, will use heuristic fallback');
+      // Standalone mode: load from disk + per-bot hot-reload
+      const __dirname = dirname(fileURLToPath(import.meta.url));
+      const modelFileName = resolveModelFileName(args.model, this.version);
+      const modelPath = join(__dirname, '..', '..', '..', 'packages', 'fast-model', 'models', modelFileName);
+      this.fastModel = loadModel(modelPath);
+      if (this.fastModel) {
+        this.log(`Fast model loaded: ${modelFileName}`);
+      } else {
+        this.log(`No fast model found (${modelFileName}), will use heuristic fallback`);
+      }
+
+      // Hot-reload model every 5 minutes (standalone only)
+      let lastModelMtime = 0;
+      try { lastModelMtime = statSync(modelPath).mtimeMs; } catch {}
+      this.hotReloadTimer = setInterval(() => {
+        try {
+          const currentMtime = statSync(modelPath).mtimeMs;
+          if (currentMtime > lastModelMtime) {
+            const newModel = loadModel(modelPath);
+            if (newModel) {
+              this.fastModel = newModel;
+              lastModelMtime = currentMtime;
+              this.log('Model hot-reloaded!');
+            }
+          }
+        } catch {}
+      }, 5 * 60 * 1000);
     }
 
-    // ── Hot-reload model every 5 minutes ──
-    let lastModelMtime = 0;
-    try { lastModelMtime = statSync(modelPath).mtimeMs; } catch {}
-    setInterval(() => {
-      try {
-        const currentMtime = statSync(modelPath).mtimeMs;
-        if (currentMtime > lastModelMtime) {
-          const newModel = loadModel(modelPath);
-          if (newModel) {
-            this.fastModel = newModel;
-            lastModelMtime = currentMtime;
-            this.log('Model hot-reloaded!');
-          }
-        }
-      } catch {}
-    }, 5 * 60 * 1000);
-
     // ── Data collection directories ──
-    this.dataDir = join(__dirname, '..', '..', '..', 'data');
+    if (args.dataDir) {
+      this.dataDir = args.dataDir;
+    } else {
+      const __dirname = dirname(fileURLToPath(import.meta.url));
+      this.dataDir = join(__dirname, '..', '..', '..', 'data');
+    }
     if (!existsSync(this.dataDir)) {
       mkdirSync(this.dataDir, { recursive: true });
     }
@@ -189,7 +273,8 @@ class PokerBot {
     this.wireEvents();
   }
 
-  private log(msg: string): void {
+  private log(msg: string, force = false): void {
+    if (this.quiet && !force) return;
     const ts = new Date().toISOString().slice(11, 23);
     console.log(`[${ts}] [seat${this.mySeat}/${this.profile.id}] ${msg}`);
   }
@@ -201,12 +286,13 @@ class PokerBot {
     });
 
     this.socket.on('connect_error', (err) => {
-      this.log(`Connection error: ${err.message}`);
+      this.log(`Connection error: ${err.message}`, true);
     });
 
     this.socket.on('disconnect', (reason) => {
-      this.log(`Disconnected: ${reason}`);
+      this.log(`Disconnected: ${reason}`, true);
       this.seated = false;
+      this.flushSampleBuffer();  // flush remaining samples to disk
     });
 
     this.socket.on('connected', (data: { socketId: string; userId: string; displayName: string }) => {
@@ -222,7 +308,7 @@ class PokerBot {
     });
 
     this.socket.on('error_event', (data: { message: string }) => {
-      this.log(`Server error: ${data.message}`);
+      this.log(`Server error: ${data.message}`, true);
       if (!this.seated && data.message.includes('seat') || data.message.includes('Seat')) {
         this.log('Will retry sit_down in 3s...');
         setTimeout(() => this.trySitDown(), 3000);
@@ -250,8 +336,8 @@ class PokerBot {
       const me = this.latestState?.players.find(p => p.seat === this.mySeat);
       this.lastHandStack = me?.stack ?? null;
 
-      // Notify opponent tracker of new hand
-      if (this.latestState) {
+      // Notify opponent tracker of new hand (play mode only)
+      if (this.mode !== 'train' && this.latestState) {
         this.opponentTracker.observeHandStart(this.latestState);
       }
     });
@@ -275,8 +361,8 @@ class PokerBot {
         }
       }
 
-      // Feed new actions to opponent tracker
-      this.observeNewActions(state);
+      // Feed new actions to opponent tracker (play mode only)
+      if (this.mode !== 'train') this.observeNewActions(state);
 
       // Detect hand ending for session stats + mood update
       if (!state.handId && this.lastHandStack !== null && this.lastHandId) {
@@ -285,7 +371,7 @@ class PokerBot {
           const net = me.stack - this.lastHandStack;
           const won = net > 0;
           recordHandResult(this.sessionStats, net, won);
-          saveSessionStats(this.sessionStats, this.profile.id);
+          if (!this.skipPersistStats) saveSessionStats(this.sessionStats, this.profile.id);
 
           // Update mood with hand result
           const wasBadBeat = !won && this.lastHandStrength != null && this.lastHandStrength >= 0.65;
@@ -305,19 +391,6 @@ class PokerBot {
               `Stats: hands=${this.sessionStats.handsPlayed} wins=${this.sessionStats.handsWon} ` +
               `net=${this.sessionStats.netChips} foldToRaise=${ftr}% mood=${this.moodState.value.toFixed(2)}`
             );
-          }
-
-          // Auto-rebuy when stack is low (self-play training mode)
-          const bb = state.bigBlind || 1;
-          if (me.stack < bb * 5 && this.tableId) {
-            const rebuyAmount = this.args.buyin - me.stack;
-            if (rebuyAmount > 0) {
-              this.log(`Stack low (${me.stack}), requesting rebuy of ${rebuyAmount}`);
-              this.socket.emit('deposit_request', {
-                tableId: this.tableId,
-                amount: rebuyAmount,
-              });
-            }
           }
         }
         this.lastHandStack = null;
@@ -391,15 +464,25 @@ class PokerBot {
       entries.slice(0, 100).forEach(k => this.handActedMap.delete(k));
     }
 
-    // V2 train mode: skip thinking time and advice wait entirely
-    // computeEvLabels() generates labels independently — no need to wait for server advice
-    if (this.mode === 'train' && this.version === 'v2') {
-      this.collectSampleDirect(state);
-      this.act(state);
+    // ── TRAIN MODE: act immediately, no thinking delays ──
+    if (this.mode === 'train') {
+      const adviceDeadline = Date.now() + 800;  // keep below 1s action timer to avoid server timeouts
+      const checkAndAct = () => {
+        if (this.pendingAdvice) {
+          this.act(state);
+          return;
+        }
+        if (Date.now() < adviceDeadline) {
+          setTimeout(checkAndAct, 20);
+          return;
+        }
+        this.act(state);  // act without advice
+      };
+      setTimeout(checkAndAct, 5);
       return;
     }
 
-    // ── Context-dependent thinking time (Enhancement #5) ──
+    // ── PLAY MODE: context-dependent thinking time (Enhancement #5) ──
     const raiseContext = analyzeRaiseContext(state, this.mySeat);
     const boardTexture = getBoardTexture(state.board);
     const handStrength = this.myCards
@@ -450,71 +533,6 @@ class PokerBot {
     }
   }
 
-  /**
-   * Direct sample collection for V2 train mode — no advice dependency.
-   * Uses computeEvLabels() which only needs game state, not server advice.
-   */
-  private collectSampleDirect(state: TableState): void {
-    try {
-      if (!this.myCards || !state.handId) return;
-      if (state.street === 'SHOWDOWN' || state.street === 'RUN_IT_TWICE_PROMPT') return;
-
-      const me = state.players.find(p => p.seat === this.mySeat);
-      if (!me) return;
-
-      const heroPosition = state.positions?.[this.mySeat] ?? 'BTN';
-      const villains = state.players.filter(p => p.inHand && !p.folded && p.seat !== this.mySeat);
-      const numVillains = villains.length || 1;
-      const heroInPosition = heroPosition === 'BTN' || heroPosition === 'CO';
-      const heroRaisedPreflop = state.actions.some(
-        a => a.seat === this.mySeat && a.street === 'PREFLOP' && a.type === 'raise'
-      );
-      const effectiveStack = Math.min(me.stack, ...villains.map(v => v.stack));
-      const bb = state.bigBlind || 1;
-      const callAmount = state.legalActions?.callAmount ?? 0;
-
-      const features = encodeFeaturesV2(
-        this.myCards, state.board, state.street, state.pot, bb, callAmount,
-        effectiveStack, heroPosition, heroInPosition, numVillains, heroRaisedPreflop,
-        state.actions, state.players, this.mySeat,
-      );
-
-      const evResult = computeEvLabels({
-        holeCards: this.myCards,
-        board: state.board,
-        street: state.street,
-        pot: state.pot,
-        callAmount,
-        numOpponents: numVillains,
-        minRaise: state.legalActions?.minRaise ?? 0,
-        maxRaise: state.legalActions?.maxRaise ?? 0,
-        bigBlind: bb,
-      });
-
-      // Aggressive preflop downsampling: keep only 1 in 10 of ALL preflop samples
-      // Without this, preflop dominates at ~93% of data. Target: ~40-50% preflop.
-      if (state.street === 'PREFLOP') {
-        this.preflopSampleCount++;
-        if (this.preflopSampleCount % 10 !== 0) return; // keep only 1 in 10
-      }
-
-      const sample: TrainingSample = {
-        f: features.map(v => Math.round(v * 10000) / 10000),
-        l: evResult.actionMix,
-        sz: evResult.sizingMix,
-        h: state.handId.slice(0, 8),
-        s: state.street,
-      };
-
-      const fileIdx = Math.floor(this.sampleCount / this.MAX_SAMPLES_PER_FILE);
-      const filePath = join(this.v2DataDir, `training-samples${fileIdx > 0 ? `-${fileIdx}` : ''}.jsonl`);
-      appendFileSync(filePath, JSON.stringify(sample) + '\n');
-      this.sampleCount++;
-    } catch {
-      // Never let data collection crash the bot
-    }
-  }
-
   private collectSample(advice: AdvicePayload): void {
     try {
       const state = this.latestState;
@@ -536,6 +554,9 @@ class PokerBot {
       const bb = state.bigBlind || 1;
       const callAmount = state.legalActions?.callAmount ?? 0;
 
+      let sampleLine: string;
+      let targetDir: string;
+
       if (this.version === 'v2') {
         // V2: 54 features + EV-based labels with sizing
         const features = encodeFeaturesV2(
@@ -556,12 +577,6 @@ class PokerBot {
           bigBlind: bb,
         });
 
-        // Aggressive preflop downsampling: keep only 1 in 10 of ALL preflop samples
-        if (state.street === 'PREFLOP') {
-          this.preflopSampleCount++;
-          if (this.preflopSampleCount % 10 !== 0) return;
-        }
-
         const sample: TrainingSample = {
           f: features.map(v => Math.round(v * 10000) / 10000),
           l: evResult.actionMix,
@@ -569,10 +584,8 @@ class PokerBot {
           h: state.handId.slice(0, 8),
           s: state.street,
         };
-
-        const fileIdx = Math.floor(this.sampleCount / this.MAX_SAMPLES_PER_FILE);
-        const filePath = join(this.v2DataDir, `training-samples${fileIdx > 0 ? `-${fileIdx}` : ''}.jsonl`);
-        appendFileSync(filePath, JSON.stringify(sample) + '\n');
+        sampleLine = JSON.stringify(sample);
+        targetDir = this.v2DataDir;
       } else {
         // V1: 48 features + GTO advice labels
         const features = encodeFeatures(
@@ -586,15 +599,38 @@ class PokerBot {
           h: state.handId.slice(0, 8),
           s: state.street,
         };
-
-        const fileIdx = Math.floor(this.sampleCount / this.MAX_SAMPLES_PER_FILE);
-        const filePath = join(this.dataDir, `training-samples${fileIdx > 0 ? `-${fileIdx}` : ''}.jsonl`);
-        appendFileSync(filePath, JSON.stringify(sample) + '\n');
+        sampleLine = JSON.stringify(sample);
+        targetDir = this.dataDir;
       }
+
+      // Buffered async write
+      this.sampleBuffer.push(sampleLine);
       this.sampleCount++;
-    } catch {
-      // Never let data collection crash the bot
+      recordRuntimeSample(state.street);
+
+      if (this.sampleBuffer.length >= this.bufferFlushSize) {
+        const fileIdx = Math.floor((this.sampleCount - this.sampleBuffer.length) / this.MAX_SAMPLES_PER_FILE);
+        const filePath = join(targetDir, `training-samples${fileIdx > 0 ? `-${fileIdx}` : ''}.jsonl`);
+        const batch = this.sampleBuffer.join('\n') + '\n';
+        this.sampleBuffer = [];
+        appendFile(filePath, batch, (writeErr) => {
+          if (writeErr) this.log(`Sample write failed: ${filePath} -> ${writeErr.message}`, true);
+        });
+      }
+    } catch (err) {
+      this.log(`collectSample failed: ${(err as Error).message}`, true);
     }
+  }
+
+  private flushSampleBuffer(): void {
+    if (this.sampleBuffer.length === 0) return;
+    try {
+      const targetDir = this.version === 'v2' ? this.v2DataDir : this.dataDir;
+      const fileIdx = Math.floor((this.sampleCount - this.sampleBuffer.length) / this.MAX_SAMPLES_PER_FILE);
+      const filePath = join(targetDir, `training-samples${fileIdx > 0 ? `-${fileIdx}` : ''}.jsonl`);
+      appendFileSync(filePath, this.sampleBuffer.join('\n') + '\n');
+      this.sampleBuffer = [];
+    } catch {}
   }
 
   private act(state: TableState): void {
@@ -656,8 +692,8 @@ class PokerBot {
       `${result.amount != null ? ` ${result.amount}` : ''} (${result.reasoning})`
     );
 
-    // Log structured trace
-    if (result.trace) {
+    // Log structured trace (play mode only)
+    if (this.mode !== 'train' && result.trace) {
       this.traceLogger.log(result.trace);
     }
 
@@ -676,8 +712,25 @@ class PokerBot {
 
     this.socket.emit('action_submit', payload);
   }
+
+  /** Update the fast model (used by orchestrator for centralized hot-reload). */
+  setModel(model: MLP | null): void {
+    this.fastModel = model;
+  }
+
+  /** Cleanly shut down: flush samples, clear timers, disconnect socket. */
+  destroy(): void {
+    this.flushSampleBuffer();
+    if (this.hotReloadTimer) clearInterval(this.hotReloadTimer);
+    try { this.socket.disconnect(); } catch {}
+  }
 }
 
-// ===== Entry point =====
-const botArgs = parseArgs(process.argv.slice(2));
-new PokerBot(botArgs);
+// ===== CLI entry point (standalone mode) =====
+const _isDirectRun = process.argv[1] && (
+  process.argv[1].endsWith('main.ts') || process.argv[1].endsWith('main.js')
+);
+if (_isDirectRun) {
+  const botArgs = parseArgs(process.argv.slice(2));
+  new PokerBot(botArgs);
+}

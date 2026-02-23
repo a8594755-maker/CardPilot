@@ -179,7 +179,7 @@ function normalizeHandRecord(input: unknown): HandRecord | null {
   const raw = input as Partial<HandRecord>;
 
   if (typeof raw.id !== "string") return null;
-  if (!Array.isArray(raw.actions) || !Array.isArray(raw.heroCards) || raw.heroCards.length < 2) return null;
+  if (!Array.isArray(raw.actions) || !Array.isArray(raw.heroCards)) return null;
 
   const heroCards = raw.heroCards.map(String).filter((card) => card.length >= 2);
   const gameType = raw.gameType === "PLO" ? "PLO" : "NLH";

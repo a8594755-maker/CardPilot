@@ -215,6 +215,7 @@ export const SOCKET_EVENT_NAMES = {
     'request_history_rooms',
     'request_history_sessions',
     'request_history_hands',
+    'request_room_hands',
     'request_history_hand_detail',
     'history_gto_analyze',
     'show_hand_post',
@@ -264,6 +265,7 @@ export const SOCKET_EVENT_NAMES = {
     'history_rooms',
     'history_sessions',
     'history_hands',
+    'room_hands',
     'history_hand_detail',
     'history_gto_result',
     'hand_audit_complete',
@@ -319,6 +321,7 @@ export interface ClientToServerEvents {
   request_history_sessions: (payload: { roomId: string; limit?: number }) => void;
   request_history_hands: (payload: { roomSessionId: string; limit?: number; beforeEndedAt?: string }) => void;
   request_history_hand_detail: (payload: { handHistoryId: string }) => void;
+  request_room_hands: (payload: { roomId: string; limit?: number }) => void;
   history_gto_analyze: (payload: { handId: string; handRecord: HistoryGTOHandRecord; precision: 'fast' | 'deep' }) => void;
   show_hand_post: (payload: { tableId: string; seat: number }) => void;
   claim_seven_two_bounty: (payload: { tableId: string; seat: number }) => void;
@@ -426,6 +429,7 @@ export interface ServerToClientEvents {
   history_rooms: (payload: { rooms: HistoryRoomSummary[] }) => void;
   history_sessions: (payload: { roomId: string; sessions: HistorySessionSummary[] }) => void;
   history_hands: (payload: { roomSessionId: string; hands: HistoryHandSummary[]; hasMore: boolean; nextCursor?: string }) => void;
+  room_hands: (payload: { roomId: string; hands: HistoryHandSummary[] }) => void;
   history_hand_detail: (payload: { handHistoryId: string; hand: HistoryHandDetail | null }) => void;
   history_gto_result: (payload: { handId: string; gtoAnalysis: HistoryGTOAnalysis | null; error?: string }) => void;
   hand_audit_complete: (payload: { userId: string; summary: HandAuditSummary }) => void;

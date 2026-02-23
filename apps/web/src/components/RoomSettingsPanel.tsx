@@ -451,7 +451,7 @@ export function RoomSettingsPanel({ roomState, isHost, readOnly = false, initial
         <div className="space-y-3">
           <SectionTitle>GTO Bot Seats</SectionTitle>
           <p className="text-[10px] text-slate-400">
-            Assign GTO bots to empty seats. Bots play using GTO advice with personality-based adjustments.
+            Assign bots to empty seats. Choose a personality and model version per seat.
           </p>
 
           <SettingRow label="Bot Buy-in">
@@ -484,25 +484,43 @@ export function RoomSettingsPanel({ roomState, isHost, readOnly = false, initial
                     Player: {seatPlayer.name}
                   </span>
                 ) : (
-                  <select
-                    value={existing?.profile ?? ""}
-                    onChange={(e) => {
-                      const prev = (botSeats ?? []).filter((b) => b.seat !== seat);
-                      if (e.target.value) {
-                        prev.push({ seat, profile: e.target.value });
-                      }
-                      updateField("botSeats", prev);
-                    }}
-                    className="input-field text-xs !py-1 flex-1"
-                    disabled={readOnly}
-                  >
-                    <option value="">-- None --</option>
-                    <option value="gto_balanced">GTO Balanced</option>
-                    <option value="limp_fish">Limp-Fish (passive caller)</option>
-                    <option value="tag">TAG (tight-aggressive)</option>
-                    <option value="lag">LAG (loose-aggressive)</option>
-                    <option value="nit">Nit (very tight)</option>
-                  </select>
+                  <>
+                    <select
+                      value={existing?.profile ?? ""}
+                      onChange={(e) => {
+                        const prev = (botSeats ?? []).filter((b) => b.seat !== seat);
+                        if (e.target.value) {
+                          prev.push({ seat, profile: e.target.value, modelVersion: existing?.modelVersion ?? "v1" });
+                        }
+                        updateField("botSeats", prev);
+                      }}
+                      className="input-field text-xs !py-1 flex-1"
+                      disabled={readOnly}
+                    >
+                      <option value="">-- None --</option>
+                      <option value="gto_balanced">GTO Balanced</option>
+                      <option value="limp_fish">Limp-Fish (passive caller)</option>
+                      <option value="tag">TAG (tight-aggressive)</option>
+                      <option value="lag">LAG (loose-aggressive)</option>
+                      <option value="nit">Nit (very tight)</option>
+                    </select>
+                    {existing && (
+                      <select
+                        value={existing.modelVersion ?? "v1"}
+                        onChange={(e) => {
+                          const updated = botSeats.map((b) =>
+                            b.seat === seat ? { ...b, modelVersion: e.target.value } : b
+                          );
+                          updateField("botSeats", updated);
+                        }}
+                        className="input-field text-[10px] !py-1 w-16"
+                        disabled={readOnly}
+                      >
+                        <option value="v0">V0</option>
+                        <option value="v1">V1</option>
+                      </select>
+                    )}
+                  </>
                 )}
 
                 {existing && !isOccupiedByHuman && (
@@ -529,10 +547,10 @@ export function RoomSettingsPanel({ roomState, isHost, readOnly = false, initial
             );
           })}
 
-          <p className="text-[10px] text-slate-500 mt-2">
-            Bots use GTO probabilities weighted by personality (actionWeights).
-            E.g. Limp-Fish shifts raise probability toward call/limp.
-          </p>
+          <div className="text-[10px] text-slate-500 mt-2 space-y-1">
+            <p><span className="text-indigo-400 font-medium">V0</span> = Heuristic (rule-based, no ML model)</p>
+            <p><span className="text-indigo-400 font-medium">V1</span> = Trained MLP (251K samples, 91.9% accuracy)</p>
+          </div>
         </div>
       )}
     </div>

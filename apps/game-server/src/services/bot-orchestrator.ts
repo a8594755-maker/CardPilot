@@ -13,13 +13,14 @@ import { logInfo } from "../logger.js";
 const BOT_BUY_IN_BB = 100; // default: bot buys in for 100 big blinds
 
 const BOT_NAMES = [
-  "Atsuki", "Take", "Ryo", "Ryu", "Seam", "Joshua",
+  "Atsuki", "Take", "Ryo", "Ryu", "Sean", "Joshua",
   "Louis", "Issac", "Jack", "Emily", "Claire", "Mandy",
 ];
 
 interface ActiveBot {
   seat: number;
   profile: string;
+  modelVersion: string;
   bot: InProcessBot;
   userId: string;
   name: string;
@@ -83,7 +84,9 @@ export function syncBots(
 
   // Remove bots that are no longer desired or whose profile changed
   for (const [seat, activeBot] of current.entries()) {
-    const desired = botSeats.find((b) => b.seat === seat && b.profile === activeBot.profile);
+    const desired = botSeats.find(
+      (b) => b.seat === seat && b.profile === activeBot.profile && (b.modelVersion ?? "v1") === activeBot.modelVersion,
+    );
     if (!desired) {
       logInfo({
         event: "bot.removing",
@@ -107,12 +110,13 @@ export function syncBots(
       const bots = tableBots.get(tableId);
       if (!bots) return;
 
+      const mv = cfg.modelVersion ?? "v1";
       const botName = pickBotName(tableId);
-      const userId = `bot-${cfg.profile}-seat${cfg.seat}-${Date.now()}`;
+      const userId = `bot-${cfg.profile}-${mv}-seat${cfg.seat}-${Date.now()}`;
 
       logInfo({
         event: "bot.spawning",
-        message: `Creating in-process bot seat=${cfg.seat} profile=${cfg.profile} name=${botName} for table=${tableId}`,
+        message: `Creating in-process bot seat=${cfg.seat} profile=${cfg.profile} model=${mv} name=${botName} for table=${tableId}`,
       });
 
       const bot = new InProcessBot({
@@ -124,11 +128,13 @@ export function syncBots(
         botName,
         userId,
         delay: 800,
+        modelVersion: mv,
       });
 
       const activeBot: ActiveBot = {
         seat: cfg.seat,
         profile: cfg.profile,
+        modelVersion: mv,
         bot,
         userId,
         name: botName,

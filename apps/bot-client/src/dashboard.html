@@ -422,6 +422,52 @@
     border-top: 1px dashed rgba(255,255,255,0.3);
   }
 
+  /* ── Console Log ── */
+  .console-section {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .console-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .console-header .btn-sm {
+    background: var(--bar-bg);
+    border: 1px solid var(--card-border);
+    color: var(--text-dim);
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .console-header .btn-sm:hover { background: var(--card-border); color: var(--text); }
+  .console-body {
+    background: #0a0c10;
+    border-radius: 8px;
+    padding: 12px;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    max-height: 320px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: #b2bec3;
+  }
+  .console-body .log-line { }
+  .console-body .log-ts { color: #636e72; }
+  .console-body .log-warn { color: var(--yellow); }
+  .console-body .log-err { color: var(--red); }
+  .console-body .log-ok { color: var(--green); }
+  .console-body .log-scale { color: var(--accent2); }
+  .console-body::-webkit-scrollbar { width: 6px; }
+  .console-body::-webkit-scrollbar-track { background: transparent; }
+  .console-body::-webkit-scrollbar-thumb { background: #2a2d3a; border-radius: 3px; }
+
   /* ── Bottom bar ── */
   .bottom-bar {
     text-align: center;
@@ -574,6 +620,20 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Console Log -->
+  <div class="console-section">
+    <div class="console-header">
+      <div class="section-title" style="margin-bottom:0">Live Console</div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <label style="font-size:11px;color:var(--text-dim);cursor:pointer;">
+          <input type="checkbox" id="autoScroll" checked style="margin-right:4px;">Auto-scroll
+        </label>
+        <button class="btn-sm" onclick="$('consoleBody').textContent=''">Clear</button>
+      </div>
+    </div>
+    <div class="console-body" id="consoleBody">Waiting for logs...</div>
   </div>
 
   <!-- Rooms -->
@@ -751,6 +811,34 @@ function renderRooms(rooms) {
 }
 
 let firstFetch = true;
+let lastLogCount = 0;
+
+function renderConsoleLogs(logs) {
+  const el = $('consoleBody');
+  if (!el) return;
+
+  // Only re-render if new logs arrived
+  if (logs.length === lastLogCount) return;
+  lastLogCount = logs.length;
+
+  el.innerHTML = logs.map(line => {
+    // Color-code based on content
+    let cls = '';
+    if (/EMERGENCY|FAILED|Error|error/i.test(line)) cls = 'log-err';
+    else if (/WARN|timeout/i.test(line)) cls = 'log-warn';
+    else if (/auto-scale|SCALE/i.test(line)) cls = 'log-scale';
+    else if (/live|COMPLETE|ready|loaded/i.test(line)) cls = 'log-ok';
+
+    // Highlight timestamp
+    const colored = line.replace(/^\[([^\]]+)\]/, '<span class="log-ts">[$1]</span>');
+    return `<div class="log-line ${cls}">${colored}</div>`;
+  }).join('');
+
+  // Auto-scroll to bottom
+  if ($('autoScroll') && $('autoScroll').checked) {
+    el.scrollTop = el.scrollHeight;
+  }
+}
 
 function renderMetricsBody(m) {
   if (!m) return '<div class="no-metrics">No metrics available</div>';
@@ -965,6 +1053,11 @@ async function fetchStats() {
 
     // Model metrics
     renderMetrics(data.v1Metrics, data.v2Metrics);
+
+    // Live console logs
+    if (data.logs && data.logs.length > 0) {
+      renderConsoleLogs(data.logs);
+    }
 
     prevSamples = data.currentSamples;
     firstFetch = false;

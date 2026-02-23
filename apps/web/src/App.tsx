@@ -1369,23 +1369,14 @@ export function App() {
         const st = d.finalState ?? snapshotRef.current;
         const cards = holeCardsRef.current;
         const heroSeat = seatRef.current;
-        if (st && cards.length >= 2 && d.settlement) {
-          const heroPos = st.positions?.[heroSeat] ?? "?";
+        if (st && d.settlement) {
+          const gameType = st.gameType === "omaha" ? "PLO" : "NLH";
           const actionRecords: HandActionRecord[] = st.actions.map((a) => ({
             seat: a.seat,
             street: a.street ?? st.street,
             type: a.type,
             amount: a.amount ?? 0,
           }));
-          const heroLedger = d.settlement.ledger.find((e) => e.seat === heroSeat);
-          const didWinAnyRun = d.settlement.winnersByRun.some((run) => run.winners.some((winner) => winner.seat === heroSeat));
-          const gameType = st.gameType === "omaha" ? "PLO" : "NLH";
-          const netByPosition: Record<string, number> = {};
-          for (const entry of d.settlement.ledger) {
-            const pos = st.positions?.[entry.seat] ?? `Seat ${entry.seat}`;
-            netByPosition[pos] = (netByPosition[pos] ?? 0) + entry.net;
-          }
-          // Build player names map and showdown hands from snapshot
           const playerNames: Record<number, string> = {};
           const showdownHands: Record<number, [string, string] | "mucked"> = {};
           for (const p of st.players) {
@@ -1394,45 +1385,86 @@ export function App() {
             if (revealed) showdownHands[p.seat] = revealed;
             else if (st.muckedSeats?.includes(p.seat)) showdownHands[p.seat] = "mucked";
           }
-          saveHand({
-            gameType,
-            stakes: `${st.smallBlind}/${st.bigBlind}`,
-            tableSize: st.players.length,
-            position: heroPos,
-            heroCards: [...cards],
-            startingHandBucket: classifyStartingHandBucket(cards, gameType),
-            board: st.board,
-            runoutBoards: st.runoutBoards,
-            doubleBoardPayouts: d.settlement.doubleBoardPayouts
-              ?? (d.settlement.runCount > 1 && d.settlement.winnersByRun.length > 1
-                ? d.settlement.winnersByRun.map((r) => ({
-                    run: r.run as 1 | 2 | 3,
-                    board: [...r.board],
-                    winners: r.winners.map((w) => ({ seat: w.seat, amount: w.amount, handName: w.handName })),
-                  }))
-                : undefined),
-            actions: actionRecords,
-            potSize: d.settlement.totalPot,
-            stackSize: heroLedger?.endStack ?? 0,
-            result: heroLedger?.net ?? 0,
-            netByPosition,
-            isBombPotHand: st.isBombPotHand,
-            isDoubleBoardHand: st.isDoubleBoardHand,
-            tags: autoTag(actionRecords),
-            roomCode: currentRoomCodeRef.current || undefined,
-            roomName: currentRoomNameRef.current || undefined,
-            tableId: tableId || undefined,
-            handId: d.handId || undefined,
-            endedAt: new Date().toISOString(),
-            heroSeat,
-            heroName: name || displayName || "Hero",
-            smallBlind: st.smallBlind,
-            bigBlind: st.bigBlind,
-            playersCount: st.players.length,
-            didWinAnyRun,
-            showdownHands,
-            playerNames,
-          });
+
+          if (cards.length >= 2) {
+            // Hero was seated — full detail record
+            const heroPos = st.positions?.[heroSeat] ?? "?";
+            const heroLedger = d.settlement.ledger.find((e) => e.seat === heroSeat);
+            const didWinAnyRun = d.settlement.winnersByRun.some((run) => run.winners.some((winner) => winner.seat === heroSeat));
+            const netByPosition: Record<string, number> = {};
+            for (const entry of d.settlement.ledger) {
+              const pos = st.positions?.[entry.seat] ?? `Seat ${entry.seat}`;
+              netByPosition[pos] = (netByPosition[pos] ?? 0) + entry.net;
+            }
+            saveHand({
+              gameType,
+              stakes: `${st.smallBlind}/${st.bigBlind}`,
+              tableSize: st.players.length,
+              position: heroPos,
+              heroCards: [...cards],
+              startingHandBucket: classifyStartingHandBucket(cards, gameType),
+              board: st.board,
+              runoutBoards: st.runoutBoards,
+              doubleBoardPayouts: d.settlement.doubleBoardPayouts
+                ?? (d.settlement.runCount > 1 && d.settlement.winnersByRun.length > 1
+                  ? d.settlement.winnersByRun.map((r) => ({
+                      run: r.run as 1 | 2 | 3,
+                      board: [...r.board],
+                      winners: r.winners.map((w) => ({ seat: w.seat, amount: w.amount, handName: w.handName })),
+                    }))
+                  : undefined),
+              actions: actionRecords,
+              potSize: d.settlement.totalPot,
+              stackSize: heroLedger?.endStack ?? 0,
+              result: heroLedger?.net ?? 0,
+              netByPosition,
+              isBombPotHand: st.isBombPotHand,
+              isDoubleBoardHand: st.isDoubleBoardHand,
+              tags: autoTag(actionRecords),
+              roomCode: currentRoomCodeRef.current || undefined,
+              roomName: currentRoomNameRef.current || undefined,
+              tableId: tableId || undefined,
+              handId: d.handId || undefined,
+              endedAt: new Date().toISOString(),
+              heroSeat,
+              heroName: name || displayName || "Hero",
+              smallBlind: st.smallBlind,
+              bigBlind: st.bigBlind,
+              playersCount: st.players.length,
+              didWinAnyRun,
+              showdownHands,
+              playerNames,
+            });
+          } else {
+            // Spectator — save summary record without hero cards
+            saveHand({
+              gameType,
+              stakes: `${st.smallBlind}/${st.bigBlind}`,
+              tableSize: st.players.length,
+              position: "OBS",
+              heroCards: [],
+              board: st.board,
+              runoutBoards: st.runoutBoards,
+              actions: actionRecords,
+              potSize: d.settlement.totalPot,
+              stackSize: 0,
+              result: 0,
+              isBombPotHand: st.isBombPotHand,
+              isDoubleBoardHand: st.isDoubleBoardHand,
+              tags: autoTag(actionRecords),
+              roomCode: currentRoomCodeRef.current || undefined,
+              roomName: currentRoomNameRef.current || undefined,
+              tableId: tableId || undefined,
+              handId: d.handId || undefined,
+              endedAt: new Date().toISOString(),
+              smallBlind: st.smallBlind,
+              bigBlind: st.bigBlind,
+              playersCount: st.players.length,
+              didWinAnyRun: false,
+              showdownHands,
+              playerNames,
+            });
+          }
         }
       } catch (err) {
         debugLog("[local-history] failed to save hand:", err);
@@ -3606,6 +3638,8 @@ export function App() {
                 open={showInGameHistory}
                 onClose={() => setShowInGameHistory(false)}
                 currentRoomCode={currentRoomCode}
+                socket={socket}
+                tableId={tableId}
               />
 
               {/* Session Scoreboard Drawer */}

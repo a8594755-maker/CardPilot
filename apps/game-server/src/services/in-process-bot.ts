@@ -53,6 +53,7 @@ export interface InProcessBotConfig {
   botName: string;
   userId: string;
   delay?: number; // action delay in ms (default 800)
+  modelVersion?: string; // 'v0' (heuristic, no model) | 'v1' (trained MLP) — default 'v1'
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -61,16 +62,27 @@ export interface InProcessBotConfig {
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-let sharedFastModel: MLP | null | undefined; // undefined = not loaded yet
+// Model cache: keyed by version string, loaded once per version
+const modelCache = new Map<string, MLP | null>();
 
-function getSharedFastModel(): MLP | null {
-  if (sharedFastModel !== undefined) return sharedFastModel;
+function getModelForVersion(version: string): MLP | null {
+  if (version === "v0") return null; // V0 = heuristic, no ML model
+
+  if (modelCache.has(version)) return modelCache.get(version)!;
+
+  const fileMap: Record<string, string> = {
+    v1: "model-v1.json",
+    v2: "model-v2-latest.json",
+    latest: "model-latest.json",
+  };
+  const fileName = fileMap[version] ?? `model-${version}.json`;
   const modelPath = resolve(
     __dirname,
-    "../../../../packages/fast-model/models/model-latest.json",
+    `../../../../packages/fast-model/models/${fileName}`,
   );
-  sharedFastModel = loadModel(modelPath);
-  return sharedFastModel;
+  const model = loadModel(modelPath);
+  modelCache.set(version, model);
+  return model;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -147,10 +159,13 @@ export class InProcessBot {
     this.opponentTracker = new OpponentTracker();
     this.traceLogger = new TraceLogger();
 
-    // ── Load fast model (shared singleton) ──
-    this.fastModel = getSharedFastModel();
+    // ── Load fast model (per-version, cached) ──
+    const mv = config.modelVersion ?? "v1";
+    this.fastModel = getModelForVersion(mv);
     if (this.fastModel) {
-      this.log("Fast model loaded (shared)");
+      this.log(`Fast model loaded (${mv})`);
+    } else if (mv === "v0") {
+      this.log("V0 mode: heuristic only (no ML model)");
     }
 
     // ── Ensure data directory exists ──
