@@ -22,7 +22,7 @@ import { ClubManager } from "./club-manager";
 import { ClubRepo, type AppendWalletTxInput } from "./services/club-repo";
 import { ClubRepoJson } from "./services/club-repo-json";
 import { AuditService } from "./services/audit-service";
-import { syncBots, removeAllBots, shutdownAllBots, getBotUserIds } from "./services/bot-orchestrator.js";
+import { syncBots, removeAllBots, shutdownAllBots, getBotUserIds, getBotModelVersions } from "./services/bot-orchestrator.js";
 import type {
   ClubCreatePayload,
   ClubUpdatePayload,
@@ -502,8 +502,18 @@ function checkBotsOnlyAndRemove(tableId: string): void {
   const botUserIds = getBotUserIds(tableId);
   if (botUserIds.size === 0) return;
 
-  const hasHuman = state.players.some((p) => !botUserIds.has(p.userId));
-  if (hasHuman) return;
+  const hasHumanSeated = state.players.some((p) => !botUserIds.has(p.userId) && !p.userId.startsWith("bot-"));
+  if (hasHumanSeated) return;
+
+  // Also check if any human is connected to the room (observers/spectators)
+  const roomSockets = io.sockets.adapter.rooms.get(tableId);
+  if (roomSockets) {
+    const hasHumanObserver = [...roomSockets].some((sid) => {
+      const ident = socketIdentity.get(sid);
+      return ident && !ident.userId.startsWith("bot-");
+    });
+    if (hasHumanObserver) return;
+  }
 
   logInfo({
     event: "bot.no_humans_remaining",
@@ -1414,13 +1424,15 @@ function buildSnapshotForSync(tableId: string, source: "hydrate" | "broadcast"):
 
   let snapshot = table.getPublicState();
 
-  // Stamp isBot flag on bot players
+  // Stamp isBot flag + modelVersion on bot players
   const botIds = getBotUserIds(tableId);
-  if (botIds.size > 0) {
-    snapshot.players = snapshot.players.map((p) =>
-      botIds.has(p.userId) ? { ...p, isBot: true } : p
-    );
-  }
+  const botVersions = getBotModelVersions(tableId);
+  snapshot.players = snapshot.players.map((p) => {
+    if (botIds.has(p.userId) || p.userId.startsWith("bot-")) {
+      return { ...p, isBot: true, modelVersion: botVersions.get(p.userId) ?? "v1" };
+    }
+    return p;
+  });
 
   // Attach deferred stand-up seats and pending pause for client UI
   const deferredSeats = pendingStandUps.get(tableId);
@@ -2404,12 +2416,13 @@ async function finalizeHandEndAsync(tableId: string, state: TableState): Promise
 
   // ── Inject bot hole cards into revealedHoles so clients see them ──
   const botIds = getBotUserIds(tableId);
-  if (botIds.size > 0 && table) {
+  const savedHoleCards = lastHandHoleCards.get(tableId);
+  if (table) {
     const revealed: Record<number, [string, string]> = { ...(finalState.revealedHoles ?? {}) };
     for (const p of finalState.players) {
-      if (!botIds.has(p.userId)) continue;
+      if (!botIds.has(p.userId) && !p.userId.startsWith("bot-")) continue;
       if (revealed[p.seat]) continue; // already revealed at showdown
-      const cards = table.getPrivateHoleCards(p.seat) ?? table.getHoleCards(p.seat);
+      const cards = table.getPrivateHoleCards(p.seat) ?? table.getHoleCards(p.seat) ?? savedHoleCards?.get(p.seat);
       if (cards && cards.length >= 2) {
         revealed[p.seat] = [cards[0], cards[1]];
       }
@@ -3138,15 +3151,12 @@ async function persistHandHistory(
 
   // Ensure ALL bot hole cards are in revealedHoles for transparency
   const revealedHolesForHistory: Record<number, [string, string]> = { ...(state.revealedHoles ?? {}) };
-  const persistBotIds = getBotUserIds(tableId);
-  if (persistBotIds.size > 0) {
-    for (const player of state.players) {
-      if (!persistBotIds.has(player.userId)) continue;
-      if (revealedHolesForHistory[player.seat]) continue; // already revealed
-      const botCards = table?.getPrivateHoleCards(player.seat) ?? table?.getHoleCards(player.seat);
-      if (botCards && botCards.length >= 2) {
-        revealedHolesForHistory[player.seat] = [botCards[0], botCards[1]];
-      }
+  for (const player of state.players) {
+    if (!player.userId.startsWith("bot-")) continue;
+    if (revealedHolesForHistory[player.seat]) continue; // already revealed
+    const botCards = table?.getPrivateHoleCards(player.seat) ?? table?.getHoleCards(player.seat);
+    if (botCards && botCards.length >= 2) {
+      revealedHolesForHistory[player.seat] = [botCards[0], botCards[1]];
     }
   }
 

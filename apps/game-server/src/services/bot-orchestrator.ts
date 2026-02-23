@@ -189,6 +189,15 @@ export function getBotUserIds(tableId: string): Set<string> {
 }
 
 /**
+ * Returns a map of bot userId → modelVersion for a given table.
+ */
+export function getBotModelVersions(tableId: string): Map<string, string> {
+  const bots = tableBots.get(tableId);
+  if (!bots) return new Map();
+  return new Map([...bots.values()].map((b) => [b.userId, b.modelVersion]));
+}
+
+/**
  * Shutdown all bots across all tables (for graceful server shutdown).
  */
 export function shutdownAllBots(): void {

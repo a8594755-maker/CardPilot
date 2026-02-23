@@ -57,6 +57,8 @@ export interface TablePlayer {
   isNewPlayer: boolean;
   /** True if this player is a GTO bot */
   isBot?: boolean;
+  /** Bot model version label (e.g. 'v0', 'v1') — only set for bots */
+  modelVersion?: string;
 }
 
 export interface AllInPrompt {

@@ -433,6 +433,49 @@ export class InProcessBot {
         }
       },
     );
+
+    // ── All-in runout: always choose run once / agree to any choice ──
+    this.socket.on(
+      "all_in_prompt",
+      (data: { actorSeat: number; allowedRunCounts: number[] }) => {
+        if (this.destroyed) return;
+        if (data.actorSeat !== this.mySeat) return;
+        // Only submit immediately if we're the underdog (allowed > 1 option)
+        if (data.allowedRunCounts.length > 1) {
+          this.log("All-in prompt (underdog), choosing run once");
+          this.socket.emit("run_count_submit", {
+            tableId: this.tableId,
+            handId: this.lastHandId,
+            runCount: 1,
+          });
+        }
+        // Non-underdog: wait for allin_locked with targetRunCount
+      },
+    );
+
+    // ── When underdog has chosen, non-underdog bots agree immediately ──
+    this.socket.on(
+      "allin_locked",
+      (data: {
+        handId: string;
+        underdogSeat: number;
+        targetRunCount: number | null;
+        submittedPlayerIds: number[];
+        eligiblePlayers: Array<{ seat: number }>;
+      }) => {
+        if (this.destroyed) return;
+        // Only act if we're eligible but haven't submitted yet
+        if (!data.eligiblePlayers.some((p) => p.seat === this.mySeat)) return;
+        if (data.submittedPlayerIds.includes(this.mySeat)) return;
+        if (data.targetRunCount == null) return; // underdog hasn't chosen yet
+        this.log(`All-in locked (target=${data.targetRunCount}), agreeing`);
+        this.socket.emit("run_count_submit", {
+          tableId: this.tableId,
+          handId: data.handId,
+          runCount: data.targetRunCount as 1 | 2 | 3,
+        });
+      },
+    );
   }
 
   // ── Opponent tracking ──
