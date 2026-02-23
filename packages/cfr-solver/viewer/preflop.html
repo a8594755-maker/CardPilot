@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CardPilot - Preflop Knowledge Base</title>
+<style>
+  :root {
+    --bg-base: #0b1120;
+    --bg-surface: #111827;
+    --bg-elevated: #1e293b;
+    --bg-hover: #263348;
+    --border-subtle: rgba(148,163,184,0.08);
+    --border-default: rgba(148,163,184,0.14);
+    --border-strong: rgba(148,163,184,0.25);
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent: #3b82f6;
+    --accent-soft: rgba(59,130,246,0.15);
+    --success: #22c55e;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    /* Action colors */
+    --raise-color: #ef4444;
+    --call-color: #22c55e;
+    --fold-color: #3b82f6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', 'Noto Sans TC', system-ui, sans-serif;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Layout */
+  .app { max-width: 1200px; margin: 0 auto; padding: 24px; }
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px; padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-default);
+  }
+  .header h1 { font-size: 1.25rem; font-weight: 700; }
+  .header .subtitle { font-size: 0.75rem; color: var(--text-muted); }
+  .header a {
+    color: var(--accent); text-decoration: none; font-size: 0.8125rem;
+    padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-default);
+    transition: all 0.12s;
+  }
+  .header a:hover { border-color: var(--accent); background: var(--accent-soft); }
+
+  /* Spot selector */
+  .spot-section {
+    margin-bottom: 24px; padding: 16px;
+    background: var(--bg-surface); border-radius: 12px;
+    border: 1px solid var(--border-default);
+  }
+  .spot-label { font-size: 0.6875rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; font-weight: 600; }
+  .spot-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+  .spot-btn {
+    padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border-default);
+    background: transparent; color: var(--text-secondary); font-size: 0.8125rem;
+    cursor: pointer; transition: all 0.12s; white-space: nowrap;
+  }
+  .spot-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+  .spot-btn.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+  /* Main content */
+  .content { display: flex; gap: 24px; }
+  .matrix-panel { flex: 1; }
+  .detail-panel { width: 320px; min-width: 320px; }
+
+  /* Matrix */
+  .matrix-wrap {
+    background: var(--bg-surface); border-radius: 12px;
+    border: 1px solid var(--border-default); padding: 16px;
+  }
+  .matrix-title {
+    font-size: 0.9375rem; font-weight: 600; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .matrix-title .spot-name { color: var(--accent); }
+
+  .matrix {
+    display: grid;
+    grid-template-columns: repeat(13, 1fr);
+    gap: 2px;
+    max-width: 600px;
+  }
+  .cell {
+    aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.6875rem; font-weight: 600;
+    border-radius: 4px; cursor: pointer;
+    position: relative; overflow: hidden;
+    transition: transform 0.1s, box-shadow 0.1s;
+    min-width: 0;
+  }
+  .cell:hover { transform: scale(1.08); z-index: 1; box-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+  .cell.selected { outline: 2px solid #fff; outline-offset: 1px; z-index: 2; }
+  .cell .hand-label {
+    position: relative; z-index: 1;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+    pointer-events: none;
+  }
+  .cell .bg-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    pointer-events: none;
+  }
+  .cell.no-data {
+    background: var(--bg-elevated); color: var(--text-muted); opacity: 0.5;
+    cursor: default;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex; gap: 16px; margin-top: 12px; align-items: center;
+  }
+  .legend-item {
+    display: flex; align-items: center; gap: 4px; font-size: 0.75rem;
+    color: var(--text-secondary);
+  }
+  .legend-dot {
+    width: 10px; height: 10px; border-radius: 2px;
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex; gap: 16px; margin-top: 12px; padding-top: 12px;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .stat-item {
+    text-align: center; flex: 1;
+    padding: 8px; border-radius: 8px; background: var(--bg-elevated);
+  }
+  .stat-val { font-size: 1rem; font-weight: 700; }
+  .stat-label { font-size: 0.625rem; color: var(--text-muted); text-transform: uppercase; margin-top: 2px; }
+
+  /* Detail panel */
+  .detail-wrap {
+    background: var(--bg-surface); border-radius: 12px;
+    border: 1px solid var(--border-default); padding: 16px;
+    position: sticky; top: 24px;
+  }
+  .detail-title {
+    font-size: 1.125rem; font-weight: 700; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .detail-hand-class {
+    font-size: 1.5rem; font-weight: 800;
+    padding: 4px 10px; border-radius: 6px;
+    background: var(--bg-elevated);
+  }
+  .detail-type {
+    font-size: 0.75rem; color: var(--text-muted);
+    padding: 2px 8px; border-radius: 4px; background: var(--bg-elevated);
+  }
+
+  /* Action bar */
+  .action-bar {
+    display: flex; border-radius: 8px; overflow: hidden;
+    margin-bottom: 16px; height: 28px;
+  }
+  .action-seg {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.6875rem; font-weight: 600; color: #fff;
+    transition: width 0.2s;
+  }
+
+  /* Action rows */
+  .action-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 0; border-bottom: 1px solid var(--border-subtle);
+  }
+  .action-row:last-child { border-bottom: none; }
+  .action-dot { width: 8px; height: 8px; border-radius: 2px; }
+  .action-name { flex: 1; font-size: 0.8125rem; }
+  .action-pct { font-size: 0.875rem; font-weight: 600; min-width: 50px; text-align: right; }
+
+  /* Notes */
+  .notes-section {
+    margin-top: 16px; padding-top: 12px;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .notes-title { font-size: 0.6875rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
+  .note-item {
+    font-size: 0.8125rem; color: var(--text-secondary);
+    padding: 4px 0; line-height: 1.4;
+  }
+  .note-item::before { content: "- "; color: var(--text-muted); }
+
+  .empty-detail {
+    text-align: center; padding: 40px 16px;
+    color: var(--text-muted); font-size: 0.875rem;
+  }
+
+  /* Loading */
+  .loading {
+    text-align: center; padding: 60px; color: var(--text-muted);
+    font-size: 0.875rem;
+  }
+
+  @media (max-width: 900px) {
+    .content { flex-direction: column; }
+    .detail-panel { width: 100%; min-width: 0; }
+    .matrix { max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div>
+      <h1>Preflop Knowledge Base</h1>
+      <div class="subtitle">GTO Wizard preflop ranges for heads-up SRP</div>
+    </div>
+    <a href="/">Postflop Viewer &rarr;</a>
+  </div>
+
+  <div class="spot-section">
+    <div class="spot-label">Select Spot</div>
+    <div class="spot-grid" id="spot-grid">
+      <div class="loading">Loading spots...</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="matrix-panel">
+      <div class="matrix-wrap">
+        <div class="matrix-title">
+          <span>Range Matrix</span>
+          <span class="spot-name" id="current-spot-label">Select a spot</span>
+        </div>
+        <div class="matrix" id="matrix">
+          <div class="loading" style="grid-column:1/-1">Select a spot to view range</div>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--raise-color)"></div>Raise</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--call-color)"></div>Call</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--fold-color)"></div>Fold</div>
+        </div>
+        <div class="stats-bar" id="stats-bar"></div>
+      </div>
+    </div>
+    <div class="detail-panel">
+      <div class="detail-wrap" id="detail">
+        <div class="empty-detail">Click a hand in the matrix to see detailed frequencies</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const RANK_ORDER = 'AKQJT98765432';
+const ALL_HANDS = [];
+
+// Build 13x13: upper-right = suited, lower-left = offsuit, diagonal = pairs
+for (let r = 0; r < 13; r++) {
+  for (let c = 0; c < 13; c++) {
+    if (r === c) ALL_HANDS.push(RANK_ORDER[r] + RANK_ORDER[c]);
+    else if (c > r) ALL_HANDS.push(RANK_ORDER[r] + RANK_ORDER[c] + 's');
+    else ALL_HANDS.push(RANK_ORDER[c] + RANK_ORDER[r] + 'o');
+  }
+}
+
+let spots = [];
+let currentSpot = null;
+let currentRange = null;
+let selectedHand = null;
+
+// Helpers
+function getHandType(h) {
+  if (h.length === 2) return 'Pair';
+  if (h.endsWith('s')) return 'Suited';
+  return 'Offsuit';
+}
+
+function actionColor(action) {
+  if (/raise|3bet|4bet|open|rfi/i.test(action)) return 'var(--raise-color)';
+  if (/call|limp|flat/i.test(action)) return 'var(--call-color)';
+  if (/fold/i.test(action)) return 'var(--fold-color)';
+  return '#888';
+}
+
+function actionLabel(action) {
+  const labels = {
+    raise: 'Raise', call: 'Call', fold: 'Fold',
+    '3bet': '3-Bet', '4bet': '4-Bet', open: 'Open',
+    limp: 'Limp', flat: 'Flat',
+  };
+  return labels[action] || action.charAt(0).toUpperCase() + action.slice(1);
+}
+
+function mixColor(mix) {
+  const r = (mix.raise || 0);
+  const c = (mix.call || 0);
+  const f = (mix.fold || 0);
+  const total = r + c + f;
+  if (total === 0) return 'var(--bg-elevated)';
+
+  // Blend raise(red), call(green), fold(blue) proportionally
+  const rr = r / total;
+  const cc = c / total;
+  const ff = f / total;
+
+  // Color channels: raise=#ef4444, call=#22c55e, fold=#3b82f6
+  const red = Math.round(239 * rr + 34 * cc + 59 * ff);
+  const green = Math.round(68 * rr + 197 * cc + 130 * ff);
+  const blue = Math.round(68 * rr + 94 * cc + 246 * ff);
+  const alpha = 0.4 + 0.6 * (1 - ff); // More opaque when not folding
+
+  return `rgba(${red},${green},${blue},${alpha})`;
+}
+
+// Load spots
+async function loadSpots() {
+  try {
+    const res = await fetch('/api/preflop-spots');
+    if (!res.ok) throw new Error('Failed to load');
+    spots = await res.json();
+    renderSpotGrid();
+  } catch(e) {
+    document.getElementById('spot-grid').innerHTML =
+      '<div style="color:var(--danger)">Failed to load preflop spots. Make sure data/preflop_charts.json exists.</div>';
+  }
+}
+
+function renderSpotGrid() {
+  const el = document.getElementById('spot-grid');
+  if (spots.length === 0) {
+    el.innerHTML = '<div style="color:var(--text-muted)">No spots found</div>';
+    return;
+  }
+
+  el.innerHTML = spots.map(spot => {
+    const cls = spot === currentSpot ? 'spot-btn active' : 'spot-btn';
+    const label = formatSpotLabel(spot);
+    return `<button class="${cls}" onclick="selectSpot('${encodeURIComponent(spot)}')" title="${spot}">${label}</button>`;
+  }).join('');
+}
+
+function formatSpotLabel(spot) {
+  // Clean up spot names for display
+  return spot
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+async function selectSpot(encodedSpot) {
+  const spot = decodeURIComponent(encodedSpot);
+  currentSpot = spot;
+  selectedHand = null;
+  renderSpotGrid();
+
+  document.getElementById('current-spot-label').textContent = formatSpotLabel(spot);
+
+  try {
+    const res = await fetch(`/api/preflop-range/${encodedSpot}`);
+    if (!res.ok) throw new Error('Failed to load range');
+    currentRange = await res.json();
+    renderMatrix();
+    renderStats();
+    renderDetail();
+  } catch(e) {
+    document.getElementById('matrix').innerHTML =
+      '<div class="loading" style="grid-column:1/-1;color:var(--danger)">Failed to load range data</div>';
+  }
+}
+
+function renderMatrix() {
+  const el = document.getElementById('matrix');
+  if (!currentRange) {
+    el.innerHTML = '<div class="loading" style="grid-column:1/-1">Select a spot to view range</div>';
+    return;
+  }
+
+  el.innerHTML = ALL_HANDS.map(h => {
+    const data = currentRange[h];
+    const sel = h === selectedHand ? ' selected' : '';
+
+    if (!data) {
+      return `<div class="cell no-data" data-hand="${h}"><span class="hand-label">${h}</span></div>`;
+    }
+
+    const bg = mixColor(data);
+    const r = data.raise || 0;
+    const c = data.call || 0;
+    const f = data.fold || 0;
+    const total = r + c + f;
+
+    // Build stacked bar from bottom
+    let barHtml = '';
+    if (total > 0) {
+      const rPct = (r / total * 100);
+      const cPct = (c / total * 100);
+      const fPct = (f / total * 100);
+      barHtml = `<div class="bg-bar" style="height:100%;display:flex;flex-direction:column-reverse;">`;
+      if (rPct > 0) barHtml += `<div style="height:${rPct}%;background:var(--raise-color);opacity:0.7;"></div>`;
+      if (cPct > 0) barHtml += `<div style="height:${cPct}%;background:var(--call-color);opacity:0.7;"></div>`;
+      if (fPct > 0) barHtml += `<div style="height:${fPct}%;background:var(--fold-color);opacity:0.3;"></div>`;
+      barHtml += `</div>`;
+    }
+
+    return `<div class="cell${sel}" data-hand="${h}" style="background:${bg}" onclick="selectHandCell('${h}')">
+      ${barHtml}<span class="hand-label">${h}</span></div>`;
+  }).join('');
+}
+
+function renderStats() {
+  const el = document.getElementById('stats-bar');
+  if (!currentRange) { el.innerHTML = ''; return; }
+
+  let totalRaise = 0, totalCall = 0, totalFold = 0, handCount = 0;
+  for (const h of ALL_HANDS) {
+    const data = currentRange[h];
+    if (!data) continue;
+    // Weight by number of combos: pairs=6, suited=4, offsuit=12
+    const combos = h.length === 2 ? 6 : h.endsWith('s') ? 4 : 12;
+    totalRaise += (data.raise || 0) * combos;
+    totalCall += (data.call || 0) * combos;
+    totalFold += (data.fold || 0) * combos;
+    handCount += combos;
+  }
+
+  const total = totalRaise + totalCall + totalFold;
+  const raisePct = total > 0 ? (totalRaise / total * 100).toFixed(1) : '0.0';
+  const callPct = total > 0 ? (totalCall / total * 100).toFixed(1) : '0.0';
+  const foldPct = total > 0 ? (totalFold / total * 100).toFixed(1) : '0.0';
+
+  // Count hands in range (raise + call > 0)
+  let inRange = 0;
+  for (const h of ALL_HANDS) {
+    const data = currentRange[h];
+    if (data && ((data.raise || 0) + (data.call || 0)) > 0.01) {
+      inRange += h.length === 2 ? 6 : h.endsWith('s') ? 4 : 12;
+    }
+  }
+  const rangePct = (inRange / 1326 * 100).toFixed(1);
+
+  el.innerHTML = `
+    <div class="stat-item"><div class="stat-val" style="color:var(--raise-color)">${raisePct}%</div><div class="stat-label">Raise</div></div>
+    <div class="stat-item"><div class="stat-val" style="color:var(--call-color)">${callPct}%</div><div class="stat-label">Call</div></div>
+    <div class="stat-item"><div class="stat-val" style="color:var(--fold-color)">${foldPct}%</div><div class="stat-label">Fold</div></div>
+    <div class="stat-item"><div class="stat-val">${rangePct}%</div><div class="stat-label">In Range</div></div>
+  `;
+}
+
+function selectHandCell(h) {
+  selectedHand = selectedHand === h ? null : h;
+  renderMatrix();
+  renderDetail();
+}
+
+function renderDetail() {
+  const el = document.getElementById('detail');
+
+  if (!selectedHand || !currentRange) {
+    el.innerHTML = '<div class="empty-detail">Click a hand in the matrix to see detailed frequencies</div>';
+    return;
+  }
+
+  const data = currentRange[selectedHand];
+  if (!data) {
+    el.innerHTML = `<div class="empty-detail">${selectedHand} is not in this range</div>`;
+    return;
+  }
+
+  const type = getHandType(selectedHand);
+  const combos = selectedHand.length === 2 ? 6 : selectedHand.endsWith('s') ? 4 : 12;
+
+  // Gather all actions
+  const actions = Object.entries(data).filter(([k]) => k !== 'notes');
+  const total = actions.reduce((s, [, v]) => s + v, 0);
+
+  let html = `
+    <div class="detail-title">
+      <span class="detail-hand-class">${selectedHand}</span>
+      <span class="detail-type">${type} &middot; ${combos} combos</span>
+    </div>
+  `;
+
+  // Stacked action bar
+  if (total > 0) {
+    html += '<div class="action-bar">';
+    for (const [action, freq] of actions) {
+      const pct = (freq / total * 100);
+      if (pct < 0.5) continue;
+      const color = actionColor(action);
+      html += `<div class="action-seg" style="width:${pct}%;background:${color}">${pct >= 10 ? pct.toFixed(0) + '%' : ''}</div>`;
+    }
+    html += '</div>';
+  }
+
+  // Action rows
+  for (const [action, freq] of actions) {
+    const pct = total > 0 ? (freq / total * 100).toFixed(1) : '0.0';
+    const color = actionColor(action);
+    html += `<div class="action-row">
+      <div class="action-dot" style="background:${color}"></div>
+      <span class="action-name">${actionLabel(action)}</span>
+      <span class="action-pct" style="color:${color}">${pct}%</span>
+    </div>`;
+  }
+
+  // Notes
+  if (data.notes && data.notes.length > 0) {
+    html += '<div class="notes-section"><div class="notes-title">Notes</div>';
+    for (const note of data.notes) {
+      html += `<div class="note-item">${note}</div>`;
+    }
+    html += '</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+// Init
+loadSpots();
+</script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-// Simple HTTP server to serve the CFR viewer and data files.
+// Simple HTTP server to serve the CFR viewer and data files (V2).
 // Usage: npx tsx viewer/serve.ts [port]
 // Opens http://localhost:3456 with the viewer pre-loaded.
 
@@ -9,11 +9,33 @@ import { resolve, join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { evaluateBestHand } from '@cardpilot/poker-evaluator';
 import { loadHUSRPRanges, getRangeCombos } from '../src/integration/preflop-ranges.js';
+import { loadGtoWizardRangeFile } from '../src/data-loaders/gto-wizard-json.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PORT = parseInt(process.argv[2] || '3456', 10);
-const DATA_DIR = resolve(__dirname, '../../../data/cfr/v1_hu_srp_50bb');
+
+// Scan for all available config data directories
+const CFR_ROOT = resolve(__dirname, '../../../data/cfr');
+const DATA_DIRS: Record<string, string> = {};
+if (existsSync(CFR_ROOT)) {
+  for (const d of readdirSync(CFR_ROOT)) {
+    const full = join(CFR_ROOT, d);
+    try { if (statSync(full).isDirectory()) DATA_DIRS[d] = full; } catch {}
+  }
+}
+// Default data dir: prefer standard_*, then v2_*, then v1_*
+const DATA_DIR_PRIORITY = ['standard_hu_srp_50bb', 'standard_hu_srp_100bb', 'v2_hu_srp_50bb', 'v1_hu_srp_50bb'];
+let DEFAULT_DATA_DIR = '';
+for (const p of DATA_DIR_PRIORITY) {
+  if (DATA_DIRS[p]) { DEFAULT_DATA_DIR = DATA_DIRS[p]; break; }
+}
+if (!DEFAULT_DATA_DIR && Object.keys(DATA_DIRS).length > 0) {
+  DEFAULT_DATA_DIR = Object.values(DATA_DIRS)[0];
+}
+const DATA_DIR = DEFAULT_DATA_DIR;
+
 const VIEWER_HTML = resolve(__dirname, 'index.html');
+const PREFLOP_HTML = resolve(__dirname, 'preflop.html');
 
 const MIME: Record<string, string> = {
   '.html': 'text/html',
@@ -23,15 +45,19 @@ const MIME: Record<string, string> = {
 
 const RANKS = '23456789TJQKA';
 const SUITS = ['c', 'd', 'h', 's'];
-const RANK_NAMES: Record<string, string> = {
-  '2': '2', '3': '3', '4': '4', '5': '5', '6': '6', '7': '7',
-  '8': '8', '9': '9', 'T': 'T', 'J': 'J', 'Q': 'Q', 'K': 'K', 'A': 'A',
-};
 
 function indexToCard(i: number): string {
   const rank = Math.floor(i / 4);
   const suit = i % 4;
   return RANKS[rank] + SUITS[suit];
+}
+
+function cardToIndex(card: string): number {
+  const rank = RANKS.indexOf(card[0].toUpperCase());
+  const suitMap: Record<string, number> = { c: 0, d: 1, h: 2, s: 3 };
+  const suit = suitMap[card[1].toLowerCase()];
+  if (rank < 0 || suit === undefined) return -1;
+  return rank * 4 + suit;
 }
 
 function indexToRank(i: number): number {
@@ -44,9 +70,9 @@ function indexToSuit(i: number): number {
 
 function classifyFlop(flopCards: number[]): {
   highCard: string;
-  texture: string;   // 'rainbow' | 'two-tone' | 'monotone'
-  pairing: string;   // 'unpaired' | 'paired' | 'trips'
-  connectivity: string; // 'connected' | 'semi-connected' | 'disconnected'
+  texture: string;
+  pairing: string;
+  connectivity: string;
   highRank: number;
 } {
   const ranks = flopCards.map(indexToRank).sort((a, b) => b - a);
@@ -68,7 +94,6 @@ function classifyFlop(flopCards: number[]): {
 
 // ─── Hand → Bucket mapping ───
 
-const RANK_ORDER = 'AKQJT98765432';
 const handMapCache = new Map<string, { oop: Record<string, number>; ip: Record<string, number> }>();
 
 let preflopRanges: ReturnType<typeof loadHUSRPRanges> | null = null;
@@ -142,7 +167,6 @@ function buildHandClassMap(
 
   const result: Record<string, number> = {};
   for (const [cls, bkts] of classBuckets) {
-    // Use median bucket for the hand class
     bkts.sort((a, b) => a - b);
     result[cls] = bkts[Math.floor(bkts.length / 2)];
   }
@@ -157,14 +181,15 @@ function getHandMap(file: string): { oop: Record<string, number>; ip: Record<str
 
   const meta = JSON.parse(readFileSync(metaPath, 'utf-8'));
   const boardCards: number[] = meta.flopCards;
+  const bucketCount: number = meta.bucketCount || 50;
   const ranges = getRanges();
   const dead = new Set(boardCards);
 
   const oopCombos = getRangeCombos(ranges.oopRange, dead);
   const ipCombos = getRangeCombos(ranges.ipRange, dead);
 
-  const oopBuckets = computeHandBuckets(oopCombos, boardCards, 50);
-  const ipBuckets = computeHandBuckets(ipCombos, boardCards, 50);
+  const oopBuckets = computeHandBuckets(oopCombos, boardCards, bucketCount);
+  const ipBuckets = computeHandBuckets(ipCombos, boardCards, bucketCount);
 
   const result = {
     oop: buildHandClassMap(oopBuckets, oopCombos, boardCards),
@@ -175,31 +200,79 @@ function getHandMap(file: string): { oop: Record<string, number>; ip: Record<str
   return result;
 }
 
+// ─── Flop distance matching ───
+
+function flopDistance(a: number[], b: number[]): number {
+  const aRanks = a.map(indexToRank).sort((x, y) => y - x);
+  const bRanks = b.map(indexToRank).sort((x, y) => y - x);
+  const aSuits = new Set(a.map(indexToSuit)).size;
+  const bSuits = new Set(b.map(indexToSuit)).size;
+  const aPaired = (aRanks[0] === aRanks[1] || aRanks[1] === aRanks[2]) ? 1 : 0;
+  const bPaired = (bRanks[0] === bRanks[1] || bRanks[1] === bRanks[2]) ? 1 : 0;
+
+  return (
+    3 * Math.abs(aRanks[0] - bRanks[0]) +
+    2 * Math.abs(aRanks[1] - bRanks[1]) +
+    1 * Math.abs(aRanks[2] - bRanks[2]) +
+    5 * Math.abs(aSuits - bSuits) +
+    4 * Math.abs(aPaired - bPaired)
+  );
+}
+
+// ─── Server ───
+
 const server = createServer((req, res) => {
   const url = new URL(req.url!, `http://localhost:${PORT}`);
   const path = url.pathname;
 
-  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
 
+  // Main viewer
   if (path === '/' || path === '/index.html') {
     res.writeHead(200, { 'Content-Type': 'text/html' });
     res.end(readFileSync(VIEWER_HTML));
     return;
   }
 
+  // Preflop knowledge base page
+  if (path === '/preflop' || path === '/preflop.html') {
+    if (existsSync(PREFLOP_HTML)) {
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(readFileSync(PREFLOP_HTML));
+    } else {
+      res.writeHead(404);
+      res.end('Preflop page not found');
+    }
+    return;
+  }
+
+  // List available configs
+  if (path === '/api/configs') {
+    const configs = Object.entries(DATA_DIRS).map(([name, dir]) => {
+      const metaFiles = existsSync(dir) ? readdirSync(dir).filter(f => f.endsWith('.meta.json')) : [];
+      return { name, flopCount: metaFiles.length, isDefault: dir === DATA_DIR };
+    });
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(configs));
+    return;
+  }
+
+  // Resolve data dir: allow ?config= query param to override
+  const configParam = url.searchParams.get('config');
+  const activeDataDir = (configParam && DATA_DIRS[configParam]) || DATA_DIR;
+
   // List available flops with texture classification
   if (path === '/api/flops') {
-    if (!existsSync(DATA_DIR)) {
+    if (!existsSync(activeDataDir)) {
       res.writeHead(404);
       res.end(JSON.stringify({ error: 'Data directory not found' }));
       return;
     }
-    const metas = readdirSync(DATA_DIR)
+    const metas = readdirSync(activeDataDir)
       .filter(f => f.endsWith('.meta.json'))
       .sort()
       .map(f => {
-        const meta = JSON.parse(readFileSync(join(DATA_DIR, f), 'utf-8'));
+        const meta = JSON.parse(readFileSync(join(activeDataDir, f), 'utf-8'));
         const cards = (meta.flopCards as number[]).map(indexToCard);
         const classification = classifyFlop(meta.flopCards);
         return {
@@ -228,10 +301,215 @@ const server = createServer((req, res) => {
     return;
   }
 
-  // Serve a specific flop file
+  // Find nearest solved flop
+  if (path === '/api/nearest-flop') {
+    const cardsParam = url.searchParams.get('cards');
+    if (!cardsParam) {
+      res.writeHead(400);
+      res.end(JSON.stringify({ error: 'Missing cards parameter' }));
+      return;
+    }
+    const queryCards = cardsParam.split(',').map(c => cardToIndex(c.trim()));
+    if (queryCards.some(c => c < 0)) {
+      res.writeHead(400);
+      res.end(JSON.stringify({ error: 'Invalid card format' }));
+      return;
+    }
+
+    if (!existsSync(DATA_DIR)) {
+      res.writeHead(404);
+      res.end(JSON.stringify({ error: 'No data' }));
+      return;
+    }
+
+    let bestFile = '';
+    let bestDist = Infinity;
+    const metaFiles = readdirSync(DATA_DIR).filter(f => f.endsWith('.meta.json')).sort();
+    for (const f of metaFiles) {
+      const meta = JSON.parse(readFileSync(join(DATA_DIR, f), 'utf-8'));
+      const dist = flopDistance(queryCards, meta.flopCards);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestFile = f.replace('.meta.json', '');
+      }
+    }
+
+    if (bestFile) {
+      const meta = JSON.parse(readFileSync(join(DATA_DIR, `${bestFile}.meta.json`), 'utf-8'));
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        file: bestFile,
+        distance: bestDist,
+        cards: (meta.flopCards as number[]).map(indexToCard),
+        ...meta,
+        ...classifyFlop(meta.flopCards),
+      }));
+    } else {
+      res.writeHead(404);
+      res.end(JSON.stringify({ error: 'No boards found' }));
+    }
+    return;
+  }
+
+  // Preflop API: list all spots
+  if (path === '/api/preflop-spots') {
+    try {
+      const chartsPath = resolve(__dirname, '../../../data/preflop_charts.json');
+      const entries = loadGtoWizardRangeFile(chartsPath);
+      const spots = [...new Set(entries.map(e => e.spot))];
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(spots));
+    } catch {
+      res.writeHead(500);
+      res.end(JSON.stringify({ error: 'Failed to load preflop charts' }));
+    }
+    return;
+  }
+
+  // Preflop API: get range data for a specific spot
+  if (path.startsWith('/api/preflop-range/')) {
+    try {
+      const spot = decodeURIComponent(path.replace('/api/preflop-range/', ''));
+      const chartsPath = resolve(__dirname, '../../../data/preflop_charts.json');
+      const entries = loadGtoWizardRangeFile(chartsPath);
+      const filtered = entries.filter(e => e.spot === spot);
+      if (filtered.length === 0) {
+        res.writeHead(404);
+        res.end(JSON.stringify({ error: `Spot not found: ${spot}` }));
+        return;
+      }
+      const matrix: Record<string, { raise: number; call: number; fold: number; notes?: string[] }> = {};
+      for (const entry of filtered) {
+        matrix[entry.hand] = {
+          raise: entry.mix.raise || 0,
+          call: entry.mix.call || 0,
+          fold: entry.mix.fold || 0,
+          notes: entry.notes,
+        };
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(matrix));
+    } catch {
+      res.writeHead(500);
+      res.end(JSON.stringify({ error: 'Failed to load preflop charts' }));
+    }
+    return;
+  }
+
+  // Solve progress monitoring API
+  if (path === '/api/solve-progress') {
+    try {
+      const totalExpected = 1911; // all isomorphic flops
+      const metaFiles = existsSync(DATA_DIR)
+        ? readdirSync(DATA_DIR).filter(f => f.endsWith('.meta.json')).sort()
+        : [];
+
+      const completed = metaFiles.length;
+      const metas = metaFiles.map(f => {
+        try { return JSON.parse(readFileSync(join(DATA_DIR, f), 'utf-8')); } catch { return null; }
+      }).filter(Boolean);
+
+      let totalInfoSets = 0;
+      let totalElapsedMs = 0;
+      let totalSizeMB = 0;
+      let peakMemoryMB = 0;
+      let latestTimestamp = '';
+
+      for (const m of metas) {
+        totalInfoSets += m.infoSets || 0;
+        totalElapsedMs += m.elapsedMs || 0;
+        if (m.peakMemoryMB > peakMemoryMB) peakMemoryMB = m.peakMemoryMB;
+        if (m.timestamp > latestTimestamp) latestTimestamp = m.timestamp;
+      }
+
+      // Calculate file sizes
+      const jsonlFiles = existsSync(DATA_DIR)
+        ? readdirSync(DATA_DIR).filter(f => f.endsWith('.jsonl'))
+        : [];
+      for (const f of jsonlFiles) {
+        try {
+          const fstat = statSync(join(DATA_DIR, f));
+          totalSizeMB += fstat.size / (1024 * 1024);
+        } catch {}
+      }
+
+      // Sort by timestamp for chronological log
+      const sortedMetas = [...metas].sort((a, b) =>
+        (a.timestamp || '').localeCompare(b.timestamp || '')
+      );
+
+      // Recent completions (last 50 for log view, reversed = newest first)
+      const recentMetas = sortedMetas.slice(-50).reverse().map(m => ({
+        boardId: m.boardId,
+        file: `flop_${String(m.boardId).padStart(3, '0')}`,
+        flopCards: (m.flopCards as number[]).map(indexToCard).join(' '),
+        infoSets: m.infoSets,
+        elapsedMs: m.elapsedMs,
+        peakMemoryMB: m.peakMemoryMB || 0,
+        timestamp: m.timestamp,
+      }));
+
+      // Estimate remaining time
+      const avgTimePerFlop = completed > 0 ? totalElapsedMs / completed : 0;
+      const remaining = totalExpected - completed;
+      // Workers run in parallel, estimate based on wall-clock
+      const firstTimestamp = metas.length > 0 ? metas[0].timestamp : '';
+      let wallClockMs = 0;
+      if (firstTimestamp && latestTimestamp) {
+        wallClockMs = new Date(latestTimestamp).getTime() - new Date(firstTimestamp).getTime();
+      }
+      const wallClockPerFlop = completed > 1 ? wallClockMs / (completed - 1) : avgTimePerFlop;
+      const etaMs = remaining * wallClockPerFlop;
+
+      // Check progress file from orchestrator
+      const progressPath = join(DATA_DIR, '_progress.json');
+      let progressFile = null;
+      if (existsSync(progressPath)) {
+        try { progressFile = JSON.parse(readFileSync(progressPath, 'utf-8')); } catch {}
+      }
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        totalExpected,
+        completed,
+        remaining,
+        percentDone: ((completed / totalExpected) * 100).toFixed(2),
+        totalInfoSets,
+        totalElapsedMs,
+        totalSizeMB: totalSizeMB.toFixed(1),
+        peakMemoryMB,
+        avgTimePerFlopSec: (avgTimePerFlop / 1000).toFixed(1),
+        wallClockPerFlopSec: (wallClockPerFlop / 1000).toFixed(1),
+        etaMinutes: (etaMs / 60000).toFixed(0),
+        etaHours: (etaMs / 3600000).toFixed(1),
+        latestTimestamp,
+        recentCompletions: recentMetas,
+        progressFile,
+      }));
+    } catch (err) {
+      res.writeHead(500);
+      res.end(JSON.stringify({ error: String(err) }));
+    }
+    return;
+  }
+
+  // Monitor page
+  if (path === '/monitor' || path === '/monitor.html') {
+    const monitorPath = resolve(__dirname, 'monitor.html');
+    if (existsSync(monitorPath)) {
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(readFileSync(monitorPath));
+    } else {
+      res.writeHead(404);
+      res.end('Monitor page not found');
+    }
+    return;
+  }
+
+  // Serve a specific flop file (supports ?config= param)
   if (path.startsWith('/data/')) {
     const filename = path.replace('/data/', '');
-    const filePath = join(DATA_DIR, filename);
+    const filePath = join(activeDataDir, filename);
     if (existsSync(filePath) && !filename.includes('..')) {
       const ext = extname(filename);
       res.writeHead(200, { 'Content-Type': MIME[ext] || 'application/octet-stream' });
@@ -248,8 +526,16 @@ const server = createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`\n  CFR Strategy Viewer: http://localhost:${PORT}\n`);
-  console.log(`  Data directory: ${DATA_DIR}`);
-  console.log(`  Available flops: ${existsSync(DATA_DIR) ? readdirSync(DATA_DIR).filter(f => f.endsWith('.jsonl')).length : 0}`);
+  console.log(`\n  CFR Strategy Viewer V2: http://localhost:${PORT}`);
+  console.log(`  Preflop Knowledge Base: http://localhost:${PORT}/preflop\n`);
+  console.log(`  Default data: ${DATA_DIR}`);
+  const configList = Object.entries(DATA_DIRS);
+  if (configList.length > 0) {
+    console.log(`  Available configs:`);
+    for (const [name, dir] of configList) {
+      const count = existsSync(dir) ? readdirSync(dir).filter(f => f.endsWith('.jsonl')).length : 0;
+      console.log(`    ${name}: ${count} flops${dir === DATA_DIR ? ' (default)' : ''}`);
+    }
+  }
   console.log();
 });

@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CardPilot - Solve Monitor</title>
+<style>
+  :root {
+    --bg-base: #0b1120;
+    --bg-surface: #111827;
+    --bg-elevated: #1e293b;
+    --border-default: rgba(148,163,184,0.14);
+    --border-strong: rgba(148,163,184,0.25);
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent: #3b82f6;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --danger: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', 'Noto Sans TC', system-ui, sans-serif;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding: 32px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 32px;
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 700; }
+  .header .nav-links { display: flex; gap: 16px; }
+  .header .nav-links a {
+    color: var(--accent); text-decoration: none; font-size: 0.875rem;
+  }
+  .header .nav-links a:hover { text-decoration: underline; }
+
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px; border-radius: 20px; font-size: 0.8125rem; font-weight: 600;
+  }
+  .status-badge.running {
+    background: rgba(34,197,94,0.15); color: var(--success);
+  }
+  .status-badge.done {
+    background: rgba(59,130,246,0.15); color: var(--accent);
+  }
+  .status-badge .pulse {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--success);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+
+  .card {
+    background: var(--bg-surface); border: 1px solid var(--border-default);
+    border-radius: 14px; padding: 20px;
+  }
+  .card .label { font-size: 0.6875rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 6px; }
+  .card .value { font-size: 1.75rem; font-weight: 700; }
+  .card .sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+
+  .progress-wrap {
+    background: var(--bg-surface); border: 1px solid var(--border-default);
+    border-radius: 14px; padding: 24px; margin-bottom: 24px;
+  }
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .progress-header .title { font-size: 0.875rem; font-weight: 700; }
+  .progress-header .pct { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+  .progress-bar-bg {
+    width: 100%; height: 24px; border-radius: 12px;
+    background: var(--bg-elevated); overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; border-radius: 12px;
+    background: linear-gradient(90deg, var(--accent), var(--success));
+    transition: width 1s ease;
+    display: flex; align-items: center; justify-content: flex-end;
+    padding-right: 8px; font-size: 0.6875rem; font-weight: 700; color: white;
+    min-width: 0;
+  }
+  .progress-stats {
+    display: flex; gap: 24px; margin-top: 12px; font-size: 0.8125rem; color: var(--text-secondary);
+  }
+
+  .recent-table {
+    background: var(--bg-surface); border: 1px solid var(--border-default);
+    border-radius: 14px; padding: 24px; margin-bottom: 24px;
+  }
+  .recent-table .title { font-size: 0.875rem; font-weight: 700; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left; font-size: 0.6875rem; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;
+    padding: 8px 12px; border-bottom: 1px solid var(--border-default);
+  }
+  td {
+    padding: 10px 12px; font-size: 0.8125rem; border-bottom: 1px solid var(--border-default);
+  }
+  tr:last-child td { border-bottom: none; }
+  .card-label {
+    display: inline-flex; gap: 3px;
+  }
+  .mini-card {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 2px 4px; border-radius: 3px; font-size: 0.6875rem; font-weight: 700;
+    background: #fff; color: #1e293b;
+  }
+  .mini-card.h { color: #ef4444; }
+  .mini-card.d { color: #3b82f6; }
+  .mini-card.c { color: #22c55e; }
+  .mini-card.s { color: #1e293b; }
+
+  .refresh-info {
+    text-align: center; font-size: 0.75rem; color: var(--text-muted);
+    margin-top: 16px;
+  }
+
+  .eta-box {
+    background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.25);
+    border-radius: 10px; padding: 16px 20px; margin-bottom: 24px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .eta-box .eta-icon { font-size: 1.5rem; }
+  .eta-box .eta-text { font-size: 0.875rem; color: var(--text-secondary); }
+  .eta-box .eta-time { font-size: 1.125rem; font-weight: 700; color: var(--warning); }
+
+  .speed-chart {
+    background: var(--bg-surface); border: 1px solid var(--border-default);
+    border-radius: 14px; padding: 24px; margin-bottom: 24px;
+  }
+  .speed-chart .title { font-size: 0.875rem; font-weight: 700; margin-bottom: 16px; }
+  .speed-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .speed-bar-label { font-size: 0.6875rem; color: var(--text-muted); min-width: 60px; text-align: right; }
+  .speed-bar-track { flex: 1; height: 14px; border-radius: 4px; background: var(--bg-elevated); overflow: hidden; }
+  .speed-bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.5s; }
+  .speed-bar-val { font-size: 0.6875rem; color: var(--text-secondary); min-width: 50px; }
+
+  /* Live log panel */
+  .log-panel {
+    background: #0d1117; border: 1px solid var(--border-default);
+    border-radius: 14px; margin-bottom: 24px; overflow: hidden;
+  }
+  .log-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 20px; border-bottom: 1px solid var(--border-default);
+    background: rgba(22,27,34,0.8);
+  }
+  .log-header .title { font-size: 0.875rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .log-header .live-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--success);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  .log-header .controls { display: flex; gap: 8px; }
+  .log-header .ctrl-btn {
+    padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-default);
+    background: transparent; color: var(--text-muted); font-size: 0.6875rem;
+    cursor: pointer; transition: all 0.12s;
+  }
+  .log-header .ctrl-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+  .log-header .ctrl-btn.active { background: var(--accent-soft, rgba(59,130,246,0.15)); border-color: var(--accent); color: var(--accent); }
+  .log-body {
+    max-height: 420px; overflow-y: auto; padding: 12px 0;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 0.75rem; line-height: 1.7;
+  }
+  .log-body::-webkit-scrollbar { width: 6px; }
+  .log-body::-webkit-scrollbar-track { background: transparent; }
+  .log-body::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+  .log-line {
+    padding: 1px 16px; display: flex; gap: 10px; transition: background 0.15s;
+  }
+  .log-line:hover { background: rgba(148,163,184,0.05); }
+  .log-line.new-entry { animation: logHighlight 2s ease-out; }
+  @keyframes logHighlight {
+    0% { background: rgba(34,197,94,0.2); }
+    100% { background: transparent; }
+  }
+  .log-ts { color: var(--text-muted); min-width: 80px; flex-shrink: 0; }
+  .log-level { min-width: 50px; flex-shrink: 0; font-weight: 700; }
+  .log-level.info { color: var(--accent); }
+  .log-level.done { color: var(--success); }
+  .log-level.warn { color: var(--warning); }
+  .log-level.error { color: var(--danger); }
+  .log-msg { color: var(--text-secondary); }
+  .log-msg .hl { color: var(--text-primary); font-weight: 600; }
+  .log-msg .num { color: var(--warning); }
+  .log-msg .card-s { color: #f1f5f9; }
+  .log-msg .card-h { color: #ef4444; }
+  .log-msg .card-d { color: #3b82f6; }
+  .log-msg .card-c { color: #22c55e; }
+  .log-empty {
+    padding: 32px; text-align: center; color: var(--text-muted); font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>CFR Solve Monitor</h1>
+    <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:4px;">CardPilot V2 - Full Board Solve</div>
+  </div>
+  <div style="display:flex; align-items:center; gap:16px;">
+    <div class="nav-links">
+      <a href="/">Postflop Viewer</a>
+      <a href="/preflop">Preflop Charts</a>
+    </div>
+    <div class="status-badge running" id="status-badge">
+      <div class="pulse"></div>
+      <span id="status-text">Connecting...</span>
+    </div>
+  </div>
+</div>
+
+<!-- Progress bar -->
+<div class="progress-wrap">
+  <div class="progress-header">
+    <span class="title">Overall Progress</span>
+    <span class="pct" id="pct-display">--%</span>
+  </div>
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+  </div>
+  <div class="progress-stats">
+    <span id="completed-label">-- completed</span>
+    <span id="remaining-label">-- remaining</span>
+    <span id="rate-label">-- flops/min</span>
+  </div>
+</div>
+
+<!-- ETA -->
+<div class="eta-box" id="eta-box">
+  <span class="eta-icon">&#9203;</span>
+  <div>
+    <div class="eta-text">Estimated Time Remaining</div>
+    <div class="eta-time" id="eta-display">Calculating...</div>
+  </div>
+</div>
+
+<!-- Live Log -->
+<div class="log-panel">
+  <div class="log-header">
+    <div class="title"><div class="live-dot" id="log-live-dot"></div> Live Log</div>
+    <div class="controls">
+      <button class="ctrl-btn active" id="log-autoscroll-btn" onclick="toggleAutoScroll()">Auto-scroll</button>
+      <button class="ctrl-btn" onclick="clearLog()">Clear</button>
+    </div>
+  </div>
+  <div class="log-body" id="log-body">
+    <div class="log-empty">Waiting for solver events...</div>
+  </div>
+</div>
+
+<!-- Stats grid -->
+<div class="grid">
+  <div class="card">
+    <div class="label">Completed</div>
+    <div class="value" id="stat-completed">--</div>
+    <div class="sub" id="stat-total">of -- boards</div>
+  </div>
+  <div class="card">
+    <div class="label">Total Info Sets</div>
+    <div class="value" id="stat-infosets">--</div>
+    <div class="sub">strategy entries</div>
+  </div>
+  <div class="card">
+    <div class="label">Data Size</div>
+    <div class="value" id="stat-size">--</div>
+    <div class="sub">on disk</div>
+  </div>
+  <div class="card">
+    <div class="label">Peak Memory</div>
+    <div class="value" id="stat-memory">--</div>
+    <div class="sub">per worker</div>
+  </div>
+  <div class="card">
+    <div class="label">Avg Solve Time</div>
+    <div class="value" id="stat-avgtime">--</div>
+    <div class="sub">per flop (CPU)</div>
+  </div>
+  <div class="card">
+    <div class="label">Wall Clock/Flop</div>
+    <div class="value" id="stat-walltime">--</div>
+    <div class="sub">parallel throughput</div>
+  </div>
+</div>
+
+<!-- Recent completions -->
+<div class="recent-table">
+  <div class="title">Recent Completions</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Board</th>
+        <th>Flop</th>
+        <th>Info Sets</th>
+        <th>Solve Time</th>
+        <th>Completed</th>
+      </tr>
+    </thead>
+    <tbody id="recent-tbody">
+      <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Waiting for data...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="refresh-info" id="refresh-info">Auto-refreshing every 10 seconds</div>
+
+<script>
+const SUIT_SYM = { c:'\u2663', d:'\u2666', h:'\u2665', s:'\u2660' };
+
+function cardHTML(cardStr) {
+  const r = cardStr[0], s = cardStr[1];
+  return `<span class="mini-card ${s}">${r}${SUIT_SYM[s]}</span>`;
+}
+
+function formatNum(n) {
+  if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+  return String(n);
+}
+
+function timeAgo(ts) {
+  if (!ts) return '--';
+  const diff = Date.now() - new Date(ts).getTime();
+  if (diff < 60000) return Math.round(diff / 1000) + 's ago';
+  if (diff < 3600000) return Math.round(diff / 60000) + 'm ago';
+  return Math.round(diff / 3600000) + 'h ago';
+}
+
+let prevCompleted = null;
+let completionHistory = []; // track timestamps for rate calculation
+let seenTimestamps = new Set();
+let logAutoScroll = true;
+let logStarted = false;
+
+function toggleAutoScroll() {
+  logAutoScroll = !logAutoScroll;
+  const btn = document.getElementById('log-autoscroll-btn');
+  btn.classList.toggle('active', logAutoScroll);
+}
+
+function clearLog() {
+  document.getElementById('log-body').innerHTML = '';
+  seenTimestamps.clear();
+}
+
+function colorCards(flopStr) {
+  return flopStr.split(' ').map(c => {
+    const r = c[0], s = c[1];
+    const sym = SUIT_SYM[s] || s;
+    const cls = s === 'h' ? 'card-h' : s === 'd' ? 'card-d' : s === 'c' ? 'card-c' : 'card-s';
+    return `<span class="${cls}">${r}${sym}</span>`;
+  }).join(' ');
+}
+
+function addLogLine(ts, level, msg, isNew) {
+  const body = document.getElementById('log-body');
+  // Remove empty placeholder
+  const empty = body.querySelector('.log-empty');
+  if (empty) empty.remove();
+
+  const div = document.createElement('div');
+  div.className = 'log-line' + (isNew ? ' new-entry' : '');
+  div.innerHTML = `<span class="log-ts">${ts}</span><span class="log-level ${level}">${level.toUpperCase()}</span><span class="log-msg">${msg}</span>`;
+  body.appendChild(div);
+
+  // Keep max 200 lines
+  while (body.children.length > 200) body.removeChild(body.firstChild);
+
+  if (logAutoScroll) body.scrollTop = body.scrollHeight;
+}
+
+function formatLogTime(timestamp) {
+  if (!timestamp) return '--:--:--';
+  const d = new Date(timestamp);
+  return d.toLocaleTimeString('zh-TW', { hour12: false });
+}
+
+async function refresh() {
+  try {
+    const res = await fetch('/api/solve-progress');
+    if (!res.ok) throw new Error('API error');
+    const d = await res.json();
+
+    const pct = parseFloat(d.percentDone);
+    const isRunning = d.remaining > 0;
+
+    // Status badge
+    const badge = document.getElementById('status-badge');
+    const statusText = document.getElementById('status-text');
+    if (isRunning) {
+      badge.className = 'status-badge running';
+      statusText.textContent = 'Solving...';
+    } else {
+      badge.className = 'status-badge done';
+      badge.innerHTML = '<span>&#10003;</span><span>Complete</span>';
+    }
+
+    // Progress bar
+    document.getElementById('pct-display').textContent = pct.toFixed(1) + '%';
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('completed-label').textContent = `${d.completed} completed`;
+    document.getElementById('remaining-label').textContent = `${d.remaining} remaining`;
+
+    // Rate calculation
+    if (prevCompleted !== null && d.completed > prevCompleted) {
+      completionHistory.push({ count: d.completed - prevCompleted, time: Date.now() });
+      // Keep last 30 data points
+      if (completionHistory.length > 30) completionHistory.shift();
+    }
+    prevCompleted = d.completed;
+
+    if (completionHistory.length >= 2) {
+      const elapsed = (completionHistory[completionHistory.length - 1].time - completionHistory[0].time) / 60000;
+      const total = completionHistory.reduce((s, e) => s + e.count, 0);
+      const rate = elapsed > 0 ? (total / elapsed).toFixed(1) : '--';
+      document.getElementById('rate-label').textContent = `~${rate} flops/min`;
+    } else {
+      // Estimate from wall clock data
+      const wcSec = parseFloat(d.wallClockPerFlopSec);
+      if (wcSec > 0) {
+        document.getElementById('rate-label').textContent = `~${(60 / wcSec).toFixed(1)} flops/min`;
+      }
+    }
+
+    // ETA
+    const etaDisplay = document.getElementById('eta-display');
+    if (!isRunning) {
+      etaDisplay.textContent = 'Done!';
+      document.getElementById('eta-box').style.background = 'rgba(34,197,94,0.1)';
+      document.getElementById('eta-box').style.borderColor = 'rgba(34,197,94,0.25)';
+    } else {
+      const hours = parseFloat(d.etaHours);
+      if (hours > 1) {
+        etaDisplay.textContent = `~${hours.toFixed(1)} hours (${d.etaMinutes} min)`;
+      } else {
+        etaDisplay.textContent = `~${d.etaMinutes} minutes`;
+      }
+    }
+
+    // Stats
+    document.getElementById('stat-completed').textContent = d.completed;
+    document.getElementById('stat-total').textContent = `of ${d.totalExpected} boards`;
+    document.getElementById('stat-infosets').textContent = formatNum(d.totalInfoSets);
+    document.getElementById('stat-size').textContent = parseFloat(d.totalSizeMB) >= 1024
+      ? (parseFloat(d.totalSizeMB) / 1024).toFixed(1) + ' GB'
+      : parseFloat(d.totalSizeMB).toFixed(0) + ' MB';
+    document.getElementById('stat-memory').textContent = d.peakMemoryMB + ' MB';
+    document.getElementById('stat-avgtime').textContent = d.avgTimePerFlopSec + 's';
+    document.getElementById('stat-walltime').textContent = d.wallClockPerFlopSec + 's';
+
+    // Recent completions
+    const tbody = document.getElementById('recent-tbody');
+    if (d.recentCompletions && d.recentCompletions.length > 0) {
+      tbody.innerHTML = d.recentCompletions.map(r => {
+        const cards = r.flopCards.split(' ');
+        const cardsHtml = cards.map(c => cardHTML(c)).join(' ');
+        return `<tr>
+          <td>#${r.boardId}</td>
+          <td><span class="card-label">${cardsHtml}</span></td>
+          <td>${formatNum(r.infoSets)}</td>
+          <td>${(r.elapsedMs / 1000).toFixed(0)}s</td>
+          <td>${timeAgo(r.timestamp)}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // Live log: add new completion events
+    if (d.recentCompletions && d.recentCompletions.length > 0) {
+      // Initial load: seed with startup log
+      if (!logStarted) {
+        logStarted = true;
+        addLogLine(formatLogTime(d.recentCompletions[d.recentCompletions.length - 1]?.timestamp), 'info',
+          `Solver started &mdash; Target: <span class="hl">${d.totalExpected}</span> boards, <span class="num">50,000</span> iterations each`, false);
+      }
+
+      // Process completions oldest-first
+      const sorted = [...d.recentCompletions].reverse();
+      for (const r of sorted) {
+        const key = r.timestamp + '_' + r.boardId;
+        if (seenTimestamps.has(key)) continue;
+        seenTimestamps.add(key);
+
+        const cards = colorCards(r.flopCards);
+        const secs = (r.elapsedMs / 1000).toFixed(0);
+        const infoSets = formatNum(r.infoSets);
+        const mem = r.peakMemoryMB ? ` | Mem: <span class="num">${r.peakMemoryMB}MB</span>` : '';
+        const pctNow = ((seenTimestamps.size / d.totalExpected) * 100).toFixed(1);
+
+        addLogLine(
+          formatLogTime(r.timestamp),
+          'done',
+          `Board <span class="hl">#${r.boardId}</span> ${cards} solved &mdash; ` +
+          `<span class="num">${infoSets}</span> info sets in <span class="num">${secs}s</span>${mem} ` +
+          `[<span class="hl">${d.completed}/${d.totalExpected}</span> = ${pctNow}%]`,
+          true
+        );
+      }
+    }
+
+    // Log status messages periodically
+    if (d.completed > 0 && d.remaining > 0 && d.completed % 10 === 0 && !seenTimestamps.has('status_' + d.completed)) {
+      seenTimestamps.add('status_' + d.completed);
+      const sizeTxt = parseFloat(d.totalSizeMB) >= 1024
+        ? (parseFloat(d.totalSizeMB) / 1024).toFixed(1) + ' GB'
+        : parseFloat(d.totalSizeMB).toFixed(0) + ' MB';
+      addLogLine(formatLogTime(d.latestTimestamp), 'info',
+        `Progress checkpoint &mdash; <span class="hl">${d.completed}</span> boards done, ` +
+        `<span class="num">${sizeTxt}</span> on disk, ` +
+        `ETA: <span class="num">~${d.etaHours}h</span>`, true);
+    }
+
+    // Completion message
+    if (d.remaining === 0 && !seenTimestamps.has('all_done')) {
+      seenTimestamps.add('all_done');
+      const sizeTxt = parseFloat(d.totalSizeMB) >= 1024
+        ? (parseFloat(d.totalSizeMB) / 1024).toFixed(1) + ' GB'
+        : parseFloat(d.totalSizeMB).toFixed(0) + ' MB';
+      addLogLine(formatLogTime(d.latestTimestamp), 'info',
+        `All <span class="hl">${d.totalExpected}</span> boards solved! ` +
+        `Total: <span class="num">${formatNum(d.totalInfoSets)}</span> info sets, ` +
+        `<span class="num">${sizeTxt}</span> on disk`, true);
+      // Stop live dot animation
+      document.getElementById('log-live-dot').style.animation = 'none';
+      document.getElementById('log-live-dot').style.background = 'var(--accent)';
+    }
+
+    document.getElementById('refresh-info').textContent =
+      `Auto-refreshing every 5s | Last update: ${new Date().toLocaleTimeString()}`;
+
+  } catch (e) {
+    document.getElementById('status-text').textContent = 'Connection error';
+    document.getElementById('refresh-info').textContent = `Error: ${e.message} | Retrying...`;
+  }
+}
+
+// Initial load + auto-refresh every 5 seconds
+refresh();
+setInterval(refresh, 5000);
+</script>
+</body>
+</html>

@@ -115,7 +115,7 @@ function getBetActionsAvailable(
       if (!actions.includes('allin')) actions.push('allin');
       break;
     }
-    actions.push(i === 0 ? 'bet_small' : 'bet_big');
+    actions.push(`bet_${i}`);
   }
 
   // Always allow all-in if not already added and stack > 0
@@ -142,7 +142,7 @@ function getRaiseSizesAvailable(
       if (!actions.includes('allin')) actions.push('allin');
       break;
     }
-    actions.push(i === 0 ? 'raise_small' : 'raise_big');
+    actions.push(`raise_${i}`);
   }
 
   if (!actions.includes('allin') && playerStack > facingBet) {
@@ -161,16 +161,14 @@ function getBetSizesForStreet(config: TreeConfig, street: Street): number[] {
 }
 
 function actionChar(action: Action): string {
-  switch (action) {
-    case 'fold': return 'f';
-    case 'check': return 'x';
-    case 'call': return 'c';
-    case 'bet_small': return 'a';
-    case 'bet_big': return 'b';
-    case 'raise_small': return 'a';
-    case 'raise_big': return 'b';
-    case 'allin': return 'A';
-  }
+  if (action === 'fold') return 'f';
+  if (action === 'check') return 'x';
+  if (action === 'call') return 'c';
+  if (action === 'allin') return 'A';
+  // bet_0 → '1', bet_1 → '2', ..., raise_0 → '1', raise_1 → '2', ...
+  const match = action.match(/^(?:bet|raise)_(\d+)$/);
+  if (match) return String(parseInt(match[1]) + 1);
+  return '?';
 }
 
 function applyAction(
@@ -241,16 +239,18 @@ function applyAction(
 
   if (action === 'allin') {
     betAmount = state.stacks[p];
-  } else if (action === 'bet_small') {
-    betAmount = calcBetAmount(state.pot, sizes[0], state.stacks[p]);
-  } else if (action === 'bet_big') {
-    betAmount = calcBetAmount(state.pot, sizes[1], state.stacks[p]);
-  } else if (action === 'raise_small') {
-    betAmount = calcRaiseAmount(state.pot, state.facingBet, sizes[0], state.stacks[p]);
-  } else if (action === 'raise_big') {
-    betAmount = calcRaiseAmount(state.pot, state.facingBet, sizes[1], state.stacks[p]);
   } else {
-    betAmount = state.stacks[p]; // fallback
+    const match = action.match(/^(bet|raise)_(\d+)$/);
+    if (match) {
+      const idx = parseInt(match[2]);
+      if (match[1] === 'bet') {
+        betAmount = calcBetAmount(state.pot, sizes[idx], state.stacks[p]);
+      } else {
+        betAmount = calcRaiseAmount(state.pot, state.facingBet, sizes[idx], state.stacks[p]);
+      }
+    } else {
+      betAmount = state.stacks[p]; // fallback
+    }
   }
 
   const newStacks: [number, number] = [state.stacks[0], state.stacks[1]];

@@ -26,11 +26,22 @@
     --fold-color: #64748b;
     --check-color: #22c55e;
     --call-color: #38bdf8;
-    --bet-small-color: #f59e0b;
-    --bet-big-color: #f97316;
-    --raise-small-color: #e879f9;
-    --raise-big-color: #c084fc;
+    --bet-0-color: #fbbf24;
+    --bet-1-color: #f59e0b;
+    --bet-2-color: #f97316;
+    --bet-3-color: #ea580c;
+    --bet-4-color: #dc2626;
+    --raise-0-color: #e879f9;
+    --raise-1-color: #c084fc;
+    --raise-2-color: #a855f7;
+    --raise-3-color: #8b5cf6;
+    --raise-4-color: #7c3aed;
     --allin-color: #ef4444;
+    /* Legacy aliases */
+    --bet-small-color: var(--bet-0-color);
+    --bet-big-color: var(--bet-1-color);
+    --raise-small-color: var(--raise-0-color);
+    --raise-big-color: var(--raise-1-color);
     /* Suit colors */
     --suit-hearts: #ef4444;
     --suit-diamonds: #3b82f6;
@@ -222,14 +233,10 @@
   .nav-btn.call-btn { border-color: var(--call-color); color: var(--call-color); }
   .nav-btn.call-btn:hover { background: rgba(56,189,248,0.1); }
   .nav-btn.fold-btn { border-color: var(--fold-color); color: var(--fold-color); }
-  .nav-btn.bet-s-btn { border-color: var(--bet-small-color); color: var(--bet-small-color); }
-  .nav-btn.bet-s-btn:hover { background: rgba(245,158,11,0.1); }
-  .nav-btn.bet-b-btn { border-color: var(--bet-big-color); color: var(--bet-big-color); }
-  .nav-btn.bet-b-btn:hover { background: rgba(249,115,22,0.1); }
-  .nav-btn.raise-s-btn { border-color: var(--raise-small-color); color: var(--raise-small-color); }
-  .nav-btn.raise-s-btn:hover { background: rgba(232,121,249,0.1); }
-  .nav-btn.raise-b-btn { border-color: var(--raise-big-color); color: var(--raise-big-color); }
-  .nav-btn.raise-b-btn:hover { background: rgba(192,132,252,0.1); }
+  .nav-btn.bet-btn { border-color: var(--bet-0-color); color: var(--bet-0-color); }
+  .nav-btn.bet-btn:hover { background: rgba(245,158,11,0.1); }
+  .nav-btn.raise-btn { border-color: var(--raise-0-color); color: var(--raise-0-color); }
+  .nav-btn.raise-btn:hover { background: rgba(232,121,249,0.1); }
   .nav-btn.allin-btn { border-color: var(--allin-color); color: var(--allin-color); }
   .nav-btn.allin-btn:hover { background: rgba(239,68,68,0.1); }
 
@@ -360,6 +367,19 @@
     margin-left: 4px; max-width: 80px;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
+
+  /* Copy button */
+  .copy-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: 8px;
+    border: 1px solid var(--border-default);
+    background: var(--bg-elevated); color: var(--text-secondary);
+    font-size: 0.8125rem; font-weight: 500;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--text-primary); background: var(--accent-soft); }
+  .copy-btn.copied { border-color: var(--success); color: var(--success); background: rgba(34,197,94,0.1); }
+  .copy-btn .copy-icon { font-size: 0.875rem; }
 </style>
 </head>
 <body>
@@ -368,7 +388,7 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <h1>CardPilot Strategy Viewer</h1>
-      <div class="subtitle">HU NLHE Postflop &middot; SRP 50bb &middot; CFR+ 50k iterations</div>
+      <div class="subtitle">HU NLHE Postflop &middot; SRP 50bb &middot; CFR+ V2 | <a href="/preflop" style="color:var(--accent);text-decoration:none;">Preflop Charts</a></div>
     </div>
 
     <!-- Search -->
@@ -424,8 +444,24 @@
     <div class="welcome-screen" id="welcome-screen">
       <div class="icon">&#9824;</div>
       <h2>Select a Board</h2>
-      <p>Pick a flop from the left panel to see the GTO-approximate strategy.<br>
-      Use the search bar or filters to find specific board textures.</p>
+      <p>Pick a flop from the left panel, or type specific cards below to find the nearest solved board.</p>
+
+      <!-- Board search input -->
+      <div style="margin-top:20px; max-width:400px; text-align:left;">
+        <div style="font-weight:600; margin-bottom:6px; font-size:0.8125rem; color:var(--text-secondary);">Quick Lookup</div>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="board-search-input" placeholder="e.g. As Kh 7d" style="
+            flex:1; padding:10px 14px; background:var(--bg-surface); border:1px solid var(--border-default);
+            border-radius:10px; color:var(--text-primary); font-size:0.875rem; outline:none;
+          ">
+          <button onclick="searchBoard()" style="
+            padding:10px 18px; background:var(--accent); border:none; border-radius:10px;
+            color:#fff; font-size:0.8125rem; font-weight:600; cursor:pointer;
+          ">Find</button>
+        </div>
+        <div id="board-search-result" style="margin-top:8px; font-size:0.8125rem; color:var(--text-muted);"></div>
+      </div>
+
       <div style="margin-top:24px; padding:16px 24px; background:var(--bg-surface); border-radius:12px; border:1px solid var(--border-default); text-align:left; max-width:460px;">
         <div style="font-weight:600; margin-bottom:8px; font-size:0.875rem;">Quick Guide</div>
         <ul style="font-size:0.8125rem; color:var(--text-secondary); line-height:1.8; padding-left:18px;">
@@ -444,7 +480,17 @@
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Board</span>
-          <span class="panel-subtitle" id="board-id-label"></span>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="panel-subtitle" id="board-id-label"></span>
+            <button class="copy-btn" id="copy-view-btn" onclick="copyCurrentView()" title="Copy current situation strategy to clipboard">
+              <span class="copy-icon">&#128203;</span>
+              <span id="copy-view-text">Copy View</span>
+            </button>
+            <button class="copy-btn" id="download-json-btn" onclick="downloadAllJSON()" title="Download all strategy data as JSON file">
+              <span class="copy-icon">&#11015;</span>
+              <span id="download-btn-text">Download JSON</span>
+            </button>
+          </div>
         </div>
         <div class="board-area">
           <div class="board-cards" id="board-display"></div>
@@ -491,9 +537,13 @@
 
       <!-- Hand Matrix -->
       <div class="panel" id="hand-matrix-panel">
-        <div class="panel-header">
-          <span class="panel-title">Your Hand</span>
-          <span class="panel-subtitle">Click any hand to see its strategy</span>
+        <div class="panel-header" style="display:flex;align-items:center;gap:8px;">
+          <span class="panel-title" style="flex:1;">Your Hand</span>
+          <div class="seg-group" id="heatmap-toggle" style="font-size:0.6875rem;">
+            <button class="seg-btn active" data-mode="actions" onclick="setHeatmapMode('actions')">Actions</button>
+            <button class="seg-btn" data-mode="aggression" onclick="setHeatmapMode('aggression')">Aggression</button>
+            <button class="seg-btn" data-mode="strength" onclick="setHeatmapMode('strength')">Strength</button>
+          </div>
         </div>
         <div class="help-tip">
           <span class="tip-icon">&#128161;</span>
@@ -553,68 +603,104 @@ function cardToHTML(cardStr, large) {
   return `<div class="${cls} ${s}"><span class="rank">${r}</span><span class="suit">${SUIT_SYM[s]}</span></div>`;
 }
 
-// Action labels
-function getActionLabels(historyKey, numActions) {
+// ---- Action label helpers (supports N bet sizes) ----
+
+// Bet sizes per street from meta (set when data loads, fallback to v1 defaults)
+let betSizesConfig = {
+  flop: [0.33, 0.75], turn: [0.50, 1.00], river: [0.75, 1.50]
+};
+function streetSizesArray() {
+  const s = state.street;
+  if (s === 'F') return betSizesConfig.flop;
+  if (s === 'T') return betSizesConfig.turn;
+  return betSizesConfig.river;
+}
+function pctLabel(frac) {
+  return Math.round(frac * 100) + '%';
+}
+
+// Detect if current node is facing a bet/raise
+// New encoding: digits 1-5 for bet/raise sizes, A for allin
+function isFacing(historyKey) {
   const last = (historyKey || '').split('/').pop() || '';
-  const facing = last.length > 0 && 'abA'.includes(last[last.length - 1]);
+  if (last.length === 0) return false;
+  const ch = last[last.length - 1];
+  return '123456789A'.includes(ch);
+}
+
+function getActionLabels(historyKey, numActions) {
+  const facing = isFacing(historyKey);
+  const sizes = streetSizesArray();
   if (facing) {
-    if (numActions === 2) return ['Fold', 'Call'];
-    if (numActions === 3) return ['Fold', 'Call', 'All-in'];
-    if (numActions === 4) return ['Fold', 'Call', 'Raise Small', 'All-in'];
-    if (numActions === 5) return ['Fold', 'Call', 'Raise Small', 'Raise Big', 'All-in'];
+    // fold, call, [raise_0..raise_N], [allin]
+    const labels = ['Fold', 'Call'];
+    const raiseSlotsMax = numActions - 2; // minus fold+call, possibly minus allin
+    const hasAllin = numActions > 2; // at least fold+call+allin
+    const raiseCount = hasAllin ? numActions - 3 : numActions - 2;
+    for (let i = 0; i < raiseCount; i++) {
+      labels.push(sizes[i] ? `Raise ${pctLabel(sizes[i])}` : `Raise ${i+1}`);
+    }
+    if (hasAllin) labels.push('All-in');
+    return labels;
   } else {
-    if (numActions === 4) return ['Check', 'Bet Small', 'Bet Big', 'All-in'];
-    if (numActions === 3) return ['Check', 'Bet', 'All-in'];
-    if (numActions === 2) return ['Check', 'Bet'];
+    // check, [bet_0..bet_N], [allin]
+    const labels = ['Check'];
+    const hasAllin = numActions > 1;
+    const betCount = hasAllin ? numActions - 2 : numActions - 1;
+    for (let i = 0; i < betCount; i++) {
+      labels.push(sizes[i] ? `Bet ${pctLabel(sizes[i])}` : `Bet ${i+1}`);
+    }
+    if (hasAllin && numActions > 1) labels.push('All-in');
+    // Edge case: check only (numActions=1)
+    return labels;
   }
-  return Array.from({length: numActions}, (_, i) => `Action ${i}`);
 }
 
 function getActionBtnLabels(historyKey, numActions) {
-  const last = (historyKey || '').split('/').pop() || '';
-  const facing = last.length > 0 && 'abA'.includes(last[last.length - 1]);
-  if (facing) {
-    if (numActions === 2) return ['Fold', 'Call'];
-    if (numActions === 3) return ['Fold', 'Call', 'All-in'];
-    if (numActions === 4) return ['Fold', 'Call', 'Raise 33%', 'All-in'];
-    if (numActions === 5) return ['Fold', 'Call', 'Raise 33%', 'Raise 75%', 'All-in'];
-  } else {
-    const streetSizes = {
-      F: { s: '33%', b: '75%' }, T: { s: '50%', b: '100%' }, R: { s: '75%', b: '150%' }
-    };
-    const sizes = streetSizes[state.street] || streetSizes.F;
-    if (numActions === 4) return ['Check', `Bet ${sizes.s}`, `Bet ${sizes.b}`, 'All-in'];
-    if (numActions === 3) return ['Check', `Bet ${sizes.s}`, 'All-in'];
-    if (numActions === 2) return ['Check', `Bet ${sizes.s}`];
-  }
-  return Array.from({length: numActions}, (_, i) => `Action ${i}`);
+  return getActionLabels(historyKey, numActions);
 }
 
 function getActionChars(historyKey, numActions) {
-  const last = (historyKey || '').split('/').pop() || '';
-  const facing = last.length > 0 && 'abA'.includes(last[last.length - 1]);
+  const facing = isFacing(historyKey);
   if (facing) {
-    if (numActions === 2) return ['f','c'];
-    if (numActions === 3) return ['f','c','A'];
-    if (numActions === 4) return ['f','c','a','A'];
-    if (numActions === 5) return ['f','c','a','b','A'];
+    // fold, call, [raise_0=1, raise_1=2, ...], [allin=A]
+    const chars = ['f', 'c'];
+    const hasAllin = numActions > 2;
+    const raiseCount = hasAllin ? numActions - 3 : numActions - 2;
+    for (let i = 0; i < raiseCount; i++) chars.push(String(i + 1));
+    if (hasAllin) chars.push('A');
+    return chars;
   } else {
-    if (numActions === 4) return ['x','a','b','A'];
-    if (numActions === 3) return ['x','a','A'];
-    if (numActions === 2) return ['x','a'];
+    // check, [bet_0=1, bet_1=2, ...], [allin=A]
+    const chars = ['x'];
+    const hasAllin = numActions > 1;
+    const betCount = hasAllin ? numActions - 2 : numActions - 1;
+    for (let i = 0; i < betCount; i++) chars.push(String(i + 1));
+    if (hasAllin && numActions > 1) chars.push('A');
+    return chars;
   }
-  return Array.from({length:numActions}, (_,i) => String(i));
 }
 
 function getActionColor(label) {
   if (/^Fold/i.test(label)) return 'var(--fold-color)';
   if (/^Check/i.test(label)) return 'var(--check-color)';
   if (/^Call/i.test(label)) return 'var(--call-color)';
-  if (/^Bet S|^Bet 3/i.test(label)) return 'var(--bet-small-color)';
-  if (/^Bet B|^Bet 7|^Bet 5|^Bet 1|^Bet$/i.test(label)) return 'var(--bet-big-color)';
-  if (/^Raise S|^Raise 3/i.test(label)) return 'var(--raise-small-color)';
-  if (/^Raise B|^Raise 7|^Raise$/i.test(label)) return 'var(--raise-big-color)';
   if (/^All/i.test(label)) return 'var(--allin-color)';
+  // Extract bet/raise index from label: "Bet 33%" → index 0, "Bet 50%" → index 1, etc.
+  const betMatch = label.match(/^Bet\s/i);
+  if (betMatch) {
+    const sizes = streetSizesArray();
+    const pct = parseInt(label.replace(/^Bet\s*/i, ''));
+    const idx = sizes.findIndex(s => Math.round(s * 100) === pct);
+    return `var(--bet-${idx >= 0 ? idx : 0}-color)`;
+  }
+  const raiseMatch = label.match(/^Raise\s/i);
+  if (raiseMatch) {
+    const sizes = streetSizesArray();
+    const pct = parseInt(label.replace(/^Raise\s*/i, ''));
+    const idx = sizes.findIndex(s => Math.round(s * 100) === pct);
+    return `var(--raise-${idx >= 0 ? idx : 0}-color)`;
+  }
   return '#888';
 }
 
@@ -622,11 +708,9 @@ function getNavBtnClass(label) {
   if (/^Fold/i.test(label)) return 'fold-btn';
   if (/^Check/i.test(label)) return 'check-btn';
   if (/^Call/i.test(label)) return 'call-btn';
-  if (/^Bet S|^Bet 3/i.test(label)) return 'bet-s-btn';
-  if (/^Bet B|^Bet 7|^Bet 5|^Bet 1|^Bet$/i.test(label)) return 'bet-b-btn';
-  if (/^Raise S|^Raise 3/i.test(label)) return 'raise-s-btn';
-  if (/^Raise B|^Raise 7|^Raise$/i.test(label)) return 'raise-b-btn';
   if (/^All/i.test(label)) return 'allin-btn';
+  if (/^Bet/i.test(label)) return 'bet-btn';
+  if (/^Raise/i.test(label)) return 'raise-btn';
   return '';
 }
 
@@ -656,6 +740,7 @@ for (let r = 0; r < 13; r++) {
 // ═══════════ STATE ═══════════
 let handMap = null; // { oop: { AKs: 42, ... }, ip: { AKs: 40, ... } }
 let selectedHand = null;
+let heatmapMode = 'actions'; // 'actions' | 'aggression' | 'strength'
 
 let state = {
   meta: null,
@@ -664,11 +749,124 @@ let state = {
   player: 0,
   street: 'F',
   historyKey: '',
+  keyFormatV2: false,  // V2 uses multi-dimensional bucket keys
+  bucketCount: 50,
 };
 
 let allFlops = [];
 let activeFilters = { texture: 'all', pairing: 'all', highcard: 'all' };
 let searchQuery = '';
+
+// ═══════════ V2 KEY HELPERS ═══════════
+
+/** Detect if loaded data uses V2 multi-dimensional bucket keys (contain '-' in bucket suffix). */
+function detectKeyFormat(indexed) {
+  for (const key of indexed.keys()) {
+    const parts = key.split('|');
+    if (parts.length >= 5) {
+      const suffix = parts[parts.length - 1];
+      if (suffix.includes('-')) return true;
+    }
+  }
+  return false;
+}
+
+/** Find any single entry matching the prefix (for getting numActions, labels, etc). */
+function findSampleEntry(prefix) {
+  if (!state.keyFormatV2) {
+    // V1: iterate single-dimension buckets
+    for (let b = 0; b < state.bucketCount; b++) {
+      const probs = state.indexed.get(prefix + b);
+      if (probs) return { key: prefix + b, probs, bucket: b };
+    }
+    return null;
+  }
+  // V2: scan all keys with matching prefix
+  for (const [key, probs] of state.indexed) {
+    if (key.startsWith(prefix)) return { key, probs, bucket: extractPrimaryBucket(key) };
+  }
+  return null;
+}
+
+/** Check if any entry exists with the given prefix. */
+function hasEntryWithPrefix(prefix) {
+  if (!state.keyFormatV2) {
+    for (let b = 0; b < state.bucketCount; b++) {
+      if (state.indexed.has(prefix + b)) return true;
+    }
+    return false;
+  }
+  for (const key of state.indexed.keys()) {
+    if (key.startsWith(prefix)) return true;
+  }
+  return false;
+}
+
+/** Extract the primary (current street) bucket from a key's suffix.
+ *  V1: suffix = "42" → 42
+ *  V2 Flop: suffix = "42" → 42
+ *  V2 Turn: suffix = "42-15" → 15 (turn bucket)
+ *  V2 River: suffix = "42-15-8" → 8 (river bucket)
+ */
+function extractPrimaryBucket(key) {
+  const parts = key.split('|');
+  const suffix = parts[parts.length - 1];
+  const dims = suffix.split('-');
+  return parseInt(dims[dims.length - 1], 10);
+}
+
+/** Aggregate strategy data by primary bucket for chart display.
+ *  Returns Map<primaryBucket, averagedProbs[]>.
+ *  For V1, this is a direct 1:1 mapping.
+ *  For V2, groups multi-dimensional keys by the current-street bucket and averages.
+ */
+function aggregateByPrimaryBucket(prefix) {
+  const result = new Map(); // bucket → { sums: number[], count: number }
+
+  if (!state.keyFormatV2) {
+    for (let b = 0; b < state.bucketCount; b++) {
+      const probs = state.indexed.get(prefix + b);
+      if (probs) result.set(b, { sums: [...probs], count: 1 });
+    }
+  } else {
+    for (const [key, probs] of state.indexed) {
+      if (!key.startsWith(prefix)) continue;
+      const pb = extractPrimaryBucket(key);
+      if (!result.has(pb)) {
+        result.set(pb, { sums: new Array(probs.length).fill(0), count: 0 });
+      }
+      const entry = result.get(pb);
+      for (let i = 0; i < probs.length; i++) entry.sums[i] += probs[i];
+      entry.count++;
+    }
+  }
+
+  // Average the sums
+  const averaged = new Map();
+  for (const [b, { sums, count }] of result) {
+    averaged.set(b, sums.map(s => s / count));
+  }
+  return averaged;
+}
+
+/** Get strategy probs for a specific primary bucket, aggregating across other dimensions. */
+function getAggregatedProbs(prefix, primaryBucket) {
+  if (!state.keyFormatV2) {
+    return state.indexed.get(prefix + primaryBucket) || null;
+  }
+
+  let sums = null;
+  let count = 0;
+  for (const [key, probs] of state.indexed) {
+    if (!key.startsWith(prefix)) continue;
+    if (extractPrimaryBucket(key) !== primaryBucket) continue;
+    if (!sums) sums = new Array(probs.length).fill(0);
+    for (let i = 0; i < probs.length; i++) sums[i] += probs[i];
+    count++;
+  }
+  if (!sums || count === 0) return null;
+  return sums.map(s => s / count);
+}
 
 // ═══════════ FLOP BROWSER ═══════════
 async function loadFlops() {
@@ -778,6 +976,16 @@ async function selectFlop(file) {
     state.player = 0;
     state.street = 'F';
     state.historyKey = '';
+    state.bucketCount = meta.bucketCount || 50;
+    state.keyFormatV2 = detectKeyFormat(state.indexed);
+
+    // Load bet sizes from meta (for dynamic action labels)
+    if (meta.betSizes) {
+      betSizesConfig = meta.betSizes;
+    } else {
+      // V1 fallback
+      betSizesConfig = { flop: [0.33, 0.75], turn: [0.50, 1.00], river: [0.75, 1.50] };
+    }
 
     document.getElementById('welcome-screen').style.display = 'none';
     document.getElementById('viewer').style.display = 'block';
@@ -890,11 +1098,7 @@ function findChildActions() {
   const boardId = state.meta ? state.meta.boardId : 0;
   const prefix = `${state.street}|${boardId}|${state.player}|${state.historyKey}|`;
 
-  let sampleEntry = null;
-  for (let b = 0; b < 50; b++) {
-    const key = prefix + b;
-    if (state.indexed.has(key)) { sampleEntry = { key, probs: state.indexed.get(key) }; break; }
-  }
+  const sampleEntry = findSampleEntry(prefix);
   if (!sampleEntry) return [];
 
   const numActions = sampleEntry.probs.length;
@@ -928,10 +1132,7 @@ function findChildActions() {
     }
 
     const nextPrefix = `${nextStreet}|${boardId}|${nextPlayer}|${nextHistory}|`;
-    let exists = false;
-    for (let b = 0; b < 50; b++) { if (state.indexed.has(nextPrefix + b)) { exists = true; break; } }
-
-    if (exists) {
+    if (hasEntryWithPrefix(nextPrefix)) {
       children.push({ label: labels[i], historyKey: nextHistory, street: nextStreet, player: nextPlayer });
     }
   }
@@ -953,10 +1154,9 @@ function goBack() {
   const boardId = state.meta ? state.meta.boardId : 0;
   for (const s of ['F','T','R']) {
     for (const p of [0,1]) {
-      for (let b = 0; b < 50; b++) {
-        if (state.indexed.has(`${s}|${boardId}|${p}|${h}|${b}`)) {
-          state.historyKey = h; state.street = s; state.player = p; render(); return;
-        }
+      const prefix = `${s}|${boardId}|${p}|${h}|`;
+      if (hasEntryWithPrefix(prefix)) {
+        state.historyKey = h; state.street = s; state.player = p; render(); return;
       }
     }
   }
@@ -972,14 +1172,10 @@ function renderLegend() {
   const boardId = state.meta ? state.meta.boardId : 0;
   const prefix = `${state.street}|${boardId}|${state.player}|${state.historyKey}|`;
 
-  let numActions = 0;
-  for (let b = 0; b < 50; b++) {
-    const probs = state.indexed.get(prefix + b);
-    if (probs) { numActions = probs.length; break; }
-  }
-  if (numActions === 0) { el.innerHTML = '<span style="color:var(--text-muted)">No data for this node</span>'; return; }
+  const sample = findSampleEntry(prefix);
+  if (!sample) { el.innerHTML = '<span style="color:var(--text-muted)">No data for this node</span>'; return; }
 
-  const labels = getActionLabels(state.historyKey, numActions);
+  const labels = getActionLabels(state.historyKey, sample.probs.length);
   el.innerHTML = labels.map(label => {
     const color = getActionColor(label);
     return `<div class="legend-item"><div class="legend-dot" style="background:${color}"></div>${label}</div>`;
@@ -992,20 +1188,21 @@ function renderAggregate() {
   const boardId = state.meta ? state.meta.boardId : 0;
   const prefix = `${state.street}|${boardId}|${state.player}|${state.historyKey}|`;
 
-  let sums = null;
-  let count = 0;
-  for (let b = 0; b < 50; b++) {
-    const probs = state.indexed.get(prefix + b);
-    if (!probs) continue;
-    if (!sums) sums = new Array(probs.length).fill(0);
-    for (let i = 0; i < probs.length; i++) sums[i] += probs[i];
-    count++;
-  }
+  const bucketMap = aggregateByPrimaryBucket(prefix);
 
-  if (!sums || count === 0) {
+  if (bucketMap.size === 0) {
     barEl.innerHTML = '';
     rowEl.innerHTML = '<span style="color:var(--text-muted)">No data</span>';
     return;
+  }
+
+  // Sum across all primary buckets
+  let sums = null;
+  let count = 0;
+  for (const probs of bucketMap.values()) {
+    if (!sums) sums = new Array(probs.length).fill(0);
+    for (let i = 0; i < probs.length; i++) sums[i] += probs[i];
+    count++;
   }
 
   const total = sums.reduce((a,b) => a+b, 0);
@@ -1031,27 +1228,21 @@ function renderChart() {
   const el = document.getElementById('strategy-chart');
   const boardId = state.meta ? state.meta.boardId : 0;
   const prefix = `${state.street}|${boardId}|${state.player}|${state.historyKey}|`;
+  const bc = state.bucketCount;
 
-  let numActions = 0, labels = [];
-  for (let b = 0; b < 50; b++) {
-    const probs = state.indexed.get(prefix + b);
-    if (probs) { numActions = probs.length; labels = getActionLabels(state.historyKey, numActions); break; }
-  }
-
-  if (numActions === 0) {
+  const sample = findSampleEntry(prefix);
+  if (!sample) {
     el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No strategy data for this situation.<br>Try selecting a different street, player, or action line.</div>';
     return;
   }
 
-  const strengthLabels = [
-    { from: 0, to: 5, label: 'Trash', cls: 'weak' },
-    { from: 5, to: 12, label: 'Weak', cls: 'weak' },
-    { from: 12, to: 20, label: 'Marginal', cls: 'mid' },
-    { from: 20, to: 30, label: 'Medium', cls: 'mid' },
-    { from: 30, to: 40, label: 'Good', cls: 'strong' },
-    { from: 40, to: 47, label: 'Strong', cls: 'strong' },
-    { from: 47, to: 50, label: 'Nuts', cls: 'nuts' },
-  ];
+  const numActions = sample.probs.length;
+  const labels = getActionLabels(state.historyKey, numActions);
+
+  // Aggregate by primary bucket for V2 multi-dimensional keys
+  const bucketMap = aggregateByPrimaryBucket(prefix);
+
+  const strengthLabels = buildStrengthLabels(bc);
 
   function getStrength(b) {
     for (const s of strengthLabels) { if (b >= s.from && b < s.to) return s; }
@@ -1061,8 +1252,8 @@ function renderChart() {
   const bucketHandExamples = getBucketHandExamples();
 
   let html = '';
-  for (let b = 0; b < 50; b++) {
-    const probs = state.indexed.get(prefix + b);
+  for (let b = 0; b < bc; b++) {
+    const probs = bucketMap.get(b) || null;
     const strength = getStrength(b);
     const showLabel = b === strength.from;
     const examples = bucketHandExamples[b] || [];
@@ -1096,7 +1287,41 @@ function renderChart() {
   el.innerHTML = html;
 }
 
+/** Build strength labels scaled to the actual bucket count. */
+function buildStrengthLabels(bc) {
+  if (bc === 50) {
+    return [
+      { from: 0, to: 5, label: 'Trash', cls: 'weak' },
+      { from: 5, to: 12, label: 'Weak', cls: 'weak' },
+      { from: 12, to: 20, label: 'Marginal', cls: 'mid' },
+      { from: 20, to: 30, label: 'Medium', cls: 'mid' },
+      { from: 30, to: 40, label: 'Good', cls: 'strong' },
+      { from: 40, to: 47, label: 'Strong', cls: 'strong' },
+      { from: 47, to: 50, label: 'Nuts', cls: 'nuts' },
+    ];
+  }
+  // Scale proportionally for other bucket counts
+  const scale = bc / 50;
+  return [
+    { from: 0, to: Math.round(5 * scale), label: 'Trash', cls: 'weak' },
+    { from: Math.round(5 * scale), to: Math.round(12 * scale), label: 'Weak', cls: 'weak' },
+    { from: Math.round(12 * scale), to: Math.round(20 * scale), label: 'Marginal', cls: 'mid' },
+    { from: Math.round(20 * scale), to: Math.round(30 * scale), label: 'Medium', cls: 'mid' },
+    { from: Math.round(30 * scale), to: Math.round(40 * scale), label: 'Good', cls: 'strong' },
+    { from: Math.round(40 * scale), to: Math.round(47 * scale), label: 'Strong', cls: 'strong' },
+    { from: Math.round(47 * scale), to: bc, label: 'Nuts', cls: 'nuts' },
+  ];
+}
+
 // ═══════════ HAND MATRIX ═══════════
+
+function setHeatmapMode(mode) {
+  heatmapMode = mode;
+  document.querySelectorAll('#heatmap-toggle .seg-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+  renderHandMatrix();
+}
 
 function renderHandMatrix() {
   const el = document.getElementById('hand-matrix');
@@ -1111,11 +1336,9 @@ function renderHandMatrix() {
   const prefix = `${state.street}|${boardId}|${state.player}|${state.historyKey}|`;
 
   // Get action labels for current node
-  let numActions = 0, labels = [];
-  for (let b = 0; b < 50; b++) {
-    const probs = state.indexed.get(prefix + b);
-    if (probs) { numActions = probs.length; labels = getActionLabels(state.historyKey, numActions); break; }
-  }
+  const sample = findSampleEntry(prefix);
+  const numActions = sample ? sample.probs.length : 0;
+  const labels = numActions > 0 ? getActionLabels(state.historyKey, numActions) : [];
 
   let html = '';
   for (let idx = 0; idx < ALL_HAND_CLASSES.length; idx++) {
@@ -1129,24 +1352,44 @@ function renderHandMatrix() {
       continue;
     }
 
-    const probs = state.indexed.get(prefix + bucket);
+    const probs = getAggregatedProbs(prefix, bucket);
     if (!probs) {
       html += `<div class="hm-cell no-data${sel}" data-hand="${hc}" onclick="selectHandCell('${hc}')">
         <span class="hm-name">${hc}</span></div>`;
       continue;
     }
 
-    // Build mini stacked bar as background
-    let barHtml = '<div class="hm-mini-bar">';
-    for (let i = 0; i < probs.length; i++) {
-      const pct = (probs[i] * 100).toFixed(1);
-      const color = getActionColor(labels[i]);
-      barHtml += `<div class="hm-seg" style="width:${pct}%;background:${color}"></div>`;
-    }
-    barHtml += '</div>';
+    if (heatmapMode === 'aggression') {
+      // Aggression mode: color intensity by bet/raise frequency
+      const aggFreq = computeAggression(probs, labels);
+      const r = Math.round(239 * aggFreq + 30 * (1 - aggFreq));
+      const g = Math.round(68 * aggFreq + 100 * (1 - aggFreq));
+      const b = Math.round(68 * aggFreq + 140 * (1 - aggFreq));
+      const alpha = 0.3 + 0.6 * aggFreq;
+      html += `<div class="hm-cell${sel}" data-hand="${hc}" onclick="selectHandCell('${hc}')" style="background:rgba(${r},${g},${b},${alpha})">
+        <span class="hm-name">${hc}</span></div>`;
+    } else if (heatmapMode === 'strength') {
+      // Strength mode: color by bucket position (blue=weak to red=strong)
+      const bc = state.bucketCount;
+      const norm = bc > 1 ? bucket / (bc - 1) : 0.5;
+      const r = Math.round(30 + 209 * norm);
+      const g = Math.round(80 + 60 * (1 - Math.abs(norm - 0.5) * 2));
+      const b = Math.round(200 * (1 - norm) + 40);
+      html += `<div class="hm-cell${sel}" data-hand="${hc}" onclick="selectHandCell('${hc}')" style="background:rgba(${r},${g},${b},0.7)">
+        <span class="hm-name">${hc}</span></div>`;
+    } else {
+      // Default actions mode: mini stacked bar
+      let barHtml = '<div class="hm-mini-bar">';
+      for (let i = 0; i < probs.length; i++) {
+        const pct = (probs[i] * 100).toFixed(1);
+        const color = getActionColor(labels[i]);
+        barHtml += `<div class="hm-seg" style="width:${pct}%;background:${color}"></div>`;
+      }
+      barHtml += '</div>';
 
-    html += `<div class="hm-cell${sel}" data-hand="${hc}" onclick="selectHandCell('${hc}')">
-      ${barHtml}<span class="hm-name">${hc}</span></div>`;
+      html += `<div class="hm-cell${sel}" data-hand="${hc}" onclick="selectHandCell('${hc}')">
+        ${barHtml}<span class="hm-name">${hc}</span></div>`;
+    }
   }
 
   el.innerHTML = html;
@@ -1184,7 +1427,8 @@ function renderHandDetail(hc, bucket) {
   const el = document.getElementById('hand-detail');
   const boardId = state.meta ? state.meta.boardId : 0;
   const prefix = `${state.street}|${boardId}|${state.player}|${state.historyKey}|`;
-  const probs = state.indexed.get(prefix + bucket);
+  const probs = getAggregatedProbs(prefix, bucket);
+  const bc = state.bucketCount;
 
   if (!probs) {
     el.innerHTML = `<div class="hand-detail"><div class="hand-detail-title">${hc} &mdash; No strategy data at this node</div></div>`;
@@ -1192,20 +1436,12 @@ function renderHandDetail(hc, bucket) {
   }
 
   const labels = getActionLabels(state.historyKey, probs.length);
-  const strengthLabels = [
-    { from: 0, to: 5, label: 'Trash' },
-    { from: 5, to: 12, label: 'Weak' },
-    { from: 12, to: 20, label: 'Marginal' },
-    { from: 20, to: 30, label: 'Medium' },
-    { from: 30, to: 40, label: 'Good' },
-    { from: 40, to: 47, label: 'Strong' },
-    { from: 47, to: 50, label: 'Nuts' },
-  ];
+  const sLabels = buildStrengthLabels(bc);
   let strength = 'Unknown';
-  for (const s of strengthLabels) { if (bucket >= s.from && bucket < s.to) { strength = s.label; break; } }
+  for (const s of sLabels) { if (bucket >= s.from && bucket < s.to) { strength = s.label; break; } }
 
   let html = `<div class="hand-detail">`;
-  html += `<div class="hand-detail-title">${hc} &mdash; ${strength} (Group ${bucket}/49)</div>`;
+  html += `<div class="hand-detail-title">${hc} &mdash; ${strength} (Group ${bucket}/${bc - 1})</div>`;
 
   // Mini stacked bar
   html += '<div class="hand-detail-bar" style="margin-bottom:12px;">';
@@ -1241,25 +1477,27 @@ function getBucketHandExamples() {
   return bucketHands;
 }
 
+/** Compute aggression frequency (bet + raise + allin) from probs + labels. */
+function computeAggression(probs, labels) {
+  let agg = 0;
+  for (let i = 0; i < probs.length; i++) {
+    if (/^Bet|^Raise|^All/i.test(labels[i])) agg += probs[i];
+  }
+  return agg;
+}
+
 // ═══════════ TOOLTIP ═══════════
 const tooltip = document.getElementById('tooltip');
 
 function showTooltip(event, bucket) {
   const boardId = state.meta ? state.meta.boardId : 0;
-  const key = `${state.street}|${boardId}|${state.player}|${state.historyKey}|${bucket}`;
-  const probs = state.indexed.get(key);
+  const prefix = `${state.street}|${boardId}|${state.player}|${state.historyKey}|`;
+  const probs = getAggregatedProbs(prefix, bucket);
+  const bc = state.bucketCount;
 
-  const strengthLabels = [
-    { from: 0, to: 5, label: 'Trash' },
-    { from: 5, to: 12, label: 'Weak' },
-    { from: 12, to: 20, label: 'Marginal' },
-    { from: 20, to: 30, label: 'Medium' },
-    { from: 30, to: 40, label: 'Good' },
-    { from: 40, to: 47, label: 'Strong' },
-    { from: 47, to: 50, label: 'Nuts' },
-  ];
+  const sLabels = buildStrengthLabels(bc);
   let strength = 'Unknown';
-  for (const s of strengthLabels) { if (bucket >= s.from && bucket < s.to) { strength = s.label; break; } }
+  for (const s of sLabels) { if (bucket >= s.from && bucket < s.to) { strength = s.label; break; } }
 
   if (!probs) {
     tooltip.innerHTML = `<div class="tt-title">Group ${bucket} (${strength})</div><div style="color:var(--text-muted)">No data</div>`;
@@ -1277,7 +1515,7 @@ function showTooltip(event, bucket) {
     if (examples.length > 0) {
       html += `<div class="tt-hint">Hands: ${examples.slice(0, 8).join(', ')}${examples.length > 8 ? '...' : ''}</div>`;
     } else {
-      html += `<div class="tt-hint">Group 0 = weakest &rarr; Group 49 = strongest</div>`;
+      html += `<div class="tt-hint">Group 0 = weakest &rarr; Group ${bc - 1} = strongest</div>`;
     }
     tooltip.innerHTML = html;
   }
@@ -1294,6 +1532,130 @@ function moveTooltip(event) {
 }
 
 function hideTooltip() { tooltip.style.display = 'none'; }
+
+// ═══════════ BOARD SEARCH ═══════════
+
+async function searchBoard() {
+  const input = document.getElementById('board-search-input');
+  const resultEl = document.getElementById('board-search-result');
+  const text = input.value.trim();
+  if (!text) { resultEl.textContent = 'Enter 3 cards, e.g. "As Kh 7d"'; return; }
+
+  // Parse card text: accept formats like "As Kh 7d" or "AsKh7d" or "as,kh,7d"
+  const cards = text.replace(/[,\s]+/g, ' ').trim().split(' ').filter(c => c.length >= 2);
+  if (cards.length < 3) {
+    resultEl.textContent = 'Enter 3 cards (rank + suit), e.g. "As Kh 7d"';
+    return;
+  }
+
+  resultEl.textContent = 'Searching...';
+
+  try {
+    const query = cards.slice(0, 3).join(',');
+    const res = await fetch(`/api/nearest-flop?cards=${encodeURIComponent(query)}`);
+    if (!res.ok) throw new Error('API error');
+    const data = await res.json();
+
+    if (data.distance === 0) {
+      resultEl.innerHTML = `Exact match found: <b>${data.cards.join(' ')}</b>`;
+    } else {
+      resultEl.innerHTML = `Nearest board: <b>${data.cards.join(' ')}</b> (distance: ${data.distance})`;
+    }
+
+    // Load this flop
+    selectFlop(data.file);
+  } catch(e) {
+    resultEl.textContent = 'Failed to search. Check card format (e.g. As, Kh, 7d).';
+  }
+}
+
+// Allow Enter key in search input
+document.getElementById('board-search-input')?.addEventListener('keydown', e => {
+  if (e.key === 'Enter') searchBoard();
+});
+
+// ═══════════ COPY / DOWNLOAD JSON ═══════════
+
+/** Copy only the current situation's strategy data (small, fast). */
+async function copyCurrentView() {
+  if (!state.meta) return;
+  const boardId = state.meta.boardId;
+  const prefix = `${state.street}|${boardId}|${state.player}|${state.historyKey}|`;
+
+  // Collect only entries matching current view
+  const viewEntries = state.entries.filter(e => e.key.startsWith(prefix));
+  const sample = viewEntries[0];
+  const labels = sample ? getActionLabels(state.historyKey, sample.probs.length) : [];
+
+  const data = {
+    meta: {
+      board: state.meta.flopCards.map(indexToCard).join(' '),
+      boardId,
+      street: state.street,
+      player: state.player === 0 ? 'OOP' : 'IP',
+      history: state.historyKey || '(root)',
+      actions: labels,
+      bucketCount: state.bucketCount,
+    },
+    entries: viewEntries,
+  };
+
+  const json = JSON.stringify(data, null, 2);
+  const btn = document.getElementById('copy-view-btn');
+  const textEl = document.getElementById('copy-view-text');
+
+  try {
+    await navigator.clipboard.writeText(json);
+    btn.classList.add('copied');
+    textEl.textContent = 'Copied!';
+  } catch (e) {
+    const textarea = document.createElement('textarea');
+    textarea.value = json;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+    textEl.textContent = 'Copied!';
+  }
+  setTimeout(() => { btn.classList.remove('copied'); textEl.textContent = 'Copy View'; }, 2000);
+}
+
+/** Download all strategy data as a JSON file (handles large data without freezing). */
+function downloadAllJSON() {
+  if (!state.meta || state.entries.length === 0) return;
+
+  const btn = document.getElementById('download-json-btn');
+  const textEl = document.getElementById('download-btn-text');
+  btn.classList.add('copied');
+  textEl.textContent = 'Preparing...';
+
+  // Use setTimeout to let the UI update before heavy work
+  setTimeout(() => {
+    // Build JSONL (one line per entry) to avoid massive pretty-print
+    const lines = [];
+    lines.push(JSON.stringify({ _type: 'meta', ...state.meta }));
+    for (const entry of state.entries) {
+      lines.push(JSON.stringify(entry));
+    }
+    const content = lines.join('\n');
+
+    const blob = new Blob([content], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const cards = state.meta.flopCards.map(indexToCard).join('_');
+    a.href = url;
+    a.download = `strategy_${cards}.jsonl`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    textEl.textContent = 'Downloaded!';
+    setTimeout(() => { btn.classList.remove('copied'); textEl.textContent = 'Download JSON'; }, 2000);
+  }, 50);
+}
 
 // ═══════════ INIT ═══════════
 loadFlops();

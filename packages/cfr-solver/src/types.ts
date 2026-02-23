@@ -4,11 +4,9 @@ export type Street = 'FLOP' | 'TURN' | 'RIVER';
 export type Player = 0 | 1; // 0 = OOP (BB), 1 = IP (BTN)
 
 // Actions available at each street
-export type Action =
-  | 'fold' | 'check' | 'call'
-  | 'bet_small' | 'bet_big'   // generic names; actual sizes come from config
-  | 'raise_small' | 'raise_big'
-  | 'allin';
+// Format: 'fold', 'check', 'call', 'allin', 'bet_0'..'bet_N', 'raise_0'..'raise_N'
+// Indexed by position in the street's bet size array from TreeConfig.
+export type Action = string;
 
 // Game tree node types
 export interface TerminalNode {

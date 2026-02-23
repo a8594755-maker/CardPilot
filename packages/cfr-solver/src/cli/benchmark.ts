@@ -6,7 +6,7 @@ import { buildTree, countNodes } from '../tree/tree-builder.js';
 import { V1_TREE_CONFIG } from '../tree/tree-config.js';
 import { InfoSetStore } from '../engine/info-set-store.js';
 import { solveCFR } from '../engine/cfr-engine.js';
-import { loadHUSRPRanges, getRangeCombos } from '../integration/preflop-ranges.js';
+import { loadHUSRPRanges, getWeightedRangeCombos } from '../integration/preflop-ranges.js';
 import { cardToIndex } from '../abstraction/card-index.js';
 import { resolve } from 'node:path';
 
@@ -47,8 +47,8 @@ async function main(): Promise<void> {
 
   const flopCards = FLOP.map(cardToIndex) as [number, number, number];
   const deadCards = new Set(flopCards as number[]);
-  const oopCombos = getRangeCombos(oopRange, deadCards);
-  const ipCombos = getRangeCombos(ipRange, deadCards);
+  const oopCombos = getWeightedRangeCombos(oopRange, deadCards);
+  const ipCombos = getWeightedRangeCombos(ipRange, deadCards);
 
   console.log(`Range load: ${rangeMs}ms`);
   console.log(`  OOP: ${oopRange.handClasses.size} classes → ${oopCombos.length} combos`);

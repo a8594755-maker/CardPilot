@@ -11,6 +11,9 @@ export interface ExportConfig {
   iterations: number;
   bucketCount: number;
   elapsedMs: number;
+  stackLabel?: string;   // e.g. '50bb', '100bb'
+  configName?: string;   // e.g. 'standard_50bb'
+  betSizes?: { flop: number[]; turn: number[]; river: number[] };
 }
 
 /**
@@ -54,10 +57,12 @@ export function exportMeta(config: ExportConfig & {
   infoSets: number;
   peakMemoryMB: number;
 }): void {
-  const meta = {
-    version: 'v1',
+  const meta: Record<string, any> = {
+    version: 'v2',
+    keyFormat: 'v2',
     game: 'HU_NLHE_SRP',
-    stack: '50bb',
+    stack: config.stackLabel || '50bb',
+    config: config.configName || 'v1_50bb',
     boardId: config.boardId,
     flopCards: config.flopCards,
     iterations: config.iterations,
@@ -67,6 +72,9 @@ export function exportMeta(config: ExportConfig & {
     peakMemoryMB: config.peakMemoryMB,
     timestamp: new Date().toISOString(),
   };
+  if (config.betSizes) {
+    meta.betSizes = config.betSizes;
+  }
 
   const metaPath = config.outputPath.replace(/\.jsonl$/, '.meta.json');
   writeFileSync(metaPath, JSON.stringify(meta, null, 2), 'utf-8');

@@ -16,7 +16,9 @@ import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync } from 
 import { join, dirname } from 'node:path';
 import { gzipSync, gunzipSync } from 'node:zlib';
 
-const MAGIC = Buffer.from('CFR1');
+const MAGIC_V1 = Buffer.from('CFR1');
+const MAGIC_V2 = Buffer.from('CFR2');
+const MAGIC = MAGIC_V2; // New files use V2
 const HEADER_SIZE = 32;
 
 export interface BinaryExportConfig {
@@ -170,8 +172,9 @@ export class BinaryStrategyReader {
     const raw = readFileSync(filePath);
     this.buffer = (raw[0] === 0x1f && raw[1] === 0x8b) ? gunzipSync(raw) : raw;
 
-    if (this.buffer.subarray(0, 4).toString() !== 'CFR1') {
-      throw new Error('Invalid binary format: missing CFR1 magic');
+    const magic = this.buffer.subarray(0, 4).toString();
+    if (magic !== 'CFR1' && magic !== 'CFR2') {
+      throw new Error(`Invalid binary format: expected CFR1 or CFR2, got ${magic}`);
     }
 
     this.indexStart = this.buffer.readUInt32LE(16);

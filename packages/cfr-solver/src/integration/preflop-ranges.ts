@@ -5,9 +5,14 @@ import {
   type GtoWizardRangeEntry,
 } from '../data-loaders/gto-wizard-json.js';
 
+export interface WeightedCombo {
+  combo: [number, number];
+  weight: number; // 0.0 to 1.0, from GTO Wizard frequency
+}
+
 export interface PreflopRange {
   handClasses: Map<string, number>; // hand class -> frequency
-  combos: Array<{ combo: [number, number]; weight: number }>;
+  combos: WeightedCombo[];
 }
 
 export interface HUSRPRangesOptions {
@@ -96,8 +101,7 @@ function buildRange(
 
 /**
  * Get all combos from a range as flat arrays, excluding dead cards.
- * For V1 we include every combo with weight > 0 (deterministic),
- * and only use weights later during sampling/regret updates.
+ * @deprecated Use getWeightedRangeCombos for V2 solver.
  */
 export function getRangeCombos(
   range: PreflopRange,
@@ -121,4 +125,29 @@ export function getRangeCombos(
     seen.add(key);
     return true;
   });
+}
+
+/**
+ * Get all combos from a range with their weights, excluding dead cards.
+ * V2: preserves frequency weights for weighted sampling in MCCFR.
+ */
+export function getWeightedRangeCombos(
+  range: PreflopRange,
+  deadCards?: Set<number>,
+): WeightedCombo[] {
+  const result: WeightedCombo[] = [];
+  const seen = new Set<string>();
+
+  for (const { combo, weight } of range.combos) {
+    if (weight <= 0) continue;
+    if (deadCards) {
+      if (deadCards.has(combo[0]) || deadCards.has(combo[1])) continue;
+    }
+    const key = combo[0] < combo[1] ? `${combo[0]},${combo[1]}` : `${combo[1]},${combo[0]}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push({ combo, weight });
+  }
+
+  return result;
 }

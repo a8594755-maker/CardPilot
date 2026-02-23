@@ -24,6 +24,8 @@ interface FlopMeta {
   iterations: number;
   bucketCount: number;
   infoSets: number;
+  version?: string;
+  keyFormat?: string;
 }
 
 /**
@@ -34,6 +36,7 @@ export class LookupService {
   private flopMetas: FlopMeta[] = [];
   private bucketCount = 50;
   private loaded = false;
+  private keyFormatV2 = false;
 
   /**
    * Load all JSONL files from a solve output directory.
@@ -54,6 +57,9 @@ export class LookupService {
         const meta = JSON.parse(readFileSync(metaPath, 'utf-8')) as FlopMeta;
         this.flopMetas.push(meta);
         this.bucketCount = meta.bucketCount;
+        if (meta.keyFormat === 'v2' || meta.version === 'v2') {
+          this.keyFormatV2 = true;
+        }
       }
 
       const content = readFileSync(join(dir, file), 'utf-8');
@@ -114,10 +120,10 @@ export class LookupService {
 
     // Determine street from history
     const street = streetFromHistory(historyKey);
-    const estimatedBucket = this.computeBucket(hand, board, player);
+    const estimatedBuckets = this.computeBucketV2(hand, board, player);
 
     if (exactMatch) {
-      const result = this.findBestBucket(street, exactMatch.boardId, player, historyKey, estimatedBucket);
+      const result = this.findBestBucketV2(street, exactMatch.boardId, player, historyKey, estimatedBuckets);
       if (result) {
         return {
           strategy: result,
@@ -131,7 +137,7 @@ export class LookupService {
     // Try nearest flop match
     const nearest = this.findNearestFlop(flopIndices);
     if (nearest) {
-      const result = this.findBestBucket(street, nearest.boardId, player, historyKey, estimatedBucket);
+      const result = this.findBestBucketV2(street, nearest.boardId, player, historyKey, estimatedBuckets);
       if (result) {
         return {
           strategy: result,
@@ -146,30 +152,58 @@ export class LookupService {
   }
 
   /**
-   * Find the best matching bucket for a given info-set pattern.
-   * Tries the estimated bucket first, then searches nearby buckets.
+   * Build a V2 bucket key suffix for the given street.
    */
-  private findBestBucket(
+  private buildBucketSuffix(
+    street: string,
+    buckets: { flop: number; turn: number; river: number },
+  ): string {
+    if (!this.keyFormatV2) {
+      // V1 fallback: single bucket per street
+      if (street === 'T') return `${buckets.turn}`;
+      if (street === 'R') return `${buckets.river}`;
+      return `${buckets.flop}`;
+    }
+    // V2: per-street bucket IDs
+    if (street === 'T') return `${buckets.flop}-${buckets.turn}`;
+    if (street === 'R') return `${buckets.flop}-${buckets.turn}-${buckets.river}`;
+    return `${buckets.flop}`;
+  }
+
+  /**
+   * Find the best matching bucket for a V2 info-set key.
+   */
+  private findBestBucketV2(
     street: string,
     boardId: number,
     player: 0 | 1,
     historyKey: string,
-    estimatedBucket: number,
+    estimatedBuckets: { flop: number; turn: number; river: number },
   ): StrategyEntry | null {
-    // Try exact bucket first
-    const exactKey = `${street}|${boardId}|${player}|${historyKey}|${estimatedBucket}`;
+    // Try exact bucket combination first
+    const suffix = this.buildBucketSuffix(street, estimatedBuckets);
+    const exactKey = `${street}|${boardId}|${player}|${historyKey}|${suffix}`;
     const exactProbs = this.strategies.get(exactKey);
     if (exactProbs) {
       return { key: exactKey, probs: exactProbs };
     }
 
-    // Search nearby buckets (within ±5 range)
+    // For V2, search nearby primary bucket (the last bucket component)
     const searchRadius = 5;
+    const primaryBucket = street === 'R' ? estimatedBuckets.river
+      : street === 'T' ? estimatedBuckets.turn
+      : estimatedBuckets.flop;
+
     for (let delta = 1; delta <= searchRadius; delta++) {
       for (const d of [delta, -delta]) {
-        const bucket = estimatedBucket + d;
+        const bucket = primaryBucket + d;
         if (bucket < 0 || bucket >= this.bucketCount) continue;
-        const key = `${street}|${boardId}|${player}|${historyKey}|${bucket}`;
+        const adjusted = { ...estimatedBuckets };
+        if (street === 'R') adjusted.river = bucket;
+        else if (street === 'T') adjusted.turn = bucket;
+        else adjusted.flop = bucket;
+        const adjustedSuffix = this.buildBucketSuffix(street, adjusted);
+        const key = `${street}|${boardId}|${player}|${historyKey}|${adjustedSuffix}`;
         const probs = this.strategies.get(key);
         if (probs) {
           return { key, probs };
@@ -177,11 +211,10 @@ export class LookupService {
       }
     }
 
-    // Wider search: any bucket for this pattern
-    for (let b = 0; b < this.bucketCount; b++) {
-      const key = `${street}|${boardId}|${player}|${historyKey}|${b}`;
-      const probs = this.strategies.get(key);
-      if (probs) {
+    // Wider search: scan all stored keys with matching prefix
+    const prefix = `${street}|${boardId}|${player}|${historyKey}|`;
+    for (const [key, probs] of this.strategies) {
+      if (key.startsWith(prefix)) {
         return { key, probs };
       }
     }
@@ -190,23 +223,31 @@ export class LookupService {
   }
 
   /**
-   * Compute the hand bucket for a given hand on a board.
-   * Approximate mapping — may not exactly match the solver's range-percentile buckets.
+   * Compute per-street hand buckets for a given hand on a board (V2).
+   * Uses approximate linear mapping from hand evaluation value.
    */
-  private computeBucket(hand: [string, string], board: string[], _player: 0 | 1): number {
-    // Evaluate hand strength on current board
-    const allCards = [...hand, ...board.slice(0, 3)]; // use flop for bucketing (static abstraction)
-    const eval_ = evaluateBestHand(allCards);
-
-    // Map hand value to bucket using simple linear mapping.
-    // Hand values from evaluator are roughly 1000-60000.
-    // We normalize to [0, bucketCount-1].
-    // A more accurate approach would replicate the solver's range-based bucketing,
-    // but for lookups this linear approximation provides reasonable results.
+  private computeBucketV2(
+    hand: [string, string],
+    board: string[],
+    _player: 0 | 1,
+  ): { flop: number; turn: number; river: number } {
     const minVal = 1000;
     const maxVal = 60000;
-    const normalized = Math.max(0, Math.min(1, (eval_.value - minVal) / (maxVal - minVal)));
-    return Math.min(this.bucketCount - 1, Math.floor(normalized * this.bucketCount));
+    const toBucket = (cards: string[]) => {
+      const eval_ = evaluateBestHand(cards);
+      const normalized = Math.max(0, Math.min(1, (eval_.value - minVal) / (maxVal - minVal)));
+      return Math.min(this.bucketCount - 1, Math.floor(normalized * this.bucketCount));
+    };
+
+    const flopBucket = toBucket([...hand, ...board.slice(0, 3)]);
+    const turnBucket = board.length >= 4
+      ? toBucket([...hand, ...board.slice(0, 4)])
+      : flopBucket;
+    const riverBucket = board.length >= 5
+      ? toBucket([...hand, ...board])
+      : turnBucket;
+
+    return { flop: flopBucket, turn: turnBucket, river: riverBucket };
   }
 
   /**

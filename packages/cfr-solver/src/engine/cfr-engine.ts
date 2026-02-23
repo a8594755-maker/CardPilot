@@ -1,21 +1,24 @@
-// CFR+ with Chance-Sampled MCCFR
+// CFR+ with Chance-Sampled MCCFR (V2)
 //
 // Each iteration:
-// 1. Sample a hand matchup (oopHand, ipHand) from preflop ranges
+// 1. Sample a hand matchup (oopHand, ipHand) from preflop ranges (weighted by frequency)
 // 2. Sample turn card + river card for the runout
-// 3. Compute per-street hand buckets for each player
+// 3. Compute per-street hand buckets for each player (dynamic re-bucketing)
 // 4. Traverse the action tree:
 //    - At traverser's nodes: explore ALL actions (full traversal)
 //    - At opponent's nodes: explore ALL actions weighted by strategy
 // 5. Update regrets (CFR+: floor at 0) and accumulate strategy sums
 //
-// This is "External Sampling" MCCFR where chance events (cards) are sampled
-// but all player actions are fully explored.
+// V2 improvements over V1:
+// - Weighted sampling using preflop frequencies
+// - Dynamic per-street bucketing (flop precomputed, turn/river recomputed per runout)
+// - V2 info-set key format with per-street bucket IDs
 
 import type { GameNode, ActionNode, Player, Street } from '../types.js';
 import { InfoSetStore } from './info-set-store.js';
 import { indexToCard } from '../abstraction/card-index.js';
 import { evaluateBestHand, compareHands } from '@cardpilot/poker-evaluator';
+import type { WeightedCombo } from '../integration/preflop-ranges.js';
 
 // ---------- Public API ----------
 
@@ -24,15 +27,15 @@ export interface SolveParams {
   store: InfoSetStore;
   boardId: number;
   flopCards: [number, number, number]; // 3 card indices
-  oopRange: Array<[number, number]>;   // list of (c1, c2) combos in OOP range
-  ipRange: Array<[number, number]>;    // list of (c1, c2) combos in IP range
+  oopRange: WeightedCombo[];           // weighted combos in OOP range
+  ipRange: WeightedCombo[];            // weighted combos in IP range
   iterations: number;
   bucketCount: number;                 // buckets per street (e.g. 50)
   onProgress?: (iter: number, elapsed: number, exploitEst: number) => void;
 }
 
 /**
- * Run MCCFR chance-sampling solver.
+ * Run MCCFR chance-sampling solver (V2).
  */
 export function solveCFR(params: SolveParams): void {
   const {
@@ -46,29 +49,35 @@ export function solveCFR(params: SolveParams): void {
   const flopBucketsOOP = computeEquityBuckets(oopRange, flopCards, bucketCount, deadFlop);
   const flopBucketsIP = computeEquityBuckets(ipRange, flopCards, bucketCount, deadFlop);
 
+  // Precompute cumulative weight arrays for weighted sampling
+  const oopCumWeights = buildCumulativeWeights(oopRange);
+  const ipCumWeights = buildCumulativeWeights(ipRange);
+
   // Build remaining deck (exclude flop cards)
   const remainDeck: number[] = [];
   for (let c = 0; c < 52; c++) {
     if (!deadFlop.has(c)) remainDeck.push(c);
   }
 
+  // Bucket cache for dynamic per-street bucketing
+  // Key: `${comboKey}-${boardCards}`, Value: bucket number
+  const turnBucketCache = new Map<string, number>();
+  const riverBucketCache = new Map<string, number>();
+
   const startTime = Date.now();
   let rngState = Date.now() & 0x7fffffff;
 
   for (let iter = 0; iter < iterations; iter++) {
-    // 1. Sample OOP hand from range
+    // 1. Sample OOP hand (weighted by preflop frequency)
     rngState = nextRng(rngState);
-    const oopIdx = rngState % oopRange.length;
-    const oopHand = oopRange[oopIdx];
+    const oopIdx = weightedSample(oopCumWeights, rngState);
+    const oopHand = oopRange[oopIdx].combo;
 
-    // 2. Sample IP hand (must not conflict with OOP hand)
-    const ipValid = ipRange.filter(
-      h => h[0] !== oopHand[0] && h[0] !== oopHand[1] &&
-           h[1] !== oopHand[0] && h[1] !== oopHand[1]
-    );
-    if (ipValid.length === 0) continue;
+    // 2. Sample IP hand (must not conflict with OOP hand, weighted)
     rngState = nextRng(rngState);
-    const ipHand = ipValid[rngState % ipValid.length];
+    const ipIdx = weightedSampleFiltered(ipRange, ipCumWeights, oopHand, rngState);
+    if (ipIdx < 0) continue;
+    const ipHand = ipRange[ipIdx].combo;
 
     // 3. Sample turn + river cards (not conflicting with flop or hands)
     const usedCards = new Set([
@@ -84,22 +93,35 @@ export function solveCFR(params: SolveParams): void {
     rngState = nextRng(rngState);
     const riverCard = availForRiver[rngState % availForRiver.length];
 
-    // 4. Compute per-street buckets
+    // 4. Compute per-street buckets (V2: dynamic re-bucketing)
     const riverBoard: number[] = [...flopCards, turnCard, riverCard];
 
-    // Use precomputed flop buckets for all streets (static hand abstraction for V1)
-    // This is a valid simplification: the hand's "bucket identity" stays constant.
-    // The street is part of the info-set key, so different streets still have
-    // different info sets even with the same bucket.
-    const oopBucket = flopBucketsOOP.get(comboKey(oopHand))!;
-    const ipBucket = flopBucketsIP.get(comboKey(ipHand))!;
+    // Flop: use precomputed buckets
+    const oopFlopBucket = flopBucketsOOP.get(comboKey(oopHand));
+    const ipFlopBucket = flopBucketsIP.get(comboKey(ipHand));
+    if (oopFlopBucket === undefined || ipFlopBucket === undefined) continue;
 
-    if (oopBucket === undefined || ipBucket === undefined) continue;
+    // Turn: 6-card evaluation with dynamic bucketing
+    const turnBoard = [...flopCards, turnCard];
+    const oopTurnBucket = computeSingleBucketCached(
+      oopHand, turnBoard, oopRange, bucketCount, turnBucketCache,
+    );
+    const ipTurnBucket = computeSingleBucketCached(
+      ipHand, turnBoard, ipRange, bucketCount, turnBucketCache,
+    );
+
+    // River: 7-card evaluation with dynamic bucketing
+    const oopRiverBucket = computeSingleBucketCached(
+      oopHand, riverBoard, oopRange, bucketCount, riverBucketCache,
+    );
+    const ipRiverBucket = computeSingleBucketCached(
+      ipHand, riverBoard, ipRange, bucketCount, riverBucketCache,
+    );
 
     const buckets: StreetBuckets = {
-      FLOP: [oopBucket, ipBucket],
-      TURN: [oopBucket, ipBucket],
-      RIVER: [oopBucket, ipBucket],
+      FLOP: [oopFlopBucket, ipFlopBucket],
+      TURN: [oopTurnBucket, ipTurnBucket],
+      RIVER: [oopRiverBucket, ipRiverBucket],
     };
 
     // 5. Precompute showdown result for this matchup
@@ -136,8 +158,7 @@ function cfrTraverse(
   const act = node;
   const player = act.player;
   const numActions = act.actions.length;
-  const bucket = buckets[act.street][player];
-  const infoKey = `${streetChar(act.street)}|${boardId}|${player}|${act.historyKey}|${bucket}`;
+  const infoKey = buildInfoKey(act.street, boardId, player, act.historyKey, buckets);
 
   const strategy = store.getCurrentStrategy(infoKey, numActions);
   const actionValues = new Float32Array(numActions);
@@ -236,11 +257,11 @@ function computeShowdown(
 // ---------- Bucketing ----------
 
 /**
- * Precompute equity-based buckets for a set of hands on the flop.
+ * Precompute equity-based buckets for a set of hands on a board.
  * Uses hand rank as a proxy for equity (faster than Monte Carlo).
  */
-function computeEquityBuckets(
-  range: Array<[number, number]>,
+export function computeEquityBuckets(
+  range: WeightedCombo[],
   board: number[],
   numBuckets: number,
   deadCards: Set<number>,
@@ -248,7 +269,7 @@ function computeEquityBuckets(
   // Compute hand rank for each combo
   const ranked: Array<{ key: string; value: number }> = [];
 
-  for (const combo of range) {
+  for (const { combo } of range) {
     if (deadCards.has(combo[0]) || deadCards.has(combo[1])) continue;
     const cards = [...combo.map(indexToCard), ...board.map(indexToCard)];
     const eval_ = evaluateBestHand(cards);
@@ -269,13 +290,169 @@ function computeEquityBuckets(
   return result;
 }
 
+/**
+ * Compute the bucket for a single hand on a given board relative to its range.
+ * Uses percentile rank within the range's hand strength distribution.
+ */
+function computeSingleBucket(
+  hand: [number, number],
+  board: number[],
+  range: WeightedCombo[],
+  numBuckets: number,
+): number {
+  const handCards = [...hand.map(indexToCard), ...board.map(indexToCard)];
+  const handEval = evaluateBestHand(handCards);
+  const handValue = handEval.value;
+
+  let weaker = 0;
+  let total = 0;
+
+  for (const { combo, weight } of range) {
+    // Skip the same hand and card conflicts
+    if (combo[0] === hand[0] && combo[1] === hand[1]) continue;
+    if (combo[0] === hand[0] || combo[0] === hand[1] ||
+        combo[1] === hand[0] || combo[1] === hand[1]) continue;
+    // Skip board card conflicts
+    let boardConflict = false;
+    for (const bc of board) {
+      if (combo[0] === bc || combo[1] === bc) { boardConflict = true; break; }
+    }
+    if (boardConflict) continue;
+
+    const comboCards = [...combo.map(indexToCard), ...board.map(indexToCard)];
+    const comboEval = evaluateBestHand(comboCards);
+    total += weight;
+    if (comboEval.value < handValue) weaker += weight;
+    else if (comboEval.value === handValue) weaker += weight * 0.5;
+  }
+
+  if (total === 0) return Math.floor(numBuckets / 2);
+  const percentile = weaker / total;
+  return Math.min(numBuckets - 1, Math.floor(percentile * numBuckets));
+}
+
+/**
+ * Cached version of computeSingleBucket to avoid redundant evaluations
+ * across iterations sharing the same turn/river cards.
+ */
+function computeSingleBucketCached(
+  hand: [number, number],
+  board: number[],
+  range: WeightedCombo[],
+  numBuckets: number,
+  cache: Map<string, number>,
+): number {
+  const cacheKey = `${comboKey(hand)}-${board.join(',')}`;
+  const cached = cache.get(cacheKey);
+  if (cached !== undefined) return cached;
+  const bucket = computeSingleBucket(hand, board, range, numBuckets);
+  cache.set(cacheKey, bucket);
+  return bucket;
+}
+
+// ---------- Info-set key ----------
+
+/**
+ * Build info-set key in V2 format with per-street bucket IDs.
+ * - Flop:  F|{boardId}|{player}|{history}|{flopBucket}
+ * - Turn:  T|{boardId}|{player}|{history}|{flopBucket}-{turnBucket}
+ * - River: R|{boardId}|{player}|{history}|{flopBucket}-{turnBucket}-{riverBucket}
+ */
+export function buildInfoKey(
+  street: Street,
+  boardId: number,
+  player: Player,
+  historyKey: string,
+  buckets: StreetBuckets,
+): string {
+  const flopB = buckets.FLOP[player];
+  switch (street) {
+    case 'FLOP':
+      return `F|${boardId}|${player}|${historyKey}|${flopB}`;
+    case 'TURN':
+      return `T|${boardId}|${player}|${historyKey}|${flopB}-${buckets.TURN[player]}`;
+    case 'RIVER':
+      return `R|${boardId}|${player}|${historyKey}|${flopB}-${buckets.TURN[player]}-${buckets.RIVER[player]}`;
+  }
+}
+
+// ---------- Weighted sampling ----------
+
+/**
+ * Build cumulative weight array for efficient weighted sampling.
+ */
+function buildCumulativeWeights(range: WeightedCombo[]): Float32Array {
+  const cum = new Float32Array(range.length);
+  let sum = 0;
+  for (let i = 0; i < range.length; i++) {
+    sum += range[i].weight;
+    cum[i] = sum;
+  }
+  return cum;
+}
+
+/**
+ * Weighted random selection using cumulative weights and binary search.
+ */
+function weightedSample(cumWeights: Float32Array, rngState: number): number {
+  const total = cumWeights[cumWeights.length - 1];
+  const r = (rngState / 0x7fffffff) * total;
+  // Binary search for the first index where cumWeight >= r
+  let lo = 0;
+  let hi = cumWeights.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (cumWeights[mid] < r) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+}
+
+/**
+ * Weighted sample from IP range, skipping combos that conflict with the OOP hand.
+ * Returns the index into the original ipRange, or -1 if no valid combo.
+ */
+function weightedSampleFiltered(
+  ipRange: WeightedCombo[],
+  _ipCumWeights: Float32Array,
+  oopHand: [number, number],
+  rngState: number,
+): number {
+  // Build filtered indices + cumulative weights on the fly
+  // This is called once per iteration, and the filter set changes each time
+  let cumWeight = 0;
+  const validIndices: number[] = [];
+  const validCumWeights: number[] = [];
+
+  for (let i = 0; i < ipRange.length; i++) {
+    const h = ipRange[i].combo;
+    if (h[0] === oopHand[0] || h[0] === oopHand[1] ||
+        h[1] === oopHand[0] || h[1] === oopHand[1]) continue;
+    cumWeight += ipRange[i].weight;
+    validIndices.push(i);
+    validCumWeights.push(cumWeight);
+  }
+
+  if (validIndices.length === 0) return -1;
+
+  const r = (rngState / 0x7fffffff) * cumWeight;
+  let lo = 0;
+  let hi = validIndices.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (validCumWeights[mid] < r) lo = mid + 1;
+    else hi = mid;
+  }
+  return validIndices[lo];
+}
+
 // ---------- Utilities ----------
 
-function comboKey(combo: [number, number]): string {
+export function comboKey(combo: [number, number]): string {
   return combo[0] < combo[1] ? `${combo[0]},${combo[1]}` : `${combo[1]},${combo[0]}`;
 }
 
-function streetChar(street: Street): string {
+export function streetChar(street: Street): string {
   switch (street) {
     case 'FLOP': return 'F';
     case 'TURN': return 'T';

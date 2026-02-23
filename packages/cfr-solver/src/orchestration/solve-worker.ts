@@ -2,10 +2,10 @@
 // Receives flop task via IPC message, runs CFR, exports results, reports back.
 
 import { buildTree } from '../tree/tree-builder.js';
-import { V1_TREE_CONFIG } from '../tree/tree-config.js';
+import { getTreeConfig, type TreeConfigName } from '../tree/tree-config.js';
 import { InfoSetStore } from '../engine/info-set-store.js';
 import { solveCFR } from '../engine/cfr-engine.js';
-import { loadHUSRPRanges, getRangeCombos } from '../integration/preflop-ranges.js';
+import { loadHUSRPRanges, getWeightedRangeCombos } from '../integration/preflop-ranges.js';
 import { exportToJSONL, exportMeta } from '../storage/json-export.js';
 import { resolve } from 'node:path';
 
@@ -18,6 +18,8 @@ export interface FlopTask {
   bucketCount: number;
   outputDir: string;
   chartsPath: string;
+  configName?: TreeConfigName; // defaults to 'v1_50bb' for backward compat
+  stackLabel?: string;
 }
 
 export interface WorkerResult {
@@ -39,12 +41,19 @@ export interface WorkerProgress {
 
 // Only run when executed as a child process with IPC channel
 if (process.send) {
-  // Build tree once per worker process
-  const tree = buildTree(V1_TREE_CONFIG);
+  // Cache trees per config name (rebuild if config changes)
+  const treeCache = new Map<string, ReturnType<typeof buildTree>>();
   let ranges: ReturnType<typeof loadHUSRPRanges> | null = null;
 
   process.on('message', (task: FlopTask) => {
     if (task.type !== 'solve') return;
+
+    // Build/cache tree for this config
+    const cfgName = task.configName || 'v1_50bb';
+    if (!treeCache.has(cfgName)) {
+      treeCache.set(cfgName, buildTree(getTreeConfig(cfgName)));
+    }
+    const tree = treeCache.get(cfgName)!;
 
     // Lazy-load ranges on first task
     if (!ranges) {
@@ -52,8 +61,8 @@ if (process.send) {
     }
 
     const deadCards = new Set(task.flopCards as number[]);
-    const oopCombos = getRangeCombos(ranges.oopRange, deadCards);
-    const ipCombos = getRangeCombos(ranges.ipRange, deadCards);
+    const oopCombos = getWeightedRangeCombos(ranges.oopRange, deadCards);
+    const ipCombos = getWeightedRangeCombos(ranges.ipRange, deadCards);
 
     const store = new InfoSetStore();
     const startTime = Date.now();
@@ -81,6 +90,7 @@ if (process.send) {
 
     // Export
     const outputPath = resolve(task.outputDir, `flop_${String(task.boardId).padStart(3, '0')}.jsonl`);
+    const treeConfig = getTreeConfig(cfgName);
     const exportResult = exportToJSONL(store, {
       outputPath,
       boardId: task.boardId,
@@ -88,6 +98,9 @@ if (process.send) {
       iterations: task.iterations,
       bucketCount: task.bucketCount,
       elapsedMs: elapsed,
+      stackLabel: task.stackLabel,
+      configName: cfgName,
+      betSizes: treeConfig.betSizes,
     });
     exportMeta({
       outputPath,
@@ -98,6 +111,9 @@ if (process.send) {
       elapsedMs: elapsed,
       infoSets: exportResult.infoSets,
       peakMemoryMB: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+      stackLabel: task.stackLabel,
+      configName: cfgName,
+      betSizes: treeConfig.betSizes,
     });
 
     process.send!({
