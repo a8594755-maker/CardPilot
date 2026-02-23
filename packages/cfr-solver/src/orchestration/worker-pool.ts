@@ -12,6 +12,7 @@ const WORKER_PATH = resolve(__dirname, 'solve-worker.ts');
 
 export interface PoolOptions {
   numWorkers: number;
+  maxHeapMB?: number; // per-worker max heap size in MB
   onResult?: (result: WorkerResult) => void;
   onProgress?: (progress: WorkerProgress) => void;
 }
@@ -34,10 +35,13 @@ export class WorkerPool {
     this.onResult = options.onResult || null;
     this.onProgress = options.onProgress || null;
 
+    // Calculate per-worker heap size: use provided value or auto-detect from system RAM
+    const heapMB = options.maxHeapMB ?? WorkerPool.autoDetectHeapMB(options.numWorkers);
+
     for (let i = 0; i < options.numWorkers; i++) {
       // fork() with --import tsx to get TypeScript support in the child process
       const child = fork(WORKER_PATH, [], {
-        execArgv: ['--import', 'tsx'],
+        execArgv: ['--import', 'tsx', `--max-old-space-size=${heapMB}`],
         stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
       });
 
@@ -121,6 +125,23 @@ export class WorkerPool {
       }
     }
     this.workers = [];
+  }
+
+  /**
+   * Auto-detect per-worker heap size based on system total RAM.
+   * Reserves ~4GB for OS + main process, splits rest among workers.
+   */
+  private static autoDetectHeapMB(numWorkers: number): number {
+    try {
+      const os = require('node:os');
+      const totalMB = Math.floor(os.totalmem() / (1024 * 1024));
+      const reservedMB = 4096; // 4GB for OS + main process
+      const perWorker = Math.floor((totalMB - reservedMB) / numWorkers);
+      // Clamp between 4GB and 64GB per worker
+      return Math.max(4096, Math.min(65536, perWorker));
+    } catch {
+      return 8192; // fallback: 8GB
+    }
   }
 
   private dispatchNext(entry: WorkerEntry): void {
