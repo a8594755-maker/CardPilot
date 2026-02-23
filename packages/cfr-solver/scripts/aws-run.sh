@@ -22,6 +22,14 @@ REPO_URL="${1:-https://github.com/a8594755-maker/CardPilot.git}"
 S3_BUCKET="${2:-cardpilot-solver-output}"
 WORK_DIR="/data/cardpilot"
 
+# Auto-detect safe worker count based on available RAM
+# Each worker needs ~8-16GB RAM for 100-bucket standard solve
+TOTAL_RAM_GB=$(free -g 2>/dev/null | awk '/^Mem:/{print $2}' || echo 64)
+MAX_WORKERS=$(( TOTAL_RAM_GB / 16 ))
+if [ "$MAX_WORKERS" -lt 1 ]; then MAX_WORKERS=1; fi
+if [ "$MAX_WORKERS" -gt 32 ]; then MAX_WORKERS=32; fi
+echo "RAM: ${TOTAL_RAM_GB}GB → Workers: ${MAX_WORKERS}"
+
 echo "=== CardPilot CFR Solver — EC2 Runner ==="
 echo "Repo: ${REPO_URL}"
 echo "S3 Bucket: ${S3_BUCKET}"
@@ -61,7 +69,7 @@ cd packages/cfr-solver
 
 # Use nohup + screen so it survives SSH disconnection
 # Output data goes to /data volume (2.5TB EBS)
-npm run solve:standard:50bb 2>&1 | tee /data/solve_50bb.log
+node --import tsx src/cli/solve.ts --config standard_50bb --all-flops --parallel --resume --workers ${MAX_WORKERS} 2>&1 | tee /data/solve_50bb.log
 
 echo ""
 echo "Phase 1 complete! Compressing 50bb data..."
@@ -79,7 +87,7 @@ echo "=========================================="
 echo ""
 
 cd "${WORK_DIR}/packages/cfr-solver"
-npm run solve:standard:100bb 2>&1 | tee /data/solve_100bb.log
+node --import tsx src/cli/solve.ts --config standard_100bb --all-flops --parallel --resume --workers ${MAX_WORKERS} 2>&1 | tee /data/solve_100bb.log
 
 echo ""
 echo "Phase 2 complete! Compressing 100bb data..."
@@ -108,3 +116,7 @@ echo "  INSTANCE_ID=\$(curl -s http://169.254.169.254/latest/meta-data/instance-
 echo "  aws ec2 terminate-instances --instance-ids \$INSTANCE_ID"
 echo ""
 echo "Don't forget to terminate to stop billing!"
+
+# Auto-shutdown after completion
+echo "Shutting down instance in 5 minutes..."
+sudo shutdown -h +5
