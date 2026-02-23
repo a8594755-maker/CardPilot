@@ -23,7 +23,7 @@
 set -e
 
 # ---- Configuration ----
-INSTANCE_TYPE="c6i.8xlarge"     # 32 vCPU, 64GB RAM (4 solver workers)
+INSTANCE_TYPE="r6i.4xlarge"     # 16 vCPU, 128GB RAM (8 solver workers, memory-optimized)
 EBS_SIZE_GB=2500                # 2.5TB for solver output + buffer
 USE_SPOT=false                  # Set to true for spot pricing (~70% cheaper)
 AMI_ID="ami-0c7217cdde317cfec"  # Ubuntu 22.04 LTS (us-east-1, update for your region)
