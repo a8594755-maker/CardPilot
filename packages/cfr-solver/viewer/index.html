@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CardPilot - Strategy Viewer</title>
+<style>
+  :root {
+    --bg-base: #0b1120;
+    --bg-surface: #111827;
+    --bg-elevated: #1e293b;
+    --bg-hover: #263348;
+    --border-subtle: rgba(148,163,184,0.08);
+    --border-default: rgba(148,163,184,0.14);
+    --border-strong: rgba(148,163,184,0.25);
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent: #3b82f6;
+    --accent-soft: rgba(59,130,246,0.15);
+    --success: #22c55e;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --gold: #f5c842;
+    /* Action colors */
+    --fold-color: #64748b;
+    --check-color: #22c55e;
+    --call-color: #38bdf8;
+    --bet-small-color: #f59e0b;
+    --bet-big-color: #f97316;
+    --raise-small-color: #e879f9;
+    --raise-big-color: #c084fc;
+    --allin-color: #ef4444;
+    /* Suit colors */
+    --suit-hearts: #ef4444;
+    --suit-diamonds: #3b82f6;
+    --suit-clubs: #22c55e;
+    --suit-spades: #f1f5f9;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', 'Noto Sans TC', system-ui, sans-serif;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ========== LAYOUT ========== */
+  .app-layout { display: flex; min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 380px; min-width: 380px;
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border-default);
+    display: flex; flex-direction: column;
+    height: 100vh; position: sticky; top: 0;
+  }
+  .sidebar-header {
+    padding: 20px; border-bottom: 1px solid var(--border-default);
+  }
+  .sidebar-header h1 { font-size: 1.125rem; font-weight: 700; margin-bottom: 2px; }
+  .sidebar-header .subtitle { font-size: 0.75rem; color: var(--text-muted); }
+
+  /* Search */
+  .search-section { padding: 16px 20px; border-bottom: 1px solid var(--border-default); }
+  .search-box {
+    width: 100%; padding: 10px 14px 10px 38px;
+    background: var(--bg-elevated); border: 1px solid var(--border-default);
+    border-radius: 10px; color: var(--text-primary); font-size: 0.875rem;
+    outline: none; transition: border-color 0.15s;
+  }
+  .search-box:focus { border-color: var(--accent); }
+  .search-box::placeholder { color: var(--text-muted); }
+  .search-wrap { position: relative; }
+  .search-icon {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--text-muted); font-size: 0.875rem; pointer-events: none;
+  }
+
+  /* Filters */
+  .filter-section { padding: 12px 20px; border-bottom: 1px solid var(--border-default); }
+  .filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .filter-row:last-child { margin-bottom: 0; }
+  .filter-label { font-size: 0.6875rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; font-weight: 600; }
+  .filter-chip {
+    padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border-default);
+    background: transparent; color: var(--text-secondary); font-size: 0.75rem;
+    cursor: pointer; transition: all 0.12s; white-space: nowrap;
+  }
+  .filter-chip:hover { border-color: var(--accent); color: var(--text-primary); }
+  .filter-chip.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+  /* Flop list */
+  .flop-list-wrap {
+    flex: 1; overflow-y: auto; padding: 8px;
+  }
+  .flop-list-count { padding: 8px 12px; font-size: 0.75rem; color: var(--text-muted); }
+  .flop-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; border-radius: 10px; cursor: pointer;
+    transition: all 0.12s; border: 1px solid transparent;
+  }
+  .flop-item:hover { background: var(--bg-elevated); }
+  .flop-item.active { background: var(--accent-soft); border-color: var(--accent); }
+  .flop-item .cards-preview { display: flex; gap: 4px; min-width: 105px; }
+  .flop-item .mini-card {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 42px; border-radius: 4px; font-size: 0.8125rem; font-weight: 700;
+    background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .flop-item .mini-card.h { color: var(--suit-hearts); }
+  .flop-item .mini-card.d { color: var(--suit-diamonds); }
+  .flop-item .mini-card.c { color: var(--suit-clubs); }
+  .flop-item .mini-card.s { color: #1e293b; }
+  .flop-item .flop-info { flex: 1; min-width: 0; }
+  .flop-item .flop-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+  .flop-item .tag {
+    padding: 1px 6px; border-radius: 4px; font-size: 0.625rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .tag.rainbow { background: rgba(34,197,94,0.15); color: #22c55e; }
+  .tag.two-tone { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .tag.monotone { background: rgba(168,85,247,0.15); color: #c084fc; }
+  .tag.paired { background: rgba(245,158,11,0.15); color: #fbbf24; }
+  .tag.trips { background: rgba(239,68,68,0.15); color: #f87171; }
+  .tag.connected { background: rgba(56,189,248,0.15); color: #38bdf8; }
+
+  /* ========== MAIN CONTENT ========== */
+  .main-content { flex: 1; padding: 32px; max-width: 960px; }
+
+  /* Welcome screen */
+  .welcome-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 70vh; text-align: center; }
+  .welcome-screen .icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.5; }
+  .welcome-screen h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 8px; }
+  .welcome-screen p { color: var(--text-muted); font-size: 0.875rem; max-width: 400px; line-height: 1.6; }
+
+  /* Cards */
+  .panel {
+    background: var(--bg-surface); border: 1px solid var(--border-default);
+    border-radius: 14px; padding: 24px; margin-bottom: 20px;
+  }
+  .panel-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+  .panel-title {
+    font-size: 0.8125rem; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .panel-subtitle { font-size: 0.75rem; color: var(--text-muted); }
+
+  /* Help tip */
+  .help-tip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: 8px; font-size: 0.8125rem;
+    background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.15);
+    color: var(--text-secondary); line-height: 1.5; margin-bottom: 16px;
+  }
+  .help-tip .tip-icon { font-size: 0.875rem; flex-shrink: 0; }
+
+  /* Board display */
+  .board-area { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+  .board-cards { display: flex; gap: 8px; }
+  .poker-card {
+    display: inline-flex; flex-direction: column; align-items: center; justify-content: center;
+    width: 54px; height: 74px; border-radius: 8px; font-weight: 700;
+    background: #fff; border: 2px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .poker-card .rank { font-size: 1.2rem; line-height: 1; }
+  .poker-card .suit { font-size: 0.9rem; line-height: 1; }
+  .poker-card.h { color: var(--suit-hearts); border-color: rgba(239,68,68,0.3); }
+  .poker-card.d { color: var(--suit-diamonds); border-color: rgba(59,130,246,0.3); }
+  .poker-card.c { color: var(--suit-clubs); border-color: rgba(34,197,94,0.3); }
+  .poker-card.s { color: #1e293b; border-color: #94a3b8; }
+  .board-meta { display: flex; gap: 20px; flex-wrap: wrap; }
+  .board-meta-item { text-align: center; }
+  .board-meta-item .val { font-size: 1.125rem; font-weight: 700; color: var(--gold); }
+  .board-meta-item .lbl { font-size: 0.6875rem; color: var(--text-muted); margin-top: 2px; }
+
+  /* Situation selector */
+  .situation-bar {
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  }
+  .seg-group { display: flex; gap: 2px; background: var(--bg-elevated); border-radius: 10px; padding: 3px; }
+  .seg-btn {
+    padding: 7px 16px; border-radius: 8px; border: none;
+    background: transparent; color: var(--text-secondary); font-size: 0.8125rem;
+    cursor: pointer; transition: all 0.12s; font-weight: 500;
+  }
+  .seg-btn:hover { color: var(--text-primary); }
+  .seg-btn.active { background: var(--accent); color: white; font-weight: 600; box-shadow: 0 2px 8px rgba(59,130,246,0.3); }
+  .seg-label { font-size: 0.6875rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* Action path / breadcrumb */
+  .action-path { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .path-btn {
+    padding: 5px 12px; border-radius: 7px; border: 1px solid var(--border-default);
+    background: var(--bg-elevated); color: var(--text-secondary); font-size: 0.8125rem;
+    cursor: pointer; transition: all 0.12s; font-weight: 500;
+  }
+  .path-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+  .path-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600;
+  }
+  .path-sep { color: var(--text-muted); font-size: 0.75rem; }
+  .path-label { font-size: 0.75rem; color: var(--text-muted); }
+
+  /* Navigate buttons */
+  .nav-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+  .nav-btn {
+    padding: 8px 18px; border-radius: 8px; border: 2px solid;
+    background: transparent; font-size: 0.8125rem; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .nav-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+  .nav-btn.check-btn { border-color: var(--check-color); color: var(--check-color); }
+  .nav-btn.check-btn:hover { background: rgba(34,197,94,0.1); }
+  .nav-btn.call-btn { border-color: var(--call-color); color: var(--call-color); }
+  .nav-btn.call-btn:hover { background: rgba(56,189,248,0.1); }
+  .nav-btn.fold-btn { border-color: var(--fold-color); color: var(--fold-color); }
+  .nav-btn.bet-s-btn { border-color: var(--bet-small-color); color: var(--bet-small-color); }
+  .nav-btn.bet-s-btn:hover { background: rgba(245,158,11,0.1); }
+  .nav-btn.bet-b-btn { border-color: var(--bet-big-color); color: var(--bet-big-color); }
+  .nav-btn.bet-b-btn:hover { background: rgba(249,115,22,0.1); }
+  .nav-btn.raise-s-btn { border-color: var(--raise-small-color); color: var(--raise-small-color); }
+  .nav-btn.raise-s-btn:hover { background: rgba(232,121,249,0.1); }
+  .nav-btn.raise-b-btn { border-color: var(--raise-big-color); color: var(--raise-big-color); }
+  .nav-btn.raise-b-btn:hover { background: rgba(192,132,252,0.1); }
+  .nav-btn.allin-btn { border-color: var(--allin-color); color: var(--allin-color); }
+  .nav-btn.allin-btn:hover { background: rgba(239,68,68,0.1); }
+
+  /* Legend */
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.8125rem; color: var(--text-secondary); }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+  /* Aggregate pies */
+  .agg-row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+  .agg-item { text-align: center; min-width: 80px; }
+  .agg-item .pct { font-size: 1.5rem; font-weight: 700; }
+  .agg-item .name { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+  /* Stacked bar for aggregate */
+  .agg-bar-wrap { margin-top: 12px; }
+  .agg-bar { display: flex; height: 28px; border-radius: 8px; overflow: hidden; }
+  .agg-bar .seg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 0.6875rem; font-weight: 700; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.5); min-width: 0; transition: width 0.3s ease; }
+
+  /* Strategy chart */
+  .chart-section { }
+  .bucket-row { display: flex; align-items: center; margin-bottom: 2px; height: 24px; }
+  .bucket-label {
+    width: 80px; font-size: 0.75rem; color: var(--text-muted);
+    text-align: right; padding-right: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: flex-end; gap: 4px;
+  }
+  .bucket-strength {
+    font-size: 0.5625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 1px 4px; border-radius: 3px;
+  }
+  .bucket-strength.weak { background: rgba(100,116,139,0.2); color: #94a3b8; }
+  .bucket-strength.mid { background: rgba(245,158,11,0.15); color: #fbbf24; }
+  .bucket-strength.strong { background: rgba(34,197,94,0.15); color: #22c55e; }
+  .bucket-strength.nuts { background: rgba(239,68,68,0.15); color: #f87171; }
+  .bucket-bar { flex: 1; display: flex; height: 20px; border-radius: 4px; overflow: hidden; cursor: pointer; transition: height 0.1s; }
+  .bucket-bar:hover { height: 26px; margin-top: -3px; margin-bottom: -3px; }
+  .bar-segment { height: 100%; transition: width 0.3s ease; }
+  .bar-segment:first-child { border-radius: 4px 0 0 4px; }
+  .bar-segment:last-child { border-radius: 0 4px 4px 0; }
+  .no-data-bar { width: 100%; background: var(--border-subtle); border-radius: 4px; }
+
+  /* Tooltip */
+  .tooltip {
+    position: fixed; background: var(--bg-elevated); border: 1px solid var(--border-strong);
+    border-radius: 10px; padding: 12px 16px; font-size: 0.8125rem;
+    pointer-events: none; z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    max-width: 280px; backdrop-filter: blur(8px);
+  }
+  .tooltip .tt-title { font-weight: 700; margin-bottom: 6px; font-size: 0.875rem; }
+  .tooltip .tt-row { display: flex; justify-content: space-between; gap: 16px; padding: 2px 0; }
+  .tooltip .tt-action { display: flex; align-items: center; gap: 6px; }
+  .tooltip .tt-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  .tooltip .tt-pct { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .tooltip .tt-hint { font-size: 0.6875rem; color: var(--text-muted); margin-top: 6px; border-top: 1px solid var(--border-subtle); padding-top: 6px; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .sidebar { width: 320px; min-width: 320px; }
+  }
+  @media (max-width: 740px) {
+    .app-layout { flex-direction: column; }
+    .sidebar { width: 100%; min-width: 0; height: auto; position: relative; max-height: 50vh; }
+    .main-content { padding: 16px; }
+  }
+
+  /* Scrollbar */
+  .flop-list-wrap::-webkit-scrollbar { width: 6px; }
+  .flop-list-wrap::-webkit-scrollbar-track { background: transparent; }
+  .flop-list-wrap::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+
+  /* ========== HAND MATRIX ========== */
+  .hand-matrix-wrap { overflow-x: auto; }
+  .hand-matrix {
+    display: grid;
+    grid-template-columns: repeat(13, 1fr);
+    gap: 2px;
+    max-width: 600px;
+  }
+  .hm-cell {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    border: 2px solid transparent;
+    transition: all 0.1s;
+    overflow: hidden;
+    min-width: 40px;
+  }
+  .hm-cell:hover { border-color: white; z-index: 2; transform: scale(1.1); }
+  .hm-cell.selected { border-color: var(--accent); box-shadow: 0 0 12px rgba(59,130,246,0.5); z-index: 3; }
+  .hm-cell .hm-name {
+    position: relative; z-index: 1;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+    color: white;
+    font-size: 0.6875rem;
+  }
+  .hm-cell .hm-mini-bar {
+    position: absolute; inset: 0;
+    display: flex;
+  }
+  .hm-cell .hm-mini-bar .hm-seg { height: 100%; }
+  .hm-cell.no-data { background: var(--bg-elevated); }
+  .hm-cell.no-data .hm-name { color: var(--text-muted); text-shadow: none; }
+
+  /* Hand detail popup */
+  .hand-detail {
+    margin-top: 16px; padding: 16px;
+    background: var(--bg-elevated); border: 1px solid var(--border-default);
+    border-radius: 10px;
+  }
+  .hand-detail-title { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+  .hand-detail-row { display: flex; gap: 12px; align-items: center; padding: 3px 0; }
+  .hand-detail-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .hand-detail-pct { font-weight: 700; min-width: 48px; text-align: right; font-variant-numeric: tabular-nums; }
+  .hand-detail-bar { flex: 1; height: 16px; border-radius: 4px; overflow: hidden; display: flex; }
+  .hand-detail-bar .seg { height: 100%; }
+
+  /* Bucket example hands */
+  .bucket-examples {
+    font-size: 0.625rem; color: var(--text-muted);
+    margin-left: 4px; max-width: 80px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- ====== SIDEBAR ====== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h1>CardPilot Strategy Viewer</h1>
+      <div class="subtitle">HU NLHE Postflop &middot; SRP 50bb &middot; CFR+ 50k iterations</div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-section">
+      <div class="search-wrap">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" class="search-box" id="search-box" placeholder="Search boards... e.g. &quot;AK&quot;, &quot;rainbow&quot;, &quot;paired&quot;">
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-section">
+      <div>
+        <div class="filter-label">Suit Pattern</div>
+        <div class="filter-row" id="filter-texture">
+          <button class="filter-chip active" data-val="all">All</button>
+          <button class="filter-chip" data-val="rainbow">Rainbow</button>
+          <button class="filter-chip" data-val="two-tone">Two-tone</button>
+          <button class="filter-chip" data-val="monotone">Monotone</button>
+        </div>
+      </div>
+      <div style="margin-top:8px;">
+        <div class="filter-label">Board Type</div>
+        <div class="filter-row" id="filter-pairing">
+          <button class="filter-chip active" data-val="all">All</button>
+          <button class="filter-chip" data-val="unpaired">Unpaired</button>
+          <button class="filter-chip" data-val="paired">Paired</button>
+        </div>
+      </div>
+      <div style="margin-top:8px;">
+        <div class="filter-label">High Card</div>
+        <div class="filter-row" id="filter-highcard">
+          <button class="filter-chip active" data-val="all">All</button>
+          <button class="filter-chip" data-val="A">A</button>
+          <button class="filter-chip" data-val="K">K</button>
+          <button class="filter-chip" data-val="Q">Q</button>
+          <button class="filter-chip" data-val="J">J</button>
+          <button class="filter-chip" data-val="T-">T-</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Flop list -->
+    <div class="flop-list-wrap" id="flop-list-wrap">
+      <div class="flop-list-count" id="flop-count">Loading...</div>
+      <div id="flop-list"></div>
+    </div>
+  </aside>
+
+  <!-- ====== MAIN ====== -->
+  <main class="main-content" id="main-content">
+    <!-- Welcome -->
+    <div class="welcome-screen" id="welcome-screen">
+      <div class="icon">&#9824;</div>
+      <h2>Select a Board</h2>
+      <p>Pick a flop from the left panel to see the GTO-approximate strategy.<br>
+      Use the search bar or filters to find specific board textures.</p>
+      <div style="margin-top:24px; padding:16px 24px; background:var(--bg-surface); border-radius:12px; border:1px solid var(--border-default); text-align:left; max-width:460px;">
+        <div style="font-weight:600; margin-bottom:8px; font-size:0.875rem;">Quick Guide</div>
+        <ul style="font-size:0.8125rem; color:var(--text-secondary); line-height:1.8; padding-left:18px;">
+          <li><b>Position</b> &mdash; OOP = out of position (Big Blind acts first); IP = in position (Button acts last)</li>
+          <li><b>Street</b> &mdash; Flop (first 3 cards), Turn (4th card), River (5th card)</li>
+          <li><b>Hand Strength</b> &mdash; Bucket 0 = weakest hands; Bucket 49 = strongest hands (nuts)</li>
+          <li><b>The bars</b> show how often to take each action with that hand strength</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Viewer (hidden until flop selected) -->
+    <div id="viewer" style="display:none">
+
+      <!-- Board & Meta -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Board</span>
+          <span class="panel-subtitle" id="board-id-label"></span>
+        </div>
+        <div class="board-area">
+          <div class="board-cards" id="board-display"></div>
+          <div class="board-meta" id="board-meta"></div>
+        </div>
+      </div>
+
+      <!-- Situation -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Situation</span>
+        </div>
+        <div class="help-tip" id="situation-help">
+          <span class="tip-icon">&#128161;</span>
+          <span>Choose who is acting and which street. Then navigate the action tree below.</span>
+        </div>
+        <div class="situation-bar">
+          <div>
+            <div class="seg-label">Who is Acting?</div>
+            <div class="seg-group" id="player-toggle">
+              <button class="seg-btn active" data-player="0">OOP (Big Blind)</button>
+              <button class="seg-btn" data-player="1">IP (Button)</button>
+            </div>
+          </div>
+          <div>
+            <div class="seg-label">Street</div>
+            <div class="seg-group" id="street-toggle">
+              <button class="seg-btn active" data-street="F">Flop</button>
+              <button class="seg-btn" data-street="T">Turn</button>
+              <button class="seg-btn" data-street="R">River</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action path -->
+        <div style="margin-top:16px;">
+          <div class="seg-label">Action History</div>
+          <div class="action-path" id="action-path"></div>
+        </div>
+
+        <!-- Navigation buttons -->
+        <div class="nav-actions" id="nav-actions"></div>
+      </div>
+
+      <!-- Hand Matrix -->
+      <div class="panel" id="hand-matrix-panel">
+        <div class="panel-header">
+          <span class="panel-title">Your Hand</span>
+          <span class="panel-subtitle">Click any hand to see its strategy</span>
+        </div>
+        <div class="help-tip">
+          <span class="tip-icon">&#128161;</span>
+          <span>Diagonal = pairs (AA, KK...). Upper-right = suited. Lower-left = offsuit. Colors show what action the solver recommends.</span>
+        </div>
+        <div class="hand-matrix-wrap">
+          <div class="hand-matrix" id="hand-matrix"></div>
+        </div>
+        <div id="hand-detail"></div>
+      </div>
+
+      <!-- Legend + Aggregate -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Overall Strategy</span>
+          <span class="panel-subtitle">Averaged across all hand strengths</span>
+        </div>
+        <div class="legend" id="legend" style="margin-bottom:16px;"></div>
+        <div class="agg-bar-wrap" id="agg-bar"></div>
+        <div class="agg-row" id="agg-row" style="margin-top:16px;"></div>
+      </div>
+
+      <!-- Strategy chart -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Strategy by Hand Strength</span>
+          <span class="panel-subtitle">Hover for details</span>
+        </div>
+        <div class="help-tip">
+          <span class="tip-icon">&#128161;</span>
+          <span>Each row = a hand strength group. <b>Left = weak hands, Right = strong hands</b> in the bar. Colors show how often to take each action.</span>
+        </div>
+        <div class="chart-section" id="strategy-chart"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip" style="display:none"></div>
+
+<script>
+// ═══════════ CONSTANTS ═══════════
+const RANKS = '23456789TJQKA';
+const SUIT_SYM = { c:'\u2663', d:'\u2666', h:'\u2665', s:'\u2660' };
+const SUIT_CSS = { c:'c', d:'d', h:'h', s:'s' };
+
+function indexToCard(i) {
+  const rank = Math.floor(i / 4);
+  const suit = i % 4;
+  return RANKS[rank] + ['c','d','h','s'][suit];
+}
+
+function cardToHTML(cardStr, large) {
+  const r = cardStr[0], s = cardStr[1];
+  const cls = large ? 'poker-card' : 'mini-card';
+  return `<div class="${cls} ${s}"><span class="rank">${r}</span><span class="suit">${SUIT_SYM[s]}</span></div>`;
+}
+
+// Action labels
+function getActionLabels(historyKey, numActions) {
+  const last = (historyKey || '').split('/').pop() || '';
+  const facing = last.length > 0 && 'abA'.includes(last[last.length - 1]);
+  if (facing) {
+    if (numActions === 2) return ['Fold', 'Call'];
+    if (numActions === 3) return ['Fold', 'Call', 'All-in'];
+    if (numActions === 4) return ['Fold', 'Call', 'Raise Small', 'All-in'];
+    if (numActions === 5) return ['Fold', 'Call', 'Raise Small', 'Raise Big', 'All-in'];
+  } else {
+    if (numActions === 4) return ['Check', 'Bet Small', 'Bet Big', 'All-in'];
+    if (numActions === 3) return ['Check', 'Bet', 'All-in'];
+    if (numActions === 2) return ['Check', 'Bet'];
+  }
+  return Array.from({length: numActions}, (_, i) => `Action ${i}`);
+}
+
+function getActionBtnLabels(historyKey, numActions) {
+  const last = (historyKey || '').split('/').pop() || '';
+  const facing = last.length > 0 && 'abA'.includes(last[last.length - 1]);
+  if (facing) {
+    if (numActions === 2) return ['Fold', 'Call'];
+    if (numActions === 3) return ['Fold', 'Call', 'All-in'];
+    if (numActions === 4) return ['Fold', 'Call', 'Raise 33%', 'All-in'];
+    if (numActions === 5) return ['Fold', 'Call', 'Raise 33%', 'Raise 75%', 'All-in'];
+  } else {
+    const streetSizes = {
+      F: { s: '33%', b: '75%' }, T: { s: '50%', b: '100%' }, R: { s: '75%', b: '150%' }
+    };
+    const sizes = streetSizes[state.street] || streetSizes.F;
+    if (numActions === 4) return ['Check', `Bet ${sizes.s}`, `Bet ${sizes.b}`, 'All-in'];
+    if (numActions === 3) return ['Check', `Bet ${sizes.s}`, 'All-in'];
+    if (numActions === 2) return ['Check', `Bet ${sizes.s}`];
+  }
+  return Array.from({length: numActions}, (_, i) => `Action ${i}`);
+}
+
+function getActionChars(historyKey, numActions) {
+  const last = (historyKey || '').split('/').pop() || '';
+  const facing = last.length > 0 && 'abA'.includes(last[last.length - 1]);
+  if (facing) {
+    if (numActions === 2) return ['f','c'];
+    if (numActions === 3) return ['f','c','A'];
+    if (numActions === 4) return ['f','c','a','A'];
+    if (numActions === 5) return ['f','c','a','b','A'];
+  } else {
+    if (numActions === 4) return ['x','a','b','A'];
+    if (numActions === 3) return ['x','a','A'];
+    if (numActions === 2) return ['x','a'];
+  }
+  return Array.from({length:numActions}, (_,i) => String(i));
+}
+
+function getActionColor(label) {
+  if (/^Fold/i.test(label)) return 'var(--fold-color)';
+  if (/^Check/i.test(label)) return 'var(--check-color)';
+  if (/^Call/i.test(label)) return 'var(--call-color)';
+  if (/^Bet S|^Bet 3/i.test(label)) return 'var(--bet-small-color)';
+  if (/^Bet B|^Bet 7|^Bet 5|^Bet 1|^Bet$/i.test(label)) return 'var(--bet-big-color)';
+  if (/^Raise S|^Raise 3/i.test(label)) return 'var(--raise-small-color)';
+  if (/^Raise B|^Raise 7|^Raise$/i.test(label)) return 'var(--raise-big-color)';
+  if (/^All/i.test(label)) return 'var(--allin-color)';
+  return '#888';
+}
+
+function getNavBtnClass(label) {
+  if (/^Fold/i.test(label)) return 'fold-btn';
+  if (/^Check/i.test(label)) return 'check-btn';
+  if (/^Call/i.test(label)) return 'call-btn';
+  if (/^Bet S|^Bet 3/i.test(label)) return 'bet-s-btn';
+  if (/^Bet B|^Bet 7|^Bet 5|^Bet 1|^Bet$/i.test(label)) return 'bet-b-btn';
+  if (/^Raise S|^Raise 3/i.test(label)) return 'raise-s-btn';
+  if (/^Raise B|^Raise 7|^Raise$/i.test(label)) return 'raise-b-btn';
+  if (/^All/i.test(label)) return 'allin-btn';
+  return '';
+}
+
+function actionCharToLabel(ch) {
+  const map = { f:'Fold', x:'Check', c:'Call', a:'Bet S', b:'Bet B', A:'All-in' };
+  return map[ch] || ch;
+}
+
+function actionCharToFullLabel(ch) {
+  const map = { f:'Fold', x:'Check', c:'Call', a:'Bet Small', b:'Bet Big', A:'All-in' };
+  return map[ch] || ch;
+}
+
+// ═══════════ HAND MATRIX CONSTANTS ═══════════
+const RANK_ORDER = 'AKQJT98765432';
+const ALL_HAND_CLASSES = [];
+// Build 13x13 matrix: row=first rank, col=second rank
+// Upper-right = suited, lower-left = offsuit, diagonal = pairs
+for (let r = 0; r < 13; r++) {
+  for (let c = 0; c < 13; c++) {
+    if (r === c) ALL_HAND_CLASSES.push(RANK_ORDER[r] + RANK_ORDER[c]);
+    else if (c > r) ALL_HAND_CLASSES.push(RANK_ORDER[r] + RANK_ORDER[c] + 's');
+    else ALL_HAND_CLASSES.push(RANK_ORDER[c] + RANK_ORDER[r] + 'o');
+  }
+}
+
+// ═══════════ STATE ═══════════
+let handMap = null; // { oop: { AKs: 42, ... }, ip: { AKs: 40, ... } }
+let selectedHand = null;
+
+let state = {
+  meta: null,
+  entries: [],
+  indexed: new Map(),
+  player: 0,
+  street: 'F',
+  historyKey: '',
+};
+
+let allFlops = [];
+let activeFilters = { texture: 'all', pairing: 'all', highcard: 'all' };
+let searchQuery = '';
+
+// ═══════════ FLOP BROWSER ═══════════
+async function loadFlops() {
+  try {
+    const res = await fetch('/api/flops');
+    if (!res.ok) return;
+    allFlops = await res.json();
+    renderFlopList();
+  } catch(e) {
+    document.getElementById('flop-count').textContent = 'Could not load flop data.';
+  }
+}
+
+function renderFlopList() {
+  const filtered = filterFlops();
+  const countEl = document.getElementById('flop-count');
+  countEl.textContent = `${filtered.length} of ${allFlops.length} boards`;
+
+  const listEl = document.getElementById('flop-list');
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-muted);">No boards match your filters.</div>';
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(f => {
+    const cards = (f.cards || f.flopCards.map(indexToCard));
+    const cardsHtml = cards.map(c => cardToHTML(c, false)).join('');
+    const tags = [];
+    if (f.texture) tags.push(`<span class="tag ${f.texture}">${f.texture}</span>`);
+    if (f.pairing === 'paired') tags.push('<span class="tag paired">paired</span>');
+    if (f.pairing === 'trips') tags.push('<span class="tag trips">trips</span>');
+    if (f.connectivity === 'connected') tags.push('<span class="tag connected">connected</span>');
+
+    return `<div class="flop-item" data-file="${f.file}" onclick="selectFlop('${f.file}')">
+      <div class="cards-preview">${cardsHtml}</div>
+      <div class="flop-info">
+        <div class="flop-tags">${tags.join('')}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterFlops() {
+  return allFlops.filter(f => {
+    // Text search
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const cards = (f.cards || f.flopCards.map(indexToCard)).join(' ').toLowerCase();
+      const meta = `${f.texture || ''} ${f.pairing || ''} ${f.connectivity || ''} ${f.highCard || ''}`.toLowerCase();
+      const combined = cards + ' ' + meta;
+      if (!combined.includes(q)) return false;
+    }
+    // Texture
+    if (activeFilters.texture !== 'all' && f.texture !== activeFilters.texture) return false;
+    // Pairing
+    if (activeFilters.pairing !== 'all' && f.pairing !== activeFilters.pairing) return false;
+    // High card
+    if (activeFilters.highcard !== 'all') {
+      if (activeFilters.highcard === 'T-') {
+        if ('AKQJ'.includes(f.highCard)) return false;
+      } else {
+        if (f.highCard !== activeFilters.highcard) return false;
+      }
+    }
+    return true;
+  });
+}
+
+// Search handler
+document.getElementById('search-box').addEventListener('input', e => {
+  searchQuery = e.target.value.trim();
+  renderFlopList();
+});
+
+// Filter handlers
+function setupFilters(containerId, filterKey) {
+  document.getElementById(containerId).addEventListener('click', e => {
+    const btn = e.target.closest('.filter-chip');
+    if (!btn) return;
+    document.querySelectorAll(`#${containerId} .filter-chip`).forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilters[filterKey] = btn.dataset.val;
+    renderFlopList();
+  });
+}
+setupFilters('filter-texture', 'texture');
+setupFilters('filter-pairing', 'pairing');
+setupFilters('filter-highcard', 'highcard');
+
+async function selectFlop(file) {
+  document.querySelectorAll('.flop-item').forEach(c => c.classList.remove('active'));
+  document.querySelector(`.flop-item[data-file="${file}"]`)?.classList.add('active');
+
+  try {
+    const [metaRes, jsonlRes] = await Promise.all([
+      fetch(`/data/${file}.meta.json`),
+      fetch(`/data/${file}.jsonl`),
+    ]);
+    const meta = await metaRes.json();
+    const jsonlText = await jsonlRes.text();
+    const entries = jsonlText.trim().split('\n').filter(l => l.trim()).map(l => JSON.parse(l));
+
+    state.meta = meta;
+    state.entries = entries;
+    state.indexed = new Map();
+    for (const e of entries) state.indexed.set(e.key, e.probs);
+    state.player = 0;
+    state.street = 'F';
+    state.historyKey = '';
+
+    document.getElementById('welcome-screen').style.display = 'none';
+    document.getElementById('viewer').style.display = 'block';
+    render();
+
+    // Load hand-map in background
+    try {
+      const hmRes = await fetch(`/api/hand-map/${file}`);
+      if (hmRes.ok) {
+        handMap = await hmRes.json();
+        renderHandMatrix();
+      }
+    } catch(e) { console.warn('Hand map not available:', e); }
+  } catch(e) {
+    console.error('Failed to load flop:', e);
+  }
+}
+
+// ═══════════ RENDERING ═══════════
+function render() {
+  renderBoard();
+  renderSituation();
+  renderActionPath();
+  renderNavActions();
+  renderHandMatrix();
+  renderLegend();
+  renderAggregate();
+  renderChart();
+}
+
+function renderBoard() {
+  const el = document.getElementById('board-display');
+  const metaEl = document.getElementById('board-meta');
+  const idEl = document.getElementById('board-id-label');
+  if (!state.meta) return;
+
+  const cards = state.meta.flopCards.map(indexToCard);
+  el.innerHTML = cards.map(c => cardToHTML(c, true)).join('');
+  idEl.textContent = `Board #${state.meta.boardId}`;
+
+  const m = state.meta;
+  metaEl.innerHTML = `
+    <div class="board-meta-item"><div class="val">${(m.iterations||0).toLocaleString()}</div><div class="lbl">Iterations</div></div>
+    <div class="board-meta-item"><div class="val">${(m.infoSets||0).toLocaleString()}</div><div class="lbl">Situations</div></div>
+    <div class="board-meta-item"><div class="val">${m.bucketCount||50}</div><div class="lbl">Hand Groups</div></div>
+    <div class="board-meta-item"><div class="val">${m.elapsedMs ? (m.elapsedMs/1000).toFixed(0)+'s' : '-'}</div><div class="lbl">Solve Time</div></div>
+  `;
+}
+
+function renderSituation() {
+  document.querySelectorAll('#player-toggle .seg-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.player) === state.player);
+    btn.onclick = () => { state.player = parseInt(btn.dataset.player); state.historyKey = ''; render(); };
+  });
+  document.querySelectorAll('#street-toggle .seg-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.street === state.street);
+    btn.onclick = () => { state.street = btn.dataset.street; state.historyKey = ''; render(); };
+  });
+}
+
+function renderActionPath() {
+  const el = document.getElementById('action-path');
+  const streetNames = { F: 'Flop', T: 'Turn', R: 'River' };
+  const playerNames = { 0: 'OOP (BB)', 1: 'IP (BTN)' };
+
+  let html = '';
+
+  if (state.historyKey) {
+    html += `<button class="path-btn" onclick="goRoot()" title="Go back to starting position">&#8592; Reset</button>`;
+    html += `<button class="path-btn" onclick="goBack()" title="Undo last action">&#8630; Undo</button>`;
+  }
+
+  html += `<span class="path-label">${streetNames[state.street]} &middot; ${playerNames[state.player]}</span>`;
+
+  if (state.historyKey) {
+    html += `<span class="path-sep">&middot;</span>`;
+    const parts = state.historyKey.split('/');
+    const streetLabels = ['Flop', 'Turn', 'River'];
+    parts.forEach((part, si) => {
+      if (si > 0) html += `<span class="path-sep">/</span>`;
+      for (const ch of part) {
+        const label = actionCharToFullLabel(ch);
+        const color = getActionColor(label);
+        html += `<span class="path-chip" style="background:${color}22;color:${color}">${label}</span>`;
+      }
+    });
+  } else {
+    html += `<span class="path-sep">&middot;</span><span class="path-label" style="color:var(--text-secondary)">Starting Position (Root)</span>`;
+  }
+
+  el.innerHTML = html;
+}
+
+function renderNavActions() {
+  const el = document.getElementById('nav-actions');
+  const children = findChildActions();
+  if (children.length === 0) {
+    el.innerHTML = '<span style="font-size:0.8125rem;color:var(--text-muted);">No further actions at this node (terminal or no data).</span>';
+    return;
+  }
+
+  el.innerHTML = '<span style="font-size:0.75rem;color:var(--text-muted);margin-right:4px;">Next action:</span>' +
+    children.map(a => {
+      const cls = getNavBtnClass(a.label);
+      return `<button class="nav-btn ${cls}" onclick="navigateTo('${a.historyKey}','${a.street}',${a.player})">${a.label}</button>`;
+    }).join('');
+}
+
+function findChildActions() {
+  const boardId = state.meta ? state.meta.boardId : 0;
+  const prefix = `${state.street}|${boardId}|${state.player}|${state.historyKey}|`;
+
+  let sampleEntry = null;
+  for (let b = 0; b < 50; b++) {
+    const key = prefix + b;
+    if (state.indexed.has(key)) { sampleEntry = { key, probs: state.indexed.get(key) }; break; }
+  }
+  if (!sampleEntry) return [];
+
+  const numActions = sampleEntry.probs.length;
+  const labels = getActionBtnLabels(state.historyKey, numActions);
+  const chars = getActionChars(state.historyKey, numActions);
+
+  const children = [];
+  for (let i = 0; i < numActions; i++) {
+    const ch = chars[i];
+    if (ch === 'f') continue;
+
+    let nextHistory, nextStreet, nextPlayer;
+    const curStreetHist = (state.historyKey || '').split('/').pop() || '';
+
+    if (ch === 'x' && curStreetHist.length === 0) {
+      nextHistory = state.historyKey + ch;
+      nextStreet = state.street;
+      nextPlayer = 1 - state.player;
+    } else if (ch === 'x') {
+      nextHistory = state.historyKey + ch + '/';
+      nextStreet = state.street === 'F' ? 'T' : state.street === 'T' ? 'R' : state.street;
+      nextPlayer = 0;
+    } else if (ch === 'c') {
+      nextHistory = state.historyKey + ch + '/';
+      nextStreet = state.street === 'F' ? 'T' : state.street === 'T' ? 'R' : state.street;
+      nextPlayer = 0;
+    } else {
+      nextHistory = state.historyKey + ch;
+      nextStreet = state.street;
+      nextPlayer = 1 - state.player;
+    }
+
+    const nextPrefix = `${nextStreet}|${boardId}|${nextPlayer}|${nextHistory}|`;
+    let exists = false;
+    for (let b = 0; b < 50; b++) { if (state.indexed.has(nextPrefix + b)) { exists = true; break; } }
+
+    if (exists) {
+      children.push({ label: labels[i], historyKey: nextHistory, street: nextStreet, player: nextPlayer });
+    }
+  }
+  return children;
+}
+
+function navigateTo(historyKey, street, player) {
+  state.historyKey = historyKey;
+  state.street = street;
+  state.player = player;
+  render();
+}
+
+function goBack() {
+  if (!state.historyKey) return;
+  let h = state.historyKey;
+  if (h.endsWith('/')) h = h.slice(0, -1);
+  h = h.slice(0, -1);
+  const boardId = state.meta ? state.meta.boardId : 0;
+  for (const s of ['F','T','R']) {
+    for (const p of [0,1]) {
+      for (let b = 0; b < 50; b++) {
+        if (state.indexed.has(`${s}|${boardId}|${p}|${h}|${b}`)) {
+          state.historyKey = h; state.street = s; state.player = p; render(); return;
+        }
+      }
+    }
+  }
+  goRoot();
+}
+
+function goRoot() {
+  state.historyKey = ''; state.street = 'F'; render();
+}
+
+function renderLegend() {
+  const el = document.getElementById('legend');
+  const boardId = state.meta ? state.meta.boardId : 0;
+  const prefix = `${state.street}|${boardId}|${state.player}|${state.historyKey}|`;
+
+  let numActions = 0;
+  for (let b = 0; b < 50; b++) {
+    const probs = state.indexed.get(prefix + b);
+    if (probs) { numActions = probs.length; break; }
+  }
+  if (numActions === 0) { el.innerHTML = '<span style="color:var(--text-muted)">No data for this node</span>'; return; }
+
+  const labels = getActionLabels(state.historyKey, numActions);
+  el.innerHTML = labels.map(label => {
+    const color = getActionColor(label);
+    return `<div class="legend-item"><div class="legend-dot" style="background:${color}"></div>${label}</div>`;
+  }).join('');
+}
+
+function renderAggregate() {
+  const barEl = document.getElementById('agg-bar');
+  const rowEl = document.getElementById('agg-row');
+  const boardId = state.meta ? state.meta.boardId : 0;
+  const prefix = `${state.street}|${boardId}|${state.player}|${state.historyKey}|`;
+
+  let sums = null;
+  let count = 0;
+  for (let b = 0; b < 50; b++) {
+    const probs = state.indexed.get(prefix + b);
+    if (!probs) continue;
+    if (!sums) sums = new Array(probs.length).fill(0);
+    for (let i = 0; i < probs.length; i++) sums[i] += probs[i];
+    count++;
+  }
+
+  if (!sums || count === 0) {
+    barEl.innerHTML = '';
+    rowEl.innerHTML = '<span style="color:var(--text-muted)">No data</span>';
+    return;
+  }
+
+  const total = sums.reduce((a,b) => a+b, 0);
+  const labels = getActionLabels(state.historyKey, sums.length);
+
+  // Stacked bar
+  barEl.innerHTML = '<div class="agg-bar">' +
+    labels.map((label, i) => {
+      const pct = total > 0 ? (sums[i] / total * 100) : 0;
+      const color = getActionColor(label);
+      return `<div class="seg" style="width:${pct}%;background:${color}">${pct >= 8 ? pct.toFixed(0) + '%' : ''}</div>`;
+    }).join('') + '</div>';
+
+  // Number row
+  rowEl.innerHTML = labels.map((label, i) => {
+    const pct = total > 0 ? (sums[i] / total * 100).toFixed(1) : '0.0';
+    const color = getActionColor(label);
+    return `<div class="agg-item"><div class="pct" style="color:${color}">${pct}%</div><div class="name">${label}</div></div>`;
+  }).join('');
+}
+
+function renderChart() {
+  const el = document.getElementById('strategy-chart');
+  const boardId = state.meta ? state.meta.boardId : 0;
+  const prefix = `${state.street}|${boardId}|${state.player}|${state.historyKey}|`;
+
+  let numActions = 0, labels = [];
+  for (let b = 0; b < 50; b++) {
+    const probs = state.indexed.get(prefix + b);
+    if (probs) { numActions = probs.length; labels = getActionLabels(state.historyKey, numActions); break; }
+  }
+
+  if (numActions === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">No strategy data for this situation.<br>Try selecting a different street, player, or action line.</div>';
+    return;
+  }
+
+  const strengthLabels = [
+    { from: 0, to: 5, label: 'Trash', cls: 'weak' },
+    { from: 5, to: 12, label: 'Weak', cls: 'weak' },
+    { from: 12, to: 20, label: 'Marginal', cls: 'mid' },
+    { from: 20, to: 30, label: 'Medium', cls: 'mid' },
+    { from: 30, to: 40, label: 'Good', cls: 'strong' },
+    { from: 40, to: 47, label: 'Strong', cls: 'strong' },
+    { from: 47, to: 50, label: 'Nuts', cls: 'nuts' },
+  ];
+
+  function getStrength(b) {
+    for (const s of strengthLabels) { if (b >= s.from && b < s.to) return s; }
+    return strengthLabels[strengthLabels.length - 1];
+  }
+
+  const bucketHandExamples = getBucketHandExamples();
+
+  let html = '';
+  for (let b = 0; b < 50; b++) {
+    const probs = state.indexed.get(prefix + b);
+    const strength = getStrength(b);
+    const showLabel = b === strength.from;
+    const examples = bucketHandExamples[b] || [];
+    const exampleStr = examples.slice(0, 5).join(' ');
+
+    html += `<div class="bucket-row" data-bucket="${b}">`;
+    html += `<div class="bucket-label">`;
+    if (showLabel) {
+      html += `<span class="bucket-strength ${strength.cls}">${strength.label}</span>`;
+    }
+    html += `${b}</div>`;
+    html += `<div class="bucket-bar" onmouseenter="showTooltip(event,${b})" onmousemove="moveTooltip(event)" onmouseleave="hideTooltip()">`;
+
+    if (probs) {
+      for (let i = 0; i < probs.length; i++) {
+        const pct = (probs[i] * 100).toFixed(1);
+        const color = getActionColor(labels[i]);
+        html += `<div class="bar-segment" style="width:${pct}%;background:${color}"></div>`;
+      }
+    } else {
+      html += `<div class="no-data-bar"></div>`;
+    }
+
+    html += `</div>`;
+    if (exampleStr) {
+      html += `<span class="bucket-examples" title="${examples.join(', ')}">${exampleStr}</span>`;
+    }
+    html += `</div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+// ═══════════ HAND MATRIX ═══════════
+
+function renderHandMatrix() {
+  const el = document.getElementById('hand-matrix');
+  const detailEl = document.getElementById('hand-detail');
+  if (!handMap || !state.meta) {
+    el.innerHTML = '<div style="color:var(--text-muted);padding:16px;">Loading hand data...</div>';
+    return;
+  }
+
+  const playerMap = state.player === 0 ? handMap.oop : handMap.ip;
+  const boardId = state.meta.boardId;
+  const prefix = `${state.street}|${boardId}|${state.player}|${state.historyKey}|`;
+
+  // Get action labels for current node
+  let numActions = 0, labels = [];
+  for (let b = 0; b < 50; b++) {
+    const probs = state.indexed.get(prefix + b);
+    if (probs) { numActions = probs.length; labels = getActionLabels(state.historyKey, numActions); break; }
+  }
+
+  let html = '';
+  for (let idx = 0; idx < ALL_HAND_CLASSES.length; idx++) {
+    const hc = ALL_HAND_CLASSES[idx];
+    const bucket = playerMap[hc];
+    const sel = selectedHand === hc ? ' selected' : '';
+
+    if (bucket === undefined || numActions === 0) {
+      html += `<div class="hm-cell no-data" data-hand="${hc}" onclick="selectHandCell('${hc}')">
+        <span class="hm-name">${hc}</span></div>`;
+      continue;
+    }
+
+    const probs = state.indexed.get(prefix + bucket);
+    if (!probs) {
+      html += `<div class="hm-cell no-data${sel}" data-hand="${hc}" onclick="selectHandCell('${hc}')">
+        <span class="hm-name">${hc}</span></div>`;
+      continue;
+    }
+
+    // Build mini stacked bar as background
+    let barHtml = '<div class="hm-mini-bar">';
+    for (let i = 0; i < probs.length; i++) {
+      const pct = (probs[i] * 100).toFixed(1);
+      const color = getActionColor(labels[i]);
+      barHtml += `<div class="hm-seg" style="width:${pct}%;background:${color}"></div>`;
+    }
+    barHtml += '</div>';
+
+    html += `<div class="hm-cell${sel}" data-hand="${hc}" onclick="selectHandCell('${hc}')">
+      ${barHtml}<span class="hm-name">${hc}</span></div>`;
+  }
+
+  el.innerHTML = html;
+
+  // Render detail for selected hand
+  if (selectedHand && playerMap[selectedHand] !== undefined) {
+    renderHandDetail(selectedHand, playerMap[selectedHand]);
+  } else {
+    detailEl.innerHTML = '';
+  }
+}
+
+function selectHandCell(hc) {
+  selectedHand = selectedHand === hc ? null : hc;
+  renderHandMatrix();
+
+  // Highlight the corresponding bucket row in the chart
+  if (selectedHand && handMap) {
+    const playerMap = state.player === 0 ? handMap.oop : handMap.ip;
+    const bucket = playerMap[selectedHand];
+    if (bucket !== undefined) {
+      // Scroll to bucket row
+      const row = document.querySelector(`.bucket-row[data-bucket="${bucket}"]`);
+      if (row) {
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Flash highlight
+        row.style.background = 'rgba(59,130,246,0.2)';
+        setTimeout(() => { row.style.background = ''; }, 2000);
+      }
+    }
+  }
+}
+
+function renderHandDetail(hc, bucket) {
+  const el = document.getElementById('hand-detail');
+  const boardId = state.meta ? state.meta.boardId : 0;
+  const prefix = `${state.street}|${boardId}|${state.player}|${state.historyKey}|`;
+  const probs = state.indexed.get(prefix + bucket);
+
+  if (!probs) {
+    el.innerHTML = `<div class="hand-detail"><div class="hand-detail-title">${hc} &mdash; No strategy data at this node</div></div>`;
+    return;
+  }
+
+  const labels = getActionLabels(state.historyKey, probs.length);
+  const strengthLabels = [
+    { from: 0, to: 5, label: 'Trash' },
+    { from: 5, to: 12, label: 'Weak' },
+    { from: 12, to: 20, label: 'Marginal' },
+    { from: 20, to: 30, label: 'Medium' },
+    { from: 30, to: 40, label: 'Good' },
+    { from: 40, to: 47, label: 'Strong' },
+    { from: 47, to: 50, label: 'Nuts' },
+  ];
+  let strength = 'Unknown';
+  for (const s of strengthLabels) { if (bucket >= s.from && bucket < s.to) { strength = s.label; break; } }
+
+  let html = `<div class="hand-detail">`;
+  html += `<div class="hand-detail-title">${hc} &mdash; ${strength} (Group ${bucket}/49)</div>`;
+
+  // Mini stacked bar
+  html += '<div class="hand-detail-bar" style="margin-bottom:12px;">';
+  for (let i = 0; i < probs.length; i++) {
+    const pct = (probs[i] * 100).toFixed(1);
+    const color = getActionColor(labels[i]);
+    html += `<div class="seg" style="width:${pct}%;background:${color}"></div>`;
+  }
+  html += '</div>';
+
+  for (let i = 0; i < probs.length; i++) {
+    const color = getActionColor(labels[i]);
+    const pct = (probs[i] * 100).toFixed(1);
+    html += `<div class="hand-detail-row">
+      <div class="hand-detail-dot" style="background:${color}"></div>
+      <span style="min-width:80px;">${labels[i]}</span>
+      <span class="hand-detail-pct">${pct}%</span>
+    </div>`;
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// Build reverse map: bucket → list of hand classes (for chart labels)
+function getBucketHandExamples() {
+  if (!handMap) return {};
+  const playerMap = state.player === 0 ? handMap.oop : handMap.ip;
+  const bucketHands = {};
+  for (const [hc, bucket] of Object.entries(playerMap)) {
+    if (!bucketHands[bucket]) bucketHands[bucket] = [];
+    bucketHands[bucket].push(hc);
+  }
+  return bucketHands;
+}
+
+// ═══════════ TOOLTIP ═══════════
+const tooltip = document.getElementById('tooltip');
+
+function showTooltip(event, bucket) {
+  const boardId = state.meta ? state.meta.boardId : 0;
+  const key = `${state.street}|${boardId}|${state.player}|${state.historyKey}|${bucket}`;
+  const probs = state.indexed.get(key);
+
+  const strengthLabels = [
+    { from: 0, to: 5, label: 'Trash' },
+    { from: 5, to: 12, label: 'Weak' },
+    { from: 12, to: 20, label: 'Marginal' },
+    { from: 20, to: 30, label: 'Medium' },
+    { from: 30, to: 40, label: 'Good' },
+    { from: 40, to: 47, label: 'Strong' },
+    { from: 47, to: 50, label: 'Nuts' },
+  ];
+  let strength = 'Unknown';
+  for (const s of strengthLabels) { if (bucket >= s.from && bucket < s.to) { strength = s.label; break; } }
+
+  if (!probs) {
+    tooltip.innerHTML = `<div class="tt-title">Group ${bucket} (${strength})</div><div style="color:var(--text-muted)">No data</div>`;
+  } else {
+    const labels = getActionLabels(state.historyKey, probs.length);
+    let html = `<div class="tt-title">Group ${bucket} &mdash; ${strength} Hands</div>`;
+    for (let i = 0; i < probs.length; i++) {
+      const color = getActionColor(labels[i]);
+      const pct = (probs[i] * 100).toFixed(1);
+      html += `<div class="tt-row"><div class="tt-action"><span class="tt-dot" style="background:${color}"></span>${labels[i]}</div><span class="tt-pct">${pct}%</span></div>`;
+    }
+    // Show hand examples in tooltip
+    const bucketExamples = getBucketHandExamples();
+    const examples = bucketExamples[bucket] || [];
+    if (examples.length > 0) {
+      html += `<div class="tt-hint">Hands: ${examples.slice(0, 8).join(', ')}${examples.length > 8 ? '...' : ''}</div>`;
+    } else {
+      html += `<div class="tt-hint">Group 0 = weakest &rarr; Group 49 = strongest</div>`;
+    }
+    tooltip.innerHTML = html;
+  }
+
+  tooltip.style.display = 'block';
+  moveTooltip(event);
+}
+
+function moveTooltip(event) {
+  const x = event.clientX + 16;
+  const y = event.clientY - 8;
+  tooltip.style.left = Math.min(x, window.innerWidth - 300) + 'px';
+  tooltip.style.top = Math.min(y, window.innerHeight - 200) + 'px';
+}
+
+function hideTooltip() { tooltip.style.display = 'none'; }
+
+// ═══════════ INIT ═══════════
+loadFlops();
+</script>
+</body>
+</html>

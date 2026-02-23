@@ -1,0 +1,26 @@
+{
+  "name": "@cardpilot/cfr-solver",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "node ../../node_modules/typescript/bin/tsc -p tsconfig.json",
+    "typecheck": "node ../../node_modules/typescript/bin/tsc -p tsconfig.json --noEmit",
+    "solve": "node --import tsx src/cli/solve.ts",
+    "solve:one": "node --import tsx src/cli/solve.ts --flops 1 --iterations 50000",
+    "solve:200": "node --import tsx src/cli/solve.ts --flops 200 --iterations 50000 --use-selector --parallel",
+    "solve:200:serial": "node --import tsx src/cli/solve.ts --flops 200 --iterations 50000 --use-selector",
+    "benchmark": "node --import tsx src/cli/benchmark.ts",
+    "viewer": "node --import tsx viewer/serve.ts",
+    "test": "node --import tsx --test src/__tests__/*.test.ts"
+  },
+  "dependencies": {
+    "@cardpilot/poker-evaluator": "0.1.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

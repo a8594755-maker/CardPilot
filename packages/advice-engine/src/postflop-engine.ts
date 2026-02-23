@@ -15,6 +15,7 @@ import { BoardAnalyzer } from "./board-analyzer.js";
 import { MathEngine } from "./math-engine.js";
 import { RangeEstimator, type HandRange } from "./range-estimator.js";
 import { WorkerService } from "./WorkerService.js";
+import { CfrAdvisor, type CfrQueryResult } from "./cfr-advisor.js";
 
 const EPSILON = 1e-6;
 const ONE_HOUR_MS = 60 * 60 * 1000;
@@ -327,6 +328,7 @@ const DEFAULT_STRATEGY_CONFIG: StrategyConfig = {
 export class PostflopEngine {
   private readonly bucketIndex = new Map<string, PostflopBucketStrategy>();
   private readonly strategyConfig: StrategyConfig;
+  private readonly cfrAdvisor: CfrAdvisor;
 
   constructor(rows?: PostflopBucketStrategy[], strategyConfig: StrategyConfig = DEFAULT_STRATEGY_CONFIG) {
     this.strategyConfig = strategyConfig;
@@ -338,6 +340,13 @@ export class PostflopEngine {
       console.log(`[advice-engine] loaded ${this.bucketIndex.size} postflop bucket rows`);
     } else {
       console.log("[advice-engine] no postflop bucket rows found, using heuristic fallback only");
+    }
+
+    // Initialize CFR advisor with solved strategy data
+    this.cfrAdvisor = new CfrAdvisor();
+    const cfrPaths = resolveCfrDataPaths();
+    if (cfrPaths) {
+      this.cfrAdvisor.load(cfrPaths.binary, cfrPaths.metaDir);
     }
   }
 
@@ -385,11 +394,23 @@ export class PostflopEngine {
       strategyConfig: this.strategyConfig,
     });
 
-    const frequency = normalizeFrequency(
-      bucket?.frequency
-        ? blendFrequency(bucket.frequency, solvedFrequency, 0.65)
-        : solvedFrequency
-    );
+    // Query CFR solved strategy if available
+    const cfrResult = this.cfrAdvisor.isLoaded ? this.cfrAdvisor.query(context) : null;
+
+    let frequency: PostflopFrequency;
+    if (cfrResult) {
+      // CFR available — blend with heuristic (CFR-weighted)
+      const cfrWeight = cfrResult.confidence;
+      frequency = normalizeFrequency(
+        blendFrequency(solvedFrequency, cfrResult.frequency, 1 - cfrWeight)
+      );
+    } else {
+      frequency = normalizeFrequency(
+        bucket?.frequency
+          ? blendFrequency(bucket.frequency, solvedFrequency, 0.65)
+          : solvedFrequency
+      );
+    }
 
     const preferredAction = bucket?.preferredAction ?? derivePreferredAction(frequency);
     const mix = normalizeMix(
@@ -407,9 +428,11 @@ export class PostflopEngine {
       context.effectiveStack
     );
     const frequencyText = formatFrequency(frequency, context.toCall);
-    const adviceSource = bucket
-      ? (bucket.bucketKey === baseKey ? "EXACT_BUCKET" : "FUZZY_BUCKET")
-      : "HEURISTIC_ENGINE";
+    const adviceSource = cfrResult
+      ? (cfrResult.source === 'cfr_exact' ? "CFR_SOLVED" : "CFR_NEAREST")
+      : bucket
+        ? (bucket.bucketKey === baseKey ? "EXACT_BUCKET" : "FUZZY_BUCKET")
+        : "HEURISTIC_ENGINE";
     const nutAdvantage = deriveNutAdvantage(handClass, boardTexture);
     const rangeAdvantage = deriveRangeAdvantage({
       context,
@@ -450,7 +473,7 @@ export class PostflopEngine {
       ? round4(context.toCall / (context.potSize + context.toCall))
       : 0;
     const mdf = round4(1 - alpha);
-    const isStandardNode = Boolean(bucket);
+    const isStandardNode = Boolean(bucket) || Boolean(cfrResult);
 
     return {
       tableId: context.tableId,
@@ -587,6 +610,48 @@ function resolvePostflopPath(): string | null {
 
   const thisDir = fileURLToPath(new URL(".", import.meta.url));
   return join(thisDir, "../../../data/postflop_buckets.sample.json");
+}
+
+function resolveCfrDataPaths(): { binary: string; metaDir: string } | null {
+  const thisDir = fileURLToPath(new URL(".", import.meta.url));
+
+  const binCandidates = [
+    process.env.CARDPILOT_CFR_DATA_PATH,
+    join(process.cwd(), "data", "cfr", "v1_hu_srp_50bb.bin.gz"),
+    join(thisDir, "../../../data/cfr/v1_hu_srp_50bb.bin.gz"),
+  ].filter(Boolean) as string[];
+
+  const metaDirCandidates = [
+    join(process.cwd(), "data", "cfr", "v1_hu_srp_50bb"),
+    join(thisDir, "../../../data/cfr/v1_hu_srp_50bb"),
+  ];
+
+  let binary: string | null = null;
+  for (const candidate of binCandidates) {
+    try {
+      readFileSync(candidate, { flag: 'r' });
+      binary = candidate;
+      break;
+    } catch {
+      // continue
+    }
+  }
+
+  if (!binary) return null;
+
+  let metaDir = binary.replace(/\.bin(\.gz)?$/, '');
+  for (const candidate of metaDirCandidates) {
+    try {
+      readFileSync(join(candidate, 'flop_000.meta.json'), 'utf-8');
+      metaDir = candidate;
+      break;
+    } catch {
+      // continue
+    }
+  }
+
+  console.log(`[advice-engine] CFR data: binary=${binary}, metaDir=${metaDir}`);
+  return { binary, metaDir };
 }
 
 function inferPotType(actions?: HandAction[]): "SRP" | "3BP" | "4BP" {
