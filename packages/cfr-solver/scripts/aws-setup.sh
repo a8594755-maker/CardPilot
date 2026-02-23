@@ -23,8 +23,9 @@
 set -e
 
 # ---- Configuration ----
-INSTANCE_TYPE="c6i.24xlarge"    # 96 vCPU, 192GB RAM
+INSTANCE_TYPE="c6i.8xlarge"     # 32 vCPU, 64GB RAM (4 solver workers)
 EBS_SIZE_GB=2500                # 2.5TB for solver output + buffer
+USE_SPOT=false                  # Set to true for spot pricing (~70% cheaper)
 AMI_ID="ami-0c7217cdde317cfec"  # Ubuntu 22.04 LTS (us-east-1, update for your region)
 KEY_NAME="cardpilot-solver"     # Your AWS key pair name
 SECURITY_GROUP="cardpilot-sg"   # Will be created if not exists
@@ -75,9 +76,9 @@ else
   echo "Key pair exists: ${KEY_NAME}"
 fi
 
-# ---- Step 3: Request Spot Instance ----
+# ---- Step 3: Launch Instance ----
 echo ""
-echo "Requesting spot instance..."
+echo "Launching instance (spot=${USE_SPOT})..."
 
 # User data script that runs on first boot
 USER_DATA=$(cat <<'USERDATA'
@@ -115,13 +116,18 @@ USERDATA
 
 ENCODED_USER_DATA=$(echo "$USER_DATA" | base64 -w 0)
 
-# Launch spot instance
+# Build launch command
+SPOT_FLAG=""
+if [ "$USE_SPOT" = true ]; then
+  SPOT_FLAG="--instance-market-options {\"MarketType\":\"spot\",\"SpotOptions\":{\"SpotInstanceType\":\"one-time\"}}"
+fi
+
 INSTANCE_ID=$(aws ec2 run-instances \
   --image-id "${AMI_ID}" \
   --instance-type "${INSTANCE_TYPE}" \
   --key-name "${KEY_NAME}" \
   --security-group-ids "${SG_ID}" \
-  --instance-market-options '{"MarketType":"spot","SpotOptions":{"SpotInstanceType":"persistent","InstanceInterruptionBehavior":"stop"}}' \
+  ${SPOT_FLAG} \
   --block-device-mappings "[{\"DeviceName\":\"/dev/sda1\",\"Ebs\":{\"VolumeSize\":100,\"VolumeType\":\"gp3\"}},{\"DeviceName\":\"/dev/xvdf\",\"Ebs\":{\"VolumeSize\":${EBS_SIZE_GB},\"VolumeType\":\"gp3\",\"Iops\":6000,\"Throughput\":400}}]" \
   --user-data "${ENCODED_USER_DATA}" \
   --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=cardpilot-solver}]" \
