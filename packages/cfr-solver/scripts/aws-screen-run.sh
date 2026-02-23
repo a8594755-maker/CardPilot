@@ -11,7 +11,7 @@
 #
 # ============================================================
 
-REPO_URL="${1:-https://github.com/YOUR_USER/CardPilot.git}"
+REPO_URL="${1:-https://github.com/a8594755-maker/CardPilot.git}"
 S3_BUCKET="${2:-cardpilot-solver-output}"
 
 # Install screen if not available
