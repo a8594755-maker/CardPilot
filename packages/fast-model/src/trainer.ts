@@ -43,6 +43,11 @@ interface TrainerArgs {
   isV2: boolean;
   warmStart: string | null; // path to V1 model for transfer learning
   maxSamples: number | null; // optional cap for staged training
+  trainSplit: number; // fraction for train set (default 0.9)
+  maxOversampleRatio: number; // V2 anti-bias cap
+  hardExampleFraction: number; // V2 hard mining fraction
+  disableHardMining: boolean; // V2 hard mining toggle
+  initialLr: number; // initial learning rate override
 }
 
 function parseTrainerArgs(): TrainerArgs {
@@ -52,6 +57,11 @@ function parseTrainerArgs(): TrainerArgs {
   let isV2 = false;
   let warmStart: string | null = null;
   let maxSamples: number | null = null;
+  let trainSplit = TRAIN_SPLIT;
+  let maxOversampleRatio = MAX_OVERSAMPLE_RATIO;
+  let hardExampleFraction = HARD_EXAMPLE_FRACTION;
+  let disableHardMining = false;
+  let initialLr = LEARNING_RATE_INIT;
 
   const argv = process.argv.slice(2);
   for (let i = 0; i < argv.length; i++) {
@@ -63,9 +73,39 @@ function parseTrainerArgs(): TrainerArgs {
       const parsed = parseInt(argv[++i], 10);
       if (Number.isFinite(parsed) && parsed > 0) maxSamples = parsed;
     }
+    if (argv[i] === '--train-split' && argv[i + 1]) {
+      const parsed = parseFloat(argv[++i]);
+      if (Number.isFinite(parsed) && parsed > 0 && parsed <= 1) trainSplit = parsed;
+    }
+    if (argv[i] === '--max-oversample-ratio' && argv[i + 1]) {
+      const parsed = parseFloat(argv[++i]);
+      if (Number.isFinite(parsed) && parsed >= 1) maxOversampleRatio = parsed;
+    }
+    if (argv[i] === '--hard-example-fraction' && argv[i + 1]) {
+      const parsed = parseFloat(argv[++i]);
+      if (Number.isFinite(parsed) && parsed >= 0 && parsed <= 1) hardExampleFraction = parsed;
+    }
+    if (argv[i] === '--disable-hard-mining') {
+      disableHardMining = true;
+    }
+    if (argv[i] === '--lr' && argv[i + 1]) {
+      const parsed = parseFloat(argv[++i]);
+      if (Number.isFinite(parsed) && parsed > 0) initialLr = parsed;
+    }
   }
 
-  return { dataDir, outPath, isV2, warmStart, maxSamples };
+  return {
+    dataDir,
+    outPath,
+    isV2,
+    warmStart,
+    maxSamples,
+    trainSplit,
+    maxOversampleRatio,
+    hardExampleFraction,
+    disableHardMining,
+    initialLr,
+  };
 }
 
 // ── Data loading ──
@@ -126,7 +166,7 @@ function argmax(arr: number[]): number {
 
 const MAX_OVERSAMPLE_RATIO = 3; // cap at 3x original dataset size
 
-function balanceSamples(samples: TrainingSample[]): TrainingSample[] {
+function balanceSamples(samples: TrainingSample[], maxOversampleRatio: number = MAX_OVERSAMPLE_RATIO): TrainingSample[] {
   // Step 1: Group by street
   const byStreet = new Map<string, TrainingSample[]>();
   for (const s of samples) {
@@ -182,7 +222,7 @@ function balanceSamples(samples: TrainingSample[]): TrainingSample[] {
   }
 
   // Final safety cap: don't exceed MAX_OVERSAMPLE_RATIO × original size
-  const maxTotal = samples.length * MAX_OVERSAMPLE_RATIO;
+  const maxTotal = Math.floor(samples.length * maxOversampleRatio);
   if (balanced.length > maxTotal) {
     shuffle(balanced);
     return balanced.slice(0, maxTotal);
@@ -390,7 +430,7 @@ function trainV1(trainSet: TrainingSample[], valSet: TrainingSample[]): ModelWei
     }
 
     const trainLoss = epochLoss / trainSet.length;
-    const valLoss = evaluateV1(model, valSet);
+    const valLoss = valSet.length > 0 ? evaluateV1(model, valSet) : trainLoss;
 
     const indicator = valLoss < bestValLoss ? ' *' : '';
     console.log(
@@ -830,7 +870,18 @@ function evaluateV2Loss(model: ModelWeights, samples: TrainingSample[]): number 
   return totalLoss / samples.length;
 }
 
-function trainV2(trainSet: TrainingSample[], valSet: TrainingSample[], warmStartModel?: ModelWeights): ModelWeights {
+interface V2TrainOptions {
+  hardExampleFraction: number;
+  disableHardMining: boolean;
+  initialLr: number;
+}
+
+function trainV2(
+  trainSet: TrainingSample[],
+  valSet: TrainingSample[],
+  warmStartModel?: ModelWeights,
+  options?: V2TrainOptions,
+): ModelWeights {
   const model = warmStartModel
     ? warmStartModel
     : createRandomModelV2(FEATURE_COUNT_V2, HIDDEN_SIZES, ACTION_OUTPUT_SIZE, SIZING_OUTPUT_SIZE);
@@ -844,8 +895,10 @@ function trainV2(trainSet: TrainingSample[], valSet: TrainingSample[], warmStart
   let bestModel = cloneWeights(model);
   let bestValLoss = Infinity;
   let patience = 0;
-  let lr = LEARNING_RATE_INIT;
+  let lr = options?.initialLr ?? LEARNING_RATE_INIT;
   let workingTrainSet = [...trainSet];
+  const hardExampleFraction = options?.hardExampleFraction ?? HARD_EXAMPLE_FRACTION;
+  const enableHardMining = !options?.disableHardMining && hardExampleFraction > 0;
 
   for (let epoch = 1; epoch <= MAX_EPOCHS; epoch++) {
     if (epoch > 1 && (epoch - 1) % LR_DECAY_EVERY === 0) {
@@ -854,7 +907,7 @@ function trainV2(trainSet: TrainingSample[], valSet: TrainingSample[], warmStart
     }
 
     // Hard example mining after epoch 1 (reuses pre-allocated buffers)
-    if (epoch === 2) {
+    if (epoch === 2 && enableHardMining) {
       console.log('  Hard example mining: identifying difficult samples...');
       const losses = trainSet.map(s => {
         forwardV2Into(model, s.f, buf);
@@ -865,7 +918,7 @@ function trainV2(trainSet: TrainingSample[], valSet: TrainingSample[], warmStart
         return { sample: s, loss };
       });
       losses.sort((a, b) => b.loss - a.loss);
-      const hardCount = Math.floor(losses.length * HARD_EXAMPLE_FRACTION);
+      const hardCount = Math.floor(losses.length * hardExampleFraction);
       const hardExamples = losses.slice(0, hardCount).map(x => x.sample);
       workingTrainSet = [...trainSet, ...hardExamples];
       console.log(`  Added ${hardCount} hard examples (${workingTrainSet.length} total)`);
@@ -909,7 +962,7 @@ function trainV2(trainSet: TrainingSample[], valSet: TrainingSample[], warmStart
     }
 
     const trainLoss = epochLoss / workingTrainSet.length;
-    const valLoss = evaluateV2Loss(model, valSet);
+    const valLoss = valSet.length > 0 ? evaluateV2Loss(model, valSet) : trainLoss;
 
     const indicator = valLoss < bestValLoss ? ' *' : '';
     console.log(
@@ -948,13 +1001,28 @@ function loadModelFromPath(modelPath: string): ModelWeights {
 // ── Entry point ──
 
 function main(): void {
-  const { dataDir, outPath, isV2, warmStart, maxSamples } = parseTrainerArgs();
+  const {
+    dataDir,
+    outPath,
+    isV2,
+    warmStart,
+    maxSamples,
+    trainSplit,
+    maxOversampleRatio,
+    hardExampleFraction,
+    disableHardMining,
+    initialLr,
+  } = parseTrainerArgs();
   const featureCount = isV2 ? FEATURE_COUNT_V2 : FEATURE_COUNT;
 
   console.log(`Loading samples from: ${dataDir}`);
   console.log(`Mode: ${isV2 ? 'V2 (multi-head + anti-bias)' : 'V1 (single-head)'}`);
   if (maxSamples != null) {
     console.log(`Sample cap: ${maxSamples}`);
+  }
+  if (isV2) {
+    const hardMiningText = disableHardMining ? 'off' : `on(${hardExampleFraction})`;
+    console.log(`V2 options: maxOversampleRatio=${maxOversampleRatio}, hardMining=${hardMiningText}, lr=${initialLr}`);
   }
   let allSamples = loadSamples(dataDir, featureCount, maxSamples);
   console.log(`Loaded ${allSamples.length} samples`);
@@ -968,13 +1036,13 @@ function main(): void {
   if (isV2) {
     console.log('Applying anti-bias sampling...');
     const beforeCount = allSamples.length;
-    allSamples = balanceSamples(allSamples);
+    allSamples = balanceSamples(allSamples, maxOversampleRatio);
     console.log(`  ${beforeCount} → ${allSamples.length} samples after balancing`);
   }
 
   // Shuffle and split
   shuffle(allSamples);
-  const splitIdx = Math.floor(allSamples.length * TRAIN_SPLIT);
+  const splitIdx = Math.floor(allSamples.length * trainSplit);
   const trainSet = allSamples.slice(0, splitIdx);
   const valSet = allSamples.slice(splitIdx);
   console.log(`Split: ${trainSet.length} train / ${valSet.length} validation\n`);
@@ -1005,7 +1073,9 @@ function main(): void {
   }
 
   // Train
-  const bestModel = isV2 ? trainV2(trainSet, valSet, warmStartModel) : trainV1(trainSet, valSet);
+  const bestModel = isV2
+    ? trainV2(trainSet, valSet, warmStartModel, { hardExampleFraction, disableHardMining, initialLr })
+    : trainV1(trainSet, valSet);
 
   // Save model
   const outDir = dirname(outPath);
@@ -1019,7 +1089,8 @@ function main(): void {
   console.log(`  Samples: ${bestModel.trainingSamples}`);
 
   // Evaluate and save metrics
-  const metrics = evaluateModel(bestModel, valSet);
+  const evalSet = valSet.length > 0 ? valSet : trainSet;
+  const metrics = evaluateModel(bestModel, evalSet);
   printMetrics(metrics);
 
   const metricsPath = outPath.replace('.json', '-metrics.json');
