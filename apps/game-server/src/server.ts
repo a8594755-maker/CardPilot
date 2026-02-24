@@ -4111,7 +4111,8 @@ io.on("connection", (socket) => {
       pendingRebuys.set(orderId, deposit);
 
       // Club table rebuys are hostless: auto-approved for active members.
-      const autoApprove = !!clubInfo || roomManager.isHostOrCoHost(payload.tableId, identity.userId);
+      // selfPlayTurbo rooms also auto-approve (no host to approve manually).
+      const autoApprove = !!clubInfo || roomManager.isHostOrCoHost(payload.tableId, identity.userId) || !!managed.settings.selfPlayTurbo;
       if (autoApprove) {
         deposit.approved = true;
         socket.emit("system_message", { message: `Rebuy of ${payload.amount} approved — credited at next hand start.` });

@@ -111,10 +111,12 @@ export class TraceLogger {
   private buffer: DecisionTrace[] = [];
   private maxBuffer: number;
   private traceFile: string | null;
+  private stdoutEnabled: boolean;
 
   constructor(maxBuffer = 100) {
     this.maxBuffer = maxBuffer;
     this.traceFile = process.env['BOT_TRACE_FILE'] ?? null;
+    this.stdoutEnabled = process.env['BOT_TRACE_STDOUT'] === '1';
   }
 
   log(trace: DecisionTrace): void {
@@ -129,7 +131,7 @@ export class TraceLogger {
       import('fs').then(fs => {
         fs.appendFileSync(this.traceFile!, line + '\n');
       }).catch(() => {});
-    } else {
+    } else if (this.stdoutEnabled) {
       console.log(`[TRACE] ${line}`);
     }
   }

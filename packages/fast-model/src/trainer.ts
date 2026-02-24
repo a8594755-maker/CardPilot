@@ -42,6 +42,7 @@ interface TrainerArgs {
   outPath: string;
   isV2: boolean;
   warmStart: string | null; // path to V1 model for transfer learning
+  maxSamples: number | null; // optional cap for staged training
 }
 
 function parseTrainerArgs(): TrainerArgs {
@@ -50,6 +51,7 @@ function parseTrainerArgs(): TrainerArgs {
   let outPath = join(__dirname, '..', 'models', 'model-latest.json');
   let isV2 = false;
   let warmStart: string | null = null;
+  let maxSamples: number | null = null;
 
   const argv = process.argv.slice(2);
   for (let i = 0; i < argv.length; i++) {
@@ -57,14 +59,18 @@ function parseTrainerArgs(): TrainerArgs {
     if (argv[i] === '--out' && argv[i + 1]) outPath = argv[++i];
     if (argv[i] === '--v2') isV2 = true;
     if (argv[i] === '--warm-start' && argv[i + 1]) warmStart = argv[++i];
+    if (argv[i] === '--max-samples' && argv[i + 1]) {
+      const parsed = parseInt(argv[++i], 10);
+      if (Number.isFinite(parsed) && parsed > 0) maxSamples = parsed;
+    }
   }
 
-  return { dataDir, outPath, isV2, warmStart };
+  return { dataDir, outPath, isV2, warmStart, maxSamples };
 }
 
 // ── Data loading ──
 
-function loadSamples(dataDir: string, expectedFeatureCount: number): TrainingSample[] {
+function loadSamples(dataDir: string, expectedFeatureCount: number, maxSamples: number | null = null): TrainingSample[] {
   if (!existsSync(dataDir)) {
     console.error(`Data directory not found: ${dataDir}`);
     process.exit(1);
@@ -86,6 +92,9 @@ function loadSamples(dataDir: string, expectedFeatureCount: number): TrainingSam
         const sample = JSON.parse(trimmed) as TrainingSample;
         if (sample.f && sample.l && sample.f.length === expectedFeatureCount && sample.l.length === 3) {
           samples.push(sample);
+          if (maxSamples != null && samples.length >= maxSamples) {
+            return samples;
+          }
         }
       } catch {
         // skip malformed lines
@@ -135,7 +144,7 @@ function balanceSamples(samples: TrainingSample[]): TrainingSample[] {
   const streetBalanced: TrainingSample[] = [];
   for (const [, group] of byStreet) {
     const target = Math.min(streetTarget, group.length * 10); // never oversample a single street more than 10x
-    streetBalanced.push(...group);
+    for (const sample of group) streetBalanced.push(sample);
     let needed = target - group.length;
     while (needed > 0) {
       streetBalanced.push(group[Math.floor(Math.random() * group.length)]);
@@ -164,7 +173,7 @@ function balanceSamples(samples: TrainingSample[]): TrainingSample[] {
   for (const [key, group] of byStreetAction) {
     const street = key.split(':')[0];
     const target = streetActionCounts.get(street) ?? group.length;
-    balanced.push(...group);
+    for (const sample of group) balanced.push(sample);
     let needed = target - group.length;
     while (needed > 0) {
       balanced.push(group[Math.floor(Math.random() * group.length)]);
@@ -929,15 +938,25 @@ function trainV2(trainSet: TrainingSample[], valSet: TrainingSample[], warmStart
   return bestModel;
 }
 
+function loadModelFromPath(modelPath: string): ModelWeights {
+  if (!existsSync(modelPath)) {
+    throw new Error(`Model file not found: ${modelPath}`);
+  }
+  return JSON.parse(readFileSync(modelPath, 'utf-8')) as ModelWeights;
+}
+
 // ── Entry point ──
 
 function main(): void {
-  const { dataDir, outPath, isV2, warmStart } = parseTrainerArgs();
+  const { dataDir, outPath, isV2, warmStart, maxSamples } = parseTrainerArgs();
   const featureCount = isV2 ? FEATURE_COUNT_V2 : FEATURE_COUNT;
 
   console.log(`Loading samples from: ${dataDir}`);
   console.log(`Mode: ${isV2 ? 'V2 (multi-head + anti-bias)' : 'V1 (single-head)'}`);
-  let allSamples = loadSamples(dataDir, featureCount);
+  if (maxSamples != null) {
+    console.log(`Sample cap: ${maxSamples}`);
+  }
+  let allSamples = loadSamples(dataDir, featureCount, maxSamples);
   console.log(`Loaded ${allSamples.length} samples`);
 
   if (allSamples.length < 100) {
@@ -963,8 +982,14 @@ function main(): void {
   // Warm-start: transfer V1 weights to V2 model
   let warmStartModel: ModelWeights | undefined;
   if (isV2 && warmStart) {
-    console.log(`Warm-starting V2 from V1 model: ${warmStart}`);
-    warmStartModel = warmStartV2FromV1(warmStart);
+    const sourceModel = loadModelFromPath(warmStart);
+    if (sourceModel.actionHead && sourceModel.sizingHead) {
+      console.log(`Warm-starting V2 from V2 checkpoint: ${warmStart}`);
+      warmStartModel = sourceModel;
+    } else {
+      console.log(`Warm-starting V2 from V1 model: ${warmStart}`);
+      warmStartModel = warmStartV2FromV1(warmStart);
+    }
   } else if (isV2 && !warmStart) {
     // Auto-detect V1 model for warm-start
     const __dirname = dirname(fileURLToPath(import.meta.url));
