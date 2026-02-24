@@ -490,7 +490,7 @@ export function RoomSettingsPanel({ roomState, isHost, readOnly = false, initial
                       onChange={(e) => {
                         const prev = (botSeats ?? []).filter((b) => b.seat !== seat);
                         if (e.target.value) {
-                          prev.push({ seat, profile: e.target.value, modelVersion: existing?.modelVersion ?? "v1" });
+                          prev.push({ seat, profile: e.target.value, modelVersion: existing?.modelVersion ?? "v2.1" });
                         }
                         updateField("botSeats", prev);
                       }}
@@ -506,7 +506,7 @@ export function RoomSettingsPanel({ roomState, isHost, readOnly = false, initial
                     </select>
                     {existing && (
                       <select
-                        value={existing.modelVersion ?? "v1"}
+                        value={existing.modelVersion ?? "v2.1"}
                         onChange={(e) => {
                           const updated = botSeats.map((b) =>
                             b.seat === seat ? { ...b, modelVersion: e.target.value } : b
@@ -518,6 +518,9 @@ export function RoomSettingsPanel({ roomState, isHost, readOnly = false, initial
                       >
                         <option value="v0">V0</option>
                         <option value="v1">V1</option>
+                        <option value="v2">V2 (latest)</option>
+                        <option value="v2.1">V2.1 (300k)</option>
+                        <option value="v2.2">V2.2 (full)</option>
                       </select>
                     )}
                   </>
@@ -549,7 +552,10 @@ export function RoomSettingsPanel({ roomState, isHost, readOnly = false, initial
 
           <div className="text-[10px] text-slate-500 mt-2 space-y-1">
             <p><span className="text-indigo-400 font-medium">V0</span> = Heuristic (rule-based, no ML model)</p>
-            <p><span className="text-indigo-400 font-medium">V1</span> = Trained MLP (251K samples, 91.9% accuracy)</p>
+            <p><span className="text-indigo-400 font-medium">V1</span> = Legacy trained MLP</p>
+            <p><span className="text-indigo-400 font-medium">V2</span> = model-v2-latest (currently V2.1)</p>
+            <p><span className="text-indigo-400 font-medium">V2.1</span> = 300k curated checkpoint</p>
+            <p><span className="text-indigo-400 font-medium">V2.2</span> = full-data optimized checkpoint</p>
           </div>
         </div>
       )}
