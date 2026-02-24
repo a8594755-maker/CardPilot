@@ -12,6 +12,7 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const oauthRedirectOverride = import.meta.env.VITE_OAUTH_REDIRECT_URL;
 const DEV_MODE = import.meta.env.DEV;
+const AUTH_REQUEST_TIMEOUT_MS = 15_000;
 
 const GUEST_SESSION_STORAGE_KEY = "cardpilot_guest_session";
 const GUEST_USER_ID_STORAGE_KEY = "cardpilot_guest_user_id";
@@ -122,6 +123,21 @@ type AuthErrorDetails = {
   status: number | null;
 };
 
+async function withAuthTimeout<T>(promise: Promise<T>, actionLabel: string): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  const timeoutPromise = new Promise<T>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`${actionLabel} timed out after ${Math.round(AUTH_REQUEST_TIMEOUT_MS / 1000)}s.`));
+    }, AUTH_REQUEST_TIMEOUT_MS);
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+}
+
 function extractAuthErrorDetails(err: unknown): AuthErrorDetails {
   if (err && typeof err === "object") {
     const e = err as {
@@ -219,7 +235,7 @@ async function getSupabaseSession(): Promise<AuthSession | null> {
   if (getSupabaseSessionInFlight) return getSupabaseSessionInFlight;
 
   getSupabaseSessionInFlight = (async () => {
-    const { data: existing, error } = await supabase.auth.getSession();
+    const { data: existing, error } = await withAuthTimeout(supabase.auth.getSession(), "Session check");
     if (error) {
       if (isInvalidRefreshTokenError(error)) {
         await handleInvalidRefreshToken(error);
@@ -311,6 +327,14 @@ function friendlyAuthError(err: unknown): Error {
   const details = extractAuthErrorDetails(err);
   const msg = details.message;
   const combined = `${details.message} ${details.description ?? ""}`.toLowerCase();
+  if (
+    combined.includes("timed out") ||
+    combined.includes("timeout") ||
+    combined.includes("failed to fetch") ||
+    combined.includes("network request failed")
+  ) {
+    return new Error("Unable to reach Supabase auth service. Check your network and try again.");
+  }
   if (combined.includes("rate limit") || msg.includes("429") || details.status === 429) {
     return new Error("Email rate limit exceeded. Please wait a few minutes before trying again.");
   }
@@ -357,7 +381,7 @@ export async function getExistingSession(): Promise<AuthSession | null> {
   // try to upgrade to an anonymous Supabase session for history persistence.
   if (supabase && !isUuid(cached.userId)) {
     try {
-      const { data, error } = await supabase.auth.signInAnonymously();
+      const { data, error } = await withAuthTimeout(supabase.auth.signInAnonymously(), "Guest sign-in");
       if (!error && data.session && data.user) {
         clearGuestSession();
         return {
@@ -391,7 +415,7 @@ export async function ensureGuestSession(displayName?: string): Promise<AuthSess
   if (supabase) {
     checkRateLimit();
     try {
-      const { data, error } = await supabase.auth.signInAnonymously();
+      const { data, error } = await withAuthTimeout(supabase.auth.signInAnonymously(), "Guest sign-in");
       if (error) throw error;
       if (!data.session || !data.user) throw new Error("Anonymous sign-in returned no session.");
       clearGuestSession();
@@ -435,16 +459,19 @@ export async function signUpWithEmail(email: string, password: string, displayNa
       options: normalizedDisplayName ? { data: { display_name: normalizedDisplayName } } : undefined,
     };
 
-    let { data, error } = await supabase.auth.signUp(signUpPayload);
+    let { data, error } = await withAuthTimeout(supabase.auth.signUp(signUpPayload), "Sign up");
 
     // Some Supabase projects reject metadata at signup (422). Retry once without metadata.
     if (error && normalizedDisplayName) {
       const details = extractAuthErrorDetails(error);
       if (shouldRetrySignUpWithoutMetadata(details)) {
-        ({ data, error } = await supabase.auth.signUp({
-          email: normalizedEmail,
-          password,
-        }));
+        ({ data, error } = await withAuthTimeout(
+          supabase.auth.signUp({
+            email: normalizedEmail,
+            password,
+          }),
+          "Sign up",
+        ));
       }
     }
 
@@ -484,7 +511,7 @@ export async function signInWithEmail(email: string, password: string): Promise<
   checkRateLimit();
 
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await withAuthTimeout(supabase.auth.signInWithPassword({ email, password }), "Sign in");
     if (error) throw error;
     if (!data.session || !data.user) throw new Error("Sign in failed");
     invalidRefreshHandled = false;
@@ -512,11 +539,22 @@ export async function signInWithGoogle(): Promise<void> {
         : undefined;
     const redirectTo =
       fromEnv || (typeof window !== "undefined" ? window.location.origin : undefined);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: redirectTo ? { redirectTo } : undefined,
-    });
+    const { data, error } = await withAuthTimeout(
+      supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: redirectTo ? { redirectTo, skipBrowserRedirect: true } : { skipBrowserRedirect: true },
+      }),
+      "Google sign-in",
+    );
     if (error) throw error;
+    const redirectUrl = data?.url;
+    if (!redirectUrl) {
+      throw new Error("Google sign-in did not return a redirect URL. Check Supabase Google OAuth settings.");
+    }
+    if (typeof window === "undefined") {
+      throw new Error("Google sign-in redirect is only available in the browser.");
+    }
+    window.location.assign(redirectUrl);
   } catch (err) {
     throw friendlyAuthError(err);
   }

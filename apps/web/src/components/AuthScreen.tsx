@@ -94,8 +94,10 @@ export function AuthScreen({
     setLoading(true);
     try {
       await signInWithGoogle();
+      setSuccessMsg("Redirecting to Google...");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
+    } finally {
       setLoading(false);
     }
   }
