@@ -6,7 +6,7 @@ import {
   getTreeConfig, getSolveDefaults, getConfigOutputDir, getStackLabel,
   type TreeConfigName,
 } from '../tree/tree-config.js';
-import type { PipelineJob } from './queue-server.js';
+import { type PipelineJob, loadCompletedLog } from './queue-server.js';
 import { resolve } from 'node:path';
 import { existsSync, readdirSync } from 'node:fs';
 
@@ -36,14 +36,25 @@ export function generateJobs(opts: GenerateOptions): PipelineJob[] {
 
   // Check for already-completed flops if resuming
   let completedIds = new Set<number>();
-  if (opts.resume && existsSync(outputDir)) {
-    const files = readdirSync(outputDir);
-    for (const f of files) {
-      const match = f.match(/^flop_(\d+)\.meta\.json$/);
-      if (match) completedIds.add(parseInt(match[1], 10));
+  if (opts.resume) {
+    // Source 1: local .meta.json files (flops solved on this machine)
+    if (existsSync(outputDir)) {
+      const files = readdirSync(outputDir);
+      for (const f of files) {
+        const match = f.match(/^flop_(\d+)\.meta\.json$/);
+        if (match) completedIds.add(parseInt(match[1], 10));
+      }
     }
+    const localCount = completedIds.size;
+
+    // Source 2: completed.jsonl log (flops solved by ANY machine, persisted by coordinator)
+    const logPath = resolve(outputDir, 'completed.jsonl');
+    const fromLog = loadCompletedLog(logPath);
+    for (const id of fromLog) completedIds.add(id);
+
     if (completedIds.size > 0) {
       console.log(`[Job Generator] Resume: ${completedIds.size} flops already solved, skipping`);
+      console.log(`[Job Generator]   (${localCount} from local .meta.json, ${fromLog.size} from completed.jsonl)`);
     }
   }
 

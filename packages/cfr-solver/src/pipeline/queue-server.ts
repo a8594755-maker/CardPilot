@@ -11,6 +11,7 @@
 //   GET  /healthz          — Health check
 
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
+import { appendFileSync, readFileSync, existsSync } from 'node:fs';
 import type { TreeConfigName } from '../tree/tree-config.js';
 
 // ---------- Types ----------
@@ -66,6 +67,46 @@ const completed: CompletedJob[] = [];
 const failed: FailedJob[] = [];
 const failCounts = new Map<string, number>(); // jobId → retry count
 
+// Persistent completion log — survives coordinator restarts
+let completedLogPath: string | null = null;
+
+export function setCompletedLogPath(path: string): void {
+  completedLogPath = path;
+}
+
+/** Read completed.jsonl and return set of boardIds already done. */
+export function loadCompletedLog(path: string): Set<number> {
+  const ids = new Set<number>();
+  if (!existsSync(path)) return ids;
+  try {
+    const lines = readFileSync(path, 'utf-8').split('\n').filter(l => l.trim());
+    for (const line of lines) {
+      const record = JSON.parse(line);
+      if (typeof record.boardId === 'number') ids.add(record.boardId);
+    }
+  } catch (err) {
+    console.error(`[Queue Server] Warning: failed to read ${path}:`, err);
+  }
+  return ids;
+}
+
+function appendCompletedLog(entry: CompletedJob): void {
+  if (!completedLogPath) return;
+  try {
+    const line = JSON.stringify({
+      jobId: entry.jobId,
+      boardId: entry.boardId,
+      worker: entry.worker,
+      infoSets: entry.infoSets,
+      elapsedMs: entry.elapsedMs,
+      completedAt: entry.completedAt,
+    }) + '\n';
+    appendFileSync(completedLogPath, line);
+  } catch (err) {
+    console.error(`[Queue Server] Warning: failed to append to completion log:`, err);
+  }
+}
+
 const MAX_RETRIES = 3;
 // NOTE: heartbeat-based detection doesn't work because solveCFR is a synchronous
 // tight loop — process.send() buffers messages but the event loop never flushes them
@@ -101,7 +142,7 @@ function markDone(
   if (!entry) return false;
 
   running.delete(jobId);
-  completed.push({
+  const record: CompletedJob = {
     jobId,
     boardId: entry.job.boardId,
     infoSets: info.infoSets,
@@ -110,7 +151,9 @@ function markDone(
     peakMemoryMB: info.peakMemoryMB,
     completedAt: Date.now(),
     worker: entry.claimedBy,
-  });
+  };
+  completed.push(record);
+  appendCompletedLog(record);
   return true;
 }
 

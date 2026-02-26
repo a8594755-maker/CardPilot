@@ -11,7 +11,7 @@
 //   npx tsx pipeline.ts status --server http://192.168.1.100:3500
 
 import { resolve } from 'node:path';
-import { existsSync } from 'node:fs';
+import { existsSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { request } from 'node:http';
 
@@ -90,8 +90,14 @@ async function runCoordinator(): Promise<void> {
   console.log(`Resume:       ${resume}`);
   console.log();
 
-  // Start queue server
-  const { startQueueServer, addJobs } = await import('../pipeline/queue-server.js');
+  // Configure completion log path and start queue server
+  const { startQueueServer, addJobs, setCompletedLogPath } = await import('../pipeline/queue-server.js');
+  const { getConfigOutputDir } = await import('../tree/tree-config.js');
+  const outputDir = resolve(PROJECT_ROOT, 'data/cfr', getConfigOutputDir(configName));
+  mkdirSync(outputDir, { recursive: true });
+  const completedLogPath = resolve(outputDir, 'completed.jsonl');
+  setCompletedLogPath(completedLogPath);
+  console.log(`Completion log: ${completedLogPath}`);
   startQueueServer(port);
 
   // Generate jobs
