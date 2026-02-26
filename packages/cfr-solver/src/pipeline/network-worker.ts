@@ -327,6 +327,28 @@ async function fetchAndDispatch(worker: LocalWorker): Promise<void> {
   }
 }
 
+// ---------- Heartbeat ----------
+
+/** Send periodic heartbeats for all busy workers so the coordinator knows we're alive.
+ *  Child process IPC progress messages are buffered during synchronous solveCFR and
+ *  never arrive until the solve finishes.  This parent-level heartbeat runs on the
+ *  (idle) main event loop and keeps lastProgressAt fresh on the coordinator. */
+function startHeartbeatLoop(): void {
+  setInterval(async () => {
+    for (const w of localWorkers) {
+      if (!w.busy || !w.currentJob) continue;
+      try {
+        await httpPost(`${serverUrl}/progress`, {
+          jobId: w.currentJob.jobId,
+          iteration: 0,   // we don't know real iteration; 0 is fine — it just refreshes lastProgressAt
+          total: w.currentJob.iterations,
+          heartbeat: true, // flag so coordinator can distinguish real progress from keep-alive
+        });
+      } catch { /* best-effort */ }
+    }
+  }, 30_000);
+}
+
 // ---------- Status Printer ----------
 
 function printStatusLoop(): void {
@@ -390,7 +412,8 @@ async function main(): Promise<void> {
     fetchAndDispatch(worker);
   }
 
-  // Status printer
+  // Heartbeat & status printer
+  startHeartbeatLoop();
   printStatusLoop();
 
   // Graceful shutdown

@@ -72,6 +72,28 @@ let completedLogPath: string | null = null;
 
 export function setCompletedLogPath(path: string): void {
   completedLogPath = path;
+  // Restore completed records into in-memory array so dashboard shows correct counts
+  if (existsSync(path)) {
+    try {
+      const lines = readFileSync(path, 'utf-8').split('\n').filter(l => l.trim());
+      for (const line of lines) {
+        const record = JSON.parse(line);
+        completed.push({
+          jobId: record.jobId ?? '',
+          boardId: record.boardId ?? 0,
+          infoSets: record.infoSets ?? 0,
+          fileSize: record.fileSize ?? 0,
+          elapsedMs: record.elapsedMs ?? 0,
+          peakMemoryMB: record.peakMemoryMB ?? 0,
+          completedAt: record.completedAt ?? 0,
+          worker: record.worker ?? 'unknown',
+        });
+      }
+      console.log(`[Queue Server] Restored ${completed.length} completed records from log`);
+    } catch (err) {
+      console.error(`[Queue Server] Warning: failed to restore completed log:`, err);
+    }
+  }
 }
 
 /** Read completed.jsonl and return set of boardIds already done. */
@@ -108,10 +130,10 @@ function appendCompletedLog(entry: CompletedJob): void {
 }
 
 const MAX_RETRIES = 3;
-// NOTE: heartbeat-based detection doesn't work because solveCFR is a synchronous
-// tight loop — process.send() buffers messages but the event loop never flushes them
-// until the solve completes. Fall back to claimedAt-based timeout with generous limit.
-const STALE_TIMEOUT_MS = 120 * 60 * 1000; // 120 min: max expected solve time
+// Heartbeat-based stale detection: network-worker sends parent-level heartbeats every
+// 30s (child process IPC is still buffered, but parent event loop is free).
+// If no heartbeat arrives within STALE_TIMEOUT_MS, the job is considered stale.
+const STALE_TIMEOUT_MS = 5 * 60 * 1000; // 5 min: generous vs 30s heartbeat interval
 
 // ---------- Queue Operations ----------
 
@@ -181,9 +203,15 @@ function markFailed(jobId: string, error: string): boolean {
   return true;
 }
 
-function markProgress(jobId: string, info: { iteration: number; total: number }): boolean {
+function markProgress(jobId: string, info: { iteration: number; total: number; heartbeat?: boolean }): boolean {
   const entry = running.get(jobId);
   if (!entry) return false;
+
+  // Always refresh the heartbeat timestamp (keeps stale detection happy)
+  entry.lastProgressAt = Date.now();
+
+  // For heartbeat-only messages (iteration=0 from parent process), don't regress iteration
+  if (info.heartbeat && info.iteration === 0) return true;
 
   const total = Number.isFinite(info.total) && info.total > 0
     ? Math.floor(info.total)
@@ -194,16 +222,15 @@ function markProgress(jobId: string, info: { iteration: number; total: number })
   // Keep progress monotonic in case out-of-order IPC/network delivery.
   entry.total = total;
   entry.iteration = Math.max(entry.iteration, clamped);
-  entry.lastProgressAt = Date.now();
   return true;
 }
 
 function reclaimStale(): void {
   const now = Date.now();
   for (const [jobId, entry] of running) {
-    const timeSinceClaim = now - entry.claimedAt;
-    if (timeSinceClaim > STALE_TIMEOUT_MS) {
-      console.log(`[RECLAIM] Job ${jobId} stale (claimed ${Math.round(timeSinceClaim / 60000)}min ago by ${entry.claimedBy})`);
+    const timeSinceHeartbeat = now - entry.lastProgressAt;
+    if (timeSinceHeartbeat > STALE_TIMEOUT_MS) {
+      console.log(`[RECLAIM] Job ${jobId} stale (no heartbeat for ${Math.round(timeSinceHeartbeat / 60000)}min, worker: ${entry.claimedBy})`);
       running.delete(jobId);
       pending.unshift(entry.job); // re-queue at front (priority)
     }
@@ -384,6 +411,7 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
       const ok = markProgress(body.jobId, {
         iteration: Number(body.iteration) || 0,
         total: Number(body.total) || 0,
+        heartbeat: !!body.heartbeat,
       });
       json(res, ok ? 200 : 404, { ok });
       return;
@@ -634,7 +662,10 @@ async function refresh() {
       document.getElementById('avgTime').textContent = mins + 'm';
       const fpm = s.activeWorkers > 0 ? (60000 / s.avgSolveMs * s.activeWorkers).toFixed(1) : '—';
       document.getElementById('rate').textContent = fpm + ' flops/min across ' + s.activeWorkers + ' workers';
+      document.getElementById('avgSource').textContent = 'Source: ' + (s.avgSolveSource || 'none');
     }
+    document.getElementById('runningAvgPct').textContent = (s.runningAvgPct || 0).toFixed(1) + '%';
+    document.getElementById('liveHeartbeats').textContent = (s.liveHeartbeats || 0) + '/' + s.running;
     // Speed chart
     const now = Date.now();
     if (lastCompleted >= 0 && s.completed > lastCompleted) {
@@ -657,6 +688,19 @@ async function refresh() {
         const avg = ws.completed > 0 ? (ws.totalMs / ws.completed / 1000).toFixed(0) + 's' : '—';
         const dot = ws.running > 0 ? '<span class="status-dot dot-green"></span>Active' : '<span class="status-dot dot-yellow"></span>Idle';
         wt.innerHTML += '<tr><td>' + wid + '</td><td>' + dot + '</td><td>' + ws.completed + '</td><td>' + ws.running + '</td><td>' + avg + '</td></tr>';
+      }
+    }
+    // Running jobs
+    const rjt = document.getElementById('runningTable');
+    rjt.innerHTML = '';
+    if (s.runningDetails) {
+      for (const r of s.runningDetails) {
+        const elapsed = r.elapsedMs >= 60000 ? (r.elapsedMs / 60000).toFixed(1) + 'm' : (r.elapsedMs / 1000).toFixed(0) + 's';
+        const hbAge = r.heartbeatAgeMs < 60000 ? (r.heartbeatAgeMs / 1000).toFixed(0) + 's ago' : (r.heartbeatAgeMs / 60000).toFixed(1) + 'm ago';
+        const hbDot = r.heartbeatAgeMs <= 60000 ? 'dot-green' : (r.heartbeatAgeMs <= 300000 ? 'dot-yellow' : 'dot-red');
+        const pct = r.progressPct.toFixed(1) + '%';
+        const iterStr = r.iteration.toLocaleString() + '/' + r.total.toLocaleString();
+        rjt.innerHTML += '<tr><td>' + r.worker + '</td><td>' + r.label + '</td><td>' + iterStr + '</td><td>' + pct + '</td><td>' + elapsed + '</td><td><span class="status-dot ' + hbDot + '"></span>' + hbAge + '</td></tr>';
       }
     }
     // Recent
