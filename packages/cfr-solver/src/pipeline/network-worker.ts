@@ -144,6 +144,20 @@ function spawnWorkers(numWorkers: number, perWorkerHeapMB: number): void {
     const entry: LocalWorker = { process: child, busy: false, id: i, currentJob: null };
 
     child.on('message', async (msg: WorkerResult | WorkerProgress) => {
+      if (msg.type === 'progress') {
+        // Forward heartbeat to coordinator so it knows we're alive
+        const job = entry.currentJob;
+        if (job) {
+          try {
+            await httpPost(`${serverUrl}/progress`, {
+              jobId: job.jobId,
+              iteration: msg.iteration,
+              total: msg.total,
+            });
+          } catch { /* best-effort heartbeat */ }
+        }
+        return;
+      }
       if (msg.type === 'result') {
         const job = entry.currentJob!;
         entry.busy = false;
@@ -217,6 +231,19 @@ function spawnSingleWorker(id: number, heapMBVal: number): LocalWorker {
   const entry: LocalWorker = { process: child, busy: false, id, currentJob: null };
 
   child.on('message', async (msg: WorkerResult | WorkerProgress) => {
+    if (msg.type === 'progress') {
+      const job = entry.currentJob;
+      if (job) {
+        try {
+          await httpPost(`${serverUrl}/progress`, {
+            jobId: job.jobId,
+            iteration: msg.iteration,
+            total: msg.total,
+          });
+        } catch { /* best-effort heartbeat */ }
+      }
+      return;
+    }
     if (msg.type === 'result') {
       const job = entry.currentJob!;
       entry.busy = false;
