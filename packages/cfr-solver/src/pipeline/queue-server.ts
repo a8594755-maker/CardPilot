@@ -33,6 +33,9 @@ interface RunningJob {
   job: PipelineJob;
   claimedAt: number;
   claimedBy: string; // worker id from header
+  iteration: number; // latest reported iteration
+  total: number;     // expected total iterations
+  lastProgressAt: number;
 }
 
 interface CompletedJob {
@@ -64,7 +67,7 @@ const failed: FailedJob[] = [];
 const failCounts = new Map<string, number>(); // jobId → retry count
 
 const MAX_RETRIES = 3;
-const STALE_TIMEOUT_MS = 30 * 60 * 1000; // 30 min: if a job runs longer, it's reclaimed
+const HEARTBEAT_TIMEOUT_MS = 5 * 60 * 1000; // 5 min without heartbeat = stale (not claimedAt!)
 
 // ---------- Queue Operations ----------
 
@@ -75,10 +78,14 @@ function popJob(workerId: string): PipelineJob | null {
   if (pending.length === 0) return null;
 
   const job = pending.shift()!;
+  const now = Date.now();
   running.set(job.jobId, {
     job,
-    claimedAt: Date.now(),
+    claimedAt: now,
     claimedBy: workerId,
+    iteration: 0,
+    total: job.iterations,
+    lastProgressAt: now,
   });
   return job;
 }
@@ -128,18 +135,52 @@ function markFailed(jobId: string, error: string): boolean {
   return true;
 }
 
+function markProgress(jobId: string, info: { iteration: number; total: number }): boolean {
+  const entry = running.get(jobId);
+  if (!entry) return false;
+
+  const total = Number.isFinite(info.total) && info.total > 0
+    ? Math.floor(info.total)
+    : entry.total;
+  const rawIter = Number.isFinite(info.iteration) ? Math.floor(info.iteration) : entry.iteration;
+  const clamped = Math.max(0, Math.min(total, rawIter));
+
+  // Keep progress monotonic in case out-of-order IPC/network delivery.
+  entry.total = total;
+  entry.iteration = Math.max(entry.iteration, clamped);
+  entry.lastProgressAt = Date.now();
+  return true;
+}
+
 function reclaimStale(): void {
   const now = Date.now();
   for (const [jobId, entry] of running) {
-    if (now - entry.claimedAt > STALE_TIMEOUT_MS) {
-      console.log(`[RECLAIM] Job ${jobId} stale (claimed ${Math.round((now - entry.claimedAt) / 60000)}min ago by ${entry.claimedBy})`);
+    const timeSinceHeartbeat = now - entry.lastProgressAt;
+    if (timeSinceHeartbeat > HEARTBEAT_TIMEOUT_MS) {
+      console.log(`[RECLAIM] Job ${jobId} stale (no heartbeat for ${Math.round(timeSinceHeartbeat / 60000)}min, worker: ${entry.claimedBy})`);
       running.delete(jobId);
       pending.unshift(entry.job); // re-queue at front (priority)
     }
   }
 }
 
+/** Force-reclaim all running jobs from a specific worker (used when a worker is known to be dead). */
+function reclaimWorker(workerId: string): number {
+  let count = 0;
+  for (const [jobId, entry] of running) {
+    if (entry.claimedBy === workerId) {
+      running.delete(jobId);
+      pending.unshift(entry.job);
+      count++;
+    }
+  }
+  if (count > 0) console.log(`[RECLAIM] Force-reclaimed ${count} jobs from dead worker ${workerId}`);
+  return count;
+}
+
 function getStatus() {
+  const now = Date.now();
+
   // Per-worker stats
   const workerStats: Record<string, { running: number; completed: number; totalMs: number }> = {};
   for (const entry of running.values()) {
@@ -153,13 +194,43 @@ function getStatus() {
     workerStats[c.worker].totalMs += c.elapsedMs;
   }
 
+  const runningDetails = [...running.values()]
+    .map((entry) => {
+      const elapsedMs = now - entry.claimedAt;
+      const progressPct = entry.total > 0 ? (entry.iteration / entry.total) * 100 : 0;
+      return {
+        jobId: entry.job.jobId,
+        boardId: entry.job.boardId,
+        label: entry.job.label,
+        worker: entry.claimedBy,
+        iteration: entry.iteration,
+        total: entry.total,
+        progressPct: Math.max(0, Math.min(100, progressPct)),
+        elapsedMs,
+        heartbeatAgeMs: now - entry.lastProgressAt,
+      };
+    })
+    .sort((a, b) => b.progressPct - a.progressPct);
+
   // ETA calculation
-  const avgMs = completed.length > 0
+  const avgFromCompleted = completed.length > 0
     ? completed.reduce((s, c) => s + c.elapsedMs, 0) / completed.length
     : 0;
+  const avgFromRunning = runningDetails
+    .filter(r => r.iteration > 0 && r.total > 0 && r.elapsedMs > 15000)
+    .map(r => (r.elapsedMs * r.total) / r.iteration);
+  const avgFromRunningMs = avgFromRunning.length > 0
+    ? avgFromRunning.reduce((s, v) => s + v, 0) / avgFromRunning.length
+    : 0;
+  const avgMs = avgFromCompleted > 0 ? avgFromCompleted : avgFromRunningMs;
+  const avgSolveSource = avgFromCompleted > 0 ? 'completed' : (avgFromRunningMs > 0 ? 'running_estimate' : 'none');
   const totalWorkers = new Set([...running.values()].map(v => v.claimedBy)).size || 1;
   const remainingJobs = pending.length + running.size;
   const etaMs = avgMs > 0 ? (remainingJobs * avgMs) / totalWorkers : 0;
+  const runningAvgPct = runningDetails.length > 0
+    ? runningDetails.reduce((s, r) => s + r.progressPct, 0) / runningDetails.length
+    : 0;
+  const liveHeartbeats = runningDetails.filter(r => r.heartbeatAgeMs <= 20000).length;
 
   return {
     pending: pending.length,
@@ -168,9 +239,13 @@ function getStatus() {
     failed: failed.length,
     total: pending.length + running.size + completed.length + failed.length,
     avgSolveMs: Math.round(avgMs),
+    avgSolveSource,
     etaMs: Math.round(etaMs),
     etaHuman: etaMs > 0 ? formatDuration(etaMs) : 'N/A',
     activeWorkers: totalWorkers,
+    runningAvgPct: Math.round(runningAvgPct * 10) / 10,
+    liveHeartbeats,
+    runningDetails: runningDetails.slice(0, 80),
     workers: workerStats,
     recentCompleted: completed.slice(-10).reverse(),
   };
@@ -258,14 +333,43 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
     }
 
     // GET /status — dashboard
+    if (method === 'POST' && url === '/progress') {
+      const body = JSON.parse(await readBody(req));
+      const ok = markProgress(body.jobId, {
+        iteration: Number(body.iteration) || 0,
+        total: Number(body.total) || 0,
+      });
+      json(res, ok ? 200 : 404, { ok });
+      return;
+    }
+
     if (method === 'GET' && url === '/status') {
       json(res, 200, getStatus());
+      return;
+    }
+
+    // POST /reclaim-worker — force-reclaim all jobs from a dead worker
+    if (method === 'POST' && url === '/reclaim-worker') {
+      const body = JSON.parse(await readBody(req));
+      const count = reclaimWorker(body.workerId);
+      json(res, 200, { ok: true, reclaimed: count });
       return;
     }
 
     // GET /healthz — health check
     if (method === 'GET' && url === '/healthz') {
       json(res, 200, { ok: true, uptime: process.uptime() });
+      return;
+    }
+
+    // GET / — HTML dashboard
+    if (method === 'GET' && (url === '/' || url === '/dashboard')) {
+      const html = getDashboardHTML();
+      res.writeHead(200, {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Content-Length': Buffer.byteLength(html),
+      });
+      res.end(html);
       return;
     }
 
@@ -295,6 +399,241 @@ export function startQueueServer(port = 3500): ReturnType<typeof createServer> {
   });
 
   return server;
+}
+
+// ---------- Dashboard HTML ----------
+
+function getDashboardHTML(): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CFR Pipeline Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f1117; color: #e1e4e8; min-height: 100vh; }
+  .header { background: linear-gradient(135deg, #1a1e2e 0%, #0d1117 100%); padding: 24px 32px; border-bottom: 1px solid #21262d; }
+  .header h1 { font-size: 22px; font-weight: 600; color: #f0f6fc; }
+  .header .subtitle { font-size: 13px; color: #8b949e; margin-top: 4px; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .card { background: #161b22; border: 1px solid #21262d; border-radius: 8px; padding: 20px; }
+  .card .label { font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; }
+  .card .value { font-size: 32px; font-weight: 700; margin-top: 6px; color: #f0f6fc; }
+  .card .value.green { color: #3fb950; }
+  .card .value.blue { color: #58a6ff; }
+  .card .value.orange { color: #d29922; }
+  .card .value.red { color: #f85149; }
+  .progress-container { margin-bottom: 24px; }
+  .progress-bar { width: 100%; height: 32px; background: #21262d; border-radius: 8px; overflow: hidden; position: relative; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #238636 0%, #3fb950 100%); transition: width 0.8s ease; border-radius: 8px; }
+  .progress-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 14px; font-weight: 600; color: #f0f6fc; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+  .section { background: #161b22; border: 1px solid #21262d; border-radius: 8px; padding: 20px; margin-bottom: 24px; }
+  .section h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: #f0f6fc; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 12px; color: #8b949e; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 12px; border-bottom: 1px solid #21262d; }
+  td { padding: 10px 12px; border-bottom: 1px solid #21262d; font-size: 14px; }
+  tr:last-child td { border-bottom: none; }
+  .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+  .dot-green { background: #3fb950; }
+  .dot-yellow { background: #d29922; }
+  .dot-red { background: #f85149; }
+  .rate { font-size: 13px; color: #8b949e; margin-top: 4px; }
+  .update-time { font-size: 12px; color: #484f58; text-align: right; margin-top: 8px; }
+  .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  @media (max-width: 768px) { .chart-row { grid-template-columns: 1fr; } .grid { grid-template-columns: repeat(2, 1fr); } }
+  .speed-chart { height: 200px; position: relative; }
+  .speed-chart canvas { width: 100% !important; height: 100% !important; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>CFR Pipeline Dashboard</h1>
+  <div class="subtitle">Distributed Solver — <span id="config">pipeline_srp</span></div>
+</div>
+<div class="container">
+  <div class="progress-container">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      <div class="progress-text" id="progressText">0%</div>
+    </div>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <div class="label">Completed</div>
+      <div class="value green" id="completed">0</div>
+    </div>
+    <div class="card">
+      <div class="label">Running</div>
+      <div class="value blue" id="running">0</div>
+    </div>
+    <div class="card">
+      <div class="label">Pending</div>
+      <div class="value orange" id="pending">0</div>
+    </div>
+    <div class="card">
+      <div class="label">Failed</div>
+      <div class="value red" id="failed">0</div>
+    </div>
+    <div class="card">
+      <div class="label">ETA</div>
+      <div class="value" id="eta">N/A</div>
+    </div>
+    <div class="card">
+      <div class="label">Avg Solve Time</div>
+      <div class="value" id="avgTime">—</div>
+      <div class="rate" id="rate"></div>
+      <div class="rate" id="avgSource"></div>
+    </div>
+    <div class="card">
+      <div class="label">Running Avg Progress</div>
+      <div class="value blue" id="runningAvgPct">0%</div>
+      <div class="rate">Across currently running boards</div>
+    </div>
+    <div class="card">
+      <div class="label">Live Heartbeats</div>
+      <div class="value green" id="liveHeartbeats">0/0</div>
+      <div class="rate">Workers reporting recent iteration updates</div>
+    </div>
+  </div>
+
+  <div class="chart-row">
+    <div class="section">
+      <h2>Solve Speed (flops/min)</h2>
+      <div class="speed-chart"><canvas id="speedCanvas"></canvas></div>
+    </div>
+    <div class="section">
+      <h2>Completion Over Time</h2>
+      <div class="speed-chart"><canvas id="completionCanvas"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Workers</h2>
+    <table>
+      <thead><tr><th>Worker</th><th>Status</th><th>Completed</th><th>Running</th><th>Avg Time</th></tr></thead>
+      <tbody id="workerTable"></tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Running Jobs (Live Iteration Progress)</h2>
+    <table>
+      <thead><tr><th>Worker</th><th>Board</th><th>Iteration</th><th>Progress</th><th>Elapsed</th><th>Heartbeat</th></tr></thead>
+      <tbody id="runningTable"></tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Recent Completions</h2>
+    <table>
+      <thead><tr><th>Board</th><th>Info Sets</th><th>Time</th><th>Memory</th><th>Worker</th></tr></thead>
+      <tbody id="recentTable"></tbody>
+    </table>
+  </div>
+
+  <div class="update-time">Last update: <span id="lastUpdate">—</span></div>
+</div>
+
+<script>
+const speedHistory = [];
+const completionHistory = [];
+let lastCompleted = -1;
+let lastTime = Date.now();
+
+function drawChart(canvasId, data, color, label) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * devicePixelRatio;
+  canvas.height = rect.height * devicePixelRatio;
+  ctx.scale(devicePixelRatio, devicePixelRatio);
+  const w = rect.width, h = rect.height;
+  ctx.clearRect(0, 0, w, h);
+  if (data.length < 2) { ctx.fillStyle = '#484f58'; ctx.font = '13px system-ui'; ctx.fillText('Collecting data...', w/2 - 50, h/2); return; }
+  const max = Math.max(...data) * 1.2 || 1;
+  const step = w / (data.length - 1);
+  // Grid
+  ctx.strokeStyle = '#21262d'; ctx.lineWidth = 1;
+  for (let i = 0; i < 4; i++) { const y = h * i / 4; ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+  // Line
+  ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2;
+  data.forEach((v, i) => { const x = i * step; const y = h - (v / max) * (h - 20); i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); });
+  ctx.stroke();
+  // Fill
+  ctx.lineTo((data.length - 1) * step, h); ctx.lineTo(0, h); ctx.closePath();
+  ctx.fillStyle = color.replace(')', ', 0.1)').replace('rgb', 'rgba'); ctx.fill();
+  // Labels
+  ctx.fillStyle = '#8b949e'; ctx.font = '11px system-ui';
+  ctx.fillText(max.toFixed(1), 4, 14);
+  ctx.fillText('0', 4, h - 4);
+  ctx.fillText(label, w - ctx.measureText(label).width - 4, 14);
+}
+
+async function refresh() {
+  try {
+    const r = await fetch('/status');
+    const s = await r.json();
+    const pct = s.total > 0 ? (s.completed / s.total * 100) : 0;
+    document.getElementById('progressFill').style.width = pct.toFixed(1) + '%';
+    document.getElementById('progressText').textContent = pct.toFixed(1) + '% (' + s.completed + '/' + s.total + ')';
+    document.getElementById('completed').textContent = s.completed;
+    document.getElementById('running').textContent = s.running;
+    document.getElementById('pending').textContent = s.pending;
+    document.getElementById('failed').textContent = s.failed;
+    document.getElementById('eta').textContent = s.etaHuman || 'N/A';
+    if (s.avgSolveMs > 0) {
+      const mins = (s.avgSolveMs / 60000).toFixed(1);
+      document.getElementById('avgTime').textContent = mins + 'm';
+      const fpm = s.activeWorkers > 0 ? (60000 / s.avgSolveMs * s.activeWorkers).toFixed(1) : '—';
+      document.getElementById('rate').textContent = fpm + ' flops/min across ' + s.activeWorkers + ' workers';
+    }
+    // Speed chart
+    const now = Date.now();
+    if (lastCompleted >= 0 && s.completed > lastCompleted) {
+      const elapsed = (now - lastTime) / 60000;
+      const speed = elapsed > 0 ? (s.completed - lastCompleted) / elapsed : 0;
+      speedHistory.push(speed);
+      if (speedHistory.length > 60) speedHistory.shift();
+    }
+    completionHistory.push(s.completed);
+    if (completionHistory.length > 120) completionHistory.shift();
+    lastCompleted = s.completed;
+    lastTime = now;
+    drawChart('speedCanvas', speedHistory, 'rgb(88, 166, 255)', 'flops/min');
+    drawChart('completionCanvas', completionHistory, 'rgb(63, 185, 80)', 'completed');
+    // Workers
+    const wt = document.getElementById('workerTable');
+    wt.innerHTML = '';
+    if (s.workers) {
+      for (const [wid, ws] of Object.entries(s.workers)) {
+        const avg = ws.completed > 0 ? (ws.totalMs / ws.completed / 1000).toFixed(0) + 's' : '—';
+        const dot = ws.running > 0 ? '<span class="status-dot dot-green"></span>Active' : '<span class="status-dot dot-yellow"></span>Idle';
+        wt.innerHTML += '<tr><td>' + wid + '</td><td>' + dot + '</td><td>' + ws.completed + '</td><td>' + ws.running + '</td><td>' + avg + '</td></tr>';
+      }
+    }
+    // Recent
+    const rt = document.getElementById('recentTable');
+    rt.innerHTML = '';
+    if (s.recentCompleted) {
+      for (const c of s.recentCompleted) {
+        rt.innerHTML += '<tr><td>flop_' + String(c.boardId).padStart(4,'0') + '</td><td>' + (c.infoSets||0).toLocaleString() + '</td><td>' + (c.elapsedMs/1000).toFixed(0) + 's</td><td>' + (c.peakMemoryMB||0).toFixed(0) + 'MB</td><td>' + c.worker + '</td></tr>';
+      }
+    }
+    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+  } catch (e) { console.error('Fetch error:', e); }
+}
+
+refresh();
+setInterval(refresh, 5000);
+window.addEventListener('resize', () => {
+  drawChart('speedCanvas', speedHistory, 'rgb(88, 166, 255)', 'flops/min');
+  drawChart('completionCanvas', completionHistory, 'rgb(63, 185, 80)', 'completed');
+});
+</script>
+</body>
+</html>`;
 }
 
 // Export queue state for the CLI to use
