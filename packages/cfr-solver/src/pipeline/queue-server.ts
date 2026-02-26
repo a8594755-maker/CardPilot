@@ -67,7 +67,10 @@ const failed: FailedJob[] = [];
 const failCounts = new Map<string, number>(); // jobId → retry count
 
 const MAX_RETRIES = 3;
-const HEARTBEAT_TIMEOUT_MS = 5 * 60 * 1000; // 5 min without heartbeat = stale (not claimedAt!)
+// NOTE: heartbeat-based detection doesn't work because solveCFR is a synchronous
+// tight loop — process.send() buffers messages but the event loop never flushes them
+// until the solve completes. Fall back to claimedAt-based timeout with generous limit.
+const STALE_TIMEOUT_MS = 120 * 60 * 1000; // 120 min: max expected solve time
 
 // ---------- Queue Operations ----------
 
@@ -155,9 +158,9 @@ function markProgress(jobId: string, info: { iteration: number; total: number })
 function reclaimStale(): void {
   const now = Date.now();
   for (const [jobId, entry] of running) {
-    const timeSinceHeartbeat = now - entry.lastProgressAt;
-    if (timeSinceHeartbeat > HEARTBEAT_TIMEOUT_MS) {
-      console.log(`[RECLAIM] Job ${jobId} stale (no heartbeat for ${Math.round(timeSinceHeartbeat / 60000)}min, worker: ${entry.claimedBy})`);
+    const timeSinceClaim = now - entry.claimedAt;
+    if (timeSinceClaim > STALE_TIMEOUT_MS) {
+      console.log(`[RECLAIM] Job ${jobId} stale (claimed ${Math.round(timeSinceClaim / 60000)}min ago by ${entry.claimedBy})`);
       running.delete(jobId);
       pending.unshift(entry.job); // re-queue at front (priority)
     }

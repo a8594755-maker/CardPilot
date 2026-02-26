@@ -145,16 +145,15 @@ function spawnWorkers(numWorkers: number, perWorkerHeapMB: number): void {
 
     child.on('message', async (msg: WorkerResult | WorkerProgress) => {
       if (msg.type === 'progress') {
-        // Forward heartbeat to coordinator so it knows we're alive
+        // NOTE: progress messages only arrive AFTER solve completes (synchronous loop
+        // buffers process.send). Forward anyway for future async solver support.
         const job = entry.currentJob;
         if (job) {
-          try {
-            await httpPost(`${serverUrl}/progress`, {
-              jobId: job.jobId,
-              iteration: msg.iteration,
-              total: msg.total,
-            });
-          } catch { /* best-effort heartbeat */ }
+          httpPost(`${serverUrl}/progress`, {
+            jobId: job.jobId,
+            iteration: msg.iteration,
+            total: msg.total,
+          }).catch(() => {});
         }
         return;
       }
