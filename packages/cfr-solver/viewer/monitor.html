@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CardPilot - Solve Monitor</title>
+<title>CardPilot - Pipeline Monitor</title>
 <style>
   :root {
     --bg-base: #0b1120;
@@ -47,8 +47,14 @@
   .status-badge.running {
     background: rgba(34,197,94,0.15); color: var(--success);
   }
+  .status-badge.waiting {
+    background: rgba(245,158,11,0.15); color: var(--warning);
+  }
   .status-badge.done {
     background: rgba(59,130,246,0.15); color: var(--accent);
+  }
+  .status-badge.error {
+    background: rgba(239,68,68,0.15); color: var(--danger);
   }
   .status-badge .pulse {
     width: 8px; height: 8px; border-radius: 50%;
@@ -60,7 +66,7 @@
     50% { opacity: 0.4; transform: scale(0.8); }
   }
 
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
 
   .card {
     background: var(--bg-surface); border: 1px solid var(--border-default);
@@ -68,6 +74,9 @@
   }
   .card .label { font-size: 0.6875rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 6px; }
   .card .value { font-size: 1.75rem; font-weight: 700; }
+  .card .value.running-val { color: var(--warning); }
+  .card .value.done-val { color: var(--success); }
+  .card .value.fail-val { color: var(--danger); }
   .card .sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
 
   .progress-wrap {
@@ -79,51 +88,21 @@
   .progress-header .pct { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
   .progress-bar-bg {
     width: 100%; height: 24px; border-radius: 12px;
-    background: var(--bg-elevated); overflow: hidden;
+    background: var(--bg-elevated); overflow: hidden; position: relative;
   }
   .progress-bar-fill {
     height: 100%; border-radius: 12px;
     background: linear-gradient(90deg, var(--accent), var(--success));
     transition: width 1s ease;
-    display: flex; align-items: center; justify-content: flex-end;
-    padding-right: 8px; font-size: 0.6875rem; font-weight: 700; color: white;
-    min-width: 0;
+  }
+  .progress-bar-running {
+    height: 100%; border-radius: 0;
+    background: rgba(245,158,11,0.35);
+    transition: width 1s ease;
+    position: absolute; top: 0;
   }
   .progress-stats {
     display: flex; gap: 24px; margin-top: 12px; font-size: 0.8125rem; color: var(--text-secondary);
-  }
-
-  .recent-table {
-    background: var(--bg-surface); border: 1px solid var(--border-default);
-    border-radius: 14px; padding: 24px; margin-bottom: 24px;
-  }
-  .recent-table .title { font-size: 0.875rem; font-weight: 700; margin-bottom: 16px; }
-  table { width: 100%; border-collapse: collapse; }
-  th {
-    text-align: left; font-size: 0.6875rem; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;
-    padding: 8px 12px; border-bottom: 1px solid var(--border-default);
-  }
-  td {
-    padding: 10px 12px; font-size: 0.8125rem; border-bottom: 1px solid var(--border-default);
-  }
-  tr:last-child td { border-bottom: none; }
-  .card-label {
-    display: inline-flex; gap: 3px;
-  }
-  .mini-card {
-    display: inline-flex; align-items: center; justify-content: center;
-    padding: 2px 4px; border-radius: 3px; font-size: 0.6875rem; font-weight: 700;
-    background: #fff; color: #1e293b;
-  }
-  .mini-card.h { color: #ef4444; }
-  .mini-card.d { color: #3b82f6; }
-  .mini-card.c { color: #22c55e; }
-  .mini-card.s { color: #1e293b; }
-
-  .refresh-info {
-    text-align: center; font-size: 0.75rem; color: var(--text-muted);
-    margin-top: 16px;
   }
 
   .eta-box {
@@ -135,16 +114,22 @@
   .eta-box .eta-text { font-size: 0.875rem; color: var(--text-secondary); }
   .eta-box .eta-time { font-size: 1.125rem; font-weight: 700; color: var(--warning); }
 
-  .speed-chart {
+  /* Worker cards */
+  .workers-section {
     background: var(--bg-surface); border: 1px solid var(--border-default);
     border-radius: 14px; padding: 24px; margin-bottom: 24px;
   }
-  .speed-chart .title { font-size: 0.875rem; font-weight: 700; margin-bottom: 16px; }
-  .speed-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
-  .speed-bar-label { font-size: 0.6875rem; color: var(--text-muted); min-width: 60px; text-align: right; }
-  .speed-bar-track { flex: 1; height: 14px; border-radius: 4px; background: var(--bg-elevated); overflow: hidden; }
-  .speed-bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.5s; }
-  .speed-bar-val { font-size: 0.6875rem; color: var(--text-secondary); min-width: 50px; }
+  .workers-section .title { font-size: 0.875rem; font-weight: 700; margin-bottom: 16px; }
+  .worker-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+  .worker-card {
+    background: var(--bg-elevated); border: 1px solid var(--border-default);
+    border-radius: 10px; padding: 16px;
+  }
+  .worker-card .worker-name { font-size: 0.875rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .worker-card .worker-name .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+  .worker-card .worker-stats { display: flex; gap: 16px; font-size: 0.75rem; color: var(--text-secondary); }
+  .worker-card .worker-stats .stat-item { display: flex; flex-direction: column; gap: 2px; }
+  .worker-card .worker-stats .stat-val { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
 
   /* Live log panel */
   .log-panel {
@@ -168,7 +153,7 @@
     cursor: pointer; transition: all 0.12s;
   }
   .log-header .ctrl-btn:hover { border-color: var(--accent); color: var(--text-primary); }
-  .log-header .ctrl-btn.active { background: var(--accent-soft, rgba(59,130,246,0.15)); border-color: var(--accent); color: var(--accent); }
+  .log-header .ctrl-btn.active { background: rgba(59,130,246,0.15); border-color: var(--accent); color: var(--accent); }
   .log-body {
     max-height: 420px; overflow-y: auto; padding: 12px 0;
     font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
@@ -202,21 +187,52 @@
   .log-empty {
     padding: 32px; text-align: center; color: var(--text-muted); font-style: italic;
   }
+
+  .recent-table {
+    background: var(--bg-surface); border: 1px solid var(--border-default);
+    border-radius: 14px; padding: 24px; margin-bottom: 24px;
+  }
+  .recent-table .title { font-size: 0.875rem; font-weight: 700; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left; font-size: 0.6875rem; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;
+    padding: 8px 12px; border-bottom: 1px solid var(--border-default);
+  }
+  td {
+    padding: 10px 12px; font-size: 0.8125rem; border-bottom: 1px solid var(--border-default);
+  }
+  tr:last-child td { border-bottom: none; }
+  .mini-card {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 2px 4px; border-radius: 3px; font-size: 0.6875rem; font-weight: 700;
+    background: #fff; color: #1e293b;
+  }
+  .mini-card.h { color: #ef4444; }
+  .mini-card.d { color: #3b82f6; }
+  .mini-card.c { color: #22c55e; }
+  .mini-card.s { color: #1e293b; }
+  .card-label { display: inline-flex; gap: 3px; }
+
+  .refresh-info {
+    text-align: center; font-size: 0.75rem; color: var(--text-muted);
+    margin-top: 16px;
+  }
 </style>
 </head>
 <body>
 
 <div class="header">
   <div>
-    <h1>CFR Solve Monitor</h1>
-    <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:4px;">CardPilot V2 - Full Board Solve</div>
+    <h1>CFR Pipeline Monitor</h1>
+    <div style="font-size:0.8125rem; color:var(--text-muted); margin-top:4px;" id="config-label">CardPilot V2 - Full Board Solve</div>
   </div>
   <div style="display:flex; align-items:center; gap:16px;">
     <div class="nav-links">
       <a href="/">Postflop Viewer</a>
       <a href="/preflop">Preflop Charts</a>
     </div>
-    <div class="status-badge running" id="status-badge">
+    <div class="status-badge waiting" id="status-badge">
       <div class="pulse"></div>
       <span id="status-text">Connecting...</span>
     </div>
@@ -231,10 +247,12 @@
   </div>
   <div class="progress-bar-bg">
     <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+    <div class="progress-bar-running" id="progress-running" style="width:0%; left:0%"></div>
   </div>
   <div class="progress-stats">
     <span id="completed-label">-- completed</span>
-    <span id="remaining-label">-- remaining</span>
+    <span id="running-label" style="color:var(--warning)">-- running</span>
+    <span id="remaining-label">-- pending</span>
     <span id="rate-label">-- flops/min</span>
   </div>
 </div>
@@ -244,8 +262,48 @@
   <span class="eta-icon">&#9203;</span>
   <div>
     <div class="eta-text">Estimated Time Remaining</div>
-    <div class="eta-time" id="eta-display">Calculating...</div>
+    <div class="eta-time" id="eta-display">Waiting for first solve...</div>
   </div>
+</div>
+
+<!-- Pipeline stats grid -->
+<div class="grid" id="pipeline-grid">
+  <div class="card">
+    <div class="label">Completed</div>
+    <div class="value done-val" id="stat-completed">--</div>
+    <div class="sub" id="stat-total">of -- jobs</div>
+  </div>
+  <div class="card">
+    <div class="label">Running</div>
+    <div class="value running-val" id="stat-running">--</div>
+    <div class="sub">active solves</div>
+  </div>
+  <div class="card">
+    <div class="label">Pending</div>
+    <div class="value" id="stat-pending">--</div>
+    <div class="sub">in queue</div>
+  </div>
+  <div class="card">
+    <div class="label">Failed</div>
+    <div class="value fail-val" id="stat-failed">0</div>
+    <div class="sub">errors</div>
+  </div>
+  <div class="card">
+    <div class="label">Avg Solve Time</div>
+    <div class="value" id="stat-avgtime">--</div>
+    <div class="sub">per flop</div>
+  </div>
+  <div class="card">
+    <div class="label">Active Workers</div>
+    <div class="value" id="stat-workers">--</div>
+    <div class="sub">machines connected</div>
+  </div>
+</div>
+
+<!-- Workers -->
+<div class="workers-section" id="workers-section" style="display:none;">
+  <div class="title">Worker Machines</div>
+  <div class="worker-grid" id="worker-grid"></div>
 </div>
 
 <!-- Live Log -->
@@ -262,13 +320,8 @@
   </div>
 </div>
 
-<!-- Stats grid -->
-<div class="grid">
-  <div class="card">
-    <div class="label">Completed</div>
-    <div class="value" id="stat-completed">--</div>
-    <div class="sub" id="stat-total">of -- boards</div>
-  </div>
+<!-- File-based stats (shown when files are available) -->
+<div class="grid" id="file-grid" style="display:none;">
   <div class="card">
     <div class="label">Total Info Sets</div>
     <div class="value" id="stat-infosets">--</div>
@@ -284,16 +337,6 @@
     <div class="value" id="stat-memory">--</div>
     <div class="sub">per worker</div>
   </div>
-  <div class="card">
-    <div class="label">Avg Solve Time</div>
-    <div class="value" id="stat-avgtime">--</div>
-    <div class="sub">per flop (CPU)</div>
-  </div>
-  <div class="card">
-    <div class="label">Wall Clock/Flop</div>
-    <div class="value" id="stat-walltime">--</div>
-    <div class="sub">parallel throughput</div>
-  </div>
 </div>
 
 <!-- Recent completions -->
@@ -306,16 +349,17 @@
         <th>Flop</th>
         <th>Info Sets</th>
         <th>Solve Time</th>
+        <th>Worker</th>
         <th>Completed</th>
       </tr>
     </thead>
     <tbody id="recent-tbody">
-      <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">Waiting for data...</td></tr>
+      <tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Waiting for first solve to complete...</td></tr>
     </tbody>
   </table>
 </div>
 
-<div class="refresh-info" id="refresh-info">Auto-refreshing every 10 seconds</div>
+<div class="refresh-info" id="refresh-info">Auto-refreshing every 5 seconds</div>
 
 <script>
 const SUIT_SYM = { c:'\u2663', d:'\u2666', h:'\u2665', s:'\u2660' };
@@ -340,23 +384,6 @@ function timeAgo(ts) {
   return Math.round(diff / 3600000) + 'h ago';
 }
 
-let prevCompleted = null;
-let completionHistory = []; // track timestamps for rate calculation
-let seenTimestamps = new Set();
-let logAutoScroll = true;
-let logStarted = false;
-
-function toggleAutoScroll() {
-  logAutoScroll = !logAutoScroll;
-  const btn = document.getElementById('log-autoscroll-btn');
-  btn.classList.toggle('active', logAutoScroll);
-}
-
-function clearLog() {
-  document.getElementById('log-body').innerHTML = '';
-  seenTimestamps.clear();
-}
-
 function colorCards(flopStr) {
   return flopStr.split(' ').map(c => {
     const r = c[0], s = c[1];
@@ -366,188 +393,332 @@ function colorCards(flopStr) {
   }).join(' ');
 }
 
+let prevCompleted = null;
+let completionHistory = [];
+let seenLogKeys = new Set();
+let logAutoScroll = true;
+let logStarted = false;
+
+function toggleAutoScroll() {
+  logAutoScroll = !logAutoScroll;
+  document.getElementById('log-autoscroll-btn').classList.toggle('active', logAutoScroll);
+}
+
+function clearLog() {
+  document.getElementById('log-body').innerHTML = '';
+  seenLogKeys.clear();
+}
+
 function addLogLine(ts, level, msg, isNew) {
   const body = document.getElementById('log-body');
-  // Remove empty placeholder
   const empty = body.querySelector('.log-empty');
   if (empty) empty.remove();
-
   const div = document.createElement('div');
   div.className = 'log-line' + (isNew ? ' new-entry' : '');
   div.innerHTML = `<span class="log-ts">${ts}</span><span class="log-level ${level}">${level.toUpperCase()}</span><span class="log-msg">${msg}</span>`;
   body.appendChild(div);
-
-  // Keep max 200 lines
   while (body.children.length > 200) body.removeChild(body.firstChild);
-
   if (logAutoScroll) body.scrollTop = body.scrollHeight;
 }
 
 function formatLogTime(timestamp) {
-  if (!timestamp) return '--:--:--';
-  const d = new Date(timestamp);
-  return d.toLocaleTimeString('zh-TW', { hour12: false });
+  if (!timestamp) {
+    const d = new Date();
+    return d.toLocaleTimeString('zh-TW', { hour12: false });
+  }
+  return new Date(timestamp).toLocaleTimeString('zh-TW', { hour12: false });
 }
 
-async function refresh() {
-  try {
-    const res = await fetch('/api/solve-progress');
-    if (!res.ok) throw new Error('API error');
-    const d = await res.json();
+// ─── Config ───
+const urlParams = new URLSearchParams(window.location.search);
+const configParam = urlParams.get('config');
+const fileApiUrl = configParam
+  ? `/api/solve-progress?config=${encodeURIComponent(configParam)}`
+  : '/api/solve-progress';
+const pipelineApiUrl = '/api/pipeline-status';
 
-    const pct = parseFloat(d.percentDone);
-    const isRunning = d.remaining > 0;
+if (configParam) {
+  document.getElementById('config-label').textContent = `Pipeline: ${configParam}`;
+}
+
+// ─── Pipeline status (from coordinator queue server) ───
+let pipelineAvailable = false;
+
+async function refreshPipeline() {
+  try {
+    const res = await fetch(pipelineApiUrl);
+    if (!res.ok) throw new Error('Pipeline API error');
+    const p = await res.json();
+    if (p.error) throw new Error(p.error);
+    pipelineAvailable = true;
+
+    const total = p.total || 0;
+    const completed = p.completed || 0;
+    const running = p.running || 0;
+    const pending = p.pending || 0;
+    const failed = p.failed || 0;
+    const pct = total > 0 ? (completed / total * 100) : 0;
+    const pctRunning = total > 0 ? (running / total * 100) : 0;
 
     // Status badge
     const badge = document.getElementById('status-badge');
     const statusText = document.getElementById('status-text');
-    if (isRunning) {
-      badge.className = 'status-badge running';
-      statusText.textContent = 'Solving...';
-    } else {
+    if (completed === total && total > 0) {
       badge.className = 'status-badge done';
       badge.innerHTML = '<span>&#10003;</span><span>Complete</span>';
+    } else if (running > 0) {
+      badge.className = 'status-badge running';
+      statusText.textContent = `Solving (${running} active)`;
+    } else if (pending > 0) {
+      badge.className = 'status-badge waiting';
+      statusText.textContent = 'Waiting for workers...';
     }
 
     // Progress bar
     document.getElementById('pct-display').textContent = pct.toFixed(1) + '%';
     document.getElementById('progress-fill').style.width = pct + '%';
-    document.getElementById('completed-label').textContent = `${d.completed} completed`;
-    document.getElementById('remaining-label').textContent = `${d.remaining} remaining`;
+    const runBar = document.getElementById('progress-running');
+    runBar.style.left = pct + '%';
+    runBar.style.width = pctRunning + '%';
 
-    // Rate calculation
-    if (prevCompleted !== null && d.completed > prevCompleted) {
-      completionHistory.push({ count: d.completed - prevCompleted, time: Date.now() });
-      // Keep last 30 data points
-      if (completionHistory.length > 30) completionHistory.shift();
+    document.getElementById('completed-label').textContent = `${completed} completed`;
+    document.getElementById('running-label').textContent = `${running} running`;
+    document.getElementById('remaining-label').textContent = `${pending} pending`;
+
+    // Rate
+    if (prevCompleted !== null && completed > prevCompleted) {
+      completionHistory.push({ count: completed - prevCompleted, time: Date.now() });
+      if (completionHistory.length > 60) completionHistory.shift();
     }
-    prevCompleted = d.completed;
+    prevCompleted = completed;
 
     if (completionHistory.length >= 2) {
       const elapsed = (completionHistory[completionHistory.length - 1].time - completionHistory[0].time) / 60000;
-      const total = completionHistory.reduce((s, e) => s + e.count, 0);
-      const rate = elapsed > 0 ? (total / elapsed).toFixed(1) : '--';
+      const totalDone = completionHistory.reduce((s, e) => s + e.count, 0);
+      const rate = elapsed > 0 ? (totalDone / elapsed).toFixed(1) : '--';
       document.getElementById('rate-label').textContent = `~${rate} flops/min`;
-    } else {
-      // Estimate from wall clock data
-      const wcSec = parseFloat(d.wallClockPerFlopSec);
-      if (wcSec > 0) {
-        document.getElementById('rate-label').textContent = `~${(60 / wcSec).toFixed(1)} flops/min`;
-      }
+    } else if (p.avgSolveMs > 0 && p.activeWorkers > 0) {
+      const rate = (60000 * p.activeWorkers / p.avgSolveMs).toFixed(1);
+      document.getElementById('rate-label').textContent = `~${rate} flops/min (est)`;
     }
 
-    // ETA
+    // ETA — calculate client-side using running jobs as parallelism
+    // (coordinator's etaHuman divides by unique machines, not parallel processes)
     const etaDisplay = document.getElementById('eta-display');
-    if (!isRunning) {
+    if (completed === total && total > 0) {
       etaDisplay.textContent = 'Done!';
       document.getElementById('eta-box').style.background = 'rgba(34,197,94,0.1)';
       document.getElementById('eta-box').style.borderColor = 'rgba(34,197,94,0.25)';
-    } else {
-      const hours = parseFloat(d.etaHours);
-      if (hours > 1) {
-        etaDisplay.textContent = `~${hours.toFixed(1)} hours (${d.etaMinutes} min)`;
+    } else if (p.avgSolveMs > 0 && running > 0) {
+      const remainingJobs = pending + running;
+      const parallelism = running; // actual concurrent solves, not machine count
+      const etaMs = (remainingJobs * p.avgSolveMs) / parallelism;
+      const etaH = Math.floor(etaMs / 3600000);
+      const etaM = Math.floor((etaMs % 3600000) / 60000);
+      if (etaH > 0) {
+        etaDisplay.textContent = `~${etaH}h ${etaM}m`;
       } else {
-        etaDisplay.textContent = `~${d.etaMinutes} minutes`;
+        etaDisplay.textContent = `~${etaM}m`;
       }
+    } else if (completed === 0 && running > 0) {
+      etaDisplay.textContent = 'Solving first batch...';
+    } else {
+      etaDisplay.textContent = 'Calculating...';
     }
 
-    // Stats
-    document.getElementById('stat-completed').textContent = d.completed;
-    document.getElementById('stat-total').textContent = `of ${d.totalExpected} boards`;
-    document.getElementById('stat-infosets').textContent = formatNum(d.totalInfoSets);
-    document.getElementById('stat-size').textContent = parseFloat(d.totalSizeMB) >= 1024
-      ? (parseFloat(d.totalSizeMB) / 1024).toFixed(1) + ' GB'
-      : parseFloat(d.totalSizeMB).toFixed(0) + ' MB';
-    document.getElementById('stat-memory').textContent = d.peakMemoryMB + ' MB';
-    document.getElementById('stat-avgtime').textContent = d.avgTimePerFlopSec + 's';
-    document.getElementById('stat-walltime').textContent = d.wallClockPerFlopSec + 's';
+    // Stats grid
+    document.getElementById('stat-completed').textContent = completed;
+    document.getElementById('stat-total').textContent = `of ${total} jobs`;
+    document.getElementById('stat-running').textContent = running;
+    document.getElementById('stat-pending').textContent = pending;
+    document.getElementById('stat-failed').textContent = failed;
+    document.getElementById('stat-avgtime').textContent = p.avgSolveMs > 0 ? (p.avgSolveMs / 1000).toFixed(1) + 's' : '--';
+    document.getElementById('stat-workers').textContent = p.activeWorkers || '--';
 
-    // Recent completions
-    const tbody = document.getElementById('recent-tbody');
-    if (d.recentCompletions && d.recentCompletions.length > 0) {
-      tbody.innerHTML = d.recentCompletions.map(r => {
-        const cards = r.flopCards.split(' ');
-        const cardsHtml = cards.map(c => cardHTML(c)).join(' ');
-        return `<tr>
-          <td>#${r.boardId}</td>
-          <td><span class="card-label">${cardsHtml}</span></td>
-          <td>${formatNum(r.infoSets)}</td>
-          <td>${(r.elapsedMs / 1000).toFixed(0)}s</td>
-          <td>${timeAgo(r.timestamp)}</td>
-        </tr>`;
+    // Per-worker cards
+    if (p.workers && Object.keys(p.workers).length > 0) {
+      const section = document.getElementById('workers-section');
+      section.style.display = '';
+      const grid = document.getElementById('worker-grid');
+      grid.innerHTML = Object.entries(p.workers).map(([wid, ws]) => {
+        const avgS = ws.completed > 0 ? (ws.totalMs / ws.completed / 1000).toFixed(1) : '--';
+        return `<div class="worker-card">
+          <div class="worker-name"><div class="dot"></div>${wid}</div>
+          <div class="worker-stats">
+            <div class="stat-item"><span class="stat-val">${ws.running}</span>running</div>
+            <div class="stat-item"><span class="stat-val">${ws.completed}</span>done</div>
+            <div class="stat-item"><span class="stat-val">${avgS}s</span>avg/flop</div>
+          </div>
+        </div>`;
       }).join('');
     }
 
-    // Live log: add new completion events
-    if (d.recentCompletions && d.recentCompletions.length > 0) {
-      // Initial load: seed with startup log
+    // Recent completions from pipeline
+    const tbody = document.getElementById('recent-tbody');
+    if (p.recentCompleted && p.recentCompleted.length > 0) {
+      tbody.innerHTML = p.recentCompleted.map(r => {
+        const boardLabel = r.boardId || r.jobId || '--';
+        const flopHtml = r.flopCards
+          ? `<span class="card-label">${r.flopCards.split(' ').map(c => cardHTML(c)).join(' ')}</span>`
+          : r.label || '--';
+        const infoSets = r.infoSets ? formatNum(r.infoSets) : '--';
+        const elapsed = r.elapsedMs ? (r.elapsedMs / 1000).toFixed(0) + 's' : '--';
+        const worker = r.worker || '--';
+        const ts = r.completedAt ? timeAgo(r.completedAt) : '--';
+        return `<tr>
+          <td>#${boardLabel}</td>
+          <td>${flopHtml}</td>
+          <td>${infoSets}</td>
+          <td>${elapsed}</td>
+          <td>${worker}</td>
+          <td>${ts}</td>
+        </tr>`;
+      }).join('');
+
+      // Live log entries
       if (!logStarted) {
         logStarted = true;
-        addLogLine(formatLogTime(d.recentCompletions[d.recentCompletions.length - 1]?.timestamp), 'info',
-          `Solver started &mdash; Target: <span class="hl">${d.totalExpected}</span> boards, <span class="num">50,000</span> iterations each`, false);
+        addLogLine(formatLogTime(), 'info',
+          `Pipeline started &mdash; <span class="hl">${total}</span> jobs, ` +
+          `<span class="num">${p.activeWorkers}</span> worker(s) connected`, false);
       }
 
-      // Process completions oldest-first
-      const sorted = [...d.recentCompletions].reverse();
-      for (const r of sorted) {
-        const key = r.timestamp + '_' + r.boardId;
-        if (seenTimestamps.has(key)) continue;
-        seenTimestamps.add(key);
+      for (const r of [...p.recentCompleted].reverse()) {
+        const key = (r.jobId || r.boardId) + '_' + (r.completedAt || '');
+        if (seenLogKeys.has(key)) continue;
+        seenLogKeys.add(key);
 
-        const cards = colorCards(r.flopCards);
-        const secs = (r.elapsedMs / 1000).toFixed(0);
-        const infoSets = formatNum(r.infoSets);
-        const mem = r.peakMemoryMB ? ` | Mem: <span class="num">${r.peakMemoryMB}MB</span>` : '';
-        const pctNow = ((seenTimestamps.size / d.totalExpected) * 100).toFixed(1);
-
+        const label = r.label || `Board #${r.boardId || r.jobId}`;
+        const elapsed = r.elapsedMs ? (r.elapsedMs / 1000).toFixed(0) : '?';
+        const infoSets = r.infoSets ? formatNum(r.infoSets) : '?';
         addLogLine(
-          formatLogTime(r.timestamp),
+          formatLogTime(r.completedAt),
           'done',
-          `Board <span class="hl">#${r.boardId}</span> ${cards} solved &mdash; ` +
-          `<span class="num">${infoSets}</span> info sets in <span class="num">${secs}s</span>${mem} ` +
-          `[<span class="hl">${d.completed}/${d.totalExpected}</span> = ${pctNow}%]`,
+          `<span class="hl">${label}</span> solved &mdash; ` +
+          `<span class="num">${infoSets}</span> info sets in <span class="num">${elapsed}s</span> ` +
+          `by ${r.worker || '?'} ` +
+          `[<span class="hl">${completed}/${total}</span> = ${pct.toFixed(1)}%]`,
           true
         );
       }
     }
 
-    // Log status messages periodically
-    if (d.completed > 0 && d.remaining > 0 && d.completed % 10 === 0 && !seenTimestamps.has('status_' + d.completed)) {
-      seenTimestamps.add('status_' + d.completed);
-      const sizeTxt = parseFloat(d.totalSizeMB) >= 1024
-        ? (parseFloat(d.totalSizeMB) / 1024).toFixed(1) + ' GB'
-        : parseFloat(d.totalSizeMB).toFixed(0) + ' MB';
-      addLogLine(formatLogTime(d.latestTimestamp), 'info',
-        `Progress checkpoint &mdash; <span class="hl">${d.completed}</span> boards done, ` +
-        `<span class="num">${sizeTxt}</span> on disk, ` +
-        `ETA: <span class="num">~${d.etaHours}h</span>`, true);
+    // Status log checkpoints
+    if (completed > 0 && pending > 0 && completed % 50 === 0 && !seenLogKeys.has('ckpt_' + completed)) {
+      seenLogKeys.add('ckpt_' + completed);
+      addLogLine(formatLogTime(), 'info',
+        `Checkpoint &mdash; <span class="hl">${completed}/${total}</span> done, ` +
+        `ETA: <span class="num">${p.etaHuman || '?'}</span>`, true);
     }
 
-    // Completion message
-    if (d.remaining === 0 && !seenTimestamps.has('all_done')) {
-      seenTimestamps.add('all_done');
-      const sizeTxt = parseFloat(d.totalSizeMB) >= 1024
-        ? (parseFloat(d.totalSizeMB) / 1024).toFixed(1) + ' GB'
-        : parseFloat(d.totalSizeMB).toFixed(0) + ' MB';
-      addLogLine(formatLogTime(d.latestTimestamp), 'info',
-        `All <span class="hl">${d.totalExpected}</span> boards solved! ` +
-        `Total: <span class="num">${formatNum(d.totalInfoSets)}</span> info sets, ` +
-        `<span class="num">${sizeTxt}</span> on disk`, true);
-      // Stop live dot animation
+    // All done
+    if (completed === total && total > 0 && !seenLogKeys.has('all_done')) {
+      seenLogKeys.add('all_done');
+      addLogLine(formatLogTime(), 'info',
+        `All <span class="hl">${total}</span> jobs complete!`, true);
       document.getElementById('log-live-dot').style.animation = 'none';
       document.getElementById('log-live-dot').style.background = 'var(--accent)';
     }
 
-    document.getElementById('refresh-info').textContent =
-      `Auto-refreshing every 5s | Last update: ${new Date().toLocaleTimeString()}`;
-
   } catch (e) {
-    document.getElementById('status-text').textContent = 'Connection error';
-    document.getElementById('refresh-info').textContent = `Error: ${e.message} | Retrying...`;
+    // Pipeline not available — fall back to file-based only
+    pipelineAvailable = false;
   }
 }
 
-// Initial load + auto-refresh every 5 seconds
+// ─── File-based status (from disk scan) ───
+async function refreshFileStats() {
+  try {
+    const res = await fetch(fileApiUrl);
+    if (!res.ok) return;
+    const d = await res.json();
+
+    if (d.completed > 0) {
+      document.getElementById('file-grid').style.display = '';
+      document.getElementById('stat-infosets').textContent = formatNum(d.totalInfoSets);
+      document.getElementById('stat-size').textContent = parseFloat(d.totalSizeMB) >= 1024
+        ? (parseFloat(d.totalSizeMB) / 1024).toFixed(1) + ' GB'
+        : parseFloat(d.totalSizeMB).toFixed(0) + ' MB';
+      document.getElementById('stat-memory').textContent = d.peakMemoryMB + ' MB';
+    }
+
+    // If pipeline is not available, use file-based data for everything
+    if (!pipelineAvailable && d.completed > 0) {
+      const pct = parseFloat(d.percentDone);
+      document.getElementById('pct-display').textContent = pct.toFixed(1) + '%';
+      document.getElementById('progress-fill').style.width = pct + '%';
+      document.getElementById('completed-label').textContent = `${d.completed} completed`;
+      document.getElementById('remaining-label').textContent = `${d.remaining} remaining`;
+      document.getElementById('stat-completed').textContent = d.completed;
+      document.getElementById('stat-total').textContent = `of ${d.totalExpected} boards`;
+      document.getElementById('stat-avgtime').textContent = d.avgTimePerFlopSec + 's';
+
+      const badge = document.getElementById('status-badge');
+      const statusText = document.getElementById('status-text');
+      if (d.remaining > 0) {
+        badge.className = 'status-badge running';
+        statusText.textContent = 'Solving...';
+      } else {
+        badge.className = 'status-badge done';
+        badge.innerHTML = '<span>&#10003;</span><span>Complete</span>';
+      }
+
+      const etaDisplay = document.getElementById('eta-display');
+      const hours = parseFloat(d.etaHours);
+      if (d.remaining === 0) {
+        etaDisplay.textContent = 'Done!';
+      } else if (hours > 1) {
+        etaDisplay.textContent = `~${hours.toFixed(1)} hours (${d.etaMinutes} min)`;
+      } else if (parseInt(d.etaMinutes) > 0) {
+        etaDisplay.textContent = `~${d.etaMinutes} minutes`;
+      }
+
+      // File-based recent completions and log (existing logic)
+      if (d.recentCompletions && d.recentCompletions.length > 0) {
+        const tbody = document.getElementById('recent-tbody');
+        tbody.innerHTML = d.recentCompletions.map(r => {
+          const cards = r.flopCards.split(' ');
+          const cardsHtml = cards.map(c => cardHTML(c)).join(' ');
+          return `<tr>
+            <td>#${r.boardId}</td>
+            <td><span class="card-label">${cardsHtml}</span></td>
+            <td>${formatNum(r.infoSets)}</td>
+            <td>${(r.elapsedMs / 1000).toFixed(0)}s</td>
+            <td>--</td>
+            <td>${timeAgo(r.timestamp)}</td>
+          </tr>`;
+        }).join('');
+
+        if (!logStarted) {
+          logStarted = true;
+          addLogLine(formatLogTime(d.recentCompletions[d.recentCompletions.length - 1]?.timestamp), 'info',
+            `Solver started &mdash; Target: <span class="hl">${d.totalExpected}</span> boards`, false);
+        }
+
+        for (const r of [...d.recentCompletions].reverse()) {
+          const key = r.timestamp + '_' + r.boardId;
+          if (seenLogKeys.has(key)) continue;
+          seenLogKeys.add(key);
+          const cards = colorCards(r.flopCards);
+          const secs = (r.elapsedMs / 1000).toFixed(0);
+          addLogLine(formatLogTime(r.timestamp), 'done',
+            `Board <span class="hl">#${r.boardId}</span> ${cards} &mdash; ` +
+            `<span class="num">${formatNum(r.infoSets)}</span> info sets in <span class="num">${secs}s</span>`,
+            true);
+        }
+      }
+    }
+  } catch { /* file API not available */ }
+}
+
+async function refresh() {
+  await refreshPipeline();
+  await refreshFileStats();
+  document.getElementById('refresh-info').textContent =
+    `Auto-refreshing every 5s | Last update: ${new Date().toLocaleTimeString()} | ` +
+    `Source: ${pipelineAvailable ? 'Pipeline Coordinator' : 'File scan'}`;
+}
+
 refresh();
 setInterval(refresh, 5000);
 </script>

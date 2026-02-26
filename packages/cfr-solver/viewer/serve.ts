@@ -3,7 +3,7 @@
 // Usage: npx tsx viewer/serve.ts [port]
 // Opens http://localhost:3456 with the viewer pre-loaded.
 
-import { createServer } from 'node:http';
+import { createServer, request as httpRequest } from 'node:http';
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { resolve, join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -399,14 +399,15 @@ const server = createServer((req, res) => {
   // Solve progress monitoring API
   if (path === '/api/solve-progress') {
     try {
+      const progressDataDir = (configParam && DATA_DIRS[configParam]) || DATA_DIR;
       const totalExpected = 1911; // all isomorphic flops
-      const metaFiles = existsSync(DATA_DIR)
-        ? readdirSync(DATA_DIR).filter(f => f.endsWith('.meta.json')).sort()
+      const metaFiles = existsSync(progressDataDir)
+        ? readdirSync(progressDataDir).filter(f => f.endsWith('.meta.json')).sort()
         : [];
 
       const completed = metaFiles.length;
       const metas = metaFiles.map(f => {
-        try { return JSON.parse(readFileSync(join(DATA_DIR, f), 'utf-8')); } catch { return null; }
+        try { return JSON.parse(readFileSync(join(progressDataDir, f), 'utf-8')); } catch { return null; }
       }).filter(Boolean);
 
       let totalInfoSets = 0;
@@ -423,12 +424,12 @@ const server = createServer((req, res) => {
       }
 
       // Calculate file sizes
-      const jsonlFiles = existsSync(DATA_DIR)
-        ? readdirSync(DATA_DIR).filter(f => f.endsWith('.jsonl'))
+      const jsonlFiles = existsSync(progressDataDir)
+        ? readdirSync(progressDataDir).filter(f => f.endsWith('.jsonl'))
         : [];
       for (const f of jsonlFiles) {
         try {
-          const fstat = statSync(join(DATA_DIR, f));
+          const fstat = statSync(join(progressDataDir, f));
           totalSizeMB += fstat.size / (1024 * 1024);
         } catch {}
       }
@@ -462,7 +463,7 @@ const server = createServer((req, res) => {
       const etaMs = remaining * wallClockPerFlop;
 
       // Check progress file from orchestrator
-      const progressPath = join(DATA_DIR, '_progress.json');
+      const progressPath = join(progressDataDir, '_progress.json');
       let progressFile = null;
       if (existsSync(progressPath)) {
         try { progressFile = JSON.parse(readFileSync(progressPath, 'utf-8')); } catch {}
@@ -490,6 +491,32 @@ const server = createServer((req, res) => {
       res.writeHead(500);
       res.end(JSON.stringify({ error: String(err) }));
     }
+    return;
+  }
+
+  // Pipeline status proxy — forward to coordinator queue server
+  if (path === '/api/pipeline-status') {
+    const pipelinePort = url.searchParams.get('port') || '3500';
+    const proxy = httpRequest({
+      hostname: '127.0.0.1',
+      port: parseInt(pipelinePort, 10),
+      path: '/status',
+      method: 'GET',
+      timeout: 3000,
+    }, (proxyRes) => {
+      const chunks: Buffer[] = [];
+      proxyRes.on('data', (c: Buffer) => chunks.push(c));
+      proxyRes.on('end', () => {
+        res.writeHead(proxyRes.statusCode ?? 502, { 'Content-Type': 'application/json' });
+        res.end(Buffer.concat(chunks));
+      });
+    });
+    proxy.on('error', () => {
+      res.writeHead(502, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Pipeline coordinator not reachable' }));
+    });
+    proxy.on('timeout', () => { proxy.destroy(); });
+    proxy.end();
     return;
   }
 
