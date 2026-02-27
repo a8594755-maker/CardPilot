@@ -11,6 +11,8 @@ import {
   buildTree,
   V1_TREE_CONFIG,
   PIPELINE_3BET_CONFIG,
+  getTreeConfig,
+  type TreeConfigName,
 } from '@cardpilot/cfr-solver';
 import type { Action, GameNode, TreeConfig } from '@cardpilot/cfr-solver';
 import type { PostflopFrequency } from '@cardpilot/shared-types';
@@ -99,6 +101,55 @@ export class CfrAdvisor {
 
   get isLoaded(): boolean {
     return this.configs.size > 0;
+  }
+
+  /** Load CFR data using a tree config name from the registry. */
+  loadByConfigName(binaryPath: string, configName: TreeConfigName, metaDir?: string): boolean {
+    try {
+      if (!existsSync(binaryPath)) {
+        console.warn(`[cfr-advisor] binary file not found: ${binaryPath}`);
+        return false;
+      }
+
+      const reader = new BinaryStrategyReader(binaryPath);
+      const treeConfig = getTreeConfig(configName);
+      const bucketCount = reader.bucketCount || 100;
+
+      const actionIndex = new Map<string, Action[]>();
+      const root = buildTree(treeConfig);
+      const walk = (node: GameNode) => {
+        if (node.type === 'terminal') return;
+        actionIndex.set(node.historyKey, [...node.actions]);
+        for (const child of node.children.values()) walk(child);
+      };
+      walk(root);
+
+      const flopMetas: FlopMeta[] = [];
+      const mDir = metaDir ?? binaryPath.replace(/\.bin(\.gz)?$/, '');
+      if (existsSync(mDir)) {
+        const metaFiles = readdirSync(mDir).filter(f => f.endsWith('.meta.json')).sort();
+        for (const file of metaFiles) {
+          try {
+            const meta = JSON.parse(readFileSync(join(mDir, file), 'utf-8'));
+            flopMetas.push({ boardId: meta.boardId, flopCards: meta.flopCards });
+          } catch { /* skip corrupted meta files */ }
+        }
+      }
+
+      // Derive pot type from config name
+      const potType: PotType = configName.includes('3b') ? '3BP' : 'SRP';
+      this.configs.set(potType, { reader, flopMetas, actionIndex, treeConfig, bucketCount });
+      console.log(`[cfr-advisor] loaded ${configName} as ${potType}: ${reader.entryCount} entries, ${flopMetas.length} flop metas`);
+      return true;
+    } catch (e) {
+      console.warn(`[cfr-advisor] Failed to load ${configName}: ${(e as Error).message}`);
+      return false;
+    }
+  }
+
+  /** Get list of loaded pot types. */
+  get loadedPotTypes(): PotType[] {
+    return [...this.configs.keys()];
   }
 
   /**

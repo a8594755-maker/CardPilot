@@ -17,7 +17,7 @@ test('V1 tree structure is correct', () => {
   assert.ok(counts.terminal > 1000, 'Expected many terminal nodes');
   assert.equal(root.player, 0, 'OOP acts first');
   assert.equal(root.street, 'FLOP');
-  assert.deepEqual(root.actions, ['check', 'bet_small', 'bet_big', 'allin']);
+  assert.deepEqual(root.actions, ['check', 'bet_0', 'bet_1', 'allin']);
 });
 
 test('Binary reader loads and queries correctly', { skip: !hasData && 'No solved data' }, () => {

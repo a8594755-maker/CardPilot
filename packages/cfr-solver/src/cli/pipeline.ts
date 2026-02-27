@@ -11,9 +11,10 @@
 //   npx tsx pipeline.ts status --server http://192.168.1.100:3500
 
 import { resolve } from 'node:path';
-import { existsSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { request } from 'node:http';
+import type { TreeConfigName } from '../tree/tree-config.js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
@@ -54,7 +55,8 @@ Commands:
 
 Coordinator options:
   --port N            Server port (default: 3500)
-  --config NAME       Tree config: pipeline_srp, pipeline_3bet (default: pipeline_srp)
+  --config NAME       Config name, comma-separated list, or "all" (default: all)
+                      Examples: pipeline_srp, hu_btn_bb_srp_100bb,hu_btn_bb_3bp_100bb, all
   --iterations N      Override iterations (default: from config)
   --buckets N         Override bucket count (default: from config)
   --resume            Skip already-solved flops (checks for .meta.json files)
@@ -74,62 +76,131 @@ Status options:
 
 async function runCoordinator(): Promise<void> {
   const port = getNumArg('port', 3500);
-  const configName = getArg('config', 'pipeline_srp') as any;
+  const configArg = getArg('config', 'all');
   const iterations = getNumArg('iterations', 0) || undefined;
   const buckets = getNumArg('buckets', 0) || undefined;
   const chartsPath = resolve(PROJECT_ROOT, 'data/preflop_charts.json');
   const resume = args.includes('--resume');
+
+  // Resolve config names
+  const { getConfigOutputDir, getConfigLabel, getHUPipelineConfigNames } = await import('../tree/tree-config.js');
+  let configNames: TreeConfigName[];
+  if (configArg === 'all') {
+    configNames = getHUPipelineConfigNames();
+  } else {
+    configNames = configArg.split(',').map(s => s.trim()) as TreeConfigName[];
+  }
 
   console.log('╔═══════════════════════════════════════════════╗');
   console.log('║   CFR Pipeline — Coordinator                  ║');
   console.log('╚═══════════════════════════════════════════════╝');
   console.log();
   console.log(`Project root: ${PROJECT_ROOT}`);
-  console.log(`Config:       ${configName}`);
+  console.log(`Configs:      ${configNames.length} configs`);
+  for (const cn of configNames) {
+    console.log(`              - ${cn}`);
+  }
   console.log(`Port:         ${port}`);
   console.log(`Resume:       ${resume}`);
   console.log();
 
-  // Configure completion log path and start queue server
-  const { startQueueServer, addJobs, setCompletedLogPath } = await import('../pipeline/queue-server.js');
-  const { getConfigOutputDir } = await import('../tree/tree-config.js');
-  const outputDir = resolve(PROJECT_ROOT, 'data/cfr', getConfigOutputDir(configName));
-  mkdirSync(outputDir, { recursive: true });
-  const completedLogPath = resolve(outputDir, 'completed.jsonl');
-  setCompletedLogPath(completedLogPath);
-  console.log(`Completion log: ${completedLogPath}`);
+  // Start queue server
+  const { startQueueServer, addJobs, addCompletedLogPath } = await import('../pipeline/queue-server.js');
   startQueueServer(port);
+  console.log(`[Coordinator] Job dedup: each job assigned to exactly one worker at a time.`);
+  console.log(`[Coordinator] If coordinator restarts, running jobs re-queue after 5min stale timeout.`);
+  console.log(`[Coordinator] Completed jobs persist in completed.jsonl — safe across restarts.`);
 
-  // Generate jobs
-  const { generateJobs } = await import('../pipeline/job-generator.js');
-  const jobs = generateJobs({
-    configName,
-    projectRoot: PROJECT_ROOT,
-    chartsPath,
-    iterations,
-    buckets,
-    resume,
-  });
-
-  const added = addJobs(jobs);
+  // Configure per-config completion logs
+  for (const cn of configNames) {
+    const outputDir = resolve(PROJECT_ROOT, 'data/cfr', getConfigOutputDir(cn));
+    mkdirSync(outputDir, { recursive: true });
+    const logPath = resolve(outputDir, 'completed.jsonl');
+    addCompletedLogPath(cn, logPath);
+    console.log(`[${cn}] Completion log: ${logPath}`);
+  }
   console.log();
-  console.log(`[Coordinator] ${added} jobs queued (${jobs.length - added} duplicates skipped)`);
+
+  // Generate jobs for all configs (in priority order)
+  const { generateJobs } = await import('../pipeline/job-generator.js');
+  let totalAdded = 0;
+  let totalSkipped = 0;
+
+  for (const cn of configNames) {
+    const jobs = generateJobs({
+      configName: cn,
+      projectRoot: PROJECT_ROOT,
+      chartsPath,
+      iterations,
+      buckets,
+      resume,
+    });
+    const added = addJobs(jobs);
+    const skipped = jobs.length - added;
+    totalAdded += added;
+    totalSkipped += skipped;
+    console.log(`[Coordinator] ${cn}: ${added} jobs queued (${skipped} skipped)`);
+  }
+
+  console.log();
+  console.log(`[Coordinator] TOTAL: ${totalAdded} jobs queued across ${configNames.length} configs (${totalSkipped} skipped)`);
   console.log();
   console.log('Waiting for workers to connect...');
   console.log('Workers should run:');
   console.log(`  npx tsx pipeline.ts worker --server http://<this-ip>:${port}`);
   console.log();
 
-  // Status printer every 30s
+  // Load cluster.env variables (for Notion integration)
+  const clusterEnvPath = resolve(PROJECT_ROOT, 'packages/cfr-solver/scripts/cluster.env');
+  if (existsSync(clusterEnvPath)) {
+    const envContent = readFileSync(clusterEnvPath, 'utf-8');
+    for (const line of envContent.split('\n')) {
+      const match = line.match(/^([A-Z_]+)="(.+)"/);
+      if (match && match[2] && !process.env[match[1]]) {
+        process.env[match[1]] = match[2];
+      }
+    }
+  }
+
+  // Start Notion reporter (if configured)
   const { getStatus } = await import('../pipeline/queue-server.js');
-  setInterval(() => {
+  const { tryStartNotionReporter } = await import('../pipeline/notion-reporter.js');
+  const notionReporter = tryStartNotionReporter(getStatus);
+
+  // Status printer every 30s
+  let completionReported = false;
+  setInterval(async () => {
     const s = getStatus();
     const pct = s.total > 0 ? Math.round(s.completed / s.total * 100) : 0;
+
+    // Per-config progress summary
+    const configSummary = s.configs
+      ? Object.entries(s.configs)
+          .map(([cn, cs]: [string, any]) => {
+            const t = cs.pending + cs.running + cs.completed + cs.failed;
+            return `${cn.replace('hu_', '').replace('pipeline_', 'p_')}: ${cs.completed}/${t}`;
+          })
+          .join(' | ')
+      : '';
+
     console.log(
       `[Status] ${s.completed}/${s.total} (${pct}%) | ` +
       `pending: ${s.pending} | running: ${s.running} | failed: ${s.failed} | ` +
       `ETA: ${s.etaHuman} | workers: ${s.activeWorkers}`
     );
+    if (configSummary) {
+      console.log(`  [Configs] ${configSummary}`);
+    }
+
+    // Send final Notion report when all jobs complete
+    if (s.pending === 0 && s.running === 0 && s.completed > 0 && !completionReported) {
+      completionReported = true;
+      if (notionReporter) {
+        await notionReporter.report();
+        notionReporter.stop();
+      }
+      console.log('[Coordinator] All jobs completed!');
+    }
   }, 30000);
 }
 
