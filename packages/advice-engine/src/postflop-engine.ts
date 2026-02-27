@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { classifyHandOnBoard, type Card, type EquityResult } from "@cardpilot/poker-evaluator";
@@ -344,9 +344,9 @@ export class PostflopEngine {
 
     // Initialize CFR advisor with solved strategy data
     this.cfrAdvisor = new CfrAdvisor();
-    const cfrPaths = resolveCfrDataPaths();
-    if (cfrPaths) {
-      this.cfrAdvisor.load(cfrPaths.binary, cfrPaths.metaDir);
+    const cfrEntries = resolveCfrDataPaths();
+    for (const entry of cfrEntries) {
+      this.cfrAdvisor.load(entry.binary, entry.metaDir, entry.potType);
     }
   }
 
@@ -612,46 +612,39 @@ function resolvePostflopPath(): string | null {
   return join(thisDir, "../../../data/postflop_buckets.sample.json");
 }
 
-function resolveCfrDataPaths(): { binary: string; metaDir: string } | null {
+interface CfrDataEntry {
+  binary: string;
+  metaDir: string;
+  potType: 'SRP' | '3BP';
+}
+
+function resolveCfrDataPaths(): CfrDataEntry[] {
   const thisDir = fileURLToPath(new URL(".", import.meta.url));
+  const results: CfrDataEntry[] = [];
 
-  const binCandidates = [
-    process.env.CARDPILOT_CFR_DATA_PATH,
-    join(process.cwd(), "data", "cfr", "v1_hu_srp_50bb.bin.gz"),
-    join(thisDir, "../../../data/cfr/v1_hu_srp_50bb.bin.gz"),
-  ].filter(Boolean) as string[];
-
-  const metaDirCandidates = [
-    join(process.cwd(), "data", "cfr", "v1_hu_srp_50bb"),
-    join(thisDir, "../../../data/cfr/v1_hu_srp_50bb"),
+  const configs: { name: string; potType: 'SRP' | '3BP' }[] = [
+    { name: 'v1_hu_srp_50bb', potType: 'SRP' },
+    { name: 'pipeline_hu_3bet_50bb', potType: '3BP' },
   ];
 
-  let binary: string | null = null;
-  for (const candidate of binCandidates) {
-    try {
-      readFileSync(candidate, { flag: 'r' });
-      binary = candidate;
-      break;
-    } catch {
-      // continue
+  for (const cfg of configs) {
+    const binCandidates = [
+      join(process.cwd(), "data", "cfr", `${cfg.name}.bin.gz`),
+      join(thisDir, `../../../data/cfr/${cfg.name}.bin.gz`),
+    ];
+
+    let binary: string | null = null;
+    for (const candidate of binCandidates) {
+      if (existsSync(candidate)) { binary = candidate; break; }
     }
+    if (!binary) continue;
+
+    const metaDir = binary.replace(/\.bin(\.gz)?$/, '');
+    results.push({ binary, metaDir, potType: cfg.potType });
+    console.log(`[advice-engine] CFR data (${cfg.potType}): binary=${binary}`);
   }
 
-  if (!binary) return null;
-
-  let metaDir = binary.replace(/\.bin(\.gz)?$/, '');
-  for (const candidate of metaDirCandidates) {
-    try {
-      readFileSync(join(candidate, 'flop_000.meta.json'), 'utf-8');
-      metaDir = candidate;
-      break;
-    } catch {
-      // continue
-    }
-  }
-
-  console.log(`[advice-engine] CFR data: binary=${binary}, metaDir=${metaDir}`);
-  return { binary, metaDir };
+  return results;
 }
 
 function inferPotType(actions?: HandAction[]): "SRP" | "3BP" | "4BP" {
