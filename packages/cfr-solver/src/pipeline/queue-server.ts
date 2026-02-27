@@ -298,8 +298,14 @@ function getStatus() {
   const avgMs = avgFromCompleted > 0 ? avgFromCompleted : avgFromRunningMs;
   const avgSolveSource = avgFromCompleted > 0 ? 'completed' : (avgFromRunningMs > 0 ? 'running_estimate' : 'none');
   const totalWorkers = new Set([...running.values()].map(v => v.claimedBy)).size || 1;
-  const remainingJobs = pending.length + running.size;
-  const etaMs = avgMs > 0 ? (remainingJobs * avgMs) / totalWorkers : 0;
+  // Use actual concurrent job count for throughput (not just unique worker count)
+  const concurrentJobs = running.size || 1;
+  // Factor in partial progress of running jobs (a 90% done job = 0.1 remaining work)
+  const runningRemaining = runningDetails.reduce(
+    (sum, r) => sum + (1 - r.progressPct / 100), 0,
+  );
+  const remainingWork = pending.length + runningRemaining;
+  const etaMs = avgMs > 0 ? (remainingWork * avgMs) / concurrentJobs : 0;
   const runningAvgPct = runningDetails.length > 0
     ? runningDetails.reduce((s, r) => s + r.progressPct, 0) / runningDetails.length
     : 0;
