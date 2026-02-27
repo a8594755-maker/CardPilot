@@ -50,7 +50,7 @@ interface SelfPlayConfig {
   buyIn: number;
   dashboardPort: number;
   mode: 'train' | 'play';
-  version: 'v1' | 'v2';
+  version: 'v1' | 'v2' | 'v3';
   minRate: number;               // samples/hour threshold (0 = disabled)
   minRateGraceMinutes: number;   // how long low-rate must persist before recovery
   recoverRooms: number;          // rooms to recycle per recovery action
@@ -89,7 +89,7 @@ function parseArgs(): SelfPlayConfig {
     buyIn: parseInt(args['buy-in'] ?? '10000', 10),
     dashboardPort: parseInt(args['dashboard-port'] ?? '3456', 10),
     mode: (args['mode'] ?? 'play') as 'train' | 'play',
-    version: (args['version'] ?? 'v1') as 'v1' | 'v2',
+    version: (args['version'] ?? 'v1') as 'v1' | 'v2' | 'v3',
     minRate: parseFloat(args['min-rate'] ?? '0'),
     minRateGraceMinutes: parseInt(args['min-rate-grace-min'] ?? '4', 10),
     recoverRooms: parseInt(args['recover-rooms'] ?? '1', 10),
@@ -511,7 +511,7 @@ interface DashboardState {
   rooms: RoomStats[];
   history: { t: number; samples: number }[];
   events: DashboardEvent[];
-  pipelineVersion: 'v1' | 'v2';
+  pipelineVersion: 'v1' | 'v2' | 'v3';
   pipelineMode: 'train' | 'play';
   v1Metrics?: Record<string, unknown>;
   v2Metrics?: Record<string, unknown>;
@@ -772,8 +772,13 @@ async function main(): Promise<void> {
   console.log('');
 
   // ── Load shared model once for all in-process bots ──
-  const modelFileName = config.version === 'v2' ? 'model-v2-latest.json' : 'model-latest.json';
-  const modelPath = join(ROOT, 'packages', 'fast-model', 'models', modelFileName);
+  let modelPath: string;
+  if (config.version === 'v3') {
+    modelPath = join(ROOT, 'models', 'cfr-combined-v3.json');
+  } else {
+    const modelFileName = config.version === 'v2' ? 'model-v2-latest.json' : 'model-latest.json';
+    modelPath = join(ROOT, 'packages', 'fast-model', 'models', modelFileName);
+  }
   sharedModel = loadModel(modelPath);
   log(`Shared model: ${sharedModel ? 'loaded' : 'not found (heuristic fallback)'}`);
 

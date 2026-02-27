@@ -13,7 +13,7 @@ import type { MoodState } from './mood.js';
 import type { OpponentAdjustment } from './opponent-model.js';
 import type { RaiseContext } from './raise-context.js';
 import type { BoardTexture } from './board-integration.js';
-import { encodeFeatures, type MLP } from '@cardpilot/fast-model';
+import { encodeFeatures, encodeFeaturesV2, type MLP } from '@cardpilot/fast-model';
 import { applyPersona } from './persona.js';
 import { getMoodMultipliers } from './mood.js';
 import { analyzeRaiseContext } from './raise-context.js';
@@ -458,19 +458,19 @@ function fastModelMix(
     ? Math.min(me.stack, ...villains.map(v => v.stack))
     : 100;
 
-  const features = encodeFeatures(
-    holeCards,
-    state.board,
-    state.street,
-    state.pot,
-    state.bigBlind || 1,
-    state.legalActions?.callAmount ?? 0,
-    effectiveStack,
-    heroPosition,
-    heroInPosition,
-    numVillains,
-    heroRaisedPreflop,
-  );
+  const bb = state.bigBlind || 1;
+  const callAmount = state.legalActions?.callAmount ?? 0;
+
+  const features = model.isMultiHead
+    ? encodeFeaturesV2(
+        holeCards, state.board, state.street, state.pot, bb, callAmount,
+        effectiveStack, heroPosition, heroInPosition, numVillains, heroRaisedPreflop,
+        state.actions, state.players, state.actorSeat ?? 0,
+      )
+    : encodeFeatures(
+        holeCards, state.board, state.street, state.pot, bb, callAmount,
+        effectiveStack, heroPosition, heroInPosition, numVillains, heroRaisedPreflop,
+      );
 
   return model.predict(features);
 }

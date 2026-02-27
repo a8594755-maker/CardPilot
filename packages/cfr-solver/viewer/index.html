@@ -139,7 +139,7 @@
   .tag.connected { background: rgba(56,189,248,0.15); color: #38bdf8; }
 
   /* ========== MAIN CONTENT ========== */
-  .main-content { flex: 1; padding: 32px; max-width: 960px; }
+  .main-content { flex: 1; padding: 32px; max-width: 1100px; }
 
   /* Welcome screen */
   .welcome-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 70vh; text-align: center; }
@@ -314,39 +314,35 @@
     display: grid;
     grid-template-columns: repeat(13, 1fr);
     gap: 2px;
-    max-width: 600px;
+    max-width: 750px;
   }
   .hm-cell {
     position: relative;
     aspect-ratio: 1;
-    border-radius: 4px;
+    border-radius: 3px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    border: 2px solid transparent;
-    transition: all 0.1s;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    border: 1.5px solid rgba(0,0,0,0.15);
+    transition: all 0.12s;
     overflow: hidden;
-    min-width: 40px;
+    min-width: 50px;
   }
-  .hm-cell:hover { border-color: white; z-index: 2; transform: scale(1.1); }
-  .hm-cell.selected { border-color: var(--accent); box-shadow: 0 0 12px rgba(59,130,246,0.5); z-index: 3; }
+  .hm-cell:hover { border-color: white; z-index: 2; transform: scale(1.12); box-shadow: 0 4px 16px rgba(0,0,0,0.5); }
+  .hm-cell.selected { border-color: var(--accent); box-shadow: 0 0 16px rgba(59,130,246,0.6); z-index: 3; }
   .hm-cell .hm-name {
     position: relative; z-index: 1;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.9), 0 0 6px rgba(0,0,0,0.4);
     color: white;
-    font-size: 0.6875rem;
+    font-size: 0.8125rem;
+    letter-spacing: 0.02em;
   }
-  .hm-cell .hm-mini-bar {
-    position: absolute; inset: 0;
-    display: flex;
-  }
-  .hm-cell .hm-mini-bar .hm-seg { height: 100%; }
-  .hm-cell.no-data { background: var(--bg-elevated); }
-  .hm-cell.no-data .hm-name { color: var(--text-muted); text-shadow: none; }
+  .hm-cell.no-data { background: #1a2332; }
+  .hm-cell.no-data .hm-name { color: var(--text-muted); text-shadow: none; font-weight: 500; }
 
   /* Hand detail popup */
   .hand-detail {
@@ -503,10 +499,6 @@
         <div class="panel-header">
           <span class="panel-title">Situation</span>
         </div>
-        <div class="help-tip" id="situation-help">
-          <span class="tip-icon">&#128161;</span>
-          <span>Choose who is acting and which street. Then navigate the action tree below.</span>
-        </div>
         <div class="situation-bar">
           <div>
             <div class="seg-label">Who is Acting?</div>
@@ -535,49 +527,28 @@
         <div class="nav-actions" id="nav-actions"></div>
       </div>
 
-      <!-- Hand Matrix -->
+      <!-- Hand Matrix (primary view, GTO Wizard style) -->
       <div class="panel" id="hand-matrix-panel">
         <div class="panel-header" style="display:flex;align-items:center;gap:8px;">
-          <span class="panel-title" style="flex:1;">Your Hand</span>
+          <span class="panel-title" style="flex:1;">Range Strategy</span>
           <div class="seg-group" id="heatmap-toggle" style="font-size:0.6875rem;">
             <button class="seg-btn active" data-mode="actions" onclick="setHeatmapMode('actions')">Actions</button>
             <button class="seg-btn" data-mode="aggression" onclick="setHeatmapMode('aggression')">Aggression</button>
             <button class="seg-btn" data-mode="strength" onclick="setHeatmapMode('strength')">Strength</button>
           </div>
         </div>
-        <div class="help-tip">
-          <span class="tip-icon">&#128161;</span>
-          <span>Diagonal = pairs (AA, KK...). Upper-right = suited. Lower-left = offsuit. Colors show what action the solver recommends.</span>
-        </div>
+
+        <!-- Legend + Aggregate (inline with matrix) -->
+        <div class="legend" id="legend" style="margin-bottom:12px;"></div>
+        <div class="agg-bar-wrap" id="agg-bar"></div>
+        <div class="agg-row" id="agg-row" style="margin-top:12px; margin-bottom:16px;"></div>
+
         <div class="hand-matrix-wrap">
           <div class="hand-matrix" id="hand-matrix"></div>
         </div>
         <div id="hand-detail"></div>
       </div>
 
-      <!-- Legend + Aggregate -->
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">Overall Strategy</span>
-          <span class="panel-subtitle">Averaged across all hand strengths</span>
-        </div>
-        <div class="legend" id="legend" style="margin-bottom:16px;"></div>
-        <div class="agg-bar-wrap" id="agg-bar"></div>
-        <div class="agg-row" id="agg-row" style="margin-top:16px;"></div>
-      </div>
-
-      <!-- Strategy chart -->
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">Strategy by Hand Strength</span>
-          <span class="panel-subtitle">Hover for details</span>
-        </div>
-        <div class="help-tip">
-          <span class="tip-icon">&#128161;</span>
-          <span>Each row = a hand strength group. <b>Left = weak hands, Right = strong hands</b> in the bar. Colors show how often to take each action.</span>
-        </div>
-        <div class="chart-section" id="strategy-chart"></div>
-      </div>
     </div>
   </main>
 </div>
@@ -875,6 +846,13 @@ async function loadFlops() {
     if (!res.ok) return;
     allFlops = await res.json();
     renderFlopList();
+
+    // Auto-select flop from URL query param (e.g. ?flop=flop_042)
+    const params = new URLSearchParams(window.location.search);
+    const autoFlop = params.get('flop');
+    if (autoFlop) {
+      selectFlop(autoFlop);
+    }
   } catch(e) {
     document.getElementById('flop-count').textContent = 'Could not load flop data.';
   }
@@ -1010,10 +988,9 @@ function render() {
   renderSituation();
   renderActionPath();
   renderNavActions();
-  renderHandMatrix();
   renderLegend();
   renderAggregate();
-  renderChart();
+  renderHandMatrix();
 }
 
 function renderBoard() {
@@ -1323,6 +1300,38 @@ function setHeatmapMode(mode) {
   renderHandMatrix();
 }
 
+/** Blend action colors into a single weighted background color (GTO Wizard style). */
+function blendActionColors(probs, labels) {
+  // Action color RGB values
+  const colorMap = {
+    'fold': [100, 116, 139],
+    'check': [34, 197, 94],
+    'call': [56, 189, 248],
+    'bet': [251, 191, 36],
+    'raise': [232, 121, 249],
+    'allin': [239, 68, 68],
+  };
+
+  function labelToKey(label) {
+    if (/^Fold/i.test(label)) return 'fold';
+    if (/^Check/i.test(label)) return 'check';
+    if (/^Call/i.test(label)) return 'call';
+    if (/^All/i.test(label)) return 'allin';
+    if (/^Bet/i.test(label)) return 'bet';
+    if (/^Raise/i.test(label)) return 'raise';
+    return 'check';
+  }
+
+  let r = 0, g = 0, b = 0;
+  for (let i = 0; i < probs.length; i++) {
+    const rgb = colorMap[labelToKey(labels[i])] || [128, 128, 128];
+    r += rgb[0] * probs[i];
+    g += rgb[1] * probs[i];
+    b += rgb[2] * probs[i];
+  }
+  return `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
+}
+
 function renderHandMatrix() {
   const el = document.getElementById('hand-matrix');
   const detailEl = document.getElementById('hand-detail');
@@ -1340,6 +1349,9 @@ function renderHandMatrix() {
   const numActions = sample ? sample.probs.length : 0;
   const labels = numActions > 0 ? getActionLabels(state.historyKey, numActions) : [];
 
+  // Cache probs for tooltips
+  window._matrixData = {};
+
   let html = '';
   for (let idx = 0; idx < ALL_HAND_CLASSES.length; idx++) {
     const hc = ALL_HAND_CLASSES[idx];
@@ -1347,48 +1359,50 @@ function renderHandMatrix() {
     const sel = selectedHand === hc ? ' selected' : '';
 
     if (bucket === undefined || numActions === 0) {
-      html += `<div class="hm-cell no-data" data-hand="${hc}" onclick="selectHandCell('${hc}')">
+      html += `<div class="hm-cell no-data" data-hand="${hc}" onclick="selectHandCell('${hc}')"
+        onmouseenter="showHandTooltip(event,'${hc}')" onmousemove="moveTooltip(event)" onmouseleave="hideTooltip()">
         <span class="hm-name">${hc}</span></div>`;
       continue;
     }
 
     const probs = getAggregatedProbs(prefix, bucket);
     if (!probs) {
-      html += `<div class="hm-cell no-data${sel}" data-hand="${hc}" onclick="selectHandCell('${hc}')">
+      html += `<div class="hm-cell no-data${sel}" data-hand="${hc}" onclick="selectHandCell('${hc}')"
+        onmouseenter="showHandTooltip(event,'${hc}')" onmousemove="moveTooltip(event)" onmouseleave="hideTooltip()">
         <span class="hm-name">${hc}</span></div>`;
       continue;
     }
 
+    // Cache for tooltip
+    window._matrixData[hc] = { probs, labels, bucket };
+
     if (heatmapMode === 'aggression') {
-      // Aggression mode: color intensity by bet/raise frequency
       const aggFreq = computeAggression(probs, labels);
       const r = Math.round(239 * aggFreq + 30 * (1 - aggFreq));
       const g = Math.round(68 * aggFreq + 100 * (1 - aggFreq));
       const b = Math.round(68 * aggFreq + 140 * (1 - aggFreq));
       const alpha = 0.3 + 0.6 * aggFreq;
-      html += `<div class="hm-cell${sel}" data-hand="${hc}" onclick="selectHandCell('${hc}')" style="background:rgba(${r},${g},${b},${alpha})">
+      html += `<div class="hm-cell${sel}" data-hand="${hc}" onclick="selectHandCell('${hc}')"
+        onmouseenter="showHandTooltip(event,'${hc}')" onmousemove="moveTooltip(event)" onmouseleave="hideTooltip()"
+        style="background:rgba(${r},${g},${b},${alpha})">
         <span class="hm-name">${hc}</span></div>`;
     } else if (heatmapMode === 'strength') {
-      // Strength mode: color by bucket position (blue=weak to red=strong)
       const bc = state.bucketCount;
       const norm = bc > 1 ? bucket / (bc - 1) : 0.5;
       const r = Math.round(30 + 209 * norm);
       const g = Math.round(80 + 60 * (1 - Math.abs(norm - 0.5) * 2));
       const b = Math.round(200 * (1 - norm) + 40);
-      html += `<div class="hm-cell${sel}" data-hand="${hc}" onclick="selectHandCell('${hc}')" style="background:rgba(${r},${g},${b},0.7)">
+      html += `<div class="hm-cell${sel}" data-hand="${hc}" onclick="selectHandCell('${hc}')"
+        onmouseenter="showHandTooltip(event,'${hc}')" onmousemove="moveTooltip(event)" onmouseleave="hideTooltip()"
+        style="background:rgba(${r},${g},${b},0.7)">
         <span class="hm-name">${hc}</span></div>`;
     } else {
-      // Default actions mode: mini stacked bar
-      let barHtml = '<div class="hm-mini-bar">';
-      for (let i = 0; i < probs.length; i++) {
-        const pct = (probs[i] * 100).toFixed(1);
-        const color = getActionColor(labels[i]);
-        barHtml += `<div class="hm-seg" style="width:${pct}%;background:${color}"></div>`;
-      }
-      barHtml += '</div>';
-
-      html += `<div class="hm-cell${sel}" data-hand="${hc}" onclick="selectHandCell('${hc}')">
-        ${barHtml}<span class="hm-name">${hc}</span></div>`;
+      // GTO Wizard style: blended background color fill
+      const bgColor = blendActionColors(probs, labels);
+      html += `<div class="hm-cell${sel}" data-hand="${hc}" onclick="selectHandCell('${hc}')"
+        onmouseenter="showHandTooltip(event,'${hc}')" onmousemove="moveTooltip(event)" onmouseleave="hideTooltip()"
+        style="background:${bgColor}">
+        <span class="hm-name">${hc}</span></div>`;
     }
   }
 
@@ -1401,6 +1415,26 @@ function renderHandMatrix() {
     detailEl.innerHTML = '';
   }
 }
+
+/** Show tooltip with action breakdown for a hand class cell. */
+function showHandTooltip(event, hc) {
+  const data = window._matrixData && window._matrixData[hc];
+  const ttEl = document.getElementById('tooltip');
+  if (!data) {
+    ttEl.innerHTML = `<div class="tt-title">${hc}</div><div style="color:var(--text-muted);font-size:0.75rem;">Not in range</div>`;
+  } else {
+    let rows = '';
+    for (let i = 0; i < data.probs.length; i++) {
+      const pct = (data.probs[i] * 100).toFixed(1);
+      const color = getActionColor(data.labels[i]);
+      rows += `<div class="tt-row"><div class="tt-action"><span class="tt-dot" style="background:${color}"></span>${data.labels[i]}</div><span class="tt-pct">${pct}%</span></div>`;
+    }
+    ttEl.innerHTML = `<div class="tt-title">${hc}</div>${rows}`;
+  }
+  ttEl.style.display = 'block';
+  moveTooltip(event);
+}
+
 
 function selectHandCell(hc) {
   selectedHand = selectedHand === hc ? null : hc;

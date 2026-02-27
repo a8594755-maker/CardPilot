@@ -5,10 +5,13 @@
  * Usage:
  *   V1:  npx tsx packages/fast-model/src/trainer.ts [--data <dir>] [--out <path>]
  *   V2:  npx tsx packages/fast-model/src/trainer.ts --v2 [--data <dir>] [--out <path>]
+ *   CFR: npx tsx packages/fast-model/src/trainer.ts --v2 --hidden 256,128 --streaming \
+ *          --val-by-flop --val-flop-count 100 --data data/training/cfr_srp/ --out models/cfr-v3.json
  *
  * V1: Single-head (48→64→32→3), cross-entropy loss on action labels.
  * V2: Multi-head (54→64→32→[3 action, 5 sizing]), combined loss,
  *     anti-bias sampling, hard example mining, evaluation metrics.
+ * Streaming: Chunked training for large datasets (10M+ samples).
  */
 
 import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync } from 'node:fs';
@@ -38,7 +41,7 @@ const HARD_EXAMPLE_FRACTION = 0.2;
 // ── CLI args ──
 
 interface TrainerArgs {
-  dataDir: string;
+  dataDirs: string[];
   outPath: string;
   isV2: boolean;
   warmStart: string | null; // path to V1 model for transfer learning
@@ -48,11 +51,21 @@ interface TrainerArgs {
   hardExampleFraction: number; // V2 hard mining fraction
   disableHardMining: boolean; // V2 hard mining toggle
   initialLr: number; // initial learning rate override
+  // ── New: configurable architecture + streaming ──
+  hiddenSizes: number[]; // backbone hidden layer sizes (e.g. [256, 128])
+  streaming: boolean; // enable chunked streaming training
+  chunkSize: number; // samples per streaming chunk
+  resume: string | null; // path to model to resume training from
+  valByFlop: boolean; // hold out entire flops for validation (not random)
+  valFlopCount: number; // number of flops to hold out
+  batchSize: number; // batch size override
+  maxEpochs: number; // max epochs override
+  filesPerPass: number; // max files per pass (0 = all)
 }
 
 function parseTrainerArgs(): TrainerArgs {
   const __dirname = dirname(fileURLToPath(import.meta.url));
-  let dataDir = join(__dirname, '..', '..', '..', 'data');
+  let dataDirs = [join(__dirname, '..', '..', '..', 'data')];
   let outPath = join(__dirname, '..', 'models', 'model-latest.json');
   let isV2 = false;
   let warmStart: string | null = null;
@@ -62,10 +75,19 @@ function parseTrainerArgs(): TrainerArgs {
   let hardExampleFraction = HARD_EXAMPLE_FRACTION;
   let disableHardMining = false;
   let initialLr = LEARNING_RATE_INIT;
+  let hiddenSizes = HIDDEN_SIZES;
+  let streaming = false;
+  let chunkSize = 500000;
+  let resume: string | null = null;
+  let valByFlop = false;
+  let valFlopCount = 100;
+  let batchSize = BATCH_SIZE;
+  let maxEpochs = MAX_EPOCHS;
+  let filesPerPass = 0; // 0 = all files
 
   const argv = process.argv.slice(2);
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === '--data' && argv[i + 1]) dataDir = argv[++i];
+    if (argv[i] === '--data' && argv[i + 1]) dataDirs = argv[++i].split(',').map(d => d.trim());
     if (argv[i] === '--out' && argv[i + 1]) outPath = argv[++i];
     if (argv[i] === '--v2') isV2 = true;
     if (argv[i] === '--warm-start' && argv[i + 1]) warmStart = argv[++i];
@@ -92,10 +114,36 @@ function parseTrainerArgs(): TrainerArgs {
       const parsed = parseFloat(argv[++i]);
       if (Number.isFinite(parsed) && parsed > 0) initialLr = parsed;
     }
+    if (argv[i] === '--hidden' && argv[i + 1]) {
+      hiddenSizes = argv[++i].split(',').map(s => parseInt(s.trim(), 10)).filter(n => n > 0);
+    }
+    if (argv[i] === '--streaming') streaming = true;
+    if (argv[i] === '--chunk-size' && argv[i + 1]) {
+      const parsed = parseInt(argv[++i], 10);
+      if (Number.isFinite(parsed) && parsed > 0) chunkSize = parsed;
+    }
+    if (argv[i] === '--resume' && argv[i + 1]) resume = argv[++i];
+    if (argv[i] === '--val-by-flop') valByFlop = true;
+    if (argv[i] === '--val-flop-count' && argv[i + 1]) {
+      const parsed = parseInt(argv[++i], 10);
+      if (Number.isFinite(parsed) && parsed > 0) valFlopCount = parsed;
+    }
+    if (argv[i] === '--batch-size' && argv[i + 1]) {
+      const parsed = parseInt(argv[++i], 10);
+      if (Number.isFinite(parsed) && parsed > 0) batchSize = parsed;
+    }
+    if (argv[i] === '--max-epochs' && argv[i + 1]) {
+      const parsed = parseInt(argv[++i], 10);
+      if (Number.isFinite(parsed) && parsed > 0) maxEpochs = parsed;
+    }
+    if (argv[i] === '--files-per-pass' && argv[i + 1]) {
+      const parsed = parseInt(argv[++i], 10);
+      if (Number.isFinite(parsed) && parsed > 0) filesPerPass = parsed;
+    }
   }
 
   return {
-    dataDir,
+    dataDirs,
     outPath,
     isV2,
     warmStart,
@@ -105,26 +153,52 @@ function parseTrainerArgs(): TrainerArgs {
     hardExampleFraction,
     disableHardMining,
     initialLr,
+    hiddenSizes,
+    streaming,
+    chunkSize,
+    resume,
+    valByFlop,
+    valFlopCount,
+    batchSize,
+    maxEpochs,
+    filesPerPass,
   };
 }
 
 // ── Data loading ──
 
-function loadSamples(dataDir: string, expectedFeatureCount: number, maxSamples: number | null = null): TrainingSample[] {
-  if (!existsSync(dataDir)) {
-    console.error(`Data directory not found: ${dataDir}`);
-    process.exit(1);
+function collectFiles(dataDirs: string | string[]): string[] {
+  const dirs = Array.isArray(dataDirs) ? dataDirs : [dataDirs];
+  const files: string[] = [];
+  for (const dir of dirs) {
+    if (!existsSync(dir)) {
+      console.error(`Data directory not found: ${dir}`);
+      process.exit(1);
+    }
+    for (const f of readdirSync(dir).filter(f => f.endsWith('.jsonl'))) {
+      files.push(join(dir, f)); // full path
+    }
   }
+  return files.sort();
+}
 
-  const files = readdirSync(dataDir).filter(f => f.endsWith('.jsonl'));
+function loadSamples(
+  dataDirs: string | string[],
+  expectedFeatureCount: number,
+  maxSamples: number | null = null,
+  fileFilter?: string[],
+): TrainingSample[] {
+  const files = fileFilter ?? collectFiles(dataDirs);
   if (files.length === 0) {
-    console.error(`No .jsonl files found in: ${dataDir}`);
+    console.error(`No .jsonl files found`);
     process.exit(1);
   }
 
   const samples: TrainingSample[] = [];
   for (const file of files) {
-    const lines = readFileSync(join(dataDir, file), 'utf-8').split('\n');
+    const filepath = file.includes('/') || file.includes('\\') ? file : join(Array.isArray(dataDirs) ? dataDirs[0] : dataDirs, file);
+    if (!existsSync(filepath)) continue;
+    const lines = readFileSync(filepath, 'utf-8').split('\n');
     for (const line of lines) {
       const trimmed = line.trim();
       if (!trimmed) continue;
@@ -998,11 +1072,235 @@ function loadModelFromPath(modelPath: string): ModelWeights {
   return JSON.parse(readFileSync(modelPath, 'utf-8')) as ModelWeights;
 }
 
+// ══════════════════════════════════════════════
+//   STREAMING TRAINING (for large CFR datasets)
+// ══════════════════════════════════════════════
+
+/**
+ * Split data files by flop (using filename pattern flop_XXXX.jsonl) into
+ * train and validation sets. Holds out entire flops, not random samples.
+ */
+function splitByFlop(
+  dataDirs: string | string[],
+  featureCount: number,
+  valFlopCount: number,
+): { trainFiles: string[]; valFiles: string[]; valSet: TrainingSample[] } {
+  // Collect all files as full paths from all directories
+  const allFiles = collectFiles(dataDirs);
+
+  // Separate flop files from other JSONL files
+  const flopFiles: string[] = [];
+  const otherFiles: string[] = [];
+  for (const f of allFiles) {
+    if (/flop_\d+\.jsonl$/.test(f)) {
+      flopFiles.push(f);
+    } else {
+      otherFiles.push(f);
+    }
+  }
+
+  // If no flop files found, fall back to treating all files as training
+  if (flopFiles.length === 0) {
+    return { trainFiles: allFiles, valFiles: [], valSet: [] };
+  }
+
+  // Hold out the last N flop files as validation (sorted by boardId)
+  const actualValCount = Math.min(valFlopCount, Math.floor(flopFiles.length * 0.1));
+  // Select evenly spaced flops for validation (diversity)
+  const step = Math.max(1, Math.floor(flopFiles.length / Math.max(1, actualValCount)));
+  const valIndices = new Set<number>();
+  for (let i = 0; i < actualValCount; i++) {
+    valIndices.add(Math.min(i * step, flopFiles.length - 1));
+  }
+
+  const trainFiles: string[] = [...otherFiles];
+  const valFiles: string[] = [];
+  for (let i = 0; i < flopFiles.length; i++) {
+    if (valIndices.has(i)) {
+      valFiles.push(flopFiles[i]);
+    } else {
+      trainFiles.push(flopFiles[i]);
+    }
+  }
+
+  // Load validation set into memory (should be small: ~100 flops × 4K samples)
+  const valSet: TrainingSample[] = [];
+  for (const f of valFiles) {
+    const lines = readFileSync(f, 'utf-8').split('\n'); // f is already full path
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      try {
+        const sample = JSON.parse(trimmed) as TrainingSample;
+        if (sample.f?.length === featureCount && sample.l?.length === 3) {
+          valSet.push(sample);
+        }
+      } catch { /* skip */ }
+    }
+  }
+
+  console.log(`  Flop split: ${trainFiles.length} train files, ${valFiles.length} val files (${valSet.length} val samples)`);
+  return { trainFiles, valFiles, valSet };
+}
+
+/**
+ * Streaming V2 trainer: processes data in chunks for large datasets.
+ * Loads one file at a time into memory, runs mini-epochs, then moves to the next.
+ */
+function trainStreamingV2(
+  trainFiles: string[],  // full paths
+  valSet: TrainingSample[],
+  featureCount: number,
+  opts: {
+    hiddenSizes: number[];
+    batchSize: number;
+    maxEpochs: number;
+    initialLr: number;
+    filesPerPass: number;
+    resumeModel?: ModelWeights;
+  },
+): ModelWeights {
+  const { hiddenSizes, batchSize, initialLr, resumeModel, filesPerPass } = opts;
+  const maxPasses = opts.maxEpochs; // each "epoch" = one full pass through all files
+
+  // Initialize or resume model
+  let model: ModelWeights;
+  if (resumeModel) {
+    model = resumeModel;
+    console.log(`Resuming from model (inputSize=${model.inputSize}, layers=${model.layers.length})`);
+  } else {
+    model = createRandomModelV2(featureCount, hiddenSizes, ACTION_OUTPUT_SIZE, SIZING_OUTPUT_SIZE);
+  }
+  model.architecture = { hiddenSizes };
+
+  console.log(`Streaming V2: input=${featureCount} → [${hiddenSizes.join(', ')}] → action(${ACTION_OUTPUT_SIZE}) + sizing(${SIZING_OUTPUT_SIZE})`);
+  const effectiveFilesPerPass = filesPerPass > 0 ? Math.min(filesPerPass, trainFiles.length) : trainFiles.length;
+  console.log(`  ${trainFiles.length} training files, ${valSet.length} validation samples`);
+  console.log(`  Batch size: ${batchSize}, Max passes: ${maxPasses}, Files/pass: ${effectiveFilesPerPass}`);
+
+  // Pre-allocate buffers
+  const buf = createV2Buffers(model);
+  const accGrads = createGradsV2Flat(model);
+
+  let bestModel = cloneWeights(model);
+  let bestValLoss = Infinity;
+  let patience = 0;
+  let lr = initialLr;
+
+  for (let pass = 1; pass <= maxPasses; pass++) {
+    if (pass > 1 && (pass - 1) % LR_DECAY_EVERY === 0) {
+      lr *= LR_DECAY_FACTOR;
+      console.log(`  LR decay → ${lr.toExponential(2)}`);
+    }
+
+    // Shuffle file order each pass and subsample
+    const shuffledFiles = [...trainFiles];
+    for (let i = shuffledFiles.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledFiles[i], shuffledFiles[j]] = [shuffledFiles[j], shuffledFiles[i]];
+    }
+    const passFiles = shuffledFiles.slice(0, effectiveFilesPerPass);
+
+    let passLoss = 0;
+    let passSamples = 0;
+
+    for (const file of passFiles) {
+      // Load chunk
+      const chunk = loadSamples([], featureCount, null, [file]); // file is full path
+      if (chunk.length === 0) continue;
+
+      // Run 1 mini-epoch on this chunk
+      shuffle(chunk);
+
+      for (let start = 0; start < chunk.length; start += batchSize) {
+        const end = Math.min(start + batchSize, chunk.length);
+        const bs = end - start;
+        zeroGradsV2Flat(accGrads);
+
+        for (let b = start; b < end; b++) {
+          const sample = chunk[b];
+          forwardV2Into(model, sample.f, buf);
+
+          let loss = 0;
+          for (let i = 0; i < sample.l.length; i++) {
+            loss -= sample.l[i] * Math.log(Math.max(buf.actionProbs[i], 1e-10));
+          }
+
+          const hasSizing = sample.sz && sample.l[0] > SIZING_RAISE_THRESHOLD;
+          if (hasSizing) {
+            for (let i = 0; i < sample.sz!.length; i++) {
+              loss += SIZING_LOSS_WEIGHT * (-sample.sz![i] * Math.log(Math.max(buf.sizingProbs[i], 1e-10)));
+            }
+          }
+          passLoss += loss;
+          passSamples++;
+
+          backpropV2Into(model, buf, accGrads, sample.l, hasSizing ? sample.sz! : null, SIZING_LOSS_WEIGHT);
+        }
+
+        sgdUpdateV2Flat(model, accGrads, lr, bs);
+      }
+    }
+
+    const trainLoss = passSamples > 0 ? passLoss / passSamples : 0;
+    const valLoss = valSet.length > 0 ? evaluateV2Loss(model, valSet) : trainLoss;
+
+    const indicator = valLoss < bestValLoss ? ' *' : '';
+    console.log(
+      `Pass ${String(pass).padStart(3)}/${maxPasses}  ` +
+      `train_loss=${trainLoss.toFixed(4)}  val_loss=${valLoss.toFixed(4)}  ` +
+      `samples=${passSamples.toLocaleString()}  lr=${lr.toExponential(2)}${indicator}`
+    );
+
+    if (valLoss < bestValLoss) {
+      bestValLoss = valLoss;
+      bestModel = cloneWeights(model);
+      bestModel.valLoss = valLoss;
+      patience = 0;
+    } else {
+      patience++;
+      if (patience >= EARLY_STOP_PATIENCE) {
+        console.log(`\nEarly stopping at pass ${pass} (patience=${EARLY_STOP_PATIENCE})`);
+        break;
+      }
+    }
+  }
+
+  bestModel.trainedAt = new Date().toISOString();
+  bestModel.trainingSamples = trainFiles.length * 5000; // approximate
+  bestModel.version = 'v2';
+  bestModel.architecture = { hiddenSizes };
+  return bestModel;
+}
+
+/**
+ * Load samples from specific files (for streaming training).
+ */
+function loadSamplesFromFiles(files: string[], featureCount: number): TrainingSample[] {
+  const samples: TrainingSample[] = [];
+  for (const filepath of files) {
+    if (!existsSync(filepath)) continue;
+    const lines = readFileSync(filepath, 'utf-8').split('\n');
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      try {
+        const sample = JSON.parse(trimmed) as TrainingSample;
+        if (sample.f?.length === featureCount && sample.l?.length === 3) {
+          samples.push(sample);
+        }
+      } catch { /* skip */ }
+    }
+  }
+  return samples;
+}
+
 // ── Entry point ──
 
 function main(): void {
+  const args = parseTrainerArgs();
   const {
-    dataDir,
+    dataDirs,
     outPath,
     isV2,
     warmStart,
@@ -1012,19 +1310,75 @@ function main(): void {
     hardExampleFraction,
     disableHardMining,
     initialLr,
-  } = parseTrainerArgs();
+    hiddenSizes,
+    streaming,
+    resume,
+    valByFlop,
+    valFlopCount,
+    batchSize,
+    maxEpochs,
+  } = args;
   const featureCount = isV2 ? FEATURE_COUNT_V2 : FEATURE_COUNT;
 
-  console.log(`Loading samples from: ${dataDir}`);
-  console.log(`Mode: ${isV2 ? 'V2 (multi-head + anti-bias)' : 'V1 (single-head)'}`);
-  if (maxSamples != null) {
-    console.log(`Sample cap: ${maxSamples}`);
+  console.log(`Loading samples from: ${dataDirs.join(', ')}`);
+  console.log(`Mode: ${isV2 ? 'V2 (multi-head)' : 'V1 (single-head)'}`);
+  console.log(`Architecture: [${hiddenSizes.join(', ')}]`);
+  if (streaming) console.log(`Streaming mode: ON`);
+  if (resume) console.log(`Resuming from: ${resume}`);
+  if (valByFlop) console.log(`Validation: by flop (${valFlopCount} flops held out)`);
+
+  // ── Streaming mode (for large CFR datasets) ──
+  if (streaming && isV2) {
+    const { trainFiles, valSet } = splitByFlop(dataDirs, featureCount, valFlopCount);
+
+    if (trainFiles.length === 0) {
+      console.error('No training files found.');
+      process.exit(1);
+    }
+
+    let resumeModel: ModelWeights | undefined;
+    if (resume) {
+      resumeModel = loadModelFromPath(resume);
+      console.log(`Loaded resume model: ${resume}`);
+    }
+
+    const bestModel = trainStreamingV2(trainFiles, valSet, featureCount, {
+      hiddenSizes,
+      batchSize,
+      maxEpochs,
+      initialLr,
+      filesPerPass: args.filesPerPass,
+      resumeModel,
+    });
+
+    // Save model
+    const outDir = dirname(outPath);
+    if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true });
+    writeFileSync(outPath, JSON.stringify(bestModel));
+
+    const sizeMB = (Buffer.byteLength(JSON.stringify(bestModel)) / 1024 / 1024).toFixed(2);
+    console.log(`\nModel saved: ${outPath}`);
+    console.log(`  Size: ${sizeMB} MB`);
+    console.log(`  Val loss: ${bestModel.valLoss.toFixed(4)}`);
+
+    // Evaluate
+    if (valSet.length > 0) {
+      const metrics = evaluateModel(bestModel, valSet);
+      printMetrics(metrics);
+      const metricsPath = outPath.replace('.json', '-metrics.json');
+      writeFileSync(metricsPath, JSON.stringify(metrics, null, 2));
+      console.log(`\nMetrics saved: ${metricsPath}`);
+    }
+    return;
   }
+
+  // ── Standard mode (original logic) ──
+  if (maxSamples != null) console.log(`Sample cap: ${maxSamples}`);
   if (isV2) {
     const hardMiningText = disableHardMining ? 'off' : `on(${hardExampleFraction})`;
     console.log(`V2 options: maxOversampleRatio=${maxOversampleRatio}, hardMining=${hardMiningText}, lr=${initialLr}`);
   }
-  let allSamples = loadSamples(dataDir, featureCount, maxSamples);
+  let allSamples = loadSamples(dataDirs, featureCount, maxSamples);
   console.log(`Loaded ${allSamples.length} samples`);
 
   if (allSamples.length < 100) {
@@ -1047,9 +1401,12 @@ function main(): void {
   const valSet = allSamples.slice(splitIdx);
   console.log(`Split: ${trainSet.length} train / ${valSet.length} validation\n`);
 
-  // Warm-start: transfer V1 weights to V2 model
+  // Warm-start / resume
   let warmStartModel: ModelWeights | undefined;
-  if (isV2 && warmStart) {
+  if (resume) {
+    warmStartModel = loadModelFromPath(resume);
+    console.log(`Resuming V2 from checkpoint: ${resume}`);
+  } else if (isV2 && warmStart) {
     const sourceModel = loadModelFromPath(warmStart);
     if (sourceModel.actionHead && sourceModel.sizingHead) {
       console.log(`Warm-starting V2 from V2 checkpoint: ${warmStart}`);
@@ -1072,10 +1429,19 @@ function main(): void {
     }
   }
 
+  // If custom hidden sizes differ from default and no warm start, create fresh model
+  if (isV2 && !warmStartModel && (hiddenSizes[0] !== HIDDEN_SIZES[0] || hiddenSizes[1] !== HIDDEN_SIZES[1])) {
+    warmStartModel = createRandomModelV2(featureCount, hiddenSizes, ACTION_OUTPUT_SIZE, SIZING_OUTPUT_SIZE);
+    warmStartModel.architecture = { hiddenSizes };
+    console.log(`Custom architecture: [${hiddenSizes.join(', ')}]`);
+  }
+
   // Train
   const bestModel = isV2
     ? trainV2(trainSet, valSet, warmStartModel, { hardExampleFraction, disableHardMining, initialLr })
     : trainV1(trainSet, valSet);
+
+  bestModel.architecture = { hiddenSizes };
 
   // Save model
   const outDir = dirname(outPath);

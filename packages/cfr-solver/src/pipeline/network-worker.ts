@@ -133,6 +133,22 @@ const localWorkers: LocalWorker[] = [];
 let totalSolved = 0;
 let totalFailed = 0;
 let shuttingDown = false;
+const lastProgressSentMs = new Map<string, number>();
+
+function reportProgress(job: PipelineJob, msg: WorkerProgress): void {
+  const now = Date.now();
+  const prev = lastProgressSentMs.get(job.jobId) ?? 0;
+  // Keep coordinator traffic bounded when many workers report at once.
+  if (msg.iteration < msg.total && now - prev < 1000) return;
+  lastProgressSentMs.set(job.jobId, now);
+  void httpPost(`${serverUrl}/progress`, {
+    jobId: job.jobId,
+    iteration: msg.iteration,
+    total: msg.total,
+  }).catch(() => {
+    // best-effort heartbeat only
+  });
+}
 
 function spawnWorkers(numWorkers: number, perWorkerHeapMB: number): void {
   for (let i = 0; i < numWorkers; i++) {
@@ -145,22 +161,18 @@ function spawnWorkers(numWorkers: number, perWorkerHeapMB: number): void {
 
     child.on('message', async (msg: WorkerResult | WorkerProgress) => {
       if (msg.type === 'progress') {
-        // NOTE: progress messages only arrive AFTER solve completes (synchronous loop
-        // buffers process.send). Forward anyway for future async solver support.
         const job = entry.currentJob;
-        if (job) {
-          httpPost(`${serverUrl}/progress`, {
-            jobId: job.jobId,
-            iteration: msg.iteration,
-            total: msg.total,
-          }).catch(() => {});
+        if (job && job.boardId === msg.boardId) {
+          reportProgress(job, msg);
         }
         return;
       }
+
       if (msg.type === 'result') {
         const job = entry.currentJob!;
         entry.busy = false;
         entry.currentJob = null;
+        lastProgressSentMs.delete(job.jobId);
         totalSolved++;
 
         // Report completion to server
@@ -193,6 +205,7 @@ function spawnWorkers(numWorkers: number, perWorkerHeapMB: number): void {
       totalFailed++;
 
       if (job) {
+        lastProgressSentMs.delete(job.jobId);
         try {
           await httpPost(`${serverUrl}/fail`, {
             jobId: job.jobId,
@@ -232,21 +245,17 @@ function spawnSingleWorker(id: number, heapMBVal: number): LocalWorker {
   child.on('message', async (msg: WorkerResult | WorkerProgress) => {
     if (msg.type === 'progress') {
       const job = entry.currentJob;
-      if (job) {
-        try {
-          await httpPost(`${serverUrl}/progress`, {
-            jobId: job.jobId,
-            iteration: msg.iteration,
-            total: msg.total,
-          });
-        } catch { /* best-effort heartbeat */ }
+      if (job && job.boardId === msg.boardId) {
+        reportProgress(job, msg);
       }
       return;
     }
+
     if (msg.type === 'result') {
       const job = entry.currentJob!;
       entry.busy = false;
       entry.currentJob = null;
+      lastProgressSentMs.delete(job.jobId);
       totalSolved++;
 
       try {
@@ -270,6 +279,7 @@ function spawnSingleWorker(id: number, heapMBVal: number): LocalWorker {
     entry.currentJob = null;
     totalFailed++;
     if (job) {
+      lastProgressSentMs.delete(job.jobId);
       try { await httpPost(`${serverUrl}/fail`, { jobId: job.jobId, error: String(err) }); } catch { }
     }
     if (!shuttingDown) fetchAndDispatch(entry);
@@ -318,6 +328,7 @@ async function fetchAndDispatch(worker: LocalWorker): Promise<void> {
 
     worker.busy = true;
     worker.currentJob = job;
+    reportProgress(job, { type: 'progress', boardId: job.boardId, iteration: 0, total: job.iterations });
     worker.process.send(task);
   } catch (err) {
     console.error(`[W${worker.id}] Error fetching job:`, err);
