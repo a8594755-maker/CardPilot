@@ -3,11 +3,12 @@
  * Training Pipeline CLI — orchestrates CFR data → NN training → calibration.
  *
  * Commands:
- *   generate   — Convert CFR solver data to NN training samples
- *   train      — Train the neural network from generated data
- *   finetune   — Incrementally train on new flops
- *   calibrate  — Evaluate model against CFR ground truth
- *   full       — Run generate → train → calibrate end-to-end
+ *   generate          — Convert CFR solver data to NN training samples
+ *   generate-preflop  — Convert preflop CFR data to NN training samples
+ *   train             — Train the neural network from generated data
+ *   finetune          — Incrementally train on new flops
+ *   calibrate         — Evaluate model against CFR ground truth
+ *   full              — Run generate → train → calibrate end-to-end
  *
  * Usage:
  *   npx tsx packages/cfr-solver/src/cli/train-pipeline.ts <command> [options]
@@ -54,11 +55,12 @@ function printUsage(): void {
 Usage: npx tsx train-pipeline.ts <command> [options]
 
 Commands:
-  generate    Convert CFR data to NN training samples
-  train       Train the neural network from generated data
-  finetune    Incrementally train on new flops
-  calibrate   Evaluate model against CFR ground truth
-  full        Run generate → train → calibrate end-to-end
+  generate          Convert postflop CFR data to NN training samples
+  generate-preflop  Convert preflop CFR data to NN training samples
+  train             Train the neural network from generated data
+  finetune          Incrementally train on new flops
+  calibrate         Evaluate model against CFR ground truth
+  full              Run generate → train → calibrate end-to-end
 
 Common options:
   --config <name>     Tree config name (default: pipeline_srp)
@@ -87,6 +89,11 @@ Finetune options:
   --new-data <path>   New training data directory
   --out <path>        Output model path
   --lr <F>            Learning rate (default: 0.001)
+
+Generate-preflop options:
+  --preflop-dir <path>  Preflop training data directory (default: data/preflop)
+  --output <path>       Output directory (default: data/training/preflop)
+  --configs <names>     Comma-separated config names (default: all 3 configs)
 
 Calibrate options:
   --model <path>      Model to evaluate
@@ -121,6 +128,29 @@ function runGenerate(): void {
     '--workers', String(workers),
     '--river-samples', String(riverSamples),
     '--min-divergence', minDivergence,
+  ];
+
+  const r = spawnSync(process.execPath, ['--import', 'tsx', ...tsxArgs], {
+    cwd: PROJECT_ROOT,
+    stdio: 'inherit',
+  });
+  if (r.status !== 0) process.exit(r.status ?? 1);
+}
+
+// ── Generate preflop ──
+
+function runGeneratePreflop(): void {
+  const preflopDir = getArg('preflop-dir', resolve(PROJECT_ROOT, 'data/preflop'));
+  const outputDir = getArg('output', resolve(PROJECT_ROOT, 'data/training/preflop'));
+  const configs = getArg('configs', 'cash_6max_100bb,cash_6max_50bb,cash_6max_100bb_ante');
+
+  const script = resolve(__dirname, '../scripts/preflop-to-training-data.ts');
+
+  const tsxArgs = [
+    script,
+    '--preflop-dir', preflopDir,
+    '--output', outputDir,
+    '--configs', configs,
   ];
 
   const r = spawnSync(process.execPath, ['--import', 'tsx', ...tsxArgs], {
@@ -276,6 +306,9 @@ async function main(): Promise<void> {
   switch (command) {
     case 'generate':
       runGenerate();
+      break;
+    case 'generate-preflop':
+      runGeneratePreflop();
       break;
     case 'train':
       runTrain();
