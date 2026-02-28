@@ -152,7 +152,7 @@ export function App() {
   type RecentNonClubTable = { tableId: string; roomCode: string; roomName?: string };
   const recentNonClubTableRef = useRef<RecentNonClubTable | null>(null);
 
-  type AppView = "lobby" | "table" | "profile" | "history" | "clubs" | "training" | "cfr";
+  type AppView = "lobby" | "table" | "profile" | "history" | "clubs" | "training" | "preflop" | "cfr";
   const view = useMemo<AppView>(() => {
     const path = location.pathname;
     if (path === "/" || path.startsWith("/lobby")) return "lobby";
@@ -160,6 +160,7 @@ export function App() {
     if (path.startsWith("/history")) return "history";
     if (path.startsWith("/clubs")) return "clubs";
     if (path.startsWith("/training")) return "training";
+    if (path.startsWith("/preflop")) return "preflop";
     if (path.startsWith("/cfr")) return "cfr";
     if (path.startsWith("/profile")) return "profile";
     return "lobby";
