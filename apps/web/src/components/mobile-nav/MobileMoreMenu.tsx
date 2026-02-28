@@ -10,6 +10,7 @@ interface MoreMenuItem {
 const MORE_ITEMS: MoreMenuItem[] = [
   { id: "history",  label: "History",  icon: "📜" },
   { id: "training", label: "Training", icon: "🎯" },
+  { id: "preflop",  label: "Preflop GTO", icon: "📊" },
 ];
 
 interface MobileMoreMenuProps {

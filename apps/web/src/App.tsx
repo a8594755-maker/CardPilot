@@ -33,6 +33,7 @@ import { type AnimationSpeed, loadAnimationSpeed, saveAnimationSpeed } from "./l
 import { formatChips, makeChipFormatter } from "./lib/format-chips";
 import { describeHandStrength } from "@cardpilot/shared-types";
 import { TrainingDashboard } from "./pages/TrainingDashboard";
+import { PreflopTrainer } from "./pages/PreflopTrainer";
 import { useAuditEvents } from "./hooks/useAuditEvents";
 import { BottomActionBar } from "./components/ui/BottomActionBar";
 import { LeftOptionsRail, OptionsDrawer, type RailAction, type DrawerSection } from "./components/ui/LeftOptionsRail";
@@ -150,7 +151,7 @@ export function App() {
   type RecentNonClubTable = { tableId: string; roomCode: string; roomName?: string };
   const recentNonClubTableRef = useRef<RecentNonClubTable | null>(null);
 
-  type AppView = "lobby" | "table" | "profile" | "history" | "clubs" | "training";
+  type AppView = "lobby" | "table" | "profile" | "history" | "clubs" | "training" | "preflop";
   const view = useMemo<AppView>(() => {
     const path = location.pathname;
     if (path === "/" || path.startsWith("/lobby")) return "lobby";
@@ -158,6 +159,7 @@ export function App() {
     if (path.startsWith("/history")) return "history";
     if (path.startsWith("/clubs")) return "clubs";
     if (path.startsWith("/training")) return "training";
+    if (path.startsWith("/preflop")) return "preflop";
     if (path.startsWith("/profile")) return "profile";
     return "lobby";
   }, [location.pathname]);
@@ -207,7 +209,7 @@ export function App() {
       return;
     }
 
-    const supportedPaths = ["/lobby", "/history", "/profile", "/training"];
+    const supportedPaths = ["/lobby", "/history", "/profile", "/training", "/preflop"];
     if (!(location.pathname.startsWith("/clubs") || location.pathname.startsWith("/history/") || supportedPaths.includes(location.pathname))) {
       navigate("/lobby", { replace: true });
     }
@@ -2253,6 +2255,9 @@ export function App() {
             sessionLeak={auditState.sessionLeak}
             hasData={auditState.hasData}
           />
+        ) : view === "preflop" ? (
+          /* ═══════ PREFLOP GTO ═══════ */
+          <PreflopTrainer />
         ) : view === "clubs" ? (
           /* ═══════ CLUBS ═══════ */
           <ClubsPage
