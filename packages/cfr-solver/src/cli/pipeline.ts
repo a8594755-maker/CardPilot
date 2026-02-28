@@ -183,10 +183,11 @@ async function runCoordinator(): Promise<void> {
           .join(' | ')
       : '';
 
+    const tp = s.throughput ? ` | 1h: ${s.throughput.last1h} jobs` : '';
     console.log(
       `[Status] ${s.completed}/${s.total} (${pct}%) | ` +
       `pending: ${s.pending} | running: ${s.running} | failed: ${s.failed} | ` +
-      `ETA: ${s.etaHuman} | workers: ${s.activeWorkers}`
+      `ETA: ${s.etaHuman} | workers: ${s.activeWorkers}${tp}`
     );
     if (configSummary) {
       console.log(`  [Configs] ${configSummary}`);
