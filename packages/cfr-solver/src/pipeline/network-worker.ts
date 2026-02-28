@@ -217,9 +217,20 @@ function spawnWorkers(numWorkers: number, perWorkerHeapMB: number): void {
       if (!shuttingDown) fetchAndDispatch(entry);
     });
 
-    child.on('exit', (code) => {
+    child.on('exit', async (code) => {
       if (code !== 0 && code !== null && !shuttingDown) {
         console.error(`[W${i}] Exited with code ${code}, respawning...`);
+        // Report the current job as failed so it doesn't stay in running map
+        const job = entry.currentJob;
+        if (job && entry.busy) {
+          entry.busy = false;
+          entry.currentJob = null;
+          lastProgressSentMs.delete(job.jobId);
+          totalFailed++;
+          try {
+            await httpPost(`${serverUrl}/fail`, { jobId: job.jobId, error: `Worker exited with code ${code}` });
+          } catch { /* best-effort */ }
+        }
         // Respawn after a delay
         setTimeout(() => {
           if (!shuttingDown) {

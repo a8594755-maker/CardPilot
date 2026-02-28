@@ -350,8 +350,9 @@ function getStatus() {
   const avgMs = avgFromCompleted > 0 ? avgFromCompleted : avgFromRunningMs;
   const avgSolveSource = avgFromCompleted > 0 ? 'completed' : (avgFromRunningMs > 0 ? 'running_estimate' : 'none');
   const totalWorkers = new Set([...running.values()].map(v => v.claimedBy)).size || 1;
-  // Use actual concurrent job count for throughput (not just unique worker count)
-  const concurrentJobs = running.size || 1;
+  // Use live heartbeating workers as concurrency estimate (not running.size which can inflate)
+  const liveWorkerJobs = runningDetails.filter(r => r.heartbeatAgeMs <= 60000).length;
+  const concurrentJobs = liveWorkerJobs > 0 ? liveWorkerJobs : (totalWorkers || 1);
   // Factor in partial progress of running jobs (a 90% done job = 0.1 remaining work)
   const runningRemaining = runningDetails.reduce(
     (sum, r) => sum + (1 - r.progressPct / 100), 0,
@@ -560,6 +561,11 @@ export function startQueueServer(port = 3500): ReturnType<typeof createServer> {
     console.log(`[Queue Server] Workers should connect to http://<this-ip>:${port}`);
     console.log();
   });
+
+  // Periodic stale job cleanup (don't rely solely on /pop triggering reclaimStale)
+  setInterval(() => {
+    reclaimStale();
+  }, 60_000);
 
   return server;
 }
