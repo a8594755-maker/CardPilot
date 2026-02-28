@@ -33,6 +33,8 @@ import { type AnimationSpeed, loadAnimationSpeed, saveAnimationSpeed } from "./l
 import { formatChips, makeChipFormatter } from "./lib/format-chips";
 import { describeHandStrength } from "@cardpilot/shared-types";
 import { TrainingDashboard } from "./pages/TrainingDashboard";
+import { CfrPage } from "./pages/cfr/CfrPage";
+import { PreflopTrainer } from "./pages/PreflopTrainer";
 import { CfrLookupPage } from "./pages/CfrLookupPage";
 import { useAuditEvents } from "./hooks/useAuditEvents";
 import { BottomActionBar } from "./components/ui/BottomActionBar";
@@ -209,7 +211,7 @@ export function App() {
       return;
     }
 
-    const supportedPaths = ["/lobby", "/history", "/profile", "/training", "/preflop"];
+    const supportedPaths = ["/lobby", "/history", "/profile", "/training", "/preflop", "/cfr"];
     if (!(location.pathname.startsWith("/clubs") || location.pathname.startsWith("/history/") || supportedPaths.includes(location.pathname))) {
       navigate("/lobby", { replace: true });
     }
@@ -2146,7 +2148,7 @@ export function App() {
   /* ═══════════════════ RENDER ═══════════════════ */
   const PAGE_TITLES: Record<string, string> = {
     lobby: "Lobby", table: "Table", profile: "Profile",
-    history: "History", clubs: "Clubs", training: "Training", cfr: "CFR Solver",
+    history: "History", clubs: "Clubs", training: "Training", preflop: "Preflop GTO", cfr: "CFR Solver",
   };
   const mobilePageTitle = PAGE_TITLES[view] ?? "CardPilot";
 
@@ -2165,7 +2167,7 @@ export function App() {
             <h1 className="text-base font-bold tracking-tight text-white">Card<span className="text-amber-400">Pilot</span></h1>
           </div>
           <nav className="flex items-center gap-1 bg-white/5 rounded-xl p-1">
-            {(["lobby", "clubs", "table", "history", "training", "cfr", "profile"] as const).map((v) => (
+            {(["lobby", "clubs", "table", "history", "training", "preflop", "cfr", "profile"] as const).map((v) => (
               <button key={v} onClick={() => {
                 setView(v);
                 if (v === "clubs" && socket && canAccessClubs) { socket.emit("club_list_my_clubs"); }
@@ -2256,8 +2258,8 @@ export function App() {
             hasData={auditState.hasData}
           />
         ) : view === "cfr" ? (
-          /* ═══════ CFR LOOKUP ═══════ */
-          <CfrLookupPage />
+          /* ═══════ CFR SOLVER ═══════ */
+          <CfrPage />
         ) : view === "clubs" ? (
           /* ═══════ CLUBS ═══════ */
           <ClubsPage
