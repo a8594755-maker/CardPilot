@@ -18,6 +18,7 @@ import type { Action, GameNode, TreeConfig } from '@cardpilot/cfr-solver';
 import type { PostflopFrequency } from '@cardpilot/shared-types';
 import type { PostflopContext } from './postflop-engine.js';
 import { classifyHandOnBoard } from '@cardpilot/poker-evaluator';
+import { downloadBuffer, downloadJson } from './s3-client.js';
 
 // Bet size midpoints for classifying observed bets as small/big (V1 2-size tree)
 const BET_THRESHOLDS: Record<string, number> = {
@@ -143,6 +144,48 @@ export class CfrAdvisor {
       return true;
     } catch (e) {
       console.warn(`[cfr-advisor] Failed to load ${configName}: ${(e as Error).message}`);
+      return false;
+    }
+  }
+
+  /** Load CFR data from S3 (iDrive e2). */
+  async loadFromS3(binaryKey: string, metaIndexKey: string, potType: PotType = 'SRP'): Promise<boolean> {
+    try {
+      console.log(`[cfr-advisor] downloading ${potType} binary from S3: ${binaryKey}`);
+      const buf = await downloadBuffer(binaryKey);
+      if (!buf) {
+        console.warn(`[cfr-advisor] S3 binary not found: ${binaryKey}`);
+        return false;
+      }
+
+      const reader = new BinaryStrategyReader(buf);
+      const treeConfig = potType === '3BP' ? PIPELINE_3BET_CONFIG : V1_TREE_CONFIG;
+      const bucketCount = reader.bucketCount || (potType === '3BP' ? 100 : 50);
+
+      // Build action index from tree
+      const actionIndex = new Map<string, Action[]>();
+      const root = buildTree(treeConfig);
+      const walk = (node: GameNode) => {
+        if (node.type === 'terminal') return;
+        actionIndex.set(node.historyKey, [...node.actions]);
+        for (const child of node.children.values()) walk(child);
+      };
+      walk(root);
+
+      // Download flop metadata index from S3
+      const flopMetas: FlopMeta[] = [];
+      const metaIndex = await downloadJson<Array<{ boardId: number; flopCards: [number, number, number] }>>(metaIndexKey);
+      if (metaIndex && Array.isArray(metaIndex)) {
+        for (const meta of metaIndex) {
+          flopMetas.push({ boardId: meta.boardId, flopCards: meta.flopCards });
+        }
+      }
+
+      this.configs.set(potType, { reader, flopMetas, actionIndex, treeConfig, bucketCount });
+      console.log(`[cfr-advisor] loaded ${potType} from S3: ${reader.entryCount} entries, ${flopMetas.length} flop metas, ${bucketCount} buckets`);
+      return true;
+    } catch (e) {
+      console.warn(`[cfr-advisor] Failed to load ${potType} from S3: ${(e as Error).message}`);
       return false;
     }
   }

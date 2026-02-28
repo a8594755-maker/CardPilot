@@ -16,6 +16,7 @@ import { MathEngine } from "./math-engine.js";
 import { RangeEstimator, type HandRange } from "./range-estimator.js";
 import { WorkerService } from "./WorkerService.js";
 import { CfrAdvisor, type CfrQueryResult } from "./cfr-advisor.js";
+import { isS3Configured } from "./s3-client.js";
 
 const EPSILON = 1e-6;
 const ONE_HOUR_MS = 60 * 60 * 1000;
@@ -328,7 +329,7 @@ const DEFAULT_STRATEGY_CONFIG: StrategyConfig = {
 export class PostflopEngine {
   private readonly bucketIndex = new Map<string, PostflopBucketStrategy>();
   private readonly strategyConfig: StrategyConfig;
-  private readonly cfrAdvisor: CfrAdvisor;
+  readonly cfrAdvisor: CfrAdvisor;
 
   constructor(rows?: PostflopBucketStrategy[], strategyConfig: StrategyConfig = DEFAULT_STRATEGY_CONFIG) {
     this.strategyConfig = strategyConfig;
@@ -342,11 +343,21 @@ export class PostflopEngine {
       console.log("[advice-engine] no postflop bucket rows found, using heuristic fallback only");
     }
 
-    // Initialize CFR advisor with solved strategy data
     this.cfrAdvisor = new CfrAdvisor();
-    const cfrEntries = resolveCfrDataPaths();
-    for (const entry of cfrEntries) {
-      this.cfrAdvisor.load(entry.binary, entry.metaDir, entry.potType);
+  }
+
+  /** Load CFR data from local files (development) or S3 (production). */
+  async initCfr(): Promise<void> {
+    if (isS3Configured()) {
+      console.log('[advice-engine] loading CFR data from S3...');
+      await this.cfrAdvisor.loadFromS3('binary/v1_hu_srp_50bb.bin.gz', 'meta/pipeline_hu_srp_50bb/_index.json', 'SRP');
+      await this.cfrAdvisor.loadFromS3('binary/pipeline_hu_3bet_50bb.bin.gz', 'meta/pipeline_hu_3bet_50bb/_index.json', '3BP');
+      console.log('[advice-engine] CFR data loaded from S3');
+    } else {
+      const cfrEntries = resolveCfrDataPaths();
+      for (const entry of cfrEntries) {
+        this.cfrAdvisor.load(entry.binary, entry.metaDir, entry.potType);
+      }
     }
   }
 
@@ -553,10 +564,24 @@ export class PostflopEngine {
   }
 }
 
-const postflopEngine = new PostflopEngine();
+let postflopEngine: PostflopEngine | null = null;
+let initPromise: Promise<PostflopEngine> | null = null;
+
+async function ensureEngine(): Promise<PostflopEngine> {
+  if (postflopEngine) return postflopEngine;
+  if (initPromise) return initPromise;
+  initPromise = (async () => {
+    const engine = new PostflopEngine();
+    await engine.initCfr();
+    postflopEngine = engine;
+    return engine;
+  })();
+  return initPromise;
+}
 
 export async function getPostflopAdvice(context: PostflopContext, precision?: AdvicePrecision): Promise<PostflopAdvice> {
-  return postflopEngine.getAdvice(context, precision);
+  const engine = await ensureEngine();
+  return engine.getAdvice(context, precision);
 }
 
 function loadPostflopRowsFromDisk(): PostflopBucketStrategy[] {

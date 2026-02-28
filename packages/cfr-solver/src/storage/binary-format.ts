@@ -199,8 +199,8 @@ export class BinaryStrategyReader {
   private indexCount: number;
   private bodyStart: number;
 
-  constructor(filePath: string) {
-    const raw = readFileSync(filePath);
+  constructor(input: string | Buffer) {
+    const raw = typeof input === 'string' ? readFileSync(input) : input;
     this.buffer = (raw[0] === 0x1f && raw[1] === 0x8b) ? gunzipSync(raw) : raw;
 
     const magic = this.buffer.subarray(0, 4).toString();

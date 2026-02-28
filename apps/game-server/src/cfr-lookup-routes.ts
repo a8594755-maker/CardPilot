@@ -1,9 +1,73 @@
 // CFR Lookup API — standalone endpoints for querying solved CFR strategies.
 // Used by the web frontend's CFR Lookup page for studying GTO strategies.
+// Supports both local filesystem (development) and S3 (production).
 
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { resolve } from "node:path";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
+import {
+  isS3Configured,
+  downloadText,
+  downloadJson,
+} from "@cardpilot/advice-engine/s3-client";
+
+// --- Rate limiter (per-IP sliding window) ---
+const CFR_RATE_LIMIT = parseInt(process.env.CFR_RATE_LIMIT || '100', 10);       // max requests per window
+const CFR_RATE_WINDOW_MS = parseInt(process.env.CFR_RATE_WINDOW_MS || String(60 * 60 * 1000), 10); // default 1 hour
+
+interface RateBucket {
+  timestamps: number[];
+}
+
+const rateBuckets = new Map<string, RateBucket>();
+
+// Cleanup stale entries every 10 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, bucket] of rateBuckets) {
+    bucket.timestamps = bucket.timestamps.filter(ts => now - ts < CFR_RATE_WINDOW_MS);
+    if (bucket.timestamps.length === 0) rateBuckets.delete(ip);
+  }
+}, 10 * 60 * 1000);
+
+function getClientIp(req: Request): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string') return forwarded.split(',')[0].trim();
+  return req.ip || req.socket.remoteAddress || 'unknown';
+}
+
+function cfrRateLimit(req: Request, res: Response, next: NextFunction): void {
+  const ip = getClientIp(req);
+  const now = Date.now();
+
+  let bucket = rateBuckets.get(ip);
+  if (!bucket) {
+    bucket = { timestamps: [] };
+    rateBuckets.set(ip, bucket);
+  }
+
+  // Prune expired timestamps
+  bucket.timestamps = bucket.timestamps.filter(ts => now - ts < CFR_RATE_WINDOW_MS);
+
+  if (bucket.timestamps.length >= CFR_RATE_LIMIT) {
+    const oldest = bucket.timestamps[0];
+    const resetMs = oldest + CFR_RATE_WINDOW_MS - now;
+    const resetMin = Math.ceil(resetMs / 60_000);
+    res.setHeader('Retry-After', Math.ceil(resetMs / 1000));
+    res.setHeader('X-RateLimit-Limit', CFR_RATE_LIMIT);
+    res.setHeader('X-RateLimit-Remaining', 0);
+    res.status(429).json({
+      ok: false,
+      error: `Rate limit exceeded. You can make ${CFR_RATE_LIMIT} solver queries per ${Math.round(CFR_RATE_WINDOW_MS / 60_000)} minutes. Try again in ${resetMin} minute(s).`,
+    });
+    return;
+  }
+
+  bucket.timestamps.push(now);
+  res.setHeader('X-RateLimit-Limit', CFR_RATE_LIMIT);
+  res.setHeader('X-RateLimit-Remaining', CFR_RATE_LIMIT - bucket.timestamps.length);
+  next();
+}
 
 // Config registry (mirrors cfr-solver tree-config.ts)
 const CFR_CONFIGS = [
@@ -41,8 +105,74 @@ const OUTPUT_DIRS: Record<string, string> = {
   mw3_co_btn_bb_srp_50bb: 'mw3_co_btn_bb_srp_50bb',
 };
 
+// --- LRU cache for JSONL content (S3 mode) ---
+const MAX_JSONL_CACHE = 50; // max cached flops
+const jsonlCache = new Map<string, { content: string; ts: number }>();
+
+function cacheGet(key: string): string | undefined {
+  const entry = jsonlCache.get(key);
+  if (entry) { entry.ts = Date.now(); return entry.content; }
+  return undefined;
+}
+
+function cacheSet(key: string, content: string): void {
+  if (jsonlCache.size >= MAX_JSONL_CACHE) {
+    // evict oldest
+    let oldest = '';
+    let oldestTs = Infinity;
+    for (const [k, v] of jsonlCache) {
+      if (v.ts < oldestTs) { oldest = k; oldestTs = v.ts; }
+    }
+    if (oldest) jsonlCache.delete(oldest);
+  }
+  jsonlCache.set(key, { content, ts: Date.now() });
+}
+
+// --- Meta index cache (S3 mode) ---
+interface MetaEntry {
+  boardId: number;
+  flopCards: number[];
+  infoSets?: number;
+  iterations?: number;
+}
+const metaIndexCache = new Map<string, { data: MetaEntry[]; ts: number }>();
+const META_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+async function getMetaIndex(configDir: string): Promise<MetaEntry[]> {
+  const cached = metaIndexCache.get(configDir);
+  if (cached && Date.now() - cached.ts < META_CACHE_TTL) return cached.data;
+
+  const key = `meta/${configDir}/_index.json`;
+  const data = await downloadJson<MetaEntry[]>(key);
+  const result = data ?? [];
+  metaIndexCache.set(configDir, { data: result, ts: Date.now() });
+  return result;
+}
+
+// --- JSONL fetcher (S3 or local) ---
+async function getJsonlContent(
+  configDir: string, boardId: number, dataDir: string
+): Promise<string | null> {
+  const paddedId = String(boardId).padStart(3, '0');
+
+  if (isS3Configured()) {
+    const cacheKey = `${configDir}/${paddedId}`;
+    const cached = cacheGet(cacheKey);
+    if (cached !== undefined) return cached;
+
+    const s3Key = `jsonl/${configDir}/flop_${paddedId}.jsonl`;
+    const content = await downloadText(s3Key);
+    if (content) cacheSet(cacheKey, content);
+    return content;
+  }
+
+  // Local fallback
+  const jsonlPath = resolve(dataDir, configDir, `flop_${paddedId}.jsonl`);
+  if (!existsSync(jsonlPath)) return null;
+  return readFileSync(jsonlPath, 'utf-8');
+}
+
 function findDataDir(): string {
-  // Try common locations
   const candidates = [
     resolve(process.cwd(), 'data/cfr'),
     resolve(process.cwd(), '../../data/cfr'),
@@ -56,46 +186,79 @@ function findDataDir(): string {
 
 export function setupCfrLookupRoutes(app: Express): void {
   const dataDir = findDataDir();
+  const useS3 = isS3Configured();
 
-  // GET /api/cfr/configs — list all available configs with solve status
-  app.get("/api/cfr/configs", (_req: Request, res: Response) => {
-    const configs = CFR_CONFIGS.map(cfg => {
-      const outputDir = resolve(dataDir, OUTPUT_DIRS[cfg.name] ?? cfg.name);
-      let solvedFlops = 0;
-      let totalFlops = 1755;
+  if (useS3) {
+    console.log('[cfr-lookup] S3 mode enabled — reading CFR data from iDrive e2');
+  } else {
+    console.log(`[cfr-lookup] local mode — reading CFR data from ${dataDir}`);
+  }
+  console.log(`[cfr-lookup] rate limit: ${CFR_RATE_LIMIT} requests per ${Math.round(CFR_RATE_WINDOW_MS / 60_000)} min`);
 
-      if (existsSync(outputDir)) {
-        try {
-          const files = readdirSync(outputDir);
-          solvedFlops = files.filter(f => f.endsWith('.meta.json')).length;
-        } catch { /* ignore */ }
-      }
+  // GET /api/cfr/configs — list all available configs with solve status (no rate limit — lightweight)
+  app.get("/api/cfr/configs", async (_req: Request, res: Response) => {
+    try {
+      const configs = await Promise.all(CFR_CONFIGS.map(async cfg => {
+        const configDir = OUTPUT_DIRS[cfg.name] ?? cfg.name;
+        let solvedFlops = 0;
+        const totalFlops = 1755;
 
-      return {
-        ...cfg,
-        solvedFlops,
-        totalFlops,
-        progress: Math.round((solvedFlops / totalFlops) * 100),
-        available: solvedFlops > 0,
-      };
-    });
+        if (useS3) {
+          const metas = await getMetaIndex(configDir);
+          solvedFlops = metas.length;
+        } else {
+          const outputDir = resolve(dataDir, configDir);
+          if (existsSync(outputDir)) {
+            try {
+              const files = readdirSync(outputDir);
+              solvedFlops = files.filter(f => f.endsWith('.meta.json')).length;
+            } catch { /* ignore */ }
+          }
+        }
 
-    res.json({ ok: true, configs, dataDir });
+        return {
+          ...cfg,
+          solvedFlops,
+          totalFlops,
+          progress: Math.round((solvedFlops / totalFlops) * 100),
+          available: solvedFlops > 0,
+        };
+      }));
+
+      res.json({ ok: true, configs, dataDir: useS3 ? 's3' : dataDir });
+    } catch (e) {
+      res.status(500).json({ ok: false, error: (e as Error).message });
+    }
   });
 
-  // GET /api/cfr/flops?config=hu_btn_bb_srp_100bb — list solved flops for a config
-  app.get("/api/cfr/flops", (req: Request, res: Response) => {
+  // GET /api/cfr/flops?config=X — list solved flops for a config
+  app.get("/api/cfr/flops", cfrRateLimit, async (req: Request, res: Response) => {
     const configName = req.query.config as string;
     if (!configName) {
       return res.status(400).json({ ok: false, error: 'Missing config parameter' });
     }
 
-    const outputDir = resolve(dataDir, OUTPUT_DIRS[configName] ?? configName);
-    if (!existsSync(outputDir)) {
-      return res.json({ ok: true, flops: [] });
-    }
+    const configDir = OUTPUT_DIRS[configName] ?? configName;
 
     try {
+      if (useS3) {
+        const metas = await getMetaIndex(configDir);
+        const flops = metas.map(meta => ({
+          boardId: meta.boardId,
+          flopCards: meta.flopCards,
+          flopLabel: meta.flopCards?.map(cardIndexToLabel).join(' ') ?? `Board ${meta.boardId}`,
+          infoSets: meta.infoSets,
+          iterations: meta.iterations,
+        }));
+        return res.json({ ok: true, flops, total: flops.length });
+      }
+
+      // Local fallback
+      const outputDir = resolve(dataDir, configDir);
+      if (!existsSync(outputDir)) {
+        return res.json({ ok: true, flops: [] });
+      }
+
       const files = readdirSync(outputDir).filter(f => f.endsWith('.meta.json')).sort();
       const flops = files.map(f => {
         try {
@@ -119,8 +282,7 @@ export function setupCfrLookupRoutes(app: Express): void {
   });
 
   // GET /api/cfr/lookup?config=X&boardId=N&player=0&history=xb&bucket=42
-  // Returns the raw CFR strategy for a specific info set
-  app.get("/api/cfr/lookup", (req: Request, res: Response) => {
+  app.get("/api/cfr/lookup", cfrRateLimit, async (req: Request, res: Response) => {
     const configName = req.query.config as string;
     const boardId = parseInt(req.query.boardId as string, 10);
     const player = parseInt(req.query.player as string, 10);
@@ -132,20 +294,16 @@ export function setupCfrLookupRoutes(app: Express): void {
       return res.status(400).json({ ok: false, error: 'Missing required parameters: config, boardId, player, bucket' });
     }
 
-    const outputDir = resolve(dataDir, OUTPUT_DIRS[configName] ?? configName);
-    const jsonlPath = resolve(outputDir, `flop_${String(boardId).padStart(3, '0')}.jsonl`);
-
-    if (!existsSync(jsonlPath)) {
-      return res.status(404).json({ ok: false, error: `No JSONL data for board ${boardId} in config ${configName}` });
-    }
+    const configDir = OUTPUT_DIRS[configName] ?? configName;
 
     try {
-      // Build the info-set key
+      const content = await getJsonlContent(configDir, boardId, dataDir);
+      if (!content) {
+        return res.status(404).json({ ok: false, error: `No JSONL data for board ${boardId} in config ${configName}` });
+      }
+
       const streetChar = street === 'FLOP' ? 'F' : street === 'TURN' ? 'T' : 'R';
       const keyPrefix = `${streetChar}|${boardId}|${player}|${history}|`;
-
-      // Read the JSONL and find matching entry
-      const content = readFileSync(jsonlPath, 'utf-8');
       const lines = content.split('\n');
 
       // Try exact bucket match first
@@ -198,8 +356,7 @@ export function setupCfrLookupRoutes(app: Express): void {
   });
 
   // GET /api/cfr/board-strategy?config=X&boardId=N&street=FLOP&history=x
-  // Returns all strategies for a board position (all buckets)
-  app.get("/api/cfr/board-strategy", (req: Request, res: Response) => {
+  app.get("/api/cfr/board-strategy", cfrRateLimit, async (req: Request, res: Response) => {
     const configName = req.query.config as string;
     const boardId = parseInt(req.query.boardId as string, 10);
     const player = parseInt(req.query.player as string, 10);
@@ -210,18 +367,16 @@ export function setupCfrLookupRoutes(app: Express): void {
       return res.status(400).json({ ok: false, error: 'Missing required parameters' });
     }
 
-    const outputDir = resolve(dataDir, OUTPUT_DIRS[configName] ?? configName);
-    const jsonlPath = resolve(outputDir, `flop_${String(boardId).padStart(3, '0')}.jsonl`);
-
-    if (!existsSync(jsonlPath)) {
-      return res.status(404).json({ ok: false, error: `No data for board ${boardId}` });
-    }
+    const configDir = OUTPUT_DIRS[configName] ?? configName;
 
     try {
+      const content = await getJsonlContent(configDir, boardId, dataDir);
+      if (!content) {
+        return res.status(404).json({ ok: false, error: `No data for board ${boardId}` });
+      }
+
       const streetChar = street === 'FLOP' ? 'F' : street === 'TURN' ? 'T' : 'R';
       const keyPrefix = `${streetChar}|${boardId}|${player}|${history}|`;
-
-      const content = readFileSync(jsonlPath, 'utf-8');
       const lines = content.split('\n');
       const strategies: Array<{ bucket: number; probs: number[]; actions?: string[] }> = [];
 
