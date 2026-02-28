@@ -166,19 +166,28 @@ function terminalValue(
   classIndices: number[],
   traverser: number,
 ): number {
-  const { pot, investments, activePlayers, showdown } = node;
+  const { investments, activePlayers, showdown } = node;
   const traverserInvested = investments[traverser];
 
+  // Fold terminal — no rake (pot not contested at showdown)
   if (!showdown) {
     if (activePlayers.length === 1) {
       const winner = activePlayers[0];
-      return winner === traverser ? (pot - traverserInvested) : -traverserInvested;
+      return winner === traverser ? (node.pot - traverserInvested) : -traverserInvested;
     }
     return -traverserInvested;
   }
 
   if (!activePlayers.includes(traverser)) {
     return -traverserInvested;
+  }
+
+  // Showdown terminal — apply rake to pot
+  // Rake models the cost of seeing a flop (preflop solver approximation)
+  let pot = node.pot;
+  if (config.rake > 0) {
+    const rakeAmount = Math.min(pot * config.rake, config.rakeCap);
+    pot -= rakeAmount;
   }
 
   if (activePlayers.length === 2) {
@@ -195,7 +204,7 @@ function terminalValue(
     //   - Maximum penalty at 50% equity (where position matters most)
     //   - Zero penalty at 0% or 100% (card strength determines outcome)
     //   - IP advantage is naturally bounded (max = 0.25 × k)
-    //   - With k=0.30: 50% equity → OOP gets 42.5%, IP gets 57.5%
+    //   - With k=0.40: 50% equity → OOP gets 40%, IP gets 60%
     const k = 1 - config.realizationOOP;
     const ipBonus = rawEqA * (1 - rawEqA) * k;
     const aIsIP = isIPPostflop(seatA, seatB);

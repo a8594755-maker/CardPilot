@@ -140,7 +140,6 @@ function formatSpotTitle(solution: { scenario: string; villainPosition?: string;
   if (solution.scenario === 'facing_open') return `Facing ${solution.villainPosition} Open`;
   if (solution.scenario === 'facing_3bet') return `Facing ${solution.villainPosition} 3-Bet`;
   if (solution.scenario === 'facing_4bet') return `Facing ${solution.villainPosition} 4-Bet`;
-  if (solution.scenario === 'squeeze') return `Squeeze vs ${solution.villainPosition}`;
   return solution.spot.replace(/_/g, ' ');
 }
 

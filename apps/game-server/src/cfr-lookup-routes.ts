@@ -1,11 +1,17 @@
 // CFR Lookup API — standalone endpoints for querying solved CFR strategies.
 // Used by the web frontend's CFR Lookup page for studying GTO strategies.
+// Supports both local filesystem (development) and iDrive e2/S3 (production).
 
 import type { Express, Request, Response } from "express";
 import { resolve } from "node:path";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { getHandMap, classifyFlop, flopDistance, cardToIndex } from "./services/hand-map-service.js";
+import {
+  isS3Configured,
+  downloadText,
+  downloadJson,
+} from "@cardpilot/advice-engine/s3-client";
 
 // Config registry (mirrors cfr-solver tree-config.ts)
 const CFR_CONFIGS = [
@@ -26,7 +32,7 @@ const CFR_CONFIGS = [
   { name: 'mw3_co_btn_bb_srp_50bb', label: '3-way CO+BTN+BB SRP 50bb', positions: 'CO+BTN+BB', potType: 'SRP', stack: '50bb', players: 3, sizes: 1 },
 ];
 
-// Output dir mapping
+// Output dir mapping (local filesystem)
 const OUTPUT_DIRS: Record<string, string> = {
   pipeline_srp: 'v1_hu_srp_50bb',
   pipeline_3bet: 'pipeline_hu_3bet_50bb',
@@ -42,6 +48,27 @@ const OUTPUT_DIRS: Record<string, string> = {
   mw3_co_btn_bb_srp_100bb: 'mw3_co_btn_bb_srp_100bb',
   mw3_co_btn_bb_srp_50bb: 'mw3_co_btn_bb_srp_50bb',
 };
+
+// S3 prefix mapping (iDrive e2 folder names)
+const S3_DIRS: Record<string, string> = {
+  pipeline_srp: 'pipeline_hu_srp_50bb',
+  pipeline_3bet: 'pipeline_hu_3bet_50bb',
+  hu_btn_bb_srp_100bb: 'hu_btn_bb_srp_100bb',
+  hu_btn_bb_3bp_100bb: 'hu_btn_bb_3bp_100bb',
+  hu_btn_bb_srp_50bb: 'hu_btn_bb_srp_50bb',
+  hu_btn_bb_3bp_50bb: 'hu_btn_bb_3bp_50bb',
+  hu_co_bb_srp_100bb: 'hu_co_bb_srp_100bb',
+  hu_co_bb_3bp_100bb: 'hu_co_bb_3bp_100bb',
+  hu_utg_bb_srp_100bb: 'hu_utg_bb_srp_100bb',
+  mw3_btn_sb_bb_srp_100bb: 'mw3_btn_sb_bb_srp_100bb',
+  mw3_btn_sb_bb_srp_50bb: 'mw3_btn_sb_bb_srp_50bb',
+  mw3_co_btn_bb_srp_100bb: 'mw3_co_btn_bb_srp_100bb',
+  mw3_co_btn_bb_srp_50bb: 'mw3_co_btn_bb_srp_50bb',
+};
+
+function getS3Dir(configName: string): string {
+  return S3_DIRS[configName] ?? configName;
+}
 
 function findDataDir(): string {
   const candidates = [
@@ -80,7 +107,7 @@ interface FlopMetaCached {
 // configName → pre-computed flop list
 const metaCache = new Map<string, FlopMetaCached[]>();
 
-function loadAllMeta(dataDir: string): void {
+function loadAllMetaLocal(dataDir: string): void {
   for (const cfg of CFR_CONFIGS) {
     const outputDir = resolve(dataDir, OUTPUT_DIRS[cfg.name] ?? cfg.name);
     if (!existsSync(outputDir)) continue;
@@ -110,7 +137,38 @@ function loadAllMeta(dataDir: string): void {
     } catch { /* skip inaccessible dir */ }
   }
 
-  console.log(`[CFR] Meta cache loaded: ${[...metaCache.entries()].map(([k, v]) => `${k}(${v.length})`).join(', ') || 'no data'}`);
+  console.log(`[CFR] Meta cache loaded (local): ${[...metaCache.entries()].map(([k, v]) => `${k}(${v.length})`).join(', ') || 'no data'}`);
+}
+
+async function loadAllMetaS3(): Promise<void> {
+  for (const cfg of CFR_CONFIGS) {
+    const s3Dir = getS3Dir(cfg.name);
+    try {
+      const indexData = await downloadJson<Array<Record<string, unknown>>>(`meta/${s3Dir}/_index.json`);
+      if (!indexData || indexData.length === 0) continue;
+
+      const flops: FlopMetaCached[] = [];
+      for (const meta of indexData) {
+        try {
+          const flopCards = meta.flopCards as number[];
+          const classification = classifyFlop(flopCards);
+          flops.push({
+            boardId: meta.boardId as number,
+            flopCards,
+            flopLabel: flopCards?.map(cardIndexToLabel).join(' ') ?? `Board ${meta.boardId}`,
+            infoSets: meta.infoSets as number,
+            iterations: meta.iterations as number,
+            bucketCount: (meta.bucketCount as number) || 50,
+            ...classification,
+          });
+        } catch { /* skip corrupt entry */ }
+      }
+
+      if (flops.length > 0) metaCache.set(cfg.name, flops);
+    } catch { /* config not available on S3 */ }
+  }
+
+  console.log(`[CFR] Meta cache loaded (S3): ${[...metaCache.entries()].map(([k, v]) => `${k}(${v.length})`).join(', ') || 'no data'}`);
 }
 
 // ── JSONL board data LRU cache (Phase 1B) ────────────────────────────────────
@@ -120,7 +178,32 @@ interface BoardEntry { key: string; probs: number[]; actions?: string[] }
 const BOARD_CACHE_MAX = 20;
 const boardDataCache = new Map<string, { meta: Record<string, unknown>; entries: BoardEntry[]; index: Map<string, BoardEntry> }>();
 
-async function loadBoardData(dataDir: string, configName: string, boardId: number) {
+function parseBoardData(metaText: string, jsonlText: string) {
+  const meta = JSON.parse(metaText);
+  const entries: BoardEntry[] = [];
+  const index = new Map<string, BoardEntry>();
+
+  for (const line of jsonlText.split('\n')) {
+    if (!line.trim()) continue;
+    try {
+      const entry: BoardEntry = JSON.parse(line);
+      entries.push(entry);
+      index.set(entry.key, entry);
+    } catch { /* skip malformed line */ }
+  }
+
+  return { meta, entries, index };
+}
+
+function cacheBoardData(cacheKey: string, data: { meta: Record<string, unknown>; entries: BoardEntry[]; index: Map<string, BoardEntry> }) {
+  if (boardDataCache.size >= BOARD_CACHE_MAX) {
+    const oldest = boardDataCache.keys().next().value;
+    if (oldest) boardDataCache.delete(oldest);
+  }
+  boardDataCache.set(cacheKey, data);
+}
+
+async function loadBoardDataLocal(dataDir: string, configName: string, boardId: number) {
   const cacheKey = `${configName}:${boardId}`;
   const cached = boardDataCache.get(cacheKey);
   if (cached) return cached;
@@ -137,41 +220,56 @@ async function loadBoardData(dataDir: string, configName: string, boardId: numbe
     readFile(jsonlPath, 'utf-8'),
   ]);
 
-  const meta = JSON.parse(metaText);
-  const entries: BoardEntry[] = [];
-  const index = new Map<string, BoardEntry>();
+  const result = parseBoardData(metaText, jsonlText);
+  cacheBoardData(cacheKey, result);
+  return result;
+}
 
-  for (const line of jsonlText.split('\n')) {
-    if (!line.trim()) continue;
-    try {
-      const entry: BoardEntry = JSON.parse(line);
-      entries.push(entry);
-      index.set(entry.key, entry);
-    } catch { /* skip malformed line */ }
-  }
+async function loadBoardDataS3(configName: string, boardId: number) {
+  const cacheKey = `${configName}:${boardId}`;
+  const cached = boardDataCache.get(cacheKey);
+  if (cached) return cached;
 
-  const result = { meta, entries, index };
+  const s3Dir = getS3Dir(configName);
+  const pad = String(boardId).padStart(3, '0');
 
-  // LRU eviction
-  if (boardDataCache.size >= BOARD_CACHE_MAX) {
-    const oldest = boardDataCache.keys().next().value;
-    if (oldest) boardDataCache.delete(oldest);
-  }
-  boardDataCache.set(cacheKey, result);
+  const [metaText, jsonlText] = await Promise.all([
+    downloadText(`meta/${s3Dir}/flop_${pad}.meta.json`),
+    downloadText(`jsonl/${s3Dir}/flop_${pad}.jsonl`),
+  ]);
 
+  if (!metaText || !jsonlText) return null;
+
+  const result = parseBoardData(metaText, jsonlText);
+  cacheBoardData(cacheKey, result);
   return result;
 }
 
 // ── Route setup ──────────────────────────────────────────────────────────────
 
+let s3MetaReady: Promise<void> | null = null;
+
 export function setupCfrLookupRoutes(app: Express): void {
   const dataDir = findDataDir();
+  const useS3 = isS3Configured();
 
-  // Load all meta files into memory at startup (Phase 1A)
-  loadAllMeta(dataDir);
+  // Load all meta files into memory at startup
+  if (useS3) {
+    console.log('[CFR] S3 mode enabled — loading meta from iDrive e2');
+    s3MetaReady = loadAllMetaS3().catch(e => console.error('[CFR] Failed to load S3 meta:', e));
+  } else {
+    console.log(`[CFR] Local mode — loading meta from ${dataDir}`);
+    loadAllMetaLocal(dataDir);
+  }
+
+  // Unified board data loader
+  const loadBoardData = useS3
+    ? (_dir: string, config: string, boardId: number) => loadBoardDataS3(config, boardId)
+    : (dir: string, config: string, boardId: number) => loadBoardDataLocal(dir, config, boardId);
 
   // GET /api/cfr/configs — list all available configs with solve status
-  app.get("/api/cfr/configs", (_req: Request, res: Response) => {
+  app.get("/api/cfr/configs", async (_req: Request, res: Response) => {
+    if (s3MetaReady) await s3MetaReady;
     const configs = CFR_CONFIGS.map(cfg => {
       const solvedFlops = metaCache.get(cfg.name)?.length ?? 0;
       const totalFlops = 1755;
@@ -184,11 +282,12 @@ export function setupCfrLookupRoutes(app: Express): void {
       };
     });
 
-    res.json({ ok: true, configs, dataDir });
+    res.json({ ok: true, configs, dataDir: useS3 ? 's3' : dataDir });
   });
 
   // GET /api/cfr/flops?config=X — list solved flops with classification
-  app.get("/api/cfr/flops", (req: Request, res: Response) => {
+  app.get("/api/cfr/flops", async (req: Request, res: Response) => {
+    if (s3MetaReady) await s3MetaReady;
     const configName = req.query.config as string;
     if (!configName) {
       return res.status(400).json({ ok: false, error: 'Missing config parameter' });
@@ -240,16 +339,25 @@ export function setupCfrLookupRoutes(app: Express): void {
       }
     }
 
-    // Fallback: read meta from disk
-    const outputDir = resolve(dataDir, OUTPUT_DIRS[configName] ?? configName);
-    const metaPath = resolve(outputDir, `flop_${String(boardId).padStart(3, '0')}.meta.json`);
-
-    if (!existsSync(metaPath)) {
-      return res.status(404).json({ ok: false, error: `No meta for board ${boardId}` });
-    }
-
+    // Fallback: read meta from disk or S3
     try {
-      const metaText = await readFile(metaPath, 'utf-8');
+      let metaText: string | null = null;
+
+      if (useS3) {
+        const s3Dir = getS3Dir(configName);
+        metaText = await downloadText(`meta/${s3Dir}/flop_${String(boardId).padStart(3, '0')}.meta.json`);
+      } else {
+        const outputDir = resolve(dataDir, OUTPUT_DIRS[configName] ?? configName);
+        const metaPath = resolve(outputDir, `flop_${String(boardId).padStart(3, '0')}.meta.json`);
+        if (existsSync(metaPath)) {
+          metaText = await readFile(metaPath, 'utf-8');
+        }
+      }
+
+      if (!metaText) {
+        return res.status(404).json({ ok: false, error: `No meta for board ${boardId}` });
+      }
+
       const meta = JSON.parse(metaText);
       const handMap = getHandMap(configName, meta.flopCards, meta.bucketCount || 50);
       return res.json({ ok: true, ...handMap });

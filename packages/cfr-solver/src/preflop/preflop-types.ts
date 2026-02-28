@@ -1,11 +1,11 @@
 // Type definitions for 6-max preflop GTO solver
 //
 // The preflop tree models a full 6-player sequential decision process:
-// UTG → MP → HJ → CO → BTN → SB → BB
+// UTG → HJ → CO → BTN → SB → BB
 //
-// Key simplifications:
-// - After a 3-bet, remaining players (not opener/3-bettor) must fold
-// - Max one cold caller per open raise
+// Key simplifications (GTO Wizard "Simple solutions" approach):
+// - After a 3-bet, remaining uninvolved players auto-fold
+// - Non-BB facing an open must 3bet or fold (no cold-calling)
 // - Raise cap: open → 3bet → 4bet → 5bet/allin
 // - One sizing per action type
 
@@ -139,13 +139,12 @@ export function comboToHandClass(c1: number, c2: number): string {
 export type PreflopAction = string;
 // Possible actions:
 // 'fold'          - fold hand
-// 'call'          - call current bet / limp
+// 'call'          - call current bet (BB only vs open)
 // 'check'         - check (BB option when no raise)
 // 'open_X'        - open raise to X bb (e.g., 'open_2.5')
 // '3bet_X'        - 3-bet to X bb
 // '4bet_X'        - 4-bet to X bb
 // 'allin'         - all-in (push remaining stack)
-// 'squeeze_X'     - squeeze (3-bet after caller)
 
 export interface PreflopActionNode {
   type: 'action';
@@ -186,12 +185,14 @@ export interface PreflopSolveConfig {
   fourBetMultiplier: number;     // 2.25 (× 3bet)
   iterations: number;        // 1_000_000
   realizationIP: number;     // 1.0
-  realizationOOP: number;    // 0.85
+  realizationOOP: number;    // 0.70
+  rake: number;              // 0.05 (5% of pot)
+  rakeCap: number;           // 3.0 (max 3bb rake)
 }
 
 // ── Spot / scenario types (for export) ──
 
-export type ScenarioType = 'RFI' | 'facing_open' | 'facing_3bet' | 'facing_4bet' | 'squeeze';
+export type ScenarioType = 'RFI' | 'facing_open' | 'facing_3bet' | 'facing_4bet';
 
 export interface SpotSolution {
   spot: string;              // e.g., 'BB_vs_BTN_open'

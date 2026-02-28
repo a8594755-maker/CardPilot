@@ -21,7 +21,9 @@ export const PREFLOP_CONFIGS: Record<string, PreflopSolveConfig> = {
     fourBetMultiplier: 2.25,     // 2.25× 3bet
     iterations: 1_000_000,
     realizationIP: 1.0,
-    realizationOOP: 0.70,  // Quadratic model: k = 0.30, max IP bonus = 7.5% of pot
+    realizationOOP: 0.60,  // Quadratic model: k = 0.40, max IP bonus = 10% of pot
+    rake: 0.05,            // 5% rake (standard online cash game)
+    rakeCap: 3.0,          // 3bb cap
   },
 
   cash_6max_50bb: {
@@ -37,7 +39,9 @@ export const PREFLOP_CONFIGS: Record<string, PreflopSolveConfig> = {
     fourBetMultiplier: 2.25,
     iterations: 1_000_000,
     realizationIP: 1.0,
-    realizationOOP: 0.70,  // Quadratic model: k = 0.30, max IP bonus = 7.5% of pot
+    realizationOOP: 0.60,  // Quadratic model: k = 0.40, max IP bonus = 10% of pot
+    rake: 0.05,            // 5% rake
+    rakeCap: 2.0,          // 2bb cap (shallower stacks → lower cap)
   },
 
   cash_6max_100bb_ante: {
@@ -53,7 +57,9 @@ export const PREFLOP_CONFIGS: Record<string, PreflopSolveConfig> = {
     fourBetMultiplier: 2.25,
     iterations: 1_000_000,
     realizationIP: 1.0,
-    realizationOOP: 0.70,  // Quadratic model: k = 0.30, max IP bonus = 7.5% of pot
+    realizationOOP: 0.60,  // Quadratic model: k = 0.40, max IP bonus = 10% of pot
+    rake: 0.05,            // 5% rake
+    rakeCap: 3.0,          // 3bb cap
   },
 };
 

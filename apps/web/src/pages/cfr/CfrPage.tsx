@@ -12,6 +12,7 @@ import { WelcomeScreen } from './components/viewer/WelcomeScreen';
 import { TrainingMode } from './components/training/TrainingMode';
 import { PreflopContent } from './components/viewer/PreflopContent';
 import { SegmentedControl } from './components/shared/SegmentedControl';
+import { BoardLoadingSkeleton } from './components/viewer/BoardLoadingSkeleton';
 
 type GtoMode = 'preflop' | 'postflop';
 
@@ -21,6 +22,7 @@ interface CfrPageProps {
 
 export function CfrPage({ initialMode = 'postflop' }: CfrPageProps) {
   const [gtoMode, setGtoMode] = useState<GtoMode>(initialMode);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Postflop state
   const [postflopState, postflopActions] = useStrategyViewer();
@@ -77,24 +79,42 @@ export function CfrPage({ initialMode = 'postflop' }: CfrPageProps) {
 
   // ─── POSTFLOP MODE: sidebar + main content ───
   return (
-    <div className="flex h-full max-lg:flex-col">
-      <FlopSidebar
-        configs={postflopState.configs}
-        selectedConfig={postflopState.selectedConfig}
-        onSelectConfig={postflopActions.selectConfig}
-        filteredFlops={browser.filteredFlops}
-        totalFlops={postflopState.flops.length}
-        selectedBoardId={postflopState.selectedBoardId}
-        onSelectBoard={postflopActions.selectBoard}
-        searchQuery={browser.searchQuery}
-        onSearchChange={browserActions.setSearchQuery}
-        textureFilter={browser.textureFilter}
-        onTextureFilter={browserActions.setTextureFilter}
-        pairingFilter={browser.pairingFilter}
-        onPairingFilter={browserActions.setPairingFilter}
-        highCardFilter={browser.highCardFilter}
-        onHighCardFilter={browserActions.setHighCardFilter}
-      />
+    <div className="flex h-full max-lg:flex-col relative">
+      {/* Collapsible sidebar wrapper */}
+      <div className={`transition-all duration-200 max-lg:w-full max-lg:min-w-0 ${sidebarCollapsed ? 'lg:w-0 lg:min-w-0 lg:overflow-hidden' : 'lg:w-[380px] lg:min-w-[380px]'}`}>
+        <FlopSidebar
+          configs={postflopState.configs}
+          selectedConfig={postflopState.selectedConfig}
+          onSelectConfig={(name) => { postflopActions.selectConfig(name); browserActions.resetFilters(); }}
+          filteredFlops={browser.filteredFlops}
+          totalFlops={postflopState.flops.length}
+          selectedBoardId={postflopState.selectedBoardId}
+          onSelectBoard={postflopActions.selectBoard}
+          searchQuery={browser.searchQuery}
+          onSearchChange={browserActions.setSearchQuery}
+          textureFilter={browser.textureFilter}
+          onTextureFilter={browserActions.setTextureFilter}
+          pairingFilter={browser.pairingFilter}
+          onPairingFilter={browserActions.setPairingFilter}
+          highCardFilter={browser.highCardFilter}
+          onHighCardFilter={browserActions.setHighCardFilter}
+          onResetFilters={browserActions.resetFilters}
+          onCollapse={() => setSidebarCollapsed(true)}
+        />
+      </div>
+
+      {/* Expand sidebar button (desktop only, visible when collapsed) */}
+      {sidebarCollapsed && (
+        <button
+          onClick={() => setSidebarCollapsed(false)}
+          className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 z-20 w-6 h-12 items-center justify-center bg-[var(--cp-bg-elevated)] border border-white/10 border-l-0 rounded-r-md text-slate-400 hover:text-white transition-colors"
+          title="Expand sidebar"
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      )}
 
       <main className="flex-1 flex flex-col overflow-y-auto">
         {/* Top bar: mode toggle + sub-mode toggle */}
@@ -129,17 +149,17 @@ export function CfrPage({ initialMode = 'postflop' }: CfrPageProps) {
           </div>
         )}
 
-        {/* Loading */}
+        {/* Loading skeleton */}
         {postflopState.loadingBoard && (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-slate-400 text-sm">Loading board data...</div>
+          <div className="flex-1 px-6 py-2 w-full">
+            <BoardLoadingSkeleton />
           </div>
         )}
 
         {/* Content */}
         {!postflopState.loadingBoard && (
           postflopState.mode === 'training' ? (
-            <div className="flex-1 p-6 max-w-[1100px] w-full mx-auto">
+            <div className="flex-1 p-6 max-w-[1400px] w-full mx-auto">
               <TrainingMode
                 indexed={postflopState.indexed}
                 prefixIndex={postflopState.prefixIndex}
@@ -150,7 +170,7 @@ export function CfrPage({ initialMode = 'postflop' }: CfrPageProps) {
               />
             </div>
           ) : postflopState.meta ? (
-            <div className="flex-1 px-4 py-2 max-w-[960px] w-full mx-auto">
+            <div className="flex-1 px-6 py-3 w-full min-h-0">
               <StrategyViewer state={postflopState} actions={postflopActions} />
             </div>
           ) : (

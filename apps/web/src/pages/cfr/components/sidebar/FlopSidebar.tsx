@@ -1,8 +1,9 @@
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 import type { CfrConfig, FlopEntry } from '../../lib/cfr-api';
 import type { TextureFilter, PairingFilter, HighCardFilter } from '../../hooks/useFlopBrowser';
 import { FilterChip } from '../shared/FilterChip';
 import { PokerCardDisplay } from '../shared/PokerCardDisplay';
+import { ConfigDropdown } from '../shared/ConfigDropdown';
 
 interface FlopSidebarProps {
   configs: CfrConfig[];
@@ -20,6 +21,8 @@ interface FlopSidebarProps {
   onPairingFilter: (f: PairingFilter) => void;
   highCardFilter: HighCardFilter;
   onHighCardFilter: (f: HighCardFilter) => void;
+  onResetFilters?: () => void;
+  onCollapse?: () => void;
 }
 
 const TAG_CLASSES: Record<string, string> = {
@@ -39,29 +42,38 @@ export const FlopSidebar = memo(function FlopSidebar(props: FlopSidebarProps) {
     textureFilter, onTextureFilter,
     pairingFilter, onPairingFilter,
     highCardFilter, onHighCardFilter,
+    onResetFilters, onCollapse,
   } = props;
 
-  // Group configs for dropdown
-  const availableConfigs = configs.filter(c => c.available);
+  const hasActiveFilters = textureFilter !== 'all' || pairingFilter !== 'all' || highCardFilter !== 'all';
+
+  // Scroll selected board into view
+  const selectedRef = useCallback((el: HTMLButtonElement | null) => {
+    if (el) {
+      requestAnimationFrame(() => el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+    }
+  }, [selectedBoardId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <aside className="w-[380px] min-w-[380px] bg-[var(--cp-bg-surface)] border-r border-white/10 flex flex-col h-full overflow-hidden max-lg:w-full max-lg:min-w-0 max-lg:h-auto max-lg:max-h-[50vh] max-lg:relative">
+    <aside className="w-[380px] min-w-[380px] bg-[var(--cp-bg-surface)] border-r border-white/10 flex flex-col h-full overflow-hidden max-lg:w-full max-lg:min-w-0 max-lg:h-auto max-lg:max-h-[50vh]">
       {/* Header */}
       <div className="px-5 py-4 border-b border-white/10">
-        <h1 className="text-lg font-bold text-white">GTO Strategy</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg font-bold text-white">GTO Strategy</h1>
+          {onCollapse && (
+            <button
+              onClick={onCollapse}
+              className="hidden lg:flex items-center justify-center w-7 h-7 rounded-md text-slate-500 hover:text-white hover:bg-white/10 transition-colors"
+              title="Collapse sidebar"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+          )}
+        </div>
         {/* Config selector */}
-        <select
-          value={selectedConfig}
-          onChange={e => onSelectConfig(e.target.value)}
-          className="mt-2 w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500/50"
-        >
-          <option value="">Select config...</option>
-          {availableConfigs.map(c => (
-            <option key={c.name} value={c.name}>
-              {c.positions} {c.potType} {c.stack} ({c.solvedFlops} boards)
-            </option>
-          ))}
-        </select>
+        <ConfigDropdown configs={configs} selected={selectedConfig} onSelect={onSelectConfig} />
       </div>
 
       {/* Search */}
@@ -74,8 +86,16 @@ export const FlopSidebar = memo(function FlopSidebar(props: FlopSidebarProps) {
               value={searchQuery}
               onChange={e => onSearchChange(e.target.value)}
               placeholder='Search... "AK", "rainbow"'
-              className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50"
+              className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-8 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50"
             />
+            {searchQuery && (
+              <button
+                onClick={() => onSearchChange('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white text-sm transition-colors"
+              >
+                &#x2715;
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -83,6 +103,14 @@ export const FlopSidebar = memo(function FlopSidebar(props: FlopSidebarProps) {
       {/* Filters */}
       {selectedConfig && (
         <div className="px-5 py-3 border-b border-white/10 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Filters</div>
+            {hasActiveFilters && onResetFilters && (
+              <button onClick={onResetFilters} className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors">
+                Clear all
+              </button>
+            )}
+          </div>
           <div>
             <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Suit Pattern</div>
             <div className="flex gap-1.5 flex-wrap">
@@ -122,6 +150,7 @@ export const FlopSidebar = memo(function FlopSidebar(props: FlopSidebarProps) {
             filteredFlops.map(flop => (
               <button
                 key={flop.boardId}
+                ref={selectedBoardId === flop.boardId ? selectedRef : undefined}
                 onClick={() => onSelectBoard(flop.boardId)}
                 style={{ contentVisibility: 'auto', containIntrinsicSize: '0 48px' }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all border ${

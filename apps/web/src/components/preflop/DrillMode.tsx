@@ -412,7 +412,6 @@ const DrillSettingsPanel = memo(function DrillSettingsPanel({
     { id: 'facing_open', label: 'vs Open' },
     { id: 'facing_3bet', label: 'vs 3bet' },
     { id: 'facing_4bet', label: 'vs 4bet' },
-    { id: 'squeeze', label: 'Squeeze' },
   ];
 
   const positions: Position[] = ['UTG', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
@@ -543,7 +542,6 @@ function formatScenarioLabel(spot: SpotSolution): string {
   if (spot.scenario === 'facing_open') return `Facing ${spot.villainPosition} Open`;
   if (spot.scenario === 'facing_3bet') return `Facing ${spot.villainPosition} 3-Bet`;
   if (spot.scenario === 'facing_4bet') return `Facing ${spot.villainPosition} 4-Bet`;
-  if (spot.scenario === 'squeeze') return `Squeeze vs ${spot.villainPosition}`;
   return spot.scenario;
 }
 

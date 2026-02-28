@@ -145,9 +145,5 @@ function formatSpotLabel(spot: string, hero: Position): string {
     const suffix = spot.includes('3bet') ? ' 3bet' : spot.includes('4bet') ? ' 4bet' : spot.includes('open') ? ' open' : '';
     return `vs ${villain}${suffix}`;
   }
-  if (spot.includes('squeeze')) {
-    const sqMatch = spot.match(/squeeze_vs_(\w+)/);
-    return sqMatch ? `Squeeze vs ${sqMatch[1]}` : 'Squeeze';
-  }
   return spot.replace(`${hero}_`, '');
 }

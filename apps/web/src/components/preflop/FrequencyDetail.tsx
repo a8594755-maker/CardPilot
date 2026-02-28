@@ -124,7 +124,6 @@ function formatScenario(solution: SpotSolution): string {
   if (solution.scenario === 'facing_open') return `vs ${solution.villainPosition} Open`;
   if (solution.scenario === 'facing_3bet') return `vs ${solution.villainPosition} 3-Bet`;
   if (solution.scenario === 'facing_4bet') return `vs ${solution.villainPosition} 4-Bet`;
-  if (solution.scenario === 'squeeze') return `Squeeze vs ${solution.villainPosition}`;
   return solution.scenario;
 }
 

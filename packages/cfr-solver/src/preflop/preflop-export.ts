@@ -281,13 +281,8 @@ function collectSpots(root: PreflopActionNode): SpotInfo[] {
 function classifyScenario(history: string): ScenarioType {
   if (!history) return 'RFI';
   const parts = history.split('-');
-  const raises = parts.filter(p => /[o34qA]/.test(p.slice(-1)));
+  const raises = parts.filter(p => /[o34A]/.test(p.slice(-1)));
   if (raises.length === 0) return 'RFI';
-
-  // Check for squeeze (raise after a caller)
-  const hasCall = parts.some(p => p.endsWith('c'));
-  const lastRaise = raises[raises.length - 1];
-  if (hasCall && (lastRaise.endsWith('3') || lastRaise.endsWith('q'))) return 'squeeze';
 
   if (raises.length === 1) return 'facing_open';
   if (raises.length === 2) return 'facing_3bet';
@@ -305,7 +300,6 @@ function buildSpotName(spot: SpotInfo): string {
   if (spot.scenario === 'facing_open') return `${pos}_vs_${villain}_open`;
   if (spot.scenario === 'facing_3bet') return `${pos}_vs_${villain}_3bet`;
   if (spot.scenario === 'facing_4bet') return `${pos}_vs_${villain}_4bet`;
-  if (spot.scenario === 'squeeze') return `${pos}_squeeze_vs_${villain}`;
 
   return `${pos}_${spot.scenario}`;
 }
@@ -320,7 +314,7 @@ function inferVillain(spot: SpotInfo): Position | undefined {
 
   for (let i = parts.length - 1; i >= 0; i--) {
     const p = parts[i];
-    if (p.length >= 2 && /[o34qA]/.test(p[1])) {
+    if (p.length >= 2 && /[o34A]/.test(p[1])) {
       return posMap[p[0]];
     }
   }

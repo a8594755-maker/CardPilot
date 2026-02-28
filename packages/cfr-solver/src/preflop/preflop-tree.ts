@@ -3,12 +3,11 @@
 // Builds the full sequential decision tree:
 //   UTG(0) → HJ(1) → CO(2) → BTN(3) → SB(4) → BB(5)
 //
-// Simplifications for tractability:
+// Simplifications (GTO Wizard "Simple solutions" approach):
 //   1. After a 3-bet, remaining uninvolved players auto-fold
-//   2. Max one cold caller per open raise
+//   2. Non-BB facing an open must 3bet or fold (no cold-calling)
 //   3. Raise cap: open → 3bet → 4bet → 5bet(allin)
 //   4. One sizing per action type
-//   5. SB can limp (complete) when folded to
 
 import type {
   PreflopActionNode,
@@ -33,7 +32,6 @@ interface BuildState {
   raiseLevel: number;         // 0=unopened, 1=open, 2=3bet, 3=4bet, 4=5bet
   lastRaiseTotal: number;     // total bet amount of last raise (in bb)
   lastRaiserSeat: number;     // seat of last raiser (-1 if none)
-  numCallersOfOpen: number;   // cold callers of the open raise (for squeeze tracking)
 }
 
 // ── History encoding ──
@@ -47,12 +45,10 @@ function encodeAction(seat: number, action: PreflopAction): string {
   if (action === 'fold') return `${p}f`;
   if (action === 'check') return `${p}x`;
   if (action === 'call') return `${p}c`;
-  if (action === 'complete') return `${p}l`;  // SB limp/complete
   if (action === 'allin') return `${p}A`;
   if (action.startsWith('open_')) return `${p}o`;
   if (action.startsWith('3bet_')) return `${p}3`;
   if (action.startsWith('4bet_')) return `${p}4`;
-  if (action.startsWith('squeeze_')) return `${p}q`;
   return `${p}?`;
 }
 
@@ -82,7 +78,6 @@ export function buildPreflopTree(config: PreflopSolveConfig): PreflopActionNode 
     raiseLevel: 0,
     lastRaiseTotal: config.bbSize, // BB is the "current bet" to start
     lastRaiserSeat: -1,
-    numCallersOfOpen: 0,
   };
 
   return buildNode(config, state) as PreflopActionNode;
@@ -163,14 +158,8 @@ function getLegalActions(config: PreflopSolveConfig, state: BuildState, seat: nu
   const toCall = Math.max(0, currentBet - invested);
 
   // ── Unopened pot (player owes money to continue) ──
-  // When toCall === 0 at raiseLevel 0 (BB after SB limp), fall through to check/raise path
   if (state.raiseLevel === 0 && toCall > 0) {
     actions.push('fold');
-
-    // SB can limp/complete when folded to (pay 0.5bb to match BB)
-    if (seat === 4) {
-      actions.push('complete');
-    }
 
     // Open raise
     if (config.openSize <= totalAvail) {
@@ -192,7 +181,12 @@ function getLegalActions(config: PreflopSolveConfig, state: BuildState, seat: nu
       // Calling puts us all-in
       actions.push('allin');
     } else {
-      actions.push('call');
+      // Non-BB facing an open must 3bet or fold (no cold-calling)
+      // BB (seat 5) can call opens; all positions can call 3bet+
+      const canCall = state.raiseLevel !== 1 || seat === 5;
+      if (canCall) {
+        actions.push('call');
+      }
 
       // Re-raise (if under cap)
       const raiseAction = getNextRaise(config, state, seat);
@@ -214,10 +208,10 @@ function getLegalActions(config: PreflopSolveConfig, state: BuildState, seat: nu
     return actions;
   }
 
-  // ── No bet to face (BB check option after limps) ──
+  // ── No bet to face (BB walk / check option) ──
   actions.push('check');
 
-  // BB can raise over limpers
+  // BB can raise
   const raiseAction = getNextRaise(config, state, seat);
   if (raiseAction) {
     const raiseTotal = parseRaiseTotal(raiseAction);
@@ -251,10 +245,6 @@ function getNextRaise(
     const openerSeat = state.lastRaiserSeat;
     const isIP = openerSeat >= 0 ? isIPPostflop(seat, openerSeat) : false;
     const size = compute3BetSize(config, isIP);
-    // Check if this is a squeeze (caller exists before us)
-    if (state.numCallersOfOpen > 0) {
-      return `squeeze_${size}`;
-    }
     return `3bet_${size}`;
   }
 
@@ -269,7 +259,7 @@ function getNextRaise(
 }
 
 function parseRaiseTotal(action: PreflopAction): number {
-  const match = action.match(/(?:open|3bet|4bet|squeeze)_([\d.]+)/);
+  const match = action.match(/(?:open|3bet|4bet)_([\d.]+)/);
   return match ? parseFloat(match[1]) : 0;
 }
 
@@ -297,19 +287,6 @@ function applyAction(
     return buildNode(config, s);
   }
 
-  // ── SB Complete/Limp (pay difference to match BB, no raise level change) ──
-  if (action === 'complete') {
-    const toComplete = Math.max(0, s.lastRaiseTotal - s.investments[seat]);
-    const actual = Math.min(toComplete, s.stacks[seat]);
-    s.stacks[seat] -= actual;
-    s.investments[seat] += actual;
-    s.pot += actual;
-    // raiseLevel stays at 0 — no one has opened/raised
-    // BB still needs to act (check or raise)
-    s.nextToAct = (seat + 1) % NUM_PLAYERS;
-    return buildNode(config, s);
-  }
-
   // ── Call ──
   if (action === 'call') {
     const toCall = Math.max(0, s.lastRaiseTotal - s.investments[seat]);
@@ -317,10 +294,6 @@ function applyAction(
     s.stacks[seat] -= actual;
     s.investments[seat] += actual;
     s.pot += actual;
-
-    if (s.raiseLevel === 1) {
-      s.numCallersOfOpen++;
-    }
 
     s.nextToAct = (seat + 1) % NUM_PLAYERS;
     return buildNode(config, s);
@@ -336,17 +309,17 @@ function applyAction(
 
     // Is this a raise?
     if (newTotal > s.lastRaiseTotal) {
+      const prevRaiser = s.lastRaiserSeat;
       s.lastRaiserSeat = seat;
       s.lastRaiseTotal = newTotal;
       s.raiseLevel = Math.min(s.raiseLevel + 1, 4);
-      s.numCallersOfOpen = 0;
 
       // Everyone active needs to respond (except us)
       resetNeedsToAct(s, seat);
 
       // After 3bet+, uninvolved players auto-fold
       if (s.raiseLevel >= 2) {
-        autoFoldUninvolved(s, seat);
+        autoFoldUninvolved(s, seat, prevRaiser);
       }
     }
 
@@ -354,7 +327,7 @@ function applyAction(
     return buildNode(config, s);
   }
 
-  // ── Sized raises (open_X, 3bet_X, 4bet_X, squeeze_X) ──
+  // ── Sized raises (open_X, 3bet_X, 4bet_X) ──
   const raiseTotal = parseRaiseTotal(action);
   if (raiseTotal > 0) {
     const cost = raiseTotal - s.investments[seat];
@@ -362,17 +335,17 @@ function applyAction(
     s.stacks[seat] -= actual;
     s.investments[seat] += actual;
     s.pot += actual;
+    const prevRaiser = s.lastRaiserSeat;
     s.lastRaiserSeat = seat;
     s.lastRaiseTotal = raiseTotal;
     s.raiseLevel++;
-    s.numCallersOfOpen = 0;
 
     // Everyone active needs to respond (except us)
     resetNeedsToAct(s, seat);
 
     // After 3bet+, uninvolved players auto-fold
     if (s.raiseLevel >= 2) {
-      autoFoldUninvolved(s, seat);
+      autoFoldUninvolved(s, seat, prevRaiser);
     }
 
     s.nextToAct = (seat + 1) % NUM_PLAYERS;
@@ -396,38 +369,19 @@ function resetNeedsToAct(state: BuildState, raiserSeat: number): void {
 }
 
 /**
- * After a 3bet+, auto-fold players who haven't invested beyond their blinds/ante.
- * Keep: the current raiser, the previous raiser, and anyone who cold-called.
+ * After a 3bet+, auto-fold all uninvolved players.
+ * Keep only the current raiser and the previous raiser.
+ * With no cold-calling allowed, no other players have voluntary investment.
  */
-function autoFoldUninvolved(state: BuildState, currentRaiserSeat: number): void {
-  const prevRaiser = state.lastRaiserSeat;
-
+function autoFoldUninvolved(state: BuildState, currentRaiserSeat: number, prevRaiserSeat: number): void {
   for (let i = 0; i < NUM_PLAYERS; i++) {
     if (!state.activePlayers[i]) continue;
-    if (i === currentRaiserSeat) continue; // Keep current raiser
-    if (i === prevRaiser) continue; // Keep previous raiser
+    if (i === currentRaiserSeat) continue;
+    if (i === prevRaiserSeat) continue;
 
-    // Check if this player has voluntarily invested (cold-called the open)
-    const blindContrib = getBlindContrib(i, state);
-    const voluntaryInvestment = state.investments[i] - blindContrib;
-
-    if (voluntaryInvestment < 0.01) {
-      // They only posted blinds/ante — auto-fold
-      state.activePlayers[i] = false;
-      state.needsToAct[i] = false;
-    }
-    // Otherwise they cold-called → they stay but need to act vs the 3bet
+    state.activePlayers[i] = false;
+    state.needsToAct[i] = false;
   }
-}
-
-function getBlindContrib(seat: number, _state: BuildState): number {
-  // Estimate how much this seat posted as forced bets
-  // We don't have config here, so use standard values:
-  // SB=0.5+ante, BB=1.0+ante, others=ante
-  // Since we don't know the exact ante, approximate:
-  if (seat === 4) return 1.0; // SB ~0.5 + possible ante
-  if (seat === 5) return 1.5; // BB ~1.0 + possible ante
-  return 0.5; // Others: ante (~0.25) with margin
 }
 
 // ── Utilities ──
@@ -462,7 +416,6 @@ function cloneState(state: BuildState): BuildState {
     raiseLevel: state.raiseLevel,
     lastRaiseTotal: state.lastRaiseTotal,
     lastRaiserSeat: state.lastRaiserSeat,
-    numCallersOfOpen: state.numCallersOfOpen,
   };
 }
 

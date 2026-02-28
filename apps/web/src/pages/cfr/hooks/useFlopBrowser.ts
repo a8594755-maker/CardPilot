@@ -1,6 +1,6 @@
 // Flop browser hook — search and filter logic for the sidebar.
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useDeferredValue } from 'react';
 import type { FlopEntry } from '../lib/cfr-api';
 import { cardLabel } from '../lib/cfr-constants';
 
@@ -21,6 +21,7 @@ export interface FlopBrowserActions {
   setTextureFilter: (f: TextureFilter) => void;
   setPairingFilter: (f: PairingFilter) => void;
   setHighCardFilter: (f: HighCardFilter) => void;
+  resetFilters: () => void;
 }
 
 export function useFlopBrowser(flops: FlopEntry[]): [FlopBrowserState, FlopBrowserActions] {
@@ -29,11 +30,20 @@ export function useFlopBrowser(flops: FlopEntry[]): [FlopBrowserState, FlopBrows
   const [pairingFilter, setPairingFilter] = useState<PairingFilter>('all');
   const [highCardFilter, setHighCardFilter] = useState<HighCardFilter>('all');
 
+  const deferredQuery = useDeferredValue(searchQuery);
+
+  const resetFilters = useCallback(() => {
+    setSearchQuery('');
+    setTextureFilter('all');
+    setPairingFilter('all');
+    setHighCardFilter('all');
+  }, []);
+
   const filteredFlops = useMemo(() => {
     return flops.filter(f => {
       // Text search
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
+      if (deferredQuery) {
+        const q = deferredQuery.toLowerCase();
         const cards = f.flopCards.map(c => cardLabel(c)).join(' ').toLowerCase();
         const meta = `${f.texture || ''} ${f.pairing || ''} ${f.connectivity || ''} ${f.highCard || ''}`.toLowerCase();
         if (!(cards + ' ' + meta).includes(q)) return false;
@@ -52,10 +62,10 @@ export function useFlopBrowser(flops: FlopEntry[]): [FlopBrowserState, FlopBrows
       }
       return true;
     });
-  }, [flops, searchQuery, textureFilter, pairingFilter, highCardFilter]);
+  }, [flops, deferredQuery, textureFilter, pairingFilter, highCardFilter]);
 
   return [
     { searchQuery, textureFilter, pairingFilter, highCardFilter, filteredFlops },
-    { setSearchQuery, setTextureFilter, setPairingFilter, setHighCardFilter },
+    { setSearchQuery, setTextureFilter, setPairingFilter, setHighCardFilter, resetFilters },
   ];
 }

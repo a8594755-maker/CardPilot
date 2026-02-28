@@ -36,7 +36,7 @@ export interface SolutionIndex {
   solveDate: string;
 }
 
-export type ScenarioType = 'RFI' | 'facing_open' | 'facing_3bet' | 'facing_4bet' | 'squeeze';
+export type ScenarioType = 'RFI' | 'facing_open' | 'facing_3bet' | 'facing_4bet';
 export type Position = 'UTG' | 'HJ' | 'CO' | 'BTN' | 'SB' | 'BB';
 
 export const POSITIONS: Position[] = ['UTG', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
@@ -46,7 +46,6 @@ export const SCENARIO_LABELS: Record<ScenarioType, string> = {
   facing_open: 'Facing Open',
   facing_3bet: 'Facing 3-Bet',
   facing_4bet: 'Facing 4-Bet',
-  squeeze: 'Squeeze',
 };
 
 // 13×13 hand grid layout
@@ -126,7 +125,6 @@ export function getAvailableScenarios(index: SolutionIndex, pos: Position): Scen
 export const ACTION_COLORS: Record<string, string> = {
   fold: '#6b7280',     // gray
   check: '#6b7280',
-  complete: '#3b82f6', // blue (SB limp)
   call: '#22c55e',     // green
   'open_2.5': '#ef4444', // red
   'open_2': '#ef4444',
@@ -139,7 +137,6 @@ export const ACTION_COLORS: Record<string, string> = {
 export function getActionColor(action: string): string {
   if (action === 'fold') return ACTION_COLORS.fold;
   if (action === 'check') return ACTION_COLORS.check;
-  if (action === 'complete') return ACTION_COLORS.complete;
   if (action === 'call') return ACTION_COLORS.call;
   if (action.startsWith('open')) return ACTION_COLORS['open_2.5'];
   if (action.includes('3bet') || action.startsWith('3bet')) return ACTION_COLORS['3bet'];
@@ -152,7 +149,6 @@ export function getActionColor(action: string): string {
 export function getActionLabel(action: string): string {
   if (action === 'fold') return 'Fold';
   if (action === 'check') return 'Check';
-  if (action === 'complete') return 'Limp';
   if (action === 'call') return 'Call';
   if (action.startsWith('open')) return 'Open';
   if (action.includes('3bet')) return '3-Bet';
