@@ -24,6 +24,10 @@
     "pipeline:srp": "node --import tsx src/cli/pipeline.ts coordinator --config pipeline_srp --resume",
     "pipeline:3bet": "node --import tsx src/cli/pipeline.ts coordinator --config pipeline_3bet --resume",
     "solve:pipeline:srp": "node --import tsx src/cli/solve.ts --config pipeline_srp --all-flops --parallel --resume",
+    "cluster:coord": "bash scripts/cluster.sh coord",
+    "cluster:worker": "bash scripts/cluster.sh worker",
+    "cluster:status": "bash scripts/cluster.sh status",
+    "cluster:dashboard": "bash scripts/cluster.sh dashboard",
     "viewer": "node --import tsx viewer/serve.ts",
     "preflop": "node --import tsx src/cli/preflop-solve.ts",
     "preflop:equity": "node --import tsx src/cli/preflop-solve.ts equity",
@@ -37,7 +41,8 @@
     "test": "node --import tsx --test src/__tests__/*.test.ts"
   },
   "dependencies": {
-    "@cardpilot/poker-evaluator": "0.1.0"
+    "@cardpilot/poker-evaluator": "0.1.0",
+    "@notionhq/client": "^2.2.15"
   },
   "devDependencies": {
     "tsx": "^4.19.2",

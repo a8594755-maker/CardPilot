@@ -34,22 +34,22 @@ test('tree structure verification', () => {
     }
 
     // After IP bets small
-    const afterBetSmall = afterCheck.children.get('bet_small')!;
-    if (afterBetSmall.type === 'action') {
-      console.log('\nAfter check -> IP bet_small:');
-      console.log('  player:', afterBetSmall.player, '(0=OOP faces bet)');
-      console.log('  actions:', afterBetSmall.actions);
-      console.log('  pot:', afterBetSmall.pot);
+    const afterBet0 = afterCheck.children.get('bet_0')!;
+    if (afterBet0.type === 'action') {
+      console.log('\nAfter check -> IP bet_0:');
+      console.log('  player:', afterBet0.player, '(0=OOP faces bet)');
+      console.log('  actions:', afterBet0.actions);
+      console.log('  pot:', afterBet0.pot);
     }
   }
 
   // After OOP bets small
-  const afterBetSmall = tree.children.get('bet_small')!;
-  if (afterBetSmall.type === 'action') {
-    console.log('\nAfter OOP bet_small:');
-    console.log('  player:', afterBetSmall.player, '(1=IP faces bet)');
-    console.log('  actions:', afterBetSmall.actions);
-    console.log('  pot:', afterBetSmall.pot);
-    console.log('  history:', JSON.stringify(afterBetSmall.historyKey));
+  const afterOOPBet0 = tree.children.get('bet_0')!;
+  if (afterOOPBet0.type === 'action') {
+    console.log('\nAfter OOP bet_0:');
+    console.log('  player:', afterOOPBet0.player, '(1=IP faces bet)');
+    console.log('  actions:', afterOOPBet0.actions);
+    console.log('  pot:', afterOOPBet0.pot);
+    console.log('  history:', JSON.stringify(afterOOPBet0.historyKey));
   }
 });

@@ -4,6 +4,11 @@ import {
   loadGtoWizardRangeFile,
   type GtoWizardRangeEntry,
 } from '../data-loaders/gto-wizard-json.js';
+import {
+  generateEstimatedRange,
+  adjustBBMultiWayDefense,
+  type EstimatedSpot,
+} from './range-estimator.js';
 
 export interface WeightedCombo {
   combo: [number, number];
@@ -150,4 +155,62 @@ export function getWeightedRangeCombos(
   }
 
   return result;
+}
+
+// ═══════════════════════════════════════════════════════════
+// Multi-way range loading
+// ═══════════════════════════════════════════════════════════
+
+export interface MultiWayRangeConfig {
+  /** Player position label (for logging) */
+  position: string;
+  /** GTO Wizard spot name, or 'estimated:XXX' for estimated ranges */
+  spot: string;
+  /** Action key in mix (e.g., 'raise', 'call') */
+  action: string;
+  /** Optional minimum frequency filter */
+  minFrequency?: number;
+  /** If true, apply multi-way speculative hand boosting */
+  multiWayBoost?: boolean;
+}
+
+/**
+ * Load ranges for a multi-way pot (3+ players).
+ * Supports a mix of GTO Wizard data and estimated ranges.
+ *
+ * @param chartsPath - Path to preflop_charts.json
+ * @param configs - One config per player (index 0 = first to act postflop)
+ * @param numPlayers - Total players (for BB multi-way boost)
+ */
+export function loadMultiWayRanges(
+  chartsPath: string,
+  configs: MultiWayRangeConfig[],
+  numPlayers: number,
+): PreflopRange[] {
+  const allEntries = loadGtoWizardRangeFile(chartsPath);
+  const ranges: PreflopRange[] = [];
+
+  for (const cfg of configs) {
+    let entries: GtoWizardRangeEntry[];
+
+    if (cfg.spot.startsWith('estimated:')) {
+      // Use estimated range from range-estimator
+      const estimatedSpot = cfg.spot.replace('estimated:', '') as EstimatedSpot;
+      entries = generateEstimatedRange(estimatedSpot);
+    } else {
+      entries = allEntries.filter(e => e.spot === cfg.spot);
+      if (entries.length === 0) {
+        throw new Error(`No entries found for spot: ${cfg.spot}`);
+      }
+    }
+
+    // Apply multi-way BB defense boosting if requested
+    if (cfg.multiWayBoost) {
+      entries = adjustBBMultiWayDefense(entries, numPlayers);
+    }
+
+    ranges.push(buildRange(entries, cfg.action, cfg.minFrequency));
+  }
+
+  return ranges;
 }

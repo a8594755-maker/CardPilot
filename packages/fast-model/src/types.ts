@@ -21,6 +21,24 @@ export interface ModelWeights {
   trainingSamples: number;
   /** Final validation loss */
   valLoss: number;
+  /** Architecture metadata for reproducibility */
+  architecture?: {
+    hiddenSizes: number[];
+  };
+  /** Data manifest: what CFR data was used for training */
+  dataManifest?: {
+    configName: string;
+    flopCount: number;
+    totalSamples: number;
+    streets: string[];
+  };
+  /** Incremental training history */
+  trainingHistory?: Array<{
+    timestamp: string;
+    flopCount: number;
+    valLoss: number;
+    samples: number;
+  }>;
 }
 
 /** Strategy mix output matching the bot's existing Mix type */

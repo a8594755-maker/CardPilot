@@ -34,6 +34,7 @@ import { formatChips, makeChipFormatter } from "./lib/format-chips";
 import { describeHandStrength } from "@cardpilot/shared-types";
 import { TrainingDashboard } from "./pages/TrainingDashboard";
 import { PreflopTrainer } from "./pages/PreflopTrainer";
+import { CfrLookupPage } from "./pages/CfrLookupPage";
 import { useAuditEvents } from "./hooks/useAuditEvents";
 import { BottomActionBar } from "./components/ui/BottomActionBar";
 import { LeftOptionsRail, OptionsDrawer, type RailAction, type DrawerSection } from "./components/ui/LeftOptionsRail";
@@ -151,7 +152,7 @@ export function App() {
   type RecentNonClubTable = { tableId: string; roomCode: string; roomName?: string };
   const recentNonClubTableRef = useRef<RecentNonClubTable | null>(null);
 
-  type AppView = "lobby" | "table" | "profile" | "history" | "clubs" | "training" | "preflop";
+  type AppView = "lobby" | "table" | "profile" | "history" | "clubs" | "training" | "preflop" | "cfr";
   const view = useMemo<AppView>(() => {
     const path = location.pathname;
     if (path === "/" || path.startsWith("/lobby")) return "lobby";
@@ -160,6 +161,7 @@ export function App() {
     if (path.startsWith("/clubs")) return "clubs";
     if (path.startsWith("/training")) return "training";
     if (path.startsWith("/preflop")) return "preflop";
+    if (path.startsWith("/cfr")) return "cfr";
     if (path.startsWith("/profile")) return "profile";
     return "lobby";
   }, [location.pathname]);
@@ -2146,7 +2148,7 @@ export function App() {
   /* ═══════════════════ RENDER ═══════════════════ */
   const PAGE_TITLES: Record<string, string> = {
     lobby: "Lobby", table: "Table", profile: "Profile",
-    history: "History", clubs: "Clubs", training: "Training",
+    history: "History", clubs: "Clubs", training: "Training", cfr: "CFR Solver",
   };
   const mobilePageTitle = PAGE_TITLES[view] ?? "CardPilot";
 
@@ -2165,13 +2167,13 @@ export function App() {
             <h1 className="text-base font-bold tracking-tight text-white">Card<span className="text-amber-400">Pilot</span></h1>
           </div>
           <nav className="flex items-center gap-1 bg-white/5 rounded-xl p-1">
-            {(["lobby", "clubs", "table", "history", "training", "profile"] as const).map((v) => (
+            {(["lobby", "clubs", "table", "history", "training", "cfr", "profile"] as const).map((v) => (
               <button key={v} onClick={() => {
                 setView(v);
                 if (v === "clubs" && socket && canAccessClubs) { socket.emit("club_list_my_clubs"); }
               }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === v ? "bg-white/10 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"}`}>
-                {v === "lobby" ? "Lobby" : v === "clubs" ? "Clubs" : v === "table" ? "Table" : v === "history" ? "History" : v === "training" ? "Training" : "Profile"}
+                {PAGE_TITLES[v] ?? v}
               </button>
             ))}
           </nav>
@@ -2258,6 +2260,9 @@ export function App() {
         ) : view === "preflop" ? (
           /* ═══════ PREFLOP GTO ═══════ */
           <PreflopTrainer />
+        ) : view === "cfr" ? (
+          /* ═══════ CFR LOOKUP ═══════ */
+          <CfrLookupPage />
         ) : view === "clubs" ? (
           /* ═══════ CLUBS ═══════ */
           <ClubsPage

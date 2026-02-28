@@ -67,19 +67,36 @@ const completed: CompletedJob[] = [];
 const failed: FailedJob[] = [];
 const failCounts = new Map<string, number>(); // jobId → retry count
 
-// Persistent completion log — survives coordinator restarts
+// Persistent completion logs — survives coordinator restarts
+// Supports multiple configs: each config has its own completed.jsonl in its output dir
 let completedLogPath: string | null = null;
+const completedLogPaths = new Map<string, string>(); // configName → log path
 
 export function setCompletedLogPath(path: string): void {
   completedLogPath = path;
-  // Restore completed records into in-memory array so dashboard shows correct counts
-  if (existsSync(path)) {
-    try {
-      const lines = readFileSync(path, 'utf-8').split('\n').filter(l => l.trim());
-      for (const line of lines) {
+  restoreCompletedLog(path);
+}
+
+/** Register a per-config completion log path. */
+export function addCompletedLogPath(configName: string, path: string): void {
+  completedLogPaths.set(configName, path);
+  restoreCompletedLog(path);
+}
+
+function restoreCompletedLog(path: string): void {
+  if (!existsSync(path)) return;
+  try {
+    const lines = readFileSync(path, 'utf-8').split('\n').filter(l => l.trim());
+    const existingIds = new Set(completed.map(c => c.jobId));
+    let restored = 0;
+    let corrupt = 0;
+    for (const line of lines) {
+      try {
         const record = JSON.parse(line);
+        const jobId = record.jobId ?? '';
+        if (existingIds.has(jobId)) continue;
         completed.push({
-          jobId: record.jobId ?? '',
+          jobId,
           boardId: record.boardId ?? 0,
           infoSets: record.infoSets ?? 0,
           fileSize: record.fileSize ?? 0,
@@ -88,11 +105,17 @@ export function setCompletedLogPath(path: string): void {
           completedAt: record.completedAt ?? 0,
           worker: record.worker ?? 'unknown',
         });
+        existingIds.add(jobId);
+        restored++;
+      } catch {
+        corrupt++; // Partial write from crash — skip this line
       }
-      console.log(`[Queue Server] Restored ${completed.length} completed records from log`);
-    } catch (err) {
-      console.error(`[Queue Server] Warning: failed to restore completed log:`, err);
     }
+    if (restored > 0 || corrupt > 0) {
+      console.log(`[Queue Server] Restored ${restored} completed records from ${path}${corrupt > 0 ? ` (${corrupt} corrupt lines skipped)` : ''}`);
+    }
+  } catch (err) {
+    console.error(`[Queue Server] Warning: failed to restore completed log:`, err);
   }
 }
 
@@ -103,8 +126,12 @@ export function loadCompletedLog(path: string): Set<number> {
   try {
     const lines = readFileSync(path, 'utf-8').split('\n').filter(l => l.trim());
     for (const line of lines) {
-      const record = JSON.parse(line);
-      if (typeof record.boardId === 'number') ids.add(record.boardId);
+      try {
+        const record = JSON.parse(line);
+        if (typeof record.boardId === 'number') ids.add(record.boardId);
+      } catch {
+        // Corrupt line from crash — skip
+      }
     }
   } catch (err) {
     console.error(`[Queue Server] Warning: failed to read ${path}:`, err);
@@ -113,17 +140,24 @@ export function loadCompletedLog(path: string): Set<number> {
 }
 
 function appendCompletedLog(entry: CompletedJob): void {
-  if (!completedLogPath) return;
+  const line = JSON.stringify({
+    jobId: entry.jobId,
+    boardId: entry.boardId,
+    worker: entry.worker,
+    infoSets: entry.infoSets,
+    fileSize: entry.fileSize,
+    peakMemoryMB: entry.peakMemoryMB,
+    elapsedMs: entry.elapsedMs,
+    completedAt: entry.completedAt,
+  }) + '\n';
+
+  // Determine which log to write to: per-config log has priority
+  const configName = entry.jobId.split('__')[0]; // e.g. "hu_btn_bb_srp_100bb__0042" → "hu_btn_bb_srp_100bb"
+  const logPath = completedLogPaths.get(configName) ?? completedLogPath;
+  if (!logPath) return;
+
   try {
-    const line = JSON.stringify({
-      jobId: entry.jobId,
-      boardId: entry.boardId,
-      worker: entry.worker,
-      infoSets: entry.infoSets,
-      elapsedMs: entry.elapsedMs,
-      completedAt: entry.completedAt,
-    }) + '\n';
-    appendFileSync(completedLogPath, line);
+    appendFileSync(logPath, line);
   } catch (err) {
     console.error(`[Queue Server] Warning: failed to append to completion log:`, err);
   }
@@ -163,7 +197,6 @@ function markDone(
   const entry = running.get(jobId);
   if (!entry) return false;
 
-  running.delete(jobId);
   const record: CompletedJob = {
     jobId,
     boardId: entry.job.boardId,
@@ -174,8 +207,12 @@ function markDone(
     completedAt: Date.now(),
     worker: entry.claimedBy,
   };
-  completed.push(record);
+  // CRITICAL: Write to persistent log BEFORE removing from running map.
+  // If crash happens after write but before delete, on restart the job will
+  // be in completed.jsonl (restored) and addJobs() dedup will skip it.
   appendCompletedLog(record);
+  completed.push(record);
+  running.delete(jobId);
   return true;
 }
 
@@ -254,17 +291,32 @@ function reclaimWorker(workerId: string): number {
 function getStatus() {
   const now = Date.now();
 
-  // Per-worker stats
-  const workerStats: Record<string, { running: number; completed: number; totalMs: number }> = {};
+  // Per-worker stats (survives restart via completed[] restored from logs)
+  const workerStats: Record<string, {
+    running: number; completed: number; totalMs: number;
+    firstSeen: number; lastSeen: number; avgMemoryMB: number; totalMemoryMB: number;
+  }> = {};
+  const defaultWs = () => ({
+    running: 0, completed: 0, totalMs: 0,
+    firstSeen: Infinity, lastSeen: 0, avgMemoryMB: 0, totalMemoryMB: 0,
+  });
   for (const entry of running.values()) {
     const w = entry.claimedBy;
-    if (!workerStats[w]) workerStats[w] = { running: 0, completed: 0, totalMs: 0 };
+    if (!workerStats[w]) workerStats[w] = defaultWs();
     workerStats[w].running++;
   }
   for (const c of completed) {
-    if (!workerStats[c.worker]) workerStats[c.worker] = { running: 0, completed: 0, totalMs: 0 };
-    workerStats[c.worker].completed++;
-    workerStats[c.worker].totalMs += c.elapsedMs;
+    if (!workerStats[c.worker]) workerStats[c.worker] = defaultWs();
+    const ws = workerStats[c.worker];
+    ws.completed++;
+    ws.totalMs += c.elapsedMs;
+    ws.totalMemoryMB += c.peakMemoryMB;
+    if (c.completedAt < ws.firstSeen) ws.firstSeen = c.completedAt;
+    if (c.completedAt > ws.lastSeen) ws.lastSeen = c.completedAt;
+  }
+  for (const ws of Object.values(workerStats)) {
+    ws.avgMemoryMB = ws.completed > 0 ? Math.round(ws.totalMemoryMB / ws.completed) : 0;
+    if (ws.firstSeen === Infinity) ws.firstSeen = 0;
   }
 
   const runningDetails = [...running.values()]
@@ -298,12 +350,42 @@ function getStatus() {
   const avgMs = avgFromCompleted > 0 ? avgFromCompleted : avgFromRunningMs;
   const avgSolveSource = avgFromCompleted > 0 ? 'completed' : (avgFromRunningMs > 0 ? 'running_estimate' : 'none');
   const totalWorkers = new Set([...running.values()].map(v => v.claimedBy)).size || 1;
-  const remainingJobs = pending.length + running.size;
-  const etaMs = avgMs > 0 ? (remainingJobs * avgMs) / totalWorkers : 0;
+  // Use live heartbeating workers as concurrency estimate (not running.size which can inflate)
+  const liveWorkerJobs = runningDetails.filter(r => r.heartbeatAgeMs <= 60000).length;
+  const concurrentJobs = liveWorkerJobs > 0 ? liveWorkerJobs : (totalWorkers || 1);
+  // Factor in partial progress of running jobs (a 90% done job = 0.1 remaining work)
+  const runningRemaining = runningDetails.reduce(
+    (sum, r) => sum + (1 - r.progressPct / 100), 0,
+  );
+  const remainingWork = pending.length + runningRemaining;
+  const etaMs = avgMs > 0 ? (remainingWork * avgMs) / concurrentJobs : 0;
   const runningAvgPct = runningDetails.length > 0
     ? runningDetails.reduce((s, r) => s + r.progressPct, 0) / runningDetails.length
     : 0;
   const liveHeartbeats = runningDetails.filter(r => r.heartbeatAgeMs <= 20000).length;
+
+  // Per-config breakdown
+  const configStats: Record<string, { pending: number; running: number; completed: number; failed: number }> = {};
+  for (const j of pending) {
+    const cn = j.configName;
+    if (!configStats[cn]) configStats[cn] = { pending: 0, running: 0, completed: 0, failed: 0 };
+    configStats[cn].pending++;
+  }
+  for (const entry of running.values()) {
+    const cn = entry.job.configName;
+    if (!configStats[cn]) configStats[cn] = { pending: 0, running: 0, completed: 0, failed: 0 };
+    configStats[cn].running++;
+  }
+  for (const c of completed) {
+    const cn = c.jobId.split('__')[0];
+    if (!configStats[cn]) configStats[cn] = { pending: 0, running: 0, completed: 0, failed: 0 };
+    configStats[cn].completed++;
+  }
+  for (const f of failed) {
+    const cn = f.jobId.split('__')[0];
+    if (!configStats[cn]) configStats[cn] = { pending: 0, running: 0, completed: 0, failed: 0 };
+    configStats[cn].failed++;
+  }
 
   return {
     pending: pending.length,
@@ -320,6 +402,7 @@ function getStatus() {
     liveHeartbeats,
     runningDetails: runningDetails.slice(0, 80),
     workers: workerStats,
+    configs: configStats,
     recentCompleted: completed.slice(-10).reverse(),
   };
 }
@@ -430,6 +513,13 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
       return;
     }
 
+    // GET /workers — per-machine breakdown
+    if (method === 'GET' && url === '/workers') {
+      const s = getStatus();
+      json(res, 200, { workers: s.workers, totalWorkers: Object.keys(s.workers).length });
+      return;
+    }
+
     // GET /healthz — health check
     if (method === 'GET' && url === '/healthz') {
       json(res, 200, { ok: true, uptime: process.uptime() });
@@ -471,6 +561,11 @@ export function startQueueServer(port = 3500): ReturnType<typeof createServer> {
     console.log(`[Queue Server] Workers should connect to http://<this-ip>:${port}`);
     console.log();
   });
+
+  // Periodic stale job cleanup (don't rely solely on /pop triggering reclaimStale)
+  setInterval(() => {
+    reclaimStale();
+  }, 60_000);
 
   return server;
 }
@@ -524,7 +619,7 @@ function getDashboardHTML(): string {
 <body>
 <div class="header">
   <h1>CFR Pipeline Dashboard</h1>
-  <div class="subtitle">Distributed Solver — <span id="config">pipeline_srp</span></div>
+  <div class="subtitle">Distributed Solver — <span id="configCount"></span> configs</div>
 </div>
 <div class="container">
   <div class="progress-container">
@@ -584,9 +679,17 @@ function getDashboardHTML(): string {
   </div>
 
   <div class="section">
+    <h2>Configs</h2>
+    <table>
+      <thead><tr><th>Config</th><th>Completed</th><th>Running</th><th>Pending</th><th>Failed</th><th>Progress</th></tr></thead>
+      <tbody id="configTable"></tbody>
+    </table>
+  </div>
+
+  <div class="section">
     <h2>Workers</h2>
     <table>
-      <thead><tr><th>Worker</th><th>Status</th><th>Completed</th><th>Running</th><th>Avg Time</th></tr></thead>
+      <thead><tr><th>Worker</th><th>Status</th><th>Completed</th><th>Running</th><th>Avg Time</th><th>Avg Mem</th><th>Last Active</th></tr></thead>
       <tbody id="workerTable"></tbody>
     </table>
   </div>
@@ -665,6 +768,7 @@ async function refresh() {
       document.getElementById('avgSource').textContent = 'Source: ' + (s.avgSolveSource || 'none');
     }
     document.getElementById('runningAvgPct').textContent = (s.runningAvgPct || 0).toFixed(1) + '%';
+    document.getElementById('configCount').textContent = s.configs ? Object.keys(s.configs).length : '?';
     document.getElementById('liveHeartbeats').textContent = (s.liveHeartbeats || 0) + '/' + s.running;
     // Speed chart
     const now = Date.now();
@@ -680,6 +784,17 @@ async function refresh() {
     lastTime = now;
     drawChart('speedCanvas', speedHistory, 'rgb(88, 166, 255)', 'flops/min');
     drawChart('completionCanvas', completionHistory, 'rgb(63, 185, 80)', 'completed');
+    // Configs
+    const ct = document.getElementById('configTable');
+    ct.innerHTML = '';
+    if (s.configs) {
+      for (const [cn, cs] of Object.entries(s.configs)) {
+        const t = cs.pending + cs.running + cs.completed + cs.failed;
+        const pctC = t > 0 ? (cs.completed / t * 100).toFixed(1) : '0.0';
+        const bar = '<div style="background:#21262d;border-radius:4px;height:16px;width:120px;display:inline-block;overflow:hidden"><div style="background:#238636;height:100%;width:' + pctC + '%;border-radius:4px"></div></div>';
+        ct.innerHTML += '<tr><td>' + cn + '</td><td class="green">' + cs.completed + '</td><td class="blue">' + cs.running + '</td><td class="orange">' + cs.pending + '</td><td class="red">' + cs.failed + '</td><td>' + bar + ' ' + pctC + '%</td></tr>';
+      }
+    }
     // Workers
     const wt = document.getElementById('workerTable');
     wt.innerHTML = '';
@@ -687,7 +802,9 @@ async function refresh() {
       for (const [wid, ws] of Object.entries(s.workers)) {
         const avg = ws.completed > 0 ? (ws.totalMs / ws.completed / 1000).toFixed(0) + 's' : '—';
         const dot = ws.running > 0 ? '<span class="status-dot dot-green"></span>Active' : '<span class="status-dot dot-yellow"></span>Idle';
-        wt.innerHTML += '<tr><td>' + wid + '</td><td>' + dot + '</td><td>' + ws.completed + '</td><td>' + ws.running + '</td><td>' + avg + '</td></tr>';
+        const avgMem = ws.avgMemoryMB ? ws.avgMemoryMB + 'MB' : '—';
+        const lastActive = ws.lastSeen ? new Date(ws.lastSeen).toLocaleTimeString() : '—';
+        wt.innerHTML += '<tr><td>' + wid + '</td><td>' + dot + '</td><td>' + ws.completed + '</td><td>' + ws.running + '</td><td>' + avg + '</td><td>' + avgMem + '</td><td>' + lastActive + '</td></tr>';
       }
     }
     // Running jobs

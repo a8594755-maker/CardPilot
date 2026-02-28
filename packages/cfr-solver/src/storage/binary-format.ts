@@ -59,7 +59,7 @@ function fnv1a(str: string): number {
 export function exportToBinary(config: BinaryExportConfig): BinaryExportResult {
   const { inputDir, outputPath, compress = true } = config;
 
-  const files = readdirSync(inputDir).filter(f => f.endsWith('.jsonl')).sort();
+  const files = readdirSync(inputDir).filter(f => f.endsWith('.jsonl') && f.startsWith('flop_')).sort();
   let iterations = 50000;
   let bucketCount = 50;
   let numFlops = 0;
@@ -70,17 +70,24 @@ export function exportToBinary(config: BinaryExportConfig): BinaryExportResult {
   for (const file of files) {
     numFlops++;
     const content = readFileSync(join(inputDir, file), 'utf-8');
+    let skipped = 0;
     for (const line of content.split('\n')) {
       if (!line.trim()) continue;
-      const parsed = JSON.parse(line) as { probs: number[] };
-      totalEntries++;
-      totalBodySize += 1 + parsed.probs.length; // 1B numActions + probs bytes
+      try {
+        const parsed = JSON.parse(line) as { probs: number[] };
+        if (!parsed.probs) { skipped++; continue; }
+        totalEntries++;
+        totalBodySize += 1 + parsed.probs.length; // 1B numActions + probs bytes
+      } catch { skipped++; }
     }
+    if (skipped > 0) console.log(`  ${file}: skipped ${skipped} invalid lines`);
     const metaPath = join(inputDir, file.replace('.jsonl', '.meta.json'));
     if (existsSync(metaPath)) {
-      const meta = JSON.parse(readFileSync(metaPath, 'utf-8'));
-      iterations = meta.iterations;
-      bucketCount = meta.bucketCount;
+      try {
+        const meta = JSON.parse(readFileSync(metaPath, 'utf-8'));
+        if (meta.iterations) iterations = meta.iterations;
+        if (meta.bucketCount) bucketCount = meta.bucketCount;
+      } catch { /* corrupted meta file, skip */ }
     }
   }
 
@@ -98,7 +105,9 @@ export function exportToBinary(config: BinaryExportConfig): BinaryExportResult {
     const content = readFileSync(join(inputDir, file), 'utf-8');
     for (const line of content.split('\n')) {
       if (!line.trim()) continue;
-      const parsed = JSON.parse(line) as { key: string; probs: number[] };
+      let parsed: { key: string; probs: number[] };
+      try { parsed = JSON.parse(line); } catch { continue; }
+      if (!parsed.probs) continue;
       const hash = fnv1a(parsed.key);
       const numActions = parsed.probs.length;
 
@@ -118,10 +127,32 @@ export function exportToBinary(config: BinaryExportConfig): BinaryExportResult {
     }
   }
 
-  // Sort index by hash using an indirection array (4 bytes/entry vs ~50 bytes/object)
-  const order = new Uint32Array(totalEntries);
-  for (let i = 0; i < totalEntries; i++) order[i] = i;
-  order.sort((a, b) => indexBuf.readUInt32LE(a * 12) - indexBuf.readUInt32LE(b * 12));
+  // Sort index by hash using LSD radix sort on the 12-byte entries.
+  // V8 disallows custom comparefn on huge TypedArrays and Array allocation
+  // fails for 200M+ elements, so we sort the buffer entries directly.
+  console.log('  Radix sorting index...');
+  const ENTRY = 12;
+  const sortedIdx = Buffer.alloc(totalEntries * ENTRY);
+  const counts = new Uint32Array(256);
+
+  // LSD radix sort: 4 passes for 4 hash bytes (little-endian, so byte 0 first)
+  let src = indexBuf;
+  let dst = sortedIdx;
+  for (let bytePos = 0; bytePos < 4; bytePos++) {
+    counts.fill(0);
+    for (let i = 0; i < totalEntries; i++) counts[src[i * ENTRY + bytePos]]++;
+    let sum = 0;
+    for (let i = 0; i < 256; i++) { const c = counts[i]; counts[i] = sum; sum += c; }
+    for (let i = 0; i < totalEntries; i++) {
+      const b = src[i * ENTRY + bytePos];
+      const pos = counts[b]++;
+      src.copy(dst, pos * ENTRY, i * ENTRY, i * ENTRY + ENTRY);
+    }
+    [src, dst] = [dst, src];
+  }
+  // After 4 passes (even), sorted result is back in the original `src` variable
+  const sortedResult = src;
+  console.log('  Sort complete.');
 
   // Assemble final binary
   const indexSize = totalEntries * 8;
@@ -136,12 +167,12 @@ export function exportToBinary(config: BinaryExportConfig): BinaryExportResult {
   buffer.writeUInt32LE(HEADER_SIZE, 16);            // indexOffset
   buffer.writeUInt32LE(totalEntries, 20);           // entryCount
 
-  // Write sorted index
+  // Write sorted index (hash + bodyOffset only, 8 bytes each)
   let off = HEADER_SIZE;
   for (let i = 0; i < totalEntries; i++) {
-    const srcOff = order[i] * 12;
-    buffer.writeUInt32LE(indexBuf.readUInt32LE(srcOff), off);       // hash
-    buffer.writeUInt32LE(indexBuf.readUInt32LE(srcOff + 4), off + 4); // bodyOffset
+    const srcOff = i * ENTRY;
+    buffer.writeUInt32LE(sortedResult.readUInt32LE(srcOff), off);       // hash
+    buffer.writeUInt32LE(sortedResult.readUInt32LE(srcOff + 4), off + 4); // bodyOffset
     off += 8;
   }
 

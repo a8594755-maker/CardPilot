@@ -70,6 +70,14 @@ function getModelForVersion(version: string): MLP | null {
 
   if (modelCache.has(version)) return modelCache.get(version)!;
 
+  // V3 model lives in project root models/ dir (CFR-trained)
+  if (version === "v3") {
+    const modelPath = resolve(__dirname, "../../../../models/cfr-combined-v3.json");
+    const model = loadModel(modelPath);
+    modelCache.set(version, model);
+    return model;
+  }
+
   const fileMap: Record<string, string> = {
     v1: "model-v1.json",
     v2: "model-v2-latest.json",

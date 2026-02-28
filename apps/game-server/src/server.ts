@@ -90,6 +90,12 @@ const DEPLOY_COMMIT_REF =
   "";
 app.get("/version", (_req, res) => res.json({ ok: true, commit: DEPLOY_COMMIT_REF || null }));
 
+// ═══════════════════════════════════════════════════════════
+// CFR Lookup API (Phase 5)
+// ═══════════════════════════════════════════════════════════
+import { setupCfrLookupRoutes } from "./cfr-lookup-routes.js";
+setupCfrLookupRoutes(app);
+
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
