@@ -387,6 +387,14 @@ function getStatus() {
     configStats[cn].failed++;
   }
 
+  // Throughput: jobs completed in last 1h / 6h / 24h
+  const oneHourAgo = now - 3600000;
+  const sixHoursAgo = now - 6 * 3600000;
+  const oneDayAgo = now - 86400000;
+  const last1h = completed.filter(c => (c.completedAt ?? 0) > oneHourAgo).length;
+  const last6h = completed.filter(c => (c.completedAt ?? 0) > sixHoursAgo).length;
+  const last24h = completed.filter(c => (c.completedAt ?? 0) > oneDayAgo).length;
+
   return {
     pending: pending.length,
     running: running.size,
@@ -400,6 +408,7 @@ function getStatus() {
     activeWorkers: totalWorkers,
     runningAvgPct: Math.round(runningAvgPct * 10) / 10,
     liveHeartbeats,
+    throughput: { last1h, last6h, last24h },
     runningDetails: runningDetails.slice(0, 80),
     workers: workerStats,
     configs: configStats,
@@ -408,8 +417,10 @@ function getStatus() {
 }
 
 function formatDuration(ms: number): string {
-  const h = Math.floor(ms / 3600000);
+  const d = Math.floor(ms / 86400000);
+  const h = Math.floor((ms % 86400000) / 3600000);
   const m = Math.floor((ms % 3600000) / 60000);
+  if (d > 0) return `${d}d ${h}h ${m}m`;
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
@@ -650,6 +661,11 @@ function getDashboardHTML(): string {
       <div class="value" id="eta">N/A</div>
     </div>
     <div class="card">
+      <div class="label">Throughput</div>
+      <div class="value" id="throughput">—</div>
+      <div class="rate" id="throughputDetail"></div>
+    </div>
+    <div class="card">
       <div class="label">Avg Solve Time</div>
       <div class="value" id="avgTime">—</div>
       <div class="rate" id="rate"></div>
@@ -760,6 +776,10 @@ async function refresh() {
     document.getElementById('pending').textContent = s.pending;
     document.getElementById('failed').textContent = s.failed;
     document.getElementById('eta').textContent = s.etaHuman || 'N/A';
+    if (s.throughput) {
+      document.getElementById('throughput').textContent = s.throughput.last1h + ' jobs/hr';
+      document.getElementById('throughputDetail').textContent = 'Last 6h: ' + s.throughput.last6h + ' | Last 24h: ' + s.throughput.last24h;
+    }
     if (s.avgSolveMs > 0) {
       const mins = (s.avgSolveMs / 60000).toFixed(1);
       document.getElementById('avgTime').textContent = mins + 'm';
