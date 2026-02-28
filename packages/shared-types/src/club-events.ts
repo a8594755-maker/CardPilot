@@ -244,6 +244,39 @@ export interface ClubLeaderboardPayload {
   myRank: number | null;
 }
 
+// ── Batch Operation Payloads ──
+
+export interface ClubBulkApprovePayload {
+  clubId: string;
+  userIds: string[];
+}
+
+export interface ClubBulkGrantCreditsPayload {
+  clubId: string;
+  userIds: string[];
+  amount: number;
+  note?: string;
+}
+
+export interface ClubBulkRoleChangePayload {
+  clubId: string;
+  userIds: string[];
+  newRole: ClubRole;
+}
+
+export interface ClubBulkKickPayload {
+  clubId: string;
+  userIds: string[];
+}
+
+export interface ClubBulkResultPayload {
+  clubId: string;
+  operation: string;
+  succeeded: number;
+  failed: number;
+  errors: string[];
+}
+
 // ── Event Maps ──
 
 export interface ClubClientToServerEvents {
@@ -274,6 +307,10 @@ export interface ClubClientToServerEvents {
   club_wallet_admin_deposit: (payload: ClubWalletAdminGrantPayload) => void;
   club_wallet_admin_adjust: (payload: ClubWalletAdminAdjustPayload) => void;
   club_leaderboard_get: (payload: ClubLeaderboardGetPayload) => void;
+  club_bulk_approve: (payload: ClubBulkApprovePayload) => void;
+  club_bulk_grant_credits: (payload: ClubBulkGrantCreditsPayload) => void;
+  club_bulk_role_change: (payload: ClubBulkRoleChangePayload) => void;
+  club_bulk_kick: (payload: ClubBulkKickPayload) => void;
 }
 
 export interface ClubServerToClientEvents {
@@ -290,4 +327,5 @@ export interface ClubServerToClientEvents {
   club_wallet_balance: (payload: ClubWalletBalancePayload) => void;
   club_wallet_transactions: (payload: ClubWalletLedgerPayload) => void;
   club_leaderboard: (payload: ClubLeaderboardPayload) => void;
+  club_bulk_result: (payload: ClubBulkResultPayload) => void;
 }

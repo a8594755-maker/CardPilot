@@ -98,6 +98,7 @@ export type RuntimeConfig = {
   runCountDecisionTimeoutMs: number;
   tableBalanceRejoinWindowMs: number;
   roomEmptyTtlMs: number;
+  clubTableIdleTtlMs: number;
   roomCodeLength: number;
   roomCodeAlphabet: string;
   minPlayers: number;
@@ -247,6 +248,7 @@ function buildConfig(): RuntimeConfig {
   const runCountDecisionSeconds = parsePositiveInt("RUN_COUNT_DECISION_TIMEOUT_SECONDS", 15);
   const tableBalanceRejoinWindowMinutes = parsePositiveInt("TABLE_BALANCE_REJOIN_WINDOW_MINUTES", 360);
   const roomEmptyTtlMinutes = parsePositiveInt("ROOM_EMPTY_TTL_MINUTES", 10);
+  const clubTableIdleTtlMinutes = parsePositiveInt("CLUB_TABLE_IDLE_TTL_MINUTES", 10);
 
   const port = parsePositiveInt("PORT", 4000);
 
@@ -260,6 +262,7 @@ function buildConfig(): RuntimeConfig {
     runCountDecisionTimeoutMs: runCountDecisionSeconds * 1_000,
     tableBalanceRejoinWindowMs: tableBalanceRejoinWindowMinutes * 60_000,
     roomEmptyTtlMs: roomEmptyTtlMinutes * 60_000,
+    clubTableIdleTtlMs: clubTableIdleTtlMinutes * 60_000,
     roomCodeLength: ROOM_CODE_LENGTH,
     roomCodeAlphabet: ROOM_CODE_ALPHABET,
     minPlayers: ROOM_LIMITS.minPlayers,

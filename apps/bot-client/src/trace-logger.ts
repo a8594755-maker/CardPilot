@@ -54,6 +54,9 @@ export interface DecisionTrace {
   afterAdaptive: Mix;
   afterOpponent: Mix;
   afterMood: Mix;
+  isDonkSpot: boolean;
+  donkGuardrailApplied: boolean;
+  afterDonkGuardrail: Mix;
   afterLimp: Mix;
   afterMistake: Mix;
 
@@ -96,6 +99,9 @@ export function createEmptyTrace(): DecisionTrace {
     afterAdaptive: { ...emptyMix },
     afterOpponent: { ...emptyMix },
     afterMood: { ...emptyMix },
+    isDonkSpot: false,
+    donkGuardrailApplied: false,
+    afterDonkGuardrail: { ...emptyMix },
     afterLimp: { ...emptyMix },
     afterMistake: { ...emptyMix },
     sampledAction: '',
@@ -149,9 +155,10 @@ export class TraceLogger {
     adviceUsed: number;
     fallbackUsed: number;
     mistakeCount: number;
+    donkGuardrailCount: number;
   } {
     let raiseCount = 0, callCount = 0, foldCount = 0, checkCount = 0;
-    let adviceUsed = 0, fallbackUsed = 0, mistakeCount = 0;
+    let adviceUsed = 0, fallbackUsed = 0, mistakeCount = 0, donkGuardrailCount = 0;
 
     for (const t of this.buffer) {
       if (t.resolvedAction === 'raise') raiseCount++;
@@ -163,12 +170,13 @@ export class TraceLogger {
       else fallbackUsed++;
 
       if (t.mistakeApplied) mistakeCount++;
+      if (t.donkGuardrailApplied) donkGuardrailCount++;
     }
 
     return {
       totalDecisions: this.buffer.length,
       raiseCount, callCount, foldCount, checkCount,
-      adviceUsed, fallbackUsed, mistakeCount,
+      adviceUsed, fallbackUsed, mistakeCount, donkGuardrailCount,
     };
   }
 
@@ -178,11 +186,12 @@ export class TraceLogger {
     const rc = trace.raiseContext ? ` facing=${trace.raiseContext.facingType}` : '';
     const mood = trace.moodValue !== 0 ? ` mood=${trace.moodValue.toFixed(2)}` : '';
     const mistake = trace.mistakeApplied ? ` MISTAKE:${trace.mistakeDescription}` : '';
+    const donk = trace.donkGuardrailApplied ? ' DONK_GUARD' : '';
 
     const fmtMix = (m: Mix) => `R:${m.raise.toFixed(2)} C:${m.call.toFixed(2)} F:${m.fold.toFixed(2)}`;
 
     return (
-      `src=${trace.source}${str}${bt}${rc}${mood}${mistake} ` +
+      `src=${trace.source}${str}${bt}${rc}${mood}${mistake}${donk} ` +
       `base=(${fmtMix(trace.baseMix)}) final=(${fmtMix(trace.afterMistake)}) ` +
       `raw=${trace.sampledAction} → ${trace.resolvedAction}` +
       `${trace.raiseAmount != null ? ` amt=${trace.raiseAmount}` : ''}` +

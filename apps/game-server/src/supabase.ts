@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
+import { isOverBudget } from "./services/egress-budget";
 import type {
   HandActionType,
   HistoryHandDetail,
@@ -80,7 +81,13 @@ export class SupabasePersistence {
     console.log(`[supabase] admin=${!!this.admin} authClient=${!!this.authClient} url=${url ? "set" : "missing"} anonKey=${anonKey ? "set" : "missing"}${disabled ? " (DISABLED via env)" : ""}`);
   }
 
+  /** True if Supabase is configured AND egress budget is not exceeded. */
   enabled(): boolean {
+    return this.admin !== null && !isOverBudget();
+  }
+
+  /** True if Supabase client is configured (ignores budget — used for auth). */
+  configured(): boolean {
     return this.admin !== null;
   }
 
@@ -136,7 +143,7 @@ export class SupabasePersistence {
   }
 
   async upsertRoom(record: RoomRecord): Promise<void> {
-    if (!this.admin) return;
+    if (!this.admin || isOverBudget()) return;
     const { error } = await this.admin.from("live_tables").upsert(
       {
         id: record.tableId,
@@ -158,7 +165,7 @@ export class SupabasePersistence {
   }
 
   async ensureTable(tableId: string): Promise<void> {
-    if (!this.admin) return;
+    if (!this.admin || isOverBudget()) return;
     const { error } = await this.admin.from("live_tables").upsert(
       {
         id: tableId,
@@ -174,7 +181,7 @@ export class SupabasePersistence {
   }
 
   async findRoomByCode(roomCode: string): Promise<RoomRecord | null> {
-    if (!this.admin) return null;
+    if (!this.admin || isOverBudget()) return null;
 
     const normalized = normalizeRoomCode(roomCode);
     const { data, error } = await this.admin
@@ -204,7 +211,7 @@ export class SupabasePersistence {
   }
 
   async findRoomByTableId(tableId: string): Promise<RoomRecord | null> {
-    if (!this.admin) return null;
+    if (!this.admin || isOverBudget()) return null;
     const { data, error } = await this.admin
       .from("live_tables")
       .select("id, room_code, room_name, status, max_players, small_blind, big_blind, is_public, updated_at, created_by")
@@ -232,7 +239,7 @@ export class SupabasePersistence {
   }
 
   async listLobbyRooms(limit = 30): Promise<LobbyRoomSummary[]> {
-    if (!this.admin) return [];
+    if (!this.admin || isOverBudget()) return [];
 
     const { data: rows, error } = await this.admin
       .from("live_tables")
@@ -285,7 +292,7 @@ export class SupabasePersistence {
   }
 
   async touchRoom(tableId: string, status: TableStatus = "OPEN"): Promise<void> {
-    if (!this.admin) return;
+    if (!this.admin || isOverBudget()) return;
     const { error } = await this.admin
       .from("live_tables")
       .update({ updated_at: new Date().toISOString(), status })
@@ -296,8 +303,33 @@ export class SupabasePersistence {
     }
   }
 
+  /** Close all live_tables with status='OPEN' that are not in the given set of active table IDs. */
+  async closeStaleRooms(activeTableIds: Set<string>): Promise<number> {
+    if (!this.admin || isOverBudget()) return 0;
+    const { data: rows, error } = await this.admin
+      .from("live_tables")
+      .select("id")
+      .eq("status", "OPEN");
+    if (error || !rows) return 0;
+
+    const staleIds = rows
+      .map((r) => String(r.id))
+      .filter((id) => !activeTableIds.has(id));
+    if (staleIds.length === 0) return 0;
+
+    const { error: updateError } = await this.admin
+      .from("live_tables")
+      .update({ status: "CLOSED", updated_at: new Date().toISOString() })
+      .in("id", staleIds);
+    if (updateError) {
+      console.warn("closeStaleRooms failed:", updateError.message);
+      return 0;
+    }
+    return staleIds.length;
+  }
+
   async openRoomSession(roomId: string, metadata?: SessionContextMetadata): Promise<string | null> {
-    if (!this.admin) return null;
+    if (!this.admin || isOverBudget()) return null;
     const { data, error } = await this.admin.rpc("open_room_session", {
       _room_id: roomId,
       _metadata_json: metadataToJson(metadata),
@@ -311,7 +343,7 @@ export class SupabasePersistence {
   }
 
   async closeRoomSession(roomId: string, metadata?: Record<string, Json>): Promise<string | null> {
-    if (!this.admin) return null;
+    if (!this.admin || isOverBudget()) return null;
     const { data, error } = await this.admin.rpc("close_room_session", {
       _room_id: roomId,
       _metadata_json: metadata ?? null,
@@ -325,7 +357,7 @@ export class SupabasePersistence {
   }
 
   async recordHandHistory(payload: PersistHandHistoryPayload): Promise<{ inserted: boolean; handNo: number; handHistoryId: string; roomSessionId: string } | null> {
-    if (!this.admin) return null;
+    if (!this.admin || isOverBudget()) return null;
     const viewerUserIds = dedupeStrings(payload.viewerUserIds.filter(isUuid));
     const { data, error } = await this.admin.rpc("record_hand_history", {
       _room_id: payload.roomId,
@@ -417,7 +449,7 @@ export class SupabasePersistence {
   }
 
   async listHandsByRoom(roomId: string, limit = 100): Promise<HistoryHandSummary[]> {
-    if (!this.admin) return [];
+    if (!this.admin || isOverBudget()) return [];
     const { data, error } = await this.admin
       .from("hand_histories")
       .select("id, room_id, room_session_id, hand_id, hand_no, ended_at, blinds_json, players_summary_json, summary_json")
@@ -451,7 +483,7 @@ export class SupabasePersistence {
   }
 
   async upsertSeat(record: SeatPersistenceRecord): Promise<void> {
-    if (!this.admin) return;
+    if (!this.admin || isOverBudget()) return;
     const { error } = await this.admin.from("live_table_seats").upsert(
       {
         ...record,
@@ -465,7 +497,7 @@ export class SupabasePersistence {
   }
 
   async removeSeat(tableId: string, seatNo: number): Promise<void> {
-    if (!this.admin) return;
+    if (!this.admin || isOverBudget()) return;
     const { error } = await this.admin.from("live_table_seats").delete().eq("table_id", tableId).eq("seat_no", seatNo);
     if (error) {
       console.warn("removeSeat failed:", error.message);
@@ -473,7 +505,7 @@ export class SupabasePersistence {
   }
 
   async setDisconnected(tableId: string, seatNo: number): Promise<void> {
-    if (!this.admin) return;
+    if (!this.admin || isOverBudget()) return;
     const { error } = await this.admin
       .from("live_table_seats")
       .update({ is_connected: false, updated_at: new Date().toISOString() })
@@ -491,7 +523,7 @@ export class SupabasePersistence {
     handId?: string;
     payload?: Json;
   }): Promise<void> {
-    if (!this.admin) return;
+    if (!this.admin || isOverBudget()) return;
     const { error } = await this.admin.from("live_table_events").insert({
       table_id: payload.tableId,
       event_type: payload.eventType,

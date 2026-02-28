@@ -7,6 +7,7 @@
  */
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { isOverBudget } from "./egress-budget";
 import type {
   Club,
   ClubMember,
@@ -197,15 +198,16 @@ export class ClubRepo {
   private readonly db: SupabaseClient | null;
 
   constructor() {
-    const url = process.env.SUPABASE_URL;
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const disabled = process.env.DISABLE_SUPABASE === "1";
+    const url = disabled ? undefined : process.env.SUPABASE_URL;
+    const serviceKey = disabled ? undefined : process.env.SUPABASE_SERVICE_ROLE_KEY;
     this.db = url && serviceKey
       ? createClient(url, serviceKey, { auth: { persistSession: false } })
       : null;
 
     logInfo({
       event: "club_repo.init",
-      message: this.db ? "ClubRepo connected to Supabase" : "ClubRepo running in offline mode (no Supabase)",
+      message: this.db ? "ClubRepo connected to Supabase" : `ClubRepo running in offline mode${disabled ? " (DISABLED via env)" : " (no Supabase)"}`,
     });
   }
 
@@ -216,7 +218,7 @@ export class ClubRepo {
   // ═══════════════ CLUBS ═══════════════
 
   async createClub(club: Club): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     const { error } = await this.db.from("clubs").insert({
       id: club.id,
       code: club.code,
@@ -239,7 +241,7 @@ export class ClubRepo {
   }
 
   async updateClub(club: Club): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     const { error } = await this.db.from("clubs").update({
       name: club.name,
       description: club.description,
@@ -258,8 +260,8 @@ export class ClubRepo {
   }
 
   async fetchClubById(clubId: string): Promise<Club | null> {
-    if (!this.db) return null;
-    const { data, error } = await this.db.from("clubs").select("*").eq("id", clubId).maybeSingle();
+    if (!this.db || isOverBudget()) return null;
+    const { data, error } = await this.db.from("clubs").select("id, code, name, description, owner_user_id, visibility, default_ruleset_id, is_archived, require_approval_to_join, badge_color, logo_url, created_at, updated_at").eq("id", clubId).maybeSingle();
     if (error) {
       logWarn({ event: "club_repo.fetchClubById.failed", message: error.message });
       throw new Error(`Failed to fetch club: ${error.message}`);
@@ -268,8 +270,8 @@ export class ClubRepo {
   }
 
   async fetchClubByCode(code: string): Promise<Club | null> {
-    if (!this.db) return null;
-    const { data, error } = await this.db.from("clubs").select("*").eq("code", code.toUpperCase()).maybeSingle();
+    if (!this.db || isOverBudget()) return null;
+    const { data, error } = await this.db.from("clubs").select("id, code, name, description, owner_user_id, visibility, default_ruleset_id, is_archived, require_approval_to_join, badge_color, logo_url, created_at, updated_at").eq("code", code.toUpperCase()).maybeSingle();
     if (error) {
       logWarn({ event: "club_repo.fetchClubByCode.failed", message: error.message });
       throw new Error(`Failed to fetch club by code: ${error.message}`);
@@ -278,7 +280,7 @@ export class ClubRepo {
   }
 
   async fetchClubsByUser(userId: string): Promise<Club[]> {
-    if (!this.db) return [];
+    if (!this.db || isOverBudget()) return [];
     const { data, error } = await this.db
       .from("club_members")
       .select("club_id, clubs(*)")
@@ -295,7 +297,7 @@ export class ClubRepo {
   }
 
   async isCodeUnique(code: string): Promise<boolean> {
-    if (!this.db) return true;
+    if (!this.db || isOverBudget()) return true;
     const { count, error } = await this.db.from("clubs").select("id", { count: "exact", head: true }).eq("code", code);
     if (error) return true; // optimistic fallback
     return (count ?? 0) === 0;
@@ -304,7 +306,7 @@ export class ClubRepo {
   // ═══════════════ MEMBERS ═══════════════
 
   async upsertMember(member: ClubMember): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     const { error } = await this.db.from("club_members").upsert({
       club_id: member.clubId,
       user_id: member.userId,
@@ -321,7 +323,7 @@ export class ClubRepo {
   }
 
   async updateMemberStatus(clubId: string, userId: string, status: ClubMemberStatus): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     const { error } = await this.db.from("club_members").update({
       status,
       last_seen_at: new Date().toISOString(),
@@ -333,7 +335,7 @@ export class ClubRepo {
   }
 
   async updateMemberRole(clubId: string, userId: string, role: ClubRole): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     const { error } = await this.db.from("club_members").update({
       role,
       last_seen_at: new Date().toISOString(),
@@ -345,7 +347,7 @@ export class ClubRepo {
   }
 
   async deleteMember(clubId: string, userId: string): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     const { error } = await this.db.from("club_members").delete().eq("club_id", clubId).eq("user_id", userId);
     if (error) {
       logWarn({ event: "club_repo.deleteMember.failed", message: error.message });
@@ -354,10 +356,10 @@ export class ClubRepo {
   }
 
   async fetchMembers(clubId: string): Promise<ClubMember[]> {
-    if (!this.db) return [];
+    if (!this.db || isOverBudget()) return [];
     const { data, error } = await this.db
       .from("club_members")
-      .select("*")
+      .select("club_id, user_id, role, status, nickname_in_club, created_at, last_seen_at")
       .eq("club_id", clubId);
     if (error) {
       logWarn({ event: "club_repo.fetchMembers.failed", message: error.message });
@@ -378,10 +380,10 @@ export class ClubRepo {
   }
 
   async fetchMember(clubId: string, userId: string): Promise<ClubMember | null> {
-    if (!this.db) return null;
+    if (!this.db || isOverBudget()) return null;
     const { data, error } = await this.db
       .from("club_members")
-      .select("*")
+      .select("club_id, user_id, role, status, nickname_in_club, created_at, last_seen_at")
       .eq("club_id", clubId)
       .eq("user_id", userId)
       .maybeSingle();
@@ -393,7 +395,7 @@ export class ClubRepo {
   }
 
   async touchMemberLastSeen(clubId: string, userId: string): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     await this.db.from("club_members").update({
       last_seen_at: new Date().toISOString(),
     }).eq("club_id", clubId).eq("user_id", userId);
@@ -402,7 +404,7 @@ export class ClubRepo {
   // ═══════════════ INVITES ═══════════════
 
   async createInvite(invite: ClubInvite): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     const { error } = await this.db.from("club_invites").insert({
       id: invite.id,
       club_id: invite.clubId,
@@ -421,7 +423,7 @@ export class ClubRepo {
   }
 
   async revokeInvite(inviteId: string): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     const { error } = await this.db.from("club_invites").update({ revoked: true }).eq("id", inviteId);
     if (error) {
       logWarn({ event: "club_repo.revokeInvite.failed", message: error.message });
@@ -430,7 +432,7 @@ export class ClubRepo {
   }
 
   async incrementInviteUses(inviteId: string): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     const { error } = await this.db.rpc("increment_invite_uses", { p_invite_id: inviteId });
     if (error) {
       logWarn({ event: "club_repo.incrementInviteUses.failed", message: error.message });
@@ -438,10 +440,10 @@ export class ClubRepo {
   }
 
   async fetchInvites(clubId: string): Promise<ClubInvite[]> {
-    if (!this.db) return [];
+    if (!this.db || isOverBudget()) return [];
     const { data, error } = await this.db
       .from("club_invites")
-      .select("*")
+      .select("id, club_id, invite_code, created_by, expires_at, max_uses, uses_count, revoked, created_at")
       .eq("club_id", clubId)
       .eq("revoked", false)
       .order("created_at", { ascending: false });
@@ -453,10 +455,10 @@ export class ClubRepo {
   }
 
   async fetchInviteByCode(inviteCode: string): Promise<ClubInvite | null> {
-    if (!this.db) return null;
+    if (!this.db || isOverBudget()) return null;
     const { data, error } = await this.db
       .from("club_invites")
-      .select("*")
+      .select("id, club_id, invite_code, created_by, expires_at, max_uses, uses_count, revoked, created_at")
       .eq("invite_code", inviteCode)
       .eq("revoked", false)
       .maybeSingle();
@@ -468,7 +470,7 @@ export class ClubRepo {
   }
 
   async isInviteCodeUnique(code: string): Promise<boolean> {
-    if (!this.db) return true;
+    if (!this.db || isOverBudget()) return true;
     const { count, error } = await this.db.from("club_invites").select("id", { count: "exact", head: true }).eq("invite_code", code);
     if (error) return true;
     return (count ?? 0) === 0;
@@ -477,7 +479,7 @@ export class ClubRepo {
   // ═══════════════ RULESETS ═══════════════
 
   async createRuleset(rs: ClubRuleset): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     const { error } = await this.db.from("club_rulesets").insert({
       id: rs.id,
       club_id: rs.clubId,
@@ -494,7 +496,7 @@ export class ClubRepo {
   }
 
   async updateRuleset(rs: ClubRuleset): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     const { error } = await this.db.from("club_rulesets").update({
       name: rs.name,
       rules_json: rs.rulesJson,
@@ -507,7 +509,7 @@ export class ClubRepo {
   }
 
   async clearDefaultRuleset(clubId: string): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     const { error } = await this.db.from("club_rulesets").update({ is_default: false }).eq("club_id", clubId);
     if (error) {
       logWarn({ event: "club_repo.clearDefaultRuleset.failed", message: error.message });
@@ -516,10 +518,10 @@ export class ClubRepo {
   }
 
   async fetchRulesets(clubId: string): Promise<ClubRuleset[]> {
-    if (!this.db) return [];
+    if (!this.db || isOverBudget()) return [];
     const { data, error } = await this.db
       .from("club_rulesets")
-      .select("*")
+      .select("id, club_id, name, rules_json, created_by, is_default, created_at")
       .eq("club_id", clubId)
       .order("created_at", { ascending: false });
     if (error) {
@@ -532,7 +534,7 @@ export class ClubRepo {
   // ═══════════════ TABLES ═══════════════
 
   async createTable(ct: ClubTable): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     const { error } = await this.db.from("club_tables").insert({
       id: ct.id,
       club_id: ct.clubId,
@@ -552,7 +554,7 @@ export class ClubRepo {
   }
 
   async updateTableStatus(clubTableId: string, status: ClubTableStatus): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     const { error } = await this.db.from("club_tables").update({ status }).eq("id", clubTableId);
     if (error) {
       logWarn({ event: "club_repo.updateTableStatus.failed", message: error.message });
@@ -561,7 +563,7 @@ export class ClubRepo {
   }
 
   async updateTable(clubTableId: string, updates: { name?: string; config?: ClubTableConfig }): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     const payload: Record<string, unknown> = {};
     if (updates.name !== undefined) payload.name = updates.name;
     if (updates.config !== undefined) payload.config_json = updates.config;
@@ -574,10 +576,10 @@ export class ClubRepo {
   }
 
   async fetchTables(clubId: string): Promise<ClubTable[]> {
-    if (!this.db) return [];
+    if (!this.db || isOverBudget()) return [];
     const { data, error } = await this.db
       .from("club_tables")
-      .select("*")
+      .select("id, club_id, name, config_json, status, created_by, created_at, hands_played, started_at, finished_at")
       .eq("club_id", clubId)
       .neq("status", "closed")
       .order("created_at", { ascending: false });
@@ -589,7 +591,7 @@ export class ClubRepo {
   }
 
   async incrementHandsPlayed(clubTableId: string, handsPlayed: number): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     const { error } = await this.db.from("club_tables").update({
       hands_played: handsPlayed,
       started_at: new Date().toISOString(),
@@ -600,7 +602,7 @@ export class ClubRepo {
   }
 
   async updateTableFinished(clubTableId: string, finishedAt: string, handsPlayed: number): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     const { error } = await this.db.from("club_tables").update({
       status: "finished",
       finished_at: finishedAt,
@@ -614,7 +616,7 @@ export class ClubRepo {
   // ═══════════════ AUDIT LOG ═══════════════
 
   async appendAudit(entry: Omit<ClubAuditLogEntry, "id">): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     const { error } = await this.db.from("club_audit_log").insert({
       club_id: entry.clubId,
       actor_user_id: entry.actorUserId,
@@ -628,10 +630,10 @@ export class ClubRepo {
   }
 
   async fetchAuditLog(clubId: string, limit = 100): Promise<ClubAuditLogEntry[]> {
-    if (!this.db) return [];
+    if (!this.db || isOverBudget()) return [];
     const { data, error } = await this.db
       .from("club_audit_log")
-      .select("*")
+      .select("id, club_id, actor_user_id, action_type, payload_json, created_at")
       .eq("club_id", clubId)
       .order("created_at", { ascending: false })
       .limit(limit);
@@ -645,7 +647,7 @@ export class ClubRepo {
   // ═══════════════ WALLET LEDGER ═══════════════
 
   async appendWalletTx(input: AppendWalletTxInput): Promise<AppendWalletTxResult | null> {
-    if (!this.db) return null;
+    if (!this.db || isOverBudget()) return null;
 
     const {
       clubId,
@@ -693,7 +695,7 @@ export class ClubRepo {
 
         const { data: txRow, error: txError } = await this.db
           .from("club_wallet_transactions")
-          .select("*")
+          .select("id, club_id, user_id, type, amount, currency, ref_type, ref_id, created_at, created_by, note, meta_json, idempotency_key")
           .eq("id", txId)
           .maybeSingle();
 
@@ -750,7 +752,7 @@ export class ClubRepo {
   }
 
   private async appendWalletTxManual(input: AppendWalletTxInput): Promise<AppendWalletTxResult | null> {
-    if (!this.db) return null;
+    if (!this.db || isOverBudget()) return null;
 
     const {
       clubId,
@@ -901,7 +903,7 @@ export class ClubRepo {
   }
 
   async getWalletBalance(clubId: string, userId: string, currency = "chips"): Promise<number> {
-    if (!this.db) return 0;
+    if (!this.db || isOverBudget()) return 0;
 
     const { data: account, error: accountError } = await this.db
       .from("club_wallet_accounts")
@@ -938,7 +940,7 @@ export class ClubRepo {
 
   async getWalletBalances(clubId: string, userIds: string[], currency = "chips"): Promise<Map<string, number>> {
     const result = new Map<string, number>();
-    if (!this.db) return result;
+    if (!this.db || isOverBudget()) return result;
     if (userIds.length === 0) return result;
 
     const uniqUserIds = [...new Set(userIds)];
@@ -972,7 +974,7 @@ export class ClubRepo {
     limit = 50,
     offset = 0,
   ): Promise<ClubWalletTransaction[]> {
-    if (!this.db) return [];
+    if (!this.db || isOverBudget()) return [];
     const safeLimit = Math.max(1, Math.min(limit, 200));
     const safeOffset = Math.max(0, offset);
     const from = safeOffset;
@@ -980,7 +982,7 @@ export class ClubRepo {
 
     const { data, error } = await this.db
       .from("club_wallet_transactions")
-      .select("*")
+      .select("id, club_id, user_id, type, amount, currency, ref_type, ref_id, created_at, created_by, note, meta_json, idempotency_key")
       .eq("club_id", clubId)
       .eq("user_id", userId)
       .eq("currency", currency)
@@ -1001,7 +1003,7 @@ export class ClubRepo {
     netDelta: number,
     rakeDelta = 0,
   ): Promise<void> {
-    if (!this.db) return;
+    if (!this.db || isOverBudget()) return;
     const { error } = await this.db.rpc("club_record_hand_stats", {
       _club_id: clubId,
       _user_id: userId,
@@ -1020,7 +1022,7 @@ export class ClubRepo {
     metric: ClubLeaderboardMetric = "net",
     limit = 50,
   ): Promise<ClubLeaderboardEntry[]> {
-    if (!this.db) return [];
+    if (!this.db || isOverBudget()) return [];
 
     const { data, error } = await this.db.rpc("club_get_leaderboard", {
       _club_id: clubId,
@@ -1068,14 +1070,14 @@ export class ClubRepo {
     rulesets: ClubRuleset[];
     tables: ClubTable[];
   }> {
-    if (!this.db) return { clubs: [], members: [], invites: [], rulesets: [], tables: [] };
+    if (!this.db || isOverBudget()) return { clubs: [], members: [], invites: [], rulesets: [], tables: [] };
 
     const [clubsRes, membersRes, invitesRes, rulesetsRes, tablesRes, walletAccountsRes] = await Promise.all([
-      this.db.from("clubs").select("*").eq("is_archived", false),
-      this.db.from("club_members").select("*"),
-      this.db.from("club_invites").select("*").eq("revoked", false),
-      this.db.from("club_rulesets").select("*"),
-      this.db.from("club_tables").select("*").neq("status", "closed"),
+      this.db.from("clubs").select("id, code, name, description, owner_user_id, visibility, default_ruleset_id, is_archived, require_approval_to_join, badge_color, logo_url, created_at, updated_at").eq("is_archived", false),
+      this.db.from("club_members").select("club_id, user_id, role, status, nickname_in_club, created_at, last_seen_at"),
+      this.db.from("club_invites").select("id, club_id, invite_code, created_by, expires_at, max_uses, uses_count, revoked, created_at").eq("revoked", false),
+      this.db.from("club_rulesets").select("id, club_id, name, rules_json, created_by, is_default, created_at"),
+      this.db.from("club_tables").select("id, club_id, name, config_json, status, created_by, created_at, hands_played, started_at, finished_at").neq("status", "closed"),
       this.db.from("club_wallet_accounts").select("club_id, user_id, currency, current_balance"),
     ]);
 

@@ -688,19 +688,25 @@ export class RoomManager {
 
   /* ═══════════ ROOM EMPTY AUTO-CLOSE ═══════════ */
 
-  checkRoomEmpty(tableId: string, currentPlayerCount: number, onDestroy: () => void): void {
+  checkRoomEmpty(
+    tableId: string,
+    currentPlayerCount: number,
+    onDestroy: () => void,
+    ttlOverrideMs?: number,
+  ): void {
     const room = this.rooms.get(tableId);
     if (!room) return;
+
+    const ttl = ttlOverrideMs ?? ROOM_EMPTY_TTL_MS;
 
     if (currentPlayerCount === 0) {
       if (!room.emptySince) {
         room.emptySince = Date.now();
         room.emptyTimerHandle = setTimeout(() => {
-          // Check again in case someone joined
           this.onEvent(tableId, "room_auto_close_check", {});
-          // The server should call finalizeAutoClose after verifying
-        }, ROOM_EMPTY_TTL_MS);
-        this.onEvent(tableId, "room_empty_countdown", { ttlMs: ROOM_EMPTY_TTL_MS });
+          onDestroy();
+        }, ttl);
+        this.onEvent(tableId, "room_empty_countdown", { ttlMs: ttl });
       }
     } else {
       // Cancel empty timer

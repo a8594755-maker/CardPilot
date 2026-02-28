@@ -791,3 +791,15 @@ export * from './club-events.js';
 
 // Re-export audit pipeline types
 export * from './audit-types.js';
+
+// Re-export chat types and events
+export * from './chat-types.js';
+export * from './chat-events.js';
+
+// Re-export notification types and events
+export * from './notification-types.js';
+export * from './notification-events.js';
+
+// Re-export analytics types and events
+export * from './analytics-types.js';
+export * from './analytics-events.js';

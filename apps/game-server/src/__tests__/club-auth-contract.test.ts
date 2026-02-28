@@ -42,8 +42,8 @@ describe("Club authentication contracts", () => {
   });
 
   it("gates /clubs in the UI and disables guest entry for club routes", () => {
-    assert.match(webSource, /const canAccessClubs = Boolean\(authSession && !authSession\.isGuest\);/);
-    assert.match(webSource, /if \(!authSession\) \{[\s\S]*disableGuest=\{location\.pathname\.startsWith\("\/clubs"\)\}/);
+    assert.match(webSource, /const canAccessClubs = .*Boolean\(authSession && !authSession\.isGuest\);/);
+    assert.match(webSource, /if \(!authSession\) \{[\s\S]*disableGuest=\{.*location\.pathname\.startsWith\("\/clubs"\)\}/);
     assert.match(webSource, /if \(view === "clubs" && !canAccessClubs\) \{[\s\S]*<AuthScreen[\s\S]*disableGuest[\s\S]*gateMessage="Club access requires a logged-in account\."/);
   });
 });

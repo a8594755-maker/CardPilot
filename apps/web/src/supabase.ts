@@ -112,6 +112,57 @@ export const supabase =
       })
     : null;
 
+/** Track whether Supabase is reachable. When unreachable, skip network calls to avoid blocking the UI. */
+let supabaseUnreachable = false;
+
+/**
+ * Fast connectivity probe — resolves to `true` when Supabase is unreachable.
+ * All auth functions `await probePromise` before making network calls so the
+ * UI never hangs on a dead backend.
+ */
+const probeSubscribers = new Set<(unreachable: boolean) => void>();
+
+const probePromise: Promise<boolean> = (() => {
+  if (!supabase || !supabaseUrl) return Promise.resolve(false);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 4000);
+  return fetch(`${supabaseUrl}/auth/v1/settings`, {
+    signal: controller.signal,
+    headers: { apikey: supabaseAnonKey! },
+  })
+    .then((res) => {
+      clearTimeout(timer);
+      if (!res.ok) {
+        supabaseUnreachable = true;
+        if (DEV_MODE) console.warn(`[auth] Supabase probe failed: HTTP ${res.status}`);
+      }
+      return supabaseUnreachable;
+    })
+    .catch(() => {
+      clearTimeout(timer);
+      supabaseUnreachable = true;
+      if (DEV_MODE) console.warn("[auth] Supabase probe failed: unreachable");
+      return true;
+    })
+    .finally(() => {
+      probeSubscribers.forEach((cb) => cb(supabaseUnreachable));
+      probeSubscribers.clear();
+    });
+})();
+
+/**
+ * Subscribe to the probe result. If the probe already completed, fires
+ * the callback synchronously. Returns an unsubscribe function.
+ * Usage in React: `useEffect(() => onSupabaseProbeResult(setUnreachable), [])`
+ */
+export function onSupabaseProbeResult(cb: (unreachable: boolean) => void): () => void {
+  // If probePromise is already settled, fire immediately
+  probePromise.then((result) => cb(result));
+  // Also subscribe in case it hasn't settled yet (Promise.then is async)
+  probeSubscribers.add(cb);
+  return () => { probeSubscribers.delete(cb); };
+}
+
 let getSupabaseSessionInFlight: Promise<AuthSession | null> | null = null;
 let invalidRefreshHandled = false;
 let invalidRefreshSignOutInFlight: Promise<void> | null = null;
@@ -230,8 +281,14 @@ async function handleInvalidRefreshToken(err: unknown): Promise<void> {
   await invalidRefreshSignOutInFlight;
 }
 
+/** Expose unreachable state so AuthScreen can show a notice. */
+export function isSupabaseUnreachable(): boolean {
+  return supabaseUnreachable;
+}
+
 async function getSupabaseSession(): Promise<AuthSession | null> {
   if (!supabase) return null;
+  if (supabaseUnreachable) return null;
   if (getSupabaseSessionInFlight) return getSupabaseSessionInFlight;
 
   getSupabaseSessionInFlight = (async () => {
@@ -241,11 +298,19 @@ async function getSupabaseSession(): Promise<AuthSession | null> {
         await handleInvalidRefreshToken(error);
         return null;
       }
+      // Mark Supabase as unreachable on network/timeout errors so subsequent calls skip immediately
+      const msg = (error instanceof Error ? error.message : String(error)).toLowerCase();
+      if (msg.includes("timed out") || msg.includes("failed to fetch") || msg.includes("network")) {
+        supabaseUnreachable = true;
+        if (DEV_MODE) console.warn("[auth] Supabase unreachable, falling back to local guest mode");
+        return null;
+      }
       throw error;
     }
 
     if (existing.session?.access_token && existing.session.user?.id) {
       invalidRefreshHandled = false;
+      supabaseUnreachable = false;
       clearGuestSession();
       const meta = existing.session.user.user_metadata;
       const dn = (typeof meta?.display_name === "string" && meta.display_name) || (typeof meta?.name === "string" && meta.name) || null;
@@ -370,6 +435,9 @@ function friendlyAuthError(err: unknown): Error {
 }
 
 export async function getExistingSession(): Promise<AuthSession | null> {
+  // Wait for the connectivity probe so we don't hang on a dead backend.
+  await probePromise;
+
   // Always prefer a real Supabase session (UUID-based) over a local guest
   const sbSession = await getSupabaseSession();
   if (sbSession) return sbSession;
@@ -379,7 +447,7 @@ export async function getExistingSession(): Promise<AuthSession | null> {
 
   // If Supabase is available and the cached session is a local guest (non-UUID),
   // try to upgrade to an anonymous Supabase session for history persistence.
-  if (supabase && !isUuid(cached.userId)) {
+  if (supabase && !supabaseUnreachable && !isUuid(cached.userId)) {
     try {
       const { data, error } = await withAuthTimeout(supabase.auth.signInAnonymously(), "Guest sign-in");
       if (!error && data.session && data.user) {
@@ -401,6 +469,9 @@ export async function getExistingSession(): Promise<AuthSession | null> {
 }
 
 export async function ensureGuestSession(displayName?: string): Promise<AuthSession | null> {
+  // Wait for the connectivity probe so we skip Supabase instantly when it's down.
+  await probePromise;
+
   // Always prefer a real Supabase session (UUID-based) over a local guest
   const supabaseSession = await getSupabaseSession();
   if (supabaseSession) return supabaseSession;
@@ -412,7 +483,7 @@ export async function ensureGuestSession(displayName?: string): Promise<AuthSess
   }
 
   // Try Supabase anonymous sign-in (even if we have a local guest — upgrade it)
-  if (supabase) {
+  if (supabase && !supabaseUnreachable) {
     checkRateLimit();
     try {
       const { data, error } = await withAuthTimeout(supabase.auth.signInAnonymously(), "Guest sign-in");
@@ -428,9 +499,16 @@ export async function ensureGuestSession(displayName?: string): Promise<AuthSess
       };
     } catch (err) {
       if (!isAnonDisabledError(err)) {
-        throw friendlyAuthError(err);
+        // On network/timeout errors, fall through to local guest instead of blocking the user
+        const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
+        if (msg.includes("timed out") || msg.includes("failed to fetch") || msg.includes("network")) {
+          supabaseUnreachable = true;
+          if (DEV_MODE) console.warn("[auth] Supabase unreachable during guest sign-in, using local guest");
+        } else {
+          throw friendlyAuthError(err);
+        }
       }
-      // Anonymous sign-ins disabled — fall through to local guest
+      // Anonymous sign-ins disabled or unreachable — fall through to local guest
     }
   }
 
@@ -502,6 +580,7 @@ export async function signUpWithEmail(email: string, password: string, displayNa
 
 export async function signInWithEmail(email: string, password: string): Promise<AuthSession> {
   if (!supabase) throw new Error("Supabase not configured");
+  if (supabaseUnreachable) throw new Error("Supabase is currently unreachable. Try \"Continue as Guest\" or try again later.");
 
   const emailErr = validateEmail(email);
   if (emailErr) throw new Error(emailErr);
@@ -515,6 +594,7 @@ export async function signInWithEmail(email: string, password: string): Promise<
     if (error) throw error;
     if (!data.session || !data.user) throw new Error("Sign in failed");
     invalidRefreshHandled = false;
+    supabaseUnreachable = false;
     const meta = data.user.user_metadata;
     const dn = (typeof meta?.display_name === "string" && meta.display_name) || (typeof meta?.name === "string" && meta.name) || null;
     return {
