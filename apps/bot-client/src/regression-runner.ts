@@ -351,6 +351,108 @@ const SCENARIOS: RegressionScenario[] = [
     players: defaultPlayers(0),
     expected: { minRaiseFreq: 0.05 }, // LAG should bluff at least some
   },
+
+  // 11. Donk guardrail: BB with top pair should NOT donk bet against PFA
+  {
+    name: 'Donk guard: BB top pair vs PFA on dry flop',
+    profileId: 'gto_balanced',
+    heroCards: ['Ts', '9s'],
+    board: ['Tc', '7d', '3h'], // top pair weak kicker, dry board
+    street: 'FLOP',
+    pot: 50,
+    bigBlind: 10,
+    legalActions: { canFold: false, canCheck: true, canCall: false, callAmount: 0, canRaise: true, minRaise: 10, maxRaise: 1000 },
+    actions: [
+      { seat: 4, street: 'PREFLOP', type: 'raise', amount: 25, at: 1 }, // CO raises
+      { seat: 2, street: 'PREFLOP', type: 'call', amount: 25, at: 2 }, // BB calls (hero)
+    ],
+    positions: { 0: 'BTN', 1: 'SB', 2: 'BB', 3: 'UTG', 4: 'CO', 5: 'MP' },
+    heroSeat: 2,
+    players: [
+      { seat: 2, stack: 1000, inHand: true, folded: false },
+      { seat: 4, stack: 1000, inHand: true, folded: false },
+    ],
+    expected: { maxRaiseFreq: 0.20 }, // donk guardrail should suppress raise to ~20% or below
+  },
+
+  // 12. Donk guardrail EXEMPT: BB with set should still lead
+  {
+    name: 'Donk guard exempt: BB set on dry flop',
+    profileId: 'gto_balanced',
+    heroCards: ['7s', '7h'],
+    board: ['7c', 'Td', '3h'], // flopped set, strength ~0.95
+    street: 'FLOP',
+    pot: 50,
+    bigBlind: 10,
+    legalActions: { canFold: false, canCheck: true, canCall: false, callAmount: 0, canRaise: true, minRaise: 10, maxRaise: 1000 },
+    actions: [
+      { seat: 4, street: 'PREFLOP', type: 'raise', amount: 25, at: 1 }, // CO raises
+      { seat: 2, street: 'PREFLOP', type: 'call', amount: 25, at: 2 }, // BB calls (hero)
+    ],
+    positions: { 0: 'BTN', 1: 'SB', 2: 'BB', 3: 'UTG', 4: 'CO', 5: 'MP' },
+    heroSeat: 2,
+    players: [
+      { seat: 2, stack: 1000, inHand: true, folded: false },
+      { seat: 4, stack: 1000, inHand: true, folded: false },
+    ],
+    expected: { minRaiseFreq: 0.30 }, // exempt from guardrail: set should bet often
+  },
+
+  // 13. Preflop chart: UTG with 72o should fold (GTO chart: fold 100%)
+  {
+    name: 'Preflop chart: UTG 72o should fold',
+    profileId: 'gto_balanced',
+    heroCards: ['7d', '2c'],
+    board: [],
+    street: 'PREFLOP',
+    pot: 15,
+    bigBlind: 10,
+    legalActions: { canFold: true, canCheck: true, canCall: false, callAmount: 0, canRaise: true, minRaise: 20, maxRaise: 1000 },
+    actions: [],
+    positions: { 0: 'BTN', 1: 'SB', 2: 'BB', 3: 'UTG', 4: 'CO', 5: 'MP' },
+    heroSeat: 3,
+    players: defaultPlayers(3),
+    expected: { maxRaiseFreq: 0.10 }, // GTO chart: pure fold; personality may add tiny raise
+  },
+
+  // 14. Preflop chart: BTN with A5s should open (GTO chart: raise 80%)
+  {
+    name: 'Preflop chart: BTN A5s should open',
+    profileId: 'gto_balanced',
+    heroCards: ['Ah', '5h'],
+    board: [],
+    street: 'PREFLOP',
+    pot: 15,
+    bigBlind: 10,
+    legalActions: { canFold: true, canCheck: true, canCall: false, callAmount: 0, canRaise: true, minRaise: 20, maxRaise: 1000 },
+    actions: [],
+    positions: defaultPositions(0),
+    heroSeat: 0,
+    players: defaultPlayers(0),
+    expected: { minRaiseFreq: 0.45 }, // GTO chart: raise 80%, personality may lower
+  },
+
+  // 15. Preflop chart: BB vs BTN open with KJo should not always fold
+  {
+    name: 'Preflop chart: BB KJo vs BTN open defends',
+    profileId: 'gto_balanced',
+    heroCards: ['Kd', 'Jc'],
+    board: [],
+    street: 'PREFLOP',
+    pot: 40,
+    bigBlind: 10,
+    legalActions: { canFold: true, canCheck: false, canCall: true, callAmount: 25, canRaise: true, minRaise: 50, maxRaise: 1000 },
+    actions: [
+      { seat: 0, street: 'PREFLOP', type: 'raise', amount: 25, at: 1 }, // BTN opens
+    ],
+    positions: { 0: 'BTN', 1: 'SB', 2: 'BB', 3: 'UTG', 4: 'CO', 5: 'MP' },
+    heroSeat: 2,
+    players: [
+      { seat: 0, stack: 1000, inHand: true, folded: false },
+      { seat: 2, stack: 1000, inHand: true, folded: false },
+    ],
+    expected: { maxFoldFreq: 0.55 }, // GTO chart: call 65% + raise 15% = 80% defend
+  },
 ];
 
 // ===== Main runner =====

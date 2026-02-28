@@ -14,9 +14,20 @@ function readServerSource(): string {
 describe("Club runtime contracts", () => {
   const source = readServerSource();
 
-  it("keeps persistent club runtime open when table becomes empty", () => {
-    assert.match(source, /if \(isPersistentClubTable\(tableId\)\) \{[\s\S]*roomManager\.checkRoomEmpty\(tableId, currentCount, \(\) => \{\}\);[\s\S]*return;/);
+  it("suspends idle club table runtime instead of keeping it open forever", () => {
+    // Club tables route to handleClubTableIdleSuspend instead of a no-op
+    assert.match(source, /if \(isPersistentClubTable\(tableId\)\) \{[\s\S]*handleClubTableIdleSuspend\(tableId\)/);
+    // handleRoomAutoClose still guards against accidental full-close of club tables
     assert.match(source, /function handleRoomAutoClose\(tableId: string\): void \{[\s\S]*if \(isPersistentClubTable\(tableId\)\) \{[\s\S]*return;/);
+  });
+
+  it("has suspendClubTableRuntime that frees resources without closing", () => {
+    assert.match(source, /function suspendClubTableRuntime\(tableId: string\): void \{/);
+    // Must NOT call closeRoomSessionIfOpen or touchRoom("CLOSED")
+    const fnStart = source.indexOf("function suspendClubTableRuntime(tableId: string): void {");
+    const fnSlice = source.slice(fnStart, fnStart + 2000);
+    assert.doesNotMatch(fnSlice, /closeRoomSessionIfOpen/);
+    assert.doesNotMatch(fnSlice, /touchRoom\(tableId, "CLOSED"\)/);
   });
 
   it("allows active club member to reopen closed club room by code", () => {

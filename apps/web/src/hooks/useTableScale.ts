@@ -92,12 +92,12 @@ export function useTableScale({
 
     compute();
 
-    const observer = new ResizeObserver(compute);
-    observer.observe(container);
+    // Only recompute on window/screen resize — NOT on container content changes.
+    // A ResizeObserver on the container would fire when sibling elements
+    // (cp-below-table-tray) change height, causing the table to jitter.
     window.addEventListener("resize", compute);
 
     return () => {
-      observer.disconnect();
       window.removeEventListener("resize", compute);
     };
   }, [container, baseWidth, baseHeight, minScale, maxScale, enabled]);

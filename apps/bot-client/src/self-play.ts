@@ -755,6 +755,26 @@ async function main(): Promise<void> {
   activeDataDir = config.version === 'v2' ? join(DATA_DIR, 'v2') : DATA_DIR;
 
   console.log('');
+
+  // ── Supabase egress safeguard ──
+  // Training generates thousands of hands/min. If game-server connects to
+  // production Supabase, each hand triggers ~10 DB queries via emitLobbySnapshot()
+  // which can burn through 130-390 GB/day of egress.
+  if (process.env.DISABLE_SUPABASE !== '1') {
+    log('');
+    log('╔══════════════════════════════════════════════════════════════╗');
+    log('║  ⚠  WARNING: DISABLE_SUPABASE is not set!                  ║');
+    log('║                                                             ║');
+    log('║  Training generates massive Supabase egress if game-server  ║');
+    log('║  is connected to production. Start your game-server with:   ║');
+    log('║                                                             ║');
+    log('║    DISABLE_SUPABASE=1 npm run dev -w @cardpilot/game-server ║');
+    log('║                                                             ║');
+    log('║  Or set DISABLE_SUPABASE=1 in your shell environment.       ║');
+    log('╚══════════════════════════════════════════════════════════════╝');
+    log('');
+  }
+
   log('╔══════════════════════════════════════════════════╗');
   log('║       CardPilot Self-Play Training Pipeline      ║');
   log('╚══════════════════════════════════════════════════╝');

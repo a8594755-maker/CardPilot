@@ -1,73 +1,11 @@
 // CFR Lookup API — standalone endpoints for querying solved CFR strategies.
 // Used by the web frontend's CFR Lookup page for studying GTO strategies.
-// Supports both local filesystem (development) and S3 (production).
 
-import type { Express, Request, Response, NextFunction } from "express";
+import type { Express, Request, Response } from "express";
 import { resolve } from "node:path";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
-import {
-  isS3Configured,
-  downloadText,
-  downloadJson,
-} from "@cardpilot/advice-engine/s3-client";
-
-// --- Rate limiter (per-IP sliding window) ---
-const CFR_RATE_LIMIT = parseInt(process.env.CFR_RATE_LIMIT || '100', 10);       // max requests per window
-const CFR_RATE_WINDOW_MS = parseInt(process.env.CFR_RATE_WINDOW_MS || String(60 * 60 * 1000), 10); // default 1 hour
-
-interface RateBucket {
-  timestamps: number[];
-}
-
-const rateBuckets = new Map<string, RateBucket>();
-
-// Cleanup stale entries every 10 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, bucket] of rateBuckets) {
-    bucket.timestamps = bucket.timestamps.filter(ts => now - ts < CFR_RATE_WINDOW_MS);
-    if (bucket.timestamps.length === 0) rateBuckets.delete(ip);
-  }
-}, 10 * 60 * 1000);
-
-function getClientIp(req: Request): string {
-  const forwarded = req.headers['x-forwarded-for'];
-  if (typeof forwarded === 'string') return forwarded.split(',')[0].trim();
-  return req.ip || req.socket.remoteAddress || 'unknown';
-}
-
-function cfrRateLimit(req: Request, res: Response, next: NextFunction): void {
-  const ip = getClientIp(req);
-  const now = Date.now();
-
-  let bucket = rateBuckets.get(ip);
-  if (!bucket) {
-    bucket = { timestamps: [] };
-    rateBuckets.set(ip, bucket);
-  }
-
-  // Prune expired timestamps
-  bucket.timestamps = bucket.timestamps.filter(ts => now - ts < CFR_RATE_WINDOW_MS);
-
-  if (bucket.timestamps.length >= CFR_RATE_LIMIT) {
-    const oldest = bucket.timestamps[0];
-    const resetMs = oldest + CFR_RATE_WINDOW_MS - now;
-    const resetMin = Math.ceil(resetMs / 60_000);
-    res.setHeader('Retry-After', Math.ceil(resetMs / 1000));
-    res.setHeader('X-RateLimit-Limit', CFR_RATE_LIMIT);
-    res.setHeader('X-RateLimit-Remaining', 0);
-    res.status(429).json({
-      ok: false,
-      error: `Rate limit exceeded. You can make ${CFR_RATE_LIMIT} solver queries per ${Math.round(CFR_RATE_WINDOW_MS / 60_000)} minutes. Try again in ${resetMin} minute(s).`,
-    });
-    return;
-  }
-
-  bucket.timestamps.push(now);
-  res.setHeader('X-RateLimit-Limit', CFR_RATE_LIMIT);
-  res.setHeader('X-RateLimit-Remaining', CFR_RATE_LIMIT - bucket.timestamps.length);
-  next();
-}
+import { readFile } from "node:fs/promises";
+import { getHandMap, classifyFlop, flopDistance, cardToIndex } from "./services/hand-map-service.js";
 
 // Config registry (mirrors cfr-solver tree-config.ts)
 const CFR_CONFIGS = [
@@ -90,7 +28,7 @@ const CFR_CONFIGS = [
 
 // Output dir mapping
 const OUTPUT_DIRS: Record<string, string> = {
-  pipeline_srp: 'pipeline_hu_srp_50bb',
+  pipeline_srp: 'v1_hu_srp_50bb',
   pipeline_3bet: 'pipeline_hu_3bet_50bb',
   hu_btn_bb_srp_100bb: 'hu_btn_bb_srp_100bb',
   hu_btn_bb_3bp_100bb: 'hu_btn_bb_3bp_100bb',
@@ -105,73 +43,6 @@ const OUTPUT_DIRS: Record<string, string> = {
   mw3_co_btn_bb_srp_50bb: 'mw3_co_btn_bb_srp_50bb',
 };
 
-// --- LRU cache for JSONL content (S3 mode) ---
-const MAX_JSONL_CACHE = 50; // max cached flops
-const jsonlCache = new Map<string, { content: string; ts: number }>();
-
-function cacheGet(key: string): string | undefined {
-  const entry = jsonlCache.get(key);
-  if (entry) { entry.ts = Date.now(); return entry.content; }
-  return undefined;
-}
-
-function cacheSet(key: string, content: string): void {
-  if (jsonlCache.size >= MAX_JSONL_CACHE) {
-    // evict oldest
-    let oldest = '';
-    let oldestTs = Infinity;
-    for (const [k, v] of jsonlCache) {
-      if (v.ts < oldestTs) { oldest = k; oldestTs = v.ts; }
-    }
-    if (oldest) jsonlCache.delete(oldest);
-  }
-  jsonlCache.set(key, { content, ts: Date.now() });
-}
-
-// --- Meta index cache (S3 mode) ---
-interface MetaEntry {
-  boardId: number;
-  flopCards: number[];
-  infoSets?: number;
-  iterations?: number;
-}
-const metaIndexCache = new Map<string, { data: MetaEntry[]; ts: number }>();
-const META_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
-async function getMetaIndex(configDir: string): Promise<MetaEntry[]> {
-  const cached = metaIndexCache.get(configDir);
-  if (cached && Date.now() - cached.ts < META_CACHE_TTL) return cached.data;
-
-  const key = `meta/${configDir}/_index.json`;
-  const data = await downloadJson<MetaEntry[]>(key);
-  const result = data ?? [];
-  metaIndexCache.set(configDir, { data: result, ts: Date.now() });
-  return result;
-}
-
-// --- JSONL fetcher (S3 or local) ---
-async function getJsonlContent(
-  configDir: string, boardId: number, dataDir: string
-): Promise<string | null> {
-  const paddedId = String(boardId).padStart(3, '0');
-
-  if (isS3Configured()) {
-    const cacheKey = `${configDir}/${paddedId}`;
-    const cached = cacheGet(cacheKey);
-    if (cached !== undefined) return cached;
-
-    const s3Key = `jsonl/${configDir}/flop_${paddedId}.jsonl`;
-    const content = await downloadText(s3Key);
-    if (content) cacheSet(cacheKey, content);
-    return content;
-  }
-
-  // Local fallback
-  const jsonlPath = resolve(dataDir, configDir, `flop_${paddedId}.jsonl`);
-  if (!existsSync(jsonlPath)) return null;
-  return readFileSync(jsonlPath, 'utf-8');
-}
-
 function findDataDir(): string {
   const candidates = [
     resolve(process.cwd(), 'data/cfr'),
@@ -184,105 +55,256 @@ function findDataDir(): string {
   return resolve(process.cwd(), 'data/cfr');
 }
 
-export function setupCfrLookupRoutes(app: Express): void {
-  const dataDir = findDataDir();
-  const useS3 = isS3Configured();
+// Card index to human-readable label (e.g., 48 → "As")
+function cardIndexToLabel(index: number): string {
+  const ranks = '23456789TJQKA';
+  const suits = 'cdhs';
+  return `${ranks[Math.floor(index / 4)]}${suits[index % 4]}`;
+}
 
-  if (useS3) {
-    console.log('[cfr-lookup] S3 mode enabled — reading CFR data from iDrive e2');
-  } else {
-    console.log(`[cfr-lookup] local mode — reading CFR data from ${dataDir}`);
-  }
-  console.log(`[cfr-lookup] rate limit: ${CFR_RATE_LIMIT} requests per ${Math.round(CFR_RATE_WINDOW_MS / 60_000)} min`);
+// ── In-memory meta cache (Phase 1A) ─────────────────────────────────────────
 
-  // GET /api/cfr/configs — list all available configs with solve status (no rate limit — lightweight)
-  app.get("/api/cfr/configs", async (_req: Request, res: Response) => {
-    try {
-      const configs = await Promise.all(CFR_CONFIGS.map(async cfg => {
-        const configDir = OUTPUT_DIRS[cfg.name] ?? cfg.name;
-        let solvedFlops = 0;
-        const totalFlops = 1755;
+interface FlopMetaCached {
+  boardId: number;
+  flopCards: number[];
+  flopLabel: string;
+  infoSets: number;
+  iterations: number;
+  bucketCount: number;
+  texture: string;
+  pairing: string;
+  highCard: string;
+  connectivity: string;
+}
 
-        if (useS3) {
-          const metas = await getMetaIndex(configDir);
-          solvedFlops = metas.length;
-        } else {
-          const outputDir = resolve(dataDir, configDir);
-          if (existsSync(outputDir)) {
-            try {
-              const files = readdirSync(outputDir);
-              solvedFlops = files.filter(f => f.endsWith('.meta.json')).length;
-            } catch { /* ignore */ }
-          }
-        }
+// configName → pre-computed flop list
+const metaCache = new Map<string, FlopMetaCached[]>();
 
-        return {
-          ...cfg,
-          solvedFlops,
-          totalFlops,
-          progress: Math.round((solvedFlops / totalFlops) * 100),
-          available: solvedFlops > 0,
-        };
-      }));
-
-      res.json({ ok: true, configs, dataDir: useS3 ? 's3' : dataDir });
-    } catch (e) {
-      res.status(500).json({ ok: false, error: (e as Error).message });
-    }
-  });
-
-  // GET /api/cfr/flops?config=X — list solved flops for a config
-  app.get("/api/cfr/flops", cfrRateLimit, async (req: Request, res: Response) => {
-    const configName = req.query.config as string;
-    if (!configName) {
-      return res.status(400).json({ ok: false, error: 'Missing config parameter' });
-    }
-
-    const configDir = OUTPUT_DIRS[configName] ?? configName;
+function loadAllMeta(dataDir: string): void {
+  for (const cfg of CFR_CONFIGS) {
+    const outputDir = resolve(dataDir, OUTPUT_DIRS[cfg.name] ?? cfg.name);
+    if (!existsSync(outputDir)) continue;
 
     try {
-      if (useS3) {
-        const metas = await getMetaIndex(configDir);
-        const flops = metas.map(meta => ({
-          boardId: meta.boardId,
-          flopCards: meta.flopCards,
-          flopLabel: meta.flopCards?.map(cardIndexToLabel).join(' ') ?? `Board ${meta.boardId}`,
-          infoSets: meta.infoSets,
-          iterations: meta.iterations,
-        }));
-        return res.json({ ok: true, flops, total: flops.length });
-      }
-
-      // Local fallback
-      const outputDir = resolve(dataDir, configDir);
-      if (!existsSync(outputDir)) {
-        return res.json({ ok: true, flops: [] });
-      }
-
       const files = readdirSync(outputDir).filter(f => f.endsWith('.meta.json')).sort();
-      const flops = files.map(f => {
+      const flops: FlopMetaCached[] = [];
+
+      for (const f of files) {
         try {
-          const meta = JSON.parse(readFileSync(resolve(outputDir, f), 'utf-8'));
-          return {
+          const raw = readFileSync(resolve(outputDir, f), 'utf-8');
+          const meta = JSON.parse(raw);
+          const classification = classifyFlop(meta.flopCards);
+          flops.push({
             boardId: meta.boardId,
             flopCards: meta.flopCards,
             flopLabel: meta.flopCards?.map(cardIndexToLabel).join(' ') ?? `Board ${meta.boardId}`,
             infoSets: meta.infoSets,
             iterations: meta.iterations,
-          };
-        } catch {
-          return null;
-        }
-      }).filter(Boolean);
+            bucketCount: meta.bucketCount || 50,
+            ...classification,
+          });
+        } catch { /* skip corrupt meta */ }
+      }
 
-      return res.json({ ok: true, flops, total: flops.length });
+      if (flops.length > 0) metaCache.set(cfg.name, flops);
+    } catch { /* skip inaccessible dir */ }
+  }
+
+  console.log(`[CFR] Meta cache loaded: ${[...metaCache.entries()].map(([k, v]) => `${k}(${v.length})`).join(', ') || 'no data'}`);
+}
+
+// ── JSONL board data LRU cache (Phase 1B) ────────────────────────────────────
+
+interface BoardEntry { key: string; probs: number[]; actions?: string[] }
+
+const BOARD_CACHE_MAX = 20;
+const boardDataCache = new Map<string, { meta: Record<string, unknown>; entries: BoardEntry[]; index: Map<string, BoardEntry> }>();
+
+async function loadBoardData(dataDir: string, configName: string, boardId: number) {
+  const cacheKey = `${configName}:${boardId}`;
+  const cached = boardDataCache.get(cacheKey);
+  if (cached) return cached;
+
+  const outputDir = resolve(dataDir, OUTPUT_DIRS[configName] ?? configName);
+  const pad = String(boardId).padStart(3, '0');
+  const metaPath = resolve(outputDir, `flop_${pad}.meta.json`);
+  const jsonlPath = resolve(outputDir, `flop_${pad}.jsonl`);
+
+  if (!existsSync(metaPath) || !existsSync(jsonlPath)) return null;
+
+  const [metaText, jsonlText] = await Promise.all([
+    readFile(metaPath, 'utf-8'),
+    readFile(jsonlPath, 'utf-8'),
+  ]);
+
+  const meta = JSON.parse(metaText);
+  const entries: BoardEntry[] = [];
+  const index = new Map<string, BoardEntry>();
+
+  for (const line of jsonlText.split('\n')) {
+    if (!line.trim()) continue;
+    try {
+      const entry: BoardEntry = JSON.parse(line);
+      entries.push(entry);
+      index.set(entry.key, entry);
+    } catch { /* skip malformed line */ }
+  }
+
+  const result = { meta, entries, index };
+
+  // LRU eviction
+  if (boardDataCache.size >= BOARD_CACHE_MAX) {
+    const oldest = boardDataCache.keys().next().value;
+    if (oldest) boardDataCache.delete(oldest);
+  }
+  boardDataCache.set(cacheKey, result);
+
+  return result;
+}
+
+// ── Route setup ──────────────────────────────────────────────────────────────
+
+export function setupCfrLookupRoutes(app: Express): void {
+  const dataDir = findDataDir();
+
+  // Load all meta files into memory at startup (Phase 1A)
+  loadAllMeta(dataDir);
+
+  // GET /api/cfr/configs — list all available configs with solve status
+  app.get("/api/cfr/configs", (_req: Request, res: Response) => {
+    const configs = CFR_CONFIGS.map(cfg => {
+      const solvedFlops = metaCache.get(cfg.name)?.length ?? 0;
+      const totalFlops = 1755;
+      return {
+        ...cfg,
+        solvedFlops,
+        totalFlops,
+        progress: Math.round((solvedFlops / totalFlops) * 100),
+        available: solvedFlops > 0,
+      };
+    });
+
+    res.json({ ok: true, configs, dataDir });
+  });
+
+  // GET /api/cfr/flops?config=X — list solved flops with classification
+  app.get("/api/cfr/flops", (req: Request, res: Response) => {
+    const configName = req.query.config as string;
+    if (!configName) {
+      return res.status(400).json({ ok: false, error: 'Missing config parameter' });
+    }
+
+    const flops = metaCache.get(configName) ?? [];
+    return res.json({ ok: true, flops, total: flops.length });
+  });
+
+  // GET /api/cfr/board-data?config=X&boardId=N — full JSONL + meta for client-side indexing
+  app.get("/api/cfr/board-data", async (req: Request, res: Response) => {
+    const configName = req.query.config as string;
+    const boardId = parseInt(req.query.boardId as string, 10);
+
+    if (!configName || isNaN(boardId)) {
+      return res.status(400).json({ ok: false, error: 'Missing config or boardId' });
+    }
+
+    try {
+      const data = await loadBoardData(dataDir, configName, boardId);
+      if (!data) {
+        return res.status(404).json({ ok: false, error: `No data for board ${boardId}` });
+      }
+      return res.json({ ok: true, meta: data.meta, entries: data.entries });
     } catch (e) {
       return res.status(500).json({ ok: false, error: (e as Error).message });
     }
   });
 
+  // GET /api/cfr/hand-map?config=X&boardId=N — hand class → bucket mapping
+  app.get("/api/cfr/hand-map", async (req: Request, res: Response) => {
+    const configName = req.query.config as string;
+    const boardId = parseInt(req.query.boardId as string, 10);
+
+    if (!configName || isNaN(boardId)) {
+      return res.status(400).json({ ok: false, error: 'Missing config or boardId' });
+    }
+
+    // Use meta cache first, fall back to disk
+    const cachedFlops = metaCache.get(configName);
+    const cachedMeta = cachedFlops?.find(f => f.boardId === boardId);
+
+    if (cachedMeta) {
+      try {
+        const handMap = getHandMap(configName, cachedMeta.flopCards, cachedMeta.bucketCount);
+        return res.json({ ok: true, ...handMap });
+      } catch (e) {
+        return res.status(500).json({ ok: false, error: (e as Error).message });
+      }
+    }
+
+    // Fallback: read meta from disk
+    const outputDir = resolve(dataDir, OUTPUT_DIRS[configName] ?? configName);
+    const metaPath = resolve(outputDir, `flop_${String(boardId).padStart(3, '0')}.meta.json`);
+
+    if (!existsSync(metaPath)) {
+      return res.status(404).json({ ok: false, error: `No meta for board ${boardId}` });
+    }
+
+    try {
+      const metaText = await readFile(metaPath, 'utf-8');
+      const meta = JSON.parse(metaText);
+      const handMap = getHandMap(configName, meta.flopCards, meta.bucketCount || 50);
+      return res.json({ ok: true, ...handMap });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: (e as Error).message });
+    }
+  });
+
+  // GET /api/cfr/nearest-flop?config=X&cards=As,Kh,7d — find nearest solved flop
+  app.get("/api/cfr/nearest-flop", (req: Request, res: Response) => {
+    const configName = req.query.config as string;
+    const cardsParam = req.query.cards as string;
+
+    if (!configName || !cardsParam) {
+      return res.status(400).json({ ok: false, error: 'Missing config or cards parameter' });
+    }
+
+    const queryCards = cardsParam.split(',').map(c => cardToIndex(c.trim()));
+    if (queryCards.some(c => c < 0) || queryCards.length < 3) {
+      return res.status(400).json({ ok: false, error: 'Invalid card format. Use e.g. As,Kh,7d' });
+    }
+
+    const flops = metaCache.get(configName);
+    if (!flops || flops.length === 0) {
+      return res.status(404).json({ ok: false, error: 'No data for config' });
+    }
+
+    let bestBoardId = -1;
+    let bestDist = Infinity;
+    let bestCards: number[] = [];
+
+    for (const flop of flops) {
+      const dist = flopDistance(queryCards.slice(0, 3), flop.flopCards);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestBoardId = flop.boardId;
+        bestCards = flop.flopCards;
+      }
+    }
+
+    if (bestBoardId < 0) {
+      return res.status(404).json({ ok: false, error: 'No boards found' });
+    }
+
+    return res.json({
+      ok: true,
+      boardId: bestBoardId,
+      flopCards: bestCards,
+      flopLabel: bestCards.map(cardIndexToLabel).join(' '),
+      distance: bestDist,
+    });
+  });
+
   // GET /api/cfr/lookup?config=X&boardId=N&player=0&history=xb&bucket=42
-  app.get("/api/cfr/lookup", cfrRateLimit, async (req: Request, res: Response) => {
+  app.get("/api/cfr/lookup", async (req: Request, res: Response) => {
     const configName = req.query.config as string;
     const boardId = parseInt(req.query.boardId as string, 10);
     const player = parseInt(req.query.player as string, 10);
@@ -294,57 +316,31 @@ export function setupCfrLookupRoutes(app: Express): void {
       return res.status(400).json({ ok: false, error: 'Missing required parameters: config, boardId, player, bucket' });
     }
 
-    const configDir = OUTPUT_DIRS[configName] ?? configName;
-
     try {
-      const content = await getJsonlContent(configDir, boardId, dataDir);
-      if (!content) {
+      const data = await loadBoardData(dataDir, configName, boardId);
+      if (!data) {
         return res.status(404).json({ ok: false, error: `No JSONL data for board ${boardId} in config ${configName}` });
       }
 
       const streetChar = street === 'FLOP' ? 'F' : street === 'TURN' ? 'T' : 'R';
       const keyPrefix = `${streetChar}|${boardId}|${player}|${history}|`;
-      const lines = content.split('\n');
 
-      // Try exact bucket match first
+      // O(1) HashMap lookup (was O(n) linear scan)
       const exactKey = `${keyPrefix}${bucket}`;
-      for (const line of lines) {
-        if (!line.trim()) continue;
-        try {
-          const entry = JSON.parse(line);
-          if (entry.key === exactKey) {
-            return res.json({
-              ok: true,
-              key: entry.key,
-              probs: entry.probs,
-              actions: entry.actions,
-              source: 'exact',
-            });
-          }
-        } catch { /* skip parse errors */ }
+      const exact = data.index.get(exactKey);
+      if (exact) {
+        return res.json({ ok: true, key: exact.key, probs: exact.probs, actions: exact.actions, source: 'exact' });
       }
 
-      // Try nearby buckets (±5)
+      // Nearby bucket search (still fast — at most 10 lookups)
+      const bucketCount = (data.meta as { bucketCount?: number }).bucketCount || 50;
       for (let delta = 1; delta <= 5; delta++) {
         for (const b of [bucket + delta, bucket - delta]) {
-          if (b < 0 || b >= 100) continue;
+          if (b < 0 || b >= bucketCount) continue;
           const nearKey = `${keyPrefix}${b}`;
-          for (const line of lines) {
-            if (!line.trim()) continue;
-            try {
-              const entry = JSON.parse(line);
-              if (entry.key === nearKey) {
-                return res.json({
-                  ok: true,
-                  key: entry.key,
-                  probs: entry.probs,
-                  actions: entry.actions,
-                  source: 'nearby',
-                  requestedBucket: bucket,
-                  matchedBucket: b,
-                });
-              }
-            } catch { /* skip */ }
+          const near = data.index.get(nearKey);
+          if (near) {
+            return res.json({ ok: true, key: near.key, probs: near.probs, actions: near.actions, source: 'nearby', requestedBucket: bucket, matchedBucket: b });
           }
         }
       }
@@ -356,7 +352,7 @@ export function setupCfrLookupRoutes(app: Express): void {
   });
 
   // GET /api/cfr/board-strategy?config=X&boardId=N&street=FLOP&history=x
-  app.get("/api/cfr/board-strategy", cfrRateLimit, async (req: Request, res: Response) => {
+  app.get("/api/cfr/board-strategy", async (req: Request, res: Response) => {
     const configName = req.query.config as string;
     const boardId = parseInt(req.query.boardId as string, 10);
     const player = parseInt(req.query.player as string, 10);
@@ -367,56 +363,30 @@ export function setupCfrLookupRoutes(app: Express): void {
       return res.status(400).json({ ok: false, error: 'Missing required parameters' });
     }
 
-    const configDir = OUTPUT_DIRS[configName] ?? configName;
-
     try {
-      const content = await getJsonlContent(configDir, boardId, dataDir);
-      if (!content) {
+      const data = await loadBoardData(dataDir, configName, boardId);
+      if (!data) {
         return res.status(404).json({ ok: false, error: `No data for board ${boardId}` });
       }
 
       const streetChar = street === 'FLOP' ? 'F' : street === 'TURN' ? 'T' : 'R';
       const keyPrefix = `${streetChar}|${boardId}|${player}|${history}|`;
-      const lines = content.split('\n');
       const strategies: Array<{ bucket: number; probs: number[]; actions?: string[] }> = [];
 
-      for (const line of lines) {
-        if (!line.trim()) continue;
-        try {
-          const entry = JSON.parse(line);
-          if (typeof entry.key === 'string' && entry.key.startsWith(keyPrefix)) {
-            const bucketStr = entry.key.slice(keyPrefix.length);
-            const bucket = parseInt(bucketStr, 10);
-            if (!isNaN(bucket)) {
-              strategies.push({ bucket, probs: entry.probs, actions: entry.actions });
-            }
-          }
-        } catch { /* skip */ }
+      // Scan only the index keys with matching prefix
+      for (const [key, entry] of data.index) {
+        if (!key.startsWith(keyPrefix)) continue;
+        const bucketStr = key.slice(keyPrefix.length);
+        const b = parseInt(bucketStr, 10);
+        if (!isNaN(b)) {
+          strategies.push({ bucket: b, probs: entry.probs, actions: entry.actions });
+        }
       }
 
       strategies.sort((a, b) => a.bucket - b.bucket);
-
-      return res.json({
-        ok: true,
-        config: configName,
-        boardId,
-        player,
-        street,
-        history,
-        strategies,
-        count: strategies.length,
-      });
+      return res.json({ ok: true, config: configName, boardId, player, street, history, strategies, count: strategies.length });
     } catch (e) {
       return res.status(500).json({ ok: false, error: (e as Error).message });
     }
   });
-}
-
-// Card index to human-readable label (e.g., 48 → "As")
-function cardIndexToLabel(index: number): string {
-  const ranks = '23456789TJQKA';
-  const suits = 'cdhs';
-  const rank = Math.floor(index / 4);
-  const suit = index % 4;
-  return `${ranks[rank]}${suits[suit]}`;
 }

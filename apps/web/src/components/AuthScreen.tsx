@@ -5,6 +5,8 @@ import {
   signInWithEmail,
   signInWithGoogle,
   supabase,
+  isSupabaseUnreachable,
+  onSupabaseProbeResult,
   validateEmail,
   validatePassword,
   getRateLimitSecondsLeft,
@@ -29,6 +31,10 @@ export function AuthScreen({
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [cooldown, setCooldown] = useState(0);
+  const [sbDown, setSbDown] = useState(isSupabaseUnreachable());
+
+  /* Re-render when connectivity probe completes */
+  useEffect(() => onSupabaseProbeResult(setSbDown), []);
 
   /* Cooldown countdown timer */
   useEffect(() => {
@@ -139,8 +145,13 @@ export function AuthScreen({
               {gateMessage}
             </div>
           )}
+          {sbDown && (
+            <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-sm text-amber-300">
+              Auth service is temporarily unavailable. You can continue as Guest.
+            </div>
+          )}
           {/* Google OAuth — prominent, above email form */}
-          {supabase && (
+          {supabase && !sbDown && (
             <>
               <button
                 type="button"

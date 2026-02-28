@@ -22,6 +22,38 @@ import { ClubManager } from "./club-manager";
 import { ClubRepo, type AppendWalletTxInput } from "./services/club-repo";
 import { ClubRepoJson } from "./services/club-repo-json";
 import { AuditService } from "./services/audit-service";
+import { ChatRepo } from "./services/chat-repo";
+import { ChatManager } from "./services/chat-manager";
+import { NotificationRepo } from "./services/notification-repo";
+import { NotificationManager } from "./services/notification-manager";
+import { AnalyticsRepo } from "./services/analytics-repo";
+import { recordEgress, isOverBudget, getEgressStats } from "./services/egress-budget";
+import type {
+  ChatSendPayload,
+  ChatHistoryPayload,
+  ChatDeletePayload,
+  ChatMutePayload,
+  ChatUnmutePayload,
+  ChatMarkReadPayload,
+  ChatGetUnreadsPayload,
+} from "@cardpilot/shared-types";
+import type {
+  NotificationListPayload,
+  NotificationMarkReadPayload,
+  NotificationMarkAllReadPayload,
+  NotificationGetUnreadCountPayload,
+  NotificationUpdatePrefsPayload,
+  NotificationDeletePayload,
+} from "@cardpilot/shared-types";
+import type {
+  ClubAnalyticsGetPayload,
+  ClubProfitChartGetPayload,
+  ClubHourlyHeatmapGetPayload,
+  ClubOverviewAnalyticsGetPayload,
+  ClubActivePlayersTrendGetPayload,
+  ClubSessionsListPayload,
+  ClubExportDataPayload,
+} from "@cardpilot/shared-types";
 import { syncBots, removeAllBots, shutdownAllBots, getBotUserIds, getBotModelVersions } from "./services/bot-orchestrator.js";
 import type {
   ClubCreatePayload,
@@ -46,6 +78,10 @@ import type {
   ClubWalletTransaction,
   ClubLeaderboardMetric,
   ClubLeaderboardRange,
+  ClubBulkApprovePayload,
+  ClubBulkGrantCreditsPayload,
+  ClubBulkRoleChangePayload,
+  ClubBulkKickPayload,
 } from "@cardpilot/shared-types";
 
 const runtimeConfig = getRuntimeConfig();
@@ -246,11 +282,46 @@ if (!primaryClubRepo.enabled()) {
   logInfo({ event: "club_persistence.fallback", message: "Using JSON file fallback for club persistence (dev mode)" });
 }
 clubManager.setRepo(clubDataRepo as unknown as ClubRepo);
+
+// Chat & notification services
+const chatRepo = new ChatRepo();
+const chatManager = new ChatManager(chatRepo);
+const notificationRepo = new NotificationRepo();
+const notificationManager = new NotificationManager(notificationRepo, (userId, event, payload) => {
+  // Deliver to all connected sockets for this user
+  for (const [sid, ident] of socketIdentity.entries()) {
+    if (ident.userId === userId) {
+      io.to(sid).emit(event, payload);
+    }
+  }
+});
+
+// Analytics
+const analyticsRepo = new AnalyticsRepo();
+
 void (async () => {
   await clubManager.hydrate();
-  // Create runtime rooms for all open club tables (clubTable.id = room tableId).
-  for (const { clubId, table } of clubManager.listOpenTables()) {
-    ensureClubTableRoom(clubId, table.id);
+  // Club table runtimes are created on-demand by ensureClubTableRoom()
+  // when a user views the club detail or joins a table.
+  // This avoids loading all open tables into memory at startup.
+  const openClubTables = clubManager.listOpenTables();
+  logInfo({
+    event: "club_manager.hydrate.complete",
+    message: `Hydrated club data (${openClubTables.length} open tables, runtimes created on demand)`,
+  });
+
+  // Close stale rooms in Supabase that have no runtime and are not club tables.
+  // Club table IDs are legitimate "OPEN" entries even without a runtime.
+  const activeTableIds = new Set([
+    ...roomsByTableId.keys(),
+    ...openClubTables.map(({ table }) => table.id),
+  ]);
+  const closedCount = await supabase.closeStaleRooms(activeTableIds);
+  if (closedCount > 0) {
+    logInfo({
+      event: "startup.stale_rooms_closed",
+      message: `Closed ${closedCount} stale room(s) in Supabase`,
+    });
   }
 })().catch((e) => logWarn({
   event: "club_manager.hydrate_or_restore.failed",
@@ -486,8 +557,10 @@ function isPersistentClubTable(tableId: string): boolean {
 
 function maybeCheckRoomEmpty(tableId: string, currentCount: number): void {
   if (isPersistentClubTable(tableId)) {
-    // Club table runtimes are persistent: never auto-close on empty.
-    roomManager.checkRoomEmpty(tableId, currentCount, () => {});
+    // Club tables: suspend runtime after idle TTL, but do NOT close the table.
+    roomManager.checkRoomEmpty(tableId, currentCount, () => {
+      handleClubTableIdleSuspend(tableId);
+    }, runtimeConfig.clubTableIdleTtlMs);
     return;
   }
   roomManager.checkRoomEmpty(tableId, currentCount, () => {
@@ -584,6 +657,8 @@ function socketIdsForUser(userId: string): string[] {
 function ensureClubTableRoom(clubId: string, clubTableId: string): string | null {
   // Already has a runtime room?
   if (roomsByTableId.has(clubTableId)) return clubTableId;
+
+  logInfo({ event: "club_table.rehydrate", tableId: clubTableId, clubId });
 
   const tableMeta = clubManager.getClubTable(clubId, clubTableId);
   if (!tableMeta || tableMeta.status === "closed" || tableMeta.status === "finished") return null;
@@ -1375,13 +1450,51 @@ function toLobbySummary(room: RoomInfo): LobbyRoomSummary {
   };
 }
 
+// Cache Supabase lobby query results to avoid hammering the DB on every event
+let lobbyCacheRemoteRooms: LobbyRoomSummary[] = [];
+let lobbyCacheTs = 0;
+const LOBBY_CACHE_TTL_MS = 5_000;
+
+// ── Supabase egress rate monitor ──
+// Tracks lobby query calls per minute and warns when rate is abnormally high.
+let supabaseQueryCount = 0;
+let supabaseQueryWindowStart = Date.now();
+const SUPABASE_RATE_WARN_THRESHOLD = 60; // warn if >60 queries/min
+const SUPABASE_RATE_WINDOW_MS = 60_000;
+let supabaseRateWarned = false;
+
+function trackSupabaseQuery(): void {
+  const now = Date.now();
+  if (now - supabaseQueryWindowStart > SUPABASE_RATE_WINDOW_MS) {
+    if (supabaseQueryCount > SUPABASE_RATE_WARN_THRESHOLD && !supabaseRateWarned) {
+      console.warn(
+        `[egress-guard] HIGH Supabase query rate: ${supabaseQueryCount} queries in last 60s. ` +
+        `This may cause excessive egress billing. Consider setting DISABLE_SUPABASE=1 for training.`,
+      );
+      supabaseRateWarned = true;
+    } else if (supabaseQueryCount <= SUPABASE_RATE_WARN_THRESHOLD) {
+      supabaseRateWarned = false;
+    }
+    supabaseQueryCount = 0;
+    supabaseQueryWindowStart = now;
+  }
+  supabaseQueryCount++;
+}
+
 async function emitLobbySnapshot(targetSocketId?: string): Promise<void> {
   const localRooms = [...roomsByTableId.values()].map(toLobbySummary);
   const roomMap = new Map(localRooms.map((room) => [room.tableId, room]));
 
   if (supabase.enabled()) {
-    const remoteRooms = await supabase.listLobbyRooms(50);
-    for (const room of remoteRooms) {
+    const now = Date.now();
+    if (now - lobbyCacheTs > LOBBY_CACHE_TTL_MS) {
+      trackSupabaseQuery();
+      lobbyCacheRemoteRooms = await supabase.listLobbyRooms(50);
+      lobbyCacheTs = now;
+      // Estimate: ~200 bytes per room × count + seat query overhead
+      recordEgress(lobbyCacheRemoteRooms.length * 200 + 2000);
+    }
+    for (const room of lobbyCacheRemoteRooms) {
       if (!roomMap.has(room.tableId)) {
         roomMap.set(room.tableId, room);
       }
@@ -1401,6 +1514,16 @@ async function emitLobbySnapshot(targetSocketId?: string): Promise<void> {
   } else {
     io.emit("lobby_snapshot", payload);
   }
+}
+
+// Debounced version for broadcast-only calls (no targetSocketId)
+let lobbyBroadcastTimer: ReturnType<typeof setTimeout> | null = null;
+function debouncedLobbyBroadcast(): void {
+  if (lobbyBroadcastTimer) return;
+  lobbyBroadcastTimer = setTimeout(() => {
+    lobbyBroadcastTimer = null;
+    void emitLobbySnapshot();
+  }, 500);
 }
 
 function ensureSnapshotVersion(tableId: string): number {
@@ -2588,7 +2711,101 @@ function handleRoomAutoClose(tableId: string): void {
     supabase.touchRoom(tableId, "CLOSED").catch(() => {});
   }
 
-  void emitLobbySnapshot();
+  debouncedLobbyBroadcast();
+}
+
+/**
+ * Called when the room-empty timer fires for a club table.
+ * Re-checks safety conditions before suspending.
+ */
+function handleClubTableIdleSuspend(tableId: string): void {
+  if (!isPersistentClubTable(tableId)) return;
+
+  const count = currentPlayerCount(tableId);
+  if (count > 0) return;
+
+  const managed = roomManager.getRoom(tableId);
+  if (managed?.handActive) return;
+  if (managed && managed.disconnectGrace.size > 0) return;
+
+  suspendClubTableRuntime(tableId);
+}
+
+/**
+ * Free in-memory runtime for an idle club table without closing it in the DB.
+ * The table status stays "open" and will be re-created on demand via ensureClubTableRoom().
+ */
+function suspendClubTableRuntime(tableId: string): void {
+  const clubInfo = getClubInfoForTableId(tableId);
+  if (!clubInfo) return;
+
+  logInfo({
+    event: "club_table.suspend",
+    tableId,
+    clubId: clubInfo.clubId,
+    message: "Suspending idle club table runtime",
+  });
+
+  // Clear scheduled timers
+  clearAutoDealSchedule(tableId);
+  clearShowdownDecisionTimeout(tableId);
+  clearPendingRunCountDecision(tableId);
+  clearHandIdleWatchdog(tableId);
+
+  // Remove bots
+  removeAllBots(tableId);
+
+  // Clean per-table Maps
+  pendingStandUps.delete(tableId);
+  pendingTableLeaves.delete(tableId);
+  pendingPause.delete(tableId);
+  tablesWithStartedHands.delete(tableId);
+  lastHandHoleCards.delete(tableId);
+  const bounty = pendingBountyClaim.get(tableId);
+  if (bounty) {
+    clearTimeout(bounty.timeout);
+    pendingBountyClaim.delete(tableId);
+  }
+  for (const [orderId, request] of pendingSeatRequests.entries()) {
+    if (request.tableId === tableId) pendingSeatRequests.delete(orderId);
+  }
+  for (const [orderId, deposit] of pendingRebuys.entries()) {
+    if (deposit.tableId === tableId) pendingRebuys.delete(orderId);
+  }
+
+  // Disconnect all sockets from this room
+  const roomSockets = io.sockets.adapter.rooms.get(tableId);
+  if (roomSockets) {
+    for (const sid of roomSockets) {
+      const sock = io.sockets.sockets.get(sid);
+      if (sock) sock.leave(tableId);
+    }
+  }
+
+  // Clean up seat bindings
+  for (const [sid, binding] of socketSeat.entries()) {
+    if (binding.tableId !== tableId) continue;
+    socketSeat.delete(sid);
+    io.to(sid).emit("left_table", { tableId });
+  }
+
+  // Delete from room registries
+  const room = roomsByTableId.get(tableId);
+  if (room) {
+    sessionStatsByRoomCode.delete(room.roomCode);
+    roomCodeToTableId.delete(room.roomCode);
+    roomsByTableId.delete(tableId);
+  }
+
+  // Delete GameTable and snapshot version
+  tables.delete(tableId);
+  tableSnapshotVersions.delete(tableId);
+
+  // Delete ManagedRoom (clears internal timers, disconnect grace, etc.)
+  roomManager.deleteRoom(tableId);
+
+  // Do NOT call closeRoomSessionIfOpen or touchRoom("CLOSED") — the table stays open.
+  debouncedLobbyBroadcast();
 }
 
 /** Start action timer for the current actor after a hand event */
@@ -2738,7 +2955,7 @@ async function standUpPlayer(tableId: string, seatNum: number, reason: string): 
   broadcastSessionStats(tableId);
   checkBotsOnlyAndRemove(tableId);
   maybeCheckRoomEmpty(tableId, currentPlayerCount(tableId));
-  void emitLobbySnapshot();
+  debouncedLobbyBroadcast();
   return true;
 }
 
@@ -3203,7 +3420,10 @@ async function persistHandHistory(
     sessionMetadata: buildSessionMetadata(tableId, "hand_end"),
   };
 
-  await supabase.recordHandHistory(payload);
+  if (!isOverBudget()) {
+    const result = await supabase.recordHandHistory(payload);
+    if (result) recordEgress(500); // RPC response ~500 bytes
+  }
 }
 
 function queueAuditForHand(tableId: string, state: TableState, table: GameTable | undefined): void {
@@ -3406,7 +3626,7 @@ io.on("connection", (socket) => {
             payload: { reason: "auto_closed_stale_before_create" },
           }).catch(() => {});
 
-          void emitLobbySnapshot();
+          debouncedLobbyBroadcast();
         }
 
         const roomCode = await generateUniqueRoomCode();
@@ -3499,7 +3719,7 @@ io.on("connection", (socket) => {
         const fullState = roomManager.getFullState(room.tableId);
         if (fullState) socket.emit("room_state_update", withClubRoomStateMetadata(fullState, room.tableId, identity.userId));
         emitPresence(room.tableId);
-        void emitLobbySnapshot();
+        debouncedLobbyBroadcast();
       } catch (error) {
         socket.emit("error_event", { message: (error as Error).message });
       }
@@ -3517,6 +3737,7 @@ io.on("connection", (socket) => {
         return;
       }
       const rooms = await supabase.listHistoryRooms(identity.userId, payload?.limit ?? 50);
+      recordEgress(rooms.length * 200);
       socket.emit("history_rooms", { rooms });
     } catch (error) {
       socket.emit("history_rooms", { rooms: [], error: (error as Error).message });
@@ -3527,6 +3748,7 @@ io.on("connection", (socket) => {
     try {
       if (!payload?.roomId) throw new Error("roomId is required");
       const sessions = await supabase.listHistorySessions(identity.userId, payload.roomId, payload.limit ?? 100);
+      recordEgress(sessions.length * 150);
       socket.emit("history_sessions", { roomId: payload.roomId, sessions });
     } catch (error) {
       socket.emit("error_event", { message: (error as Error).message });
@@ -3563,6 +3785,7 @@ io.on("connection", (socket) => {
     try {
       if (!payload?.handHistoryId) throw new Error("handHistoryId is required");
       const hand = await supabase.getHistoryHandDetail(identity.userId, payload.handHistoryId);
+      recordEgress(hand ? 30_000 : 200); // hand detail ~30KB
       socket.emit("history_hand_detail", { handHistoryId: payload.handHistoryId, hand });
     } catch (error) {
       socket.emit("error_event", { message: (error as Error).message });
@@ -3670,7 +3893,7 @@ io.on("connection", (socket) => {
       const fullState = roomManager.getFullState(room.tableId);
       if (fullState) socket.emit("room_state_update", withClubRoomStateMetadata(fullState, room.tableId, identity.userId));
       emitPresence(room.tableId);
-      void emitLobbySnapshot();
+      debouncedLobbyBroadcast();
       console.log("[JOIN_ROOM_CODE] Successfully joined room");
     } catch (error) {
       console.log("[JOIN_ROOM_CODE] Error:", (error as Error).message);
@@ -3716,7 +3939,7 @@ io.on("connection", (socket) => {
     const fullState = roomManager.getFullState(room.tableId);
     if (fullState) socket.emit("room_state_update", withClubRoomStateMetadata(fullState, room.tableId, identity.userId));
     emitPresence(payload.tableId);
-    void emitLobbySnapshot();
+    debouncedLobbyBroadcast();
   });
 
   const seatPlayerDirect = async (params: {
@@ -3836,7 +4059,7 @@ io.on("connection", (socket) => {
     broadcastSnapshot(params.tableId);
     broadcastSessionStats(params.tableId);
     scheduleAutoDealIfNeeded(params.tableId);
-    void emitLobbySnapshot();
+    debouncedLobbyBroadcast();
   };
 
   socket.on("sit_down", async (payload: { tableId: string; seat: number; buyIn: number; name?: string }) => {
@@ -4731,7 +4954,7 @@ io.on("connection", (socket) => {
       payload: { socketId: socket.id }
     }).catch((e) => console.warn("leave_table: logEvent failed:", (e as Error).message));
     socket.emit("left_table", { tableId: payload.tableId });
-    void emitLobbySnapshot();
+    debouncedLobbyBroadcast();
   });
 
   /* ═══════════ ROOM MANAGEMENT SOCKET HANDLERS ═══════════ */
@@ -4815,7 +5038,7 @@ io.on("connection", (socket) => {
       if (Object.keys(result.deferred).length > 0) {
         socket.emit("system_message", { message: `Some settings will apply next hand: ${Object.keys(result.deferred).join(", ")}` });
       }
-      void emitLobbySnapshot();
+      debouncedLobbyBroadcast();
     } catch (error) {
       socket.emit("error_event", { message: (error as Error).message });
     }
@@ -4883,7 +5106,7 @@ io.on("connection", (socket) => {
       }
 
       broadcastSnapshot(payload.tableId);
-      void emitLobbySnapshot();
+      debouncedLobbyBroadcast();
     } catch (error) {
       socket.emit("error_event", { message: (error as Error).message });
     }
@@ -5076,7 +5299,7 @@ io.on("connection", (socket) => {
         payload: { reason: "host_closed" },
       }).catch(() => {});
 
-      void emitLobbySnapshot();
+      debouncedLobbyBroadcast();
 
       // Refresh club detail for members so the table list updates
       if (clubInfo) {
@@ -5376,7 +5599,7 @@ io.on("connection", (socket) => {
 
       // Refresh club detail
       void emitClubDetail(socket.id, payload.clubId, identity.userId);
-      void emitLobbySnapshot();
+      debouncedLobbyBroadcast();
     } catch (error) {
       socket.emit("club_error", { code: "TABLE_CREATE_FAILED", message: (error as Error).message });
     }
@@ -5502,7 +5725,7 @@ io.on("connection", (socket) => {
       }
 
       await emitClubDetail(socket.id, payload.clubId, identity.userId);
-      void emitLobbySnapshot();
+      debouncedLobbyBroadcast();
     } catch (error) {
       socket.emit("club_error", { code: "TABLE_UPDATE_FAILED", message: (error as Error).message });
     }
@@ -5568,7 +5791,7 @@ io.on("connection", (socket) => {
       }
 
       await emitClubDetail(socket.id, payload.clubId, identity.userId);
-      void emitLobbySnapshot();
+      debouncedLobbyBroadcast();
     } catch (error) {
       socket.emit("club_error", { code: "TABLE_CLOSE_FAILED", message: (error as Error).message });
     }
@@ -5639,7 +5862,7 @@ io.on("connection", (socket) => {
       const fullState = roomManager.getFullState(tableId);
       if (fullState) socket.emit("room_state_update", withClubRoomStateMetadata(fullState, tableId, identity.userId));
       emitPresence(tableId);
-      void emitLobbySnapshot();
+      debouncedLobbyBroadcast();
     } catch (error) {
       socket.emit("club_error", { code: "TABLE_JOIN_FAILED", message: (error as Error).message });
     }
@@ -5821,6 +6044,95 @@ io.on("connection", (socket) => {
     }
   });
 
+  // ── Bulk / Batch Operations ──
+
+  socket.on("club_bulk_approve", async (payload: ClubBulkApprovePayload) => {
+    if (!identity) {
+      socket.emit("club_error", { code: "AUTH_REQUIRED", message: "Authentication required" });
+      return;
+    }
+    if (!requireClubAuth()) return;
+    let succeeded = 0;
+    let failed = 0;
+    const errors: string[] = [];
+    for (const uid of payload.userIds) {
+      try {
+        clubManager.approveJoin(payload.clubId, identity.userId, uid);
+        succeeded++;
+      } catch (err) {
+        failed++;
+        errors.push(`${uid}: ${(err as Error).message}`);
+      }
+    }
+    socket.emit("club_bulk_result", { clubId: payload.clubId, operation: "bulk_approve", succeeded, failed, errors });
+    void emitClubDetail(socket.id, payload.clubId, identity.userId);
+  });
+
+  socket.on("club_bulk_grant_credits", async (payload: ClubBulkGrantCreditsPayload) => {
+    if (!identity) {
+      socket.emit("club_error", { code: "AUTH_REQUIRED", message: "Authentication required" });
+      return;
+    }
+    if (!requireClubAuth()) return;
+    let succeeded = 0;
+    let failed = 0;
+    const errors: string[] = [];
+    for (const uid of payload.userIds) {
+      try {
+        clubManager.grantCredits(payload.clubId, identity.userId, uid, payload.amount);
+        succeeded++;
+      } catch (err) {
+        failed++;
+        errors.push(`${uid}: ${(err as Error).message}`);
+      }
+    }
+    socket.emit("club_bulk_result", { clubId: payload.clubId, operation: "bulk_grant_credits", succeeded, failed, errors });
+  });
+
+  socket.on("club_bulk_role_change", async (payload: ClubBulkRoleChangePayload) => {
+    if (!identity) {
+      socket.emit("club_error", { code: "AUTH_REQUIRED", message: "Authentication required" });
+      return;
+    }
+    if (!requireClubAuth()) return;
+    let succeeded = 0;
+    let failed = 0;
+    const errors: string[] = [];
+    for (const uid of payload.userIds) {
+      try {
+        clubManager.updateMemberRole(payload.clubId, identity.userId, uid, payload.newRole);
+        succeeded++;
+      } catch (err) {
+        failed++;
+        errors.push(`${uid}: ${(err as Error).message}`);
+      }
+    }
+    socket.emit("club_bulk_result", { clubId: payload.clubId, operation: "bulk_role_change", succeeded, failed, errors });
+    void emitClubDetail(socket.id, payload.clubId, identity.userId);
+  });
+
+  socket.on("club_bulk_kick", async (payload: ClubBulkKickPayload) => {
+    if (!identity) {
+      socket.emit("club_error", { code: "AUTH_REQUIRED", message: "Authentication required" });
+      return;
+    }
+    if (!requireClubAuth()) return;
+    let succeeded = 0;
+    let failed = 0;
+    const errors: string[] = [];
+    for (const uid of payload.userIds) {
+      try {
+        clubManager.kickMember(payload.clubId, identity.userId, uid);
+        succeeded++;
+      } catch (err) {
+        failed++;
+        errors.push(`${uid}: ${(err as Error).message}`);
+      }
+    }
+    socket.emit("club_bulk_result", { clubId: payload.clubId, operation: "bulk_kick", succeeded, failed, errors });
+    void emitClubDetail(socket.id, payload.clubId, identity.userId);
+  });
+
   socket.on("club_leaderboard_get", async (payload: { clubId: string; timeRange?: ClubLeaderboardRange; metric?: ClubLeaderboardMetric; limit?: number }) => {
     try {
       if (!requireClubAuth()) return;
@@ -5971,6 +6283,336 @@ io.on("connection", (socket) => {
     }
   });
 
+  /* ═══════════ CHAT ═══════════ */
+
+  socket.on("chat_send", async (payload: ChatSendPayload) => {
+    try {
+      if (!requireClubAuth()) return;
+      if (!clubManager.isActiveMember(payload.clubId, identity.userId)) {
+        socket.emit("chat_error", { code: "CHAT_DENIED", message: "Not a club member" });
+        return;
+      }
+      const clubDetail = clubManager.getClubDetail(payload.clubId, identity.userId);
+      const moderation = clubDetail?.detail?.defaultRuleset?.rulesJson?.moderation;
+      const result = await chatManager.sendMessage({
+        clubId: payload.clubId,
+        tableId: payload.tableId,
+        senderUserId: identity.userId,
+        senderDisplayName: identity.displayName,
+        content: payload.content,
+        mentions: payload.mentions,
+        chatEnabled: moderation?.chatEnabled ?? true,
+        profanityFilterEnabled: moderation?.profanityFilter ?? false,
+      });
+      if ("error" in result) {
+        socket.emit("chat_error", { code: "CHAT_SEND_FAILED", message: result.error });
+        return;
+      }
+      // Broadcast to all club members
+      for (const [sid, ident] of socketIdentity.entries()) {
+        if (clubManager.isActiveMember(payload.clubId, ident.userId)) {
+          io.to(sid).emit("chat_message", { message: result.message });
+        }
+      }
+      // Send notifications for @mentions
+      if (payload.mentions && payload.mentions.length > 0) {
+        const memberIds = clubDetail?.members.map(m => m.userId) ?? [];
+        const validMentions = payload.mentions.filter(id => memberIds.includes(id) && id !== identity.userId);
+        if (validMentions.length > 0) {
+          void notificationManager.notifyMany(validMentions.map(userId => ({
+            userId,
+            type: "chat_mention" as const,
+            clubId: payload.clubId,
+            title: `${identity.displayName} mentioned you`,
+            body: payload.content.slice(0, 100),
+            metadata: { messageId: result.message.id, senderDisplayName: identity.displayName },
+          })));
+        }
+      }
+    } catch (error) {
+      socket.emit("chat_error", { code: "CHAT_SEND_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("chat_history", async (payload: ChatHistoryPayload) => {
+    try {
+      if (!requireClubAuth()) return;
+      if (!clubManager.isActiveMember(payload.clubId, identity.userId)) {
+        socket.emit("chat_error", { code: "CHAT_DENIED", message: "Not a club member" });
+        return;
+      }
+      const result = await chatManager.getHistory(payload.clubId, payload.tableId, payload.before, payload.limit);
+      socket.emit("chat_history_response", {
+        clubId: payload.clubId,
+        tableId: payload.tableId ?? null,
+        messages: result.messages,
+        hasMore: result.hasMore,
+      });
+    } catch (error) {
+      socket.emit("chat_error", { code: "CHAT_HISTORY_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("chat_delete", async (payload: ChatDeletePayload) => {
+    try {
+      if (!requireClubAuth()) return;
+      if (!isClubOwnerOrAdmin(payload.clubId, identity.userId)) {
+        socket.emit("chat_error", { code: "CHAT_DELETE_DENIED", message: "Only admin can delete messages" });
+        return;
+      }
+      await chatManager.deleteMessage(payload.messageId, identity.userId);
+      // Broadcast deletion to all club members
+      for (const [sid, ident] of socketIdentity.entries()) {
+        if (clubManager.isActiveMember(payload.clubId, ident.userId)) {
+          io.to(sid).emit("chat_message_deleted", {
+            clubId: payload.clubId,
+            messageId: payload.messageId,
+            deletedBy: identity.userId,
+          });
+        }
+      }
+    } catch (error) {
+      socket.emit("chat_error", { code: "CHAT_DELETE_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("chat_mute", async (payload: ChatMutePayload) => {
+    try {
+      if (!requireClubAuth()) return;
+      if (!isClubOwnerOrAdmin(payload.clubId, identity.userId)) {
+        socket.emit("chat_error", { code: "CHAT_MUTE_DENIED", message: "Only admin can mute users" });
+        return;
+      }
+      const mute = await chatManager.muteUser(payload.clubId, payload.userId, identity.userId, payload.reason, payload.durationMinutes);
+      // Notify the muted user
+      for (const [sid, ident] of socketIdentity.entries()) {
+        if (ident.userId === payload.userId) {
+          io.to(sid).emit("chat_mute_update", { clubId: payload.clubId, mute, userId: payload.userId });
+        }
+      }
+    } catch (error) {
+      socket.emit("chat_error", { code: "CHAT_MUTE_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("chat_unmute", async (payload: ChatUnmutePayload) => {
+    try {
+      if (!requireClubAuth()) return;
+      if (!isClubOwnerOrAdmin(payload.clubId, identity.userId)) {
+        socket.emit("chat_error", { code: "CHAT_UNMUTE_DENIED", message: "Only admin can unmute users" });
+        return;
+      }
+      await chatManager.unmuteUser(payload.clubId, payload.userId);
+      for (const [sid, ident] of socketIdentity.entries()) {
+        if (ident.userId === payload.userId) {
+          io.to(sid).emit("chat_mute_update", { clubId: payload.clubId, mute: null, userId: payload.userId });
+        }
+      }
+    } catch (error) {
+      socket.emit("chat_error", { code: "CHAT_UNMUTE_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("chat_mark_read", async (payload: ChatMarkReadPayload) => {
+    try {
+      if (!requireClubAuth()) return;
+      await chatManager.markRead(payload.clubId, identity.userId, payload.tableId, payload.lastReadMessageId);
+    } catch (error) {
+      socket.emit("chat_error", { code: "CHAT_MARK_READ_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("chat_get_unreads", async (payload: ChatGetUnreadsPayload) => {
+    try {
+      if (!requireClubAuth()) return;
+      const unreads = await chatManager.getUnreads(payload.clubId, identity.userId);
+      socket.emit("chat_unreads", { unreads });
+    } catch (error) {
+      socket.emit("chat_error", { code: "CHAT_UNREADS_FAILED", message: (error as Error).message });
+    }
+  });
+
+  /* ═══════════ NOTIFICATIONS ═══════════ */
+
+  socket.on("notification_list", async (payload: NotificationListPayload) => {
+    try {
+      if (!requireClubAuth()) return;
+      const result = await notificationManager.list(identity.userId, {
+        limit: payload.limit,
+        before: payload.before,
+        unreadOnly: payload.unreadOnly,
+      });
+      socket.emit("notification_list_response", {
+        notifications: result.notifications,
+        hasMore: result.hasMore,
+      });
+    } catch (error) {
+      socket.emit("notification_error", { code: "NOTIFICATION_LIST_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("notification_mark_read", async (payload: NotificationMarkReadPayload) => {
+    try {
+      if (!requireClubAuth()) return;
+      await notificationManager.markRead(identity.userId, payload.notificationIds);
+    } catch (error) {
+      socket.emit("notification_error", { code: "NOTIFICATION_MARK_READ_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("notification_mark_all_read", async (payload: NotificationMarkAllReadPayload) => {
+    try {
+      if (!requireClubAuth()) return;
+      await notificationManager.markAllRead(identity.userId, payload.clubId);
+    } catch (error) {
+      socket.emit("notification_error", { code: "NOTIFICATION_MARK_ALL_READ_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("notification_get_unread_count", async () => {
+    try {
+      if (!requireClubAuth()) return;
+      const count = await notificationManager.getUnreadCount(identity.userId);
+      socket.emit("notification_unread_count", { count });
+    } catch (error) {
+      socket.emit("notification_error", { code: "NOTIFICATION_COUNT_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("notification_update_prefs", async (payload: NotificationUpdatePrefsPayload) => {
+    try {
+      if (!requireClubAuth()) return;
+      await notificationManager.updatePreferences(identity.userId, payload.preferences);
+    } catch (error) {
+      socket.emit("notification_error", { code: "NOTIFICATION_PREFS_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("notification_delete", async (payload: NotificationDeletePayload) => {
+    try {
+      if (!requireClubAuth()) return;
+      await notificationManager.deleteNotifications(identity.userId, payload.notificationIds);
+    } catch (error) {
+      socket.emit("notification_error", { code: "NOTIFICATION_DELETE_FAILED", message: (error as Error).message });
+    }
+  });
+
+  /* ═══════════ ANALYTICS ═══════════ */
+
+  socket.on("club_analytics_get", async (payload: ClubAnalyticsGetPayload) => {
+    try {
+      const identity = socketIdentity.get(socket.id);
+      if (!identity) {
+        socket.emit("club_analytics_error", { code: "AUTH_REQUIRED", message: "Not authenticated" });
+        return;
+      }
+      const userId = payload.userId ?? identity.userId;
+      const analytics = await analyticsRepo.getPlayerAnalytics(payload.clubId, userId, payload.timeRange);
+      socket.emit("club_analytics_response", { clubId: payload.clubId, userId, analytics });
+    } catch (error) {
+      socket.emit("club_analytics_error", { code: "ANALYTICS_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_profit_chart_get", async (payload: ClubProfitChartGetPayload) => {
+    try {
+      const identity = socketIdentity.get(socket.id);
+      if (!identity) {
+        socket.emit("club_analytics_error", { code: "AUTH_REQUIRED", message: "Not authenticated" });
+        return;
+      }
+      const userId = payload.userId ?? identity.userId;
+      const data = await analyticsRepo.getProfitOverTime(payload.clubId, userId, payload.timeRange);
+      socket.emit("club_profit_chart_response", { clubId: payload.clubId, userId, data });
+    } catch (error) {
+      socket.emit("club_analytics_error", { code: "PROFIT_CHART_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_hourly_heatmap_get", async (payload: ClubHourlyHeatmapGetPayload) => {
+    try {
+      const identity = socketIdentity.get(socket.id);
+      if (!identity) {
+        socket.emit("club_analytics_error", { code: "AUTH_REQUIRED", message: "Not authenticated" });
+        return;
+      }
+      const userId = payload.userId ?? identity.userId;
+      const data = await analyticsRepo.getHourlyHeatmap(payload.clubId, userId);
+      socket.emit("club_hourly_heatmap_response", { clubId: payload.clubId, userId, data });
+    } catch (error) {
+      socket.emit("club_analytics_error", { code: "HEATMAP_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_overview_analytics_get", async (payload: ClubOverviewAnalyticsGetPayload) => {
+    try {
+      const identity = socketIdentity.get(socket.id);
+      if (!identity) {
+        socket.emit("club_analytics_error", { code: "AUTH_REQUIRED", message: "Not authenticated" });
+        return;
+      }
+      const overview = await analyticsRepo.getOverviewAnalytics(payload.clubId, payload.timeRange);
+      socket.emit("club_overview_analytics_response", { clubId: payload.clubId, overview });
+    } catch (error) {
+      socket.emit("club_analytics_error", { code: "OVERVIEW_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_active_players_trend_get", async (payload: ClubActivePlayersTrendGetPayload) => {
+    try {
+      const identity = socketIdentity.get(socket.id);
+      if (!identity) {
+        socket.emit("club_analytics_error", { code: "AUTH_REQUIRED", message: "Not authenticated" });
+        return;
+      }
+      const data = await analyticsRepo.getActivePlayersTrend(payload.clubId, payload.timeRange);
+      socket.emit("club_active_players_trend_response", { clubId: payload.clubId, data });
+    } catch (error) {
+      socket.emit("club_analytics_error", { code: "ACTIVE_TREND_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_sessions_list", async (payload: ClubSessionsListPayload) => {
+    try {
+      const identity = socketIdentity.get(socket.id);
+      if (!identity) {
+        socket.emit("club_analytics_error", { code: "AUTH_REQUIRED", message: "Not authenticated" });
+        return;
+      }
+      const userId = payload.userId ?? identity.userId;
+      const result = await analyticsRepo.listSessions(payload.clubId, userId, payload.limit, payload.offset);
+      socket.emit("club_sessions_list_response", { clubId: payload.clubId, userId, sessions: result.sessions, hasMore: result.hasMore });
+    } catch (error) {
+      socket.emit("club_analytics_error", { code: "SESSIONS_LIST_FAILED", message: (error as Error).message });
+    }
+  });
+
+  socket.on("club_export_data", async (payload: ClubExportDataPayload) => {
+    try {
+      const identity = socketIdentity.get(socket.id);
+      if (!identity) {
+        socket.emit("club_analytics_error", { code: "AUTH_REQUIRED", message: "Not authenticated" });
+        return;
+      }
+      let csvData = "";
+      switch (payload.exportType) {
+        case "stats":
+          csvData = await analyticsRepo.exportPlayerStats(payload.clubId, payload.timeRange);
+          break;
+        case "sessions":
+          csvData = await analyticsRepo.exportSessions(payload.clubId, identity.userId, payload.timeRange);
+          break;
+        default:
+          csvData = "";
+          break;
+      }
+      const fileName = `${payload.clubId}_${payload.exportType}_${new Date().toISOString().slice(0, 10)}.csv`;
+      socket.emit("club_export_data_response", { clubId: payload.clubId, exportType: payload.exportType, csvData, fileName });
+    } catch (error) {
+      socket.emit("club_analytics_error", { code: "EXPORT_FAILED", message: (error as Error).message });
+    }
+  });
+
   /* ═══════════ DISCONNECT ═══════════ */
 
   socket.on("disconnect", async () => {
@@ -6018,7 +6660,7 @@ io.on("connection", (socket) => {
             void standUpPlayer(binding.tableId, binding.seat, "Disconnected (grace expired)");
             // Check room empty
             maybeCheckRoomEmpty(binding.tableId, currentPlayerCount(binding.tableId));
-            void emitLobbySnapshot();
+            debouncedLobbyBroadcast();
           }
         );
         // Mark disconnected in Supabase but keep seat for grace period
@@ -6055,7 +6697,7 @@ io.on("connection", (socket) => {
       // Check room empty auto-close
       maybeCheckRoomEmpty(binding.tableId, currentPlayerCount(binding.tableId));
 
-      void emitLobbySnapshot();
+      debouncedLobbyBroadcast();
     }
     socketIdentity.delete(socket.id);
   });
@@ -6150,6 +6792,23 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
     void gracefulShutdown(signal);
   });
 }
+
+process.on("unhandledRejection", (reason) => {
+  logError({
+    event: "process.unhandledRejection",
+    message: reason instanceof Error ? reason.message : String(reason),
+    stack: reason instanceof Error ? reason.stack : undefined,
+  });
+});
+
+process.on("uncaughtException", (error) => {
+  logError({
+    event: "process.uncaughtException",
+    message: error.message,
+    stack: error.stack,
+  });
+  void gracefulShutdown("SIGTERM" as NodeJS.Signals);
+});
 
 httpServer.listen(port, () => {
   logInfo({

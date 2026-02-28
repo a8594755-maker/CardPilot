@@ -13,9 +13,9 @@ function readServerSource(): string {
 
 function readWebSource(): string {
   try {
-    return readFileSync(resolve(process.cwd(), "../web/src/pages/clubs/ClubDetailView.tsx"), "utf-8");
+    return readFileSync(resolve(process.cwd(), "../web/src/pages/clubs/tabs/LeaderboardTab.tsx"), "utf-8");
   } catch {
-    return readFileSync(resolve(process.cwd(), "apps/web/src/pages/clubs/ClubDetailView.tsx"), "utf-8");
+    return readFileSync(resolve(process.cwd(), "apps/web/src/pages/clubs/tabs/LeaderboardTab.tsx"), "utf-8");
   }
 }
 
@@ -28,7 +28,8 @@ describe("Club leaderboard scope defaults", () => {
   it("defaults member leaderboard UI to week and exposes day/week/all switcher", () => {
     const source = readWebSource();
     assert.match(source, /useState<ClubLeaderboardRange>\("week"\)/);
-    assert.match(source, /\(\["day", "week", "all"\] as const\)\.map\(\(range\)/);
-    assert.match(source, /range === "day" \? "Last 24h" : range === "week" \? "Last 7d" : "All-time"/);
+    assert.match(source, /value: "day"/);
+    assert.match(source, /value: "week"/);
+    assert.match(source, /value: "all"/);
   });
 });

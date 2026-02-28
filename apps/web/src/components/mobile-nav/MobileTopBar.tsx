@@ -1,10 +1,13 @@
 import { memo } from "react";
+import { NotificationBell } from "../notifications/NotificationBell";
 
 interface MobileTopBarProps {
   title: string;
   isConnected: boolean;
   onMenuOpen: () => void;
   displayName: string;
+  notificationCount?: number;
+  onNotificationsClick?: () => void;
 }
 
 export const MobileTopBar = memo(function MobileTopBar({
@@ -12,6 +15,8 @@ export const MobileTopBar = memo(function MobileTopBar({
   isConnected,
   onMenuOpen,
   displayName,
+  notificationCount = 0,
+  onNotificationsClick,
 }: MobileTopBarProps) {
   return (
     <>
@@ -35,9 +40,12 @@ export const MobileTopBar = memo(function MobileTopBar({
           <span className="text-[13px] font-bold text-white tracking-tight">{title}</span>
         </div>
 
-        {/* Right: connection + avatar */}
+        {/* Right: connection + notifications + avatar */}
         <div className="flex items-center gap-1.5">
           <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-emerald-400" : "bg-red-400 animate-pulse"}`} />
+          {onNotificationsClick && (
+            <NotificationBell unreadCount={notificationCount} onClick={onNotificationsClick} />
+          )}
           <div
             className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-[9px] font-bold text-white uppercase"
             title={displayName}

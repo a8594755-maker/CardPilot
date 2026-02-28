@@ -19,9 +19,13 @@ import { getMoodMultipliers } from './mood.js';
 import { analyzeRaiseContext } from './raise-context.js';
 import { getBoardTexture, computeBoardTextureAdjustment, detectAggressor } from './board-integration.js';
 import { chooseSizing } from './sizing.js';
+import { lookupPreflopChart } from './preflop-chart.js';
 import { shouldInjectMistake, injectMistake } from './mistake-budget.js';
 import { createEmptyTrace, type DecisionTrace } from './trace-logger.js';
 import { estimateEquity } from './monte-carlo.js';
+
+// ===== Donk suppression factor (env-tunable) =====
+const DONK_SUPPRESS_FACTOR = parseFloat(process.env['BOT_DONK_SUPPRESS'] ?? '0.20');
 
 // ===== Normalize mix so sum = 1 =====
 function normalize(m: Mix): Mix {
@@ -153,6 +157,58 @@ function mapStreet(s: string): 'preflop' | 'flop' | 'turn' | 'river' {
 // ===== Copy mix for trace snapshots =====
 function copyMix(m: Mix): Mix {
   return { raise: m.raise, call: m.call, fold: m.fold };
+}
+
+// ===== Detect donk-bet spot =====
+// Donk bet: OOP non-PFA leads (bets) before the PFA acts on this street.
+function detectDonkSpot(state: TableState, mySeat: number): { isDonkSpot: boolean } {
+  if (state.street === 'PREFLOP') return { isDonkSpot: false };
+
+  const callAmount = state.legalActions?.callAmount ?? 0;
+  if (callAmount > 0) return { isDonkSpot: false }; // facing a bet, not leading
+
+  // IP betting after a check is normal, not a donk
+  const heroPos = state.positions?.[mySeat] ?? '';
+  if (heroPos === 'BTN' || heroPos === 'CO') return { isDonkSpot: false };
+
+  let heroRaisedPreflop = false;
+  let someoneElseRaisedPreflop = false;
+  for (const a of state.actions) {
+    if (a.street !== 'PREFLOP') continue;
+    if (a.type === 'raise' || a.type === 'all_in') {
+      if (a.seat === mySeat) heroRaisedPreflop = true;
+      else someoneElseRaisedPreflop = true;
+    }
+  }
+
+  return { isDonkSpot: !heroRaisedPreflop && someoneElseRaisedPreflop };
+}
+
+// ===== Donk guardrail: graduated suppression =====
+// Returns adjusted mix, or null if exempt (strong hand / low SPR / wet-board draw).
+function applyDonkGuardrail(
+  m: Mix, strength: number | null, spr: number, boardTexture: BoardTexture | null,
+): Mix | null {
+  const s = strength ?? 0.5;
+
+  // Exempt: monster hands can lead for value
+  if (s >= 0.75) return null;
+  // Exempt: low SPR commit-or-fold, position matters less
+  if (spr < 2.5) return null;
+  // Exempt: strong draw on wet board (semi-bluff lead has theoretical merit)
+  if (s >= 0.35 && s < 0.45 && boardTexture && boardTexture.wetness > 0.5) return null;
+
+  // Graduated suppression: stronger hands get less reduction
+  const factor = s >= 0.60 ? 0.40 : DONK_SUPPRESS_FACTOR;
+  const raiseBefore = m.raise;
+  const raiseAfter = raiseBefore * factor;
+  const shifted = raiseBefore - raiseAfter;
+
+  return {
+    raise: raiseAfter,
+    call: m.call + shifted, // call → check via legality resolver (callAmount=0)
+    fold: m.fold,
+  };
 }
 
 // ===== Quick hand strength evaluator (self-contained, no external deps) =====
@@ -540,13 +596,28 @@ export function decide(ctx: DecisionContext): DecisionResult {
   const strength = holeCards ? quickHandStrength(holeCards, state.board, state.street) : null;
   trace.handStrength = strength;
 
-  // Step 1: base mix — three-tier fallback
+  // Step 1: base mix — four-tier fallback
+  //   0. GTO preflop chart (preflop only, covered spots)
   //   1. Monte Carlo advice (strongest, slow)
   //   2. Learned fast model (fast, close to teacher)
   //   3. quickHandStrength heuristic (instant, basic) — now context-aware
   let baseMix: Mix;
   let source: string;
-  if (advice) {
+
+  // Tier 0: GTO preflop chart (replaces model for covered preflop spots)
+  const chartMix = (state.street === 'PREFLOP' && holeCards)
+    ? lookupPreflopChart(
+        raiseContext.heroPosition ?? '',
+        raiseContext.facingType,
+        raiseContext.raiserPosition,
+        holeCards,
+      )
+    : null;
+
+  if (chartMix) {
+    baseMix = chartMix;
+    source = 'preflop-chart';
+  } else if (advice) {
     baseMix = { raise: advice.raise, call: advice.call, fold: advice.fold };
     source = 'advice';
   } else if (fastModel && holeCards) {
@@ -626,6 +697,22 @@ export function decide(ctx: DecisionContext): DecisionResult {
     trace.moodValue = moodState.value;
   }
   trace.afterMood = copyMix(m);
+
+  // Step 2g: donk bet guardrail (postflop OOP non-PFA leading)
+  const donkInfo = detectDonkSpot(state, mySeat);
+  trace.isDonkSpot = donkInfo.isDonkSpot;
+  let donkGuardrailApplied = false;
+
+  if (donkInfo.isDonkSpot) {
+    const guardrailed = applyDonkGuardrail(m, strength, raiseContext.spr, boardTexture);
+    if (guardrailed) {
+      m = guardrailed;
+      m = normalize(m);
+      donkGuardrailApplied = true;
+    }
+  }
+  trace.donkGuardrailApplied = donkGuardrailApplied;
+  trace.afterDonkGuardrail = copyMix(m);
 
   // Step 3: preflop unopened limp share
   const limpShare = profile.unopenedLimpShare ?? 0;
@@ -720,11 +807,12 @@ function formatReasoning(trace: DecisionTrace, finalMix: Mix): string {
   const rc = trace.raiseContext ? ` facing=${trace.raiseContext.facingType}` : '';
   const mood = trace.moodValue !== 0 ? ` mood=${trace.moodValue.toFixed(2)}` : '';
   const mistake = trace.mistakeApplied ? ` MISTAKE:${trace.mistakeDescription}` : '';
+  const donk = trace.donkGuardrailApplied ? ' DONK_GUARD' : '';
 
   const fmtMix = (m: Mix) => `R:${m.raise.toFixed(2)} C:${m.call.toFixed(2)} F:${m.fold.toFixed(2)}`;
 
   return (
-    `src=${trace.source}${pos}${str}${bt}${rc}${mood}${mistake} ` +
+    `src=${trace.source}${pos}${str}${bt}${rc}${mood}${mistake}${donk} ` +
     `base=(${fmtMix(trace.baseMix)}) final=(${fmtMix(finalMix)}) ` +
     `raw=${trace.sampledAction} → ${trace.resolvedAction}` +
     `${trace.raiseAmount != null ? ` amt=${trace.raiseAmount}` : ''}` +
