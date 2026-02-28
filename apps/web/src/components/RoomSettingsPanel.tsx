@@ -522,6 +522,7 @@ export function RoomSettingsPanel({ roomState, isHost, readOnly = false, initial
                         <option value="v2.1">V2.1 (300k)</option>
                         <option value="v2.2">V2.2 (full)</option>
                         <option value="v3">V3 (CFR)</option>
+                        <option value="v3.2">V3.2 (+ Preflop)</option>
                       </select>
                     )}
                   </>
@@ -558,6 +559,7 @@ export function RoomSettingsPanel({ roomState, isHost, readOnly = false, initial
             <p><span className="text-indigo-400 font-medium">V2.1</span> = 300k curated checkpoint</p>
             <p><span className="text-indigo-400 font-medium">V2.2</span> = full-data optimized checkpoint</p>
             <p><span className="text-indigo-400 font-medium">V3</span> = CFR solver trained (177M samples)</p>
+            <p><span className="text-indigo-400 font-medium">V3.2</span> = V3 + Preflop CFR (199K samples)</p>
           </div>
         </div>
       )}

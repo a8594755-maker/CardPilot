@@ -35,7 +35,7 @@ export interface BotArgs {
   userId?: string;
   delay?: number; // ms to wait before acting (humanize)
   mode?: 'train' | 'play';       // V2: train=clean labels, play=full personality
-  version?: 'v1' | 'v2' | 'v3';  // model/data version
+  version?: 'v1' | 'v2' | 'v3' | 'v3.2';  // model/data version
   // In-process bot support (used by self-play orchestrator)
   sharedModel?: MLP | null;      // shared model instance (avoids loading per-bot)
   dataDir?: string;              // override data directory
@@ -63,7 +63,7 @@ function parseArgs(argv: string[]): BotArgs {
   const userId = args['userId'];
   const delay = parseInt(args['delay'] ?? '800', 10);
   const mode = (args['mode'] ?? 'play') as 'train' | 'play';
-  const version = (args['version'] ?? 'v1') as 'v1' | 'v2' | 'v3';
+  const version = (args['version'] ?? 'v1') as 'v1' | 'v2' | 'v3' | 'v3.2';
 
   if (!room) {
     console.error('Usage: --room <ROOM_CODE> [--server url] [--seat N] [--buyin N] [--profile id] [--name str] [--userId str] [--delay ms] [--mode train|play] [--version v1|v2|v3]');
@@ -112,7 +112,7 @@ export class PokerBot {
 
   // V2 mode/version
   private mode: 'train' | 'play';
-  private version: 'v1' | 'v2' | 'v3';
+  private version: 'v1' | 'v2' | 'v3' | 'v3.2';
   private v2DataDir: string = '';
 
   private skipPersistStats: boolean;
@@ -156,6 +156,8 @@ export class PokerBot {
       let modelPath: string;
       if (this.version === 'v3') {
         modelPath = join(__dirname, '..', '..', '..', 'models', 'cfr-combined-v3.json');
+      } else if (this.version === 'v3.2') {
+        modelPath = join(__dirname, '..', '..', '..', 'models', 'cfr-combined-v3-preflop.json');
       } else {
         const modelFileName = this.version === 'v2' ? 'model-v2-latest.json' : 'model-latest.json';
         modelPath = join(__dirname, '..', '..', '..', 'packages', 'fast-model', 'models', modelFileName);

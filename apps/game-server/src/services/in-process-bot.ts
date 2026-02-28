@@ -70,9 +70,10 @@ function getModelForVersion(version: string): MLP | null {
 
   if (modelCache.has(version)) return modelCache.get(version)!;
 
-  // V3 model lives in project root models/ dir (CFR-trained)
-  if (version === "v3") {
-    const modelPath = resolve(__dirname, "../../../../models/cfr-combined-v3.json");
+  // V3 / V3.2 models live in project root models/ dir (CFR-trained)
+  if (version === "v3" || version === "v3.2") {
+    const fileName = version === "v3.2" ? "cfr-combined-v3-preflop.json" : "cfr-combined-v3.json";
+    const modelPath = resolve(__dirname, `../../../../models/${fileName}`);
     const model = loadModel(modelPath);
     modelCache.set(version, model);
     return model;
