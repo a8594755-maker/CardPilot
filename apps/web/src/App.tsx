@@ -209,7 +209,7 @@ export function App() {
       return;
     }
 
-    const supportedPaths = ["/lobby", "/history", "/profile", "/training"];
+    const supportedPaths = ["/lobby", "/history", "/profile", "/training", "/preflop"];
     if (!(location.pathname.startsWith("/clubs") || location.pathname.startsWith("/history/") || supportedPaths.includes(location.pathname))) {
       navigate("/lobby", { replace: true });
     }
