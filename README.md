@@ -46,11 +46,30 @@ npm run build:web
 npm run build:server
 npm run env:doctor
 npm run ci:verify
+npm run data:upload:v2
+npm run data:download:v2
 ```
 
 Deployment health check example:
 ```bash
 npm run env:doctor -- --server-url https://your-railway-app.up.railway.app
+```
+
+## Large Training Data (IDrive E2, no Git LFS)
+- `data/v2/training-samples.jsonl` is intentionally kept out of Git and Git LFS.
+- A tracked manifest lives at `data/metadata/training-samples-v2.manifest.json`.
+- Upload/download use IDrive E2 via AWS CLI:
+```bash
+npm run data:upload:v2
+npm run data:download:v2
+```
+- Credentials are loaded from `packages/cfr-solver/scripts/cluster.env`:
+  - `E2_PROFILE`
+  - `E2_ENDPOINT`
+  - `E2_BUCKET`
+- Re-download and overwrite local file:
+```bash
+npm run data:download:v2 -- --force
 ```
 
 ## Supabase Auth Setup (Google OAuth)
