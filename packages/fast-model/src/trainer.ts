@@ -1092,7 +1092,7 @@ function splitByFlop(
   const flopFiles: string[] = [];
   const otherFiles: string[] = [];
   for (const f of allFiles) {
-    if (/flop_\d+\.jsonl$/.test(f)) {
+    if (/flop_\d+(?:\.training)?\.jsonl$/.test(f)) {
       flopFiles.push(f);
     } else {
       otherFiles.push(f);
