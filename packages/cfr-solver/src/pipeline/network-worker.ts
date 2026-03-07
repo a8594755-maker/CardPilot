@@ -101,12 +101,13 @@ const serverUrl = getArg('server', 'http://localhost:3500');
 const workerId = getArg('id', hostname());
 const requestedWorkers = getNumArg('workers', 0); // 0 = auto-detect
 const heapMB = getNumArg('heap', 0); // 0 = auto-detect
+const peakMB = getNumArg('peak-mb', 0); // 0 = auto (300MB); use 800+ for V2 configs with raises
 
 // Auto-detect worker count: based on CPU cores and RAM
 function autoDetectWorkers(): number {
   const cpuCount = cpus().length;
   const totalMB = Math.floor(totalmem() / (1024 * 1024));
-  const peakPerWorkerMB = 300; // conservative estimate based on benchmark (221MB peak)
+  const peakPerWorkerMB = peakMB > 0 ? peakMB : 300; // default 300 for pipeline_srp/3bet; use --peak-mb 800 for V2
   const reservedMB = 4096;     // OS + main process
   const maxByRam = Math.floor((totalMB - reservedMB) / peakPerWorkerMB);
   const maxByCpu = Math.max(1, cpuCount - 1); // leave 1 core for OS
