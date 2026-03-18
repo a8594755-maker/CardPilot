@@ -9,14 +9,18 @@
 //   npx tsx src/cli/convergence-test.ts --config v1_50bb --board "Tc Qc Ad"
 //   npx tsx src/cli/convergence-test.ts --config hu_btn_bb_3bp_50bb --board "Kh 9h 4h" --steps 50000,100000,200000,500000
 
-import { resolve, join } from 'node:path';
+import { resolve } from 'node:path';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { buildTree, countNodes } from '../tree/tree-builder.js';
 import { getTreeConfig, type TreeConfigName } from '../tree/tree-config.js';
 import { InfoSetStore } from '../engine/info-set-store.js';
 import { solveCFR } from '../engine/cfr-engine.js';
-import { loadHUSRPRanges, getWeightedRangeCombos, type HUSRPRangesOptions } from '../integration/preflop-ranges.js';
+import {
+  loadHUSRPRanges,
+  getWeightedRangeCombos,
+  type HUSRPRangesOptions,
+} from '../integration/preflop-ranges.js';
 import { cardToIndex, indexToCard } from '../abstraction/card-index.js';
 
 // ─── Project root ───
@@ -73,7 +77,7 @@ function getRangeOptions(configName: TreeConfigName): HUSRPRangesOptions {
         oopAction: 'raise',
         ipSpot: 'BTN_unopened_open2.5x',
         ipAction: 'raise',
-        minFrequency: 0.40,
+        minFrequency: 0.4,
       };
 
     case 'hu_co_bb_srp_100bb':
@@ -156,7 +160,7 @@ function computeRootAggregate(
   }
 
   if (!sums || count === 0) return { probs: [], count: 0 };
-  return { probs: sums.map(s => s / count), count };
+  return { probs: sums.map((s) => s / count), count };
 }
 
 // ─── Main ───
@@ -168,7 +172,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const iterationSteps = stepsArg.split(',').map(s => parseInt(s.trim(), 10));
+  const iterationSteps = stepsArg.split(',').map((s) => parseInt(s.trim(), 10));
   const treeConfig = getTreeConfig(configName);
   const chartsPath = resolve(PROJECT_ROOT, 'data/preflop_charts.json');
 
@@ -176,7 +180,7 @@ async function main(): Promise<void> {
   console.log(`  Convergence Test`);
   console.log(`  Config: ${configName}`);
   console.log(`  Board: ${boardCards.map(indexToCard).join(' ')}`);
-  console.log(`  Steps: ${iterationSteps.map(n => n.toLocaleString()).join(' → ')}`);
+  console.log(`  Steps: ${iterationSteps.map((n) => n.toLocaleString()).join(' → ')}`);
   console.log(`  Buckets: ${bucketCountArg}`);
   console.log(`${'═'.repeat(60)}\n`);
 
@@ -209,9 +213,6 @@ async function main(): Promise<void> {
 
   for (let stepIdx = 0; stepIdx < iterationSteps.length; stepIdx++) {
     const targetIter = iterationSteps[stepIdx];
-    const additionalIter = stepIdx === 0
-      ? targetIter
-      : targetIter - iterationSteps[stepIdx - 1];
 
     // For the first step, create a fresh store.
     // For subsequent steps, continue from previous solve.
@@ -243,19 +244,21 @@ async function main(): Promise<void> {
       bucketCount: bucketCountArg,
       onProgress: (iter) => {
         if (iter % 25000 === 0) {
-          process.stdout.write(`\r  Solving ${targetIter.toLocaleString()} iterations... ${((iter / solveIterations) * 100).toFixed(0)}%`);
+          process.stdout.write(
+            `\r  Solving ${targetIter.toLocaleString()} iterations... ${((iter / solveIterations) * 100).toFixed(0)}%`,
+          );
         }
       },
     });
 
     const elapsed = Date.now() - startTime;
-    process.stdout.write(`\r  Solving ${targetIter.toLocaleString()} iterations... done (${(elapsed / 1000).toFixed(1)}s, ${store.size} info sets)\n`);
+    process.stdout.write(
+      `\r  Solving ${targetIter.toLocaleString()} iterations... done (${(elapsed / 1000).toFixed(1)}s, ${store.size} info sets)\n`,
+    );
 
     // Extract strategies and compare with previous
     const currStrategies = extractAverageStrategies(store);
-    const shift = prevStrategies
-      ? computeStrategyShift(prevStrategies, currStrategies)
-      : null;
+    const shift = prevStrategies ? computeStrategyShift(prevStrategies, currStrategies) : null;
 
     // Root aggregate
     const rootOOP = computeRootAggregate(store, 0, 0);
@@ -279,16 +282,23 @@ async function main(): Promise<void> {
   console.log(`${'─'.repeat(60)}\n`);
 
   const treeConfigBetSizes = treeConfig.betSizes.flop;
-  const actionLabels = ['Check', ...treeConfigBetSizes.map(s => `Bet ${Math.round(s * 100)}%`), 'All-in'];
+  const actionLabels = [
+    'Check',
+    ...treeConfigBetSizes.map((s) => `Bet ${Math.round(s * 100)}%`),
+    'All-in',
+  ];
 
   for (let i = 0; i < results.length; i++) {
     const r = results[i];
     const iterLabel = r.iterations.toLocaleString().padStart(10);
 
     if (r.shift) {
-      const status = r.shift.avgL1 < 0.02 ? '✓ Converged' : r.shift.avgL1 < 0.05 ? '~ Nearly' : '✗ Not yet';
+      const status =
+        r.shift.avgL1 < 0.02 ? '✓ Converged' : r.shift.avgL1 < 0.05 ? '~ Nearly' : '✗ Not yet';
       const prevIter = results[i - 1].iterations.toLocaleString();
-      console.log(`  ${prevIter} → ${iterLabel}:  avg shift = ${(r.shift.avgL1 * 100).toFixed(1)}%  max = ${(r.shift.maxL1 * 100).toFixed(1)}%  ${status}`);
+      console.log(
+        `  ${prevIter} → ${iterLabel}:  avg shift = ${(r.shift.avgL1 * 100).toFixed(1)}%  max = ${(r.shift.maxL1 * 100).toFixed(1)}%  ${status}`,
+      );
     }
   }
 
@@ -298,13 +308,15 @@ async function main(): Promise<void> {
   console.log('  Root node strategies across iteration steps:\n');
 
   console.log('  BB (OOP) at root:');
-  const oopHeader = `  ${'Iterations'.padEnd(12)}${actionLabels.map(a => a.padStart(10)).join('')}`;
+  const oopHeader = `  ${'Iterations'.padEnd(12)}${actionLabels.map((a) => a.padStart(10)).join('')}`;
   console.log(oopHeader);
   console.log(`  ${'─'.repeat(oopHeader.length - 2)}`);
   for (const r of results) {
     if (r.rootOOP.probs.length === 0) continue;
     const iterLabel = r.iterations.toLocaleString().padEnd(12);
-    const probStrs = r.rootOOP.probs.slice(0, actionLabels.length).map(p => `${(p * 100).toFixed(1)}%`.padStart(10));
+    const probStrs = r.rootOOP.probs
+      .slice(0, actionLabels.length)
+      .map((p) => `${(p * 100).toFixed(1)}%`.padStart(10));
     console.log(`  ${iterLabel}${probStrs.join('')}`);
   }
 
@@ -313,16 +325,20 @@ async function main(): Promise<void> {
   // IP strategies at root would be after BB checks — history = 'x'
   // But we computed root of player 1 at empty history which may or may not have data
   // Let's use what we have
-  const ipHeader = `  ${'Iterations'.padEnd(12)}${actionLabels.map(a => a.padStart(10)).join('')}`;
+  const ipHeader = `  ${'Iterations'.padEnd(12)}${actionLabels.map((a) => a.padStart(10)).join('')}`;
   console.log(ipHeader);
   console.log(`  ${'─'.repeat(ipHeader.length - 2)}`);
   for (const r of results) {
     if (r.rootIP.probs.length === 0) {
-      console.log(`  ${r.iterations.toLocaleString().padEnd(12)}  (no data at empty history for IP)`);
+      console.log(
+        `  ${r.iterations.toLocaleString().padEnd(12)}  (no data at empty history for IP)`,
+      );
       continue;
     }
     const iterLabel = r.iterations.toLocaleString().padEnd(12);
-    const probStrs = r.rootIP.probs.slice(0, actionLabels.length).map(p => `${(p * 100).toFixed(1)}%`.padStart(10));
+    const probStrs = r.rootIP.probs
+      .slice(0, actionLabels.length)
+      .map((p) => `${(p * 100).toFixed(1)}%`.padStart(10));
     console.log(`  ${iterLabel}${probStrs.join('')}`);
   }
 
@@ -342,7 +358,7 @@ async function main(): Promise<void> {
   console.log();
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('Error:', err);
   process.exit(1);
 });

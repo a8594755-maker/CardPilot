@@ -6,7 +6,8 @@
 //   solve    — Run CFR+ solver on a preflop config
 //   export   — Export solved strategies to JSON (web) + JSONL (AI training)
 //   verify   — Compare solutions against GTO Wizard charts
-//   tree     — Print tree stats (debugging)
+//   tree     — Print tree stats + scenario breakdown
+//   batch    — Solve multiple configs (groups: hu, 3bet, 6max, all)
 //
 // Examples:
 //   npx tsx preflop-solve.ts equity
@@ -18,9 +19,14 @@
 //   npx tsx preflop-solve.ts tree --config cash_6max_100bb
 
 import { resolve, join } from 'node:path';
-import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { getPreflopConfig, PREFLOP_CONFIGS } from '../preflop/preflop-config.js';
-import { buildPreflopTree, countPreflopNodes, collectInfoSetKeys, printTree } from '../preflop/preflop-tree.js';
+import {
+  buildPreflopTree,
+  countPreflopNodes,
+  collectInfoSetKeys,
+  printTree,
+} from '../preflop/preflop-tree.js';
 import { solvePreflopCFR } from '../preflop/preflop-cfr.js';
 import { EquityTable, computeFullEquityTable } from '../preflop/equity-table.js';
 import { exportForWeb, exportForTraining, exportRawInfoSets } from '../preflop/preflop-export.js';
@@ -86,7 +92,9 @@ async function cmdEquity(flags: Record<string, string>): Promise<void> {
     const pct = ((done / total) * 100).toFixed(1);
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(0);
     const rate = (done / ((Date.now() - startTime) / 1000)).toFixed(0);
-    process.stdout.write(`\r  Progress: ${done}/${total} (${pct}%) — ${elapsed}s — ${rate} pairs/s`);
+    process.stdout.write(
+      `\r  Progress: ${done}/${total} (${pct}%) — ${elapsed}s — ${rate} pairs/s`,
+    );
   });
 
   console.log('\n');
@@ -158,7 +166,9 @@ async function cmdSolve(flags: Record<string, string>): Promise<void> {
       const pct = ((iter / iterations) * 100).toFixed(1);
       const ips = Math.round(iter / (elapsed / 1000));
       const memMB = Math.round(store.estimateMemoryBytes() / 1024 / 1024);
-      process.stdout.write(`\r  ${iter.toLocaleString()} / ${iterations.toLocaleString()} (${pct}%) — ${ips.toLocaleString()} iter/s — ${memMB} MB`);
+      process.stdout.write(
+        `\r  ${iter.toLocaleString()} / ${iterations.toLocaleString()} (${pct}%) — ${ips.toLocaleString()} iter/s — ${memMB} MB`,
+      );
     },
   });
 
@@ -167,7 +177,9 @@ async function cmdSolve(flags: Record<string, string>): Promise<void> {
   console.log(`  Time:      ${(result.elapsed / 1000).toFixed(1)}s`);
   console.log(`  Info sets: ${result.infoSets.toLocaleString()}`);
   console.log(`  Peak RAM:  ${result.peakMemoryMB} MB`);
-  console.log(`  Speed:     ${Math.round(iterations / (result.elapsed / 1000)).toLocaleString()} iter/s`);
+  console.log(
+    `  Speed:     ${Math.round(iterations / (result.elapsed / 1000)).toLocaleString()} iter/s`,
+  );
 
   // Save raw store for later export
   const storePath = join(DATA_DIR, `store_${configName}${seed ? `_seed${seed}` : ''}.jsonl`);
@@ -186,7 +198,7 @@ async function cmdExport(flags: Record<string, string>): Promise<void> {
   const allConfigs = flags['all-configs'] === 'true';
   const configNames = allConfigs
     ? Object.keys(PREFLOP_CONFIGS)
-    : [(flags['config'] || 'cash_6max_100bb')];
+    : [flags['config'] || 'cash_6max_100bb'];
 
   for (const configName of configNames) {
     console.log(`\n=== Exporting: ${configName} ===\n`);
@@ -270,7 +282,10 @@ async function cmdVerify(flags: Record<string, string>): Promise<void> {
 
   // Load GTO Wizard data
   const gtoData = JSON.parse(readFileSync(chartsPath, 'utf-8')) as Array<{
-    format: string; spot: string; hand: string; mix: Record<string, number>;
+    format: string;
+    spot: string;
+    hand: string;
+    mix: Record<string, number>;
   }>;
 
   // Map GTO Wizard spots to our spot names
@@ -296,7 +311,7 @@ async function cmdVerify(flags: Record<string, string>): Promise<void> {
     }
 
     const ourSolution = JSON.parse(readFileSync(ourFile, 'utf-8'));
-    const gtoEntries = gtoData.filter(e => e.spot === gtoSpot);
+    const gtoEntries = gtoData.filter((e) => e.spot === gtoSpot);
 
     let spotDeviation = 0;
     let spotCount = 0;
@@ -312,14 +327,17 @@ async function cmdVerify(flags: Record<string, string>): Promise<void> {
       const gtoFold = gtoEntry.mix.fold || 0;
 
       // Map our actions to raise/call/fold
-      let ourRaise = 0, ourCall = 0, ourFold = 0;
+      let ourRaise = 0,
+        ourCall = 0,
+        ourFold = 0;
       for (const [action, freq] of Object.entries(ourGrid)) {
         if (action === 'fold') ourFold += freq as number;
         else if (action === 'call' || action === 'check') ourCall += freq as number;
         else ourRaise += freq as number; // open, 3bet, etc.
       }
 
-      const dev = Math.abs(gtoRaise - ourRaise) + Math.abs(gtoCall - ourCall) + Math.abs(gtoFold - ourFold);
+      const dev =
+        Math.abs(gtoRaise - ourRaise) + Math.abs(gtoCall - ourCall) + Math.abs(gtoFold - ourFold);
       spotDeviation += dev;
       spotCount++;
     }
@@ -327,7 +345,9 @@ async function cmdVerify(flags: Record<string, string>): Promise<void> {
     if (spotCount > 0) {
       const avgDev = spotDeviation / spotCount;
       const status = avgDev < 0.1 ? 'PASS' : avgDev < 0.2 ? 'WARN' : 'FAIL';
-      console.log(`  ${status}: ${ourSpot} — avg deviation ${(avgDev * 100).toFixed(1)}% (${spotCount} hands)`);
+      console.log(
+        `  ${status}: ${ourSpot} — avg deviation ${(avgDev * 100).toFixed(1)}% (${spotCount} hands)`,
+      );
       totalDeviation += spotDeviation;
       totalComparisons += spotCount;
     }
@@ -335,7 +355,9 @@ async function cmdVerify(flags: Record<string, string>): Promise<void> {
 
   if (totalComparisons > 0) {
     const overallAvg = totalDeviation / totalComparisons;
-    console.log(`\n  Overall: ${(overallAvg * 100).toFixed(1)}% avg deviation across ${totalComparisons} comparisons`);
+    console.log(
+      `\n  Overall: ${(overallAvg * 100).toFixed(1)}% avg deviation across ${totalComparisons} comparisons`,
+    );
     console.log(`  Target: <5%`);
   }
 }
@@ -349,18 +371,120 @@ async function cmdTree(flags: Record<string, string>): Promise<void> {
   const counts = countPreflopNodes(root);
   const infoKeys = collectInfoSetKeys(root);
 
+  console.log(`Players:          ${config.players} (${(config.positionLabels ?? []).join(', ')})`);
+  console.log(`Stack:            ${config.stackSize}bb`);
+  console.log(`Max raise level:  ${config.maxRaiseLevel ?? 4}`);
   console.log(`Action nodes:     ${counts.action.toLocaleString()}`);
   console.log(`Terminal nodes:   ${counts.terminal.toLocaleString()}`);
   console.log(`Total nodes:      ${(counts.action + counts.terminal).toLocaleString()}`);
   console.log(`Decision points:  ${infoKeys.size.toLocaleString()}`);
   console.log(`Info sets (×169): ${(infoKeys.size * 169).toLocaleString()}`);
-  console.log(`Est. memory:      ${Math.round(infoKeys.size * 169 * 8 * 2 / 1024 / 1024)} MB`);
+  console.log(`Est. memory:      ${Math.round((infoKeys.size * 169 * 8 * 2) / 1024 / 1024)} MB`);
+
+  // Scenario breakdown
+  console.log('\nScenario breakdown:');
+  const scenarios = new Map<string, string[]>();
+  collectSpotSummary(root, scenarios);
+  for (const [scenario, spots] of scenarios) {
+    console.log(`  ${scenario}: ${spots.length} spots`);
+    for (const spot of spots) {
+      console.log(`    - ${spot}`);
+    }
+  }
 
   if (flags['print'] === 'true') {
     const depth = parseInt(flags['depth'] || '4');
     console.log(`\nTree (depth=${depth}):\n`);
     printTree(root, '', depth);
   }
+}
+
+function collectSpotSummary(
+  node: PreflopGameNode,
+  scenarios: Map<string, string[]>,
+  seen = new Set<string>(),
+): void {
+  if (node.type === 'terminal') return;
+  const act = node as PreflopActionNode;
+  const key = `${act.seat}|${act.historyKey}`;
+  if (!seen.has(key)) {
+    seen.add(key);
+    const scenario = classifySpotScenario(act.historyKey);
+    const spotName = `${act.position} (${act.actions.join(', ')})`;
+    if (!scenarios.has(scenario)) scenarios.set(scenario, []);
+    scenarios.get(scenario)!.push(spotName);
+  }
+  for (const child of act.children.values()) {
+    collectSpotSummary(child, scenarios, seen);
+  }
+}
+
+function classifySpotScenario(history: string): string {
+  if (!history) return 'RFI';
+  const parts = history.split('-');
+  const raises = parts.filter((p) => /[o0-9qA]/.test(p.slice(-1)));
+  if (raises.length === 0) return 'RFI';
+  const hasCall = parts.some((p) => p.endsWith('c'));
+  const lastRaise = raises[raises.length - 1];
+  if (hasCall && (lastRaise.endsWith('3') || lastRaise.endsWith('q'))) return 'squeeze';
+  if (raises.length === 1) return 'facing_open';
+  if (raises.length === 2) return 'facing_3bet';
+  return 'facing_4bet';
+}
+
+type PreflopActionNode = import('../preflop/preflop-types.js').PreflopActionNode;
+type PreflopGameNode = import('../preflop/preflop-types.js').PreflopGameNode;
+
+async function cmdBatch(flags: Record<string, string>): Promise<void> {
+  const group = flags['group'] || 'hu';
+  const iterations = parseInt(flags['iterations'] || flags['iter'] || '1000000');
+
+  const groups: Record<string, string[]> = {
+    hu: Object.keys(PREFLOP_CONFIGS).filter((k) => k.startsWith('hu_')),
+    threeway: Object.keys(PREFLOP_CONFIGS).filter((k) => k.startsWith('threeway_')),
+    fourway: Object.keys(PREFLOP_CONFIGS).filter((k) => k.startsWith('fourway_')),
+    '3bet': [
+      ...Object.keys(PREFLOP_CONFIGS).filter((k) => k.startsWith('hu_')),
+      ...Object.keys(PREFLOP_CONFIGS).filter((k) => k.startsWith('threeway_')),
+      ...Object.keys(PREFLOP_CONFIGS).filter((k) => k.startsWith('fourway_')),
+    ],
+    '6max': Object.keys(PREFLOP_CONFIGS).filter((k) => k.startsWith('cash_6max_')),
+    all: Object.keys(PREFLOP_CONFIGS),
+  };
+
+  const configs = groups[group];
+  if (!configs || configs.length === 0) {
+    console.error(`Unknown group: ${group}. Available: ${Object.keys(groups).join(', ')}`);
+    process.exit(1);
+  }
+
+  console.log(`=== Batch Solve: ${group} (${configs.length} configs) ===\n`);
+  console.log(`Configs: ${configs.join(', ')}`);
+  console.log(`Iterations: ${iterations.toLocaleString()}\n`);
+
+  const batchStart = Date.now();
+
+  for (let i = 0; i < configs.length; i++) {
+    const configName = configs[i];
+    console.log(`\n[${i + 1}/${configs.length}] Solving: ${configName}`);
+    console.log('─'.repeat(50));
+
+    // Check if already solved
+    const storePath = join(DATA_DIR, `store_${configName}.jsonl`);
+    if (existsSync(storePath) && flags['force'] !== 'true') {
+      console.log(`  SKIP: Already solved (${storePath}). Use --force to re-solve.`);
+      continue;
+    }
+
+    try {
+      await cmdSolve({ config: configName, iterations: String(iterations) });
+    } catch (err) {
+      console.error(`  ERROR solving ${configName}:`, err);
+    }
+  }
+
+  const totalTime = ((Date.now() - batchStart) / 1000).toFixed(0);
+  console.log(`\n=== Batch complete: ${configs.length} configs in ${totalTime}s ===`);
 }
 
 // ── Main ──
@@ -384,6 +508,9 @@ async function main(): Promise<void> {
     case 'tree':
       await cmdTree(flags);
       break;
+    case 'batch':
+      await cmdBatch(flags);
+      break;
     default:
       console.log('Preflop GTO Solver — CardPilot\n');
       console.log('Commands:');
@@ -393,12 +520,26 @@ async function main(): Promise<void> {
       console.log('  export --all-configs            Export all configs');
       console.log('  verify --config NAME            Compare vs GTO Wizard');
       console.log('  tree   --config NAME            Print tree stats');
+      console.log('  batch  --group GROUP --iter N    Solve multiple configs');
       console.log('');
-      console.log('Configs:', Object.keys(PREFLOP_CONFIGS).join(', '));
+      console.log('Batch groups: hu, threeway, fourway, 3bet, 6max, all');
+      console.log('');
+      console.log('Configs:');
+      const configKeys = Object.keys(PREFLOP_CONFIGS);
+      const maxLen = Math.max(...configKeys.map((k) => k.length));
+      for (const key of configKeys) {
+        const cfg = PREFLOP_CONFIGS[key];
+        const labels = (cfg.positionLabels ?? []).join('/');
+        const maxLvl = cfg.maxRaiseLevel ?? 4;
+        const scenarios = maxLvl >= 3 ? 'RFI→4bet' : maxLvl >= 2 ? 'RFI→3bet' : 'RFI→open';
+        console.log(
+          `  ${key.padEnd(maxLen + 2)} ${cfg.players}p ${cfg.stackSize}bb  ${labels}  (${scenarios})`,
+        );
+      }
   }
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error(err);
   process.exit(1);
 });

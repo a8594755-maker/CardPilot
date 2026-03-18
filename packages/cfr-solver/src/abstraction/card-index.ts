@@ -14,8 +14,8 @@ export function cardToIndex(card: string): number {
 }
 
 export function indexToCard(index: number): string {
-  const rank = (index >> 2);  // Math.floor(index / 4)
-  const suit = index & 3;     // index % 4
+  const rank = index >> 2; // Math.floor(index / 4)
+  const suit = index & 3; // index % 4
   return RANK_CHARS[rank] + SUIT_CHARS[suit];
 }
 

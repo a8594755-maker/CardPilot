@@ -24,12 +24,12 @@ import { buildTree, countNodes } from '../tree/tree-builder.js';
 const CARD_NAMES = ['J', 'Q', 'K', 'A'];
 
 interface KuhnState {
-  cards: number[];         // cards[i] = card for player i
-  history: string;         // action history
-  pot: number[];           // chips each player has put in
+  cards: number[]; // cards[i] = card for player i
+  history: string; // action history
+  pot: number[]; // chips each player has put in
   activePlayers: boolean[];
   playerToAct: number;
-  bettingOpen: boolean;    // whether someone has bet
+  bettingOpen: boolean; // whether someone has bet
 }
 
 /** Apply action and return new state */
@@ -50,7 +50,10 @@ function applyAction(state: KuhnState, action: string): KuhnState {
   let next = -1;
   for (let i = 1; i <= 3; i++) {
     const candidate = (p + i) % 3;
-    if (newActive[candidate]) { next = candidate; break; }
+    if (newActive[candidate]) {
+      next = candidate;
+      break;
+    }
   }
 
   return {
@@ -65,7 +68,7 @@ function applyAction(state: KuhnState, action: string): KuhnState {
 
 /** Check if game is over */
 function gameOver(state: KuhnState): boolean {
-  const activeCount = state.activePlayers.filter(a => a).length;
+  const activeCount = state.activePlayers.filter((a) => a).length;
   if (activeCount <= 1) return true;
 
   const h = state.history;
@@ -94,9 +97,7 @@ function getActions(state: KuhnState): string[] {
 
 /** Compute payoffs at terminal */
 function computePayoffs(state: KuhnState): number[] {
-  const activeIndices = state.activePlayers
-    .map((a, i) => (a ? i : -1))
-    .filter(i => i >= 0);
+  const activeIndices = state.activePlayers.map((a, i) => (a ? i : -1)).filter((i) => i >= 0);
   const totalPot = state.pot.reduce((a, b) => a + b, 0);
 
   if (activeIndices.length === 1) {
@@ -217,13 +218,28 @@ describe('3-Player Kuhn Poker CFR', () => {
       const sum = Array.from(entry.averageStrategy).reduce((a, b) => a + b, 0);
       if (sum > 0.01) {
         validInfoSets++;
-        const normalized = Array.from(entry.averageStrategy).map(v => v / sum);
+        const normalized = Array.from(entry.averageStrategy).map((v) => v / sum);
         strategies.set(entry.key, normalized);
 
         // Only print a selection
         const key = entry.key;
-        if (['A|', 'K|', 'J|', 'A|xx', 'J|xx', 'A|xb', 'J|xb', 'A|xxb', 'J|xxb', 'A|x', 'K|x', 'J|x'].includes(key)) {
-          console.log(`  ${key.padEnd(10)} → [${normalized.map(v => v.toFixed(3)).join(', ')}]`);
+        if (
+          [
+            'A|',
+            'K|',
+            'J|',
+            'A|xx',
+            'J|xx',
+            'A|xb',
+            'J|xb',
+            'A|xxb',
+            'J|xxb',
+            'A|x',
+            'K|x',
+            'J|x',
+          ].includes(key)
+        ) {
+          console.log(`  ${key.padEnd(10)} → [${normalized.map((v) => v.toFixed(3)).join(', ')}]`);
         }
       }
     }
@@ -273,7 +289,9 @@ describe('3-Player Kuhn Poker CFR', () => {
     // This is different from HU where Ace bets more — in 3P, first-to-act often checks
     const aceFirst = strategies.get('A|');
     if (aceFirst) {
-      console.log(`P0 Ace first: check ${(aceFirst[0] * 100).toFixed(1)}%, bet ${(aceFirst[1] * 100).toFixed(1)}%`);
+      console.log(
+        `P0 Ace first: check ${(aceFirst[0] * 100).toFixed(1)}%, bet ${(aceFirst[1] * 100).toFixed(1)}%`,
+      );
       // Both checking and betting should be part of the strategy (mixed strategy)
       // But checking heavily is valid in 3P
     }
@@ -283,7 +301,7 @@ describe('3-Player Kuhn Poker CFR', () => {
     const config = {
       startingPot: 7.5,
       effectiveStack: 47.5,
-      betSizes: { flop: [0.50], turn: [0.50], river: [0.50] },
+      betSizes: { flop: [0.5], turn: [0.5], river: [0.5] },
       raiseCapPerStreet: 0,
       numPlayers: 3,
     };
@@ -331,7 +349,7 @@ describe('3-Player Kuhn Poker CFR', () => {
     const huConfig = {
       startingPot: 7.5,
       effectiveStack: 47.5,
-      betSizes: { flop: [0.50], turn: [0.50], river: [0.50] },
+      betSizes: { flop: [0.5], turn: [0.5], river: [0.5] },
       raiseCapPerStreet: 0,
       numPlayers: 2,
     };

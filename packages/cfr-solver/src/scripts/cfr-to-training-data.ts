@@ -33,10 +33,7 @@ import {
   getWeightedRangeCombos,
   type WeightedCombo,
 } from '../integration/preflop-ranges.js';
-import {
-  computeEquityBuckets,
-  comboKey,
-} from '../engine/cfr-engine.js';
+import { computeEquityBuckets, comboKey } from '../engine/cfr-engine.js';
 import {
   getTreeConfig,
   calcBetAmount,
@@ -151,7 +148,8 @@ export function replayHistory(historyKey: string, config: TreeConfig): GameState
         // facingBet stays 0 for checks
         break;
 
-      case 'c': { // call
+      case 'c': {
+        // call
         const callAmt = Math.min(facingBet, stacks[p]);
         stacks = [stacks[0], stacks[1]] as [number, number];
         stacks[p] -= callAmt;
@@ -165,7 +163,8 @@ export function replayHistory(historyKey: string, config: TreeConfig): GameState
         // Terminal — shouldn't appear in non-terminal histories
         break;
 
-      case 'A': { // all-in
+      case 'A': {
+        // all-in
         const allInAmt = stacks[p];
         stacks = [stacks[0], stacks[1]] as [number, number];
         stacks[p] = 0;
@@ -217,17 +216,23 @@ export function replayHistory(historyKey: string, config: TreeConfig): GameState
 
 function nextStreet(street: Street): Street {
   switch (street) {
-    case 'FLOP': return 'TURN';
-    case 'TURN': return 'RIVER';
-    case 'RIVER': return 'RIVER'; // shouldn't happen
+    case 'FLOP':
+      return 'TURN';
+    case 'TURN':
+      return 'RIVER';
+    case 'RIVER':
+      return 'RIVER'; // shouldn't happen
   }
 }
 
 function getBetSizesForStreet(config: TreeConfig, street: Street): number[] {
   switch (street) {
-    case 'FLOP': return config.betSizes.flop;
-    case 'TURN': return config.betSizes.turn;
-    case 'RIVER': return config.betSizes.river;
+    case 'FLOP':
+      return config.betSizes.flop;
+    case 'TURN':
+      return config.betSizes.turn;
+    case 'RIVER':
+      return config.betSizes.river;
   }
 }
 
@@ -333,7 +338,7 @@ export function mapCfrProbsToV2Labels(
   if (raiseProb > 0.001) {
     const total = sizingWeights.reduce((a, b) => a + b, 0);
     if (total > 0) {
-      sz = sizingWeights.map(w => w / total) as [number, number, number, number, number];
+      sz = sizingWeights.map((w) => w / total) as [number, number, number, number, number];
     }
   }
 
@@ -345,7 +350,7 @@ export function mapCfrProbsToV2Labels(
  * V2 sizing buckets: [0.33, 0.50, 0.66, 1.00, allIn]
  */
 function fractionToSizingIndex(fraction: number): number {
-  if (fraction <= 0.40) return 0; // third (33%)
+  if (fraction <= 0.4) return 0; // third (33%)
   if (fraction <= 0.58) return 1; // half (50%)
   if (fraction <= 0.83) return 2; // twoThirds (66%)
   return 3; // pot (100%)
@@ -357,10 +362,21 @@ function fractionToSizingIndex(fraction: number): number {
 // ══════════════════════════════════════════════
 
 const RANK_VALUES: Record<string, number> = {
-  '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8,
-  '9': 9, 'T': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14,
+  '2': 2,
+  '3': 3,
+  '4': 4,
+  '5': 5,
+  '6': 6,
+  '7': 7,
+  '8': 8,
+  '9': 9,
+  T: 10,
+  J: 11,
+  Q: 12,
+  K: 13,
+  A: 14,
 };
-const SUIT_INDEX: Record<string, number> = { 's': 0, 'h': 1, 'd': 2, 'c': 3 };
+const SUIT_INDEX: Record<string, number> = { s: 0, h: 1, d: 2, c: 3 };
 
 /**
  * Encode CFR game state into a 54-dim V2 feature vector.
@@ -392,7 +408,13 @@ export function encodeCfrFeatures(
     if (i < board.length && board[i]) {
       const r = (RANK_VALUES[board[i][0]] ?? 0) / 14;
       const sIdx = SUIT_INDEX[board[i][1]] ?? 0;
-      features.push(r, sIdx === 0 ? 1 : 0, sIdx === 1 ? 1 : 0, sIdx === 2 ? 1 : 0, sIdx === 3 ? 1 : 0);
+      features.push(
+        r,
+        sIdx === 0 ? 1 : 0,
+        sIdx === 1 ? 1 : 0,
+        sIdx === 2 ? 1 : 0,
+        sIdx === 3 ? 1 : 0,
+      );
     } else {
       features.push(0, 0, 0, 0, 0);
     }
@@ -416,12 +438,11 @@ export function encodeCfrFeatures(
   const bb = 1; // normalized to 1bb
   const potNorm = Math.min(gameState.pot / (100 * bb), 5);
   const toCallNorm = Math.min(gameState.toCall / (100 * bb), 5);
-  const spr = gameState.pot > 0
-    ? Math.min(gameState.stacks[player] / gameState.pot, 20) / 20
-    : 1;
-  const potOdds = (gameState.pot + gameState.toCall) > 0
-    ? gameState.toCall / (gameState.pot + gameState.toCall)
-    : 0;
+  const spr = gameState.pot > 0 ? Math.min(gameState.stacks[player] / gameState.pot, 20) / 20 : 1;
+  const potOdds =
+    gameState.pot + gameState.toCall > 0
+      ? gameState.toCall / (gameState.pot + gameState.toCall)
+      : 0;
   features.push(potNorm, toCallNorm, spr, potOdds);
 
   // ── Action context (3 features) ──
@@ -443,9 +464,10 @@ export function encodeCfrFeatures(
   // [51] raiseCountTotal / 10
   features.push(Math.min(histAgg.totalRaises, 10) / 10);
   // [52] lastBetPotFrac / 2
-  const lastBetFrac = (histAgg.lastBetAmount > 0 && gameState.pot > 0)
-    ? Math.min(histAgg.lastBetAmount / gameState.pot, 2.0) / 2.0
-    : 0;
+  const lastBetFrac =
+    histAgg.lastBetAmount > 0 && gameState.pot > 0
+      ? Math.min(histAgg.lastBetAmount / gameState.pot, 2.0) / 2.0
+      : 0;
   features.push(lastBetFrac);
   // [53] allInPressure
   features.push(histAgg.hasAllIn ? 1 : 0);
@@ -467,10 +489,10 @@ interface HistoryAggregates {
  * This is the CFR equivalent of the game-server's aggregateActions().
  */
 function aggregateHistoryKey(historyKey: string, currentStreet: Street): HistoryAggregates {
-  let preflopRaises = 0;
+  const preflopRaises = 0;
   let raisesOnStreet = 0;
   let totalRaises = 0;
-  let lastBetAmount = 0;
+  const lastBetAmount = 0;
   let isCheckRaised = false;
   let hasAllIn = false;
 
@@ -564,13 +586,27 @@ export function buildBucketComboMap(
     const turnDead = new Set([...deadCards, turnCard]);
 
     // Compute turn buckets for all valid combos in each range
-    buildTurnBuckets(oopRange, turnBoard, turnDead, bucketCount, oopFlopBuckets, turnCard, oopTurnMap);
+    buildTurnBuckets(
+      oopRange,
+      turnBoard,
+      turnDead,
+      bucketCount,
+      oopFlopBuckets,
+      turnCard,
+      oopTurnMap,
+    );
     buildTurnBuckets(ipRange, turnBoard, turnDead, bucketCount, ipFlopBuckets, turnCard, ipTurnMap);
   }
 
   // ── River bucket mapping (sampled) ──
-  const oopRiverMap = new Map<string, Array<{ combo: [number, number]; turnCard: number; riverCard: number }>>();
-  const ipRiverMap = new Map<string, Array<{ combo: [number, number]; turnCard: number; riverCard: number }>>();
+  const oopRiverMap = new Map<
+    string,
+    Array<{ combo: [number, number]; turnCard: number; riverCard: number }>
+  >();
+  const ipRiverMap = new Map<
+    string,
+    Array<{ combo: [number, number]; turnCard: number; riverCard: number }>
+  >();
 
   for (const turnCard of turnCards) {
     const turnDead = new Set([...deadCards, turnCard]);
@@ -587,8 +623,26 @@ export function buildBucketComboMap(
       const riverBoard = [...flopCards, turnCard, riverCard];
       const riverDead = new Set([...turnDead, riverCard]);
 
-      buildRiverBuckets(oopRange, riverBoard, riverDead, bucketCount, oopFlopBuckets, turnCard, riverCard, oopRiverMap);
-      buildRiverBuckets(ipRange, riverBoard, riverDead, bucketCount, ipFlopBuckets, turnCard, riverCard, ipRiverMap);
+      buildRiverBuckets(
+        oopRange,
+        riverBoard,
+        riverDead,
+        bucketCount,
+        oopFlopBuckets,
+        turnCard,
+        riverCard,
+        oopRiverMap,
+      );
+      buildRiverBuckets(
+        ipRange,
+        riverBoard,
+        riverDead,
+        bucketCount,
+        ipFlopBuckets,
+        turnCard,
+        riverCard,
+        ipRiverMap,
+      );
     }
   }
 
@@ -655,7 +709,6 @@ function buildRiverBuckets(
 
   // For turn bucket, we need to re-compute (or we could cache)
   const turnBoard = riverBoard.slice(0, 4);
-  const turnDead = new Set([...Array.from(deadCards), riverCard]); // note: deadCards already excludes turnCard
   // Actually deadCards already has the turn card removed issue... let's just recompute
   const turnBoardDead = new Set(turnBoard);
   const turnBuckets = computeEquityBuckets(range, turnBoard, bucketCount, turnBoardDead);
@@ -704,7 +757,11 @@ export function processFlop(
 
   // Step 1: Build bucket → combo reverse mapping
   const { oopMap, ipMap } = buildBucketComboMap(
-    flopCards, oopRange, ipRange, bucketCount, riverSamplesPerTurn,
+    flopCards,
+    oopRange,
+    ipRange,
+    bucketCount,
+    riverSamplesPerTurn,
   );
 
   const samples: TrainingSample[] = [];
@@ -733,9 +790,7 @@ export function processFlop(
     const bucketMap = parsed.player === 0 ? oopMap : ipMap;
 
     // Look up combos for this bucket string
-    const combos = lookupCombos(
-      bucketMap, parsed.street, parsed.bucketStr, flopCards,
-    );
+    const combos = lookupCombos(bucketMap, parsed.street, parsed.bucketStr, flopCards);
     if (!combos || combos.length === 0) continue;
 
     // Sample N representative combos
@@ -747,10 +802,16 @@ export function processFlop(
       const boardCards = buildBoardForEntry(flopCards, parsed.street, entry);
 
       // Check for card conflicts
-      if (boardCards.some(c => c === holeCards[0] || c === holeCards[1])) continue;
+      if (boardCards.some((c) => c === holeCards[0] || c === holeCards[1])) continue;
 
       // Encode features
-      const f = encodeCfrFeatures(holeCards, boardCards, gameState, parsed.player, parsed.historyKey);
+      const f = encodeCfrFeatures(
+        holeCards,
+        boardCards,
+        gameState,
+        parsed.player,
+        parsed.historyKey,
+      );
 
       const sample: TrainingSample = {
         f,
@@ -786,17 +847,17 @@ function lookupCombos(
       const bucket = parseInt(bucketStr, 10);
       const combos = bucketMap.flop.get(bucket);
       if (!combos) return null;
-      return combos.map(combo => ({ combo }));
+      return combos.map((combo) => ({ combo }));
     }
     case 'TURN': {
       const entries = bucketMap.turn.get(bucketStr);
       if (!entries) return null;
-      return entries.map(e => ({ combo: e.combo, turnCard: e.turnCard }));
+      return entries.map((e) => ({ combo: e.combo, turnCard: e.turnCard }));
     }
     case 'RIVER': {
       const entries = bucketMap.river.get(bucketStr);
       if (!entries) return null;
-      return entries.map(e => ({ combo: e.combo, turnCard: e.turnCard, riverCard: e.riverCard }));
+      return entries.map((e) => ({ combo: e.combo, turnCard: e.turnCard, riverCard: e.riverCard }));
     }
   }
 }
@@ -819,7 +880,7 @@ function buildBoardForEntry(
 function isNearUniform(probs: number[], minDivergence: number): boolean {
   if (probs.length === 0) return true;
   const uniform = 1 / probs.length;
-  const maxDev = Math.max(...probs.map(p => Math.abs(p - uniform)));
+  const maxDev = Math.max(...probs.map((p) => Math.abs(p - uniform)));
   return maxDev < minDivergence;
 }
 
@@ -856,8 +917,10 @@ function loadFlopInfoSets(jsonlPath: string): Map<string, number[]> {
   return map;
 }
 
-function discoverSolvedFlops(cfrDir: string): Array<{ boardId: number; metaPath: string; jsonlPath: string }> {
-  const files = readdirSync(cfrDir).filter(f => f.endsWith('.meta.json'));
+function discoverSolvedFlops(
+  cfrDir: string,
+): Array<{ boardId: number; metaPath: string; jsonlPath: string }> {
+  const files = readdirSync(cfrDir).filter((f) => f.endsWith('.meta.json'));
   const result: Array<{ boardId: number; metaPath: string; jsonlPath: string }> = [];
 
   for (const metaFile of files) {
@@ -880,7 +943,7 @@ function discoverSolvedFlops(cfrDir: string): Array<{ boardId: number; metaPath:
 }
 
 function writeSamples(outputPath: string, samples: TrainingSample[]): void {
-  const lines = samples.map(s => JSON.stringify(s));
+  const lines = samples.map((s) => JSON.stringify(s));
   writeFileSync(outputPath, lines.join('\n') + '\n', 'utf-8');
 }
 
@@ -904,7 +967,8 @@ interface WorkerConfig {
 }
 
 const IS_WORKER = process.argv.includes('--worker-mode');
-const IS_MAIN_SCRIPT = process.argv[1] && resolve(process.argv[1]).replace(/\\/g, '/').includes('cfr-to-training-data');
+const IS_MAIN_SCRIPT =
+  process.argv[1] && resolve(process.argv[1]).replace(/\\/g, '/').includes('cfr-to-training-data');
 
 if (IS_WORKER) {
   // Child process worker mode
@@ -924,14 +988,20 @@ if (IS_WORKER) {
       const infoSets = loadFlopInfoSets(task.jsonlPath);
 
       const samples = processFlop(
-        meta, infoSets, treeConfig,
-        oopCombos, ipCombos,
+        meta,
+        infoSets,
+        treeConfig,
+        oopCombos,
+        ipCombos,
         config.samplesPerBucket,
         config.riverSamplesPerTurn,
         config.minProbDivergence,
       );
 
-      const outputPath = join(config.outputDir, `flop_${String(task.boardId).padStart(4, '0')}.jsonl`);
+      const outputPath = join(
+        config.outputDir,
+        `flop_${String(task.boardId).padStart(4, '0')}.jsonl`,
+      );
       writeSamples(outputPath, samples);
 
       process.send!({ boardId: task.boardId, samples: samples.length, ok: true });
@@ -965,7 +1035,8 @@ function parseArgs(): GenerateConfig {
     if (argv[i] === '--cfr-dir' && argv[i + 1]) cfrDir = argv[++i];
     if (argv[i] === '--output' && argv[i + 1]) outputDir = argv[++i];
     if (argv[i] === '--config' && argv[i + 1]) configName = argv[++i] as TreeConfigName;
-    if (argv[i] === '--samples-per-bucket' && argv[i + 1]) samplesPerBucket = parseInt(argv[++i], 10);
+    if (argv[i] === '--samples-per-bucket' && argv[i + 1])
+      samplesPerBucket = parseInt(argv[++i], 10);
     if (argv[i] === '--workers' && argv[i + 1]) workers = parseInt(argv[++i], 10);
     if (argv[i] === '--river-samples' && argv[i + 1]) riverSamplesPerTurn = parseInt(argv[++i], 10);
     if (argv[i] === '--min-divergence' && argv[i + 1]) minProbDivergence = parseFloat(argv[++i]);
@@ -975,7 +1046,16 @@ function parseArgs(): GenerateConfig {
   if (!cfrDir) cfrDir = resolve(process.cwd(), 'data/cfr/pipeline_hu_srp_50bb');
   if (!outputDir) outputDir = resolve(process.cwd(), 'data/training/cfr_srp');
 
-  return { cfrDir, outputDir, configName, samplesPerBucket, workers, riverSamplesPerTurn, minProbDivergence, maxFlops };
+  return {
+    cfrDir,
+    outputDir,
+    configName,
+    samplesPerBucket,
+    workers,
+    riverSamplesPerTurn,
+    minProbDivergence,
+    maxFlops,
+  };
 }
 
 async function runWithWorkers(
@@ -1003,25 +1083,28 @@ async function runWithWorkers(
       });
       activeWorkers.add(child);
 
-      child.on('message', (msg: { boardId: number; samples: number; ok: boolean; error?: string }) => {
-        if (msg.ok) {
-          totalSamples += msg.samples;
-          processedFlops++;
-        } else {
-          console.error(`  ERROR flop ${msg.boardId}: ${msg.error}`);
-        }
-
-        // Send next task
-        if (taskIdx < tasks.length) {
-          child.send(tasks[taskIdx++]);
-        } else {
-          child.send('exit');
-          activeWorkers.delete(child);
-          if (activeWorkers.size === 0) {
-            resolvePromise({ totalSamples, processedFlops });
+      child.on(
+        'message',
+        (msg: { boardId: number; samples: number; ok: boolean; error?: string }) => {
+          if (msg.ok) {
+            totalSamples += msg.samples;
+            processedFlops++;
+          } else {
+            console.error(`  ERROR flop ${msg.boardId}: ${msg.error}`);
           }
-        }
-      });
+
+          // Send next task
+          if (taskIdx < tasks.length) {
+            child.send(tasks[taskIdx++]);
+          } else {
+            child.send('exit');
+            activeWorkers.delete(child);
+            if (activeWorkers.size === 0) {
+              resolvePromise({ totalSamples, processedFlops });
+            }
+          }
+        },
+      );
 
       child.on('error', (err) => {
         console.error(`Worker error:`, err);
@@ -1073,14 +1156,20 @@ async function runSingleThreaded(
     const infoSets = loadFlopInfoSets(task.jsonlPath);
 
     const samples = processFlop(
-      meta, infoSets, treeConfig,
-      oopCombos, ipCombos,
+      meta,
+      infoSets,
+      treeConfig,
+      oopCombos,
+      ipCombos,
       config.samplesPerBucket,
       config.riverSamplesPerTurn,
       config.minProbDivergence,
     );
 
-    const outputPath = join(config.outputDir, `flop_${String(task.boardId).padStart(4, '0')}.jsonl`);
+    const outputPath = join(
+      config.outputDir,
+      `flop_${String(task.boardId).padStart(4, '0')}.jsonl`,
+    );
     writeSamples(outputPath, samples);
 
     totalSamples += samples.length;
@@ -1124,7 +1213,7 @@ async function main() {
   const startTime = Date.now();
 
   // Build worker tasks
-  const tasks: WorkerTask[] = flops.map(f => ({
+  const tasks: WorkerTask[] = flops.map((f) => ({
     metaPath: f.metaPath,
     jsonlPath: f.jsonlPath,
     boardId: f.boardId,
@@ -1134,14 +1223,18 @@ async function main() {
 
   if (config.workers > 1) {
     const chartsPath = resolve(process.cwd(), 'data/preflop_charts.json');
-    result = await runWithWorkers(tasks, {
-      configName: config.configName,
-      samplesPerBucket: config.samplesPerBucket,
-      riverSamplesPerTurn: config.riverSamplesPerTurn,
-      minProbDivergence: config.minProbDivergence,
-      outputDir: config.outputDir,
-      chartsPath,
-    }, config.workers);
+    result = await runWithWorkers(
+      tasks,
+      {
+        configName: config.configName,
+        samplesPerBucket: config.samplesPerBucket,
+        riverSamplesPerTurn: config.riverSamplesPerTurn,
+        minProbDivergence: config.minProbDivergence,
+        outputDir: config.outputDir,
+        chartsPath,
+      },
+      config.workers,
+    );
   } else {
     result = await runSingleThreaded(tasks, config);
   }
@@ -1151,7 +1244,7 @@ async function main() {
   // Write manifest
   const manifest = {
     config: config.configName,
-    flopIds: flops.map(f => f.boardId),
+    flopIds: flops.map((f) => f.boardId),
     totalSamples: result.totalSamples,
     processedFlops: result.processedFlops,
     streets: ['FLOP', 'TURN', 'RIVER'],
@@ -1164,14 +1257,16 @@ async function main() {
 
   console.log();
   console.log('════════════════════════════════════════════');
-  console.log(`  Done! ${result.processedFlops} flops → ${result.totalSamples.toLocaleString()} training samples`);
+  console.log(
+    `  Done! ${result.processedFlops} flops → ${result.totalSamples.toLocaleString()} training samples`,
+  );
   console.log(`  Time: ${elapsed.toFixed(1)}s`);
   console.log(`  Output: ${config.outputDir}`);
   console.log('════════════════════════════════════════════');
 }
 
 if (!IS_WORKER && IS_MAIN_SCRIPT) {
-  main().catch(err => {
+  main().catch((err) => {
     console.error('Fatal error:', err);
     process.exit(1);
   });

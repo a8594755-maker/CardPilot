@@ -50,7 +50,7 @@ interface CalibrationStatus {
 
 function countFiles(dir: string, ext: string): number {
   if (!existsSync(dir)) return 0;
-  return readdirSync(dir).filter(f => f.endsWith(ext)).length;
+  return readdirSync(dir).filter((f) => f.endsWith(ext)).length;
 }
 
 function dirSize(dir: string, ext: string): number {
@@ -64,7 +64,12 @@ function dirSize(dir: string, ext: string): number {
   return total;
 }
 
-function getDatasetStatus(name: string, config: string, cfrDirName: string, trainingDirName: string): DatasetStatus {
+function getDatasetStatus(
+  name: string,
+  config: string,
+  cfrDirName: string,
+  trainingDirName: string,
+): DatasetStatus {
   const cfrDir = join(PROJECT_ROOT, 'data/cfr', cfrDirName);
   const trainingDir = join(PROJECT_ROOT, 'data/training', trainingDirName);
 
@@ -87,12 +92,14 @@ function getDatasetStatus(name: string, config: string, cfrDirName: string, trai
   // If manifest not yet written, estimate from files
   if (totalSamples === 0 && generatedFlops > 0) {
     // Count lines in first few files for estimate
-    const files = readdirSync(trainingDir).filter(f => f.endsWith('.jsonl')).slice(0, 5);
+    const files = readdirSync(trainingDir)
+      .filter((f) => f.endsWith('.jsonl'))
+      .slice(0, 5);
     let sampleLines = 0;
     let sampledFiles = 0;
     for (const f of files) {
       const content = readFileSync(join(trainingDir, f), 'utf-8');
-      sampleLines += content.split('\n').filter(l => l.trim()).length;
+      sampleLines += content.split('\n').filter((l) => l.trim()).length;
       sampledFiles++;
     }
     if (sampledFiles > 0) {
@@ -101,13 +108,32 @@ function getDatasetStatus(name: string, config: string, cfrDirName: string, trai
     }
   }
 
-  return { name, config, cfrDir, trainingDir, totalCfrFlops, generatedFlops, totalSamples, generatedAt, filesOnDisk, totalSizeBytes };
+  return {
+    name,
+    config,
+    cfrDir,
+    trainingDir,
+    totalCfrFlops,
+    generatedFlops,
+    totalSamples,
+    generatedAt,
+    filesOnDisk,
+    totalSizeBytes,
+  };
 }
 
 function getModelStatus(modelPath: string): ModelStatus {
   const fullPath = join(PROJECT_ROOT, modelPath);
   if (!existsSync(fullPath)) {
-    return { path: modelPath, exists: false, sizeBytes: 0, modifiedAt: null, valLoss: null, architecture: null, trainingHistory: [] };
+    return {
+      path: modelPath,
+      exists: false,
+      sizeBytes: 0,
+      modifiedAt: null,
+      valLoss: null,
+      architecture: null,
+      trainingHistory: [],
+    };
   }
   const stat = statSync(fullPath);
   let valLoss: number | null = null;
@@ -119,13 +145,28 @@ function getModelStatus(modelPath: string): ModelStatus {
     if (model.trainingHistory) trainingHistory = model.trainingHistory;
     if (trainingHistory.length > 0) valLoss = trainingHistory[trainingHistory.length - 1].valLoss;
   } catch {}
-  return { path: modelPath, exists: true, sizeBytes: stat.size, modifiedAt: stat.mtime.toISOString(), valLoss, architecture, trainingHistory };
+  return {
+    path: modelPath,
+    exists: true,
+    sizeBytes: stat.size,
+    modifiedAt: stat.mtime.toISOString(),
+    valLoss,
+    architecture,
+    trainingHistory,
+  };
 }
 
 function getCalibrationStatus(calibPath: string): CalibrationStatus {
   const fullPath = join(PROJECT_ROOT, calibPath);
   if (!existsSync(fullPath)) {
-    return { path: calibPath, exists: false, klDivergence: null, actionAccuracy: null, totalPredictions: null, perStreet: {} };
+    return {
+      path: calibPath,
+      exists: false,
+      klDivergence: null,
+      actionAccuracy: null,
+      totalPredictions: null,
+      perStreet: {},
+    };
   }
   try {
     const data = JSON.parse(readFileSync(fullPath, 'utf-8'));
@@ -138,7 +179,14 @@ function getCalibrationStatus(calibPath: string): CalibrationStatus {
       perStreet: data.perStreet || {},
     };
   } catch {
-    return { path: calibPath, exists: false, klDivergence: null, actionAccuracy: null, totalPredictions: null, perStreet: {} };
+    return {
+      path: calibPath,
+      exists: false,
+      klDivergence: null,
+      actionAccuracy: null,
+      totalPredictions: null,
+      perStreet: {},
+    };
   }
 }
 

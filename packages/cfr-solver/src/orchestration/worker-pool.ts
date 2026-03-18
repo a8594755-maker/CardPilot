@@ -94,7 +94,7 @@ export class WorkerPool {
     this.pendingCount++;
 
     // Try to dispatch to a free worker
-    const free = this.workers.find(w => !w.busy);
+    const free = this.workers.find((w) => !w.busy);
     if (free) {
       this.dispatchNext(free);
     }
@@ -105,7 +105,7 @@ export class WorkerPool {
    */
   async waitAll(): Promise<void> {
     if (this.pendingCount === 0 && this.taskQueue.length === 0) return;
-    return new Promise<void>(resolve => {
+    return new Promise<void>((resolve) => {
       this.resolveAll = resolve;
     });
   }
@@ -118,7 +118,7 @@ export class WorkerPool {
       entry.process.kill('SIGTERM');
     }
     // Give processes a moment to clean up
-    await new Promise(r => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 500));
     for (const entry of this.workers) {
       if (entry.process.exitCode === null) {
         entry.process.kill('SIGKILL');

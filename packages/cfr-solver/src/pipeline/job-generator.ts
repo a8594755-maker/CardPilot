@@ -3,7 +3,9 @@
 import { enumerateIsomorphicFlops } from '../abstraction/suit-isomorphism.js';
 import { indexToCard } from '../abstraction/card-index.js';
 import {
-  getTreeConfig, getSolveDefaults, getConfigOutputDir, getStackLabel,
+  getSolveDefaults,
+  getConfigOutputDir,
+  getStackLabel,
   type TreeConfigName,
 } from '../tree/tree-config.js';
 import { type PipelineJob, loadCompletedLog } from './queue-server.js';
@@ -14,9 +16,9 @@ export interface GenerateOptions {
   configName: TreeConfigName;
   projectRoot: string;
   chartsPath: string;
-  iterations?: number;   // override default
-  buckets?: number;       // override default
-  resume?: boolean;       // skip already-solved flops (checks for .meta.json)
+  iterations?: number; // override default
+  buckets?: number; // override default
+  resume?: boolean; // skip already-solved flops (checks for .meta.json)
 }
 
 /**
@@ -35,7 +37,7 @@ export function generateJobs(opts: GenerateOptions): PipelineJob[] {
   console.log(`[Job Generator] ${allFlops.length} isomorphic flops found`);
 
   // Check for already-completed flops if resuming
-  let completedIds = new Set<number>();
+  const completedIds = new Set<number>();
   if (opts.resume) {
     // Source 1: local .meta.json files (flops solved on this machine)
     if (existsSync(outputDir)) {
@@ -54,7 +56,9 @@ export function generateJobs(opts: GenerateOptions): PipelineJob[] {
 
     if (completedIds.size > 0) {
       console.log(`[Job Generator] Resume: ${completedIds.size} flops already solved, skipping`);
-      console.log(`[Job Generator]   (${localCount} from local .meta.json, ${fromLog.size} from completed.jsonl)`);
+      console.log(
+        `[Job Generator]   (${localCount} from local .meta.json, ${fromLog.size} from completed.jsonl)`,
+      );
     }
   }
 
@@ -78,7 +82,9 @@ export function generateJobs(opts: GenerateOptions): PipelineJob[] {
     });
   }
 
-  console.log(`[Job Generator] ${jobs.length} jobs generated for ${opts.configName} (${completedIds.size} skipped)`);
+  console.log(
+    `[Job Generator] ${jobs.length} jobs generated for ${opts.configName} (${completedIds.size} skipped)`,
+  );
   console.log(`[Job Generator]   Iterations: ${iterations} | Buckets: ${bucketCount}`);
   console.log(`[Job Generator]   Output dir: ${outputDir}`);
 

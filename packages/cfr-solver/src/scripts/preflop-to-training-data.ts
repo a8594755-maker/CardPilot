@@ -70,16 +70,38 @@ interface ReplayState {
 const SUITS = ['h', 's', 'd', 'c'];
 
 const RANK_VALUES: Record<string, number> = {
-  '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8,
-  '9': 9, 'T': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14,
+  '2': 2,
+  '3': 3,
+  '4': 4,
+  '5': 5,
+  '6': 6,
+  '7': 7,
+  '8': 8,
+  '9': 9,
+  T: 10,
+  J: 11,
+  Q: 12,
+  K: 13,
+  A: 14,
 };
 
 const POSITION_INDEX: Record<string, number> = {
-  'UTG': 0, 'MP': 1, 'HJ': 2, 'CO': 3, 'BTN': 4, 'SB': 5, 'BB': 6,
+  UTG: 0,
+  MP: 1,
+  HJ: 2,
+  CO: 3,
+  BTN: 4,
+  SB: 5,
+  BB: 6,
 };
 
 const POS_CHAR_TO_SEAT: Record<string, number> = {
-  'U': 0, 'H': 1, 'C': 2, 'B': 3, 'S': 4, 'b': 5,
+  U: 0,
+  H: 1,
+  C: 2,
+  B: 3,
+  S: 4,
+  b: 5,
 };
 
 // ══════════════════════════════════════════════
@@ -103,13 +125,15 @@ function expandHandClass(handClass: string): [string, string][] {
     }
   } else if (handClass[2] === 's') {
     // Suited: 4 combos
-    const r1 = handClass[0], r2 = handClass[1];
+    const r1 = handClass[0],
+      r2 = handClass[1];
     for (const suit of SUITS) {
       combos.push([`${r1}${suit}`, `${r2}${suit}`]);
     }
   } else {
     // Offsuit: 12 combos
-    const r1 = handClass[0], r2 = handClass[1];
+    const r1 = handClass[0],
+      r2 = handClass[1];
     for (let i = 0; i < 4; i++) {
       for (let j = 0; j < 4; j++) {
         if (i !== j) combos.push([`${r1}${SUITS[i]}`, `${r2}${SUITS[j]}`]);
@@ -129,11 +153,7 @@ function expandHandClass(handClass: string): [string, string][] {
  * at the hero's decision point. Follows the same logic as
  * preflop-tree.ts applyAction().
  */
-function replayHistory(
-  history: string,
-  heroSeat: number,
-  config: PreflopSolveConfig,
-): ReplayState {
+function replayHistory(history: string, heroSeat: number, config: PreflopSolveConfig): ReplayState {
   const initialPot = computeInitialPot(config);
   const stacks: number[] = [];
   const investments: number[] = [];
@@ -177,7 +197,8 @@ function replayHistory(
       case 'x': // check
         break;
 
-      case 'c': { // call
+      case 'c': {
+        // call
         const toCall = Math.max(0, state.lastRaiseTotal - state.investments[seat]);
         const actual = Math.min(toCall, state.stacks[seat]);
         state.stacks[seat] -= actual;
@@ -186,7 +207,8 @@ function replayHistory(
         break;
       }
 
-      case 'o': { // open
+      case 'o': {
+        // open
         const cost = config.openSize - state.investments[seat];
         const actual = Math.min(cost, state.stacks[seat]);
         state.stacks[seat] -= actual;
@@ -201,10 +223,9 @@ function replayHistory(
         break;
       }
 
-      case '3': { // 3bet
-        const isIP = state.lastRaiserSeat >= 0
-          ? isIPPostflop(seat, state.lastRaiserSeat)
-          : false;
+      case '3': {
+        // 3bet
+        const isIP = state.lastRaiserSeat >= 0 ? isIPPostflop(seat, state.lastRaiserSeat) : false;
         const size = compute3BetSize(config, isIP);
         const cost = size - state.investments[seat];
         const actual = Math.min(cost, state.stacks[seat]);
@@ -226,7 +247,8 @@ function replayHistory(
         break;
       }
 
-      case '4': { // 4bet
+      case '4': {
+        // 4bet
         const size = compute4BetSize(config, state.lastRaiseTotal);
         const cost = size - state.investments[seat];
         const actual = Math.min(cost, state.stacks[seat]);
@@ -248,7 +270,8 @@ function replayHistory(
         break;
       }
 
-      case 'A': { // all-in
+      case 'A': {
+        // all-in
         const amount = state.stacks[seat];
         const newTotal = state.investments[seat] + amount;
         state.pot += amount;
@@ -286,11 +309,10 @@ function replayHistory(
  * Map preflop actions + frequencies to V2 labels [raise, call, fold].
  * Aggregates all raise-type actions into a single "raise" probability.
  */
-function mapActionsToV2Labels(
-  actions: string[],
-  frequencies: number[],
-): [number, number, number] {
-  let raise = 0, call = 0, fold = 0;
+function mapActionsToV2Labels(actions: string[], frequencies: number[]): [number, number, number] {
+  let raise = 0,
+    call = 0,
+    fold = 0;
 
   for (let i = 0; i < actions.length; i++) {
     const a = actions[i];
@@ -358,26 +380,24 @@ function encodePreflop(
   const potNorm = Math.min(pot / (100 * bb), 5);
   const toCallNorm = Math.min(toCall / (100 * bb), 5);
   const spr = pot > 0 ? Math.min(effectiveStack / pot, 20) / 20 : 1;
-  const potOdds = (pot + toCall) > 0 ? toCall / (pot + toCall) : 0;
+  const potOdds = pot + toCall > 0 ? toCall / (pot + toCall) : 0;
   features.push(potNorm, toCallNorm, spr, potOdds);
 
   // [45-47] Action context
   features.push(
     Math.min(numVillains, 5) / 5,
-    toCall > 0 ? 1 : 0,    // facingBet
+    toCall > 0 ? 1 : 0, // facingBet
     isAggressor ? 1 : 0,
   );
 
   // [48-53] V2 betting history
-  features.push(is3betPot ? 1 : 0);                                // is3betPot
-  features.push(0);                                                 // isCheckRaised (never in preflop)
-  features.push(Math.min(raisesOnStreet, 5) / 5);                  // raisesOnStreet/5
-  features.push(Math.min(raisesOnStreet, 10) / 10);                // totalRaises/10 (same as street for preflop)
-  const lastBetFrac = (lastRaiseTotal > 0 && pot > 0)
-    ? Math.min(lastRaiseTotal / pot, 2.0) / 2.0
-    : 0;
-  features.push(lastBetFrac);                                      // lastBetPotFrac/2
-  features.push(allInPressure ? 1 : 0);                            // allInPressure
+  features.push(is3betPot ? 1 : 0); // is3betPot
+  features.push(0); // isCheckRaised (never in preflop)
+  features.push(Math.min(raisesOnStreet, 5) / 5); // raisesOnStreet/5
+  features.push(Math.min(raisesOnStreet, 10) / 10); // totalRaises/10 (same as street for preflop)
+  const lastBetFrac = lastRaiseTotal > 0 && pot > 0 ? Math.min(lastRaiseTotal / pot, 2.0) / 2.0 : 0;
+  features.push(lastBetFrac); // lastBetPotFrac/2
+  features.push(allInPressure ? 1 : 0); // allInPressure
 
   return features;
 }
@@ -451,7 +471,7 @@ function convertConfig(
         combo,
         record.position,
         heroInPosition,
-        state.pot,          // use replayed pot (should match record.pot)
+        state.pot, // use replayed pot (should match record.pot)
         toCall,
         effectiveStack,
         numVillains,
@@ -498,7 +518,7 @@ function main(): void {
   const preflopDir = getArg('preflop-dir', 'data/preflop');
   const outputDir = getArg('output', 'data/training/preflop');
   const configsStr = getArg('configs', 'cash_6max_100bb,cash_6max_50bb,cash_6max_100bb_ante');
-  const configs = configsStr.split(',').map(c => c.trim());
+  const configs = configsStr.split(',').map((c) => c.trim());
 
   console.log('╔═══════════════════════════════════════════╗');
   console.log('║   Preflop → V3 Training Data              ║');

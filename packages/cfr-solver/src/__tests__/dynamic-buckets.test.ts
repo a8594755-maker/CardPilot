@@ -118,15 +118,15 @@ describe('comboKey', () => {
 describe('computeEquityBuckets with different boards', () => {
   // Create a small synthetic range for testing
   function makeRange(cards: Array<[number, number]>): WeightedCombo[] {
-    return cards.map(combo => ({ combo, weight: 1.0 }));
+    return cards.map((combo) => ({ combo, weight: 1.0 }));
   }
 
   test('produces bucket assignments for simple range', () => {
     // Small range: pairs from 2c2d to 5c5d
     const range = makeRange([
-      [0, 1],   // 2c2d
-      [4, 5],   // 3c3d
-      [8, 9],   // 4c4d
+      [0, 1], // 2c2d
+      [4, 5], // 3c3d
+      [8, 9], // 4c4d
       [12, 13], // 5c5d
       [16, 17], // 6c6d
     ]);
@@ -137,7 +137,7 @@ describe('computeEquityBuckets with different boards', () => {
     assert.ok(buckets.size > 0, 'Should produce bucket assignments');
 
     // Higher pairs should get higher bucket numbers
-    const b2 = buckets.get(comboKey([0, 1]));   // 22
+    const b2 = buckets.get(comboKey([0, 1])); // 22
     const b5 = buckets.get(comboKey([12, 13])); // 55
     const b6 = buckets.get(comboKey([16, 17])); // 66
 
@@ -148,9 +148,9 @@ describe('computeEquityBuckets with different boards', () => {
 
   test('same range on different boards produces different buckets', () => {
     const range = makeRange([
-      [0, 1],   // 2c2d
-      [4, 5],   // 3c3d
-      [8, 9],   // 4c4d
+      [0, 1], // 2c2d
+      [4, 5], // 3c3d
+      [8, 9], // 4c4d
       [12, 13], // 5c5d
       [16, 17], // 6c6d
       [20, 21], // 7c7d
@@ -179,7 +179,7 @@ describe('computeEquityBuckets with different boards', () => {
     if (bucket22_low !== undefined && bucket22_high !== undefined) {
       assert.ok(
         bucket22_low > bucket22_high,
-        `22 should rank higher on 2-3-4 board (bucket ${bucket22_low}) than on T-J-Q board (bucket ${bucket22_high})`
+        `22 should rank higher on 2-3-4 board (bucket ${bucket22_low}) than on T-J-Q board (bucket ${bucket22_high})`,
       );
     }
   });
@@ -239,7 +239,10 @@ describe('V2 mini-solve integration', () => {
       if (street === 'F') {
         flopKeys++;
         // Flop bucket should be a single number
-        assert.ok(!bucketSuffix.includes('-'), `Flop bucket should be single number: ${bucketSuffix}`);
+        assert.ok(
+          !bucketSuffix.includes('-'),
+          `Flop bucket should be single number: ${bucketSuffix}`,
+        );
         const b = parseInt(bucketSuffix, 10);
         assert.ok(b >= 0 && b < 5, `Flop bucket should be 0-4: ${b}`);
       } else if (street === 'T') {
@@ -263,7 +266,9 @@ describe('V2 mini-solve integration', () => {
       }
     }
 
-    console.log(`  V2 solve produced: ${flopKeys} flop, ${turnKeys} turn, ${riverKeys} river info-sets`);
+    console.log(
+      `  V2 solve produced: ${flopKeys} flop, ${turnKeys} turn, ${riverKeys} river info-sets`,
+    );
     assert.ok(flopKeys > 0, 'Should have flop info-sets');
     assert.ok(turnKeys > 0, 'Should have turn info-sets');
     assert.ok(riverKeys > 0, 'Should have river info-sets');

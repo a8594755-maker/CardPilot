@@ -21,7 +21,7 @@
  *   --start 1500 --end 1755 --output data/value-net/part3.bin
  */
 
-import { writeFileSync, mkdirSync, existsSync, appendFileSync, openSync, closeSync, writeSync } from 'node:fs';
+import { mkdirSync, existsSync, openSync, closeSync, writeSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 
@@ -49,12 +49,12 @@ import type { WeightedCombo } from '../integration/preflop-ranges.js';
 
 const { values: args } = parseArgs({
   options: {
-    start:  { type: 'string', default: '0' },
-    end:    { type: 'string', default: '100' },
-    iters:  { type: 'string', default: '200' },
+    start: { type: 'string', default: '0' },
+    end: { type: 'string', default: '100' },
+    iters: { type: 'string', default: '200' },
     output: { type: 'string', default: 'data/value-net/transitions.bin' },
     config: { type: 'string', default: 'vnet' },
-    mccfr:  { type: 'boolean', default: false },
+    mccfr: { type: 'boolean', default: false },
   },
 });
 
@@ -72,9 +72,9 @@ const VNET_DATA_CONFIG: TreeConfig = {
   startingPot: 5,
   effectiveStack: 97.5,
   betSizes: {
-    flop:  [0.33, 0.75],
-    turn:  [0.50, 1.00],
-    river: [0.75, 1.50],
+    flop: [0.33, 0.75],
+    turn: [0.5, 1.0],
+    river: [0.75, 1.5],
   },
   raiseCapPerStreet: 1,
 };
@@ -92,7 +92,8 @@ function getConfig(name: string): TreeConfig {
     coach_hu_srp_100bb: COACH_HU_SRP_100BB,
   };
   const cfg = configs[name];
-  if (!cfg) throw new Error(`Unknown config: ${name}. Available: ${Object.keys(configs).join(', ')}`);
+  if (!cfg)
+    throw new Error(`Unknown config: ${name}. Available: ${Object.keys(configs).join(', ')}`);
   return cfg;
 }
 
@@ -160,35 +161,45 @@ function writeRecord(fd: number, rec: TransitionRecord): void {
   }
 
   // pot, stacks
-  buf.writeFloatLE(rec.pot, offset); offset += 4;
-  buf.writeFloatLE(rec.stacks[0], offset); offset += 4;
-  buf.writeFloatLE(rec.stacks[1], offset); offset += 4;
+  buf.writeFloatLE(rec.pot, offset);
+  offset += 4;
+  buf.writeFloatLE(rec.stacks[0], offset);
+  offset += 4;
+  buf.writeFloatLE(rec.stacks[1], offset);
+  offset += 4;
 
   // traverser
-  buf.writeUInt8(rec.traverser, offset); offset += 1;
+  buf.writeUInt8(rec.traverser, offset);
+  offset += 1;
 
   // numCombos
-  buf.writeUInt16LE(nc, offset); offset += 2;
+  buf.writeUInt16LE(nc, offset);
+  offset += 2;
 
   // combos (card pairs)
   for (let i = 0; i < nc; i++) {
-    buf.writeUInt8(rec.combos[i][0], offset); offset += 1;
-    buf.writeUInt8(rec.combos[i][1], offset); offset += 1;
+    buf.writeUInt8(rec.combos[i][0], offset);
+    offset += 1;
+    buf.writeUInt8(rec.combos[i][1], offset);
+    offset += 1;
   }
 
   // oopReach
   for (let i = 0; i < nc; i++) {
-    buf.writeFloatLE(rec.oopReach[i], offset); offset += 4;
+    buf.writeFloatLE(rec.oopReach[i], offset);
+    offset += 4;
   }
 
   // ipReach
   for (let i = 0; i < nc; i++) {
-    buf.writeFloatLE(rec.ipReach[i], offset); offset += 4;
+    buf.writeFloatLE(rec.ipReach[i], offset);
+    offset += 4;
   }
 
   // resultEV
   for (let i = 0; i < nc; i++) {
-    buf.writeFloatLE(rec.resultEV[i], offset); offset += 4;
+    buf.writeFloatLE(rec.resultEV[i], offset);
+    offset += 4;
   }
 
   writeSync(fd, buf);
@@ -240,7 +251,7 @@ async function main() {
   for (let fi = START; fi < end; fi++) {
     const flop = allFlops[fi];
     const board = flop.cards;
-    const boardStr = board.map(c => indexToCard(c)).join(' ');
+    const boardStr = board.map((c) => indexToCard(c)).join(' ');
     const flopStart = Date.now();
 
     // Collect records for this flop
@@ -276,14 +287,14 @@ async function main() {
       const totalElapsed = ((Date.now() - globalStart) / 1000).toFixed(0);
       const remaining = numFlops - (fi - START + 1);
       const avgPerFlop = (Date.now() - globalStart) / (fi - START + 1) / 1000;
-      const eta = (remaining * avgPerFlop / 60).toFixed(0);
+      const eta = ((remaining * avgPerFlop) / 60).toFixed(0);
 
       console.log(
         `[${fi - START + 1}/${numFlops}] ${boardStr} | ` +
-        `${elapsed}s | ${flopRecords} records | ` +
-        `mem ${result.memoryMB}MB | ` +
-        `total: ${totalRecords} (F→T: ${totalFlopToTurn}, T→R: ${totalTurnToRiver}) | ` +
-        `elapsed: ${totalElapsed}s | ETA: ${eta}min`
+          `${elapsed}s | ${flopRecords} records | ` +
+          `mem ${result.memoryMB}MB | ` +
+          `total: ${totalRecords} (F→T: ${totalFlopToTurn}, T→R: ${totalTurnToRiver}) | ` +
+          `elapsed: ${totalElapsed}s | ETA: ${eta}min`,
       );
     } catch (err) {
       console.error(`ERROR on flop ${boardStr}: ${err}`);
@@ -303,7 +314,7 @@ async function main() {
   console.log(`  Total time: ${totalElapsed}s`);
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('Fatal:', err);
   process.exit(1);
 });

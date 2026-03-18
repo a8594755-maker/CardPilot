@@ -66,6 +66,33 @@ export class InfoSetStore {
   }
 
   /**
+   * Regret matching into a pre-allocated buffer (zero-allocation hot path).
+   */
+  getCurrentStrategyInto(key: string, numActions: number, out: Float32Array): Float32Array {
+    const regret = this.getRegret(key, numActions);
+    let sum = 0;
+
+    for (let i = 0; i < numActions; i++) {
+      const r = regret[i];
+      out[i] = r;
+      sum += r;
+    }
+
+    if (sum > 0) {
+      for (let i = 0; i < numActions; i++) {
+        out[i] /= sum;
+      }
+    } else {
+      const uniform = 1 / numActions;
+      for (let i = 0; i < numActions; i++) {
+        out[i] = uniform;
+      }
+    }
+
+    return out;
+  }
+
+  /**
    * Get the average strategy (converged Nash approximation).
    * This is what gets exported to the reference library.
    */

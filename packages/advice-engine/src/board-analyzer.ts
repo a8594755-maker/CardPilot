@@ -1,9 +1,9 @@
-import type { Card } from "@cardpilot/poker-evaluator";
-import type { BoardTextureProfile } from "@cardpilot/shared-types";
+import type { Card } from '@cardpilot/poker-evaluator';
+import type { BoardTextureProfile } from '@cardpilot/shared-types';
 
-const RANK_ORDER = "23456789TJQKA";
+const RANK_ORDER = '23456789TJQKA';
 
-type TextureBucket = "DRY_TEXTURE" | "NEUTRAL_TEXTURE" | "WET_TEXTURE";
+type TextureBucket = 'DRY_TEXTURE' | 'NEUTRAL_TEXTURE' | 'WET_TEXTURE';
 
 type ParsedCard = {
   rank: string;
@@ -14,7 +14,7 @@ type ParsedCard = {
 export class BoardAnalyzer {
   static analyze(board: Card[]): BoardTextureProfile {
     if (board.length < 3) {
-      throw new Error("BoardAnalyzer requires at least a flop (3 cards).");
+      throw new Error('BoardAnalyzer requires at least a flop (3 cards).');
     }
 
     const cards = board.map((card) => parseCard(card));
@@ -37,17 +37,17 @@ export class BoardAnalyzer {
       isConnected,
       isDisconnected,
       isPaired,
-      isHighCardHeavy
+      isHighCardHeavy,
     });
     const wetness = wetnessFromScore(wetnessScore);
 
     const labels: string[] = [];
-    if (isMonotone) labels.push("monotone");
-    if (isPaired) labels.push("paired");
-    if (flushDrawPresent) labels.push("flush_draw_present");
-    if (isConnected) labels.push("connected");
-    if (isDisconnected) labels.push("disconnected");
-    if (isHighCardHeavy) labels.push("high_card_heavy");
+    if (isMonotone) labels.push('monotone');
+    if (isPaired) labels.push('paired');
+    if (flushDrawPresent) labels.push('flush_draw_present');
+    if (isConnected) labels.push('connected');
+    if (isDisconnected) labels.push('disconnected');
+    if (isHighCardHeavy) labels.push('high_card_heavy');
     labels.push(wetness);
 
     return {
@@ -58,7 +58,7 @@ export class BoardAnalyzer {
       isDisconnected,
       isHighCardHeavy,
       wetness,
-      labels
+      labels,
     };
   }
 
@@ -83,32 +83,33 @@ export class BoardAnalyzer {
   }
 
   static toTextureBucket(texture: BoardTextureProfile): TextureBucket {
-    if (texture.wetness === "wet") return "WET_TEXTURE";
-    if (texture.wetness === "dry") return "DRY_TEXTURE";
-    return "NEUTRAL_TEXTURE";
+    if (texture.wetness === 'wet') return 'WET_TEXTURE';
+    if (texture.wetness === 'dry') return 'DRY_TEXTURE';
+    return 'NEUTRAL_TEXTURE';
   }
 
   static describe(texture: BoardTextureProfile): string {
     const parts: string[] = [];
     if (texture.isMonotone) {
-      parts.push("monotone board");
+      parts.push('monotone board');
     } else if (texture.hasFlushDraw) {
-      parts.push("flush-draw texture");
+      parts.push('flush-draw texture');
     }
 
-    if (texture.isPaired) parts.push("paired board");
-    if (texture.isConnected) parts.push("straight-connected structure");
-    if (texture.isDisconnected) parts.push("disconnected structure");
-    if (texture.isHighCardHeavy) parts.push("high-card-heavy runout");
+    if (texture.isPaired) parts.push('paired board');
+    if (texture.isConnected) parts.push('straight-connected structure');
+    if (texture.isDisconnected) parts.push('disconnected structure');
+    if (texture.isHighCardHeavy) parts.push('high-card-heavy runout');
 
-    const textureText = texture.wetness === "wet"
-      ? "wet texture"
-      : texture.wetness === "dry"
-        ? "dry texture"
-        : "neutral texture";
+    const textureText =
+      texture.wetness === 'wet'
+        ? 'wet texture'
+        : texture.wetness === 'dry'
+          ? 'dry texture'
+          : 'neutral texture';
 
     if (parts.length === 0) return textureText;
-    return `${parts.join(", ")} (${textureText})`;
+    return `${parts.join(', ')} (${textureText})`;
   }
 
   private static buildRankCounts(cards: ParsedCard[]): Record<string, number> {
@@ -182,7 +183,7 @@ function parseCard(card: Card): ParsedCard {
   return {
     rank,
     suit,
-    value: rankIdx + 2
+    value: rankIdx + 2,
   };
 }
 
@@ -223,8 +224,8 @@ function largestGap(values: number[]): number {
   return maxGap;
 }
 
-function wetnessFromScore(score: number): BoardTextureProfile["wetness"] {
-  if (score >= 3) return "wet";
-  if (score <= 0) return "dry";
-  return "neutral";
+function wetnessFromScore(score: number): BoardTextureProfile['wetness'] {
+  if (score >= 3) return 'wet';
+  if (score <= 0) return 'dry';
+  return 'neutral';
 }

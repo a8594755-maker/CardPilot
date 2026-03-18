@@ -10,18 +10,23 @@
 
 import { buildTree, countNodes } from '../tree/tree-builder.js';
 import {
-  getTreeConfig, getSolveDefaults, getConfigLabel, getConfigOutputDir, getStackLabel,
+  getTreeConfig,
+  getSolveDefaults,
+  getConfigLabel,
   getPipelineConfigNames,
   type TreeConfigName,
 } from '../tree/tree-config.js';
 import { InfoSetStore } from '../engine/info-set-store.js';
 import { solveCFR } from '../engine/cfr-engine.js';
-import { loadHUSRPRanges, getWeightedRangeCombos, type HUSRPRangesOptions } from '../integration/preflop-ranges.js';
+import {
+  loadHUSRPRanges,
+  getWeightedRangeCombos,
+  type HUSRPRangesOptions,
+} from '../integration/preflop-ranges.js';
 import { enumerateIsomorphicFlops } from '../abstraction/suit-isomorphism.js';
-import { indexToCard } from '../abstraction/card-index.js';
 import { exportToJSONL } from '../storage/json-export.js';
 import { resolve } from 'node:path';
-import { existsSync, statSync, mkdirSync, unlinkSync } from 'node:fs';
+import { existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
@@ -40,25 +45,35 @@ function getRangeOptions(configName: TreeConfigName): HUSRPRangesOptions {
   if (configName.includes('3bet') || configName.includes('3bp')) {
     if (configName.includes('co_bb')) {
       return {
-        oopSpot: 'BB_vs_CO_facing_open2.5x', oopAction: 'raise',
-        ipSpot: 'CO_unopened_open2.5x', ipAction: 'raise', minFrequency: 0.50,
+        oopSpot: 'BB_vs_CO_facing_open2.5x',
+        oopAction: 'raise',
+        ipSpot: 'CO_unopened_open2.5x',
+        ipAction: 'raise',
+        minFrequency: 0.5,
       };
     }
     return {
-      oopSpot: 'BB_vs_BTN_facing_open2.5x', oopAction: 'raise',
-      ipSpot: 'BTN_unopened_open2.5x', ipAction: 'raise', minFrequency: 0.40,
+      oopSpot: 'BB_vs_BTN_facing_open2.5x',
+      oopAction: 'raise',
+      ipSpot: 'BTN_unopened_open2.5x',
+      ipAction: 'raise',
+      minFrequency: 0.4,
     };
   }
   if (configName.includes('co_bb')) {
     return {
-      ipSpot: 'CO_unopened_open2.5x', ipAction: 'raise',
-      oopSpot: 'BB_vs_CO_facing_open2.5x', oopAction: 'call',
+      ipSpot: 'CO_unopened_open2.5x',
+      ipAction: 'raise',
+      oopSpot: 'BB_vs_CO_facing_open2.5x',
+      oopAction: 'call',
     };
   }
   if (configName.includes('utg_bb')) {
     return {
-      ipSpot: 'UTG_unopened_open2.5x', ipAction: 'raise',
-      oopSpot: 'BB_vs_UTG_facing_open2.5x', oopAction: 'call',
+      ipSpot: 'UTG_unopened_open2.5x',
+      ipAction: 'raise',
+      oopSpot: 'BB_vs_UTG_facing_open2.5x',
+      oopAction: 'call',
     };
   }
   return {};
@@ -90,7 +105,7 @@ async function main(): Promise<void> {
   if (configsArg === 'all') {
     configNames = getPipelineConfigNames();
   } else {
-    configNames = configsArg.split(',').map(s => s.trim()) as TreeConfigName[];
+    configNames = configsArg.split(',').map((s) => s.trim()) as TreeConfigName[];
   }
 
   const chartsPath = resolve(PROJECT_ROOT, 'data/preflop_charts.json');
@@ -177,7 +192,9 @@ async function main(): Promise<void> {
       totalJsonlBytes += exportResult.fileSize;
 
       // Clean up temp file
-      try { unlinkSync(tmpPath); } catch {}
+      try {
+        unlinkSync(tmpPath);
+      } catch {}
 
       process.stdout.write('.');
     }
@@ -189,7 +206,7 @@ async function main(): Promise<void> {
     // Scale to full iterations: info-set count doesn't change much with iteration count
     // (tree shape is the same, just strategy quality improves)
     // JSONL size is proportional to info-set count
-    const estTotalJsonlGB = (avgJsonlBytes * TOTAL_FLOPS) / (1024 ** 3);
+    const estTotalJsonlGB = (avgJsonlBytes * TOTAL_FLOPS) / 1024 ** 3;
     // Binary format is roughly 6-8x smaller than JSONL (quantized + compressed)
     const estBinaryGB = estTotalJsonlGB / 7;
 
@@ -218,41 +235,53 @@ async function main(): Promise<void> {
     const { readdirSync, rmdirSync } = await import('node:fs');
     const remaining = readdirSync(tmpDir);
     for (const f of remaining) {
-      try { unlinkSync(resolve(tmpDir, f)); } catch {}
+      try {
+        unlinkSync(resolve(tmpDir, f));
+      } catch {}
     }
     rmdirSync(tmpDir);
   } catch {}
 
   // Print report
   console.log();
-  console.log('╔═════════════════════════════════════════╦══════════╦══════════╦═══════════╦═══════════╗');
-  console.log('║ Config                                  ║ JSONL    ║ Binary   ║ Info Sets ║ Time (90w)║');
-  console.log('╠═════════════════════════════════════════╬══════════╬══════════╬═══════════╬═══════════╣');
+  console.log(
+    '╔═════════════════════════════════════════╦══════════╦══════════╦═══════════╦═══════════╗',
+  );
+  console.log(
+    '║ Config                                  ║ JSONL    ║ Binary   ║ Info Sets ║ Time (90w)║',
+  );
+  console.log(
+    '╠═════════════════════════════════════════╬══════════╬══════════╬═══════════╬═══════════╣',
+  );
 
   let totalJsonl = 0;
   let totalBinary = 0;
   let totalTime = 0;
 
   for (const r of results) {
-    const jsonlStr = r.estTotalJsonlGB < 1
-      ? `${Math.round(r.estTotalJsonlGB * 1024)} MB`
-      : `${r.estTotalJsonlGB.toFixed(1)} GB`;
-    const binaryStr = r.estBinaryGB < 1
-      ? `${Math.round(r.estBinaryGB * 1024)} MB`
-      : `${r.estBinaryGB.toFixed(1)} GB`;
-    const infoStr = r.avgInfoSets >= 1_000_000
-      ? `${(r.avgInfoSets / 1_000_000).toFixed(1)}M`
-      : `${(r.avgInfoSets / 1_000).toFixed(0)}k`;
+    const jsonlStr =
+      r.estTotalJsonlGB < 1
+        ? `${Math.round(r.estTotalJsonlGB * 1024)} MB`
+        : `${r.estTotalJsonlGB.toFixed(1)} GB`;
+    const binaryStr =
+      r.estBinaryGB < 1
+        ? `${Math.round(r.estBinaryGB * 1024)} MB`
+        : `${r.estBinaryGB.toFixed(1)} GB`;
+    const infoStr =
+      r.avgInfoSets >= 1_000_000
+        ? `${(r.avgInfoSets / 1_000_000).toFixed(1)}M`
+        : `${(r.avgInfoSets / 1_000).toFixed(0)}k`;
     const workers = 90;
     const timeWithWorkers = r.estFullTimeHrs / workers;
-    const timeStr = timeWithWorkers < 1
-      ? `${Math.round(timeWithWorkers * 60)} min`
-      : timeWithWorkers < 24
-        ? `${timeWithWorkers.toFixed(1)} hrs`
-        : `${(timeWithWorkers / 24).toFixed(1)} days`;
+    const timeStr =
+      timeWithWorkers < 1
+        ? `${Math.round(timeWithWorkers * 60)} min`
+        : timeWithWorkers < 24
+          ? `${timeWithWorkers.toFixed(1)} hrs`
+          : `${(timeWithWorkers / 24).toFixed(1)} days`;
 
     console.log(
-      `║ ${r.label.padEnd(39)} ║ ${jsonlStr.padStart(8)} ║ ${binaryStr.padStart(8)} ║ ${(infoStr + '/flop').padStart(9)} ║ ${timeStr.padStart(9)} ║`
+      `║ ${r.label.padEnd(39)} ║ ${jsonlStr.padStart(8)} ║ ${binaryStr.padStart(8)} ║ ${(infoStr + '/flop').padStart(9)} ║ ${timeStr.padStart(9)} ║`,
     );
 
     totalJsonl += r.estTotalJsonlGB;
@@ -260,23 +289,32 @@ async function main(): Promise<void> {
     totalTime += r.estFullTimeHrs;
   }
 
-  console.log('╠═════════════════════════════════════════╬══════════╬══════════╬═══════════╬═══════════╣');
+  console.log(
+    '╠═════════════════════════════════════════╬══════════╬══════════╬═══════════╬═══════════╣',
+  );
 
-  const totalJsonlStr = totalJsonl < 1 ? `${Math.round(totalJsonl * 1024)} MB` : `${totalJsonl.toFixed(1)} GB`;
-  const totalBinaryStr = totalBinary < 1 ? `${Math.round(totalBinary * 1024)} MB` : `${totalBinary.toFixed(1)} GB`;
-  const totalTimeStr = (totalTime / 90) < 24
-    ? `${(totalTime / 90).toFixed(1)} hrs`
-    : `${(totalTime / 90 / 24).toFixed(1)} days`;
+  const totalJsonlStr =
+    totalJsonl < 1 ? `${Math.round(totalJsonl * 1024)} MB` : `${totalJsonl.toFixed(1)} GB`;
+  const totalBinaryStr =
+    totalBinary < 1 ? `${Math.round(totalBinary * 1024)} MB` : `${totalBinary.toFixed(1)} GB`;
+  const totalTimeStr =
+    totalTime / 90 < 24
+      ? `${(totalTime / 90).toFixed(1)} hrs`
+      : `${(totalTime / 90 / 24).toFixed(1)} days`;
 
   console.log(
-    `║ ${'TOTAL'.padEnd(39)} ║ ${totalJsonlStr.padStart(8)} ║ ${totalBinaryStr.padStart(8)} ║ ${''.padStart(9)} ║ ${totalTimeStr.padStart(9)} ║`
+    `║ ${'TOTAL'.padEnd(39)} ║ ${totalJsonlStr.padStart(8)} ║ ${totalBinaryStr.padStart(8)} ║ ${''.padStart(9)} ║ ${totalTimeStr.padStart(9)} ║`,
   );
-  console.log('╚═════════════════════════════════════════╩══════════╩══════════╩═══════════╩═══════════╝');
+  console.log(
+    '╚═════════════════════════════════════════╩══════════╩══════════╩═══════════╩═══════════╝',
+  );
 
   console.log();
   const neededGB = Math.ceil(totalJsonl + totalBinary + 10); // +10 GB working space
   console.log(`Recommended free disk space: ${neededGB} GB per cluster machine`);
-  console.log(`(JSONL: ${totalJsonl.toFixed(1)} GB + Binary: ${totalBinary.toFixed(1)} GB + ~10 GB working space)`);
+  console.log(
+    `(JSONL: ${totalJsonl.toFixed(1)} GB + Binary: ${totalBinary.toFixed(1)} GB + ~10 GB working space)`,
+  );
 
   if (totalJsonl > 50) {
     console.log();
@@ -297,7 +335,7 @@ function selectSampleFlops(totalFlops: number, count: number): number[] {
   return indices;
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('[FATAL]', err);
   process.exit(1);
 });

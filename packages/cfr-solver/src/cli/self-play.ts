@@ -11,7 +11,7 @@ import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cardToIndex, indexToCard } from '../abstraction/card-index.js';
 import { evaluateBestHand, compareHands } from '@cardpilot/poker-evaluator';
-import { getTreeConfig, getConfigOutputDir, getConfigLabel, type TreeConfigName } from '../tree/tree-config.js';
+import { getTreeConfig, getConfigOutputDir, type TreeConfigName } from '../tree/tree-config.js';
 import { buildTree } from '../tree/tree-builder.js';
 import type { GameNode, ActionNode, Street } from '../types.js';
 
@@ -48,20 +48,6 @@ const numHands = parseInt(getStringArg('hands', '100000'), 10);
 
 const RANKS = '23456789TJQKA';
 
-function comboToHandClass(c1: number, c2: number): string {
-  const r1 = Math.floor(c1 / 4);
-  const r2 = Math.floor(c2 / 4);
-  const s1 = c1 % 4;
-  const s2 = c2 % 4;
-  const high = Math.max(r1, r2);
-  const low = Math.min(r1, r2);
-  return r1 === r2
-    ? `${RANKS[high]}${RANKS[low]}`
-    : s1 === s2
-      ? `${RANKS[high]}${RANKS[low]}s`
-      : `${RANKS[high]}${RANKS[low]}o`;
-}
-
 function expandHandClassToCombos(handClass: string): Array<[number, number]> {
   const hand = handClass.toUpperCase();
   const combos: Array<[number, number]> = [];
@@ -69,8 +55,7 @@ function expandHandClassToCombos(handClass: string): Array<[number, number]> {
     const rank = RANKS.indexOf(hand[0]);
     if (rank < 0) return combos;
     for (let s1 = 0; s1 < 4; s1++)
-      for (let s2 = s1 + 1; s2 < 4; s2++)
-        combos.push([rank * 4 + s1, rank * 4 + s2]);
+      for (let s2 = s1 + 1; s2 < 4; s2++) combos.push([rank * 4 + s1, rank * 4 + s2]);
     return combos;
   }
   const suffix = hand.length === 3 ? hand[2] : '';
@@ -91,21 +76,70 @@ function expandHandClassToCombos(handClass: string): Array<[number, number]> {
 
 // ─── Range loading ───
 
-interface RangeEntry { hand: string; mix: Record<string, number>; spot: string }
+interface RangeEntry {
+  hand: string;
+  mix: Record<string, number>;
+  spot: string;
+}
 
-const CONFIG_RANGES: Record<string, { ipSpot: string; oopSpot: string; ipAction: string; oopAction: string; minFrequency?: number }> = {
-  v1_50bb: { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'call' },
-  standard_50bb: { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'call' },
-  pipeline_srp: { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'call' },
-  hu_btn_bb_srp_50bb: { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'call' },
-  hu_btn_bb_3bp_50bb: { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'raise', minFrequency: 0.40 },
-  hu_btn_bb_srp_100bb: { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'call' },
-  hu_btn_bb_3bp_100bb: { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'raise', minFrequency: 0.40 },
+const CONFIG_RANGES: Record<
+  string,
+  { ipSpot: string; oopSpot: string; ipAction: string; oopAction: string; minFrequency?: number }
+> = {
+  v1_50bb: {
+    ipSpot: 'BTN_unopened_open2.5x',
+    oopSpot: 'BB_vs_BTN_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'call',
+  },
+  standard_50bb: {
+    ipSpot: 'BTN_unopened_open2.5x',
+    oopSpot: 'BB_vs_BTN_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'call',
+  },
+  pipeline_srp: {
+    ipSpot: 'BTN_unopened_open2.5x',
+    oopSpot: 'BB_vs_BTN_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'call',
+  },
+  hu_btn_bb_srp_50bb: {
+    ipSpot: 'BTN_unopened_open2.5x',
+    oopSpot: 'BB_vs_BTN_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'call',
+  },
+  hu_btn_bb_3bp_50bb: {
+    ipSpot: 'BTN_unopened_open2.5x',
+    oopSpot: 'BB_vs_BTN_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'raise',
+    minFrequency: 0.4,
+  },
+  hu_btn_bb_srp_100bb: {
+    ipSpot: 'BTN_unopened_open2.5x',
+    oopSpot: 'BB_vs_BTN_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'call',
+  },
+  hu_btn_bb_3bp_100bb: {
+    ipSpot: 'BTN_unopened_open2.5x',
+    oopSpot: 'BB_vs_BTN_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'raise',
+    minFrequency: 0.4,
+  },
 };
 
-function loadRange(chartsPath: string, spot: string, action: string, minFreq?: number): Array<[number, number]> {
+function loadRange(
+  chartsPath: string,
+  spot: string,
+  action: string,
+  minFreq?: number,
+): Array<[number, number]> {
   const all = JSON.parse(readFileSync(chartsPath, 'utf-8')) as RangeEntry[];
-  const entries = all.filter(e => e.spot === spot);
+  const entries = all.filter((e) => e.spot === spot);
   const combos: Array<[number, number]> = [];
   const seen = new Set<string>();
   for (const e of entries) {
@@ -114,7 +148,10 @@ function loadRange(chartsPath: string, spot: string, action: string, minFreq?: n
     if (minFreq !== undefined && freq < minFreq) continue;
     for (const c of expandHandClassToCombos(e.hand)) {
       const k = `${c[0]},${c[1]}`;
-      if (!seen.has(k)) { seen.add(k); combos.push(c); }
+      if (!seen.has(k)) {
+        seen.add(k);
+        combos.push(c);
+      }
     }
   }
   return combos;
@@ -132,7 +169,10 @@ function computeHandBuckets(
   for (const [c1, c2] of range) {
     if (dead.has(c1) || dead.has(c2)) continue;
     const cards = [indexToCard(c1), indexToCard(c2), ...boardCards.map(indexToCard)];
-    ranked.push({ key: `${Math.min(c1,c2)},${Math.max(c1,c2)}`, value: evaluateBestHand(cards).value });
+    ranked.push({
+      key: `${Math.min(c1, c2)},${Math.max(c1, c2)}`,
+      value: evaluateBestHand(cards).value,
+    });
   }
   ranked.sort((a, b) => a.value - b.value);
   const bucketSize = Math.max(1, Math.ceil(ranked.length / numBuckets));
@@ -146,8 +186,11 @@ function computeHandBuckets(
 // ─── JSONL / Meta loading ───
 
 interface BoardMeta {
-  boardId: number; flopCards: number[]; bucketCount: number;
-  iterations: number; betSizes?: { flop: number[]; turn: number[]; river: number[] };
+  boardId: number;
+  flopCards: number[];
+  bucketCount: number;
+  iterations: number;
+  betSizes?: { flop: number[]; turn: number[]; river: number[] };
 }
 
 function findDataDir(): string {
@@ -161,7 +204,7 @@ function findDataDir(): string {
 
 function findBoardByCards(dataDir: string, targetCards: number[]): BoardMeta | null {
   const sorted = [...targetCards].sort((a, b) => a - b);
-  const files = readdirSync(dataDir).filter(f => f.endsWith('.meta.json'));
+  const files = readdirSync(dataDir).filter((f) => f.endsWith('.meta.json'));
   for (const f of files) {
     const m = JSON.parse(readFileSync(join(dataDir, f), 'utf-8')) as BoardMeta;
     const ms = [...m.flopCards].sort((a, b) => a - b);
@@ -213,7 +256,7 @@ function getStrategyFromJSONL(
     for (let i = 0; i < probs.length; i++) sums[i] += probs[i];
     count++;
   }
-  return sums && count > 0 ? sums.map(s => s / count) : null;
+  return sums && count > 0 ? sums.map((s) => s / count) : null;
 }
 
 /**
@@ -276,7 +319,11 @@ function simulateHand(
   const ipRiverB = quickPercentileBucket(ipHand, riverBoard, ipRange, bucketCount);
 
   // 4. Showdown
-  const oopCards = [indexToCard(oopHand[0]), indexToCard(oopHand[1]), ...riverBoard.map(indexToCard)];
+  const oopCards = [
+    indexToCard(oopHand[0]),
+    indexToCard(oopHand[1]),
+    ...riverBoard.map(indexToCard),
+  ];
   const ipCards = [indexToCard(ipHand[0]), indexToCard(ipHand[1]), ...riverBoard.map(indexToCard)];
   const oopEval = evaluateBestHand(oopCards);
   const ipEval = evaluateBestHand(ipCards);
@@ -328,9 +375,10 @@ function walkTree(
 
     if (!node.showdown) {
       const folder = node.lastToAct;
-      const oopPayoff = folder === 0
-        ? node.playerStacks[0] - startTotal
-        : node.playerStacks[0] + node.pot - startTotal;
+      const oopPayoff =
+        folder === 0
+          ? node.playerStacks[0] - startTotal
+          : node.playerStacks[0] + node.pot - startTotal;
       return { oopPayoff, ipPayoff: -oopPayoff };
     }
 
@@ -353,7 +401,13 @@ function walkTree(
   // Build info key and get strategy
   const infoKey = buildInfoKeyLocal(act.street, boardId, player, act.historyKey, buckets);
   const prefix = infoKey.substring(0, infoKey.lastIndexOf('|') + 1);
-  const bucketVal = parseInt(infoKey.substring(infoKey.lastIndexOf('|') + 1).split('-').pop()!, 10);
+  const bucketVal = parseInt(
+    infoKey
+      .substring(infoKey.lastIndexOf('|') + 1)
+      .split('-')
+      .pop()!,
+    10,
+  );
 
   const probs = getStrategyFromJSONL(indexed, prefix, bucketVal, isV2);
 
@@ -361,11 +415,14 @@ function walkTree(
   let chosenAction = 0;
   if (probs && probs.length === numActions) {
     nextRng(rng);
-    const r = (rng.state / 0x7fffffff);
+    const r = rng.state / 0x7fffffff;
     let cum = 0;
     for (let a = 0; a < numActions; a++) {
       cum += probs[a];
-      if (r <= cum) { chosenAction = a; break; }
+      if (r <= cum) {
+        chosenAction = a;
+        break;
+      }
     }
   } else {
     // Fallback: uniform random
@@ -390,7 +447,12 @@ function quickPercentileBucket(
   for (const [c1, c2] of range) {
     if (c1 === hand[0] || c1 === hand[1] || c2 === hand[0] || c2 === hand[1]) continue;
     let conflict = false;
-    for (const bc of board) { if (c1 === bc || c2 === bc) { conflict = true; break; } }
+    for (const bc of board) {
+      if (c1 === bc || c2 === bc) {
+        conflict = true;
+        break;
+      }
+    }
     if (conflict) continue;
     const cards = [indexToCard(c1), indexToCard(c2), ...board.map(indexToCard)];
     const v = evaluateBestHand(cards).value;
@@ -462,7 +524,9 @@ async function main(): Promise<void> {
   console.log('  Precomputing flop buckets...');
   const oopFlopBuckets = computeHandBuckets(oopFiltered, flopCards, bucketCount);
   const ipFlopBuckets = computeHandBuckets(ipFiltered, flopCards, bucketCount);
-  console.log(`  OOP flop buckets: ${oopFlopBuckets.size}, IP flop buckets: ${ipFlopBuckets.size}\n`);
+  console.log(
+    `  OOP flop buckets: ${oopFlopBuckets.size}, IP flop buckets: ${ipFlopBuckets.size}\n`,
+  );
 
   console.log('  Simulating...');
   const startTime = Date.now();
@@ -472,16 +536,19 @@ async function main(): Promise<void> {
   let sumIP = 0;
   let sumOOP2 = 0; // for variance
   let validHands = 0;
-  let noStrategy = 0;
-
-  // Action frequency tracking
-  const actionCounts = new Map<string, number>();
-
   for (let h = 0; h < numHands; h++) {
     const result = simulateHand(
-      tree, indexed, isV2, board.boardId, flopCards,
-      oopFiltered, ipFiltered, rng, bucketCount,
-      oopFlopBuckets, ipFlopBuckets,
+      tree,
+      indexed,
+      isV2,
+      board.boardId,
+      flopCards,
+      oopFiltered,
+      ipFiltered,
+      rng,
+      bucketCount,
+      oopFlopBuckets,
+      ipFlopBuckets,
     );
 
     if (!result) continue;
@@ -493,7 +560,9 @@ async function main(): Promise<void> {
 
     if ((h + 1) % 10000 === 0) {
       const avg = sumOOP / validHands;
-      process.stdout.write(`\r  ${(h + 1).toLocaleString()} hands... OOP avg = ${avg.toFixed(4)} bb/hand`);
+      process.stdout.write(
+        `\r  ${(h + 1).toLocaleString()} hands... OOP avg = ${avg.toFixed(4)} bb/hand`,
+      );
     }
   }
 
@@ -503,7 +572,7 @@ async function main(): Promise<void> {
   // Results
   const avgOOP = validHands > 0 ? sumOOP / validHands : 0;
   const avgIP = validHands > 0 ? sumIP / validHands : 0;
-  const variance = validHands > 1 ? (sumOOP2 / validHands - avgOOP * avgOOP) : 0;
+  const variance = validHands > 1 ? sumOOP2 / validHands - avgOOP * avgOOP : 0;
   const stddev = Math.sqrt(variance);
   const stderr = validHands > 0 ? stddev / Math.sqrt(validHands) : 0;
 
@@ -515,8 +584,12 @@ async function main(): Promise<void> {
   console.log(`  Elapsed:         ${(elapsed / 1000).toFixed(1)}s`);
   console.log(`  Speed:           ${Math.round(validHands / (elapsed / 1000))} hands/sec\n`);
 
-  console.log(`  OOP avg profit:  ${avgOOP >= 0 ? '+' : ''}${avgOOP.toFixed(4)} bb/hand  (±${(stderr * 1.96).toFixed(4)})`);
-  console.log(`  IP avg profit:   ${avgIP >= 0 ? '+' : ''}${avgIP.toFixed(4)} bb/hand  (±${(stderr * 1.96).toFixed(4)})`);
+  console.log(
+    `  OOP avg profit:  ${avgOOP >= 0 ? '+' : ''}${avgOOP.toFixed(4)} bb/hand  (±${(stderr * 1.96).toFixed(4)})`,
+  );
+  console.log(
+    `  IP avg profit:   ${avgIP >= 0 ? '+' : ''}${avgIP.toFixed(4)} bb/hand  (±${(stderr * 1.96).toFixed(4)})`,
+  );
   console.log(`  Game value:      ${(avgOOP + avgIP).toFixed(6)} bb/hand (should be ~0)\n`);
 
   // Assessment
@@ -526,7 +599,7 @@ async function main(): Promise<void> {
     console.log(`  Assessment: EXCELLENT — game value < 1% of pot`);
   } else if (potFrac < 0.05) {
     console.log(`  Assessment: GOOD — game value < 5% of pot`);
-  } else if (potFrac < 0.10) {
+  } else if (potFrac < 0.1) {
     console.log(`  Assessment: ACCEPTABLE — game value < 10% of pot`);
   } else {
     console.log(`  Assessment: POTENTIAL ISSUE — game value > 10% of pot`);
@@ -534,7 +607,7 @@ async function main(): Promise<void> {
   console.log(`  (Game value as % of pot: ${(potFrac * 100).toFixed(2)}%)\n`);
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('Error:', err);
   process.exit(1);
 });

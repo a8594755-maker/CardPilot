@@ -2,9 +2,8 @@
 // V2: supports checkpoint/resume for long-running full-board solves.
 
 import { WorkerPool } from './worker-pool.js';
-import type { FlopTask, WorkerResult } from './solve-worker.js';
-import { indexToCard } from '../abstraction/card-index.js';
-import { resolve, join } from 'node:path';
+import type { WorkerResult } from './solve-worker.js';
+import { join } from 'node:path';
 import { cpus } from 'node:os';
 import { existsSync, readFileSync, writeFileSync, mkdirSync, readdirSync } from 'node:fs';
 
@@ -14,10 +13,10 @@ export interface OrchestratorConfig {
   bucketCount: number;
   outputDir: string;
   chartsPath: string;
-  configName?: string;  // tree config name for workers
-  stackLabel?: string;  // e.g. '50bb', '100bb'
-  numWorkers?: number;  // defaults to min(cpus, flops.length)
-  resume?: boolean;     // if true, skip flops that already have output files
+  configName?: string; // tree config name for workers
+  stackLabel?: string; // e.g. '50bb', '100bb'
+  numWorkers?: number; // defaults to min(cpus, flops.length)
+  resume?: boolean; // if true, skip flops that already have output files
 }
 
 export interface OrchestratorResult {
@@ -63,7 +62,9 @@ export async function solveParallel(config: OrchestratorConfig): Promise<Orchest
   skippedFlops = config.flops.length - pendingFlops.length;
 
   console.log(`=== CardPilot CFR Solver V2 (Parallel) ===`);
-  console.log(`Flops: ${pendingFlops.length} pending (${skippedFlops} skipped) of ${config.flops.length} total`);
+  console.log(
+    `Flops: ${pendingFlops.length} pending (${skippedFlops} skipped) of ${config.flops.length} total`,
+  );
   console.log(`Iterations: ${config.iterations} | Buckets: ${config.bucketCount}`);
   console.log(`Workers: ${numWorkers}`);
   console.log();
@@ -94,7 +95,7 @@ export async function solveParallel(config: OrchestratorConfig): Promise<Orchest
       const elapsed = (result.elapsedMs / 1000).toFixed(1);
       const fileKB = (result.fileSize / 1024).toFixed(0);
       console.log(
-        `[${completed + skippedFlops}/${config.flops.length}] ${result.label} | ${elapsed}s | ${result.infoSets} info sets | ${fileKB}KB`
+        `[${completed + skippedFlops}/${config.flops.length}] ${result.label} | ${elapsed}s | ${result.infoSets} info sets | ${fileKB}KB`,
       );
 
       // Save checkpoint after each completed flop

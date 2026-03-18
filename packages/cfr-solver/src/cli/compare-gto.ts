@@ -16,7 +16,12 @@ import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { cardToIndex, indexToCard } from '../abstraction/card-index.js';
 import { evaluateBestHand } from '@cardpilot/poker-evaluator';
-import { getTreeConfig, getConfigOutputDir, getConfigLabel, type TreeConfigName } from '../tree/tree-config.js';
+import {
+  getTreeConfig,
+  getConfigOutputDir,
+  getConfigLabel,
+  type TreeConfigName,
+} from '../tree/tree-config.js';
 
 // ─── Project root resolution ───
 
@@ -43,7 +48,13 @@ function getStringArg(name: string, defaultVal: string): string {
   return defaultVal;
 }
 
-const mode = hasFlag('export') ? 'export' : hasFlag('compare') ? 'compare' : hasFlag('list') ? 'list' : 'help';
+const mode = hasFlag('export')
+  ? 'export'
+  : hasFlag('compare')
+    ? 'compare'
+    : hasFlag('list')
+      ? 'list'
+      : 'help';
 const configName = getStringArg('config', 'hu_btn_bb_srp_50bb') as TreeConfigName;
 const boardArg = getStringArg('board', '');
 const fileArg = getStringArg('file', '');
@@ -54,7 +65,6 @@ const dataDirOverride = getStringArg('data-dir', ''); // override data directory
 // ─── Card utilities ───
 
 const RANKS = '23456789TJQKA';
-const SUITS = ['c', 'd', 'h', 's'];
 
 function comboToHandClass(c1: number, c2: number): string {
   const r1 = Math.floor(c1 / 4);
@@ -119,26 +129,83 @@ interface RangeEntry {
   spot: string;
 }
 
-const DEFAULT_BTN_BB_SRP = { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'call' };
+const DEFAULT_BTN_BB_SRP = {
+  ipSpot: 'BTN_unopened_open2.5x',
+  oopSpot: 'BB_vs_BTN_facing_open2.5x',
+  ipAction: 'raise',
+  oopAction: 'call',
+};
 
-const CONFIG_RANGES: Record<string, { ipSpot: string; oopSpot: string; ipAction: string; oopAction: string; minFrequency?: number }> = {
+const CONFIG_RANGES: Record<
+  string,
+  { ipSpot: string; oopSpot: string; ipAction: string; oopAction: string; minFrequency?: number }
+> = {
   v1_50bb: DEFAULT_BTN_BB_SRP,
   standard_50bb: DEFAULT_BTN_BB_SRP,
   standard_100bb: DEFAULT_BTN_BB_SRP,
   pipeline_srp: DEFAULT_BTN_BB_SRP,
-  pipeline_3bet: { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'raise', minFrequency: 0.40 },
-  hu_btn_bb_srp_100bb: { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'call' },
-  hu_btn_bb_3bp_100bb: { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'raise', minFrequency: 0.40 },
-  hu_btn_bb_srp_50bb: { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'call' },
-  hu_btn_bb_3bp_50bb: { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'raise', minFrequency: 0.40 },
-  hu_co_bb_srp_100bb: { ipSpot: 'CO_unopened_open2.5x', oopSpot: 'BB_vs_CO_facing_open2.5x', ipAction: 'raise', oopAction: 'call' },
-  hu_co_bb_3bp_100bb: { ipSpot: 'CO_unopened_open2.5x', oopSpot: 'BB_vs_CO_facing_open2.5x', ipAction: 'raise', oopAction: 'raise', minFrequency: 0.50 },
-  hu_utg_bb_srp_100bb: { ipSpot: 'UTG_unopened_open2.5x', oopSpot: 'BB_vs_UTG_facing_open2.5x', ipAction: 'raise', oopAction: 'call' },
+  pipeline_3bet: {
+    ipSpot: 'BTN_unopened_open2.5x',
+    oopSpot: 'BB_vs_BTN_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'raise',
+    minFrequency: 0.4,
+  },
+  hu_btn_bb_srp_100bb: {
+    ipSpot: 'BTN_unopened_open2.5x',
+    oopSpot: 'BB_vs_BTN_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'call',
+  },
+  hu_btn_bb_3bp_100bb: {
+    ipSpot: 'BTN_unopened_open2.5x',
+    oopSpot: 'BB_vs_BTN_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'raise',
+    minFrequency: 0.4,
+  },
+  hu_btn_bb_srp_50bb: {
+    ipSpot: 'BTN_unopened_open2.5x',
+    oopSpot: 'BB_vs_BTN_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'call',
+  },
+  hu_btn_bb_3bp_50bb: {
+    ipSpot: 'BTN_unopened_open2.5x',
+    oopSpot: 'BB_vs_BTN_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'raise',
+    minFrequency: 0.4,
+  },
+  hu_co_bb_srp_100bb: {
+    ipSpot: 'CO_unopened_open2.5x',
+    oopSpot: 'BB_vs_CO_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'call',
+  },
+  hu_co_bb_3bp_100bb: {
+    ipSpot: 'CO_unopened_open2.5x',
+    oopSpot: 'BB_vs_CO_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'raise',
+    minFrequency: 0.5,
+  },
+  hu_utg_bb_srp_100bb: {
+    ipSpot: 'UTG_unopened_open2.5x',
+    oopSpot: 'BB_vs_UTG_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'call',
+  },
 };
 
-function loadRange(chartsPath: string, spot: string, action: string, minFreq?: number): Array<[number, number]> {
+function loadRange(
+  chartsPath: string,
+  spot: string,
+  action: string,
+  minFreq?: number,
+): Array<[number, number]> {
   const allEntries = JSON.parse(readFileSync(chartsPath, 'utf-8')) as RangeEntry[];
-  const entries = allEntries.filter(e => e.spot === spot);
+  const entries = allEntries.filter((e) => e.spot === spot);
   const combos: Array<[number, number]> = [];
   const seen = new Set<string>();
 
@@ -156,7 +223,10 @@ function loadRange(chartsPath: string, spot: string, action: string, minFreq?: n
   return combos;
 }
 
-function loadRangesForConfig(configName: string): { oop: Array<[number, number]>; ip: Array<[number, number]> } {
+function loadRangesForConfig(configName: string): {
+  oop: Array<[number, number]>;
+  ip: Array<[number, number]>;
+} {
   const chartsPath = resolve(PROJECT_ROOT, 'data/preflop_charts.json');
   const cfg = CONFIG_RANGES[configName];
   if (!cfg) {
@@ -192,9 +262,10 @@ function computeHandBuckets(
 
   for (let i = 0; i < ranked.length; i++) {
     const bucket = Math.min(Math.floor(i / bucketSize), numBuckets - 1);
-    const key = ranked[i].c1 < ranked[i].c2
-      ? `${ranked[i].c1},${ranked[i].c2}`
-      : `${ranked[i].c2},${ranked[i].c1}`;
+    const key =
+      ranked[i].c1 < ranked[i].c2
+        ? `${ranked[i].c1},${ranked[i].c2}`
+        : `${ranked[i].c2},${ranked[i].c1}`;
     result.set(key, bucket);
   }
   return result;
@@ -258,7 +329,7 @@ function findDataDir(configName: string): string {
 
 function listSolvedBoards(dataDir: string): BoardMeta[] {
   if (!existsSync(dataDir)) return [];
-  const files = readdirSync(dataDir).filter(f => f.endsWith('.meta.json'));
+  const files = readdirSync(dataDir).filter((f) => f.endsWith('.meta.json'));
   const boards: BoardMeta[] = [];
   for (const f of files) {
     const meta = JSON.parse(readFileSync(join(dataDir, f), 'utf-8'));
@@ -272,7 +343,11 @@ function findBoardByCards(dataDir: string, targetCards: number[]): BoardMeta | n
   const boards = listSolvedBoards(dataDir);
   for (const board of boards) {
     const boardSorted = [...board.flopCards].sort((a, b) => a - b);
-    if (boardSorted[0] === sorted[0] && boardSorted[1] === sorted[1] && boardSorted[2] === sorted[2]) {
+    if (
+      boardSorted[0] === sorted[0] &&
+      boardSorted[1] === sorted[1] &&
+      boardSorted[2] === sorted[2]
+    ) {
       return board;
     }
   }
@@ -339,7 +414,6 @@ function getProbs(
   prefix: string,
   bucket: number,
   isV2: boolean,
-  bucketCount: number,
 ): number[] | null {
   if (!isV2) {
     return indexed.get(prefix + bucket) || null;
@@ -356,7 +430,7 @@ function getProbs(
     count++;
   }
   if (!sums || count === 0) return null;
-  return sums.map(s => s / count);
+  return sums.map((s) => s / count);
 }
 
 function extractStrategiesForPlayer(
@@ -366,7 +440,7 @@ function extractStrategiesForPlayer(
   player: number,
   historyKey: string,
   betSizes: number[],
-  bucketCount: number,
+  _bucketCount: number,
 ): {
   strategies: Record<string, number[]>;
   actions: string[];
@@ -410,18 +484,17 @@ function extractStrategiesForPlayer(
   let totalHands = 0;
 
   for (const [handClass, bucket] of Object.entries(handMap)) {
-    const probs = getProbs(indexed, prefix, bucket, isV2, bucketCount);
+    const probs = getProbs(indexed, prefix, bucket, isV2);
     if (!probs) continue;
-    strategies[handClass] = probs.map(p => Math.round(p * 1000) / 1000);
+    strategies[handClass] = probs.map((p) => Math.round(p * 1000) / 1000);
     for (let i = 0; i < probs.length; i++) aggregateSums[i] += probs[i];
     totalHands++;
   }
 
   const aggregate: Record<string, number> = {};
   for (let i = 0; i < numActions; i++) {
-    aggregate[actualActions[i]] = totalHands > 0
-      ? Math.round((aggregateSums[i] / totalHands) * 1000) / 1000
-      : 0;
+    aggregate[actualActions[i]] =
+      totalHands > 0 ? Math.round((aggregateSums[i] / totalHands) * 1000) / 1000 : 0;
   }
 
   return { strategies, actions: actualActions, aggregate, handCount: totalHands };
@@ -475,7 +548,8 @@ function compareStrategies(
 
   results.sort((a, b) => b.l1 - a.l1);
   const avgL1 = results.length > 0 ? results.reduce((s, r) => s + r.l1, 0) / results.length : 0;
-  const avgCheckDiff = results.length > 0 ? results.reduce((s, r) => s + r.checkVsBetDiff, 0) / results.length : 0;
+  const avgCheckDiff =
+    results.length > 0 ? results.reduce((s, r) => s + r.checkVsBetDiff, 0) / results.length : 0;
   const maxL1 = results.length > 0 ? results[0] : null;
 
   return { results, avgL1, maxL1, avgCheckDiff, compared: results.length };
@@ -500,7 +574,9 @@ function cmdList(): void {
   for (const b of boards.slice(0, 30)) {
     const label = b.flopCards.map(indexToCard).join(' ');
     const time = (b.elapsedMs / 1000).toFixed(0);
-    console.log(`  ${String(b.boardId).padStart(3)}  ${label.padEnd(14)}  ${String(b.iterations).padStart(10)}  ${String(b.infoSets).padStart(8)}  ${time}s`);
+    console.log(
+      `  ${String(b.boardId).padStart(3)}  ${label.padEnd(14)}  ${String(b.iterations).padStart(10)}  ${String(b.infoSets).padStart(8)}  ${time}s`,
+    );
   }
   if (boards.length > 30) {
     console.log(`  ... and ${boards.length - 30} more`);
@@ -537,11 +613,12 @@ function cmdExport(): void {
 
   // Detect the street from history
   const streetSeparators = (historyKey.match(/\//g) || []).length;
-  const streetBetSizes = streetSeparators === 0
-    ? treeConfig.betSizes.flop
-    : streetSeparators === 1
-      ? treeConfig.betSizes.turn
-      : treeConfig.betSizes.river;
+  const streetBetSizes =
+    streetSeparators === 0
+      ? treeConfig.betSizes.flop
+      : streetSeparators === 1
+        ? treeConfig.betSizes.turn
+        : treeConfig.betSizes.river;
 
   const players = playerArg === 'oop' ? [0] : playerArg === 'ip' ? [1] : [0, 1];
   const playerLabels = ['OOP (BB)', 'IP (BTN)'];
@@ -568,7 +645,13 @@ function cmdExport(): void {
     // At root (empty history), player 0 (OOP/BB) acts first
     // After each action, player alternates (simplified)
     const result = extractStrategiesForPlayer(
-      indexed, handMap, board.boardId, player, historyKey, streetBetSizes, bucketCount,
+      indexed,
+      handMap,
+      board.boardId,
+      player,
+      historyKey,
+      streetBetSizes,
+      bucketCount,
     );
 
     const label = playerLabels[player];
@@ -599,7 +682,11 @@ function cmdExport(): void {
 
     console.log(`  ${label} (${data.handCount} hand classes):`);
     console.log(`  Actions: ${data.actions.join(' | ')}`);
-    console.log(`  Aggregate: ${Object.entries(data.aggregate).map(([k, v]) => `${k} ${((v as number) * 100).toFixed(1)}%`).join(' | ')}`);
+    console.log(
+      `  Aggregate: ${Object.entries(data.aggregate)
+        .map(([k, v]) => `${k} ${((v as number) * 100).toFixed(1)}%`)
+        .join(' | ')}`,
+    );
     console.log();
 
     // Print top hands as a table
@@ -617,7 +704,7 @@ function cmdExport(): void {
     console.log(`  ${'Hand'.padEnd(6)}${data.actions.map((a: string) => a.padStart(10)).join('')}`);
     console.log(`  ${'─'.repeat(6)}${data.actions.map(() => '─'.repeat(10)).join('')}`);
     for (const [hand, probs] of entries) {
-      const probStrs = (probs as number[]).map(p => `${(p * 100).toFixed(1)}%`.padStart(10));
+      const probStrs = (probs as number[]).map((p) => `${(p * 100).toFixed(1)}%`.padStart(10));
       console.log(`  ${hand.padEnd(6)}${probStrs.join('')}`);
     }
     console.log();
@@ -650,7 +737,7 @@ function cmdCompare(): void {
   const extStrategies = extData.strategies as Record<string, number[]>;
   const extActions = extData.actions as string[] | undefined;
   const extPlayer = extData.player as string | undefined;
-  const extSource = extData.source as string || 'External';
+  const extSource = (extData.source as string) || 'External';
 
   if (!extStrategies || Object.keys(extStrategies).length === 0) {
     console.error('Error: External file has no strategies data');
@@ -681,14 +768,15 @@ function cmdCompare(): void {
 
   const historyKey = nodeArg === 'root' ? '' : nodeArg;
   const streetSeparators = (historyKey.match(/\//g) || []).length;
-  const streetBetSizes = streetSeparators === 0
-    ? treeConfig.betSizes.flop
-    : streetSeparators === 1
-      ? treeConfig.betSizes.turn
-      : treeConfig.betSizes.river;
+  const streetBetSizes =
+    streetSeparators === 0
+      ? treeConfig.betSizes.flop
+      : streetSeparators === 1
+        ? treeConfig.betSizes.turn
+        : treeConfig.betSizes.river;
 
   // Determine player
-  const player = (extPlayer === 'IP' || extPlayer === 'ip') ? 1 : 0;
+  const player = extPlayer === 'IP' || extPlayer === 'ip' ? 1 : 0;
   const range = player === 0 ? ranges.oop : ranges.ip;
   const playerLabel = player === 0 ? 'OOP (BB)' : 'IP (BTN)';
 
@@ -696,7 +784,13 @@ function cmdCompare(): void {
   const handMap = buildHandClassMap(buckets, range, boardCards);
 
   const cpResult = extractStrategiesForPlayer(
-    indexed, handMap, board.boardId, player, historyKey, streetBetSizes, bucketCount,
+    indexed,
+    handMap,
+    board.boardId,
+    player,
+    historyKey,
+    streetBetSizes,
+    bucketCount,
   );
 
   // Compare
@@ -706,30 +800,42 @@ function cmdCompare(): void {
   console.log(`\n${'═'.repeat(70)}`);
   console.log(`  CFR Comparison: ${configName} | Board: ${boardCards.map(indexToCard).join(' ')}`);
   console.log(`  Node: ${nodeArg} (${playerLabel}) | Source: ${extSource}`);
-  console.log(`  Compared: ${comparison.compared}/${Object.keys(extStrategies).length} hand classes`);
+  console.log(
+    `  Compared: ${comparison.compared}/${Object.keys(extStrategies).length} hand classes`,
+  );
   console.log(`${'═'.repeat(70)}\n`);
 
   // Overall metrics
-  const status = comparison.avgL1 < 0.10 ? 'GOOD' : comparison.avgL1 < 0.20 ? 'ACCEPTABLE' : 'SIGNIFICANT DEVIATION';
+  const status =
+    comparison.avgL1 < 0.1
+      ? 'GOOD'
+      : comparison.avgL1 < 0.2
+        ? 'ACCEPTABLE'
+        : 'SIGNIFICANT DEVIATION';
   console.log(`  Overall:`);
   console.log(`    Mean L1 deviation:    ${(comparison.avgL1 * 100).toFixed(1)}% — ${status}`);
   console.log(`    Check freq deviation: ${(comparison.avgCheckDiff * 100).toFixed(1)}%`);
   if (comparison.maxL1) {
-    console.log(`    Max deviation:        ${comparison.maxL1.handClass} (${(comparison.maxL1.l1 * 100).toFixed(1)}%)`);
+    console.log(
+      `    Max deviation:        ${comparison.maxL1.handClass} (${(comparison.maxL1.l1 * 100).toFixed(1)}%)`,
+    );
   }
   console.log();
 
   // Aggregate comparison
   if (cpResult.aggregate && extActions) {
     console.log(`  Aggregate frequencies:`);
-    console.log(`  ${''.padEnd(12)}${'CardPilot'.padStart(12)}${'External'.padStart(12)}${'Diff'.padStart(10)}`);
+    console.log(
+      `  ${''.padEnd(12)}${'CardPilot'.padStart(12)}${'External'.padStart(12)}${'Diff'.padStart(10)}`,
+    );
     console.log(`  ${'─'.repeat(46)}`);
     for (let i = 0; i < cpResult.actions.length; i++) {
       const cpFreq = cpResult.aggregate[cpResult.actions[i]] || 0;
       // Try to find matching external action
-      const extLabel = i < extActions.length ? extActions[i] : cpResult.actions[i];
       const label = cpResult.actions[i];
-      console.log(`  ${label.padEnd(12)}${((cpFreq) * 100).toFixed(1).padStart(11)}%${'?'.padStart(12)}${'N/A'.padStart(10)}`);
+      console.log(
+        `  ${label.padEnd(12)}${(cpFreq * 100).toFixed(1).padStart(11)}%${'?'.padStart(12)}${'N/A'.padStart(10)}`,
+      );
     }
     console.log();
   }
@@ -737,14 +843,18 @@ function cmdCompare(): void {
   // Top deviations
   const topN = Math.min(15, comparison.results.length);
   console.log(`  Top ${topN} deviations:`);
-  console.log(`  ${'Hand'.padEnd(6)}${'CP'.padStart(30)}${'External'.padStart(30)}${'L1'.padStart(8)}`);
+  console.log(
+    `  ${'Hand'.padEnd(6)}${'CP'.padStart(30)}${'External'.padStart(30)}${'L1'.padStart(8)}`,
+  );
   console.log(`  ${'─'.repeat(74)}`);
 
   for (let i = 0; i < topN; i++) {
     const r = comparison.results[i];
-    const cpStr = r.cardpilot.map(p => `${(p * 100).toFixed(0)}%`).join('/');
-    const extStr = r.external.map(p => `${(p * 100).toFixed(0)}%`).join('/');
-    console.log(`  ${r.handClass.padEnd(6)}${cpStr.padStart(30)}${extStr.padStart(30)}${((r.l1 * 100).toFixed(1) + '%').padStart(8)}`);
+    const cpStr = r.cardpilot.map((p) => `${(p * 100).toFixed(0)}%`).join('/');
+    const extStr = r.external.map((p) => `${(p * 100).toFixed(0)}%`).join('/');
+    console.log(
+      `  ${r.handClass.padEnd(6)}${cpStr.padStart(30)}${extStr.padStart(30)}${((r.l1 * 100).toFixed(1) + '%').padStart(8)}`,
+    );
   }
   console.log();
 
@@ -754,14 +864,18 @@ function cmdCompare(): void {
   console.log(`  Best ${bestN} matches:`);
   for (let i = 0; i < bestN; i++) {
     const r = sorted[i];
-    const cpStr = r.cardpilot.map(p => `${(p * 100).toFixed(0)}%`).join('/');
-    const extStr = r.external.map(p => `${(p * 100).toFixed(0)}%`).join('/');
-    console.log(`  ${r.handClass.padEnd(6)}${cpStr.padStart(30)}${extStr.padStart(30)}${((r.l1 * 100).toFixed(1) + '%').padStart(8)}`);
+    const cpStr = r.cardpilot.map((p) => `${(p * 100).toFixed(0)}%`).join('/');
+    const extStr = r.external.map((p) => `${(p * 100).toFixed(0)}%`).join('/');
+    console.log(
+      `  ${r.handClass.padEnd(6)}${cpStr.padStart(30)}${extStr.padStart(30)}${((r.l1 * 100).toFixed(1) + '%').padStart(8)}`,
+    );
   }
   console.log();
 
   // Rating
-  console.log(`  Rating: ${comparison.avgL1 < 0.05 ? 'EXCELLENT (<5%)' : comparison.avgL1 < 0.10 ? 'GOOD (<10%)' : comparison.avgL1 < 0.20 ? 'ACCEPTABLE (<20%)' : 'NEEDS IMPROVEMENT (>20%)'}`);
+  console.log(
+    `  Rating: ${comparison.avgL1 < 0.05 ? 'EXCELLENT (<5%)' : comparison.avgL1 < 0.1 ? 'GOOD (<10%)' : comparison.avgL1 < 0.2 ? 'ACCEPTABLE (<20%)' : 'NEEDS IMPROVEMENT (>20%)'}`,
+  );
   console.log(`  Threshold: <5% EXCELLENT | <10% GOOD | <20% ACCEPTABLE | >20% SIGNIFICANT\n`);
 }
 
@@ -802,8 +916,16 @@ External JSON format:
 // ─── Main ───
 
 switch (mode) {
-  case 'list': cmdList(); break;
-  case 'export': cmdExport(); break;
-  case 'compare': cmdCompare(); break;
-  default: cmdHelp(); break;
+  case 'list':
+    cmdList();
+    break;
+  case 'export':
+    cmdExport();
+    break;
+  case 'compare':
+    cmdCompare();
+    break;
+  default:
+    cmdHelp();
+    break;
 }

@@ -1,36 +1,14 @@
-// Type definitions for 6-max preflop GTO solver
+// Type definitions for the preflop solver.
 //
-// The preflop tree models a full 6-player sequential decision process:
-// UTG → HJ → CO → BTN → SB → BB
-//
-// Key simplifications (GTO Wizard "Simple solutions" approach):
-// - After a 3-bet, remaining uninvolved players auto-fold
-// - Non-BB facing an open must 3bet or fold (no cold-calling)
-// - Raise cap: open → 3bet → 4bet → 5bet/allin
-// - One sizing per action type
+// Seat indexing convention:
+// - Seats are ordered by preflop action order.
+// - Seat 0 is first-to-act preflop.
+// - Last two seats are always SB, BB.
+// - For 6-max this is: UTG(0), HJ(1), CO(2), BTN(3), SB(4), BB(5).
 
-export type Position = 'UTG' | 'MP' | 'HJ' | 'CO' | 'BTN' | 'SB' | 'BB';
+export type Position = 'UTG' | 'LJ' | 'HJ' | 'CO' | 'BTN' | 'SB' | 'BB' | `P${number}`;
+export type SeatIndex = number;
 
-/** Seat index: 0=UTG, 1=MP, 2=HJ, 3=CO, 4=BTN, 5=SB, 6=BB */
-export type SeatIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
-
-export const POSITIONS: Position[] = ['UTG', 'MP', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
-export const NUM_SEATS = 6; // 6-max (UTG through BB, but BB is seat index 5 in 6-max)
-
-// In 6-max, we have 6 seats: UTG(0), MP(1), HJ(2), CO(3), BTN(4), SB(5)
-// BB is the 7th conceptual position but seat index is modular.
-// For simplicity, we use 0-5 as seat indices matching the 6 positions in preflop order.
-export const SEAT_POSITIONS: Position[] = ['UTG', 'MP', 'HJ', 'CO', 'BTN', 'SB'];
-
-// Wait — in 6-max there ARE 6 players: UTG, MP (sometimes called LJ), HJ, CO, BTN, SB, BB = 7 names but only 6 seats.
-// Standard 6-max: UTG, HJ, CO, BTN, SB, BB — but many use UTG, MP, CO, BTN, SB, BB.
-// Let's standardize: 6 seats with preflop action order:
-//   Seat 0 = UTG (first to act preflop)
-//   Seat 1 = HJ
-//   Seat 2 = CO
-//   Seat 3 = BTN (dealer)
-//   Seat 4 = SB (small blind)
-//   Seat 5 = BB (big blind, last to act preflop)
 export const POSITION_6MAX: Position[] = ['UTG', 'HJ', 'CO', 'BTN', 'SB', 'BB'];
 export const POSITION_LABELS: Record<number, Position> = {
   0: 'UTG',
@@ -40,6 +18,41 @@ export const POSITION_LABELS: Record<number, Position> = {
   4: 'SB',
   5: 'BB',
 };
+
+/**
+ * Build default position labels for arbitrary player counts while preserving
+ * canonical 6-max labels.
+ */
+export function defaultPositionsForPlayers(players: number): Position[] {
+  if (!Number.isFinite(players) || players < 2) {
+    throw new Error(`invalid player count: ${players}`);
+  }
+
+  if (players === 6) return [...POSITION_6MAX];
+  if (players === 2) return ['SB', 'BB'];
+  if (players === 3) return ['BTN', 'SB', 'BB'];
+
+  const earlyCount = players - 3; // seats before BTN
+  const early: Position[] = [];
+  if (earlyCount === 1) {
+    early.push('UTG');
+  } else if (earlyCount === 2) {
+    early.push('HJ', 'CO');
+  } else if (earlyCount === 3) {
+    early.push('UTG', 'HJ', 'CO');
+  } else if (earlyCount === 4) {
+    early.push('UTG', 'LJ', 'HJ', 'CO');
+  } else {
+    early.push('UTG');
+    const extra = earlyCount - 4;
+    for (let i = 0; i < extra; i++) {
+      early.push(`P${i + 1}`);
+    }
+    early.push('LJ', 'HJ', 'CO');
+  }
+
+  return [...early, 'BTN', 'SB', 'BB'];
+}
 
 export const NUM_PLAYERS = 6;
 
@@ -139,33 +152,34 @@ export function comboToHandClass(c1: number, c2: number): string {
 export type PreflopAction = string;
 // Possible actions:
 // 'fold'          - fold hand
-// 'call'          - call current bet (BB only vs open)
+// 'call'          - call current bet / limp
 // 'check'         - check (BB option when no raise)
 // 'open_X'        - open raise to X bb (e.g., 'open_2.5')
 // '3bet_X'        - 3-bet to X bb
 // '4bet_X'        - 4-bet to X bb
 // 'allin'         - all-in (push remaining stack)
+// 'squeeze_X'     - squeeze (3-bet after caller)
 
 export interface PreflopActionNode {
   type: 'action';
-  seat: number;              // 0-5 seat index
-  position: Position;        // position label
-  pot: number;               // current pot in bb
-  stacks: number[];          // remaining stack per seat (length 6)
-  investments: number[];     // total invested per seat this hand (length 6)
-  actions: PreflopAction[];  // available actions
+  seat: number; // seat index in preflop action order
+  position: Position; // position label
+  pot: number; // current pot in bb
+  stacks: number[]; // remaining stack per seat (length players)
+  investments: number[]; // total invested per seat this hand (length players)
+  actions: PreflopAction[]; // available actions
   children: Map<PreflopAction, PreflopGameNode>;
-  historyKey: string;        // encoded action sequence for info-set key
+  historyKey: string; // encoded action sequence for info-set key
   activePlayers: Set<number>; // seat indices still in the hand
 }
 
 export interface PreflopTerminalNode {
   type: 'terminal';
   pot: number;
-  investments: number[];     // total invested per seat
-  activePlayers: number[];   // seat indices remaining (for showdown/see-flop)
-  showdown: boolean;         // true = see flop or all-in showdown
-  folder?: number;           // seat index of folder (if fold terminal)
+  investments: number[]; // total invested per seat
+  activePlayers: number[]; // seat indices remaining (for showdown/see-flop)
+  showdown: boolean; // true = see flop or all-in showdown
+  folder?: number; // seat index of folder (if fold terminal)
 }
 
 export type PreflopGameNode = PreflopActionNode | PreflopTerminalNode;
@@ -173,30 +187,33 @@ export type PreflopGameNode = PreflopActionNode | PreflopTerminalNode;
 // ── Solver configuration ──
 
 export interface PreflopSolveConfig {
-  name: string;              // 'cash_6max_100bb'
-  players: number;           // 6
-  stackSize: number;         // 100 (bb)
-  sbSize: number;            // 0.5
-  bbSize: number;            // 1.0
-  ante: number;              // 0 for cash, e.g. 0.25/player for ante games
-  openSize: number;          // 2.5 (bb)
-  threeBetIPMultiplier: number;  // 3.0 (× open = 7.5bb)
+  name: string; // 'cash_6max_100bb'
+  players: number; // >=2
+  positionLabels?: Position[]; // optional explicit seat labels in preflop order
+  stackSize: number; // 100 (bb)
+  sbSize: number; // 0.5
+  bbSize: number; // 1.0
+  ante: number; // 0 for cash, e.g. 0.25/player for ante games
+  openSize: number; // 2.5 (bb)
+  threeBetIPMultiplier: number; // 3.0 (× open = 7.5bb)
   threeBetOOPMultiplier: number; // 3.5 (× open = 8.75bb)
-  fourBetMultiplier: number;     // 2.25 (× 3bet)
-  iterations: number;        // 1_000_000
-  realizationIP: number;     // 1.0
-  realizationOOP: number;    // 0.70
-  rake: number;              // 0.05 (5% of pot)
-  rakeCap: number;           // 3.0 (max 3bb rake)
+  fourBetMultiplier: number; // 2.25 (× 3bet)
+  reRaiseMultiplier?: number; // >=5-bet sizing multiplier (defaults to fourBetMultiplier)
+  maxRaiseLevel?: number; // 1=open, 2=3bet, 3=4bet, 4=5bet ... default 4
+  allowSmallBlindComplete?: boolean; // default true
+  autoFoldUninvolvedAfterThreeBet?: boolean; // default false for generic trees
+  iterations: number; // 1_000_000
+  realizationIP: number; // 1.0
+  realizationOOP: number; // 0.85
 }
 
 // ── Spot / scenario types (for export) ──
 
-export type ScenarioType = 'RFI' | 'facing_open' | 'facing_3bet' | 'facing_4bet';
+export type ScenarioType = 'RFI' | 'facing_open' | 'facing_3bet' | 'facing_4bet' | 'squeeze';
 
 export interface SpotSolution {
-  spot: string;              // e.g., 'BB_vs_BTN_open'
-  format: string;            // e.g., 'cash_6max_100bb'
+  spot: string; // e.g., 'BB_vs_BTN_open'
+  format: string; // e.g., 'cash_6max_100bb'
   heroPosition: Position;
   villainPosition?: Position;
   scenario: ScenarioType;
@@ -206,7 +223,7 @@ export interface SpotSolution {
   grid: Record<string, Record<string, number>>;
   summary: {
     totalCombos: number;
-    rangeSize: number;       // combos with any non-fold action
+    rangeSize: number; // combos with any non-fold action
     actionFrequencies: Record<string, number>; // aggregate freq per action
   };
   metadata: {

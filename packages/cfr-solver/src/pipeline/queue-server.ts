@@ -14,14 +14,18 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import { appendFileSync, readFileSync, existsSync } from 'node:fs';
 import type { TreeConfigName } from '../tree/tree-config.js';
 
+// ---------- Worker Blacklist ----------
+// Workers in this set will be rejected on /pop (returns 204 = no work).
+const BLOCKED_WORKERS = new Set<string>(['machineB']);
+
 // ---------- Types ----------
 
 export interface PipelineJob {
-  jobId: string;                       // e.g. "pipeline_srp__0042"
+  jobId: string; // e.g. "pipeline_srp__0042"
   flopCards: [number, number, number];
   boardId: number;
-  label: string;                       // human-readable board label
-  canonical: string;                   // canonical flop string
+  label: string; // human-readable board label
+  canonical: string; // canonical flop string
   iterations: number;
   bucketCount: number;
   configName: TreeConfigName;
@@ -35,7 +39,7 @@ interface RunningJob {
   claimedAt: number;
   claimedBy: string; // worker id from header
   iteration: number; // latest reported iteration
-  total: number;     // expected total iterations
+  total: number; // expected total iterations
   lastProgressAt: number;
 }
 
@@ -86,8 +90,10 @@ export function addCompletedLogPath(configName: string, path: string): void {
 function restoreCompletedLog(path: string): void {
   if (!existsSync(path)) return;
   try {
-    const lines = readFileSync(path, 'utf-8').split('\n').filter(l => l.trim());
-    const existingIds = new Set(completed.map(c => c.jobId));
+    const lines = readFileSync(path, 'utf-8')
+      .split('\n')
+      .filter((l) => l.trim());
+    const existingIds = new Set(completed.map((c) => c.jobId));
     let restored = 0;
     let corrupt = 0;
     for (const line of lines) {
@@ -112,7 +118,9 @@ function restoreCompletedLog(path: string): void {
       }
     }
     if (restored > 0 || corrupt > 0) {
-      console.log(`[Queue Server] Restored ${restored} completed records from ${path}${corrupt > 0 ? ` (${corrupt} corrupt lines skipped)` : ''}`);
+      console.log(
+        `[Queue Server] Restored ${restored} completed records from ${path}${corrupt > 0 ? ` (${corrupt} corrupt lines skipped)` : ''}`,
+      );
     }
   } catch (err) {
     console.error(`[Queue Server] Warning: failed to restore completed log:`, err);
@@ -124,7 +132,9 @@ export function loadCompletedLog(path: string): Set<number> {
   const ids = new Set<number>();
   if (!existsSync(path)) return ids;
   try {
-    const lines = readFileSync(path, 'utf-8').split('\n').filter(l => l.trim());
+    const lines = readFileSync(path, 'utf-8')
+      .split('\n')
+      .filter((l) => l.trim());
     for (const line of lines) {
       try {
         const record = JSON.parse(line);
@@ -140,16 +150,17 @@ export function loadCompletedLog(path: string): Set<number> {
 }
 
 function appendCompletedLog(entry: CompletedJob): void {
-  const line = JSON.stringify({
-    jobId: entry.jobId,
-    boardId: entry.boardId,
-    worker: entry.worker,
-    infoSets: entry.infoSets,
-    fileSize: entry.fileSize,
-    peakMemoryMB: entry.peakMemoryMB,
-    elapsedMs: entry.elapsedMs,
-    completedAt: entry.completedAt,
-  }) + '\n';
+  const line =
+    JSON.stringify({
+      jobId: entry.jobId,
+      boardId: entry.boardId,
+      worker: entry.worker,
+      infoSets: entry.infoSets,
+      fileSize: entry.fileSize,
+      peakMemoryMB: entry.peakMemoryMB,
+      elapsedMs: entry.elapsedMs,
+      completedAt: entry.completedAt,
+    }) + '\n';
 
   // Determine which log to write to: per-config log has priority
   const configName = entry.jobId.split('__')[0]; // e.g. "hu_btn_bb_srp_100bb__0042" → "hu_btn_bb_srp_100bb"
@@ -167,7 +178,7 @@ const MAX_RETRIES = 3;
 // Heartbeat-based stale detection: network-worker sends parent-level heartbeats every
 // 30s (child process IPC is still buffered, but parent event loop is free).
 // If no heartbeat arrives within STALE_TIMEOUT_MS, the job is considered stale.
-const STALE_TIMEOUT_MS = 5 * 60 * 1000; // 5 min: generous vs 30s heartbeat interval
+const STALE_TIMEOUT_MS = 15 * 60 * 1000; // 15 min: allows large 300-380MB exports to complete
 
 // ---------- Queue Operations ----------
 
@@ -240,7 +251,10 @@ function markFailed(jobId: string, error: string): boolean {
   return true;
 }
 
-function markProgress(jobId: string, info: { iteration: number; total: number; heartbeat?: boolean }): boolean {
+function markProgress(
+  jobId: string,
+  info: { iteration: number; total: number; heartbeat?: boolean },
+): boolean {
   const entry = running.get(jobId);
   if (!entry) return false;
 
@@ -250,9 +264,8 @@ function markProgress(jobId: string, info: { iteration: number; total: number; h
   // For heartbeat-only messages (iteration=0 from parent process), don't regress iteration
   if (info.heartbeat && info.iteration === 0) return true;
 
-  const total = Number.isFinite(info.total) && info.total > 0
-    ? Math.floor(info.total)
-    : entry.total;
+  const total =
+    Number.isFinite(info.total) && info.total > 0 ? Math.floor(info.total) : entry.total;
   const rawIter = Number.isFinite(info.iteration) ? Math.floor(info.iteration) : entry.iteration;
   const clamped = Math.max(0, Math.min(total, rawIter));
 
@@ -267,7 +280,9 @@ function reclaimStale(): void {
   for (const [jobId, entry] of running) {
     const timeSinceHeartbeat = now - entry.lastProgressAt;
     if (timeSinceHeartbeat > STALE_TIMEOUT_MS) {
-      console.log(`[RECLAIM] Job ${jobId} stale (no heartbeat for ${Math.round(timeSinceHeartbeat / 60000)}min, worker: ${entry.claimedBy})`);
+      console.log(
+        `[RECLAIM] Job ${jobId} stale (no heartbeat for ${Math.round(timeSinceHeartbeat / 60000)}min, worker: ${entry.claimedBy})`,
+      );
       running.delete(jobId);
       pending.unshift(entry.job); // re-queue at front (priority)
     }
@@ -284,7 +299,8 @@ function reclaimWorker(workerId: string): number {
       count++;
     }
   }
-  if (count > 0) console.log(`[RECLAIM] Force-reclaimed ${count} jobs from dead worker ${workerId}`);
+  if (count > 0)
+    console.log(`[RECLAIM] Force-reclaimed ${count} jobs from dead worker ${workerId}`);
   return count;
 }
 
@@ -292,13 +308,26 @@ function getStatus() {
   const now = Date.now();
 
   // Per-worker stats (survives restart via completed[] restored from logs)
-  const workerStats: Record<string, {
-    running: number; completed: number; totalMs: number;
-    firstSeen: number; lastSeen: number; avgMemoryMB: number; totalMemoryMB: number;
-  }> = {};
+  const workerStats: Record<
+    string,
+    {
+      running: number;
+      completed: number;
+      totalMs: number;
+      firstSeen: number;
+      lastSeen: number;
+      avgMemoryMB: number;
+      totalMemoryMB: number;
+    }
+  > = {};
   const defaultWs = () => ({
-    running: 0, completed: 0, totalMs: 0,
-    firstSeen: Infinity, lastSeen: 0, avgMemoryMB: 0, totalMemoryMB: 0,
+    running: 0,
+    completed: 0,
+    totalMs: 0,
+    firstSeen: Infinity,
+    lastSeen: 0,
+    avgMemoryMB: 0,
+    totalMemoryMB: 0,
   });
   for (const entry of running.values()) {
     const w = entry.claimedBy;
@@ -338,34 +367,37 @@ function getStatus() {
     .sort((a, b) => b.progressPct - a.progressPct);
 
   // ETA calculation
-  const avgFromCompleted = completed.length > 0
-    ? completed.reduce((s, c) => s + c.elapsedMs, 0) / completed.length
-    : 0;
+  const avgFromCompleted =
+    completed.length > 0 ? completed.reduce((s, c) => s + c.elapsedMs, 0) / completed.length : 0;
   const avgFromRunning = runningDetails
-    .filter(r => r.iteration > 0 && r.total > 0 && r.elapsedMs > 15000)
-    .map(r => (r.elapsedMs * r.total) / r.iteration);
-  const avgFromRunningMs = avgFromRunning.length > 0
-    ? avgFromRunning.reduce((s, v) => s + v, 0) / avgFromRunning.length
-    : 0;
+    .filter((r) => r.iteration > 0 && r.total > 0 && r.elapsedMs > 15000)
+    .map((r) => (r.elapsedMs * r.total) / r.iteration);
+  const avgFromRunningMs =
+    avgFromRunning.length > 0
+      ? avgFromRunning.reduce((s, v) => s + v, 0) / avgFromRunning.length
+      : 0;
   const avgMs = avgFromCompleted > 0 ? avgFromCompleted : avgFromRunningMs;
-  const avgSolveSource = avgFromCompleted > 0 ? 'completed' : (avgFromRunningMs > 0 ? 'running_estimate' : 'none');
-  const totalWorkers = new Set([...running.values()].map(v => v.claimedBy)).size || 1;
+  const avgSolveSource =
+    avgFromCompleted > 0 ? 'completed' : avgFromRunningMs > 0 ? 'running_estimate' : 'none';
+  const totalWorkers = new Set([...running.values()].map((v) => v.claimedBy)).size || 1;
   // Use live heartbeating workers as concurrency estimate (not running.size which can inflate)
-  const liveWorkerJobs = runningDetails.filter(r => r.heartbeatAgeMs <= 60000).length;
-  const concurrentJobs = liveWorkerJobs > 0 ? liveWorkerJobs : (totalWorkers || 1);
+  const liveWorkerJobs = runningDetails.filter((r) => r.heartbeatAgeMs <= 60000).length;
+  const concurrentJobs = liveWorkerJobs > 0 ? liveWorkerJobs : totalWorkers || 1;
   // Factor in partial progress of running jobs (a 90% done job = 0.1 remaining work)
-  const runningRemaining = runningDetails.reduce(
-    (sum, r) => sum + (1 - r.progressPct / 100), 0,
-  );
+  const runningRemaining = runningDetails.reduce((sum, r) => sum + (1 - r.progressPct / 100), 0);
   const remainingWork = pending.length + runningRemaining;
   const etaMs = avgMs > 0 ? (remainingWork * avgMs) / concurrentJobs : 0;
-  const runningAvgPct = runningDetails.length > 0
-    ? runningDetails.reduce((s, r) => s + r.progressPct, 0) / runningDetails.length
-    : 0;
-  const liveHeartbeats = runningDetails.filter(r => r.heartbeatAgeMs <= 20000).length;
+  const runningAvgPct =
+    runningDetails.length > 0
+      ? runningDetails.reduce((s, r) => s + r.progressPct, 0) / runningDetails.length
+      : 0;
+  const liveHeartbeats = runningDetails.filter((r) => r.heartbeatAgeMs <= 20000).length;
 
   // Per-config breakdown
-  const configStats: Record<string, { pending: number; running: number; completed: number; failed: number }> = {};
+  const configStats: Record<
+    string,
+    { pending: number; running: number; completed: number; failed: number }
+  > = {};
   for (const j of pending) {
     const cn = j.configName;
     if (!configStats[cn]) configStats[cn] = { pending: 0, running: 0, completed: 0, failed: 0 };
@@ -391,9 +423,9 @@ function getStatus() {
   const oneHourAgo = now - 3600000;
   const sixHoursAgo = now - 6 * 3600000;
   const oneDayAgo = now - 86400000;
-  const last1h = completed.filter(c => (c.completedAt ?? 0) > oneHourAgo).length;
-  const last6h = completed.filter(c => (c.completedAt ?? 0) > sixHoursAgo).length;
-  const last24h = completed.filter(c => (c.completedAt ?? 0) > oneDayAgo).length;
+  const last1h = completed.filter((c) => (c.completedAt ?? 0) > oneHourAgo).length;
+  const last6h = completed.filter((c) => (c.completedAt ?? 0) > sixHoursAgo).length;
+  const last24h = completed.filter((c) => (c.completedAt ?? 0) > oneDayAgo).length;
 
   return {
     pending: pending.length,
@@ -429,9 +461,9 @@ function formatDuration(ms: number): string {
 export function addJobs(jobs: PipelineJob[]): number {
   // Dedup: don't add jobs that are already pending, running, or completed
   const existingIds = new Set([
-    ...pending.map(j => j.jobId),
+    ...pending.map((j) => j.jobId),
     ...running.keys(),
-    ...completed.map(c => c.jobId),
+    ...completed.map((c) => c.jobId),
   ]);
 
   let added = 0;
@@ -473,6 +505,11 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
     // GET /pop — claim next job
     if (method === 'GET' && url === '/pop') {
       const workerId = (req.headers['x-worker-id'] as string) || 'unknown';
+      if (BLOCKED_WORKERS.has(workerId)) {
+        res.writeHead(204); // silently reject blocked workers
+        res.end();
+        return;
+      }
       const job = popJob(workerId);
       if (job) {
         json(res, 200, job);
@@ -560,7 +597,7 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
 
 export function startQueueServer(port = 3500): ReturnType<typeof createServer> {
   const server = createServer((req, res) => {
-    handleRequest(req, res).catch(err => {
+    handleRequest(req, res).catch((err) => {
       console.error('[FATAL]', err);
       res.writeHead(500);
       res.end();

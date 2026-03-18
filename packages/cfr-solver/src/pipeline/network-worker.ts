@@ -32,7 +32,11 @@ const LOCAL_PROJECT_ROOT = findLocalProjectRoot();
 
 /** Resolve outputDir and chartsPath to local paths (coordinator sends its own absolute paths). */
 function localizeJob(job: PipelineJob): PipelineJob {
-  const localOutputDir = resolve(LOCAL_PROJECT_ROOT, 'data/cfr', getConfigOutputDir(job.configName as TreeConfigName));
+  const localOutputDir = resolve(
+    LOCAL_PROJECT_ROOT,
+    'data/cfr',
+    getConfigOutputDir(job.configName as TreeConfigName),
+  );
   const localChartsPath = resolve(LOCAL_PROJECT_ROOT, 'data/preflop_charts.json');
   return { ...job, outputDir: localOutputDir, chartsPath: localChartsPath };
 }
@@ -42,17 +46,22 @@ function localizeJob(job: PipelineJob): PipelineJob {
 function httpGet(url: string): Promise<{ status: number; body: string }> {
   return new Promise((resolve, reject) => {
     const parsed = new URL(url);
-    const req = request({
-      hostname: parsed.hostname,
-      port: parsed.port,
-      path: parsed.pathname,
-      method: 'GET',
-      headers: { 'x-worker-id': workerId },
-    }, (res) => {
-      const chunks: Buffer[] = [];
-      res.on('data', (c: Buffer) => chunks.push(c));
-      res.on('end', () => resolve({ status: res.statusCode ?? 0, body: Buffer.concat(chunks).toString() }));
-    });
+    const req = request(
+      {
+        hostname: parsed.hostname,
+        port: parsed.port,
+        path: parsed.pathname,
+        method: 'GET',
+        headers: { 'x-worker-id': workerId },
+      },
+      (res) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (c: Buffer) => chunks.push(c));
+        res.on('end', () =>
+          resolve({ status: res.statusCode ?? 0, body: Buffer.concat(chunks).toString() }),
+        );
+      },
+    );
     req.on('error', reject);
     req.end();
   });
@@ -62,20 +71,29 @@ function httpPost(url: string, data: unknown): Promise<{ status: number; body: s
   return new Promise((resolve, reject) => {
     const parsed = new URL(url);
     const payload = JSON.stringify(data);
-    const req = request({
-      hostname: parsed.hostname,
-      port: parsed.port,
-      path: parsed.pathname,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(payload),
-        'x-worker-id': workerId,
+    const req = request(
+      {
+        hostname: parsed.hostname,
+        port: parsed.port,
+        path: parsed.pathname,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(payload),
+          'x-worker-id': workerId,
+        },
       },
-    }, (res) => {
-      const chunks: Buffer[] = [];
-      res.on('data', (c: Buffer) => chunks.push(c));
-      res.on('end', () => resolve({ status: res.statusCode ?? 0, body: Buffer.concat(chunks).toString() }));
+      (res) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (c: Buffer) => chunks.push(c));
+        res.on('end', () =>
+          resolve({ status: res.statusCode ?? 0, body: Buffer.concat(chunks).toString() }),
+        );
+      },
+    );
+    // 10-second timeout: prevents hung requests from blocking the heartbeat loop
+    req.setTimeout(10000, () => {
+      req.destroy(new Error('httpPost timeout'));
     });
     req.on('error', reject);
     req.write(payload);
@@ -108,7 +126,7 @@ function autoDetectWorkers(): number {
   const cpuCount = cpus().length;
   const totalMB = Math.floor(totalmem() / (1024 * 1024));
   const peakPerWorkerMB = peakMB > 0 ? peakMB : 300; // default 300 for pipeline_srp/3bet; use --peak-mb 800 for V2
-  const reservedMB = 4096;     // OS + main process
+  const reservedMB = 4096; // OS + main process
   const maxByRam = Math.floor((totalMB - reservedMB) / peakPerWorkerMB);
   const maxByCpu = Math.max(1, cpuCount - 1); // leave 1 core for OS
   return Math.max(1, Math.min(maxByRam, maxByCpu));
@@ -131,8 +149,6 @@ interface LocalWorker {
 }
 
 const localWorkers: LocalWorker[] = [];
-let totalSolved = 0;
-let totalFailed = 0;
 let shuttingDown = false;
 const lastProgressSentMs = new Map<string, number>();
 
@@ -174,8 +190,6 @@ function spawnWorkers(numWorkers: number, perWorkerHeapMB: number): void {
         entry.busy = false;
         entry.currentJob = null;
         lastProgressSentMs.delete(job.jobId);
-        totalSolved++;
-
         // Report completion to server
         try {
           await httpPost(`${serverUrl}/done`, {
@@ -191,7 +205,9 @@ function spawnWorkers(numWorkers: number, perWorkerHeapMB: number): void {
 
         const elapsedStr = (msg.elapsedMs / 1000).toFixed(1);
         const fileSizeStr = (msg.fileSize / 1024).toFixed(0);
-        console.log(`[W${i}] Done: ${job.label} | ${elapsedStr}s | ${msg.infoSets} info sets | ${fileSizeStr}KB`);
+        console.log(
+          `[W${i}] Done: ${job.label} | ${elapsedStr}s | ${msg.infoSets} info sets | ${fileSizeStr}KB`,
+        );
 
         // Fetch next job
         if (!shuttingDown) fetchAndDispatch(entry);
@@ -203,8 +219,6 @@ function spawnWorkers(numWorkers: number, perWorkerHeapMB: number): void {
       const job = entry.currentJob;
       entry.busy = false;
       entry.currentJob = null;
-      totalFailed++;
-
       if (job) {
         lastProgressSentMs.delete(job.jobId);
         try {
@@ -212,7 +226,9 @@ function spawnWorkers(numWorkers: number, perWorkerHeapMB: number): void {
             jobId: job.jobId,
             error: String(err),
           });
-        } catch { /* best-effort */ }
+        } catch {
+          /* best-effort */
+        }
       }
 
       if (!shuttingDown) fetchAndDispatch(entry);
@@ -227,10 +243,14 @@ function spawnWorkers(numWorkers: number, perWorkerHeapMB: number): void {
           entry.busy = false;
           entry.currentJob = null;
           lastProgressSentMs.delete(job.jobId);
-          totalFailed++;
           try {
-            await httpPost(`${serverUrl}/fail`, { jobId: job.jobId, error: `Worker exited with code ${code}` });
-          } catch { /* best-effort */ }
+            await httpPost(`${serverUrl}/fail`, {
+              jobId: job.jobId,
+              error: `Worker exited with code ${code}`,
+            });
+          } catch {
+            /* best-effort */
+          }
         }
         // Respawn after a delay
         setTimeout(() => {
@@ -268,8 +288,6 @@ function spawnSingleWorker(id: number, heapMBVal: number): LocalWorker {
       entry.busy = false;
       entry.currentJob = null;
       lastProgressSentMs.delete(job.jobId);
-      totalSolved++;
-
       try {
         await httpPost(`${serverUrl}/done`, {
           jobId: job.jobId,
@@ -278,7 +296,9 @@ function spawnSingleWorker(id: number, heapMBVal: number): LocalWorker {
           elapsedMs: msg.elapsedMs,
           peakMemoryMB: msg.peakMemoryMB,
         });
-      } catch { /* best-effort */ }
+      } catch {
+        /* best-effort */
+      }
 
       console.log(`[W${id}] Done: ${job.label} | ${(msg.elapsedMs / 1000).toFixed(1)}s`);
       if (!shuttingDown) fetchAndDispatch(entry);
@@ -289,12 +309,37 @@ function spawnSingleWorker(id: number, heapMBVal: number): LocalWorker {
     const job = entry.currentJob;
     entry.busy = false;
     entry.currentJob = null;
-    totalFailed++;
     if (job) {
       lastProgressSentMs.delete(job.jobId);
-      try { await httpPost(`${serverUrl}/fail`, { jobId: job.jobId, error: String(err) }); } catch { }
+      try {
+        await httpPost(`${serverUrl}/fail`, { jobId: job.jobId, error: String(err) });
+      } catch {}
     }
     if (!shuttingDown) fetchAndDispatch(entry);
+  });
+
+  child.on('exit', async (code) => {
+    if (code !== 0 && code !== null && !shuttingDown) {
+      console.error(`[W${id}] (respawned) Exited with code ${code}, respawning...`);
+      const job = entry.currentJob;
+      if (job && entry.busy) {
+        entry.busy = false;
+        entry.currentJob = null;
+        lastProgressSentMs.delete(job.jobId);
+        try {
+          await httpPost(`${serverUrl}/fail`, {
+            jobId: job.jobId,
+            error: `Worker exited with code ${code}`,
+          });
+        } catch {}
+      }
+      setTimeout(() => {
+        if (!shuttingDown) {
+          localWorkers[id] = spawnSingleWorker(id, heapMBVal);
+          fetchAndDispatch(localWorkers[id]);
+        }
+      }, 2000);
+    }
   });
 
   return entry;
@@ -340,7 +385,12 @@ async function fetchAndDispatch(worker: LocalWorker): Promise<void> {
 
     worker.busy = true;
     worker.currentJob = job;
-    reportProgress(job, { type: 'progress', boardId: job.boardId, iteration: 0, total: job.iterations });
+    reportProgress(job, {
+      type: 'progress',
+      boardId: job.boardId,
+      iteration: 0,
+      total: job.iterations,
+    });
     worker.process.send(task);
   } catch (err) {
     console.error(`[W${worker.id}] Error fetching job:`, err);
@@ -357,18 +407,20 @@ async function fetchAndDispatch(worker: LocalWorker): Promise<void> {
  *  never arrive until the solve finishes.  This parent-level heartbeat runs on the
  *  (idle) main event loop and keeps lastProgressAt fresh on the coordinator. */
 function startHeartbeatLoop(): void {
-  setInterval(async () => {
-    for (const w of localWorkers) {
-      if (!w.busy || !w.currentJob) continue;
-      try {
-        await httpPost(`${serverUrl}/progress`, {
-          jobId: w.currentJob.jobId,
-          iteration: 0,   // we don't know real iteration; 0 is fine — it just refreshes lastProgressAt
-          total: w.currentJob.iterations,
-          heartbeat: true, // flag so coordinator can distinguish real progress from keep-alive
-        });
-      } catch { /* best-effort */ }
-    }
+  setInterval(() => {
+    // Fire all heartbeats in parallel so a slow/hung request doesn't block others.
+    void Promise.allSettled(
+      localWorkers
+        .filter((w) => w.busy && w.currentJob)
+        .map((w) =>
+          httpPost(`${serverUrl}/progress`, {
+            jobId: w.currentJob!.jobId,
+            iteration: 0, // we don't know real iteration; 0 is fine — it just refreshes lastProgressAt
+            total: w.currentJob!.iterations,
+            heartbeat: true, // flag so coordinator can distinguish real progress from keep-alive
+          }),
+        ),
+    );
   }, 30_000);
 }
 
@@ -380,14 +432,16 @@ function printStatusLoop(): void {
       const res = await httpGet(`${serverUrl}/status`);
       if (res.status === 200) {
         const s = JSON.parse(res.body);
-        const busy = localWorkers.filter(w => w.busy).length;
+        const busy = localWorkers.filter((w) => w.busy).length;
         process.stdout.write(
           `\r[${workerId}] local: ${busy}/${localWorkers.length} busy | ` +
-          `queue: ${s.pending} pending, ${s.running} running, ${s.completed} done | ` +
-          `ETA: ${s.etaHuman}   `
+            `queue: ${s.pending} pending, ${s.running} running, ${s.completed} done | ` +
+            `ETA: ${s.etaHuman}   `,
         );
       }
-    } catch { /* server might be temporarily unreachable */ }
+    } catch {
+      /* server might be temporarily unreachable */
+    }
   }, 15000);
 }
 
@@ -445,7 +499,7 @@ async function main(): Promise<void> {
     shuttingDown = true;
     console.log('\n[Shutdown] Waiting for active solves to finish...');
 
-    const active = localWorkers.filter(w => w.busy);
+    const active = localWorkers.filter((w) => w.busy);
     if (active.length === 0) {
       process.exit(0);
     }
@@ -453,7 +507,7 @@ async function main(): Promise<void> {
     // Wait up to 60s for active workers
     const deadline = Date.now() + 60000;
     const check = setInterval(() => {
-      const stillBusy = localWorkers.filter(w => w.busy);
+      const stillBusy = localWorkers.filter((w) => w.busy);
       if (stillBusy.length === 0 || Date.now() > deadline) {
         clearInterval(check);
         for (const w of localWorkers) {
@@ -468,7 +522,7 @@ async function main(): Promise<void> {
   process.on('SIGTERM', shutdown);
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('[FATAL]', err);
   process.exit(1);
 });

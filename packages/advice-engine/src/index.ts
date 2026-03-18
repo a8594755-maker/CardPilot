@@ -1,12 +1,12 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type {
   AdvicePayload,
   PlayerActionType,
   StackDepthBucket,
   StrategyMix,
-} from "@cardpilot/shared-types";
+} from '@cardpilot/shared-types';
 
 type Mix = { raise: number; call: number; fold: number };
 
@@ -31,24 +31,25 @@ type StackResolution = {
   inputProvided: boolean;
 };
 
-const RANKS = "AKQJT98765432";
-const DEFAULT_FORMAT = "cash_6max_100bb";
+const RANKS = 'AKQJT98765432';
+const DEFAULT_FORMAT = 'cash_6max_100bb';
 const EPSILON = 1e-6;
 
 const EXPLANATIONS: Record<string, string> = {
-  IP_ADVANTAGE: "You have a positional advantage, making it easier to realize equity postflop.",
-  A_BLOCKER: "The Ace blocker reduces the chance your opponent holds strong Ax combos.",
-  K_BLOCKER: "The King blocker reduces the likelihood of opponent holding KK/AK.",
-  WHEEL_PLAYABILITY: "This hand has wheel straight potential with decent playability.",
-  SUITED_PLAYABILITY: "Suited cards give backdoor flush/straight equity, improving realizability.",
-  CONNECTED: "Connected structure increases straight potential on the flop.",
-  BROADWAY_STRENGTH: "Broadway combos have good hit rate on high-card boards.",
-  DEFEND_RANGE: "Against a small open size, you need enough hands to defend and avoid being exploited.",
-  FOLD_EQUITY: "Positional fold equity makes weaker hands worth attacking with.",
-  LOW_PLAYABILITY: "Low playability and poor equity realization - theory suggests folding.",
-  DOMINATION_RISK: "Risk of being dominated by stronger same-type hands - proceed with caution.",
-  PAIR_VALUE: "Pocket pairs have inherent set value, good for seeing a flop.",
-  PREMIUM_PAIR: "Premium pocket pair - one of the strongest preflop holdings.",
+  IP_ADVANTAGE: 'You have a positional advantage, making it easier to realize equity postflop.',
+  A_BLOCKER: 'The Ace blocker reduces the chance your opponent holds strong Ax combos.',
+  K_BLOCKER: 'The King blocker reduces the likelihood of opponent holding KK/AK.',
+  WHEEL_PLAYABILITY: 'This hand has wheel straight potential with decent playability.',
+  SUITED_PLAYABILITY: 'Suited cards give backdoor flush/straight equity, improving realizability.',
+  CONNECTED: 'Connected structure increases straight potential on the flop.',
+  BROADWAY_STRENGTH: 'Broadway combos have good hit rate on high-card boards.',
+  DEFEND_RANGE:
+    'Against a small open size, you need enough hands to defend and avoid being exploited.',
+  FOLD_EQUITY: 'Positional fold equity makes weaker hands worth attacking with.',
+  LOW_PLAYABILITY: 'Low playability and poor equity realization - theory suggests folding.',
+  DOMINATION_RISK: 'Risk of being dominated by stronger same-type hands - proceed with caution.',
+  PAIR_VALUE: 'Pocket pairs have inherent set value, good for seeing a flop.',
+  PREMIUM_PAIR: 'Premium pocket pair - one of the strongest preflop holdings.',
 };
 
 const STACK_BUCKET_TARGET_BB: Record<StackDepthBucket, number> = {
@@ -59,7 +60,7 @@ const STACK_BUCKET_TARGET_BB: Record<StackDepthBucket, number> = {
 };
 
 const chartPath = resolveChartPath();
-const chartRows: ChartRow[] = JSON.parse(readFileSync(chartPath, "utf-8"));
+const chartRows: ChartRow[] = JSON.parse(readFileSync(chartPath, 'utf-8'));
 const chartIndex = new Map<string, ChartRow>();
 const chartFormats = new Set<string>();
 const formatsByDepth = new Map<number, string[]>();
@@ -85,29 +86,29 @@ function resolveChartPath(): string {
   const fromEnv = process.env.CARDPILOT_CHART_PATH;
   if (fromEnv) return fromEnv;
 
-  for (const filename of ["preflop_charts.json", "preflop_charts.sample.json"]) {
-    const localCwdPath = join(process.cwd(), "data", filename);
+  for (const filename of ['preflop_charts.json', 'preflop_charts.sample.json']) {
+    const localCwdPath = join(process.cwd(), 'data', filename);
     try {
-      readFileSync(localCwdPath, "utf-8");
+      readFileSync(localCwdPath, 'utf-8');
       return localCwdPath;
     } catch {
       // continue
     }
   }
 
-  const thisDir = fileURLToPath(new URL(".", import.meta.url));
-  return join(thisDir, "../../../data/preflop_charts.json");
+  const thisDir = fileURLToPath(new URL('.', import.meta.url));
+  return join(thisDir, '../../../data/preflop_charts.json');
 }
 
-export type BetSizing = "open2.5x" | "open3x" | "open4x" | "pot" | "half_pot" | "2x_pot" | "all_in";
+export type BetSizing = 'open2.5x' | 'open3x' | 'open4x' | 'pot' | 'half_pot' | '2x_pot' | 'all_in';
 
 export function buildSpotKey(params: {
   heroPos: string;
   villainPos: string;
-  line: "unopened" | "facing_open";
+  line: 'unopened' | 'facing_open';
   size: BetSizing;
 }): string {
-  if (params.line === "unopened") {
+  if (params.line === 'unopened') {
     return `${params.heroPos}_unopened_${params.size}`;
   }
   return `${params.heroPos}_vs_${params.villainPos}_facing_${params.size}`;
@@ -118,16 +119,16 @@ export function detectBetSizing(amount: number, bigBlind: number, potSize: numbe
   const potMultiple = potSize > 0 ? amount / potSize : 0;
 
   if (potSize <= bigBlind * 3) {
-    if (bbMultiple >= 4.5) return "open4x";
-    if (bbMultiple >= 3.5) return "open3x";
-    if (bbMultiple >= 2.25) return "open2.5x";
+    if (bbMultiple >= 4.5) return 'open4x';
+    if (bbMultiple >= 3.5) return 'open3x';
+    if (bbMultiple >= 2.25) return 'open2.5x';
   }
 
-  if (potMultiple >= 1.75) return "2x_pot";
-  if (potMultiple >= 0.75) return "pot";
-  if (potMultiple >= 0.35) return "half_pot";
+  if (potMultiple >= 1.75) return '2x_pot';
+  if (potMultiple >= 0.75) return 'pot';
+  if (potMultiple >= 0.35) return 'half_pot';
 
-  return "open2.5x";
+  return 'open2.5x';
 }
 
 export function getPreflopAdvice(input: {
@@ -136,7 +137,7 @@ export function getPreflopAdvice(input: {
   seat: number;
   heroPos: string;
   villainPos: string;
-  line: "unopened" | "facing_open";
+  line: 'unopened' | 'facing_open';
   heroHand: string;
   sizing?: BetSizing;
   potSize?: number;
@@ -144,7 +145,7 @@ export function getPreflopAdvice(input: {
   bigBlind?: number;
   effectiveStackBb?: number;
 }): AdvicePayload {
-  let sizing: BetSizing = input.sizing || "open2.5x";
+  let sizing: BetSizing = input.sizing || 'open2.5x';
   if (!input.sizing && input.raiseAmount && input.bigBlind && input.potSize) {
     sizing = detectBetSizing(input.raiseAmount, input.bigBlind, input.potSize);
   }
@@ -164,22 +165,25 @@ export function getPreflopAdvice(input: {
   });
 
   const heroHand = canonicalizeHandCode(input.heroHand);
-  const handCandidates = [heroHand, input.heroHand]
-    .filter((value, idx, arr) => value && arr.indexOf(value) === idx);
+  const handCandidates = [heroHand, input.heroHand].filter(
+    (value, idx, arr) => value && arr.indexOf(value) === idx,
+  );
 
   const stackResolution = resolveStackResolution(input.effectiveStackBb);
   const rowMatch = findChartRow(stackResolution.candidates, spotCandidates, handCandidates);
   const resolvedFormat = rowMatch?.format ?? stackResolution.candidates[0] ?? DEFAULT_FORMAT;
   const resolvedStackBb = parseFormatDepth(resolvedFormat) ?? stackResolution.targetStackBb;
 
-  const mix: Mix = rowMatch?.row.mix ?? fallbackMix({
-    heroPos: input.heroPos,
-    villainPos: input.villainPos,
-    line: input.line,
-    hand: heroHand,
-  });
+  const mix: Mix =
+    rowMatch?.row.mix ??
+    fallbackMix({
+      heroPos: input.heroPos,
+      villainPos: input.villainPos,
+      line: input.line,
+      hand: heroHand,
+    });
 
-  const tags = rowMatch?.row.notes ?? ["LOW_PLAYABILITY"];
+  const tags = rowMatch?.row.notes ?? ['LOW_PLAYABILITY'];
   const normalizedMix = normalizeMix(mix);
 
   const usedFallback = stackResolution.inputProvided
@@ -189,22 +193,24 @@ export function getPreflopAdvice(input: {
     ? usedFallback
       ? `Stack ${round1(stackResolution.effectiveStackBb)}bb mapped to nearest ${resolvedStackBb}bb chart.`
       : `Stack depth ${round1(stackResolution.effectiveStackBb)}bb matched ${resolvedStackBb}bb chart.`
-    : "";
+    : '';
 
   const explanationParts = [
-    tags.map((tag) => EXPLANATIONS[tag] ?? tag).join(" "),
+    tags.map((tag) => EXPLANATIONS[tag] ?? tag).join(' '),
     stackNote,
   ].filter(Boolean);
-  const explanation = explanationParts.join(" ");
+  const explanation = explanationParts.join(' ');
 
-  const rand = hashToUnitInterval(`${input.tableId}|${input.handId}|${input.seat}|${spotKey}|${heroHand}|${resolvedFormat}`);
+  const rand = hashToUnitInterval(
+    `${input.tableId}|${input.handId}|${input.seat}|${spotKey}|${heroHand}|${resolvedFormat}`,
+  );
   const recommended = pickByMix(normalizedMix, rand);
 
   return {
     tableId: input.tableId,
     handId: input.handId,
     seat: input.seat,
-    stage: "preflop",
+    stage: 'preflop',
     spotKey: `${resolvedFormat}_${rowMatch?.row.spot ?? spotKey}`,
     heroHand,
     mix: normalizedMix,
@@ -224,7 +230,9 @@ export function getPreflopAdvice(input: {
 
 function resolveStackResolution(effectiveStackBb?: number): StackResolution {
   const inputProvided = Number.isFinite(effectiveStackBb) && (effectiveStackBb ?? 0) > 0;
-  const normalizedInput = inputProvided ? Number(effectiveStackBb) : STACK_BUCKET_TARGET_BB.standard;
+  const normalizedInput = inputProvided
+    ? Number(effectiveStackBb)
+    : STACK_BUCKET_TARGET_BB.standard;
   const requestedBucket = classifyStackDepth(normalizedInput);
   const targetStackBb = STACK_BUCKET_TARGET_BB[requestedBucket];
 
@@ -250,10 +258,10 @@ function resolveStackResolution(effectiveStackBb?: number): StackResolution {
 }
 
 function classifyStackDepth(stackBb: number): StackDepthBucket {
-  if (stackBb < 40) return "short";
-  if (stackBb <= 80) return "medium";
-  if (stackBb > 150) return "deep";
-  return "standard";
+  if (stackBb < 40) return 'short';
+  if (stackBb <= 80) return 'medium';
+  if (stackBb > 150) return 'deep';
+  return 'standard';
 }
 
 function nearestFormatsByDepth(targetBb: number): string[] {
@@ -295,34 +303,31 @@ function pushUnique<T>(target: T[], value: T): void {
   }
 }
 
-function pickByMix(mix: Mix, random: number): "raise" | "call" | "fold" {
+function pickByMix(mix: Mix, random: number): 'raise' | 'call' | 'fold' {
   const normalized = normalizeMix(mix);
-  if (random < normalized.raise) return "raise";
-  if (random < normalized.raise + normalized.call) return "call";
-  return "fold";
+  if (random < normalized.raise) return 'raise';
+  if (random < normalized.raise + normalized.call) return 'call';
+  return 'fold';
 }
 
-export * from "./postflop-advice.js";
-export * from "./board-analyzer.js";
-export * from "./math-engine.js";
-export * from "./range-estimator.js";
-export * from "./line-recognition.js";
-export * from "./audit-engine.js";
+export * from './postflop-advice.js';
+export * from './board-analyzer.js';
+export * from './math-engine.js';
+export * from './range-estimator.js';
+export * from './line-recognition.js';
+export * from './audit-engine.js';
 
-export function calculateDeviation(
-  mix: StrategyMix,
-  playerAction: PlayerActionType
-): number {
+export function calculateDeviation(mix: StrategyMix, playerAction: PlayerActionType): number {
   const actionMap: Record<string, keyof StrategyMix> = {
-    fold: "fold",
-    check: "fold",
-    call: "call",
-    raise: "raise",
-    all_in: "raise",
+    fold: 'fold',
+    check: 'fold',
+    call: 'call',
+    raise: 'raise',
+    all_in: 'raise',
   };
 
   const normalized = normalizeMix(mix);
-  const key = actionMap[playerAction] ?? "fold";
+  const key = actionMap[playerAction] ?? 'fold';
   const chosenFreq = normalized[key];
 
   const values = [normalized.raise, normalized.call, normalized.fold];
@@ -340,7 +345,7 @@ export function calculateDeviation(
 function fallbackMix(input: {
   heroPos: string;
   villainPos: string;
-  line: "unopened" | "facing_open";
+  line: 'unopened' | 'facing_open';
   hand: string;
 }): Mix {
   const hand = canonicalizeHandCode(input.hand);
@@ -348,7 +353,7 @@ function fallbackMix(input: {
 
   const rankA = hand[0];
   const rankB = hand[1];
-  const suited = hand.length === 3 && hand[2] === "s";
+  const suited = hand.length === 3 && hand[2] === 's';
   const pair = rankA === rankB;
   const idxA = RANKS.indexOf(rankA);
   const idxB = RANKS.indexOf(rankB);
@@ -358,8 +363,8 @@ function fallbackMix(input: {
 
   let strength = 0;
   if (pair) strength += 3.2 - (idxA / 12) * 1.6;
-  if (rankA === "A") strength += 1.2;
-  if (rankA === "K" && rankB !== "2") strength += 0.6;
+  if (rankA === 'A') strength += 1.2;
+  if (rankA === 'K' && rankB !== '2') strength += 0.6;
   if (suited) strength += 0.55;
   if (connectorLike) strength += 0.35;
   strength += highCards * 0.35;
@@ -384,7 +389,7 @@ function fallbackMix(input: {
     BB: 0,
   };
 
-  if (input.line === "unopened") {
+  if (input.line === 'unopened') {
     strength += openPressure[input.heroPos] ?? 0;
     const raise = clamp01(0.02 + sigmoid((strength - 1.2) / 0.85) * 0.94);
     const call = 0;
@@ -405,21 +410,21 @@ function fallbackMix(input: {
 function buildSpotCandidates(params: {
   heroPos: string;
   villainPos: string;
-  line: "unopened" | "facing_open";
+  line: 'unopened' | 'facing_open';
   size: BetSizing;
 }): string[] {
   const primary = buildSpotKey(params);
   const candidates = [primary];
 
-  if (params.line === "unopened") {
+  if (params.line === 'unopened') {
     const withExplicitBlind = `${params.heroPos}_vs_BB_unopened_${params.size}`;
     if (primary !== withExplicitBlind) {
       candidates.push(withExplicitBlind);
     }
   }
 
-  if (params.size !== "open2.5x") {
-    const fallbackKey = buildSpotKey({ ...params, size: "open2.5x" });
+  if (params.size !== 'open2.5x') {
+    const fallbackKey = buildSpotKey({ ...params, size: 'open2.5x' });
     if (!candidates.includes(fallbackKey)) {
       candidates.push(fallbackKey);
     }
@@ -428,7 +433,11 @@ function buildSpotCandidates(params: {
   return candidates;
 }
 
-function findChartRow(formatCandidates: string[], spotCandidates: string[], handCandidates: string[]): ChartRowMatch | undefined {
+function findChartRow(
+  formatCandidates: string[],
+  spotCandidates: string[],
+  handCandidates: string[],
+): ChartRowMatch | undefined {
   for (const format of formatCandidates) {
     for (const spot of spotCandidates) {
       for (const hand of handCandidates) {
@@ -466,8 +475,8 @@ function canonicalizeHandCode(raw: string): string {
 
   if (r1 === r2) return `${r1}${r2}`;
 
-  const suitFlag = hand.length === 3 ? hand[2].toLowerCase() : "o";
-  const normalizedSuit = suitFlag === "s" ? "s" : "o";
+  const suitFlag = hand.length === 3 ? hand[2].toLowerCase() : 'o';
+  const normalizedSuit = suitFlag === 's' ? 's' : 'o';
 
   const i1 = RANKS.indexOf(r1);
   const i2 = RANKS.indexOf(r2);

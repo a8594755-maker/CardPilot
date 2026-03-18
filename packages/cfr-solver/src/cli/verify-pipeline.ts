@@ -44,17 +44,17 @@ interface FlopReport {
   file: string;
   boardId: number;
   totalRows: number;
-  streets: Record<string, number>;    // F/T/R → count
-  players: Record<string, number>;    // 0/1 → count
-  probSumErrors: number;              // rows where sum(probs) != ~1.0
-  nanInfErrors: number;               // rows with NaN/Inf
-  negativeErrors: number;             // rows with negative probs
-  uniformRows: number;                // rows where all probs are equal
-  nonUniformRows: number;             // rows where probs vary (solver converged)
-  maxProb: number;                    // highest single-action prob seen
-  parseErrors: number;                // JSON parse failures
+  streets: Record<string, number>; // F/T/R → count
+  players: Record<string, number>; // 0/1 → count
+  probSumErrors: number; // rows where sum(probs) != ~1.0
+  nanInfErrors: number; // rows with NaN/Inf
+  negativeErrors: number; // rows with negative probs
+  uniformRows: number; // rows where all probs are equal
+  nonUniformRows: number; // rows where probs vary (solver converged)
+  maxProb: number; // highest single-action prob seen
+  parseErrors: number; // JSON parse failures
   metaExists: boolean;
-  metaInfoSets: number;               // from meta file
+  metaInfoSets: number; // from meta file
 }
 
 // ---------- Verify a single JSONL file ----------
@@ -85,7 +85,7 @@ async function verifyFlop(filePath: string): Promise<FlopReport> {
     try {
       const meta = JSON.parse(readFileSync(metaPath, 'utf-8'));
       report.metaInfoSets = meta.infoSets ?? 0;
-    } catch { }
+    } catch {}
   }
 
   const rl = createInterface({
@@ -123,13 +123,13 @@ async function verifyFlop(filePath: string): Promise<FlopReport> {
     }
 
     // NaN / Inf check
-    if (probs.some(p => !isFinite(p))) {
+    if (probs.some((p) => !isFinite(p))) {
       report.nanInfErrors++;
       continue;
     }
 
     // Negative check
-    if (probs.some(p => p < 0)) {
+    if (probs.some((p) => p < 0)) {
       report.negativeErrors++;
     }
 
@@ -140,7 +140,7 @@ async function verifyFlop(filePath: string): Promise<FlopReport> {
     }
 
     // Diversity check
-    const allEqual = probs.every(p => Math.abs(p - probs[0]) < 0.01);
+    const allEqual = probs.every((p) => Math.abs(p - probs[0]) < 0.01);
     if (allEqual) {
       report.uniformRows++;
     } else {
@@ -171,7 +171,7 @@ async function main(): Promise<void> {
   }
 
   const files = readdirSync(outputDir)
-    .filter(f => f.endsWith('.jsonl'))
+    .filter((f) => f.endsWith('.jsonl'))
     .sort();
 
   if (files.length === 0) {
@@ -191,8 +191,11 @@ async function main(): Promise<void> {
     const report = await verifyFlop(resolve(outputDir, file));
     reports.push(report);
 
-    const hasErrors = report.probSumErrors > 0 || report.nanInfErrors > 0 ||
-      report.negativeErrors > 0 || report.parseErrors > 0;
+    const hasErrors =
+      report.probSumErrors > 0 ||
+      report.nanInfErrors > 0 ||
+      report.negativeErrors > 0 ||
+      report.parseErrors > 0;
     const hasConverged = report.nonUniformRows > report.uniformRows * 0.1; // at least 10% non-uniform
     const hasAllStreets = 'F' in report.streets && 'T' in report.streets && 'R' in report.streets;
     const hasBothPlayers = '0' in report.players && '1' in report.players;
@@ -203,19 +206,30 @@ async function main(): Promise<void> {
     if (ok) {
       passed++;
       if (verbose) {
-        console.log(`  PASS  flop_${String(report.boardId).padStart(3, '0')} | ${report.totalRows} rows | F:${report.streets['F']??0} T:${report.streets['T']??0} R:${report.streets['R']??0} | converged: ${(report.nonUniformRows / report.totalRows * 100).toFixed(0)}%`);
+        console.log(
+          `  PASS  flop_${String(report.boardId).padStart(3, '0')} | ${report.totalRows} rows | F:${report.streets['F'] ?? 0} T:${report.streets['T'] ?? 0} R:${report.streets['R'] ?? 0} | converged: ${((report.nonUniformRows / report.totalRows) * 100).toFixed(0)}%`,
+        );
       }
     } else {
       failed++;
       console.log(`  FAIL  flop_${String(report.boardId).padStart(3, '0')}:`);
-      if (report.probSumErrors > 0) console.log(`        ${report.probSumErrors} rows with prob sum != 1.0`);
+      if (report.probSumErrors > 0)
+        console.log(`        ${report.probSumErrors} rows with prob sum != 1.0`);
       if (report.nanInfErrors > 0) console.log(`        ${report.nanInfErrors} rows with NaN/Inf`);
-      if (report.negativeErrors > 0) console.log(`        ${report.negativeErrors} rows with negative probs`);
+      if (report.negativeErrors > 0)
+        console.log(`        ${report.negativeErrors} rows with negative probs`);
       if (report.parseErrors > 0) console.log(`        ${report.parseErrors} JSON parse errors`);
-      if (!hasConverged) console.log(`        Low convergence: ${report.nonUniformRows}/${report.totalRows} non-uniform (${(report.nonUniformRows / report.totalRows * 100).toFixed(1)}%)`);
+      if (!hasConverged)
+        console.log(
+          `        Low convergence: ${report.nonUniformRows}/${report.totalRows} non-uniform (${((report.nonUniformRows / report.totalRows) * 100).toFixed(1)}%)`,
+        );
       if (!hasAllStreets) console.log(`        Missing streets: ${JSON.stringify(report.streets)}`);
-      if (!hasBothPlayers) console.log(`        Missing players: ${JSON.stringify(report.players)}`);
-      if (!metaMatch) console.log(`        Meta mismatch: jsonl=${report.totalRows} vs meta=${report.metaInfoSets}`);
+      if (!hasBothPlayers)
+        console.log(`        Missing players: ${JSON.stringify(report.players)}`);
+      if (!metaMatch)
+        console.log(
+          `        Meta mismatch: jsonl=${report.totalRows} vs meta=${report.metaInfoSets}`,
+        );
     }
   }
 
@@ -227,7 +241,9 @@ async function main(): Promise<void> {
   const totalUniform = reports.reduce((s, r) => s + r.uniformRows, 0);
   const totalNonUniform = reports.reduce((s, r) => s + r.nonUniformRows, 0);
   const avgRows = Math.round(totalRows / reports.length);
-  const rowStdDev = Math.sqrt(reports.reduce((s, r) => s + Math.pow(r.totalRows - avgRows, 2), 0) / reports.length);
+  const rowStdDev = Math.sqrt(
+    reports.reduce((s, r) => s + Math.pow(r.totalRows - avgRows, 2), 0) / reports.length,
+  );
 
   console.log();
   console.log('═══ SUMMARY ═══');
@@ -240,14 +256,20 @@ async function main(): Promise<void> {
   console.log(`Avg per flop:      ${avgRows.toLocaleString()} (stddev: ${Math.round(rowStdDev)})`);
   console.log();
   console.log('Data Quality:');
-  console.log(`  Prob sum errors: ${totalProbErrors} (${(totalProbErrors / totalRows * 100).toFixed(3)}%)`);
+  console.log(
+    `  Prob sum errors: ${totalProbErrors} (${((totalProbErrors / totalRows) * 100).toFixed(3)}%)`,
+  );
   console.log(`  NaN/Inf errors:  ${totalNanInf}`);
   console.log(`  Negative errors: ${totalNeg}`);
   console.log();
   console.log('Convergence:');
-  console.log(`  Uniform rows:    ${totalUniform.toLocaleString()} (${(totalUniform / totalRows * 100).toFixed(1)}%)`);
-  console.log(`  Non-uniform:     ${totalNonUniform.toLocaleString()} (${(totalNonUniform / totalRows * 100).toFixed(1)}%)`);
-  console.log(`  Convergence rate: ${(totalNonUniform / totalRows * 100).toFixed(1)}%`);
+  console.log(
+    `  Uniform rows:    ${totalUniform.toLocaleString()} (${((totalUniform / totalRows) * 100).toFixed(1)}%)`,
+  );
+  console.log(
+    `  Non-uniform:     ${totalNonUniform.toLocaleString()} (${((totalNonUniform / totalRows) * 100).toFixed(1)}%)`,
+  );
+  console.log(`  Convergence rate: ${((totalNonUniform / totalRows) * 100).toFixed(1)}%`);
   console.log();
 
   // Street distribution
@@ -260,7 +282,7 @@ async function main(): Promise<void> {
   console.log('Per-street info sets:');
   for (const [s, c] of Object.entries(streetTotals).sort()) {
     const name = s === 'F' ? 'Flop' : s === 'T' ? 'Turn' : s === 'R' ? 'River' : s;
-    console.log(`  ${name}: ${c.toLocaleString()} (${(c / totalRows * 100).toFixed(1)}%)`);
+    console.log(`  ${name}: ${c.toLocaleString()} (${((c / totalRows) * 100).toFixed(1)}%)`);
   }
   console.log();
 
@@ -273,7 +295,7 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('[ERROR]', err);
   process.exit(1);
 });

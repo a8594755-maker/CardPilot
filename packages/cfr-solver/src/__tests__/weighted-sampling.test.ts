@@ -24,22 +24,26 @@ const chartsPath = resolve(__dirname, '../../../../data/preflop_charts.json');
 const hasChartsFile = existsSync(chartsPath);
 
 describe('WeightedCombo and getWeightedRangeCombos', () => {
-  test('getWeightedRangeCombos returns WeightedCombo[] with weight field', { skip: !hasChartsFile }, () => {
-    const ranges = loadHUSRPRanges(chartsPath);
-    const dead = new Set<number>();
-    const weighted = getWeightedRangeCombos(ranges.oopRange, dead);
+  test(
+    'getWeightedRangeCombos returns WeightedCombo[] with weight field',
+    { skip: !hasChartsFile },
+    () => {
+      const ranges = loadHUSRPRanges(chartsPath);
+      const dead = new Set<number>();
+      const weighted = getWeightedRangeCombos(ranges.oopRange, dead);
 
-    assert.ok(weighted.length > 0, 'Should return non-empty array');
+      assert.ok(weighted.length > 0, 'Should return non-empty array');
 
-    // Every entry should have combo and weight
-    for (const wc of weighted) {
-      assert.ok(Array.isArray(wc.combo), 'combo should be an array');
-      assert.equal(wc.combo.length, 2, 'combo should have 2 cards');
-      assert.equal(typeof wc.weight, 'number', 'weight should be a number');
-      assert.ok(wc.weight > 0, 'weight should be > 0');
-      assert.ok(wc.weight <= 1, 'weight should be <= 1');
-    }
-  });
+      // Every entry should have combo and weight
+      for (const wc of weighted) {
+        assert.ok(Array.isArray(wc.combo), 'combo should be an array');
+        assert.equal(wc.combo.length, 2, 'combo should have 2 cards');
+        assert.equal(typeof wc.weight, 'number', 'weight should be a number');
+        assert.ok(wc.weight > 0, 'weight should be > 0');
+        assert.ok(wc.weight <= 1, 'weight should be <= 1');
+      }
+    },
+  );
 
   test('getWeightedRangeCombos filters dead cards correctly', { skip: !hasChartsFile }, () => {
     const ranges = loadHUSRPRanges(chartsPath);
@@ -88,7 +92,7 @@ describe('WeightedCombo and getWeightedRangeCombos', () => {
     const ranges = loadHUSRPRanges(chartsPath);
     const combos = getWeightedRangeCombos(ranges.oopRange);
 
-    const subOneCount = combos.filter(wc => wc.weight < 1).length;
+    const subOneCount = combos.filter((wc) => wc.weight < 1).length;
     // In typical GTO ranges, some hands have mixed frequencies
     // If all hands have weight=1, the test still passes (uniform range)
     assert.ok(subOneCount >= 0, 'Count of sub-1 weights should be non-negative');
@@ -158,10 +162,10 @@ describe('Weighted sampling distribution', () => {
   test('higher-weight combos are sampled more frequently', () => {
     // Create a tiny synthetic range
     const range: WeightedCombo[] = [
-      { combo: [0, 4], weight: 1.0 },   // Full weight
-      { combo: [1, 5], weight: 0.5 },   // Half weight
-      { combo: [2, 6], weight: 0.25 },  // Quarter weight
-      { combo: [3, 7], weight: 0.1 },   // Tenth weight
+      { combo: [0, 4], weight: 1.0 }, // Full weight
+      { combo: [1, 5], weight: 0.5 }, // Half weight
+      { combo: [2, 6], weight: 0.25 }, // Quarter weight
+      { combo: [3, 7], weight: 0.1 }, // Tenth weight
     ];
 
     // Simulate weighted sampling by counting how many times each would be selected
@@ -191,12 +195,15 @@ describe('Weighted sampling distribution', () => {
     }
 
     // Check proportions roughly match weights
-    const expectedRatios = range.map(wc => wc.weight / total);
-    const actualRatios = counts.map(c => c / N);
+    const expectedRatios = range.map((wc) => wc.weight / total);
+    const actualRatios = counts.map((c) => c / N);
 
     for (let i = 0; i < range.length; i++) {
       const diff = Math.abs(actualRatios[i] - expectedRatios[i]);
-      assert.ok(diff < 0.05, `Sample ratio for combo ${i}: expected ~${expectedRatios[i].toFixed(3)}, got ${actualRatios[i].toFixed(3)}`);
+      assert.ok(
+        diff < 0.05,
+        `Sample ratio for combo ${i}: expected ~${expectedRatios[i].toFixed(3)}, got ${actualRatios[i].toFixed(3)}`,
+      );
     }
 
     // Combo 0 (weight 1.0) should be sampled most

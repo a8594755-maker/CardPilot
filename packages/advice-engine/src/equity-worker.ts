@@ -1,5 +1,5 @@
-import { parentPort } from "node:worker_threads";
-import { calculateEquity, type Card, type EquityResult } from "@cardpilot/poker-evaluator";
+import { parentPort } from 'node:worker_threads';
+import { calculateEquity, type Card, type EquityResult } from '@cardpilot/poker-evaluator';
 
 interface EquityTaskInput {
   heroHand: [Card, Card];
@@ -20,18 +20,18 @@ interface WorkerResultMessage {
 }
 
 if (!parentPort) {
-  throw new Error("equity-worker must be run in a worker thread");
+  throw new Error('equity-worker must be run in a worker thread');
 }
 
 const port = parentPort;
 
-port.on("message", (message: WorkerRequestMessage) => {
+port.on('message', (message: WorkerRequestMessage) => {
   const response: WorkerResultMessage = { id: message.id };
 
   try {
     response.result = calculateEquity(message.payload);
   } catch (error) {
-    response.error = error instanceof Error ? error.message : "Unknown equity worker error";
+    response.error = error instanceof Error ? error.message : 'Unknown equity worker error';
   }
 
   port.postMessage(response);

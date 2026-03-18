@@ -22,9 +22,9 @@ import { downloadBuffer, downloadJson } from './s3-client.js';
 
 // Bet size midpoints for classifying observed bets as small/big (V1 2-size tree)
 const BET_THRESHOLDS: Record<string, number> = {
-  FLOP: (0.33 + 0.75) / 2,   // 0.54
-  TURN: (0.50 + 1.00) / 2,   // 0.75
-  RIVER: (0.75 + 1.50) / 2,  // 1.125
+  FLOP: (0.33 + 0.75) / 2, // 0.54
+  TURN: (0.5 + 1.0) / 2, // 0.75
+  RIVER: (0.75 + 1.5) / 2, // 1.125
 };
 
 interface FlopMeta {
@@ -55,9 +55,10 @@ export class CfrAdvisor {
   /** Load CFR data for a specific pot type. */
   load(binaryPath: string, metaDir?: string, potType: PotType = 'SRP'): boolean {
     try {
-      const binPath = binaryPath.endsWith('.gz') || binaryPath.endsWith('.bin')
-        ? binaryPath
-        : join(binaryPath, 'v1_hu_srp_50bb.bin.gz');
+      const binPath =
+        binaryPath.endsWith('.gz') || binaryPath.endsWith('.bin')
+          ? binaryPath
+          : join(binaryPath, 'v1_hu_srp_50bb.bin.gz');
 
       if (!existsSync(binPath)) {
         console.warn(`[cfr-advisor] binary file not found: ${binPath}`);
@@ -82,17 +83,23 @@ export class CfrAdvisor {
       const flopMetas: FlopMeta[] = [];
       const mDir = metaDir ?? binaryPath.replace(/\.bin(\.gz)?$/, '');
       if (existsSync(mDir)) {
-        const metaFiles = readdirSync(mDir).filter(f => f.endsWith('.meta.json')).sort();
+        const metaFiles = readdirSync(mDir)
+          .filter((f) => f.endsWith('.meta.json'))
+          .sort();
         for (const file of metaFiles) {
           try {
             const meta = JSON.parse(readFileSync(join(mDir, file), 'utf-8'));
             flopMetas.push({ boardId: meta.boardId, flopCards: meta.flopCards });
-          } catch { /* skip corrupted meta files */ }
+          } catch {
+            /* skip corrupted meta files */
+          }
         }
       }
 
       this.configs.set(potType, { reader, flopMetas, actionIndex, treeConfig, bucketCount });
-      console.log(`[cfr-advisor] loaded ${potType}: ${reader.entryCount} entries, ${flopMetas.length} flop metas, ${bucketCount} buckets`);
+      console.log(
+        `[cfr-advisor] loaded ${potType}: ${reader.entryCount} entries, ${flopMetas.length} flop metas, ${bucketCount} buckets`,
+      );
       return true;
     } catch (e) {
       console.warn(`[cfr-advisor] Failed to load ${potType}: ${(e as Error).message}`);
@@ -128,19 +135,25 @@ export class CfrAdvisor {
       const flopMetas: FlopMeta[] = [];
       const mDir = metaDir ?? binaryPath.replace(/\.bin(\.gz)?$/, '');
       if (existsSync(mDir)) {
-        const metaFiles = readdirSync(mDir).filter(f => f.endsWith('.meta.json')).sort();
+        const metaFiles = readdirSync(mDir)
+          .filter((f) => f.endsWith('.meta.json'))
+          .sort();
         for (const file of metaFiles) {
           try {
             const meta = JSON.parse(readFileSync(join(mDir, file), 'utf-8'));
             flopMetas.push({ boardId: meta.boardId, flopCards: meta.flopCards });
-          } catch { /* skip corrupted meta files */ }
+          } catch {
+            /* skip corrupted meta files */
+          }
         }
       }
 
       // Derive pot type from config name
       const potType: PotType = configName.includes('3b') ? '3BP' : 'SRP';
       this.configs.set(potType, { reader, flopMetas, actionIndex, treeConfig, bucketCount });
-      console.log(`[cfr-advisor] loaded ${configName} as ${potType}: ${reader.entryCount} entries, ${flopMetas.length} flop metas`);
+      console.log(
+        `[cfr-advisor] loaded ${configName} as ${potType}: ${reader.entryCount} entries, ${flopMetas.length} flop metas`,
+      );
       return true;
     } catch (e) {
       console.warn(`[cfr-advisor] Failed to load ${configName}: ${(e as Error).message}`);
@@ -149,7 +162,11 @@ export class CfrAdvisor {
   }
 
   /** Load CFR data from S3 (iDrive e2). */
-  async loadFromS3(binaryKey: string, metaIndexKey: string, potType: PotType = 'SRP'): Promise<boolean> {
+  async loadFromS3(
+    binaryKey: string,
+    metaIndexKey: string,
+    potType: PotType = 'SRP',
+  ): Promise<boolean> {
     try {
       console.log(`[cfr-advisor] downloading ${potType} binary from S3: ${binaryKey}`);
       const buf = await downloadBuffer(binaryKey);
@@ -174,7 +191,10 @@ export class CfrAdvisor {
 
       // Download flop metadata index from S3
       const flopMetas: FlopMeta[] = [];
-      const metaIndex = await downloadJson<Array<{ boardId: number; flopCards: [number, number, number] }>>(metaIndexKey);
+      const metaIndex =
+        await downloadJson<Array<{ boardId: number; flopCards: [number, number, number] }>>(
+          metaIndexKey,
+        );
       if (metaIndex && Array.isArray(metaIndex)) {
         for (const meta of metaIndex) {
           flopMetas.push({ boardId: meta.boardId, flopCards: meta.flopCards });
@@ -182,7 +202,9 @@ export class CfrAdvisor {
       }
 
       this.configs.set(potType, { reader, flopMetas, actionIndex, treeConfig, bucketCount });
-      console.log(`[cfr-advisor] loaded ${potType} from S3: ${reader.entryCount} entries, ${flopMetas.length} flop metas, ${bucketCount} buckets`);
+      console.log(
+        `[cfr-advisor] loaded ${potType} from S3: ${reader.entryCount} entries, ${flopMetas.length} flop metas, ${bucketCount} buckets`,
+      );
       return true;
     } catch (e) {
       console.warn(`[cfr-advisor] Failed to load ${potType} from S3: ${(e as Error).message}`);
@@ -224,7 +246,7 @@ export class CfrAdvisor {
 
     // Try exact bucket, then nearby, then wider
     let probs: number[] | null = null;
-    let source: 'cfr_exact' | 'cfr_nearest' = boardMatch.exact ? 'cfr_exact' : 'cfr_nearest';
+    const source: 'cfr_exact' | 'cfr_nearest' = boardMatch.exact ? 'cfr_exact' : 'cfr_nearest';
 
     const bucketsToTry = [bucket];
     for (let d = 1; d <= 5; d++) {
@@ -256,7 +278,10 @@ export class CfrAdvisor {
   }
 
   /** Find the matching board (exact or nearest texture). */
-  private findBoard(board: string[], flopMetas: FlopMeta[]): { boardId: number; exact: boolean } | null {
+  private findBoard(
+    board: string[],
+    flopMetas: FlopMeta[],
+  ): { boardId: number; exact: boolean } | null {
     if (flopMetas.length === 0) return null;
 
     const flopCards = board.slice(0, 3);
@@ -264,9 +289,9 @@ export class CfrAdvisor {
 
     // Exact match (order-independent)
     const flopSet = new Set(flopIndices);
-    const exact = flopMetas.find(m => {
+    const exact = flopMetas.find((m) => {
       const s = new Set(m.flopCards);
-      return s.size === flopSet.size && [...flopSet].every(c => s.has(c));
+      return s.size === flopSet.size && [...flopSet].every((c) => s.has(c));
     });
     if (exact) return { boardId: exact.boardId, exact: true };
 
@@ -289,11 +314,14 @@ export class CfrAdvisor {
     const handClass = classifyHandOnBoard(context.heroHand, context.board);
     const maxBucket = bucketCount - 1;
     if (handClass.type === 'made_hand') {
-      if (handClass.strength === 'strong') return Math.floor(maxBucket * 0.8 + Math.random() * maxBucket * 0.2);
-      if (handClass.strength === 'medium') return Math.floor(maxBucket * 0.4 + Math.random() * maxBucket * 0.3);
+      if (handClass.strength === 'strong')
+        return Math.floor(maxBucket * 0.8 + Math.random() * maxBucket * 0.2);
+      if (handClass.strength === 'medium')
+        return Math.floor(maxBucket * 0.4 + Math.random() * maxBucket * 0.3);
       return Math.floor(maxBucket * 0.15 + Math.random() * maxBucket * 0.25);
     }
-    if (handClass.type === 'draw') return Math.floor(maxBucket * 0.3 + Math.random() * maxBucket * 0.3);
+    if (handClass.type === 'draw')
+      return Math.floor(maxBucket * 0.3 + Math.random() * maxBucket * 0.3);
     return Math.floor(Math.random() * maxBucket * 0.2);
   }
 
@@ -304,7 +332,7 @@ export class CfrAdvisor {
     if (!context.actionHistory || context.actionHistory.length === 0) return '';
 
     const postflopActions = context.actionHistory.filter(
-      a => a.street === 'FLOP' || a.street === 'TURN' || a.street === 'RIVER'
+      (a) => a.street === 'FLOP' || a.street === 'TURN' || a.street === 'RIVER',
     );
 
     let history = '';
@@ -415,12 +443,20 @@ interface FlopFeats {
 
 function flopFeatures(cards: number[]): FlopFeats {
   const ranks = cards.map(indexToRank).sort((a, b) => b - a);
-  const suits = cards.map(c => c & 3);
+  const suits = cards.map((c) => c & 3);
   const suitCount = new Set(suits).size;
   const maxGap = Math.max(ranks[0] - ranks[1], ranks[1] - ranks[2]);
   const totalSpread = ranks[0] - ranks[2];
-  const paired = (ranks[0] === ranks[1] || ranks[1] === ranks[2]) ? 1 : 0;
-  return { highRank: ranks[0], midRank: ranks[1], lowRank: ranks[2], suitCount, maxGap, totalSpread, paired };
+  const paired = ranks[0] === ranks[1] || ranks[1] === ranks[2] ? 1 : 0;
+  return {
+    highRank: ranks[0],
+    midRank: ranks[1],
+    lowRank: ranks[2],
+    suitCount,
+    maxGap,
+    totalSpread,
+    paired,
+  };
 }
 
 function featureDistance(a: FlopFeats, b: FlopFeats): number {

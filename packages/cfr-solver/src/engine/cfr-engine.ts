@@ -27,10 +27,10 @@ export interface SolveParams {
   store: InfoSetStore;
   boardId: number;
   flopCards: [number, number, number]; // 3 card indices
-  oopRange: WeightedCombo[];           // weighted combos in OOP range
-  ipRange: WeightedCombo[];            // weighted combos in IP range
+  oopRange: WeightedCombo[]; // weighted combos in OOP range
+  ipRange: WeightedCombo[]; // weighted combos in IP range
   iterations: number;
-  bucketCount: number;                 // buckets per street (e.g. 50)
+  bucketCount: number; // buckets per street (e.g. 50)
   onProgress?: (iter: number, elapsed: number, exploitEst: number) => void;
 }
 
@@ -39,7 +39,7 @@ export interface SolveParamsMultiWay {
   store: InfoSetStore;
   boardId: number;
   flopCards: [number, number, number];
-  ranges: WeightedCombo[][];          // one range per player
+  ranges: WeightedCombo[][]; // one range per player
   numPlayers: number;
   iterations: number;
   bucketCount: number;
@@ -51,9 +51,15 @@ export interface SolveParamsMultiWay {
  */
 export function solveCFR(params: SolveParams): void {
   const {
-    root, store, boardId, flopCards,
-    oopRange, ipRange,
-    iterations, bucketCount, onProgress,
+    root,
+    store,
+    boardId,
+    flopCards,
+    oopRange,
+    ipRange,
+    iterations,
+    bucketCount,
+    onProgress,
   } = params;
 
   // Precompute flop equity buckets (these don't change across iterations)
@@ -79,6 +85,9 @@ export function solveCFR(params: SolveParams): void {
   const startTime = Date.now();
   let rngState = Date.now() & 0x7fffffff;
 
+  // Signal that setup is complete (equity buckets + deck built)
+  if (onProgress) onProgress(0, 0, 0);
+
   for (let iter = 0; iter < iterations; iter++) {
     // 1. Sample OOP hand (weighted by preflop frequency)
     rngState = nextRng(rngState);
@@ -92,10 +101,8 @@ export function solveCFR(params: SolveParams): void {
     const ipHand = ipRange[ipIdx].combo;
 
     // 3. Sample turn + river cards (not conflicting with flop or hands)
-    const usedCards = new Set([
-      ...flopCards, oopHand[0], oopHand[1], ipHand[0], ipHand[1],
-    ]);
-    const available = remainDeck.filter(c => !usedCards.has(c));
+    const usedCards = new Set([...flopCards, oopHand[0], oopHand[1], ipHand[0], ipHand[1]]);
+    const available = remainDeck.filter((c) => !usedCards.has(c));
 
     rngState = nextRng(rngState);
     const turnIdx = rngState % available.length;
@@ -116,18 +123,34 @@ export function solveCFR(params: SolveParams): void {
     // Turn: 6-card evaluation with dynamic bucketing
     const turnBoard = [...flopCards, turnCard];
     const oopTurnBucket = computeSingleBucketCached(
-      oopHand, turnBoard, oopRange, bucketCount, turnBucketCache,
+      oopHand,
+      turnBoard,
+      oopRange,
+      bucketCount,
+      turnBucketCache,
     );
     const ipTurnBucket = computeSingleBucketCached(
-      ipHand, turnBoard, ipRange, bucketCount, turnBucketCache,
+      ipHand,
+      turnBoard,
+      ipRange,
+      bucketCount,
+      turnBucketCache,
     );
 
     // River: 7-card evaluation with dynamic bucketing
     const oopRiverBucket = computeSingleBucketCached(
-      oopHand, riverBoard, oopRange, bucketCount, riverBucketCache,
+      oopHand,
+      riverBoard,
+      oopRange,
+      bucketCount,
+      riverBucketCache,
     );
     const ipRiverBucket = computeSingleBucketCached(
-      ipHand, riverBoard, ipRange, bucketCount, riverBucketCache,
+      ipHand,
+      riverBoard,
+      ipRange,
+      bucketCount,
+      riverBucketCache,
     );
 
     const buckets: StreetBuckets = {
@@ -183,8 +206,14 @@ function cfrTraverse(
     const newIpReach = player === 1 ? ipReach * strategy[a] : ipReach;
 
     actionValues[a] = cfrTraverse(
-      child, store, boardId, buckets, showdownResult,
-      traverser, newOopReach, newIpReach,
+      child,
+      store,
+      boardId,
+      buckets,
+      showdownResult,
+      traverser,
+      newOopReach,
+      newIpReach,
     );
     nodeValue += strategy[a] * actionValues[a];
   }
@@ -261,9 +290,9 @@ function computeShowdown(
   const ipEval = evaluateBestHand(ipCards);
   const cmp = compareHands(oopEval, ipEval);
 
-  if (cmp > 0) return 1;   // OOP wins
-  if (cmp < 0) return -1;  // IP wins
-  return 0;                 // tie
+  if (cmp > 0) return 1; // OOP wins
+  if (cmp < 0) return -1; // IP wins
+  return 0; // tie
 }
 
 // ---------- Bucketing ----------
@@ -322,12 +351,20 @@ function computeSingleBucket(
   for (const { combo, weight } of range) {
     // Skip the same hand and card conflicts
     if (combo[0] === hand[0] && combo[1] === hand[1]) continue;
-    if (combo[0] === hand[0] || combo[0] === hand[1] ||
-        combo[1] === hand[0] || combo[1] === hand[1]) continue;
+    if (
+      combo[0] === hand[0] ||
+      combo[0] === hand[1] ||
+      combo[1] === hand[0] ||
+      combo[1] === hand[1]
+    )
+      continue;
     // Skip board card conflicts
     let boardConflict = false;
     for (const bc of board) {
-      if (combo[0] === bc || combo[1] === bc) { boardConflict = true; break; }
+      if (combo[0] === bc || combo[1] === bc) {
+        boardConflict = true;
+        break;
+      }
     }
     if (boardConflict) continue;
 
@@ -438,8 +475,8 @@ function weightedSampleFiltered(
 
   for (let i = 0; i < ipRange.length; i++) {
     const h = ipRange[i].combo;
-    if (h[0] === oopHand[0] || h[0] === oopHand[1] ||
-        h[1] === oopHand[0] || h[1] === oopHand[1]) continue;
+    if (h[0] === oopHand[0] || h[0] === oopHand[1] || h[1] === oopHand[0] || h[1] === oopHand[1])
+      continue;
     cumWeight += ipRange[i].weight;
     validIndices.push(i);
     validCumWeights.push(cumWeight);
@@ -466,9 +503,12 @@ export function comboKey(combo: [number, number]): string {
 
 export function streetChar(street: Street): string {
   switch (street) {
-    case 'FLOP': return 'F';
-    case 'TURN': return 'T';
-    case 'RIVER': return 'R';
+    case 'FLOP':
+      return 'F';
+    case 'TURN':
+      return 'T';
+    case 'RIVER':
+      return 'R';
   }
 }
 
@@ -487,17 +527,25 @@ function nextRng(state: number): number {
  */
 export function solveCFRMultiWay(params: SolveParamsMultiWay): void {
   const {
-    root, store, boardId, flopCards,
-    ranges, numPlayers,
-    iterations, bucketCount, onProgress,
+    root,
+    store,
+    boardId,
+    flopCards,
+    ranges,
+    numPlayers,
+    iterations,
+    bucketCount,
+    onProgress,
   } = params;
 
   // Precompute flop equity buckets per player
   const deadFlop = new Set(flopCards as number[]);
-  const flopBucketMaps = ranges.map(r => computeEquityBuckets(r, flopCards, bucketCount, deadFlop));
+  const flopBucketMaps = ranges.map((r) =>
+    computeEquityBuckets(r, flopCards, bucketCount, deadFlop),
+  );
 
   // Build cumulative weight arrays per player
-  const cumWeightsPerPlayer = ranges.map(r => buildCumulativeWeights(r));
+  const cumWeightsPerPlayer = ranges.map((r) => buildCumulativeWeights(r));
 
   // Build remaining deck (exclude flop cards)
   const remainDeck: number[] = [];
@@ -520,8 +568,16 @@ export function solveCFRMultiWay(params: SolveParamsMultiWay): void {
 
     for (let p = 0; p < numPlayers; p++) {
       rngState = nextRng(rngState);
-      const idx = weightedSampleFilteredMulti(ranges[p], cumWeightsPerPlayer[p], usedCards, rngState);
-      if (idx < 0) { validDeal = false; break; }
+      const idx = weightedSampleFilteredMulti(
+        ranges[p],
+        cumWeightsPerPlayer[p],
+        usedCards,
+        rngState,
+      );
+      if (idx < 0) {
+        validDeal = false;
+        break;
+      }
       const hand = ranges[p][idx].combo;
       hands.push(hand);
       usedCards.add(hand[0]);
@@ -530,7 +586,7 @@ export function solveCFRMultiWay(params: SolveParamsMultiWay): void {
     if (!validDeal) continue;
 
     // 2. Sample turn + river
-    const available = remainDeck.filter(c => !usedCards.has(c));
+    const available = remainDeck.filter((c) => !usedCards.has(c));
     rngState = nextRng(rngState);
     const turnIdx = rngState % available.length;
     const turnCard = available[turnIdx];
@@ -549,10 +605,17 @@ export function solveCFRMultiWay(params: SolveParamsMultiWay): void {
 
     for (let p = 0; p < numPlayers; p++) {
       const fb = flopBucketMaps[p].get(comboKey(hands[p]));
-      if (fb === undefined) { bucketFail = true; break; }
+      if (fb === undefined) {
+        bucketFail = true;
+        break;
+      }
       flopBuckets.push(fb);
-      turnBuckets.push(computeSingleBucketCached(hands[p], turnBoard, ranges[p], bucketCount, turnBucketCache));
-      riverBuckets.push(computeSingleBucketCached(hands[p], riverBoard, ranges[p], bucketCount, riverBucketCache));
+      turnBuckets.push(
+        computeSingleBucketCached(hands[p], turnBoard, ranges[p], bucketCount, turnBucketCache),
+      );
+      riverBuckets.push(
+        computeSingleBucketCached(hands[p], riverBoard, ranges[p], bucketCount, riverBucketCache),
+      );
     }
     if (bucketFail) continue;
 
@@ -563,7 +626,7 @@ export function solveCFRMultiWay(params: SolveParamsMultiWay): void {
     };
 
     // 4. Precompute hand values for showdown
-    const handValues: number[] = hands.map(hand => {
+    const handValues: number[] = hands.map((hand) => {
       const cards = [...hand.map(indexToCard), ...riverBoard.map(indexToCard)];
       return evaluateBestHand(cards).value;
     });
@@ -571,10 +634,7 @@ export function solveCFRMultiWay(params: SolveParamsMultiWay): void {
     // 5. Traverse for each player as traverser
     const reachInit = Array(numPlayers).fill(1.0);
     for (let p = 0; p < numPlayers; p++) {
-      cfrTraverseMultiWay(
-        root, store, boardId, buckets, handValues, numPlayers,
-        p, reachInit,
-      );
+      cfrTraverseMultiWay(root, store, boardId, buckets, handValues, numPlayers, p, reachInit);
     }
 
     if (onProgress && (iter + 1) % 5000 === 0) {
@@ -588,7 +648,7 @@ function cfrTraverseMultiWay(
   store: InfoSetStore,
   boardId: number,
   buckets: StreetBuckets,
-  handValues: number[],  // per-player hand value for showdown
+  handValues: number[], // per-player hand value for showdown
   numPlayers: number,
   traverser: number,
   reachProbs: number[],
@@ -614,8 +674,14 @@ function cfrTraverseMultiWay(
     newReach[player] *= strategy[a];
 
     actionValues[a] = cfrTraverseMultiWay(
-      child, store, boardId, buckets, handValues, numPlayers,
-      traverser, newReach,
+      child,
+      store,
+      boardId,
+      buckets,
+      handValues,
+      numPlayers,
+      traverser,
+      newReach,
     );
     nodeValue += strategy[a] * actionValues[a];
   }
@@ -675,7 +741,7 @@ function terminalValueMultiWay(
     }
   }
 
-  const winners = activePlayers.filter(p => handValues[p] === maxVal);
+  const winners = activePlayers.filter((p) => handValues[p] === maxVal);
   const isWinner = winners.includes(traverser);
 
   if (isWinner) {

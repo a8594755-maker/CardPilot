@@ -16,7 +16,6 @@ import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync } from 
 import { join, dirname } from 'node:path';
 import { gzipSync, gunzipSync } from 'node:zlib';
 
-const MAGIC_V1 = Buffer.from('CFR1');
 const MAGIC_V2 = Buffer.from('CFR2');
 const MAGIC = MAGIC_V2; // New files use V2
 const HEADER_SIZE = 32;
@@ -24,7 +23,7 @@ const HEADER_SIZE = 32;
 export interface BinaryExportConfig {
   inputDir: string;
   outputPath: string;
-  compress?: boolean;   // default: true
+  compress?: boolean; // default: true
 }
 
 export interface BinaryExportResult {
@@ -59,7 +58,9 @@ function fnv1a(str: string): number {
 export function exportToBinary(config: BinaryExportConfig): BinaryExportResult {
   const { inputDir, outputPath, compress = true } = config;
 
-  const files = readdirSync(inputDir).filter(f => f.endsWith('.jsonl') && f.startsWith('flop_')).sort();
+  const files = readdirSync(inputDir)
+    .filter((f) => f.endsWith('.jsonl') && f.startsWith('flop_'))
+    .sort();
   let iterations = 50000;
   let bucketCount = 50;
   let numFlops = 0;
@@ -75,10 +76,15 @@ export function exportToBinary(config: BinaryExportConfig): BinaryExportResult {
       if (!line.trim()) continue;
       try {
         const parsed = JSON.parse(line) as { probs: number[] };
-        if (!parsed.probs) { skipped++; continue; }
+        if (!parsed.probs) {
+          skipped++;
+          continue;
+        }
         totalEntries++;
         totalBodySize += 1 + parsed.probs.length; // 1B numActions + probs bytes
-      } catch { skipped++; }
+      } catch {
+        skipped++;
+      }
     }
     if (skipped > 0) console.log(`  ${file}: skipped ${skipped} invalid lines`);
     const metaPath = join(inputDir, file.replace('.jsonl', '.meta.json'));
@@ -87,7 +93,9 @@ export function exportToBinary(config: BinaryExportConfig): BinaryExportResult {
         const meta = JSON.parse(readFileSync(metaPath, 'utf-8'));
         if (meta.iterations) iterations = meta.iterations;
         if (meta.bucketCount) bucketCount = meta.bucketCount;
-      } catch { /* corrupted meta file, skip */ }
+      } catch {
+        /* corrupted meta file, skip */
+      }
     }
   }
 
@@ -106,7 +114,11 @@ export function exportToBinary(config: BinaryExportConfig): BinaryExportResult {
     for (const line of content.split('\n')) {
       if (!line.trim()) continue;
       let parsed: { key: string; probs: number[] };
-      try { parsed = JSON.parse(line); } catch { continue; }
+      try {
+        parsed = JSON.parse(line);
+      } catch {
+        continue;
+      }
       if (!parsed.probs) continue;
       const hash = fnv1a(parsed.key);
       const numActions = parsed.probs.length;
@@ -142,7 +154,11 @@ export function exportToBinary(config: BinaryExportConfig): BinaryExportResult {
     counts.fill(0);
     for (let i = 0; i < totalEntries; i++) counts[src[i * ENTRY + bytePos]]++;
     let sum = 0;
-    for (let i = 0; i < 256; i++) { const c = counts[i]; counts[i] = sum; sum += c; }
+    for (let i = 0; i < 256; i++) {
+      const c = counts[i];
+      counts[i] = sum;
+      sum += c;
+    }
     for (let i = 0; i < totalEntries; i++) {
       const b = src[i * ENTRY + bytePos];
       const pos = counts[b]++;
@@ -160,18 +176,18 @@ export function exportToBinary(config: BinaryExportConfig): BinaryExportResult {
 
   // Header
   MAGIC.copy(buffer, 0);
-  buffer.writeUInt16LE(1, 4);                      // version
+  buffer.writeUInt16LE(1, 4); // version
   buffer.writeUInt16LE(bucketCount, 6);
   buffer.writeUInt32LE(numFlops, 8);
   buffer.writeUInt32LE(iterations, 12);
-  buffer.writeUInt32LE(HEADER_SIZE, 16);            // indexOffset
-  buffer.writeUInt32LE(totalEntries, 20);           // entryCount
+  buffer.writeUInt32LE(HEADER_SIZE, 16); // indexOffset
+  buffer.writeUInt32LE(totalEntries, 20); // entryCount
 
   // Write sorted index (hash + bodyOffset only, 8 bytes each)
   let off = HEADER_SIZE;
   for (let i = 0; i < totalEntries; i++) {
     const srcOff = i * ENTRY;
-    buffer.writeUInt32LE(sortedResult.readUInt32LE(srcOff), off);       // hash
+    buffer.writeUInt32LE(sortedResult.readUInt32LE(srcOff), off); // hash
     buffer.writeUInt32LE(sortedResult.readUInt32LE(srcOff + 4), off + 4); // bodyOffset
     off += 8;
   }
@@ -184,10 +200,20 @@ export function exportToBinary(config: BinaryExportConfig): BinaryExportResult {
   if (compress) {
     const compressed = gzipSync(buffer, { level: 9 });
     writeFileSync(outputPath, compressed);
-    return { entries: totalEntries, rawSize: buffer.length, compressedSize: compressed.length, compressionRatio: buffer.length / compressed.length };
+    return {
+      entries: totalEntries,
+      rawSize: buffer.length,
+      compressedSize: compressed.length,
+      compressionRatio: buffer.length / compressed.length,
+    };
   }
   writeFileSync(outputPath, buffer);
-  return { entries: totalEntries, rawSize: buffer.length, compressedSize: buffer.length, compressionRatio: 1 };
+  return {
+    entries: totalEntries,
+    rawSize: buffer.length,
+    compressedSize: buffer.length,
+    compressionRatio: 1,
+  };
 }
 
 /**
@@ -201,7 +227,7 @@ export class BinaryStrategyReader {
 
   constructor(input: string | Buffer) {
     const raw = typeof input === 'string' ? readFileSync(input) : input;
-    this.buffer = (raw[0] === 0x1f && raw[1] === 0x8b) ? gunzipSync(raw) : raw;
+    this.buffer = raw[0] === 0x1f && raw[1] === 0x8b ? gunzipSync(raw) : raw;
 
     const magic = this.buffer.subarray(0, 4).toString();
     if (magic !== 'CFR1' && magic !== 'CFR2') {
@@ -233,14 +259,25 @@ export class BinaryStrategyReader {
         for (let i = 0; i < n; i++) probs.push(dequantizeProb(this.buffer[abs + 1 + i]));
         return probs;
       }
-      if (entryHash < hash) lo = mid + 1; else hi = mid - 1;
+      if (entryHash < hash) lo = mid + 1;
+      else hi = mid - 1;
     }
     return null;
   }
 
-  get entryCount(): number { return this.indexCount; }
-  get version(): number { return this.buffer.readUInt16LE(4); }
-  get numFlops(): number { return this.buffer.readUInt32LE(8); }
-  get iterations(): number { return this.buffer.readUInt32LE(12); }
-  get bucketCount(): number { return this.buffer.readUInt16LE(6); }
+  get entryCount(): number {
+    return this.indexCount;
+  }
+  get version(): number {
+    return this.buffer.readUInt16LE(4);
+  }
+  get numFlops(): number {
+    return this.buffer.readUInt32LE(8);
+  }
+  get iterations(): number {
+    return this.buffer.readUInt32LE(12);
+  }
+  get bucketCount(): number {
+    return this.buffer.readUInt16LE(6);
+  }
 }

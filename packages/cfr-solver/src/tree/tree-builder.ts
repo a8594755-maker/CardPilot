@@ -4,26 +4,31 @@
 // Only card abstraction (hand buckets) varies per board.
 
 import type {
-  GameNode, ActionNode, TerminalNode,
-  Action, Street, Player, TreeConfig,
+  GameNode,
+  ActionNode,
+  TerminalNode,
+  Action,
+  Street,
+  Player,
+  TreeConfig,
 } from '../types.js';
 import { calcBetAmount, calcRaiseAmount } from './tree-config.js';
 
 const NEXT_STREET: Record<string, Street | null> = {
-  'FLOP': 'TURN',
-  'TURN': 'RIVER',
-  'RIVER': null,
+  FLOP: 'TURN',
+  TURN: 'RIVER',
+  RIVER: null,
 };
 
 interface BuildState {
   street: Street;
   pot: number;
-  stacks: number[];   // remaining stack per player
-  player: Player;           // whose turn to act
-  history: string;          // encoded action history
-  raiseCount: number;       // raises on this street
-  isFirstAction: boolean;   // first action on this street
-  facingBet: number;        // bet the current player must respond to (0 if none)
+  stacks: number[]; // remaining stack per player
+  player: Player; // whose turn to act
+  history: string; // encoded action history
+  raiseCount: number; // raises on this street
+  isFirstAction: boolean; // first action on this street
+  facingBet: number; // bet the current player must respond to (0 if none)
 }
 
 /**
@@ -76,7 +81,6 @@ function buildNode(config: TreeConfig, state: BuildState): GameNode {
 function getLegalActions(config: TreeConfig, state: BuildState): Action[] {
   const actions: Action[] = [];
   const playerStack = state.stacks[state.player];
-  const betSizes = getBetSizesForStreet(config, state.street);
 
   if (state.facingBet > 0) {
     // Facing a bet/raise
@@ -86,7 +90,11 @@ function getLegalActions(config: TreeConfig, state: BuildState): Action[] {
     // Can only raise if under the raise cap and have enough stack
     if (state.raiseCount < config.raiseCapPerStreet && playerStack > state.facingBet) {
       const raiseSizes = getRaiseSizesAvailable(
-        config, state.pot, state.facingBet, playerStack, state.street
+        config,
+        state.pot,
+        state.facingBet,
+        playerStack,
+        state.street,
       );
       actions.push(...raiseSizes);
     }
@@ -95,9 +103,7 @@ function getLegalActions(config: TreeConfig, state: BuildState): Action[] {
     actions.push('check');
 
     if (playerStack > 0) {
-      const available = getBetActionsAvailable(
-        config, state.pot, playerStack, state.street
-      );
+      const available = getBetActionsAvailable(config, state.pot, playerStack, state.street);
       actions.push(...available);
     }
   }
@@ -109,7 +115,7 @@ function getBetActionsAvailable(
   config: TreeConfig,
   pot: number,
   playerStack: number,
-  street: Street
+  street: Street,
 ): Action[] {
   const sizes = getBetSizesForStreet(config, street);
   const actions: Action[] = [];
@@ -137,7 +143,7 @@ function getRaiseSizesAvailable(
   pot: number,
   facingBet: number,
   playerStack: number,
-  street: Street
+  street: Street,
 ): Action[] {
   const sizes = getBetSizesForStreet(config, street);
   const actions: Action[] = [];
@@ -160,9 +166,12 @@ function getRaiseSizesAvailable(
 
 function getBetSizesForStreet(config: TreeConfig, street: Street): number[] {
   switch (street) {
-    case 'FLOP': return config.betSizes.flop;
-    case 'TURN': return config.betSizes.turn;
-    case 'RIVER': return config.betSizes.river;
+    case 'FLOP':
+      return config.betSizes.flop;
+    case 'TURN':
+      return config.betSizes.turn;
+    case 'RIVER':
+      return config.betSizes.river;
   }
 }
 
@@ -177,11 +186,7 @@ function actionChar(action: Action): string {
   return '?';
 }
 
-function applyAction(
-  config: TreeConfig,
-  state: BuildState,
-  action: Action
-): GameNode {
+function applyAction(config: TreeConfig, state: BuildState, action: Action): GameNode {
   const p = state.player;
   const opp: Player = 1 - p;
   const newHistory = state.history + actionChar(action);
@@ -232,11 +237,15 @@ function applyAction(
     }
 
     // Advance to next street
-    return advanceStreet(config, {
-      ...state,
-      pot: newPot,
-      stacks: newStacks,
-    }, newHistory);
+    return advanceStreet(
+      config,
+      {
+        ...state,
+        pot: newPot,
+        stacks: newStacks,
+      },
+      newHistory,
+    );
   }
 
   // BET / RAISE / ALL-IN
@@ -279,11 +288,7 @@ function applyAction(
   });
 }
 
-function advanceStreet(
-  config: TreeConfig,
-  state: BuildState,
-  history: string
-): GameNode {
+function advanceStreet(config: TreeConfig, state: BuildState, history: string): GameNode {
   const nextStreet = NEXT_STREET[state.street];
 
   if (!nextStreet) {
@@ -310,6 +315,23 @@ function advanceStreet(
   });
 }
 
+/**
+ * Assign sequential numeric historyId to each ActionNode in the tree.
+ * Returns the total number of action nodes (= next available ID).
+ */
+export function assignHistoryIds(root: ActionNode): number {
+  let nextId = 0;
+  function walk(node: GameNode): void {
+    if (node.type === 'terminal') return;
+    node.historyId = nextId++;
+    for (const child of node.children.values()) {
+      walk(child);
+    }
+  }
+  walk(root);
+  return nextId;
+}
+
 // Stats helper for debugging
 export function countNodes(node: GameNode): { action: number; terminal: number } {
   if (node.type === 'terminal') return { action: 0, terminal: 1 };
@@ -332,10 +354,10 @@ interface MultiWayBuildState {
   street: Street;
   pot: number;
   stacks: number[];
-  activePlayers: boolean[];    // true = in the hand (not folded)
-  currentBets: number[];       // amount each player bet THIS round
-  maxBet: number;              // highest bet this round
-  playerToAct: number;         // current player index
+  activePlayers: boolean[]; // true = in the hand (not folded)
+  currentBets: number[]; // amount each player bet THIS round
+  maxBet: number; // highest bet this round
+  playerToAct: number; // current player index
   history: string;
   raiseCount: number;
   hasActedThisRound: boolean[]; // whether each player has had a turn this round
@@ -366,11 +388,6 @@ function nextActingPlayerMW(state: MultiWayBuildState, after: number): number | 
     if (state.activePlayers[p] && state.stacks[p] > 0) return p;
   }
   return null;
-}
-
-/** Count players who haven't folded */
-function countActiveMW(state: MultiWayBuildState): number {
-  return state.activePlayers.filter(a => a).length;
 }
 
 /** Check if the current betting round is complete */
@@ -420,16 +437,18 @@ function getLegalActionsMW(config: TreeConfig, state: MultiWayBuildState): Actio
     actions.push('call');
     if (state.raiseCount < config.raiseCapPerStreet && playerStack > facingBet) {
       const raiseSizes = getRaiseSizesAvailable(
-        config, state.pot, facingBet, playerStack, state.street
+        config,
+        state.pot,
+        facingBet,
+        playerStack,
+        state.street,
       );
       actions.push(...raiseSizes);
     }
   } else {
     actions.push('check');
     if (playerStack > 0) {
-      const available = getBetActionsAvailable(
-        config, state.pot, playerStack, state.street
-      );
+      const available = getBetActionsAvailable(config, state.pot, playerStack, state.street);
       actions.push(...available);
     }
   }
@@ -437,11 +456,7 @@ function getLegalActionsMW(config: TreeConfig, state: MultiWayBuildState): Actio
   return actions;
 }
 
-function applyActionMW(
-  config: TreeConfig,
-  state: MultiWayBuildState,
-  action: Action,
-): GameNode {
+function applyActionMW(config: TreeConfig, state: MultiWayBuildState, action: Action): GameNode {
   const p = state.playerToAct;
   const newHistory = state.history + actionChar(action);
   const facingBet = state.maxBet - state.currentBets[p];
@@ -450,7 +465,7 @@ function applyActionMW(
   if (action === 'fold') {
     const newActive = [...state.activePlayers];
     newActive[p] = false;
-    const activeCount = newActive.filter(a => a).length;
+    const activeCount = newActive.filter((a) => a).length;
 
     // Only 1 player left → terminal fold
     if (activeCount === 1) {
@@ -461,7 +476,7 @@ function applyActionMW(
         showdown: false,
         lastToAct: p,
         playerStacks: [...state.stacks],
-        foldedPlayers: newActive.map(a => !a),
+        foldedPlayers: newActive.map((a) => !a),
         winner,
       } satisfies TerminalNode;
     }
@@ -547,7 +562,7 @@ function applyActionMW(
           showdown: true,
           lastToAct: p,
           playerStacks: newStacks,
-          foldedPlayers: newState.activePlayers.map(a => !a),
+          foldedPlayers: newState.activePlayers.map((a) => !a),
         } satisfies TerminalNode;
       }
       return advanceStreetMW(config, newState, newHistory);
@@ -613,11 +628,7 @@ function applyActionMW(
   return buildNodeMW(config, newState);
 }
 
-function advanceStreetMW(
-  config: TreeConfig,
-  state: MultiWayBuildState,
-  history: string,
-): GameNode {
+function advanceStreetMW(config: TreeConfig, state: MultiWayBuildState, history: string): GameNode {
   const nextStreet = NEXT_STREET[state.street];
 
   if (!nextStreet) {
@@ -627,7 +638,7 @@ function advanceStreetMW(
       showdown: true,
       lastToAct: state.playerToAct,
       playerStacks: [...state.stacks],
-      foldedPlayers: state.activePlayers.map(a => !a),
+      foldedPlayers: state.activePlayers.map((a) => !a),
     } satisfies TerminalNode;
   }
 
@@ -645,7 +656,7 @@ function advanceStreetMW(
       showdown: true,
       lastToAct: state.playerToAct,
       playerStacks: [...state.stacks],
-      foldedPlayers: state.activePlayers.map(a => !a),
+      foldedPlayers: state.activePlayers.map((a) => !a),
     } satisfies TerminalNode;
   }
 

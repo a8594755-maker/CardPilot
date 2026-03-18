@@ -6,25 +6,26 @@
 
 ## 1. Game Setup
 
-| Parameter | Value |
-|-----------|-------|
-| Format | Heads-Up No-Limit Hold'em (HU NLHE) |
-| Scenario | Single Raised Pot (SRP) — BTN open 2.5bb, BB call |
-| Starting Pot | **5bb** |
-| Effective Stack | **47.5bb** per player (50bb game) |
-| Equity Model | Chip EV (no ICM) |
-| Rake | None |
+| Parameter       | Value                                             |
+| --------------- | ------------------------------------------------- |
+| Format          | Heads-Up No-Limit Hold'em (HU NLHE)               |
+| Scenario        | Single Raised Pot (SRP) — BTN open 2.5bb, BB call |
+| Starting Pot    | **5bb**                                           |
+| Effective Stack | **47.5bb** per player (50bb game)                 |
+| Equity Model    | Chip EV (no ICM)                                  |
+| Rake            | None                                              |
 
 ### Preflop Ranges
 
-| Position | Role | Source |
-|----------|------|--------|
-| BB (OOP) | Caller — acts first on every street | `BB_vs_BTN_facing_open2.5x` from `data/preflop_charts.json` |
-| BTN (IP) | Opener — acts second on every street | `BTN_unopened_open2.5x` from `data/preflop_charts.json` |
+| Position | Role                                 | Source                                                      |
+| -------- | ------------------------------------ | ----------------------------------------------------------- |
+| BB (OOP) | Caller — acts first on every street  | `BB_vs_BTN_facing_open2.5x` from `data/preflop_charts.json` |
+| BTN (IP) | Opener — acts second on every street | `BTN_unopened_open2.5x` from `data/preflop_charts.json`     |
 
 Range data comes from 6-max 100bb cash game GTO charts. All hands with frequency > 0 are included in the solver at full weight (mixed frequencies are not applied per-combo in V1).
 
 **Approximate range composition:**
+
 - BTN (IP): 169 hand classes, ~504 weighted combos (38%)
 - BB (OOP): 169 hand classes, ~352 weighted combos (26.6%)
 - Note: V1 solver includes all combos with any non-zero frequency (weight = 1)
@@ -35,21 +36,23 @@ Range data comes from 6-max 100bb cash game GTO charts. All hands with frequency
 
 ### Bet Sizes (as fraction of pot)
 
-| Street | Small Bet | Big Bet |
-|--------|-----------|---------|
-| Flop | 33% pot | 75% pot |
-| Turn | 50% pot | 100% pot |
-| River | 75% pot | 150% pot |
+| Street | Small Bet | Big Bet  |
+| ------ | --------- | -------- |
+| Flop   | 33% pot   | 75% pot  |
+| Turn   | 50% pot   | 100% pot |
+| River  | 75% pot   | 150% pot |
 
 ### Available Actions
 
 **When not facing a bet:**
+
 - Check
 - Bet Small (33% / 50% / 75% depending on street)
 - Bet Big (75% / 100% / 150% depending on street)
 - All-in
 
 **When facing a bet:**
+
 - Fold
 - Call
 - Raise Small (if under raise cap)
@@ -65,15 +68,15 @@ Range data comes from 6-max 100bb cash game GTO charts. All hands with frequency
 
 ### Action Encoding
 
-| Character | Action |
-|-----------|--------|
-| `x` | Check |
-| `f` | Fold |
-| `c` | Call |
-| `a` | Bet Small / Raise Small |
-| `b` | Bet Big / Raise Big |
-| `A` | All-in |
-| `/` | Street separator |
+| Character | Action                  |
+| --------- | ----------------------- |
+| `x`       | Check                   |
+| `f`       | Fold                    |
+| `c`       | Call                    |
+| `a`       | Bet Small / Raise Small |
+| `b`       | Bet Big / Raise Big     |
+| `A`       | All-in                  |
+| `/`       | Street separator        |
 
 Example history: `xbc/xa/` = Flop(check, bet big, call) → Turn(check, bet small) → ...
 
@@ -159,6 +162,7 @@ Examples: 2c=0, 2d=1, Ah=50, As=51
 V1 uses **static equity-based bucketing** with **50 buckets** per street.
 
 **Procedure:**
+
 1. For each hand combo in the range, evaluate hand strength on the flop using the poker evaluator
 2. Sort all combos by evaluation rank (weakest → strongest)
 3. Divide into 50 equal-sized buckets
@@ -169,14 +173,14 @@ V1 uses **static equity-based bucketing** with **50 buckets** per street.
 **Bucket labels (approximate):**
 
 | Bucket Range | Strength Label |
-|-------------|---------------|
-| 0 – 4 | Trash |
-| 5 – 11 | Weak |
-| 12 – 19 | Marginal |
-| 20 – 29 | Medium |
-| 30 – 39 | Good |
-| 40 – 46 | Strong |
-| 47 – 49 | Nuts |
+| ------------ | -------------- |
+| 0 – 4        | Trash          |
+| 5 – 11       | Weak           |
+| 12 – 19      | Marginal       |
+| 20 – 29      | Medium         |
+| 30 – 39      | Good           |
+| 40 – 46      | Strong         |
+| 47 – 49      | Nuts           |
 
 ### Info-Set Key Format
 
@@ -199,12 +203,14 @@ Examples:
 From ~1,755 suit-isomorphic flops, 200 are selected via **stratified sampling** across texture dimensions:
 
 **Classification dimensions:**
+
 - **High card rank:** 5 tiers (low 2-7, mid 8-9, high T-J, broadway Q, king K, ace A)
 - **Suit pattern:** rainbow (3 suits) / two-tone (2 suits) / monotone (1 suit)
 - **Connectivity:** connected (max gap ≤ 2) / semi-connected (max gap ≤ 4) / disconnected
 - **Paired:** yes / no
 
 **Selection algorithm:**
+
 1. Classify all isomorphic flops into texture categories
 2. Allocate proportionally: `slots = round(group_size / total × 200)`
 3. Select evenly-spaced flops from each group
@@ -250,14 +256,14 @@ npx tsx src/cli/solve.ts --flops 200 --iterations 50000 --use-selector --paralle
 
 ### Performance Benchmarks (measured)
 
-| Metric | Value |
-|--------|-------|
-| Iterations per second | ~907/s per board |
-| Time per board (50k iter) | ~55-100 seconds |
-| Info sets per board | ~49,000 |
-| Total info sets (200 boards) | ~9.87 million |
-| JSONL output (200 boards) | 513 MB |
-| Binary compressed output | 90 MB (.bin.gz) |
+| Metric                       | Value            |
+| ---------------------------- | ---------------- |
+| Iterations per second        | ~907/s per board |
+| Time per board (50k iter)    | ~55-100 seconds  |
+| Info sets per board          | ~49,000          |
+| Total info sets (200 boards) | ~9.87 million    |
+| JSONL output (200 boards)    | 513 MB           |
+| Binary compressed output     | 90 MB (.bin.gz)  |
 
 ---
 
@@ -328,42 +334,42 @@ Lookup: O(log n) binary search by hash → decompress once on load, search in me
 Measured on 6 sample boards after 50,000 iterations:
 
 | Board | Exploitability (% pot) |
-|-------|----------------------|
-| #0 | 358% |
-| #10 | 378% |
-| #50 | 415% |
-| #100 | 389% |
-| #150 | 402% |
-| #199 | 367% |
+| ----- | ---------------------- |
+| #0    | 358%                   |
+| #10   | 378%                   |
+| #50   | 415%                   |
+| #100  | 389%                   |
+| #150  | 402%                   |
+| #199  | 367%                   |
 
 These numbers are **expected for 50-bucket abstraction** and primarily measure abstraction boundary artifacts, not strategy quality. OOP/IP values are balanced, confirming solver consistency.
 
 ### Known Limitations
 
-| Limitation | Impact | Mitigation |
-|-----------|--------|------------|
-| 50 buckets (coarse abstraction) | Similar-strength hands share one strategy | Results show correct qualitative trends |
-| Static buckets (same across streets) | Turn/River don't re-evaluate hand strength | Street is part of info-set key |
-| Full range (no frequency weighting) | All 169 hand classes included at weight 1 | Over-estimates range width by ~30% |
-| 200 boards (not all flops) | Uncovered boards use nearest-flop matching | Feature-distance heuristic |
-| 50k iterations (moderate) | May not fully converge on complex nodes | Sufficient for bucket-level trends |
-| Raise cap = 1 per street | Missing deep raise/re-raise lines | Keeps tree size manageable |
-| No rake | Real games have rake | Strategies may slightly over-bluff |
+| Limitation                           | Impact                                     | Mitigation                              |
+| ------------------------------------ | ------------------------------------------ | --------------------------------------- |
+| 50 buckets (coarse abstraction)      | Similar-strength hands share one strategy  | Results show correct qualitative trends |
+| Static buckets (same across streets) | Turn/River don't re-evaluate hand strength | Street is part of info-set key          |
+| Full range (no frequency weighting)  | All 169 hand classes included at weight 1  | Over-estimates range width by ~30%      |
+| 200 boards (not all flops)           | Uncovered boards use nearest-flop matching | Feature-distance heuristic              |
+| 50k iterations (moderate)            | May not fully converge on complex nodes    | Sufficient for bucket-level trends      |
+| Raise cap = 1 per street             | Missing deep raise/re-raise lines          | Keeps tree size manageable              |
+| No rake                              | Real games have rake                       | Strategies may slightly over-bluff      |
 
 ---
 
 ## 9. Comparison with Commercial Solvers
 
-| Feature | CardPilot V1 | GTO Wizard / PioSOLVER |
-|---------|-------------|----------------------|
-| Algorithm | CFR+ (External Sampling) | CFR+ / CFR variants |
-| Hand resolution | 50 buckets | Per-combo (no abstraction) |
-| Board coverage | 200 representative flops | All possible flops |
-| Bet sizes | 2 per street + all-in | Configurable, often 3-5+ |
-| Raise cap | 1 per street | Often 2-3+ |
-| Iterations | 50,000 | Typically runs to target accuracy |
-| Preflop ranges | All freq>0 at weight 1 | Weighted mixed frequencies |
-| Rake | None | Configurable |
+| Feature         | CardPilot V1             | GTO Wizard / PioSOLVER            |
+| --------------- | ------------------------ | --------------------------------- |
+| Algorithm       | CFR+ (External Sampling) | CFR+ / CFR variants               |
+| Hand resolution | 50 buckets               | Per-combo (no abstraction)        |
+| Board coverage  | 200 representative flops | All possible flops                |
+| Bet sizes       | 2 per street + all-in    | Configurable, often 3-5+          |
+| Raise cap       | 1 per street             | Often 2-3+                        |
+| Iterations      | 50,000                   | Typically runs to target accuracy |
+| Preflop ranges  | All freq>0 at weight 1   | Weighted mixed frequencies        |
+| Rake            | None                     | Configurable                      |
 
 ### How to Set Up an Equivalent Solve on Another Platform
 

@@ -1,8 +1,8 @@
-import test from "node:test";
-import assert from "node:assert/strict";
-import { classifyHandOnBoard } from "@cardpilot/poker-evaluator";
-import type { BoardTextureProfile, MathBreakdown } from "@cardpilot/shared-types";
-import { __test__, type PostflopContext, type StrategyConfig } from "../postflop-engine.js";
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { classifyHandOnBoard } from '@cardpilot/poker-evaluator';
+import type { BoardTextureProfile, MathBreakdown } from '@cardpilot/shared-types';
+import { __test__, type PostflopContext, type StrategyConfig } from '../postflop-engine.js';
 
 const strategyConfig: StrategyConfig = {
   baseRaiseRate: 0.12,
@@ -24,29 +24,29 @@ const boardTexture: BoardTextureProfile = {
   isConnected: true,
   isDisconnected: false,
   isHighCardHeavy: false,
-  wetness: "wet",
-  labels: ["WET"],
+  wetness: 'wet',
+  labels: ['WET'],
 };
 
 const baseContext: PostflopContext = {
-  tableId: "t1",
-  handId: "h1",
+  tableId: 't1',
+  handId: 'h1',
   seat: 1,
-  street: "FLOP",
-  heroHand: ["As", "Kd"],
-  board: ["Qs", "Jh", "2d"],
-  heroPosition: "BTN",
-  villainPosition: "BB",
+  street: 'FLOP',
+  heroHand: ['As', 'Kd'],
+  board: ['Qs', 'Jh', '2d'],
+  heroPosition: 'BTN',
+  villainPosition: 'BB',
   potSize: 100,
   toCall: 40,
   effectiveStack: 300,
   effectiveStackBb: 100,
-  aggressor: "villain",
-  preflopAggressor: "hero",
+  aggressor: 'villain',
+  preflopAggressor: 'hero',
   heroInPosition: true,
   numVillains: 1,
   actionHistory: [],
-  potType: "SRP",
+  potType: 'SRP',
 };
 
 const math: MathBreakdown = {
@@ -60,35 +60,41 @@ const math: MathBreakdown = {
   isLowSpr: false,
 };
 
-test("line classification uses preflop aggressor + IP/OOP context", () => {
-  assert.equal(__test__.resolveLineToken({ ...baseContext, toCall: 10 }), "VS_BET");
-  assert.equal(__test__.resolveLineToken({ ...baseContext, toCall: 0, aggressor: "hero", street: "FLOP" }), "CBET");
-  assert.equal(__test__.resolveLineToken({ ...baseContext, toCall: 0, aggressor: "hero", street: "TURN" }), "BARREL");
+test('line classification uses preflop aggressor + IP/OOP context', () => {
+  assert.equal(__test__.resolveLineToken({ ...baseContext, toCall: 10 }), 'VS_BET');
   assert.equal(
-    __test__.resolveLineToken({
-      ...baseContext,
-      toCall: 0,
-      aggressor: "none",
-      preflopAggressor: "villain",
-      heroInPosition: true,
-      street: "FLOP",
-    }),
-    "PROBE"
+    __test__.resolveLineToken({ ...baseContext, toCall: 0, aggressor: 'hero', street: 'FLOP' }),
+    'CBET',
+  );
+  assert.equal(
+    __test__.resolveLineToken({ ...baseContext, toCall: 0, aggressor: 'hero', street: 'TURN' }),
+    'BARREL',
   );
   assert.equal(
     __test__.resolveLineToken({
       ...baseContext,
       toCall: 0,
-      aggressor: "none",
-      preflopAggressor: "hero",
-      heroInPosition: false,
-      street: "FLOP",
+      aggressor: 'none',
+      preflopAggressor: 'villain',
+      heroInPosition: true,
+      street: 'FLOP',
     }),
-    "CBET"
+    'PROBE',
+  );
+  assert.equal(
+    __test__.resolveLineToken({
+      ...baseContext,
+      toCall: 0,
+      aggressor: 'none',
+      preflopAggressor: 'hero',
+      heroInPosition: false,
+      street: 'FLOP',
+    }),
+    'CBET',
   );
 });
 
-test("mix sums to 1 after normalization", () => {
+test('mix sums to 1 after normalization', () => {
   const handClass = classifyHandOnBoard(baseContext.heroHand, baseContext.board);
   const freq = __test__.buildFrequencyFromScores({
     context: baseContext,
@@ -104,13 +110,13 @@ test("mix sums to 1 after normalization", () => {
   assert.ok(Math.abs(sum - 1) < 0.0002, `expected normalized mix sum ~= 1, got ${sum}`);
 });
 
-test("recommended action legality guard handles no-check fold and all-in calls", () => {
-  assert.equal(__test__.enforceLegalRecommendedAction("fold", 0, 120), "call");
-  assert.equal(__test__.enforceLegalRecommendedAction("call", 150, 100), "raise");
-  assert.equal(__test__.enforceLegalRecommendedAction("raise", 0, 0), "call");
+test('recommended action legality guard handles no-check fold and all-in calls', () => {
+  assert.equal(__test__.enforceLegalRecommendedAction('fold', 0, 120), 'call');
+  assert.equal(__test__.enforceLegalRecommendedAction('call', 150, 100), 'raise');
+  assert.equal(__test__.enforceLegalRecommendedAction('raise', 0, 0), 'call');
 });
 
-test("equity-based adjustment tightens betting when equity is below required", () => {
+test('equity-based adjustment tightens betting when equity is below required', () => {
   const handClass = classifyHandOnBoard(baseContext.heroHand, baseContext.board);
 
   const highEq = __test__.buildFrequencyFromScores({
@@ -134,13 +140,16 @@ test("equity-based adjustment tightens betting when equity is below required", (
   const highBet = highEq.betSmall + highEq.betBig;
   const lowBet = lowEq.betSmall + lowEq.betBig;
 
-  assert.ok(lowBet < highBet, `low-equity bet ${lowBet.toFixed(3)} should be < high-equity bet ${highBet.toFixed(3)}`);
+  assert.ok(
+    lowBet < highBet,
+    `low-equity bet ${lowBet.toFixed(3)} should be < high-equity bet ${highBet.toFixed(3)}`,
+  );
 });
 
 // ── MDF defense guardrail tests ──
 
-test("MDF guardrail: defense frequency >= MDF when facing a bet", () => {
-  const handClass = classifyHandOnBoard(["7s", "6s"], ["Qs", "Jh", "2d"]);
+test('MDF guardrail: defense frequency >= MDF when facing a bet', () => {
+  const handClass = classifyHandOnBoard(['7s', '6s'], ['Qs', 'Jh', '2d']);
   // Large bet: pot 100, toCall 80 → MDF = 100/(100+80) ≈ 0.556
   const largeBetMath: MathBreakdown = {
     potOdds: 0.4444,
@@ -166,13 +175,13 @@ test("MDF guardrail: defense frequency >= MDF when facing a bet", () => {
   const mix = __test__.toNormalizedMixForTesting(freq, 80);
   const defense = mix.raise + mix.call;
   assert.ok(
-    defense >= 0.50,
-    `Defense freq ${defense.toFixed(3)} should be reasonable (>= 0.50) when facing large bet`
+    defense >= 0.5,
+    `Defense freq ${defense.toFixed(3)} should be reasonable (>= 0.50) when facing large bet`,
   );
 });
 
-test("MDF guardrail: large bet → high MDF → defense should not overfold", () => {
-  const handClass = classifyHandOnBoard(["Ts", "9s"], ["Qs", "Jh", "2d"]);
+test('MDF guardrail: large bet → high MDF → defense should not overfold', () => {
+  const handClass = classifyHandOnBoard(['Ts', '9s'], ['Qs', 'Jh', '2d']);
   // pot 100, toCall 100 → MDF = 0.5
   const mathPotBet: MathBreakdown = {
     potOdds: 0.5,
@@ -197,13 +206,10 @@ test("MDF guardrail: large bet → high MDF → defense should not overfold", ()
 
   const mix = __test__.toNormalizedMixForTesting(freq, 100);
   const defense = mix.raise + mix.call;
-  assert.ok(
-    defense >= 0.40,
-    `Defense freq ${defense.toFixed(3)} should not overfold (MDF ≈ 0.5)`
-  );
+  assert.ok(defense >= 0.4, `Defense freq ${defense.toFixed(3)} should not overfold (MDF ≈ 0.5)`);
 });
 
-test("MDF guardrail: small bet → defense naturally high", () => {
+test('MDF guardrail: small bet → defense naturally high', () => {
   const handClass = classifyHandOnBoard(baseContext.heroHand, baseContext.board);
   // pot 100, toCall 25 → MDF = 100/125 = 0.8
   const mathSmallBet: MathBreakdown = {
@@ -230,8 +236,8 @@ test("MDF guardrail: small bet → defense naturally high", () => {
   const mix = __test__.toNormalizedMixForTesting(freq, 25);
   const defense = mix.raise + mix.call;
   assert.ok(
-    defense >= 0.70,
-    `Defense freq ${defense.toFixed(3)} should be high (>= 0.70) for small bet with good equity`
+    defense >= 0.7,
+    `Defense freq ${defense.toFixed(3)} should be high (>= 0.70) for small bet with good equity`,
   );
 });
 
@@ -239,14 +245,14 @@ test("MDF guardrail: small bet → defense naturally high", () => {
 
 const turnContext: PostflopContext = {
   ...baseContext,
-  street: "TURN",
-  board: ["Qs", "Jh", "2d", "7c"],
+  street: 'TURN',
+  board: ['Qs', 'Jh', '2d', '7c'],
 };
 
 const riverContext: PostflopContext = {
   ...baseContext,
-  street: "RIVER",
-  board: ["Qs", "Jh", "2d", "7c", "4h"],
+  street: 'RIVER',
+  board: ['Qs', 'Jh', '2d', '7c', '4h'],
 };
 
 const turnBoardTexture: BoardTextureProfile = {
@@ -256,12 +262,12 @@ const turnBoardTexture: BoardTextureProfile = {
   isConnected: false,
   isDisconnected: true,
   isHighCardHeavy: true,
-  wetness: "dry",
-  labels: ["DRY"],
+  wetness: 'dry',
+  labels: ['DRY'],
 };
 
-test("TURN: buildFrequencyFromScores produces valid frequencies for 4-card board", () => {
-  const handClass = classifyHandOnBoard(["As", "Kd"], ["Qs", "Jh", "2d", "7c"]);
+test('TURN: buildFrequencyFromScores produces valid frequencies for 4-card board', () => {
+  const handClass = classifyHandOnBoard(['As', 'Kd'], ['Qs', 'Jh', '2d', '7c']);
   const freq = __test__.buildFrequencyFromScores({
     context: turnContext,
     boardTexture: turnBoardTexture,
@@ -274,12 +280,18 @@ test("TURN: buildFrequencyFromScores produces valid frequencies for 4-card board
   const sum = freq.check + freq.betSmall + freq.betBig;
   assert.ok(Math.abs(sum - 1) < 0.01, `TURN freq sum should be ~1, got ${sum.toFixed(4)}`);
   assert.ok(freq.check >= 0 && freq.check <= 1, `TURN check=${freq.check.toFixed(3)} out of [0,1]`);
-  assert.ok(freq.betSmall >= 0 && freq.betSmall <= 1, `TURN betSmall=${freq.betSmall.toFixed(3)} out of [0,1]`);
-  assert.ok(freq.betBig >= 0 && freq.betBig <= 1, `TURN betBig=${freq.betBig.toFixed(3)} out of [0,1]`);
+  assert.ok(
+    freq.betSmall >= 0 && freq.betSmall <= 1,
+    `TURN betSmall=${freq.betSmall.toFixed(3)} out of [0,1]`,
+  );
+  assert.ok(
+    freq.betBig >= 0 && freq.betBig <= 1,
+    `TURN betBig=${freq.betBig.toFixed(3)} out of [0,1]`,
+  );
 });
 
-test("RIVER: buildFrequencyFromScores produces valid frequencies for 5-card board", () => {
-  const handClass = classifyHandOnBoard(["As", "Kd"], ["Qs", "Jh", "2d", "7c", "4h"]);
+test('RIVER: buildFrequencyFromScores produces valid frequencies for 5-card board', () => {
+  const handClass = classifyHandOnBoard(['As', 'Kd'], ['Qs', 'Jh', '2d', '7c', '4h']);
   const freq = __test__.buildFrequencyFromScores({
     context: riverContext,
     boardTexture: turnBoardTexture,
@@ -291,13 +303,13 @@ test("RIVER: buildFrequencyFromScores produces valid frequencies for 5-card boar
 
   const sum = freq.check + freq.betSmall + freq.betBig;
   assert.ok(Math.abs(sum - 1) < 0.01, `RIVER freq sum should be ~1, got ${sum.toFixed(4)}`);
-  assert.ok(freq.check >= 0, "RIVER check should be >= 0");
-  assert.ok(freq.betSmall >= 0, "RIVER betSmall should be >= 0");
-  assert.ok(freq.betBig >= 0, "RIVER betBig should be >= 0");
+  assert.ok(freq.check >= 0, 'RIVER check should be >= 0');
+  assert.ok(freq.betSmall >= 0, 'RIVER betSmall should be >= 0');
+  assert.ok(freq.betBig >= 0, 'RIVER betBig should be >= 0');
 });
 
-test("TURN: mix normalizes to 1 when facing a bet", () => {
-  const handClass = classifyHandOnBoard(["As", "Kd"], ["Qs", "Jh", "2d", "7c"]);
+test('TURN: mix normalizes to 1 when facing a bet', () => {
+  const handClass = classifyHandOnBoard(['As', 'Kd'], ['Qs', 'Jh', '2d', '7c']);
   const freq = __test__.buildFrequencyFromScores({
     context: { ...turnContext, toCall: 60, potSize: 200 },
     boardTexture: turnBoardTexture,
@@ -309,11 +321,14 @@ test("TURN: mix normalizes to 1 when facing a bet", () => {
 
   const mix = __test__.toNormalizedMixForTesting(freq, 60);
   const sum = mix.raise + mix.call + mix.fold;
-  assert.ok(Math.abs(sum - 1) < 0.01, `TURN facing bet: mix sum should be ~1, got ${sum.toFixed(4)}`);
+  assert.ok(
+    Math.abs(sum - 1) < 0.01,
+    `TURN facing bet: mix sum should be ~1, got ${sum.toFixed(4)}`,
+  );
 });
 
-test("RIVER: mix normalizes to 1 when facing a bet", () => {
-  const handClass = classifyHandOnBoard(["As", "Kd"], ["Qs", "Jh", "2d", "7c", "4h"]);
+test('RIVER: mix normalizes to 1 when facing a bet', () => {
+  const handClass = classifyHandOnBoard(['As', 'Kd'], ['Qs', 'Jh', '2d', '7c', '4h']);
   const freq = __test__.buildFrequencyFromScores({
     context: { ...riverContext, toCall: 100, potSize: 300 },
     boardTexture: turnBoardTexture,
@@ -325,14 +340,25 @@ test("RIVER: mix normalizes to 1 when facing a bet", () => {
 
   const mix = __test__.toNormalizedMixForTesting(freq, 100);
   const sum = mix.raise + mix.call + mix.fold;
-  assert.ok(Math.abs(sum - 1) < 0.01, `RIVER facing bet: mix sum should be ~1, got ${sum.toFixed(4)}`);
+  assert.ok(
+    Math.abs(sum - 1) < 0.01,
+    `RIVER facing bet: mix sum should be ~1, got ${sum.toFixed(4)}`,
+  );
 });
 
 // ── Polarization tests ──
 
-test("polarization: strong hand (high equity) bets big more than medium hand", () => {
-  const strongClass = { type: "made_hand" as const, strength: "strong" as const, description: "Top pair" };
-  const medClass = { type: "made_hand" as const, strength: "medium" as const, description: "Middle pair" };
+test('polarization: strong hand (high equity) bets big more than medium hand', () => {
+  const strongClass = {
+    type: 'made_hand' as const,
+    strength: 'strong' as const,
+    description: 'Top pair',
+  };
+  const medClass = {
+    type: 'made_hand' as const,
+    strength: 'medium' as const,
+    description: 'Middle pair',
+  };
 
   const strongFreq = __test__.buildFrequencyFromScores({
     context: { ...baseContext, toCall: 0 },
@@ -348,38 +374,38 @@ test("polarization: strong hand (high equity) bets big more than medium hand", (
     boardTexture,
     handClass: medClass,
     math,
-    equity: 0.50,
+    equity: 0.5,
     strategyConfig,
   });
 
   assert.ok(
     strongFreq.betBig > medFreq.betBig,
-    `Strong hand betBig ${strongFreq.betBig.toFixed(3)} should > medium ${medFreq.betBig.toFixed(3)}`
+    `Strong hand betBig ${strongFreq.betBig.toFixed(3)} should > medium ${medFreq.betBig.toFixed(3)}`,
   );
   assert.ok(
     medFreq.check > strongFreq.check,
-    `Medium hand check ${medFreq.check.toFixed(3)} should > strong ${strongFreq.check.toFixed(3)}`
+    `Medium hand check ${medFreq.check.toFixed(3)} should > strong ${strongFreq.check.toFixed(3)}`,
   );
 });
 
-test("polarization: air with fold equity bluffs more than air without", () => {
-  const airClass = { type: "air" as const, strength: "weak" as const, description: "No pair" };
+test('polarization: air with fold equity bluffs more than air without', () => {
+  const airClass = { type: 'air' as const, strength: 'weak' as const, description: 'No pair' };
 
   const withFE = __test__.buildFrequencyFromScores({
-    context: { ...baseContext, toCall: 0, aggressor: "hero", numVillains: 1 },
-    boardTexture: { ...boardTexture, wetness: "dry" },
+    context: { ...baseContext, toCall: 0, aggressor: 'hero', numVillains: 1 },
+    boardTexture: { ...boardTexture, wetness: 'dry' },
     handClass: airClass,
     math,
-    equity: 0.20,
+    equity: 0.2,
     strategyConfig,
   });
 
   const noFE = __test__.buildFrequencyFromScores({
-    context: { ...baseContext, toCall: 0, aggressor: "villain", numVillains: 2 },
-    boardTexture: { ...boardTexture, wetness: "wet" },
+    context: { ...baseContext, toCall: 0, aggressor: 'villain', numVillains: 2 },
+    boardTexture: { ...boardTexture, wetness: 'wet' },
     handClass: airClass,
     math,
-    equity: 0.20,
+    equity: 0.2,
     strategyConfig,
   });
 
@@ -387,21 +413,25 @@ test("polarization: air with fold equity bluffs more than air without", () => {
   const noFEBet = noFE.betSmall + noFE.betBig;
   assert.ok(
     withFEBet > noFEBet,
-    `Air with fold equity bets ${withFEBet.toFixed(3)} should > without ${noFEBet.toFixed(3)}`
+    `Air with fold equity bets ${withFEBet.toFixed(3)} should > without ${noFEBet.toFixed(3)}`,
   );
 });
 
 // ── OOP penalty test ──
 
-test("OOP penalty: OOP checks more than IP for medium-strength hands", () => {
-  const medClass = { type: "made_hand" as const, strength: "medium" as const, description: "Middle pair" };
+test('OOP penalty: OOP checks more than IP for medium-strength hands', () => {
+  const medClass = {
+    type: 'made_hand' as const,
+    strength: 'medium' as const,
+    description: 'Middle pair',
+  };
 
   const ipFreq = __test__.buildFrequencyFromScores({
     context: { ...baseContext, toCall: 0, heroInPosition: true },
     boardTexture,
     handClass: medClass,
     math,
-    equity: 0.50,
+    equity: 0.5,
     strategyConfig,
   });
 
@@ -410,82 +440,82 @@ test("OOP penalty: OOP checks more than IP for medium-strength hands", () => {
     boardTexture,
     handClass: medClass,
     math,
-    equity: 0.50,
+    equity: 0.5,
     strategyConfig,
   });
 
   assert.ok(
     oopFreq.check > ipFreq.check,
-    `OOP check ${oopFreq.check.toFixed(3)} should be > IP check ${ipFreq.check.toFixed(3)}`
+    `OOP check ${oopFreq.check.toFixed(3)} should be > IP check ${ipFreq.check.toFixed(3)}`,
   );
 });
 
 // ── Street-specific polarization test ──
 
-test("later streets are more polarized: river has less small betting than flop", () => {
-  const handClass = classifyHandOnBoard(["As", "Kd"], ["Qs", "Jh", "2d"]);
+test('later streets are more polarized: river has less small betting than flop', () => {
+  const handClass = classifyHandOnBoard(['As', 'Kd'], ['Qs', 'Jh', '2d']);
 
   const flopFreq = __test__.buildFrequencyFromScores({
-    context: { ...baseContext, toCall: 0, street: "FLOP" },
+    context: { ...baseContext, toCall: 0, street: 'FLOP' },
     boardTexture,
     handClass,
     math,
-    equity: 0.50,
+    equity: 0.5,
     strategyConfig,
   });
 
   const riverFreq = __test__.buildFrequencyFromScores({
-    context: { ...riverContext, toCall: 0, street: "RIVER" },
+    context: { ...riverContext, toCall: 0, street: 'RIVER' },
     boardTexture,
     handClass,
     math,
-    equity: 0.50,
+    equity: 0.5,
     strategyConfig,
   });
 
   // River should have less betSmall due to polarization shift
   assert.ok(
     riverFreq.betSmall <= flopFreq.betSmall + 0.01,
-    `River betSmall ${riverFreq.betSmall.toFixed(3)} should be <= flop ${flopFreq.betSmall.toFixed(3)} (polarization)`
+    `River betSmall ${riverFreq.betSmall.toFixed(3)} should be <= flop ${flopFreq.betSmall.toFixed(3)} (polarization)`,
   );
 });
 
 // ── Line token tests for TURN/RIVER ──
 
-test("line token BARREL on TURN when hero is aggressor", () => {
+test('line token BARREL on TURN when hero is aggressor', () => {
   assert.equal(
-    __test__.resolveLineToken({ ...baseContext, toCall: 0, aggressor: "hero", street: "TURN" }),
-    "BARREL"
+    __test__.resolveLineToken({ ...baseContext, toCall: 0, aggressor: 'hero', street: 'TURN' }),
+    'BARREL',
   );
 });
 
-test("line token BARREL on RIVER when hero is aggressor", () => {
+test('line token BARREL on RIVER when hero is aggressor', () => {
   assert.equal(
-    __test__.resolveLineToken({ ...baseContext, toCall: 0, aggressor: "hero", street: "RIVER" }),
-    "BARREL"
+    __test__.resolveLineToken({ ...baseContext, toCall: 0, aggressor: 'hero', street: 'RIVER' }),
+    'BARREL',
   );
 });
 
-test("line token PROBE on TURN for non-PFA IP when villain was PFA", () => {
+test('line token PROBE on TURN for non-PFA IP when villain was PFA', () => {
   assert.equal(
     __test__.resolveLineToken({
       ...baseContext,
       toCall: 0,
-      aggressor: "none",
-      preflopAggressor: "villain",
+      aggressor: 'none',
+      preflopAggressor: 'villain',
       heroInPosition: true,
-      street: "TURN",
+      street: 'TURN',
     }),
-    "PROBE"  // Non-PFA on turn → PROBE
+    'PROBE', // Non-PFA on turn → PROBE
   );
 });
 
-test("line token VS_BET when facing a bet on any street", () => {
-  for (const street of ["FLOP", "TURN", "RIVER"] as const) {
+test('line token VS_BET when facing a bet on any street', () => {
+  for (const street of ['FLOP', 'TURN', 'RIVER'] as const) {
     assert.equal(
       __test__.resolveLineToken({ ...baseContext, toCall: 50, street }),
-      "VS_BET",
-      `VS_BET expected on ${street} when toCall > 0`
+      'VS_BET',
+      `VS_BET expected on ${street} when toCall > 0`,
     );
   }
 });

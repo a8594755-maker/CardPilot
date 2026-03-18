@@ -17,7 +17,7 @@ import type {
   ScenarioType,
   Position,
 } from './preflop-types.js';
-import { POSITION_6MAX, NUM_HAND_CLASSES, allHandClasses, indexToHandClass } from './preflop-types.js';
+import { NUM_HAND_CLASSES, allHandClasses } from './preflop-types.js';
 import { InfoSetStore } from '../engine/info-set-store.js';
 
 // ── Types ──
@@ -34,16 +34,16 @@ interface SpotInfo {
 
 /** AI training record — one per (spot, handClass) pair. */
 export interface TrainingRecord {
-  format: string;        // 'cash_6max_100bb'
-  spot: string;          // 'BB_vs_BTN_open'
-  position: string;      // 'BB'
-  scenario: string;      // 'facing_open'
-  handClass: string;     // 'AKs'
-  handClassIndex: number;// 1
-  actions: string[];     // ['fold','call','3bet_8.75']
+  format: string; // 'cash_6max_100bb'
+  spot: string; // 'BB_vs_BTN_open'
+  position: string; // 'BB'
+  scenario: string; // 'facing_open'
+  handClass: string; // 'AKs'
+  handClassIndex: number; // 1
+  actions: string[]; // ['fold','call','3bet_8.75']
   frequencies: number[]; // [0.05, 0.55, 0.40]
-  pot: number;           // 3.5
-  history: string;       // 'Uo-Hf-Cf-Bf'  (raw action sequence)
+  pot: number; // 3.5
+  history: string; // 'Uo-Hf-Cf-Bf'  (raw action sequence)
 }
 
 // ── Export for Web Display ──
@@ -153,13 +153,20 @@ export function exportForWeb(
   exportedFiles.push('index.json');
 
   // Write metadata.json
-  writeFileSync(join(outputDir, 'metadata.json'), JSON.stringify({
-    config: config.name,
-    ...solveMetadata,
-    solver: 'cardpilot-preflop-cfr-v1',
-    totalSpots: spots.length,
-    totalInfoSets: store.size,
-  }, null, 2));
+  writeFileSync(
+    join(outputDir, 'metadata.json'),
+    JSON.stringify(
+      {
+        config: config.name,
+        ...solveMetadata,
+        solver: 'cardpilot-preflop-cfr-v1',
+        totalSpots: spots.length,
+        totalInfoSets: store.size,
+      },
+      null,
+      2,
+    ),
+  );
   exportedFiles.push('metadata.json');
 
   return exportedFiles;
@@ -204,7 +211,7 @@ export function exportForTraining(
         handClass: handClasses[hc],
         handClassIndex: hc,
         actions: spot.actions,
-        frequencies: Array.from(avg).map(f => Math.round(f * 10000) / 10000),
+        frequencies: Array.from(avg).map((f) => Math.round(f * 10000) / 10000),
         pot: Math.round(spot.pot * 100) / 100,
         history: spot.historyKey,
       };
@@ -224,19 +231,18 @@ export function exportForTraining(
  * Export complete raw info-set data for advanced AI training.
  * Includes every info-set key and its strategy, without any interpretation.
  */
-export function exportRawInfoSets(
-  store: InfoSetStore,
-  outputPath: string,
-): number {
+export function exportRawInfoSets(store: InfoSetStore, outputPath: string): number {
   const lines: string[] = [];
   let count = 0;
 
   for (const entry of store.entries()) {
-    lines.push(JSON.stringify({
-      key: entry.key,
-      numActions: entry.numActions,
-      strategy: Array.from(entry.averageStrategy).map(f => Math.round(f * 10000) / 10000),
-    }));
+    lines.push(
+      JSON.stringify({
+        key: entry.key,
+        numActions: entry.numActions,
+        strategy: Array.from(entry.averageStrategy).map((f) => Math.round(f * 10000) / 10000),
+      }),
+    );
     count++;
   }
 
@@ -281,8 +287,13 @@ function collectSpots(root: PreflopActionNode): SpotInfo[] {
 function classifyScenario(history: string): ScenarioType {
   if (!history) return 'RFI';
   const parts = history.split('-');
-  const raises = parts.filter(p => /[o34A]/.test(p.slice(-1)));
+  const raises = parts.filter((p) => /[o0-9qA]/.test(p.slice(-1)));
   if (raises.length === 0) return 'RFI';
+
+  // Check for squeeze (raise after a caller)
+  const hasCall = parts.some((p) => p.endsWith('c'));
+  const lastRaise = raises[raises.length - 1];
+  if (hasCall && (lastRaise.endsWith('3') || lastRaise.endsWith('q'))) return 'squeeze';
 
   if (raises.length === 1) return 'facing_open';
   if (raises.length === 2) return 'facing_3bet';
@@ -300,6 +311,7 @@ function buildSpotName(spot: SpotInfo): string {
   if (spot.scenario === 'facing_open') return `${pos}_vs_${villain}_open`;
   if (spot.scenario === 'facing_3bet') return `${pos}_vs_${villain}_3bet`;
   if (spot.scenario === 'facing_4bet') return `${pos}_vs_${villain}_4bet`;
+  if (spot.scenario === 'squeeze') return `${pos}_squeeze_vs_${villain}`;
 
   return `${pos}_${spot.scenario}`;
 }
@@ -309,13 +321,29 @@ function inferVillain(spot: SpotInfo): Position | undefined {
   const parts = spot.historyKey.split('-');
   // Find the last raiser before this spot
   const posMap: Record<string, Position> = {
-    'U': 'UTG', 'H': 'HJ', 'C': 'CO', 'B': 'BTN', 'S': 'SB', 'b': 'BB',
+    U: 'UTG',
+    L: 'LJ',
+    H: 'HJ',
+    C: 'CO',
+    B: 'BTN',
+    S: 'SB',
+    b: 'BB',
   };
 
   for (let i = parts.length - 1; i >= 0; i--) {
     const p = parts[i];
-    if (p.length >= 2 && /[o34A]/.test(p[1])) {
-      return posMap[p[0]];
+    if (p.length < 2) continue;
+
+    const actionCode = p.slice(-1);
+    if (!/[o0-9qA]/.test(actionCode)) continue;
+
+    const seatCode = p.slice(0, -1);
+    if (seatCode in posMap) {
+      return posMap[seatCode];
+    }
+    if (seatCode.startsWith('p')) {
+      const idx = Number.parseInt(seatCode.slice(1), 10);
+      if (Number.isFinite(idx)) return `P${idx}`;
     }
   }
   return undefined;

@@ -80,8 +80,8 @@ function kuhnCFR(
   }
 
   // Determine acting player
-  const player: 0 | 1 = history.length === 0 || history === 'xb' ? 0 :
-                         history === 'x' || history === 'b' ? 1 : 0;
+  const player: 0 | 1 =
+    history.length === 0 || history === 'xb' ? 0 : history === 'x' || history === 'b' ? 1 : 0;
   const isSecondActionP0 = history === 'xb'; // P0 faces a bet after checking
 
   const playerCard = player === 0 ? p0Card : p1Card;
@@ -107,10 +107,7 @@ function kuhnCFR(
     const newReachP0 = player === 0 ? reachP0 * strategy[a] : reachP0;
     const newReachP1 = player === 1 ? reachP1 * strategy[a] : reachP1;
 
-    actionValues[a] = kuhnCFR(
-      store, p0Card, p1Card, newHistory,
-      newReachP0, newReachP1, traverser,
-    );
+    actionValues[a] = kuhnCFR(store, p0Card, p1Card, newHistory, newReachP0, newReachP1, traverser);
     nodeValue += strategy[a] * actionValues[a];
   }
 
@@ -187,14 +184,15 @@ describe('Kuhn Poker CFR+', () => {
     // P0 with Q facing bet: should call ~1/3
     const p0Q_xb = store.getAverageStrategy('Q|xb', 2);
     console.log(`P0 Q|xb: fold=${p0Q_xb[0].toFixed(3)} call=${p0Q_xb[1].toFixed(3)}`);
-    assert.ok(p0Q_xb[1] > 0.15 && p0Q_xb[1] < 0.6,
-      `P0 Q call freq should be ~0.33, got ${p0Q_xb[1]}`);
+    assert.ok(
+      p0Q_xb[1] > 0.15 && p0Q_xb[1] < 0.6,
+      `P0 Q call freq should be ~0.33, got ${p0Q_xb[1]}`,
+    );
 
     // P1 with J after check: should bet ~1/3
     const p1J_x = store.getAverageStrategy('J|x', 2);
     console.log(`P1 J|x: check=${p1J_x[0].toFixed(3)} bet=${p1J_x[1].toFixed(3)}`);
-    assert.ok(p1J_x[1] > 0.15 && p1J_x[1] < 0.55,
-      `P1 J bet freq should be ~0.33, got ${p1J_x[1]}`);
+    assert.ok(p1J_x[1] > 0.15 && p1J_x[1] < 0.55, `P1 J bet freq should be ~0.33, got ${p1J_x[1]}`);
 
     // P1 with K after check: should always bet
     const p1K_x = store.getAverageStrategy('K|x', 2);

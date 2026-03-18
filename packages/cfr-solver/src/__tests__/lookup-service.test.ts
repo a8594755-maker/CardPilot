@@ -22,7 +22,7 @@ function setupFixture(): void {
   ];
   writeFileSync(
     join(TMP_DIR, 'flop_000.jsonl'),
-    entries.map(e => JSON.stringify(e)).join('\n') + '\n',
+    entries.map((e) => JSON.stringify(e)).join('\n') + '\n',
   );
   // As=51, 8d=25, 3c=4 in the card-index encoding (rank*4+suit)
   writeFileSync(
@@ -69,10 +69,10 @@ test('LookupService query with hand and board', () => {
 
   // Query for a hand on the exact solved flop As 8d 3c
   const result = service.query(
-    ['As', '8d'],       // hand
+    ['As', '8d'], // hand
     ['As', '8d', '3c'], // board matches flopCards [48, 29, 8]
-    0,                   // OOP
-    '',                  // root
+    0, // OOP
+    '', // root
   );
 
   assert.ok(result.strategy, 'Should find a strategy');

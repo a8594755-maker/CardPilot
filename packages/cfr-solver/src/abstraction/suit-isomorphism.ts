@@ -26,7 +26,7 @@ export function canonicalFlop(cards: [number, number, number]): string {
   const suitMap = new Map<number, number>();
   let nextSuit = 0;
 
-  const canonical = sorted.map(c => {
+  const canonical = sorted.map((c) => {
     const rank = indexToRank(c);
     const suit = indexToSuit(c);
     if (!suitMap.has(suit)) {

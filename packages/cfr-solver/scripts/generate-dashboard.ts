@@ -96,7 +96,7 @@ if (!fs.existsSync(dataDir)) {
 
 console.log(`Scanning ${dataDir} ...`);
 
-const files = fs.readdirSync(dataDir).filter(f => f.endsWith('.meta.json'));
+const files = fs.readdirSync(dataDir).filter((f) => f.endsWith('.meta.json'));
 console.log(`Found ${files.length} meta files`);
 
 const flops: any[] = [];
@@ -109,8 +109,12 @@ let minInfoSets = Infinity;
 let maxInfoSets = 0;
 
 const textureCounts = {
-  monotone: 0, 'two-tone': 0, rainbow: 0,
-  trips: 0, paired: 0, unpaired: 0,
+  monotone: 0,
+  'two-tone': 0,
+  rainbow: 0,
+  trips: 0,
+  paired: 0,
+  unpaired: 0,
   connected: 0,
 };
 
@@ -143,7 +147,7 @@ function extractStrategy(jsonlPath: string, boardId: number) {
     const n = arr[0].length;
     const sums = new Array(n).fill(0);
     for (const row of arr) for (let i = 0; i < n; i++) sums[i] += row[i];
-    return sums.map(s => Math.round(s / arr.length * 1000) / 1000);
+    return sums.map((s) => Math.round((s / arr.length) * 1000) / 1000);
   }
 
   return { oop: avg(oopProbs), ip: avg(ipProbs) };
@@ -176,8 +180,8 @@ for (const file of files) {
     peakMemoryMB: meta.peakMemoryMB,
     timestamp: meta.timestamp,
     // Strategy: OOP opening [check, bet, allin], IP after check [check, bet, allin]
-    oopStrategy: strategy.oop,  // [check%, bet%, allin%]
-    ipStrategy: strategy.ip,    // [checkBack%, bet%, allin%]
+    oopStrategy: strategy.oop, // [check%, bet%, allin%]
+    ipStrategy: strategy.ip, // [checkBack%, bet%, allin%]
   });
 
   totalInfoSets += meta.infoSets;
@@ -236,7 +240,10 @@ fs.writeFileSync(outFile, JSON.stringify(dashboard));
 const sizeMB = (fs.statSync(outFile).size / 1024 / 1024).toFixed(1);
 
 // Also generate self-contained HTML with embedded data
-const htmlTemplate = fs.readFileSync(path.join(__dirname, '..', 'viewer', 'dashboard.html'), 'utf-8');
+const htmlTemplate = fs.readFileSync(
+  path.join(__dirname, '..', 'viewer', 'dashboard.html'),
+  'utf-8',
+);
 const embedScript = `<script>window.DASHBOARD_DATA = ${JSON.stringify(dashboard)};</script>`;
 const embeddedHtml = htmlTemplate.replace('</head>', embedScript + '\n</head>');
 const embedOutFile = path.join(__dirname, '..', 'viewer', 'dashboard-standalone.html');
@@ -249,5 +256,9 @@ console.log(`  Flops: ${flops.length}`);
 console.log(`  Total info sets: ${(totalInfoSets / 1e6).toFixed(1)}M`);
 console.log(`  Total solve time: ${(totalElapsedMs / 3600000).toFixed(1)}h`);
 console.log(`  Avg solve time: ${(dashboard.summary.avgElapsedMs / 1000).toFixed(0)}s`);
-console.log(`  Textures: rainbow=${textureCounts.rainbow} two-tone=${textureCounts['two-tone']} monotone=${textureCounts.monotone}`);
-console.log(`  Pairing: unpaired=${textureCounts.unpaired} paired=${textureCounts.paired} trips=${textureCounts.trips}`);
+console.log(
+  `  Textures: rainbow=${textureCounts.rainbow} two-tone=${textureCounts['two-tone']} monotone=${textureCounts.monotone}`,
+);
+console.log(
+  `  Pairing: unpaired=${textureCounts.unpaired} paired=${textureCounts.paired} trips=${textureCounts.trips}`,
+);

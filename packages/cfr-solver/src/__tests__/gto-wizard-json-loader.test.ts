@@ -34,10 +34,7 @@ test('parseGtoWizardRangeJson validates and normalizes entries', () => {
 });
 
 test('parseGtoWizardRangeJson rejects malformed rows', () => {
-  assert.throws(
-    () => parseGtoWizardRangeJson({ bad: true }),
-    /must be an array/,
-  );
+  assert.throws(() => parseGtoWizardRangeJson({ bad: true }), /must be an array/);
   assert.throws(
     () => parseGtoWizardRangeJson([{ format: 'x', spot: 'y', hand: 'AK', mix: { raise: 1 } }]),
     /suited\/offsuit suffix/,
@@ -57,7 +54,7 @@ test('expandHandClassToCombos returns expected combo counts', () => {
   assert.equal(suited.length, 4);
   assert.equal(offsuit.length, 12);
 
-  const uniq = new Set(offsuit.map(combo => `${combo[0]},${combo[1]}`));
+  const uniq = new Set(offsuit.map((combo) => `${combo[0]},${combo[1]}`));
   assert.equal(uniq.size, 12, 'Offsuit combos should be unique');
 });
 

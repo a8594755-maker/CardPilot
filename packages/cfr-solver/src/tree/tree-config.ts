@@ -6,9 +6,9 @@ import type { TreeConfig, BetSizeConfig } from '../types.js';
 // V1: HU SRP at 50bb (2 bet sizes per street)
 // BTN opens to 2.5bb, BB calls → pot = 5bb, effective stack = 47.5bb
 export const V1_BET_SIZES: BetSizeConfig = {
-  flop:  [0.33, 0.75],
-  turn:  [0.50, 1.00],
-  river: [0.75, 1.50],
+  flop: [0.33, 0.75],
+  turn: [0.5, 1.0],
+  river: [0.75, 1.5],
 };
 
 export const V1_TREE_CONFIG: TreeConfig = {
@@ -20,9 +20,9 @@ export const V1_TREE_CONFIG: TreeConfig = {
 
 // Standard: 5 bet sizes per street (33%, 50%, 75%, 100%, 150% pot)
 export const STANDARD_BET_SIZES: BetSizeConfig = {
-  flop:  [0.33, 0.50, 0.75, 1.00, 1.50],
-  turn:  [0.33, 0.50, 0.75, 1.00, 1.50],
-  river: [0.33, 0.50, 0.75, 1.00, 1.50],
+  flop: [0.33, 0.5, 0.75, 1.0, 1.5],
+  turn: [0.33, 0.5, 0.75, 1.0, 1.5],
+  river: [0.33, 0.5, 0.75, 1.0, 1.5],
 };
 
 // Standard 50bb: 5 sizes, 50bb stack
@@ -44,16 +44,16 @@ export const STANDARD_100BB_CONFIG: TreeConfig = {
 // Pipeline: HU SRP at 50bb — simplified (no raises, 1 bet size per street)
 // Designed for bulk CFR solving across all 1,755 isomorphic flops
 export const PIPELINE_SRP_BET_SIZES: BetSizeConfig = {
-  flop:  [0.33],   // 33% pot
-  turn:  [0.66],   // 66% pot
-  river: [0.75],   // 75% pot (all-in always available via tree builder)
+  flop: [0.33], // 33% pot
+  turn: [0.66], // 66% pot
+  river: [0.75], // 75% pot (all-in always available via tree builder)
 };
 
 export const PIPELINE_SRP_CONFIG: TreeConfig = {
-  startingPot: 5,          // BTN opens 2.5bb, BB calls → pot = 5bb
-  effectiveStack: 47.5,    // 50bb - 2.5bb
+  startingPot: 5, // BTN opens 2.5bb, BB calls → pot = 5bb
+  effectiveStack: 47.5, // 50bb - 2.5bb
   betSizes: PIPELINE_SRP_BET_SIZES,
-  raiseCapPerStreet: 0,    // No raises — only check/bet/fold/call
+  raiseCapPerStreet: 0, // No raises — only check/bet/fold/call
 };
 
 // Pipeline: HU 3-bet pot at 50bb — simplified (no raises)
@@ -61,14 +61,14 @@ export const PIPELINE_SRP_CONFIG: TreeConfig = {
 // Pot = 8.75 × 2 = 17.5bb, effective stack = 50 - 8.75 = 41.25bb
 // Verify: 17.5 + 41.25 × 2 = 100 ✓
 export const PIPELINE_3BET_BET_SIZES: BetSizeConfig = {
-  flop:  [0.33],   // 33% pot
-  turn:  [0.66],   // 66% pot
-  river: [0.75],   // 75% pot
+  flop: [0.33], // 33% pot
+  turn: [0.66], // 66% pot
+  river: [0.75], // 75% pot
 };
 
 export const PIPELINE_3BET_CONFIG: TreeConfig = {
-  startingPot: 17.5,        // 8.75 × 2 = 17.5bb
-  effectiveStack: 41.25,    // 50bb - 8.75bb
+  startingPot: 17.5, // 8.75 × 2 = 17.5bb
+  effectiveStack: 41.25, // 50bb - 8.75bb
   betSizes: PIPELINE_3BET_BET_SIZES,
   raiseCapPerStreet: 0,
 };
@@ -79,9 +79,9 @@ export const PIPELINE_3BET_CONFIG: TreeConfig = {
 // ═══════════════════════════════════════════════════════════
 
 const PIPELINE_V2_BET_SIZES: BetSizeConfig = {
-  flop:  [0.33, 0.75],   // small probe + polarized
-  turn:  [0.50, 1.00],   // mid + pot-size
-  river: [0.75, 1.50],   // standard + overbet
+  flop: [0.33, 0.75], // small probe + polarized
+  turn: [0.5, 1.0], // mid + pot-size
+  river: [0.75, 1.5], // standard + overbet
 };
 
 // V2 SRP 50bb: 2 sizes, raises allowed
@@ -122,14 +122,14 @@ export const PIPELINE_3BET_100BB_CONFIG: TreeConfig = {
 
 // BTN vs BB SRP 100bb — 1 size per street, raises allowed (GTO+ style)
 export const HU_BTN_BB_SRP_100BB_SIZES: BetSizeConfig = {
-  flop:  [0.33],
-  turn:  [0.66],
+  flop: [0.33],
+  turn: [0.66],
   river: [0.75],
 };
 
 export const HU_BTN_BB_SRP_100BB_CONFIG: TreeConfig = {
-  startingPot: 5,          // BTN opens 2.5bb, BB calls → pot = 5bb
-  effectiveStack: 97.5,    // 100bb - 2.5bb
+  startingPot: 5, // BTN opens 2.5bb, BB calls → pot = 5bb
+  effectiveStack: 97.5, // 100bb - 2.5bb
   betSizes: HU_BTN_BB_SRP_100BB_SIZES,
   raiseCapPerStreet: 4,
   // Verify: 5 + 97.5 × 2 = 200 ✓
@@ -137,14 +137,14 @@ export const HU_BTN_BB_SRP_100BB_CONFIG: TreeConfig = {
 
 // BTN vs BB 3BP 100bb — 2 sizes
 export const HU_BTN_BB_3BP_100BB_SIZES: BetSizeConfig = {
-  flop:  [0.33, 0.75],
-  turn:  [0.33, 0.75],
+  flop: [0.33, 0.75],
+  turn: [0.33, 0.75],
   river: [0.33, 0.75],
 };
 
 export const HU_BTN_BB_3BP_100BB_CONFIG: TreeConfig = {
-  startingPot: 17.5,       // BTN opens 2.5bb, BB 3-bets to 8.75bb, BTN calls
-  effectiveStack: 91.25,   // 100bb - 8.75bb
+  startingPot: 17.5, // BTN opens 2.5bb, BB 3-bets to 8.75bb, BTN calls
+  effectiveStack: 91.25, // 100bb - 8.75bb
   betSizes: HU_BTN_BB_3BP_100BB_SIZES,
   raiseCapPerStreet: 0,
   // Verify: 17.5 + 91.25 × 2 = 200 ✓
@@ -152,8 +152,8 @@ export const HU_BTN_BB_3BP_100BB_CONFIG: TreeConfig = {
 
 // BTN vs BB SRP 50bb — 2 sizes (upgrade from pipeline_srp 1 size)
 export const HU_BTN_BB_SRP_50BB_SIZES: BetSizeConfig = {
-  flop:  [0.33, 0.75],
-  turn:  [0.33, 0.75],
+  flop: [0.33, 0.75],
+  turn: [0.33, 0.75],
   river: [0.33, 0.75],
 };
 
@@ -167,8 +167,8 @@ export const HU_BTN_BB_SRP_50BB_CONFIG: TreeConfig = {
 
 // BTN vs BB 3BP 50bb — 2 sizes (fixed version of pipeline_3bet)
 export const HU_BTN_BB_3BP_50BB_SIZES: BetSizeConfig = {
-  flop:  [0.33, 0.75],
-  turn:  [0.33, 0.75],
+  flop: [0.33, 0.75],
+  turn: [0.33, 0.75],
   river: [0.33, 0.75],
 };
 
@@ -191,13 +191,13 @@ export const HU_CO_BB_SRP_100BB_CONFIG: TreeConfig = {
 
 // CO vs BB 3BP 100bb — 1 size
 export const HU_CO_BB_3BP_100BB_SIZES: BetSizeConfig = {
-  flop:  [0.50],
-  turn:  [0.50],
-  river: [0.50],
+  flop: [0.5],
+  turn: [0.5],
+  river: [0.5],
 };
 
 export const HU_CO_BB_3BP_100BB_CONFIG: TreeConfig = {
-  startingPot: 17.5,       // same 3-bet sizing as BTN vs BB
+  startingPot: 17.5, // same 3-bet sizing as BTN vs BB
   effectiveStack: 91.25,
   betSizes: HU_CO_BB_3BP_100BB_SIZES,
   raiseCapPerStreet: 0,
@@ -206,9 +206,9 @@ export const HU_CO_BB_3BP_100BB_CONFIG: TreeConfig = {
 
 // UTG vs BB SRP 100bb — 1 size
 export const HU_UTG_BB_SRP_100BB_SIZES: BetSizeConfig = {
-  flop:  [0.50],
-  turn:  [0.50],
-  river: [0.50],
+  flop: [0.5],
+  turn: [0.5],
+  river: [0.5],
 };
 
 export const HU_UTG_BB_SRP_100BB_CONFIG: TreeConfig = {
@@ -224,22 +224,34 @@ export const HU_UTG_BB_SRP_100BB_CONFIG: TreeConfig = {
 // ═══════════════════════════════════════════════════════════
 
 export const COACHING_BET_SIZES: BetSizeConfig = {
-  flop:      [0.25, 0.33, 0.50, 0.75, 1.00, 1.50],
-  turn:      [0.25, 0.33, 0.50, 0.75, 1.00, 1.50],
-  river:     [0.25, 0.33, 0.50, 0.75, 1.00, 1.50],
-  flopCbet:  [0.25, 0.33, 0.50, 0.75, 1.00],
-  flopDonk:  [0.33, 0.50, 0.75],
-  turnProbe: [0.33, 0.50, 0.75, 1.00],
+  flop: [0.25, 0.33, 0.5, 0.75, 1.0, 1.5],
+  turn: [0.25, 0.33, 0.5, 0.75, 1.0, 1.5],
+  river: [0.25, 0.33, 0.5, 0.75, 1.0, 1.5],
+  flopCbet: [0.25, 0.33, 0.5, 0.75, 1.0],
+  flopDonk: [0.33, 0.5, 0.75],
+  turnProbe: [0.33, 0.5, 0.75, 1.0],
   raiseMultipliers: {
-    flop:  [2.5, 3.0],
-    turn:  [2.5, 3.0],
+    flop: [2.5, 3.0],
+    turn: [2.5, 3.0],
     river: [2.5, 3.0],
   },
 };
 
 const COACHING_ADVANCED: TreeConfig['advancedConfig'] = {
-  oop: { noDonkBet: false, allInThresholdEnabled: true, allInThresholdPct: 30, remainingBetAllIn: true, remainingBetPct: 25 },
-  ip:  { noDonkBet: false, allInThresholdEnabled: true, allInThresholdPct: 30, remainingBetAllIn: true, remainingBetPct: 25 },
+  oop: {
+    noDonkBet: false,
+    allInThresholdEnabled: true,
+    allInThresholdPct: 30,
+    remainingBetAllIn: true,
+    remainingBetPct: 25,
+  },
+  ip: {
+    noDonkBet: false,
+    allInThresholdEnabled: true,
+    allInThresholdPct: 30,
+    remainingBetAllIn: true,
+    remainingBetPct: 25,
+  },
 };
 
 function coachingHU(pot: number, stack: number): TreeConfig {
@@ -247,7 +259,7 @@ function coachingHU(pot: number, stack: number): TreeConfig {
     startingPot: pot,
     effectiveStack: stack,
     betSizes: COACHING_BET_SIZES,
-    raiseCapPerStreet: 1,  // check-raise allowed, no re-raise (23K nodes vs 71K at cap=2)
+    raiseCapPerStreet: 1, // check-raise allowed, no re-raise (23K nodes vs 71K at cap=2)
     numPlayers: 2,
     advancedConfig: COACHING_ADVANCED,
   };
@@ -265,20 +277,20 @@ function coaching3W(pot: number, stack: number): TreeConfig {
 }
 
 // ── HU SRP coaching (BTN opens 2.5bb, BB calls → pot=5) ──
-export const COACH_HU_SRP_30BB  = coachingHU(5, 27.5);
-export const COACH_HU_SRP_60BB  = coachingHU(5, 57.5);
+export const COACH_HU_SRP_30BB = coachingHU(5, 27.5);
+export const COACH_HU_SRP_60BB = coachingHU(5, 57.5);
 export const COACH_HU_SRP_100BB = coachingHU(5, 97.5);
 export const COACH_HU_SRP_200BB = coachingHU(5, 197.5);
 
 // ── HU 3BP coaching (open 2.5bb, BB 3-bets 8.75bb, caller calls → pot=17.5) ──
-export const COACH_HU_3BP_30BB  = coachingHU(17.5, 21.25);
-export const COACH_HU_3BP_60BB  = coachingHU(17.5, 51.25);
+export const COACH_HU_3BP_30BB = coachingHU(17.5, 21.25);
+export const COACH_HU_3BP_60BB = coachingHU(17.5, 51.25);
 export const COACH_HU_3BP_100BB = coachingHU(17.5, 91.25);
 export const COACH_HU_3BP_200BB = coachingHU(17.5, 191.25);
 
 // ── 3-way SRP coaching (BTN opens, SB+BB call → pot=7.5) ──
-export const COACH_MW3_SRP_30BB  = coaching3W(7.5, 27.5);
-export const COACH_MW3_SRP_60BB  = coaching3W(7.5, 57.5);
+export const COACH_MW3_SRP_30BB = coaching3W(7.5, 27.5);
+export const COACH_MW3_SRP_60BB = coaching3W(7.5, 57.5);
 export const COACH_MW3_SRP_100BB = coaching3W(7.5, 97.5);
 export const COACH_MW3_SRP_200BB = coaching3W(7.5, 197.5);
 
@@ -288,15 +300,15 @@ export const COACH_MW3_SRP_200BB = coaching3W(7.5, 197.5);
 
 // 3-way: BTN opens, SB calls, BB calls → pot = 2.5 × 3 = 7.5bb
 const MW3_SRP_BET_SIZES: BetSizeConfig = {
-  flop:  [0.50],  // 50% pot
-  turn:  [0.50],
-  river: [0.50],
+  flop: [0.5], // 50% pot
+  turn: [0.5],
+  river: [0.5],
 };
 
 // 3-way BTN+SB+BB SRP 100bb
 export const MW3_BTN_SB_BB_SRP_100BB_CONFIG: TreeConfig = {
-  startingPot: 7.5,        // 2.5 × 3
-  effectiveStack: 97.5,    // 100bb - 2.5bb
+  startingPot: 7.5, // 2.5 × 3
+  effectiveStack: 97.5, // 100bb - 2.5bb
   betSizes: MW3_SRP_BET_SIZES,
   raiseCapPerStreet: 0,
   numPlayers: 3,
@@ -306,7 +318,7 @@ export const MW3_BTN_SB_BB_SRP_100BB_CONFIG: TreeConfig = {
 // 3-way BTN+SB+BB SRP 50bb
 export const MW3_BTN_SB_BB_SRP_50BB_CONFIG: TreeConfig = {
   startingPot: 7.5,
-  effectiveStack: 47.5,    // 50bb - 2.5bb
+  effectiveStack: 47.5, // 50bb - 2.5bb
   betSizes: MW3_SRP_BET_SIZES,
   raiseCapPerStreet: 0,
   numPlayers: 3,
@@ -653,7 +665,7 @@ const CONFIG_REGISTRY: Record<TreeConfigName, ConfigMeta> = {
 /** Get all available pipeline config names (excludes legacy/standard) */
 export function getPipelineConfigNames(): TreeConfigName[] {
   return Object.keys(CONFIG_REGISTRY).filter(
-    k => !['v1_50bb', 'standard_50bb', 'standard_100bb'].includes(k)
+    (k) => !['v1_50bb', 'standard_50bb', 'standard_100bb'].includes(k),
   ) as TreeConfigName[];
 }
 
@@ -818,11 +830,7 @@ export function getMultiWayRangeConfigs(configName: TreeConfigName): MultiWayRan
  * Calculate actual bet amount from pot fraction, capped at effective stack.
  * Returns the bet amount (what the player puts into the pot).
  */
-export function calcBetAmount(
-  potSize: number,
-  fraction: number,
-  playerStack: number
-): number {
+export function calcBetAmount(potSize: number, fraction: number, playerStack: number): number {
   const bet = Math.round(potSize * fraction * 100) / 100;
   return Math.min(bet, playerStack);
 }

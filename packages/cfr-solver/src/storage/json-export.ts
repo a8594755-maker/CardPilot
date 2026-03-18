@@ -1,6 +1,6 @@
 // Export solved strategies to JSONL format
 
-import { writeFileSync, mkdirSync } from 'node:fs';
+import { openSync, writeSync, closeSync, mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import type { InfoSetStore } from '../engine/info-set-store.js';
 
@@ -11,8 +11,8 @@ export interface ExportConfig {
   iterations: number;
   bucketCount: number;
   elapsedMs: number;
-  stackLabel?: string;   // e.g. '50bb', '100bb'
-  configName?: string;   // e.g. 'standard_50bb'
+  stackLabel?: string; // e.g. '50bb', '100bb'
+  configName?: string; // e.g. 'standard_50bb'
   betSizes?: { flop: number[]; turn: number[]; river: number[] };
 }
 
@@ -20,43 +20,61 @@ export interface ExportConfig {
  * Export solved strategies to a JSONL file.
  * Each line is one info set: { key, actions, probs }
  */
-export function exportToJSONL(store: InfoSetStore, config: ExportConfig): {
+export function exportToJSONL(
+  store: InfoSetStore,
+  config: ExportConfig,
+): {
   infoSets: number;
   fileSize: number;
 } {
   mkdirSync(dirname(config.outputPath), { recursive: true });
 
-  const lines: string[] = [];
+  // Stream line-by-line to avoid buffering entire file in memory
+  // (100bb boards can produce millions of info sets; buffering all would OOM)
+  const fd = openSync(config.outputPath, 'w');
+  let infoSets = 0;
+  let fileSize = 0;
 
   for (const entry of store.entries()) {
-    // Parse actions from the key context
-    const probs = Array.from(entry.averageStrategy).map(p => Math.round(p * 1000) / 1000);
+    const probs = Array.from(entry.averageStrategy).map((p) => Math.round(p * 1000) / 1000);
     // Skip near-uniform strategies (they're uninteresting)
     const maxProb = Math.max(...probs);
     if (maxProb < 0.01) continue;
 
-    lines.push(JSON.stringify({
-      key: entry.key,
-      probs,
-    }));
+    const line = JSON.stringify({ key: entry.key, probs }) + '\n';
+    const buf = Buffer.from(line, 'utf-8');
+    writeSync(fd, buf);
+    fileSize += buf.byteLength;
+    infoSets++;
   }
 
-  const content = lines.join('\n') + '\n';
-  writeFileSync(config.outputPath, content, 'utf-8');
+  closeSync(fd);
 
-  return {
-    infoSets: lines.length,
-    fileSize: Buffer.byteLength(content),
-  };
+  return { infoSets, fileSize };
+}
+
+/**
+ * Export an ArrayStore (vectorized solver) to JSONL format.
+ * Stub — will be fully implemented when vectorized engine is ported.
+ */
+export function exportArrayStoreToJSONL(
+  _store: unknown,
+  _tree: unknown,
+  _combos: unknown,
+  _config: Record<string, unknown>,
+): { infoSets: number; fileSize: number } {
+  throw new Error('exportArrayStoreToJSONL: not yet implemented (vectorized engine WIP)');
 }
 
 /**
  * Export metadata about the solve.
  */
-export function exportMeta(config: ExportConfig & {
-  infoSets: number;
-  peakMemoryMB: number;
-}): void {
+export function exportMeta(
+  config: ExportConfig & {
+    infoSets: number;
+    peakMemoryMB: number;
+  },
+): void {
   const meta: Record<string, any> = {
     version: 'v2',
     keyFormat: 'v2',

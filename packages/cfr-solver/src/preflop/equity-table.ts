@@ -8,10 +8,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { indexToCard } from '../abstraction/card-index.js';
 import { evaluateBestHand, compareHands } from '@cardpilot/poker-evaluator';
 import { expandHandClassToCombos } from '../data-loaders/gto-wizard-json.js';
-import {
-  NUM_HAND_CLASSES,
-  allHandClasses,
-} from './preflop-types.js';
+import { NUM_HAND_CLASSES, allHandClasses } from './preflop-types.js';
 
 // ── EquityTable class ──
 
@@ -20,7 +17,9 @@ export class EquityTable {
 
   private constructor(data: Float32Array) {
     if (data.length !== NUM_HAND_CLASSES * NUM_HAND_CLASSES) {
-      throw new Error(`Invalid equity table size: ${data.length}, expected ${NUM_HAND_CLASSES * NUM_HAND_CLASSES}`);
+      throw new Error(
+        `Invalid equity table size: ${data.length}, expected ${NUM_HAND_CLASSES * NUM_HAND_CLASSES}`,
+      );
     }
     this.data = data;
   }
@@ -62,7 +61,11 @@ export class EquityTable {
     if (size !== NUM_HAND_CLASSES) {
       throw new Error(`Equity table size mismatch: ${size} vs ${NUM_HAND_CLASSES}`);
     }
-    const floats = new Float32Array(buf.buffer, buf.byteOffset + 8, NUM_HAND_CLASSES * NUM_HAND_CLASSES);
+    const floats = new Float32Array(
+      buf.buffer,
+      buf.byteOffset + 8,
+      NUM_HAND_CLASSES * NUM_HAND_CLASSES,
+    );
     return new EquityTable(Float32Array.from(floats));
   }
 

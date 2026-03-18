@@ -40,7 +40,7 @@ test('JSONL and binary agree on strategies', { skip: !hasData && 'No solved data
 
   // Load first JSONL file
   const jsonlContent = readFileSync(join(DATA_DIR, 'flop_000.jsonl'), 'utf-8');
-  const lines = jsonlContent.split('\n').filter(l => l.trim());
+  const lines = jsonlContent.split('\n').filter((l) => l.trim());
   assert.ok(lines.length > 1000, 'Should have many info sets');
 
   // Check 10 random entries match
@@ -70,27 +70,31 @@ test('All 200 flops have metadata', { skip: !hasData && 'No solved data' }, () =
   }
 });
 
-test('Strategy coverage: all streets and players represented', { skip: !hasData && 'No solved data' }, () => {
-  const reader = new BinaryStrategyReader(BIN_PATH);
+test(
+  'Strategy coverage: all streets and players represented',
+  { skip: !hasData && 'No solved data' },
+  () => {
+    const reader = new BinaryStrategyReader(BIN_PATH);
 
-  // Check strategies exist for typical nodes at each street/player.
-  // Player 0 (OOP) acts first on each street; Player 1 (IP) acts after OOP.
-  const testCases = [
-    { label: 'Flop OOP root',    key: (bid: number, b: number) => `F|${bid}|0||${b}` },
-    { label: 'Flop IP after check', key: (bid: number, b: number) => `F|${bid}|1|x|${b}` },
-    { label: 'Turn OOP root',    key: (bid: number, b: number) => `T|${bid}|0|xx/|${b}` },
-    { label: 'Turn IP after check', key: (bid: number, b: number) => `T|${bid}|1|xx/x|${b}` },
-    { label: 'River OOP root',   key: (bid: number, b: number) => `R|${bid}|0|xx/xx/|${b}` },
-    { label: 'River IP after check', key: (bid: number, b: number) => `R|${bid}|1|xx/xx/x|${b}` },
-  ];
+    // Check strategies exist for typical nodes at each street/player.
+    // Player 0 (OOP) acts first on each street; Player 1 (IP) acts after OOP.
+    const testCases = [
+      { label: 'Flop OOP root', key: (bid: number, b: number) => `F|${bid}|0||${b}` },
+      { label: 'Flop IP after check', key: (bid: number, b: number) => `F|${bid}|1|x|${b}` },
+      { label: 'Turn OOP root', key: (bid: number, b: number) => `T|${bid}|0|xx/|${b}` },
+      { label: 'Turn IP after check', key: (bid: number, b: number) => `T|${bid}|1|xx/x|${b}` },
+      { label: 'River OOP root', key: (bid: number, b: number) => `R|${bid}|0|xx/xx/|${b}` },
+      { label: 'River IP after check', key: (bid: number, b: number) => `R|${bid}|1|xx/xx/x|${b}` },
+    ];
 
-  for (const tc of testCases) {
-    let found = false;
-    for (let bid = 0; bid < 5 && !found; bid++) {
-      for (let b = 0; b < 50 && !found; b++) {
-        if (reader.lookup(tc.key(bid, b))) found = true;
+    for (const tc of testCases) {
+      let found = false;
+      for (let bid = 0; bid < 5 && !found; bid++) {
+        for (let b = 0; b < 50 && !found; b++) {
+          if (reader.lookup(tc.key(bid, b))) found = true;
+        }
       }
+      assert.ok(found, `Should have strategies for: ${tc.label}`);
     }
-    assert.ok(found, `Should have strategies for: ${tc.label}`);
-  }
-});
+  },
+);

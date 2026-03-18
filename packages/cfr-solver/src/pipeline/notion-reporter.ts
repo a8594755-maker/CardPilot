@@ -58,15 +58,17 @@ export class NotionReporter {
     try {
       await this.client.databases.retrieve({ database_id: this.databaseId });
       console.log(`[Notion] Connected to database`);
-    } catch (err) {
-      console.error(`[Notion] Failed to connect — reporting disabled. Check NOTION_API_TOKEN and NOTION_DATABASE_ID.`);
+    } catch {
+      console.error(
+        `[Notion] Failed to connect — reporting disabled. Check NOTION_API_TOKEN and NOTION_DATABASE_ID.`,
+      );
       return;
     }
 
     await this.report();
 
     this.timer = setInterval(() => {
-      this.report().catch(err => {
+      this.report().catch((err) => {
         console.error(`[Notion] Report failed:`, err);
       });
     }, this.intervalMs);
@@ -83,9 +85,8 @@ export class NotionReporter {
 
   async report(): Promise<void> {
     const status = this.getStatus();
-    const progressPct = status.total > 0
-      ? Math.round(status.completed / status.total * 1000) / 10
-      : 0;
+    const progressPct =
+      status.total > 0 ? Math.round((status.completed / status.total) * 1000) / 10 : 0;
 
     const statusLabel = this.getStatusLabel(status);
     const configNames = Object.keys(status.configs ?? {});
@@ -114,7 +115,7 @@ export class NotionReporter {
   private buildDetailsText(status: PipelineSnapshot): string {
     const configLines = Object.entries(status.configs ?? {}).map(([name, cs]) => {
       const t = cs.pending + cs.running + cs.completed + cs.failed;
-      const pct = t > 0 ? Math.round(cs.completed / t * 100) : 0;
+      const pct = t > 0 ? Math.round((cs.completed / t) * 100) : 0;
       return `${name}: ${cs.completed}/${t} (${pct}%)`;
     });
 
@@ -125,10 +126,10 @@ export class NotionReporter {
 
     return [
       `## Configs`,
-      ...configLines.map(l => `- ${l}`),
+      ...configLines.map((l) => `- ${l}`),
       '',
       `## Workers`,
-      ...workerLines.map(l => `- ${l}`),
+      ...workerLines.map((l) => `- ${l}`),
       '',
       `ETA: ${status.etaHuman}`,
       `Avg solve: ${status.avgSolveMs > 0 ? (status.avgSolveMs / 1000).toFixed(1) + 's' : 'N/A'}`,
@@ -137,41 +138,46 @@ export class NotionReporter {
   }
 
   private async createPage(
-    statusLabel: string, progressPct: number, status: PipelineSnapshot, configNames: string[],
+    statusLabel: string,
+    progressPct: number,
+    status: PipelineSnapshot,
+    configNames: string[],
   ): Promise<void> {
     const response = await this.client.pages.create({
       parent: { database_id: this.databaseId },
       properties: {
-        'Name': { title: [{ text: { content: this.runId } }] },
-        'Status': { select: { name: statusLabel } },
-        'Progress': { number: progressPct },
-        'Completed': { number: status.completed },
-        'Total': { number: status.total },
-        'Failed': { number: status.failed },
-        'Workers': { number: status.activeWorkers },
-        'ETA': { rich_text: [{ text: { content: status.etaHuman || 'N/A' } }] },
-        'Configs': { multi_select: configNames.map(n => ({ name: n })) },
-        'Updated': { date: { start: new Date().toISOString() } },
+        Name: { title: [{ text: { content: this.runId } }] },
+        Status: { select: { name: statusLabel } },
+        Progress: { number: progressPct },
+        Completed: { number: status.completed },
+        Total: { number: status.total },
+        Failed: { number: status.failed },
+        Workers: { number: status.activeWorkers },
+        ETA: { rich_text: [{ text: { content: status.etaHuman || 'N/A' } }] },
+        Configs: { multi_select: configNames.map((n) => ({ name: n })) },
+        Updated: { date: { start: new Date().toISOString() } },
       },
     });
     this.pageId = response.id;
   }
 
   private async updatePage(
-    statusLabel: string, progressPct: number, status: PipelineSnapshot,
+    statusLabel: string,
+    progressPct: number,
+    status: PipelineSnapshot,
   ): Promise<void> {
     if (!this.pageId) return;
     await this.client.pages.update({
       page_id: this.pageId,
       properties: {
-        'Status': { select: { name: statusLabel } },
-        'Progress': { number: progressPct },
-        'Completed': { number: status.completed },
-        'Total': { number: status.total },
-        'Failed': { number: status.failed },
-        'Workers': { number: status.activeWorkers },
-        'ETA': { rich_text: [{ text: { content: status.etaHuman || 'N/A' } }] },
-        'Updated': { date: { start: new Date().toISOString() } },
+        Status: { select: { name: statusLabel } },
+        Progress: { number: progressPct },
+        Completed: { number: status.completed },
+        Total: { number: status.total },
+        Failed: { number: status.failed },
+        Workers: { number: status.activeWorkers },
+        ETA: { rich_text: [{ text: { content: status.etaHuman || 'N/A' } }] },
+        Updated: { date: { start: new Date().toISOString() } },
       },
     });
   }
@@ -206,17 +212,20 @@ export class NotionReporter {
     for (const line of text.split('\n')) {
       if (line.startsWith('## ')) {
         blocks.push({
-          object: 'block', type: 'heading_2',
+          object: 'block',
+          type: 'heading_2',
           heading_2: { rich_text: [{ text: { content: line.slice(3) } }] },
         });
       } else if (line.startsWith('- ')) {
         blocks.push({
-          object: 'block', type: 'bulleted_list_item',
+          object: 'block',
+          type: 'bulleted_list_item',
           bulleted_list_item: { rich_text: [{ text: { content: line.slice(2) } }] },
         });
       } else if (line.trim()) {
         blocks.push({
-          object: 'block', type: 'paragraph',
+          object: 'block',
+          type: 'paragraph',
           paragraph: { rich_text: [{ text: { content: line } }] },
         });
       }
@@ -229,9 +238,7 @@ export class NotionReporter {
  * Try to start Notion reporting if env vars are configured.
  * Returns the reporter instance (or null if not configured).
  */
-export function tryStartNotionReporter(
-  getStatus: () => PipelineSnapshot,
-): NotionReporter | null {
+export function tryStartNotionReporter(getStatus: () => PipelineSnapshot): NotionReporter | null {
   const apiToken = process.env.NOTION_API_TOKEN;
   const databaseId = process.env.NOTION_DATABASE_ID;
 
@@ -241,7 +248,7 @@ export function tryStartNotionReporter(
   }
 
   const reporter = new NotionReporter({ apiToken, databaseId }, getStatus);
-  reporter.start().catch(err => {
+  reporter.start().catch((err) => {
     console.error(`[Notion] Failed to start reporter:`, err);
   });
   return reporter;

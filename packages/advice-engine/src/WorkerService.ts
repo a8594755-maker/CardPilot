@@ -1,8 +1,8 @@
-import { cpus } from "node:os";
-import { existsSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { Worker } from "node:worker_threads";
-import type { Card, EquityResult } from "@cardpilot/poker-evaluator";
+import { cpus } from 'node:os';
+import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { Worker } from 'node:worker_threads';
+import type { Card, EquityResult } from '@cardpilot/poker-evaluator';
 
 interface EquityTaskInput {
   heroHand: [Card, Card];
@@ -45,12 +45,15 @@ const DEFAULT_TASK_TIMEOUT_MS = 20_000;
 export class WorkerService {
   private readonly workers: WorkerState[] = [];
   private readonly queue: QueuedTask[] = [];
-  private readonly inFlight = new Map<number, {
-    resolve: (result: EquityResult) => void;
-    reject: (error: Error) => void;
-    timeout: ReturnType<typeof setTimeout>;
-    workerIndex: number;
-  }>();
+  private readonly inFlight = new Map<
+    number,
+    {
+      resolve: (result: EquityResult) => void;
+      reject: (error: Error) => void;
+      timeout: ReturnType<typeof setTimeout>;
+      workerIndex: number;
+    }
+  >();
 
   private readonly taskTimeoutMs: number;
   private readonly workerCount: number;
@@ -69,7 +72,7 @@ export class WorkerService {
 
   calculateEquity(payload: EquityTaskInput): Promise<EquityResult> {
     if (this.isShuttingDown) {
-      return Promise.reject(new Error("WorkerService is shutting down"));
+      return Promise.reject(new Error('WorkerService is shutting down'));
     }
 
     return new Promise<EquityResult>((resolve, reject) => {
@@ -84,12 +87,12 @@ export class WorkerService {
 
     while (this.queue.length > 0) {
       const task = this.queue.shift();
-      task?.reject(new Error("WorkerService destroyed before task execution"));
+      task?.reject(new Error('WorkerService destroyed before task execution'));
     }
 
     for (const [, inflight] of this.inFlight) {
       clearTimeout(inflight.timeout);
-      inflight.reject(new Error("WorkerService destroyed during task execution"));
+      inflight.reject(new Error('WorkerService destroyed during task execution'));
     }
     this.inFlight.clear();
 
@@ -135,15 +138,15 @@ export class WorkerService {
     const workerUrl = resolveWorkerUrl();
     const worker = new Worker(workerUrl, { execArgv: process.execArgv });
 
-    worker.on("message", (message: WorkerResultMessage) => {
+    worker.on('message', (message: WorkerResultMessage) => {
       this.completeTask(message, index);
     });
 
-    worker.on("error", (error) => {
+    worker.on('error', (error) => {
       this.handleWorkerFailure(index, toError(error));
     });
 
-    worker.on("exit", (code) => {
+    worker.on('exit', (code) => {
       if (!this.isShuttingDown && code !== 0) {
         this.handleWorkerFailure(index, new Error(`Worker exited with code ${code}`));
       }
@@ -168,7 +171,7 @@ export class WorkerService {
     if (message.error) {
       inflight.reject(new Error(message.error));
     } else if (!message.result) {
-      inflight.reject(new Error("Worker returned no equity result"));
+      inflight.reject(new Error('Worker returned no equity result'));
     } else {
       inflight.resolve(message.result);
     }
@@ -198,7 +201,7 @@ export class WorkerService {
     if (!state) return;
 
     const taskId = state.currentTaskId;
-    if (typeof taskId === "number") {
+    if (typeof taskId === 'number') {
       this.failTask(taskId, error);
     }
 
@@ -216,8 +219,8 @@ export class WorkerService {
 }
 
 function resolveWorkerUrl(): URL {
-  const jsUrl = new URL("./equity-worker.js", import.meta.url);
-  const tsUrl = new URL("./equity-worker.ts", import.meta.url);
+  const jsUrl = new URL('./equity-worker.js', import.meta.url);
+  const tsUrl = new URL('./equity-worker.ts', import.meta.url);
 
   if (existsSync(fileURLToPath(jsUrl))) {
     return jsUrl;
@@ -227,5 +230,5 @@ function resolveWorkerUrl(): URL {
 
 function toError(value: unknown): Error {
   if (value instanceof Error) return value;
-  return new Error(typeof value === "string" ? value : "Unknown worker error");
+  return new Error(typeof value === 'string' ? value : 'Unknown worker error');
 }

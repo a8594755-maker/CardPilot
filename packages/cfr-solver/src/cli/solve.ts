@@ -4,8 +4,11 @@
 
 import { buildTree, countNodes } from '../tree/tree-builder.js';
 import {
-  V1_TREE_CONFIG,
-  getTreeConfig, getSolveDefaults, getConfigLabel, getConfigOutputDir, getStackLabel,
+  getTreeConfig,
+  getSolveDefaults,
+  getConfigLabel,
+  getConfigOutputDir,
+  getStackLabel,
   type TreeConfigName,
 } from '../tree/tree-config.js';
 import { InfoSetStore } from '../engine/info-set-store.js';
@@ -72,35 +75,46 @@ const bucketCount = getArg('buckets', firstDefaults.buckets);
 
 // Hardcoded test flops for quick runs without selector
 const QUICK_FLOPS: string[][] = [
-  ['As', '7d', '2c'],  // Dry A-high rainbow
-  ['Kh', 'Qh', '8d'],  // Two-tone broadway
-  ['Ts', '9s', '8s'],  // Monotone connected
-  ['Jd', '7c', '3h'],  // Dry J-high rainbow
-  ['6h', '5d', '4c'],  // Connected low rainbow
-  ['Ah', 'Kd', 'Js'],  // AKJ rainbow
-  ['Qc', 'Jc', 'Tc'],  // Monotone broadway
-  ['2h', '2d', '7s'],  // Paired low
-  ['9h', '6d', '3c'],  // Disconnected rainbow
-  ['Kc', '8h', '4d'],  // K-high disconnected
+  ['As', '7d', '2c'], // Dry A-high rainbow
+  ['Kh', 'Qh', '8d'], // Two-tone broadway
+  ['Ts', '9s', '8s'], // Monotone connected
+  ['Jd', '7c', '3h'], // Dry J-high rainbow
+  ['6h', '5d', '4c'], // Connected low rainbow
+  ['Ah', 'Kd', 'Js'], // AKJ rainbow
+  ['Qc', 'Jc', 'Tc'], // Monotone broadway
+  ['2h', '2d', '7s'], // Paired low
+  ['9h', '6d', '3c'], // Disconnected rainbow
+  ['Kc', '8h', '4d'], // K-high disconnected
 ];
 
 async function main(): Promise<void> {
   console.log('=== CardPilot CFR Solver V2 ===');
   console.log(`Config: ${configNames.map(getConfigLabel).join(' + ')}`);
-  console.log(`Flops: ${useAllFlops ? 'ALL (~1911)' : numFlops} | Iterations: ${iterations} | Buckets: ${bucketCount}`);
-  console.log(`Mode: ${useAllFlops ? 'all isomorphic flops' : useSelector ? 'stratified flop selection' : 'preset flops'}`);
+  console.log(
+    `Flops: ${useAllFlops ? 'ALL (~1911)' : numFlops} | Iterations: ${iterations} | Buckets: ${bucketCount}`,
+  );
+  console.log(
+    `Mode: ${useAllFlops ? 'all isomorphic flops' : useSelector ? 'stratified flop selection' : 'preset flops'}`,
+  );
   console.log();
 
   // Load preflop ranges
   console.log('Loading preflop ranges...');
   const chartsPath = resolve(PROJECT_ROOT, 'data/preflop_charts.json');
   const { oopRange, ipRange } = loadHUSRPRanges(chartsPath);
-  console.log(`OOP range: ${oopRange.handClasses.size} hand classes, ${oopRange.combos.length} combos`);
-  console.log(`IP range: ${ipRange.handClasses.size} hand classes, ${ipRange.combos.length} combos`);
+  console.log(
+    `OOP range: ${oopRange.handClasses.size} hand classes, ${oopRange.combos.length} combos`,
+  );
+  console.log(
+    `IP range: ${ipRange.handClasses.size} hand classes, ${ipRange.combos.length} combos`,
+  );
   console.log();
 
   // Prepare flop list
-  interface FlopEntry { cards: [number, number, number]; label: string }
+  interface FlopEntry {
+    cards: [number, number, number];
+    label: string;
+  }
   const flops: FlopEntry[] = [];
 
   if (useAllFlops) {
@@ -189,7 +203,9 @@ async function main(): Promise<void> {
       const oopCombos = getWeightedRangeCombos(oopRange, deadCards);
       const ipCombos = getWeightedRangeCombos(ipRange, deadCards);
 
-      console.log(`[${i + 1}/${flops.length}] ${label}${skipped > 0 ? ` (${skipped} skipped)` : ''}`);
+      console.log(
+        `[${i + 1}/${flops.length}] ${label}${skipped > 0 ? ` (${skipped} skipped)` : ''}`,
+      );
 
       const store = new InfoSetStore();
       const startTime = Date.now();
@@ -205,7 +221,7 @@ async function main(): Promise<void> {
         bucketCount,
         onProgress: (iter, elapsed) => {
           process.stdout.write(
-            `\r  iter ${iter}/${iterations} | ${(elapsed / 1000).toFixed(1)}s | ${store.size} info sets`
+            `\r  iter ${iter}/${iterations} | ${(elapsed / 1000).toFixed(1)}s | ${store.size} info sets`,
           );
         },
       });
@@ -242,7 +258,9 @@ async function main(): Promise<void> {
 
       totalInfoSets += exportResult.infoSets;
       totalExportKB += exportResult.fileSize / 1024;
-      console.log(`  ${(elapsed / 1000).toFixed(1)}s | ${exportResult.infoSets} info sets | ${(exportResult.fileSize / 1024).toFixed(0)}KB`);
+      console.log(
+        `  ${(elapsed / 1000).toFixed(1)}s | ${exportResult.infoSets} info sets | ${(exportResult.fileSize / 1024).toFixed(0)}KB`,
+      );
     }
 
     const totalElapsed = Date.now() - totalStart;
@@ -257,7 +275,7 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('Error:', err);
   process.exit(1);
 });

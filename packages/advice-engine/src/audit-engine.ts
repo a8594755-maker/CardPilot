@@ -9,13 +9,7 @@
  *   const summary = await engine.auditHand({ ... });
  */
 
-import type {
-  HandAction,
-  PlayerActionType,
-  StrategyMix,
-  Street,
-  TableState,
-} from "@cardpilot/shared-types";
+import type { HandAction, PlayerActionType, StrategyMix, Street } from '@cardpilot/shared-types';
 import type {
   DecisionPoint,
   GtoAuditResult,
@@ -31,16 +25,12 @@ import type {
   SpotType,
   StackDepthCategory,
   LineTag,
-} from "@cardpilot/shared-types";
-import { v4 as uuidv4 } from "uuid";
-import { getPreflopAdvice, calculateDeviation } from "./index.js";
-import { getPostflopAdvice, type PostflopContext } from "./postflop-engine.js";
-import {
-  recognizeLines,
-  classifyActionDeviation,
-  classifySpotType,
-} from "./line-recognition.js";
-import type { Card } from "@cardpilot/poker-evaluator";
+} from '@cardpilot/shared-types';
+import { v4 as uuidv4 } from 'uuid';
+import { getPreflopAdvice, calculateDeviation } from './index.js';
+import { getPostflopAdvice, type PostflopContext } from './postflop-engine.js';
+import { recognizeLines, classifyActionDeviation, classifySpotType } from './line-recognition.js';
+import type { Card } from '@cardpilot/poker-evaluator';
 
 // ── Public API ──
 
@@ -88,7 +78,7 @@ export class AuditEngine {
     });
 
     const spotType = classifySpotType(lineResult);
-    const heroPosition = input.positions[input.heroSeat] ?? "BTN";
+    const heroPosition = input.positions[input.heroSeat] ?? 'BTN';
 
     // Extract hero decision points
     const decisionPoints = extractDecisionPoints({
@@ -111,9 +101,7 @@ export class AuditEngine {
 
     const totalLeakedBb = audits.reduce((sum, a) => sum + a.evDiffBb, 0);
     const totalLeakedChips = audits.reduce((sum, a) => sum + a.evDiffChips, 0);
-    const worstDeviation = audits.length > 0
-      ? Math.max(...audits.map((a) => a.deviationScore))
-      : 0;
+    const worstDeviation = audits.length > 0 ? Math.max(...audits.map((a) => a.deviationScore)) : 0;
 
     const summary: HandAuditSummary = {
       handId: input.handId,
@@ -138,25 +126,25 @@ export class AuditEngine {
   private async auditDecisionPoint(
     dp: DecisionPoint,
     input: AuditHandInput,
-    pfaSeat: number | null
+    pfaSeat: number | null,
   ): Promise<GtoAuditResult> {
     const now = Date.now();
     let gtoMix: StrategyMix;
-    let recommendedAction: "raise" | "call" | "fold";
+    let recommendedAction: 'raise' | 'call' | 'fold';
     let equity: number | undefined;
     let mdf: number | undefined;
     let alpha: number | undefined;
 
-    if (dp.street === "PREFLOP") {
+    if (dp.street === 'PREFLOP') {
       // Use preflop advice engine
       const heroPos = dp.heroPosition;
       const villainPos = findVillainPosition(input, dp);
       const isUnopened = !input.actions.some(
         (a) =>
-          a.street === "PREFLOP" &&
+          a.street === 'PREFLOP' &&
           a.at < actionTimestamp(input.actions, dp) &&
-          (a.type === "raise" || a.type === "all_in") &&
-          a.seat !== dp.heroSeat
+          (a.type === 'raise' || a.type === 'all_in') &&
+          a.seat !== dp.heroSeat,
       );
 
       const advice = getPreflopAdvice({
@@ -165,7 +153,7 @@ export class AuditEngine {
         seat: dp.heroSeat,
         heroPos,
         villainPos,
-        line: isUnopened ? "unopened" : "facing_open",
+        line: isUnopened ? 'unopened' : 'facing_open',
         heroHand: `${dp.heroCards[0][0]}${dp.heroCards[1][0]}${suitedness(dp.heroCards)}`,
         effectiveStackBb: dp.effectiveStackBb,
         bigBlind: input.bigBlind,
@@ -174,7 +162,7 @@ export class AuditEngine {
       });
 
       gtoMix = advice.mix;
-      recommendedAction = advice.recommended ?? "fold";
+      recommendedAction = advice.recommended ?? 'fold';
     } else {
       // Use postflop advice engine
       const heroIsPfa = pfaSeat === dp.heroSeat;
@@ -184,7 +172,7 @@ export class AuditEngine {
         tableId: input.tableId,
         handId: input.handId,
         seat: dp.heroSeat,
-        street: dp.street as "FLOP" | "TURN" | "RIVER",
+        street: dp.street as 'FLOP' | 'TURN' | 'RIVER',
         heroHand: dp.heroCards as [Card, Card],
         board: dp.board as Card[],
         heroPosition: dp.heroPosition,
@@ -193,17 +181,17 @@ export class AuditEngine {
         toCall: dp.toCall,
         effectiveStack: dp.effectiveStackBb * input.bigBlind,
         effectiveStackBb: dp.effectiveStackBb,
-        aggressor: heroIsPfa ? "hero" : "villain",
-        preflopAggressor: heroIsPfa ? "hero" : pfaSeat !== null ? "villain" : "none",
+        aggressor: heroIsPfa ? 'hero' : 'villain',
+        preflopAggressor: heroIsPfa ? 'hero' : pfaSeat !== null ? 'villain' : 'none',
         heroInPosition: isInPosition(dp.heroPosition, villainPos),
         numVillains: input.playerSeats.length - 1,
         actionHistory: input.actions,
-        potType: dp.spotType === "3BP" ? "3BP" : dp.spotType === "4BP" ? "4BP" : "SRP",
+        potType: dp.spotType === '3BP' ? '3BP' : dp.spotType === '4BP' ? '4BP' : 'SRP',
       };
 
-      const advice = await getPostflopAdvice(context, "fast");
+      const advice = await getPostflopAdvice(context, 'fast');
       gtoMix = advice.mix;
-      recommendedAction = advice.recommended ?? "fold";
+      recommendedAction = advice.recommended ?? 'fold';
       equity = advice.postflop?.alpha !== undefined ? 1 - (advice.postflop.alpha ?? 0) : undefined;
       mdf = advice.postflop?.mdf;
       alpha = advice.postflop?.alpha;
@@ -259,10 +247,10 @@ function extractDecisionPoints(params: {
     (a) =>
       a.seat === input.heroSeat &&
       isPlayerAction(a.type) &&
-      (a.street === "PREFLOP" ||
-        a.street === "FLOP" ||
-        a.street === "TURN" ||
-        a.street === "RIVER")
+      (a.street === 'PREFLOP' ||
+        a.street === 'FLOP' ||
+        a.street === 'TURN' ||
+        a.street === 'RIVER'),
   );
 
   for (let i = 0; i < heroActions.length; i++) {
@@ -270,9 +258,8 @@ function extractDecisionPoints(params: {
     const board = boardAtStreet(input.board, action.street);
     const pot = estimatePotAtAction(input.actions, action);
     const toCall = estimateToCallAtAction(input.actions, action);
-    const effectiveStackBb = input.bigBlind > 0
-      ? estimateEffectiveStack(input, action) / input.bigBlind
-      : 100;
+    const effectiveStackBb =
+      input.bigBlind > 0 ? estimateEffectiveStack(input, action) / input.bigBlind : 100;
 
     points.push({
       id: uuidv4(),
@@ -305,7 +292,7 @@ function extractDecisionPoints(params: {
 export function aggregateSessionLeaks(
   sessionId: string,
   heroUserId: string,
-  handSummaries: HandAuditSummary[]
+  handSummaries: HandAuditSummary[],
 ): SessionLeakSummary {
   const byStreet: Record<string, StreetLeakBucket> = {};
   const bySpotType: Record<SpotType, SpotLeakBucket> = {} as Record<SpotType, SpotLeakBucket>;
@@ -329,7 +316,12 @@ export function aggregateSessionLeaks(
       // By street
       const streetKey = audit.street;
       if (!byStreet[streetKey]) {
-        byStreet[streetKey] = { street: streetKey, leakedBb: 0, decisionCount: 0, avgDeviationScore: 0 };
+        byStreet[streetKey] = {
+          street: streetKey,
+          leakedBb: 0,
+          decisionCount: 0,
+          avgDeviationScore: 0,
+        };
       }
       byStreet[streetKey].leakedBb += audit.evDiffBb;
       byStreet[streetKey].decisionCount++;
@@ -409,13 +401,13 @@ export function aggregateSessionLeaks(
 // ── Helpers ──
 
 function isPlayerAction(type: string): boolean {
-  return ["fold", "check", "call", "raise", "all_in"].includes(type);
+  return ['fold', 'check', 'call', 'raise', 'all_in'].includes(type);
 }
 
 function boardAtStreet(fullBoard: string[], street: Street): string[] {
-  if (street === "PREFLOP") return [];
-  if (street === "FLOP") return fullBoard.slice(0, 3);
-  if (street === "TURN") return fullBoard.slice(0, 4);
+  if (street === 'PREFLOP') return [];
+  if (street === 'FLOP') return fullBoard.slice(0, 3);
+  if (street === 'TURN') return fullBoard.slice(0, 4);
   return fullBoard.slice(0, 5);
 }
 
@@ -437,7 +429,7 @@ function estimateToCallAtAction(actions: HandAction[], target: HandAction): numb
     if (a.at >= target.at) break;
     if (a.street !== target.street) continue;
 
-    if (a.type === "raise" || a.type === "all_in") {
+    if (a.type === 'raise' || a.type === 'all_in') {
       currentBet = Math.max(currentBet, a.amount);
     }
     if (a.seat === target.seat) {
@@ -448,38 +440,36 @@ function estimateToCallAtAction(actions: HandAction[], target: HandAction): numb
   return Math.max(0, currentBet - heroCommitted);
 }
 
-function estimateEffectiveStack(input: AuditHandInput, action: HandAction): number {
+function estimateEffectiveStack(input: AuditHandInput, _action: HandAction): number {
   // Rough estimate: assume starting stack = totalPot / playerCount * 2
   // In practice this should come from hand start stacks
   return input.totalPot * 3;
 }
 
 function classifyStack(bbStack: number): StackDepthCategory {
-  if (bbStack < 40) return "short";
-  if (bbStack <= 80) return "medium";
-  if (bbStack > 150) return "deep";
-  return "standard";
+  if (bbStack < 40) return 'short';
+  if (bbStack <= 80) return 'medium';
+  if (bbStack > 150) return 'deep';
+  return 'standard';
 }
 
 function findVillainPosition(input: AuditHandInput, dp: DecisionPoint): string {
   // Find the main villain (last aggressor or first non-hero seat)
   const otherSeats = input.playerSeats.filter((s) => s !== dp.heroSeat);
-  if (otherSeats.length === 0) return "BB";
+  if (otherSeats.length === 0) return 'BB';
 
   // Try to find the last aggressor before hero's action
   const priorActions = input.actions.filter(
     (a) =>
-      a.at < dp.timestamp &&
-      a.seat !== dp.heroSeat &&
-      (a.type === "raise" || a.type === "all_in")
+      a.at < dp.timestamp && a.seat !== dp.heroSeat && (a.type === 'raise' || a.type === 'all_in'),
   );
 
   if (priorActions.length > 0) {
     const lastAggressor = priorActions[priorActions.length - 1];
-    return input.positions[lastAggressor.seat] ?? "BB";
+    return input.positions[lastAggressor.seat] ?? 'BB';
   }
 
-  return input.positions[otherSeats[0]] ?? "BB";
+  return input.positions[otherSeats[0]] ?? 'BB';
 }
 
 function actionTimestamp(actions: HandAction[], dp: DecisionPoint): number {
@@ -487,11 +477,11 @@ function actionTimestamp(actions: HandAction[], dp: DecisionPoint): number {
 }
 
 function suitedness(cards: [string, string]): string {
-  if (cards[0].length < 2 || cards[1].length < 2) return "o";
-  return cards[0][1] === cards[1][1] ? "s" : "o";
+  if (cards[0].length < 2 || cards[1].length < 2) return 'o';
+  return cards[0][1] === cards[1][1] ? 's' : 'o';
 }
 
-const POSITION_ORDER = ["SB", "BB", "UTG", "MP", "HJ", "CO", "BTN"];
+const POSITION_ORDER = ['SB', 'BB', 'UTG', 'MP', 'HJ', 'CO', 'BTN'];
 
 function isInPosition(heroPos: string, villainPos: string): boolean {
   const heroIdx = POSITION_ORDER.indexOf(heroPos);
@@ -500,10 +490,10 @@ function isInPosition(heroPos: string, villainPos: string): boolean {
   return heroIdx > villainIdx;
 }
 
-function mapActionToTriple(action: PlayerActionType): "raise" | "call" | "fold" {
-  if (action === "raise" || action === "all_in") return "raise";
-  if (action === "call" || action === "check") return "call";
-  return "fold";
+function mapActionToTriple(action: PlayerActionType): 'raise' | 'call' | 'fold' {
+  if (action === 'raise' || action === 'all_in') return 'raise';
+  if (action === 'call' || action === 'check') return 'call';
+  return 'fold';
 }
 
 /**
@@ -519,7 +509,7 @@ function computeEvDiff(
   gtoMix: StrategyMix,
   actualAction: PlayerActionType,
   pot: number,
-  deviationScore: number
+  deviationScore: number,
 ): number {
   if (deviationScore < 0.01) return 0;
 
@@ -540,10 +530,9 @@ function buildTopLeaks(
   bySpotType: Record<SpotType, SpotLeakBucket>,
   byLineTag: Record<string, LineLeakBucket>,
   byDeviation: Record<ActionDeviationType, DeviationBucket>,
-  totalDecisions: number
+  totalDecisions: number,
 ): LeakCategory[] {
   const candidates: LeakCategory[] = [];
-  let rank = 0;
 
   // Add street leaks
   for (const bucket of Object.values(byStreet)) {
@@ -561,7 +550,7 @@ function buildTopLeaks(
 
   // Add deviation type leaks
   for (const bucket of Object.values(byDeviation)) {
-    if (bucket.leakedBb < -0.01 && bucket.deviationType !== "CORRECT") {
+    if (bucket.leakedBb < -0.01 && bucket.deviationType !== 'CORRECT') {
       candidates.push({
         rank: 0,
         label: formatDeviationType(bucket.deviationType),
@@ -595,7 +584,7 @@ function buildTopLeaks(
 function buildDrillSuggestions(topLeaks: LeakCategory[]): DrillSuggestion[] {
   return topLeaks.slice(0, 3).map((leak) => ({
     leakCategory: leak.label,
-    drillType: "replay" as const,
+    drillType: 'replay' as const,
     title: `Fix: ${leak.label}`,
     description: leak.description,
     linkParams: {
@@ -607,21 +596,19 @@ function buildDrillSuggestions(topLeaks: LeakCategory[]): DrillSuggestion[] {
 
 function formatDeviationType(type: ActionDeviationType): string {
   const labels: Record<ActionDeviationType, string> = {
-    OVERFOLD: "Over-folding",
-    UNDERFOLD: "Under-folding",
-    OVERBLUFF: "Over-bluffing",
-    UNDERBLUFF: "Under-bluffing",
-    OVERCALL: "Over-calling",
-    UNDERCALL: "Under-calling",
-    CORRECT: "Correct",
+    OVERFOLD: 'Over-folding',
+    UNDERFOLD: 'Under-folding',
+    OVERBLUFF: 'Over-bluffing',
+    UNDERBLUFF: 'Under-bluffing',
+    OVERCALL: 'Over-calling',
+    UNDERCALL: 'Under-calling',
+    CORRECT: 'Correct',
   };
   return labels[type] ?? type;
 }
 
 function formatLineTag(tag: string): string {
-  return tag
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return tag.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function round2(v: number): number {

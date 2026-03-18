@@ -59,12 +59,12 @@ export function loadHUSRPRanges(
   const path = chartsPath || resolve(process.cwd(), 'data/preflop_charts.json');
   const allEntries = loadGtoWizardRangeFile(path);
   const selectedEntries = options.format
-    ? allEntries.filter(entry => entry.format === options.format)
+    ? allEntries.filter((entry) => entry.format === options.format)
     : allEntries;
   const ipSpot = options.ipSpot ?? DEFAULT_IP_SPOT;
   const oopSpot = options.oopSpot ?? DEFAULT_OOP_SPOT;
-  const ipEntries = selectedEntries.filter(entry => entry.spot === ipSpot);
-  const oopEntries = selectedEntries.filter(entry => entry.spot === oopSpot);
+  const ipEntries = selectedEntries.filter((entry) => entry.spot === ipSpot);
+  const oopEntries = selectedEntries.filter((entry) => entry.spot === oopSpot);
 
   if (ipEntries.length === 0) {
     throw new Error(`No GTO Wizard entries found for IP spot: ${ipSpot}`);
@@ -124,7 +124,7 @@ export function getRangeCombos(
 
   // Deduplicate
   const seen = new Set<string>();
-  return result.filter(c => {
+  return result.filter((c) => {
     const key = `${c[0]},${c[1]}`;
     if (seen.has(key)) return false;
     seen.add(key);
@@ -198,7 +198,7 @@ export function loadMultiWayRanges(
       const estimatedSpot = cfg.spot.replace('estimated:', '') as EstimatedSpot;
       entries = generateEstimatedRange(estimatedSpot);
     } else {
-      entries = allEntries.filter(e => e.spot === cfg.spot);
+      entries = allEntries.filter((e) => e.spot === cfg.spot);
       if (entries.length === 0) {
         throw new Error(`No entries found for spot: ${cfg.spot}`);
       }

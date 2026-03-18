@@ -1,83 +1,155 @@
-// Preflop game tree builder for 6-max poker.
+// Generic preflop game tree builder.
 //
-// Builds the full sequential decision tree:
-//   UTG(0) → HJ(1) → CO(2) → BTN(3) → SB(4) → BB(5)
+// Seat indexing convention:
+// - Seats are ordered by preflop action order.
+// - Last two seats are SB and BB.
 //
-// Simplifications (GTO Wizard "Simple solutions" approach):
-//   1. After a 3-bet, remaining uninvolved players auto-fold
-//   2. Non-BB facing an open must 3bet or fold (no cold-calling)
-//   3. Raise cap: open → 3bet → 4bet → 5bet(allin)
-//   4. One sizing per action type
+// The builder supports:
+// - Variable player counts
+// - Variable raise cap (open/3bet/4bet/.../N-bet)
+// - Optional auto-fold simplification after 3-bets (legacy compatibility)
 
 import type {
+  Position,
   PreflopActionNode,
   PreflopTerminalNode,
   PreflopGameNode,
   PreflopAction,
   PreflopSolveConfig,
 } from './preflop-types.js';
-import { POSITION_6MAX, NUM_PLAYERS } from './preflop-types.js';
-import { compute3BetSize, compute4BetSize, computeInitialPot, isIPPostflop } from './preflop-config.js';
+import { defaultPositionsForPlayers } from './preflop-types.js';
+import {
+  compute3BetSize,
+  compute4BetSize,
+  computeInitialPot,
+  isIPPostflop,
+} from './preflop-config.js';
 
-// ── Build state ──
+const EPS = 1e-9;
 
 interface BuildState {
+  players: number;
+  positions: Position[];
   pot: number;
-  stacks: number[];           // remaining stack per seat [6]
-  investments: number[];      // total invested this hand [6]
-  activePlayers: boolean[];   // true = still in the hand [6]
-  needsToAct: boolean[];      // true = hasn't responded to current bet level [6]
-  nextToAct: number;          // seat index of next player to act
-  history: string;            // encoded action history for info-set key
-  raiseLevel: number;         // 0=unopened, 1=open, 2=3bet, 3=4bet, 4=5bet
-  lastRaiseTotal: number;     // total bet amount of last raise (in bb)
-  lastRaiserSeat: number;     // seat of last raiser (-1 if none)
+  stacks: number[];
+  investments: number[];
+  forcedInvestments: number[];
+  activePlayers: boolean[];
+  needsToAct: boolean[];
+  nextToAct: number;
+  history: string;
+  raiseLevel: number; // 0 = unopened, 1 = open, 2 = 3bet, ...
+  lastRaiseTotal: number; // total invested amount to call
+  lastRaiserSeat: number; // current aggressor seat, -1 when unopened
+  priorRaiserSeat: number; // previous aggressor seat, for legacy auto-fold rule
+  numCallersOfOpen: number;
 }
 
-// ── History encoding ──
-
-const POS_CHAR: Record<number, string> = {
-  0: 'U', 1: 'H', 2: 'C', 3: 'B', 4: 'S', 5: 'b',
+const LEGACY_POS_CHAR: Record<string, string> = {
+  UTG: 'U',
+  LJ: 'L',
+  HJ: 'H',
+  CO: 'C',
+  BTN: 'B',
+  SB: 'S',
+  BB: 'b',
 };
 
-function encodeAction(seat: number, action: PreflopAction): string {
-  const p = POS_CHAR[seat];
-  if (action === 'fold') return `${p}f`;
-  if (action === 'check') return `${p}x`;
-  if (action === 'call') return `${p}c`;
-  if (action === 'allin') return `${p}A`;
-  if (action.startsWith('open_')) return `${p}o`;
-  if (action.startsWith('3bet_')) return `${p}3`;
-  if (action.startsWith('4bet_')) return `${p}4`;
-  return `${p}?`;
+function seatToken(positions: Position[], seat: number): string {
+  const pos = positions[seat];
+  return LEGACY_POS_CHAR[pos] ?? `p${seat}`;
+}
+
+function raiseActionCode(action: PreflopAction): string {
+  if (action === 'fold') return 'f';
+  if (action === 'check') return 'x';
+  if (action === 'call') return 'c';
+  if (action === 'complete') return 'l';
+  if (action === 'allin') return 'A';
+  if (action.startsWith('open_')) return 'o';
+  if (action.startsWith('squeeze_')) return 'q';
+  if (action.startsWith('3bet_')) return '3';
+  if (action.startsWith('4bet_')) return '4';
+  const nbet = action.match(/^([0-9]+)bet_/);
+  if (nbet) {
+    return nbet[1].length === 1 ? nbet[1] : 'r';
+  }
+  return '?';
+}
+
+function encodeAction(positions: Position[], seat: number, action: PreflopAction): string {
+  return `${seatToken(positions, seat)}${raiseActionCode(action)}`;
+}
+
+function uniqueActions(actions: PreflopAction[]): PreflopAction[] {
+  const seen = new Set<PreflopAction>();
+  const out: PreflopAction[] = [];
+  for (const action of actions) {
+    if (!seen.has(action)) {
+      seen.add(action);
+      out.push(action);
+    }
+  }
+  return out;
+}
+
+function roundBet(value: number): number {
+  return Math.round(value * 100) / 100;
+}
+
+function getSbSeat(state: BuildState): number {
+  return state.players - 2;
+}
+
+function getMaxRaiseLevel(config: PreflopSolveConfig): number {
+  return Math.max(1, config.maxRaiseLevel ?? 4);
+}
+
+function getReRaiseMultiplier(config: PreflopSolveConfig): number {
+  return config.reRaiseMultiplier ?? config.fourBetMultiplier;
 }
 
 // ── Public API ──
 
 export function buildPreflopTree(config: PreflopSolveConfig): PreflopActionNode {
+  const players = Math.max(2, config.players);
+  const positionLabels =
+    config.positionLabels?.length === players
+      ? config.positionLabels
+      : defaultPositionsForPlayers(players);
   const initialPot = computeInitialPot(config);
+
+  const sbSeat = players - 2;
+  const bbSeat = players - 1;
 
   const stacks: number[] = [];
   const investments: number[] = [];
-  for (let i = 0; i < NUM_PLAYERS; i++) {
+  const forcedInvestments: number[] = [];
+  for (let i = 0; i < players; i++) {
     let invested = config.ante;
-    if (i === 4) invested += config.sbSize; // SB
-    if (i === 5) invested += config.bbSize; // BB
+    if (i === sbSeat) invested += config.sbSize;
+    if (i === bbSeat) invested += config.bbSize;
+    forcedInvestments.push(invested);
     stacks.push(config.stackSize - invested);
     investments.push(invested);
   }
 
   const state: BuildState = {
+    players,
+    positions: [...positionLabels],
     pot: initialPot,
     stacks,
     investments,
-    activePlayers: Array(NUM_PLAYERS).fill(true),
-    needsToAct: Array(NUM_PLAYERS).fill(true),
-    nextToAct: 0, // UTG
+    forcedInvestments,
+    activePlayers: Array(players).fill(true),
+    needsToAct: Array(players).fill(true),
+    nextToAct: 0,
     history: '',
     raiseLevel: 0,
-    lastRaiseTotal: config.bbSize, // BB is the "current bet" to start
+    lastRaiseTotal: config.bbSize,
     lastRaiserSeat: -1,
+    priorRaiserSeat: -1,
+    numCallersOfOpen: 0,
   };
 
   return buildNode(config, state) as PreflopActionNode;
@@ -86,144 +158,62 @@ export function buildPreflopTree(config: PreflopSolveConfig): PreflopActionNode 
 // ── Internal tree construction ──
 
 function buildNode(config: PreflopSolveConfig, state: BuildState): PreflopGameNode {
-  // Terminal: only one player remains
-  const activeSeat = getActiveSeatsList(state);
-  if (activeSeat.length <= 1) {
+  const activeSeats = getActiveSeatsList(state);
+  if (activeSeats.length <= 1) {
     return makeTerminal(state, false);
   }
 
-  // Terminal: no one needs to act → round is complete → see flop
-  if (!state.needsToAct.some((n, i) => n && state.activePlayers[i])) {
+  if (!state.needsToAct.some((needs, seat) => needs && state.activePlayers[seat])) {
     return makeTerminal(state, true);
   }
 
-  // Find the next seat that needs to act
   const seat = findNextToAct(state);
   if (seat === -1) {
-    // No one else needs to act → terminal
     return makeTerminal(state, true);
   }
 
   const actions = getLegalActions(config, state, seat);
-
   if (actions.length === 0) {
-    // No legal actions → skip this player (shouldn't happen normally)
-    const newState = cloneState(state);
-    newState.needsToAct[seat] = false;
-    return buildNode(config, newState);
+    const skipped = cloneState(state);
+    skipped.needsToAct[seat] = false;
+    skipped.nextToAct = (seat + 1) % skipped.players;
+    return buildNode(config, skipped);
   }
 
   const children = new Map<PreflopAction, PreflopGameNode>();
   const node: PreflopActionNode = {
     type: 'action',
     seat,
-    position: POSITION_6MAX[seat],
+    position: state.positions[seat],
     pot: state.pot,
     stacks: [...state.stacks],
     investments: [...state.investments],
     actions,
     children,
     historyKey: state.history,
-    activePlayers: new Set(getActiveSeatsList(state)),
+    activePlayers: new Set(activeSeats),
   };
 
   for (const action of actions) {
-    const child = applyAction(config, state, seat, action);
-    children.set(action, child);
+    children.set(action, applyAction(config, state, seat, action));
   }
 
   return node;
 }
 
 function findNextToAct(state: BuildState): number {
-  // Start from nextToAct and go clockwise
-  for (let i = 0; i < NUM_PLAYERS; i++) {
-    const seat = (state.nextToAct + i) % NUM_PLAYERS;
-    if (state.activePlayers[seat] && state.needsToAct[seat] && state.stacks[seat] > 0) {
+  for (let i = 0; i < state.players; i++) {
+    const seat = (state.nextToAct + i) % state.players;
+    if (state.activePlayers[seat] && state.needsToAct[seat] && state.stacks[seat] > EPS) {
       return seat;
     }
   }
   return -1;
 }
 
-function getLegalActions(config: PreflopSolveConfig, state: BuildState, seat: number): PreflopAction[] {
-  const stack = state.stacks[seat];
-  const invested = state.investments[seat];
-  const totalAvail = stack + invested;
-  const actions: PreflopAction[] = [];
-
-  if (stack <= 0) return []; // All-in, no actions
-
-  const currentBet = state.lastRaiseTotal;
-  const toCall = Math.max(0, currentBet - invested);
-
-  // ── Unopened pot (player owes money to continue) ──
-  if (state.raiseLevel === 0 && toCall > 0) {
-    actions.push('fold');
-
-    // Open raise
-    if (config.openSize <= totalAvail) {
-      actions.push(`open_${config.openSize}`);
-    } else if (stack > 0) {
-      // Can't afford full open → all-in
-      actions.push('allin');
-    }
-
-    return actions;
-  }
-
-  // ── Facing a bet/raise ──
-  if (toCall > 0) {
-    actions.push('fold');
-
-    // Call
-    if (toCall >= stack) {
-      // Calling puts us all-in
-      actions.push('allin');
-    } else {
-      // Non-BB facing an open must 3bet or fold (no cold-calling)
-      // BB (seat 5) can call opens; all positions can call 3bet+
-      const canCall = state.raiseLevel !== 1 || seat === 5;
-      if (canCall) {
-        actions.push('call');
-      }
-
-      // Re-raise (if under cap)
-      const raiseAction = getNextRaise(config, state, seat);
-      if (raiseAction) {
-        const raiseTotal = parseRaiseTotal(raiseAction);
-        if (raiseTotal > totalAvail) {
-          // Can't afford raise → offer all-in as raise
-          actions.push('allin');
-        } else {
-          actions.push(raiseAction);
-          // All-in as over-raise only at 4-bet+ level (where it's the 5-bet)
-          if (state.raiseLevel >= 3 && totalAvail > raiseTotal) {
-            actions.push('allin');
-          }
-        }
-      }
-    }
-
-    return actions;
-  }
-
-  // ── No bet to face (BB walk / check option) ──
-  actions.push('check');
-
-  // BB can raise
-  const raiseAction = getNextRaise(config, state, seat);
-  if (raiseAction) {
-    const raiseTotal = parseRaiseTotal(raiseAction);
-    if (raiseTotal > totalAvail) {
-      // Can't afford full raise → all-in
-      actions.push('allin');
-    } else {
-      actions.push(raiseAction);
-    }
-  }
-
-  return actions;
+function parseRaiseTotal(action: PreflopAction): number {
+  const match = action.match(/(?:open|3bet|4bet|squeeze|[0-9]+bet)_([\d.]+)/);
+  return match ? parseFloat(match[1]) : 0;
 }
 
 function getNextRaise(
@@ -231,36 +221,136 @@ function getNextRaise(
   state: BuildState,
   seat: number,
 ): PreflopAction | null {
-  if (state.raiseLevel >= 4) return null; // Cap reached (5bet = allin)
+  const maxRaiseLevel = getMaxRaiseLevel(config);
+  if (state.raiseLevel >= maxRaiseLevel) return null;
 
   const nextLevel = state.raiseLevel + 1;
+  const totalAvail = state.investments[seat] + state.stacks[seat];
 
   if (nextLevel === 1) {
-    // Open
-    return `open_${config.openSize}`;
+    const openSize = roundBet(Math.min(config.openSize, config.stackSize));
+    return openSize > state.lastRaiseTotal + EPS ? `open_${openSize}` : null;
   }
 
   if (nextLevel === 2) {
-    // 3-bet
     const openerSeat = state.lastRaiserSeat;
-    const isIP = openerSeat >= 0 ? isIPPostflop(seat, openerSeat) : false;
-    const size = compute3BetSize(config, isIP);
+    const isIP = openerSeat >= 0 ? isIPPostflop(seat, openerSeat, state.players) : false;
+    const size = roundBet(Math.min(compute3BetSize(config, isIP), config.stackSize));
+    if (size <= state.lastRaiseTotal + EPS) return null;
+    if (state.numCallersOfOpen > 0) {
+      return `squeeze_${size}`;
+    }
     return `3bet_${size}`;
   }
 
   if (nextLevel === 3) {
-    // 4-bet
-    const size = compute4BetSize(config, state.lastRaiseTotal);
+    const size = roundBet(
+      Math.min(compute4BetSize(config, state.lastRaiseTotal), config.stackSize),
+    );
+    if (size <= state.lastRaiseTotal + EPS) return null;
     return `4bet_${size}`;
   }
 
-  // 5bet = allin
-  return null; // Caller should use 'allin'
+  const mult = getReRaiseMultiplier(config);
+  const genericSize = roundBet(Math.min(state.lastRaiseTotal * mult, config.stackSize));
+  if (genericSize <= state.lastRaiseTotal + EPS) return null;
+  const nBet = nextLevel + 1;
+  const capped = Math.min(genericSize, totalAvail);
+  if (capped <= state.lastRaiseTotal + EPS) return null;
+  return `${nBet}bet_${roundBet(capped)}`;
 }
 
-function parseRaiseTotal(action: PreflopAction): number {
-  const match = action.match(/(?:open|3bet|4bet)_([\d.]+)/);
-  return match ? parseFloat(match[1]) : 0;
+function getLegalActions(
+  config: PreflopSolveConfig,
+  state: BuildState,
+  seat: number,
+): PreflopAction[] {
+  const stack = state.stacks[seat];
+  const invested = state.investments[seat];
+  const totalAvail = stack + invested;
+  if (stack <= EPS) return [];
+
+  const actions: PreflopAction[] = [];
+  const currentBet = state.lastRaiseTotal;
+  const toCall = Math.max(0, currentBet - invested);
+  const sbSeat = getSbSeat(state);
+
+  // Unopened, facing the blind amount.
+  if (state.raiseLevel === 0 && toCall > EPS) {
+    actions.push('fold');
+
+    if (seat === sbSeat && (config.allowSmallBlindComplete ?? true)) {
+      actions.push('complete');
+    }
+
+    const openAction = `open_${roundBet(Math.min(config.openSize, config.stackSize))}`;
+    const openTotal = parseRaiseTotal(openAction);
+    if (openTotal > 0 && openTotal <= totalAvail + EPS) {
+      actions.push(openAction);
+    } else {
+      actions.push('allin');
+    }
+
+    return uniqueActions(actions);
+  }
+
+  // Facing a bet.
+  if (toCall > EPS) {
+    actions.push('fold');
+
+    if (toCall >= stack - EPS) {
+      actions.push('allin');
+      return uniqueActions(actions);
+    }
+
+    actions.push('call');
+
+    const raiseAction = getNextRaise(config, state, seat);
+    if (raiseAction) {
+      const raiseTotal = parseRaiseTotal(raiseAction);
+      if (raiseTotal > totalAvail + EPS) {
+        actions.push('allin');
+      } else if (raiseTotal > currentBet + EPS) {
+        actions.push(raiseAction);
+        if (state.raiseLevel >= 3 && totalAvail > raiseTotal + EPS) {
+          actions.push('allin');
+        }
+      }
+    }
+
+    return uniqueActions(actions);
+  }
+
+  // No bet to face.
+  actions.push('check');
+  const raiseAction = getNextRaise(config, state, seat);
+  if (raiseAction) {
+    const raiseTotal = parseRaiseTotal(raiseAction);
+    if (raiseTotal > totalAvail + EPS) actions.push('allin');
+    else actions.push(raiseAction);
+  }
+
+  return uniqueActions(actions);
+}
+
+function registerRaise(
+  config: PreflopSolveConfig,
+  state: BuildState,
+  seat: number,
+  raiseTotal: number,
+): void {
+  const prevRaiser = state.lastRaiserSeat;
+  state.priorRaiserSeat = prevRaiser;
+  state.lastRaiserSeat = seat;
+  state.lastRaiseTotal = raiseTotal;
+  state.raiseLevel += 1;
+  state.numCallersOfOpen = 0;
+
+  resetNeedsToAct(state, seat);
+
+  if (state.raiseLevel >= 2 && (config.autoFoldUninvolvedAfterThreeBet ?? true)) {
+    autoFoldUninvolved(state, seat);
+  }
 }
 
 function applyAction(
@@ -270,85 +360,76 @@ function applyAction(
   action: PreflopAction,
 ): PreflopGameNode {
   const s = cloneState(state);
-  const newHistory = state.history + (state.history ? '-' : '') + encodeAction(seat, action);
-  s.history = newHistory;
+  s.history =
+    state.history + (state.history ? '-' : '') + encodeAction(state.positions, seat, action);
   s.needsToAct[seat] = false;
 
-  // ── Fold ──
   if (action === 'fold') {
     s.activePlayers[seat] = false;
-    s.nextToAct = (seat + 1) % NUM_PLAYERS;
+    s.needsToAct[seat] = false;
+    s.nextToAct = (seat + 1) % s.players;
     return buildNode(config, s);
   }
 
-  // ── Check ──
   if (action === 'check') {
-    s.nextToAct = (seat + 1) % NUM_PLAYERS;
+    s.nextToAct = (seat + 1) % s.players;
     return buildNode(config, s);
   }
 
-  // ── Call ──
+  if (action === 'complete') {
+    const toComplete = Math.max(0, s.lastRaiseTotal - s.investments[seat]);
+    const paid = Math.min(toComplete, s.stacks[seat]);
+    s.stacks[seat] -= paid;
+    s.investments[seat] += paid;
+    s.pot += paid;
+    s.nextToAct = (seat + 1) % s.players;
+    return buildNode(config, s);
+  }
+
   if (action === 'call') {
     const toCall = Math.max(0, s.lastRaiseTotal - s.investments[seat]);
-    const actual = Math.min(toCall, s.stacks[seat]);
-    s.stacks[seat] -= actual;
-    s.investments[seat] += actual;
-    s.pot += actual;
-
-    s.nextToAct = (seat + 1) % NUM_PLAYERS;
+    const paid = Math.min(toCall, s.stacks[seat]);
+    s.stacks[seat] -= paid;
+    s.investments[seat] += paid;
+    s.pot += paid;
+    if (s.raiseLevel === 1) {
+      s.numCallersOfOpen += 1;
+    }
+    s.nextToAct = (seat + 1) % s.players;
     return buildNode(config, s);
   }
 
-  // ── All-in ──
   if (action === 'allin') {
     const amount = s.stacks[seat];
     const newTotal = s.investments[seat] + amount;
-    s.pot += amount;
-    s.investments[seat] = newTotal;
     s.stacks[seat] = 0;
+    s.investments[seat] = newTotal;
+    s.pot += amount;
 
-    // Is this a raise?
-    if (newTotal > s.lastRaiseTotal) {
-      const prevRaiser = s.lastRaiserSeat;
-      s.lastRaiserSeat = seat;
-      s.lastRaiseTotal = newTotal;
-      s.raiseLevel = Math.min(s.raiseLevel + 1, 4);
-
-      // Everyone active needs to respond (except us)
-      resetNeedsToAct(s, seat);
-
-      // After 3bet+, uninvolved players auto-fold
-      if (s.raiseLevel >= 2) {
-        autoFoldUninvolved(s, seat, prevRaiser);
-      }
+    if (newTotal > s.lastRaiseTotal + EPS) {
+      registerRaise(config, s, seat, roundBet(newTotal));
+    } else if (s.raiseLevel === 1) {
+      s.numCallersOfOpen += 1;
     }
 
-    s.nextToAct = (seat + 1) % NUM_PLAYERS;
+    s.nextToAct = (seat + 1) % s.players;
     return buildNode(config, s);
   }
 
-  // ── Sized raises (open_X, 3bet_X, 4bet_X) ──
   const raiseTotal = parseRaiseTotal(action);
   if (raiseTotal > 0) {
-    const cost = raiseTotal - s.investments[seat];
-    const actual = Math.min(cost, s.stacks[seat]);
-    s.stacks[seat] -= actual;
-    s.investments[seat] += actual;
-    s.pot += actual;
-    const prevRaiser = s.lastRaiserSeat;
-    s.lastRaiserSeat = seat;
-    s.lastRaiseTotal = raiseTotal;
-    s.raiseLevel++;
+    const toPay = Math.max(0, raiseTotal - s.investments[seat]);
+    const paid = Math.min(toPay, s.stacks[seat]);
+    const newTotal = roundBet(s.investments[seat] + paid);
+    s.stacks[seat] -= paid;
+    s.investments[seat] = newTotal;
+    s.pot += paid;
 
-    // Everyone active needs to respond (except us)
-    resetNeedsToAct(s, seat);
-
-    // After 3bet+, uninvolved players auto-fold
-    if (s.raiseLevel >= 2) {
-      autoFoldUninvolved(s, seat, prevRaiser);
+    if (newTotal > s.lastRaiseTotal + EPS) {
+      registerRaise(config, s, seat, newTotal);
     }
 
-    s.nextToAct = (seat + 1) % NUM_PLAYERS;
+    s.nextToAct = (seat + 1) % s.players;
     return buildNode(config, s);
   }
 
@@ -356,40 +437,41 @@ function applyAction(
 }
 
 /**
- * After a raise, all active players (except the raiser) need to act again.
+ * After a raise, every active player except the raiser must respond again.
  */
 function resetNeedsToAct(state: BuildState, raiserSeat: number): void {
-  for (let i = 0; i < NUM_PLAYERS; i++) {
-    if (i === raiserSeat) {
-      state.needsToAct[i] = false; // Raiser doesn't need to act again
-    } else if (state.activePlayers[i] && state.stacks[i] > 0) {
-      state.needsToAct[i] = true;
+  for (let seat = 0; seat < state.players; seat++) {
+    if (seat === raiserSeat) {
+      state.needsToAct[seat] = false;
+      continue;
     }
+    state.needsToAct[seat] = state.activePlayers[seat] && state.stacks[seat] > EPS;
   }
 }
 
 /**
- * After a 3bet+, auto-fold all uninvolved players.
- * Keep only the current raiser and the previous raiser.
- * With no cold-calling allowed, no other players have voluntary investment.
+ * Legacy simplification: auto-fold players who have not invested voluntarily.
+ * This keeps old tree sizes tractable when desired.
  */
-function autoFoldUninvolved(state: BuildState, currentRaiserSeat: number, prevRaiserSeat: number): void {
-  for (let i = 0; i < NUM_PLAYERS; i++) {
-    if (!state.activePlayers[i]) continue;
-    if (i === currentRaiserSeat) continue;
-    if (i === prevRaiserSeat) continue;
+function autoFoldUninvolved(state: BuildState, currentRaiserSeat: number): void {
+  const previousRaiserSeat = state.priorRaiserSeat;
 
-    state.activePlayers[i] = false;
-    state.needsToAct[i] = false;
+  for (let seat = 0; seat < state.players; seat++) {
+    if (!state.activePlayers[seat]) continue;
+    if (seat === currentRaiserSeat || seat === previousRaiserSeat) continue;
+
+    const voluntary = state.investments[seat] - state.forcedInvestments[seat];
+    if (voluntary <= EPS) {
+      state.activePlayers[seat] = false;
+      state.needsToAct[seat] = false;
+    }
   }
 }
 
-// ── Utilities ──
-
 function getActiveSeatsList(state: BuildState): number[] {
   const seats: number[] = [];
-  for (let i = 0; i < NUM_PLAYERS; i++) {
-    if (state.activePlayers[i]) seats.push(i);
+  for (let seat = 0; seat < state.players; seat++) {
+    if (state.activePlayers[seat]) seats.push(seat);
   }
   return seats;
 }
@@ -406,9 +488,12 @@ function makeTerminal(state: BuildState, showdown: boolean): PreflopTerminalNode
 
 function cloneState(state: BuildState): BuildState {
   return {
+    players: state.players,
+    positions: [...state.positions],
     pot: state.pot,
     stacks: [...state.stacks],
     investments: [...state.investments],
+    forcedInvestments: [...state.forcedInvestments],
     activePlayers: [...state.activePlayers],
     needsToAct: [...state.needsToAct],
     nextToAct: state.nextToAct,
@@ -416,6 +501,8 @@ function cloneState(state: BuildState): BuildState {
     raiseLevel: state.raiseLevel,
     lastRaiseTotal: state.lastRaiseTotal,
     lastRaiserSeat: state.lastRaiserSeat,
+    priorRaiserSeat: state.priorRaiserSeat,
+    numCallersOfOpen: state.numCallersOfOpen,
   };
 }
 
@@ -446,7 +533,7 @@ export function collectInfoSetKeys(node: PreflopGameNode, keys = new Set<string>
 }
 
 /**
- * Print the tree structure for debugging (limited depth).
+ * Print tree structure for debugging.
  */
 export function printTree(node: PreflopGameNode, indent = '', maxDepth = 6): void {
   if (maxDepth <= 0) {
@@ -455,12 +542,16 @@ export function printTree(node: PreflopGameNode, indent = '', maxDepth = 6): voi
   }
   if (node.type === 'terminal') {
     const players = node.activePlayers.join(',');
-    console.log(`${indent}[TERMINAL] pot=${node.pot.toFixed(1)} showdown=${node.showdown} players=[${players}]`);
+    console.log(
+      `${indent}[TERMINAL] pot=${node.pot.toFixed(1)} showdown=${node.showdown} players=[${players}]`,
+    );
     return;
   }
-  console.log(`${indent}[${node.position}] seat=${node.seat} pot=${node.pot.toFixed(1)} actions=[${node.actions.join(',')}] history="${node.historyKey}"`);
+  console.log(
+    `${indent}[${node.position}] seat=${node.seat} pot=${node.pot.toFixed(1)} actions=[${node.actions.join(',')}] history="${node.historyKey}"`,
+  );
   for (const [action, child] of node.children) {
-    console.log(`${indent}  → ${action}:`);
+    console.log(`${indent}  -> ${action}:`);
     printTree(child, indent + '    ', maxDepth - 1);
   }
 }

@@ -2,7 +2,7 @@
 // Loads JSONL files from disk and provides fast queries by info-set key.
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
-import { resolve, join } from 'node:path';
+import { join } from 'node:path';
 import { indexToCard, cardToIndex, indexToRank } from '../abstraction/card-index.js';
 import { evaluateBestHand } from '@cardpilot/poker-evaluator';
 
@@ -46,7 +46,9 @@ export class LookupService {
       throw new Error(`CFR output directory not found: ${dir}`);
     }
 
-    const files = readdirSync(dir).filter(f => f.endsWith('.jsonl')).sort();
+    const files = readdirSync(dir)
+      .filter((f) => f.endsWith('.jsonl'))
+      .sort();
     let totalEntries = 0;
 
     for (const file of files) {
@@ -98,12 +100,7 @@ export class LookupService {
    * @param player - 0 = OOP, 1 = IP
    * @param historyKey - Encoded action history (e.g., "xbc" for check, bet, call)
    */
-  query(
-    hand: [string, string],
-    board: string[],
-    player: 0 | 1,
-    historyKey: string,
-  ): QueryResult {
+  query(hand: [string, string], board: string[], player: 0 | 1, historyKey: string): QueryResult {
     if (!this.loaded) {
       return { strategy: null, source: 'none', boardId: -1, flopLabel: '' };
     }
@@ -113,9 +110,9 @@ export class LookupService {
 
     // Find exact board match (order-independent)
     const flopSet = new Set(flopIndices);
-    const exactMatch = this.flopMetas.find(m => {
+    const exactMatch = this.flopMetas.find((m) => {
       const metaSet = new Set(m.flopCards);
-      return flopSet.size === metaSet.size && [...flopSet].every(c => metaSet.has(c));
+      return flopSet.size === metaSet.size && [...flopSet].every((c) => metaSet.has(c));
     });
 
     // Determine street from history
@@ -123,7 +120,13 @@ export class LookupService {
     const estimatedBuckets = this.computeBucketV2(hand, board, player);
 
     if (exactMatch) {
-      const result = this.findBestBucketV2(street, exactMatch.boardId, player, historyKey, estimatedBuckets);
+      const result = this.findBestBucketV2(
+        street,
+        exactMatch.boardId,
+        player,
+        historyKey,
+        estimatedBuckets,
+      );
       if (result) {
         return {
           strategy: result,
@@ -137,7 +140,13 @@ export class LookupService {
     // Try nearest flop match
     const nearest = this.findNearestFlop(flopIndices);
     if (nearest) {
-      const result = this.findBestBucketV2(street, nearest.boardId, player, historyKey, estimatedBuckets);
+      const result = this.findBestBucketV2(
+        street,
+        nearest.boardId,
+        player,
+        historyKey,
+        estimatedBuckets,
+      );
       if (result) {
         return {
           strategy: result,
@@ -190,9 +199,12 @@ export class LookupService {
 
     // For V2, search nearby primary bucket (the last bucket component)
     const searchRadius = 5;
-    const primaryBucket = street === 'R' ? estimatedBuckets.river
-      : street === 'T' ? estimatedBuckets.turn
-      : estimatedBuckets.flop;
+    const primaryBucket =
+      street === 'R'
+        ? estimatedBuckets.river
+        : street === 'T'
+          ? estimatedBuckets.turn
+          : estimatedBuckets.flop;
 
     for (let delta = 1; delta <= searchRadius; delta++) {
       for (const d of [delta, -delta]) {
@@ -240,12 +252,8 @@ export class LookupService {
     };
 
     const flopBucket = toBucket([...hand, ...board.slice(0, 3)]);
-    const turnBucket = board.length >= 4
-      ? toBucket([...hand, ...board.slice(0, 4)])
-      : flopBucket;
-    const riverBucket = board.length >= 5
-      ? toBucket([...hand, ...board])
-      : turnBucket;
+    const turnBucket = board.length >= 4 ? toBucket([...hand, ...board.slice(0, 4)]) : flopBucket;
+    const riverBucket = board.length >= 5 ? toBucket([...hand, ...board]) : turnBucket;
 
     return { flop: flopBucket, turn: turnBucket, river: riverBucket };
   }
@@ -287,19 +295,19 @@ interface FlopFeatures {
   highRank: number;
   midRank: number;
   lowRank: number;
-  suitCount: number;   // 1=monotone, 2=two-tone, 3=rainbow
+  suitCount: number; // 1=monotone, 2=two-tone, 3=rainbow
   maxGap: number;
   totalSpread: number;
-  paired: number;       // 0 or 1
+  paired: number; // 0 or 1
 }
 
 function flopFeatures(cards: [number, number, number]): FlopFeatures {
   const ranks = cards.map(indexToRank).sort((a, b) => b - a);
-  const suits = cards.map(c => c & 3);
+  const suits = cards.map((c) => c & 3);
   const suitCount = new Set(suits).size;
   const maxGap = Math.max(ranks[0] - ranks[1], ranks[1] - ranks[2]);
   const totalSpread = ranks[0] - ranks[2];
-  const paired = (ranks[0] === ranks[1] || ranks[1] === ranks[2]) ? 1 : 0;
+  const paired = ranks[0] === ranks[1] || ranks[1] === ranks[2] ? 1 : 0;
 
   return {
     highRank: ranks[0],

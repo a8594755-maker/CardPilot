@@ -1,4 +1,4 @@
-import type { MathBreakdown } from "@cardpilot/shared-types";
+import type { MathBreakdown } from '@cardpilot/shared-types';
 
 const EPSILON = 1e-9;
 
@@ -36,7 +36,7 @@ export class MathEngine {
       potSize: round4(safePot),
       potAfterCall: round4(potAfterCall),
       potOdds: round4(potOdds),
-      equityRequired: round4(potOdds)
+      equityRequired: round4(potOdds),
     };
   }
 
@@ -49,15 +49,11 @@ export class MathEngine {
     return {
       potBeforeBet: round4(safePot),
       betSize: round4(safeBet),
-      mdf: round4(clamp01(mdf))
+      mdf: round4(clamp01(mdf)),
     };
   }
 
-  static calculateSPR(
-    effectiveStack: number,
-    potSize: number,
-    commitmentThreshold = 3
-  ): SprResult {
+  static calculateSPR(effectiveStack: number, potSize: number, commitmentThreshold = 3): SprResult {
     const safeStack = Math.max(0, effectiveStack);
     const safePot = Math.max(EPSILON, potSize);
     const spr = safeStack / safePot;
@@ -67,7 +63,7 @@ export class MathEngine {
       potSize: round4(Math.max(0, potSize)),
       spr: round4(spr),
       commitmentThreshold,
-      isLowSpr: spr < commitmentThreshold
+      isLowSpr: spr < commitmentThreshold,
     };
   }
 
@@ -79,13 +75,12 @@ export class MathEngine {
   }): MathBreakdown {
     const potOdds = this.calculatePotOdds(params.potSize, params.toCall);
     const potBeforeBet = Math.max(0, params.potSize - params.toCall);
-    const mdfResult = params.toCall > 0
-      ? this.calculateMDF(potBeforeBet, params.toCall)
-      : undefined;
+    const mdfResult =
+      params.toCall > 0 ? this.calculateMDF(potBeforeBet, params.toCall) : undefined;
     const spr = this.calculateSPR(
       params.effectiveStack,
       params.potSize,
-      params.commitmentThreshold ?? 3
+      params.commitmentThreshold ?? 3,
     );
 
     return {
@@ -97,7 +92,7 @@ export class MathEngine {
       spr: spr.spr,
       effectiveStack: spr.effectiveStack,
       commitmentThreshold: spr.commitmentThreshold,
-      isLowSpr: spr.isLowSpr
+      isLowSpr: spr.isLowSpr,
     };
   }
 }

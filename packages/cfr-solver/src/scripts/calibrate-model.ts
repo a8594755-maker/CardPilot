@@ -12,18 +12,9 @@
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
-import {
-  loadHUSRPRanges,
-  getWeightedRangeCombos,
-} from '../integration/preflop-ranges.js';
-import {
-  computeEquityBuckets,
-  comboKey,
-} from '../engine/cfr-engine.js';
-import {
-  getTreeConfig,
-  type TreeConfigName,
-} from '../tree/tree-config.js';
+import { loadHUSRPRanges, getWeightedRangeCombos } from '../integration/preflop-ranges.js';
+import { computeEquityBuckets, comboKey } from '../engine/cfr-engine.js';
+import { getTreeConfig, type TreeConfigName } from '../tree/tree-config.js';
 
 import {
   parseInfoSetKey,
@@ -32,8 +23,6 @@ import {
   mapCfrProbsToV2Labels,
   encodeCfrFeatures,
 } from './cfr-to-training-data.js';
-
-import type { Street, TreeConfig } from '../types.js';
 
 // ── Types ──
 
@@ -44,16 +33,22 @@ export interface CalibrationResult {
     totalInfoSets: number;
     totalPredictions: number;
   };
-  perStreet: Record<string, {
-    klDivergence: number;
-    actionAccuracy: number;
-    count: number;
-  }>;
-  perBucketTier: Record<string, {
-    klDivergence: number;
-    actionAccuracy: number;
-    count: number;
-  }>;
+  perStreet: Record<
+    string,
+    {
+      klDivergence: number;
+      actionAccuracy: number;
+      count: number;
+    }
+  >;
+  perBucketTier: Record<
+    string,
+    {
+      klDivergence: number;
+      actionAccuracy: number;
+      count: number;
+    }
+  >;
   worstInfoSets: Array<{
     key: string;
     cfrProbs: number[];
@@ -75,7 +70,9 @@ function loadModel(path: string): ModelWeights {
   return JSON.parse(readFileSync(path, 'utf-8'));
 }
 
-function relu(x: number): number { return x > 0 ? x : 0; }
+function relu(x: number): number {
+  return x > 0 ? x : 0;
+}
 
 function predictAction(model: ModelWeights, features: number[]): [number, number, number] {
   const isV2 = !!(model.actionHead && model.sizingHead);
@@ -181,7 +178,12 @@ export function calibrate(
   let totalPredictions = 0;
   const streetStats: Record<string, { kl: number; correct: number; count: number }> = {};
   const tierStats: Record<string, { kl: number; correct: number; count: number }> = {};
-  const worstInfoSets: Array<{ key: string; cfrProbs: number[]; modelProbs: [number, number, number]; kl: number }> = [];
+  const worstInfoSets: Array<{
+    key: string;
+    cfrProbs: number[];
+    modelProbs: [number, number, number];
+    kl: number;
+  }> = [];
 
   for (const metaFile of flops) {
     const metaPath = join(cfrDir, metaFile);
@@ -190,7 +192,6 @@ export function calibrate(
 
     const meta = JSON.parse(readFileSync(metaPath, 'utf-8'));
     const flopCards = meta.flopCards as [number, number, number];
-    const boardId = meta.boardId as number;
     const bucketCount = meta.bucketCount as number;
 
     // Build flop bucket mapping
@@ -227,7 +228,9 @@ export function calibrate(
       let entry: { key: string; probs: number[] };
       try {
         entry = JSON.parse(trimmed);
-      } catch { continue; }
+      } catch {
+        continue;
+      }
 
       // Only calibrate FLOP entries for now (turn/river need runout sampling)
       const parsed = parseInfoSetKey(entry.key);
@@ -236,7 +239,12 @@ export function calibrate(
       const actions = inferActionsFromHistory(parsed.historyKey, treeConfig);
       if (actions.length !== entry.probs.length) continue;
 
-      const { l: cfrLabel } = mapCfrProbsToV2Labels(actions, entry.probs, treeConfig, parsed.street);
+      const { l: cfrLabel } = mapCfrProbsToV2Labels(
+        actions,
+        entry.probs,
+        treeConfig,
+        parsed.street,
+      );
 
       // Get a representative combo for this bucket
       const bucket = parseInt(parsed.bucketStr, 10);
@@ -247,7 +255,13 @@ export function calibrate(
       // Use first combo as representative
       const combo = combos[0];
       const gameState = replayHistory(parsed.historyKey, treeConfig);
-      const features = encodeCfrFeatures(combo, [...flopCards], gameState, parsed.player, parsed.historyKey);
+      const features = encodeCfrFeatures(
+        combo,
+        [...flopCards],
+        gameState,
+        parsed.player,
+        parsed.historyKey,
+      );
 
       // Predict with model
       const modelProbs = predictAction(model, features);
@@ -270,7 +284,8 @@ export function calibrate(
       if (correct) streetStats[streetKey].correct++;
 
       // Per-bucket tier
-      const tier = bucket < bucketCount / 3 ? 'low' : bucket < (2 * bucketCount) / 3 ? 'mid' : 'high';
+      const tier =
+        bucket < bucketCount / 3 ? 'low' : bucket < (2 * bucketCount) / 3 ? 'mid' : 'high';
       if (!tierStats[tier]) tierStats[tier] = { kl: 0, correct: 0, count: 0 };
       tierStats[tier].kl += kl;
       tierStats[tier].count++;
@@ -329,20 +344,24 @@ export function printCalibrationReport(result: CalibrationResult): void {
 
   console.log(`\n  Per Street:`);
   for (const [street, stats] of Object.entries(result.perStreet)) {
-    console.log(`    ${street.padEnd(6)} KL=${stats.klDivergence.toFixed(4)}  Acc=${(stats.actionAccuracy * 100).toFixed(1)}%  (${stats.count} samples)`);
+    console.log(
+      `    ${street.padEnd(6)} KL=${stats.klDivergence.toFixed(4)}  Acc=${(stats.actionAccuracy * 100).toFixed(1)}%  (${stats.count} samples)`,
+    );
   }
 
   console.log(`\n  Per Bucket Tier:`);
   for (const [tier, stats] of Object.entries(result.perBucketTier)) {
-    console.log(`    ${tier.padEnd(6)} KL=${stats.klDivergence.toFixed(4)}  Acc=${(stats.actionAccuracy * 100).toFixed(1)}%  (${stats.count} samples)`);
+    console.log(
+      `    ${tier.padEnd(6)} KL=${stats.klDivergence.toFixed(4)}  Acc=${(stats.actionAccuracy * 100).toFixed(1)}%  (${stats.count} samples)`,
+    );
   }
 
   if (result.worstInfoSets.length > 0) {
     console.log(`\n  Worst 5 Info Sets (highest KL):`);
     for (const w of result.worstInfoSets.slice(0, 5)) {
       console.log(`    ${w.key}  KL=${w.kl.toFixed(4)}`);
-      console.log(`      CFR:   [${w.cfrProbs.map(p => p.toFixed(3)).join(', ')}]`);
-      console.log(`      Model: [${w.modelProbs.map(p => p.toFixed(3)).join(', ')}]`);
+      console.log(`      CFR:   [${w.cfrProbs.map((p) => p.toFixed(3)).join(', ')}]`);
+      console.log(`      Model: [${w.modelProbs.map((p) => p.toFixed(3)).join(', ')}]`);
     }
   }
 }

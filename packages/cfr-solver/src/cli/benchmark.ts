@@ -4,7 +4,9 @@
 
 import { buildTree, countNodes } from '../tree/tree-builder.js';
 import {
-  getTreeConfig, getSolveDefaults, getConfigLabel,
+  getTreeConfig,
+  getSolveDefaults,
+  getConfigLabel,
   type TreeConfigName,
 } from '../tree/tree-config.js';
 import { InfoSetStore } from '../engine/info-set-store.js';
@@ -115,10 +117,10 @@ async function main(): Promise<void> {
       const heap = process.memoryUsage().heapUsed;
       if (heap > peakHeap) peakHeap = heap;
       checkpoints.push({ iter, elapsed, mem: heap });
-      const iterPerSec = (iter / elapsed * 1000).toFixed(0);
+      const iterPerSec = ((iter / elapsed) * 1000).toFixed(0);
       const memMB = (heap / 1024 / 1024).toFixed(1);
       process.stdout.write(
-        `\r  ${iter}/${iterations} | ${(elapsed/1000).toFixed(1)}s | ${iterPerSec} iter/s | ${memMB}MB heap`
+        `\r  ${iter}/${iterations} | ${(elapsed / 1000).toFixed(1)}s | ${iterPerSec} iter/s | ${memMB}MB heap`,
       );
     },
   });
@@ -131,7 +133,7 @@ async function main(): Promise<void> {
 
   // 4. Results
   const storeMemEstimate = store.estimateMemoryBytes();
-  const iterPerSec = (iterations / solveMs * 1000).toFixed(0);
+  const iterPerSec = ((iterations / solveMs) * 1000).toFixed(0);
 
   console.log('═══ BENCHMARK RESULTS ═══');
   console.log();
@@ -147,17 +149,21 @@ async function main(): Promise<void> {
   console.log(`Info sets:       ${store.size.toLocaleString()}`);
   console.log(`Store memory:    ${(storeMemEstimate / 1024 / 1024).toFixed(1)}MB (estimated)`);
   console.log(`Peak heap:       ${(peakHeap / 1024 / 1024).toFixed(1)}MB`);
-  console.log(`Heap delta:      ${((memAfter.heapUsed - memBefore.heapUsed) / 1024 / 1024).toFixed(1)}MB`);
+  console.log(
+    `Heap delta:      ${((memAfter.heapUsed - memBefore.heapUsed) / 1024 / 1024).toFixed(1)}MB`,
+  );
   console.log();
 
   // 5. Projections for all 1,755 isomorphic flops
   const TOTAL_FLOPS = 1755;
-  const timeAllSerial = solveMs * TOTAL_FLOPS / 1000;
+  const timeAllSerial = (solveMs * TOTAL_FLOPS) / 1000;
   const memPerFlop = storeMemEstimate / 1024 / 1024;
 
   console.log(`═══ PROJECTION (${TOTAL_FLOPS} isomorphic flops) ═══`);
   console.log();
-  console.log(`Per flop:        ${(solveMs / 1000).toFixed(1)}s | ${memPerFlop.toFixed(1)}MB store | ${(peakHeap / 1024 / 1024).toFixed(0)}MB peak heap`);
+  console.log(
+    `Per flop:        ${(solveMs / 1000).toFixed(1)}s | ${memPerFlop.toFixed(1)}MB store | ${(peakHeap / 1024 / 1024).toFixed(0)}MB peak heap`,
+  );
   console.log();
 
   // Machine A: 128GB RAM
@@ -165,7 +171,7 @@ async function main(): Promise<void> {
   const machineA_available = 128 * 1024 - machineA_reserve;
   const machineA_workers = Math.min(
     Math.floor(machineA_available / (peakHeap / 1024 / 1024)),
-    24 // reasonable CPU core limit for i9
+    24, // reasonable CPU core limit for i9
   );
   const machineA_hours = timeAllSerial / 3600 / machineA_workers;
 
@@ -174,7 +180,7 @@ async function main(): Promise<void> {
   const machineBC_available = 32 * 1024 - machineBC_reserve;
   const machineBC_workers = Math.min(
     Math.floor(machineBC_available / (peakHeap / 1024 / 1024)),
-    16
+    16,
   );
   const machineBC_hours = timeAllSerial / 3600 / machineBC_workers;
 
@@ -186,29 +192,35 @@ async function main(): Promise<void> {
   console.log(`  Workers: ${machineA_workers} | Solo time: ${machineA_hours.toFixed(1)}h`);
   console.log();
   console.log('Machine B/C (32GB each):');
-  console.log(`  Workers: ${machineBC_workers} each | Solo time: ${machineBC_hours.toFixed(1)}h each`);
+  console.log(
+    `  Workers: ${machineBC_workers} each | Solo time: ${machineBC_hours.toFixed(1)}h each`,
+  );
   console.log();
   console.log('All 3 machines combined:');
   console.log(`  Workers: ${totalWorkers} total | Time: ${combined_hours.toFixed(1)}h`);
-  console.log(`  Flops/hour: ~${Math.round(TOTAL_FLOPS / (timeAllSerial / 3600 / totalWorkers) * (timeAllSerial / 3600 / totalWorkers) / (timeAllSerial / 3600) * totalWorkers)}`);
+  console.log(
+    `  Flops/hour: ~${Math.round((((TOTAL_FLOPS / (timeAllSerial / 3600 / totalWorkers)) * (timeAllSerial / 3600 / totalWorkers)) / (timeAllSerial / 3600)) * totalWorkers)}`,
+  );
   console.log();
 
   // Print convergence trajectory
   if (checkpoints.length > 0) {
     console.log('═══ CONVERGENCE TRAJECTORY ═══');
     console.log();
-    console.log(`${'Iter'.padStart(8)} | ${'Time'.padStart(8)} | ${'Iter/s'.padStart(8)} | ${'Heap MB'.padStart(8)}`);
+    console.log(
+      `${'Iter'.padStart(8)} | ${'Time'.padStart(8)} | ${'Iter/s'.padStart(8)} | ${'Heap MB'.padStart(8)}`,
+    );
     console.log('─'.repeat(42));
     for (const cp of checkpoints) {
-      const ips = (cp.iter / cp.elapsed * 1000).toFixed(0);
+      const ips = ((cp.iter / cp.elapsed) * 1000).toFixed(0);
       console.log(
-        `${cp.iter.toString().padStart(8)} | ${(cp.elapsed/1000).toFixed(1).padStart(8)} | ${ips.padStart(8)} | ${(cp.mem/1024/1024).toFixed(1).padStart(8)}`
+        `${cp.iter.toString().padStart(8)} | ${(cp.elapsed / 1000).toFixed(1).padStart(8)} | ${ips.padStart(8)} | ${(cp.mem / 1024 / 1024).toFixed(1).padStart(8)}`,
       );
     }
   }
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('Error:', err);
   process.exit(1);
 });

@@ -8,8 +8,10 @@ test('enumerate isomorphic flops', () => {
   const flops = enumerateIsomorphicFlops();
   console.log(`Total isomorphic flops: ${flops.length}`);
   // Should be ~1,755 (known value)
-  assert.ok(flops.length > 1700 && flops.length < 2000,
-    `Expected ~1,755-1,911 isomorphic flops, got ${flops.length}`);
+  assert.ok(
+    flops.length > 1700 && flops.length < 2000,
+    `Expected ~1,755-1,911 isomorphic flops, got ${flops.length}`,
+  );
 });
 
 test('select 200 representative flops', () => {

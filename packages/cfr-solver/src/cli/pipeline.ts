@@ -83,12 +83,12 @@ async function runCoordinator(): Promise<void> {
   const resume = args.includes('--resume');
 
   // Resolve config names
-  const { getConfigOutputDir, getConfigLabel, getHUPipelineConfigNames } = await import('../tree/tree-config.js');
+  const { getConfigOutputDir, getHUPipelineConfigNames } = await import('../tree/tree-config.js');
   let configNames: TreeConfigName[];
   if (configArg === 'all') {
     configNames = getHUPipelineConfigNames();
   } else {
-    configNames = configArg.split(',').map(s => s.trim()) as TreeConfigName[];
+    configNames = configArg.split(',').map((s) => s.trim()) as TreeConfigName[];
   }
 
   console.log('╔═══════════════════════════════════════════════╗');
@@ -105,10 +105,13 @@ async function runCoordinator(): Promise<void> {
   console.log();
 
   // Start queue server
-  const { startQueueServer, addJobs, addCompletedLogPath } = await import('../pipeline/queue-server.js');
+  const { startQueueServer, addJobs, addCompletedLogPath } =
+    await import('../pipeline/queue-server.js');
   startQueueServer(port);
   console.log(`[Coordinator] Job dedup: each job assigned to exactly one worker at a time.`);
-  console.log(`[Coordinator] If coordinator restarts, running jobs re-queue after 5min stale timeout.`);
+  console.log(
+    `[Coordinator] If coordinator restarts, running jobs re-queue after 5min stale timeout.`,
+  );
   console.log(`[Coordinator] Completed jobs persist in completed.jsonl — safe across restarts.`);
 
   // Configure per-config completion logs
@@ -143,7 +146,9 @@ async function runCoordinator(): Promise<void> {
   }
 
   console.log();
-  console.log(`[Coordinator] TOTAL: ${totalAdded} jobs queued across ${configNames.length} configs (${totalSkipped} skipped)`);
+  console.log(
+    `[Coordinator] TOTAL: ${totalAdded} jobs queued across ${configNames.length} configs (${totalSkipped} skipped)`,
+  );
   console.log();
   console.log('Waiting for workers to connect...');
   console.log('Workers should run:');
@@ -169,39 +174,43 @@ async function runCoordinator(): Promise<void> {
 
   // Status printer every 30s
   let completionReported = false;
-  setInterval(async () => {
-    const s = getStatus();
-    const pct = s.total > 0 ? Math.round(s.completed / s.total * 100) : 0;
+  setInterval(() => {
+    (async () => {
+      const s = getStatus();
+      const pct = s.total > 0 ? Math.round((s.completed / s.total) * 100) : 0;
 
-    // Per-config progress summary
-    const configSummary = s.configs
-      ? Object.entries(s.configs)
-          .map(([cn, cs]: [string, any]) => {
-            const t = cs.pending + cs.running + cs.completed + cs.failed;
-            return `${cn.replace('hu_', '').replace('pipeline_', 'p_')}: ${cs.completed}/${t}`;
-          })
-          .join(' | ')
-      : '';
+      // Per-config progress summary
+      const configSummary = s.configs
+        ? Object.entries(s.configs)
+            .map(([cn, cs]: [string, any]) => {
+              const t = cs.pending + cs.running + cs.completed + cs.failed;
+              return `${cn.replace('hu_', '').replace('pipeline_', 'p_')}: ${cs.completed}/${t}`;
+            })
+            .join(' | ')
+        : '';
 
-    const tp = s.throughput ? ` | 1h: ${s.throughput.last1h} jobs` : '';
-    console.log(
-      `[Status] ${s.completed}/${s.total} (${pct}%) | ` +
-      `pending: ${s.pending} | running: ${s.running} | failed: ${s.failed} | ` +
-      `ETA: ${s.etaHuman} | workers: ${s.activeWorkers}${tp}`
-    );
-    if (configSummary) {
-      console.log(`  [Configs] ${configSummary}`);
-    }
-
-    // Send final Notion report when all jobs complete
-    if (s.pending === 0 && s.running === 0 && s.completed > 0 && !completionReported) {
-      completionReported = true;
-      if (notionReporter) {
-        await notionReporter.report();
-        notionReporter.stop();
+      const tp = s.throughput ? ` | 1h: ${s.throughput.last1h} jobs` : '';
+      console.log(
+        `[Status] ${s.completed}/${s.total} (${pct}%) | ` +
+          `pending: ${s.pending} | running: ${s.running} | failed: ${s.failed} | ` +
+          `ETA: ${s.etaHuman} | workers: ${s.activeWorkers}${tp}`,
+      );
+      if (configSummary) {
+        console.log(`  [Configs] ${configSummary}`);
       }
-      console.log('[Coordinator] All jobs completed!');
-    }
+
+      // Send final Notion report when all jobs complete
+      if (s.pending === 0 && s.running === 0 && s.completed > 0 && !completionReported) {
+        completionReported = true;
+        if (notionReporter) {
+          await notionReporter.report();
+          notionReporter.stop();
+        }
+        console.log('[Coordinator] All jobs completed!');
+      }
+    })().catch((err) => {
+      console.error('[Coordinator] Status interval error (non-fatal):', err);
+    });
   }, 30000);
 }
 
@@ -212,16 +221,21 @@ async function checkStatus(): Promise<void> {
 
   const res = await new Promise<{ status: number; body: string }>((resolve, reject) => {
     const parsed = new URL(`${serverUrl}/status`);
-    const req = request({
-      hostname: parsed.hostname,
-      port: parsed.port,
-      path: parsed.pathname,
-      method: 'GET',
-    }, (res) => {
-      const chunks: Buffer[] = [];
-      res.on('data', (c: Buffer) => chunks.push(c));
-      res.on('end', () => resolve({ status: res.statusCode ?? 0, body: Buffer.concat(chunks).toString() }));
-    });
+    const req = request(
+      {
+        hostname: parsed.hostname,
+        port: parsed.port,
+        path: parsed.pathname,
+        method: 'GET',
+      },
+      (res) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (c: Buffer) => chunks.push(c));
+        res.on('end', () =>
+          resolve({ status: res.statusCode ?? 0, body: Buffer.concat(chunks).toString() }),
+        );
+      },
+    );
     req.on('error', reject);
     req.end();
   });
@@ -232,7 +246,7 @@ async function checkStatus(): Promise<void> {
   }
 
   const s = JSON.parse(res.body);
-  const pct = s.total > 0 ? Math.round(s.completed / s.total * 100) : 0;
+  const pct = s.total > 0 ? Math.round((s.completed / s.total) * 100) : 0;
 
   console.log('═══ Pipeline Status ═══');
   console.log();
@@ -258,7 +272,9 @@ async function checkStatus(): Promise<void> {
   if (s.recentCompleted && s.recentCompleted.length > 0) {
     console.log('Recent completions:');
     for (const c of s.recentCompleted) {
-      console.log(`  board ${c.boardId} | ${(c.elapsedMs / 1000).toFixed(1)}s | ${c.infoSets} info sets | by ${c.worker}`);
+      console.log(
+        `  board ${c.boardId} | ${(c.elapsedMs / 1000).toFixed(1)}s | ${c.infoSets} info sets | by ${c.worker}`,
+      );
     }
   }
 }
@@ -287,7 +303,15 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch(err => {
+// Keep coordinator alive on unexpected errors instead of crashing
+process.on('uncaughtException', (err) => {
+  console.error('[COORDINATOR] Uncaught exception (non-fatal, continuing):', err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[COORDINATOR] Unhandled rejection (non-fatal, continuing):', reason);
+});
+
+main().catch((err) => {
   console.error('[FATAL]', err);
   process.exit(1);
 });

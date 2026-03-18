@@ -20,14 +20,24 @@ const DATA_DIRS: Record<string, string> = {};
 if (existsSync(CFR_ROOT)) {
   for (const d of readdirSync(CFR_ROOT)) {
     const full = join(CFR_ROOT, d);
-    try { if (statSync(full).isDirectory()) DATA_DIRS[d] = full; } catch {}
+    try {
+      if (statSync(full).isDirectory()) DATA_DIRS[d] = full;
+    } catch {}
   }
 }
 // Default data dir: prefer standard_*, then v2_*, then v1_*
-const DATA_DIR_PRIORITY = ['standard_hu_srp_50bb', 'standard_hu_srp_100bb', 'v2_hu_srp_50bb', 'v1_hu_srp_50bb'];
+const DATA_DIR_PRIORITY = [
+  'standard_hu_srp_50bb',
+  'standard_hu_srp_100bb',
+  'v2_hu_srp_50bb',
+  'v1_hu_srp_50bb',
+];
 let DEFAULT_DATA_DIR = '';
 for (const p of DATA_DIR_PRIORITY) {
-  if (DATA_DIRS[p]) { DEFAULT_DATA_DIR = DATA_DIRS[p]; break; }
+  if (DATA_DIRS[p]) {
+    DEFAULT_DATA_DIR = DATA_DIRS[p];
+    break;
+  }
 }
 if (!DEFAULT_DATA_DIR && Object.keys(DATA_DIRS).length > 0) {
   DEFAULT_DATA_DIR = Object.values(DATA_DIRS)[0];
@@ -126,9 +136,10 @@ function computeHandBuckets(
 
   for (let i = 0; i < ranked.length; i++) {
     const bucket = Math.min(Math.floor(i / bucketSize), numBuckets - 1);
-    const key = ranked[i].c1 < ranked[i].c2
-      ? `${ranked[i].c1},${ranked[i].c2}`
-      : `${ranked[i].c2},${ranked[i].c1}`;
+    const key =
+      ranked[i].c1 < ranked[i].c2
+        ? `${ranked[i].c1},${ranked[i].c2}`
+        : `${ranked[i].c2},${ranked[i].c1}`;
     result.set(key, bucket);
   }
   return result;
@@ -173,7 +184,9 @@ function buildHandClassMap(
   return result;
 }
 
-function getHandMap(file: string): { oop: Record<string, number>; ip: Record<string, number> } | null {
+function getHandMap(
+  file: string,
+): { oop: Record<string, number>; ip: Record<string, number> } | null {
   if (handMapCache.has(file)) return handMapCache.get(file)!;
 
   const metaPath = join(DATA_DIR, `${file}.meta.json`);
@@ -207,8 +220,8 @@ function flopDistance(a: number[], b: number[]): number {
   const bRanks = b.map(indexToRank).sort((x, y) => y - x);
   const aSuits = new Set(a.map(indexToSuit)).size;
   const bSuits = new Set(b.map(indexToSuit)).size;
-  const aPaired = (aRanks[0] === aRanks[1] || aRanks[1] === aRanks[2]) ? 1 : 0;
-  const bPaired = (bRanks[0] === bRanks[1] || bRanks[1] === bRanks[2]) ? 1 : 0;
+  const aPaired = aRanks[0] === aRanks[1] || aRanks[1] === aRanks[2] ? 1 : 0;
+  const bPaired = bRanks[0] === bRanks[1] || bRanks[1] === bRanks[2] ? 1 : 0;
 
   return (
     3 * Math.abs(aRanks[0] - bRanks[0]) +
@@ -249,7 +262,9 @@ const server = createServer((req, res) => {
   // List available configs
   if (path === '/api/configs') {
     const configs = Object.entries(DATA_DIRS).map(([name, dir]) => {
-      const metaFiles = existsSync(dir) ? readdirSync(dir).filter(f => f.endsWith('.meta.json')) : [];
+      const metaFiles = existsSync(dir)
+        ? readdirSync(dir).filter((f) => f.endsWith('.meta.json'))
+        : [];
       return { name, flopCount: metaFiles.length, isDefault: dir === DATA_DIR };
     });
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -269,9 +284,9 @@ const server = createServer((req, res) => {
       return;
     }
     const metas = readdirSync(activeDataDir)
-      .filter(f => f.endsWith('.meta.json'))
+      .filter((f) => f.endsWith('.meta.json'))
       .sort()
-      .map(f => {
+      .map((f) => {
         const meta = JSON.parse(readFileSync(join(activeDataDir, f), 'utf-8'));
         const cards = (meta.flopCards as number[]).map(indexToCard);
         const classification = classifyFlop(meta.flopCards);
@@ -309,8 +324,8 @@ const server = createServer((req, res) => {
       res.end(JSON.stringify({ error: 'Missing cards parameter' }));
       return;
     }
-    const queryCards = cardsParam.split(',').map(c => cardToIndex(c.trim()));
-    if (queryCards.some(c => c < 0)) {
+    const queryCards = cardsParam.split(',').map((c) => cardToIndex(c.trim()));
+    if (queryCards.some((c) => c < 0)) {
       res.writeHead(400);
       res.end(JSON.stringify({ error: 'Invalid card format' }));
       return;
@@ -324,7 +339,9 @@ const server = createServer((req, res) => {
 
     let bestFile = '';
     let bestDist = Infinity;
-    const metaFiles = readdirSync(DATA_DIR).filter(f => f.endsWith('.meta.json')).sort();
+    const metaFiles = readdirSync(DATA_DIR)
+      .filter((f) => f.endsWith('.meta.json'))
+      .sort();
     for (const f of metaFiles) {
       const meta = JSON.parse(readFileSync(join(DATA_DIR, f), 'utf-8'));
       const dist = flopDistance(queryCards, meta.flopCards);
@@ -337,13 +354,15 @@ const server = createServer((req, res) => {
     if (bestFile) {
       const meta = JSON.parse(readFileSync(join(DATA_DIR, `${bestFile}.meta.json`), 'utf-8'));
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({
-        file: bestFile,
-        distance: bestDist,
-        cards: (meta.flopCards as number[]).map(indexToCard),
-        ...meta,
-        ...classifyFlop(meta.flopCards),
-      }));
+      res.end(
+        JSON.stringify({
+          file: bestFile,
+          distance: bestDist,
+          cards: (meta.flopCards as number[]).map(indexToCard),
+          ...meta,
+          ...classifyFlop(meta.flopCards),
+        }),
+      );
     } else {
       res.writeHead(404);
       res.end(JSON.stringify({ error: 'No boards found' }));
@@ -356,7 +375,7 @@ const server = createServer((req, res) => {
     try {
       const chartsPath = resolve(__dirname, '../../../data/preflop_charts.json');
       const entries = loadGtoWizardRangeFile(chartsPath);
-      const spots = [...new Set(entries.map(e => e.spot))];
+      const spots = [...new Set(entries.map((e) => e.spot))];
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(spots));
     } catch {
@@ -372,13 +391,16 @@ const server = createServer((req, res) => {
       const spot = decodeURIComponent(path.replace('/api/preflop-range/', ''));
       const chartsPath = resolve(__dirname, '../../../data/preflop_charts.json');
       const entries = loadGtoWizardRangeFile(chartsPath);
-      const filtered = entries.filter(e => e.spot === spot);
+      const filtered = entries.filter((e) => e.spot === spot);
       if (filtered.length === 0) {
         res.writeHead(404);
         res.end(JSON.stringify({ error: `Spot not found: ${spot}` }));
         return;
       }
-      const matrix: Record<string, { raise: number; call: number; fold: number; notes?: string[] }> = {};
+      const matrix: Record<
+        string,
+        { raise: number; call: number; fold: number; notes?: string[] }
+      > = {};
       for (const entry of filtered) {
         matrix[entry.hand] = {
           raise: entry.mix.raise || 0,
@@ -402,13 +424,21 @@ const server = createServer((req, res) => {
       const progressDataDir = (configParam && DATA_DIRS[configParam]) || DATA_DIR;
       const totalExpected = 1911; // all isomorphic flops
       const metaFiles = existsSync(progressDataDir)
-        ? readdirSync(progressDataDir).filter(f => f.endsWith('.meta.json')).sort()
+        ? readdirSync(progressDataDir)
+            .filter((f) => f.endsWith('.meta.json'))
+            .sort()
         : [];
 
       const completed = metaFiles.length;
-      const metas = metaFiles.map(f => {
-        try { return JSON.parse(readFileSync(join(progressDataDir, f), 'utf-8')); } catch { return null; }
-      }).filter(Boolean);
+      const metas = metaFiles
+        .map((f) => {
+          try {
+            return JSON.parse(readFileSync(join(progressDataDir, f), 'utf-8'));
+          } catch {
+            return null;
+          }
+        })
+        .filter(Boolean);
 
       let totalInfoSets = 0;
       let totalElapsedMs = 0;
@@ -425,7 +455,7 @@ const server = createServer((req, res) => {
 
       // Calculate file sizes
       const jsonlFiles = existsSync(progressDataDir)
-        ? readdirSync(progressDataDir).filter(f => f.endsWith('.jsonl'))
+        ? readdirSync(progressDataDir).filter((f) => f.endsWith('.jsonl'))
         : [];
       for (const f of jsonlFiles) {
         try {
@@ -436,19 +466,22 @@ const server = createServer((req, res) => {
 
       // Sort by timestamp for chronological log
       const sortedMetas = [...metas].sort((a, b) =>
-        (a.timestamp || '').localeCompare(b.timestamp || '')
+        (a.timestamp || '').localeCompare(b.timestamp || ''),
       );
 
       // Recent completions (last 50 for log view, reversed = newest first)
-      const recentMetas = sortedMetas.slice(-50).reverse().map(m => ({
-        boardId: m.boardId,
-        file: `flop_${String(m.boardId).padStart(3, '0')}`,
-        flopCards: (m.flopCards as number[]).map(indexToCard).join(' '),
-        infoSets: m.infoSets,
-        elapsedMs: m.elapsedMs,
-        peakMemoryMB: m.peakMemoryMB || 0,
-        timestamp: m.timestamp,
-      }));
+      const recentMetas = sortedMetas
+        .slice(-50)
+        .reverse()
+        .map((m) => ({
+          boardId: m.boardId,
+          file: `flop_${String(m.boardId).padStart(3, '0')}`,
+          flopCards: (m.flopCards as number[]).map(indexToCard).join(' '),
+          infoSets: m.infoSets,
+          elapsedMs: m.elapsedMs,
+          peakMemoryMB: m.peakMemoryMB || 0,
+          timestamp: m.timestamp,
+        }));
 
       // Estimate remaining time
       const avgTimePerFlop = completed > 0 ? totalElapsedMs / completed : 0;
@@ -466,27 +499,31 @@ const server = createServer((req, res) => {
       const progressPath = join(progressDataDir, '_progress.json');
       let progressFile = null;
       if (existsSync(progressPath)) {
-        try { progressFile = JSON.parse(readFileSync(progressPath, 'utf-8')); } catch {}
+        try {
+          progressFile = JSON.parse(readFileSync(progressPath, 'utf-8'));
+        } catch {}
       }
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({
-        totalExpected,
-        completed,
-        remaining,
-        percentDone: ((completed / totalExpected) * 100).toFixed(2),
-        totalInfoSets,
-        totalElapsedMs,
-        totalSizeMB: totalSizeMB.toFixed(1),
-        peakMemoryMB,
-        avgTimePerFlopSec: (avgTimePerFlop / 1000).toFixed(1),
-        wallClockPerFlopSec: (wallClockPerFlop / 1000).toFixed(1),
-        etaMinutes: (etaMs / 60000).toFixed(0),
-        etaHours: (etaMs / 3600000).toFixed(1),
-        latestTimestamp,
-        recentCompletions: recentMetas,
-        progressFile,
-      }));
+      res.end(
+        JSON.stringify({
+          totalExpected,
+          completed,
+          remaining,
+          percentDone: ((completed / totalExpected) * 100).toFixed(2),
+          totalInfoSets,
+          totalElapsedMs,
+          totalSizeMB: totalSizeMB.toFixed(1),
+          peakMemoryMB,
+          avgTimePerFlopSec: (avgTimePerFlop / 1000).toFixed(1),
+          wallClockPerFlopSec: (wallClockPerFlop / 1000).toFixed(1),
+          etaMinutes: (etaMs / 60000).toFixed(0),
+          etaHours: (etaMs / 3600000).toFixed(1),
+          latestTimestamp,
+          recentCompletions: recentMetas,
+          progressFile,
+        }),
+      );
     } catch (err) {
       res.writeHead(500);
       res.end(JSON.stringify({ error: String(err) }));
@@ -497,25 +534,30 @@ const server = createServer((req, res) => {
   // Pipeline status proxy — forward to coordinator queue server
   if (path === '/api/pipeline-status') {
     const pipelinePort = url.searchParams.get('port') || '3500';
-    const proxy = httpRequest({
-      hostname: '127.0.0.1',
-      port: parseInt(pipelinePort, 10),
-      path: '/status',
-      method: 'GET',
-      timeout: 3000,
-    }, (proxyRes) => {
-      const chunks: Buffer[] = [];
-      proxyRes.on('data', (c: Buffer) => chunks.push(c));
-      proxyRes.on('end', () => {
-        res.writeHead(proxyRes.statusCode ?? 502, { 'Content-Type': 'application/json' });
-        res.end(Buffer.concat(chunks));
-      });
-    });
+    const proxy = httpRequest(
+      {
+        hostname: '127.0.0.1',
+        port: parseInt(pipelinePort, 10),
+        path: '/status',
+        method: 'GET',
+        timeout: 3000,
+      },
+      (proxyRes) => {
+        const chunks: Buffer[] = [];
+        proxyRes.on('data', (c: Buffer) => chunks.push(c));
+        proxyRes.on('end', () => {
+          res.writeHead(proxyRes.statusCode ?? 502, { 'Content-Type': 'application/json' });
+          res.end(Buffer.concat(chunks));
+        });
+      },
+    );
     proxy.on('error', () => {
       res.writeHead(502, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ error: 'Pipeline coordinator not reachable' }));
     });
-    proxy.on('timeout', () => { proxy.destroy(); });
+    proxy.on('timeout', () => {
+      proxy.destroy();
+    });
     proxy.end();
     return;
   }
@@ -560,7 +602,9 @@ server.listen(PORT, () => {
   if (configList.length > 0) {
     console.log(`  Available configs:`);
     for (const [name, dir] of configList) {
-      const count = existsSync(dir) ? readdirSync(dir).filter(f => f.endsWith('.jsonl')).length : 0;
+      const count = existsSync(dir)
+        ? readdirSync(dir).filter((f) => f.endsWith('.jsonl')).length
+        : 0;
       console.log(`    ${name}: ${count} flops${dir === DATA_DIR ? ' (default)' : ''}`);
     }
   }

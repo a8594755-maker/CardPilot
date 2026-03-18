@@ -10,6 +10,20 @@ export * from './engine/cfr-engine.js';
 export * from './engine/exploitability.js';
 export * from './integration/preflop-ranges.js';
 export * from './integration/lookup-service.js';
+export * from './integration/action-translation.js';
 export * from './storage/json-export.js';
 export * from './storage/binary-format.js';
 export { solveParallel } from './orchestration/solve-orchestrator.js';
+export * as vectorized from './vectorized/index.js';
+export {
+  createCoachingOracle,
+  type CoachingOracle,
+  type CoachingInput,
+  type CoachingInference,
+} from './nn/coaching-runtime.js';
+export {
+  createValueNetworkRuntime,
+  createSyncValueNetEvalFn,
+  type ValueNetworkRuntime,
+  type ValueNetworkOptions,
+} from './nn/value-network-runtime.js';

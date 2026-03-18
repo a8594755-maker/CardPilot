@@ -121,13 +121,20 @@ function runGenerate(): void {
 
   const tsxArgs = [
     script,
-    '--cfr-dir', cfrDir,
-    '--output', outputDir,
-    '--config', configName,
-    '--samples-per-bucket', String(samplesPerBucket),
-    '--workers', String(workers),
-    '--river-samples', String(riverSamples),
-    '--min-divergence', minDivergence,
+    '--cfr-dir',
+    cfrDir,
+    '--output',
+    outputDir,
+    '--config',
+    configName,
+    '--samples-per-bucket',
+    String(samplesPerBucket),
+    '--workers',
+    String(workers),
+    '--river-samples',
+    String(riverSamples),
+    '--min-divergence',
+    minDivergence,
   ];
 
   const r = spawnSync(process.execPath, ['--import', 'tsx', ...tsxArgs], {
@@ -148,9 +155,12 @@ function runGeneratePreflop(): void {
 
   const tsxArgs = [
     script,
-    '--preflop-dir', preflopDir,
-    '--output', outputDir,
-    '--configs', configs,
+    '--preflop-dir',
+    preflopDir,
+    '--output',
+    outputDir,
+    '--configs',
+    configs,
   ];
 
   const r = spawnSync(process.execPath, ['--import', 'tsx', ...tsxArgs], {
@@ -165,9 +175,7 @@ function runGeneratePreflop(): void {
 function runTrain(): void {
   const srpDir = resolve(PROJECT_ROOT, 'data/training/cfr_srp');
   const threeBetDir = resolve(PROJECT_ROOT, 'data/training/cfr_3bet');
-  const defaultData = existsSync(threeBetDir)
-    ? `${srpDir},${threeBetDir}`
-    : srpDir;
+  const defaultData = existsSync(threeBetDir) ? `${srpDir},${threeBetDir}` : srpDir;
   const dataDir = getArg('data', defaultData);
   const hidden = getArg('hidden', '256,128');
   const outPath = getArg('out', resolve(PROJECT_ROOT, 'models/cfr-combined-v3.json'));
@@ -188,12 +196,18 @@ function runTrain(): void {
   const tsxArgs = [
     script,
     '--v2',
-    '--data', dataDir,
-    '--hidden', hidden,
-    '--out', outPath,
-    '--batch-size', String(batchSize),
-    '--max-epochs', String(maxEpochs),
-    '--lr', lr,
+    '--data',
+    dataDir,
+    '--hidden',
+    hidden,
+    '--out',
+    outPath,
+    '--batch-size',
+    String(batchSize),
+    '--max-epochs',
+    String(maxEpochs),
+    '--lr',
+    lr,
     '--disable-hard-mining',
   ];
 
@@ -237,12 +251,18 @@ function runFinetune(): void {
   const tsxArgs = [
     script,
     '--v2',
-    '--data', newData,
-    '--out', outPath,
-    '--resume', baseModel,
-    '--lr', lr,
-    '--max-epochs', String(maxEpochs),
-    '--batch-size', String(batchSize),
+    '--data',
+    newData,
+    '--out',
+    outPath,
+    '--resume',
+    baseModel,
+    '--lr',
+    lr,
+    '--max-epochs',
+    String(maxEpochs),
+    '--batch-size',
+    String(batchSize),
     '--disable-hard-mining',
     '--streaming',
     '--val-by-flop',
@@ -329,7 +349,7 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('Fatal error:', err);
   process.exit(1);
 });

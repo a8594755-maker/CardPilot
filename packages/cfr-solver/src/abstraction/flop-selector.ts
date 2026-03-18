@@ -9,19 +9,21 @@ import { enumerateIsomorphicFlops } from './suit-isomorphism.js';
 export interface FlopDescriptor {
   cards: [number, number, number];
   canonical: string;
-  highRank: number;        // 0=2 ... 12=A
+  highRank: number; // 0=2 ... 12=A
   suitPattern: 'rainbow' | 'two_tone' | 'monotone';
   connectivity: 'connected' | 'semi_connected' | 'disconnected';
   paired: boolean;
-  textureKey: string;      // combined classification key
+  textureKey: string; // combined classification key
 }
 
 /**
  * Classify a flop by its texture dimensions.
  */
-function classifyFlop(cards: [number, number, number]): Omit<FlopDescriptor, 'cards' | 'canonical'> {
+function classifyFlop(
+  cards: [number, number, number],
+): Omit<FlopDescriptor, 'cards' | 'canonical'> {
   const ranks = cards.map(indexToRank).sort((a, b) => b - a);
-  const suits = cards.map(c => c & 3);
+  const suits = cards.map((c) => c & 3);
 
   // High card
   const highRank = ranks[0];
@@ -29,8 +31,7 @@ function classifyFlop(cards: [number, number, number]): Omit<FlopDescriptor, 'ca
   // Suit pattern
   const uniqueSuits = new Set(suits).size;
   const suitPattern: FlopDescriptor['suitPattern'] =
-    uniqueSuits === 1 ? 'monotone' :
-    uniqueSuits === 2 ? 'two_tone' : 'rainbow';
+    uniqueSuits === 1 ? 'monotone' : uniqueSuits === 2 ? 'two_tone' : 'rainbow';
 
   // Connectivity (gaps between sorted ranks)
   const gap1 = ranks[0] - ranks[1];
@@ -39,19 +40,28 @@ function classifyFlop(cards: [number, number, number]): Omit<FlopDescriptor, 'ca
   const totalSpread = ranks[0] - ranks[2];
 
   const connectivity: FlopDescriptor['connectivity'] =
-    totalSpread <= 4 && maxGap <= 2 ? 'connected' :
-    totalSpread <= 6 ? 'semi_connected' : 'disconnected';
+    totalSpread <= 4 && maxGap <= 2
+      ? 'connected'
+      : totalSpread <= 6
+        ? 'semi_connected'
+        : 'disconnected';
 
   // Paired
   const paired = ranks[0] === ranks[1] || ranks[1] === ranks[2];
 
   // High card tier (group into 5 tiers)
   const highTier =
-    highRank >= 12 ? 'A' :
-    highRank >= 11 ? 'K' :
-    highRank >= 10 ? 'Q' :
-    highRank >= 8  ? 'TJ' :
-    highRank >= 6  ? '89' : 'low';
+    highRank >= 12
+      ? 'A'
+      : highRank >= 11
+        ? 'K'
+        : highRank >= 10
+          ? 'Q'
+          : highRank >= 8
+            ? 'TJ'
+            : highRank >= 6
+              ? '89'
+              : 'low';
 
   const textureKey = `${highTier}_${suitPattern}_${connectivity}${paired ? '_paired' : ''}`;
 
@@ -66,7 +76,7 @@ export function selectRepresentativeFlops(count: number = 200): FlopDescriptor[]
   const allFlops = enumerateIsomorphicFlops();
 
   // Classify all flops
-  const classified: FlopDescriptor[] = allFlops.map(f => ({
+  const classified: FlopDescriptor[] = allFlops.map((f) => ({
     ...f,
     ...classifyFlop(f.cards),
   }));
@@ -87,7 +97,6 @@ export function selectRepresentativeFlops(count: number = 200): FlopDescriptor[]
   const sortedGroups = [...groups.entries()].sort((a, b) => b[1].length - a[1].length);
 
   // First pass: allocate proportionally
-  let remaining = count;
   const allocations: Array<{ key: string; flops: FlopDescriptor[]; allocation: number }> = [];
 
   for (const [key, flops] of sortedGroups) {
@@ -123,7 +132,7 @@ export function selectRepresentativeFlops(count: number = 200): FlopDescriptor[]
 
   // If we still need more, fill from remaining
   if (selected.length < count) {
-    const selectedSet = new Set(selected.map(s => s.canonical));
+    const selectedSet = new Set(selected.map((s) => s.canonical));
     for (const flop of classified) {
       if (selected.length >= count) break;
       if (!selectedSet.has(flop.canonical)) {
