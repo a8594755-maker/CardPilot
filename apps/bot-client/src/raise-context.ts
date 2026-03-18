@@ -1,17 +1,17 @@
 // ===== Raise context analysis =====
 // Parses action history to extract raise type, position, sizing, multiway, SPR
 
-import type { TableState, HandAction } from './types.js';
+import type { TableState } from './types.js';
 
 export interface RaiseContext {
   raiserSeat: number | null;
   raiserPosition: string | null;
-  raiseSize: number;            // in big blinds
+  raiseSize: number; // in big blinds
   raiseSizeCategory: 'min' | 'small' | 'standard' | 'large' | 'overbet' | 'allin';
-  numCallers: number;           // callers of the raise before us
-  isMultiway: boolean;          // numCallers >= 2
-  effectiveStack: number;       // min(our stack, raiser stack) in bb
-  spr: number;                  // stack-to-pot ratio after calling
+  numCallers: number; // callers of the raise before us
+  isMultiway: boolean; // numCallers >= 2
+  effectiveStack: number; // min(our stack, raiser stack) in bb
+  spr: number; // stack-to-pot ratio after calling
   is3bet: boolean;
   facingType: 'unopened' | 'facing_open' | 'facing_3bet' | 'facing_4bet_plus' | 'facing_limp';
   heroPosition: string | null;
@@ -31,7 +31,7 @@ export function analyzeRaiseContext(state: TableState, mySeat: number): RaiseCon
   const currentStreet = state.street;
 
   // Filter actions for current street
-  const streetActions = state.actions.filter(a => a.street === currentStreet);
+  const streetActions = state.actions.filter((a) => a.street === currentStreet);
 
   // Count raises and identify raiser
   let raiseCount = 0;
@@ -75,18 +75,15 @@ export function analyzeRaiseContext(state: TableState, mySeat: number): RaiseCon
   const raiseSize = lastRaiseAmount / bb;
 
   // Raiser position
-  const raiserPosition = lastRaiserSeat != null
-    ? (state.positions[lastRaiserSeat] ?? null)
-    : null;
+  const raiserPosition = lastRaiserSeat != null ? (state.positions[lastRaiserSeat] ?? null) : null;
 
   // Hero position
   const heroPosition = state.positions[mySeat] ?? null;
 
   // Effective stack
-  const myPlayer = state.players.find(p => p.seat === mySeat);
-  const raiserPlayer = lastRaiserSeat != null
-    ? state.players.find(p => p.seat === lastRaiserSeat)
-    : null;
+  const myPlayer = state.players.find((p) => p.seat === mySeat);
+  const raiserPlayer =
+    lastRaiserSeat != null ? state.players.find((p) => p.seat === lastRaiserSeat) : null;
   const myStack = myPlayer?.stack ?? 0;
   const raiserStack = raiserPlayer?.stack ?? myStack;
   const effectiveStack = Math.min(myStack, raiserStack) / bb;
@@ -100,7 +97,8 @@ export function analyzeRaiseContext(state: TableState, mySeat: number): RaiseCon
     raiserSeat: lastRaiserSeat,
     raiserPosition,
     raiseSize,
-    raiseSizeCategory: lastRaiserSeat != null ? categorizeSizeBB(raiseSize, lastRaiseIsAllin) : 'min',
+    raiseSizeCategory:
+      lastRaiserSeat != null ? categorizeSizeBB(raiseSize, lastRaiseIsAllin) : 'min',
     numCallers: callersAfterLastRaise,
     isMultiway: callersAfterLastRaise >= 2,
     effectiveStack,

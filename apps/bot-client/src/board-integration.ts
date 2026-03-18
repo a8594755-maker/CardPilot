@@ -48,11 +48,11 @@ export function computeBoardTextureAdjustment(
         break;
       case 'wet':
         raiseAdj = 0.85; // c-bet less on wet boards
-        foldAdj = 0.90;  // when we check, don't fold easily
+        foldAdj = 0.9; // when we check, don't fold easily
         recommendedBetSize = 'large'; // pot
         break;
       case 'very-wet':
-        raiseAdj = 0.70; // check more
+        raiseAdj = 0.7; // check more
         foldAdj = 0.85;
         recommendedBetSize = 'large';
         break;
@@ -70,13 +70,13 @@ export function computeBoardTextureAdjustment(
 
     // Strong hands on any texture: always bet
     if (handStrength >= 0.75) {
-      raiseAdj = Math.max(raiseAdj, 1.10);
+      raiseAdj = Math.max(raiseAdj, 1.1);
     }
   } else {
     // Defending against bets
     // On wet boards, we have more equity from draws → call/raise more
     if (texture.wetness > 0.5) {
-      callAdj = 1.10;
+      callAdj = 1.1;
       raiseAdj = 1.05;
     }
 
@@ -116,10 +116,10 @@ export function detectAggressor(
   const prevStreet = streetOrder[currentIdx - 1];
 
   // Check if bot made the last aggressive action on the previous street
-  const prevStreetActions = actions.filter(a => a.street === prevStreet);
+  const prevStreetActions = actions.filter((a) => a.street === prevStreet);
   const lastAggressive = [...prevStreetActions]
     .reverse()
-    .find(a => a.type === 'raise' || a.type === 'all_in');
+    .find((a) => a.type === 'raise' || a.type === 'all_in');
 
   return lastAggressive?.seat === mySeat;
 }

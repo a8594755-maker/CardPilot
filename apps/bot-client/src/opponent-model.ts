@@ -7,9 +7,9 @@ export interface OpponentStats {
   handsObserved: number;
 
   // Preflop
-  vpipCount: number;         // voluntarily put in pot
+  vpipCount: number; // voluntarily put in pot
   vpipOpportunities: number;
-  pfrCount: number;          // preflop raise
+  pfrCount: number; // preflop raise
   pfrOpportunities: number;
 
   // Postflop
@@ -26,12 +26,12 @@ export interface OpponentStats {
 }
 
 export interface OpponentProfile {
-  vpip: number;            // 0-1
-  pfr: number;             // 0-1
-  foldToCbet: number;      // 0-1
-  foldToRaise: number;     // 0-1
-  aggression: number;      // 0-1
-  isKnown: boolean;        // handsObserved > threshold
+  vpip: number; // 0-1
+  pfr: number; // 0-1
+  foldToCbet: number; // 0-1
+  foldToRaise: number; // 0-1
+  aggression: number; // 0-1
+  isKnown: boolean; // handsObserved > threshold
 }
 
 export interface OpponentAdjustment {
@@ -135,19 +135,23 @@ export class OpponentTracker {
       s.totalCallsAndChecks++; // fold counts toward passive actions
       // Check if facing a raise
       const streetActions = state.actions.filter(
-        a => a.street === action.street && a.at < action.at,
+        (a) => a.street === action.street && a.at < action.at,
       );
       const facingRaise = streetActions.some(
-        a => (a.type === 'raise' || a.type === 'all_in') && a.seat !== action.seat,
+        (a) => (a.type === 'raise' || a.type === 'all_in') && a.seat !== action.seat,
       );
       if (facingRaise) {
         s.facingRaiseCount++;
         s.foldToRaiseCount++;
       }
       // Check if fold to c-bet
-      if (action.street === 'FLOP' && this.preflopRaiserSeat != null && this.preflopRaiserSeat !== action.seat) {
+      if (
+        action.street === 'FLOP' &&
+        this.preflopRaiserSeat != null &&
+        this.preflopRaiserSeat !== action.seat
+      ) {
         const pfRaiserBet = streetActions.some(
-          a => a.seat === this.preflopRaiserSeat && (a.type === 'raise' || a.type === 'all_in'),
+          (a) => a.seat === this.preflopRaiserSeat && (a.type === 'raise' || a.type === 'all_in'),
         );
         if (pfRaiserBet) {
           s.foldToCbetFacing++;
@@ -159,10 +163,10 @@ export class OpponentTracker {
     // Call/raise facing a raise
     if ((action.type === 'call' || action.type === 'raise') && action.street !== 'PREFLOP') {
       const streetActions = state.actions.filter(
-        a => a.street === action.street && a.at < action.at,
+        (a) => a.street === action.street && a.at < action.at,
       );
       const facingRaise = streetActions.some(
-        a => (a.type === 'raise' || a.type === 'all_in') && a.seat !== action.seat,
+        (a) => (a.type === 'raise' || a.type === 'all_in') && a.seat !== action.seat,
       );
       if (facingRaise) {
         s.facingRaiseCount++;
@@ -175,7 +179,14 @@ export class OpponentTracker {
   getProfile(seat: number): OpponentProfile {
     const s = this.stats.get(seat);
     if (!s || s.handsObserved < 3) {
-      return { vpip: 0.5, pfr: 0.2, foldToCbet: 0.5, foldToRaise: 0.5, aggression: 0.5, isKnown: false };
+      return {
+        vpip: 0.5,
+        pfr: 0.2,
+        foldToCbet: 0.5,
+        foldToRaise: 0.5,
+        aggression: 0.5,
+        isKnown: false,
+      };
     }
 
     const vpip = s.vpipOpportunities > 0 ? s.vpipCount / s.vpipOpportunities : 0.5;
@@ -211,7 +222,7 @@ export class OpponentTracker {
 
     if (situation === 'facing_raise') {
       // Tight raiser: their raises are strong → fold more
-      if (profile.pfr < 0.10) {
+      if (profile.pfr < 0.1) {
         foldAdj += 0.08;
       }
       // Loose raiser: their raises are wider → call/raise more
@@ -224,7 +235,7 @@ export class OpponentTracker {
     if (situation === 'facing_cbet') {
       // They fold to raises often → bluff raise more
       if (profile.foldToCbet > 0.65) {
-        raiseAdj += 0.10;
+        raiseAdj += 0.1;
       }
       // They rarely fold to c-bets → don't bluff as much
       if (profile.foldToCbet < 0.35) {

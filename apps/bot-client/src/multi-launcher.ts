@@ -54,7 +54,9 @@ function parseMultiArgs(argv: string[]): MultiConfig {
   const delay = parseInt(args['delay'] ?? '800', 10);
 
   if (!room) {
-    console.error('Usage: --room ROOM_CODE --bots "seat:profile,..." [--server url] [--buyin N] [--delay ms]');
+    console.error(
+      'Usage: --room ROOM_CODE --bots "seat:profile,..." [--server url] [--buyin N] [--delay ms]',
+    );
     console.error('   or: --config bots.json');
     process.exit(1);
   }
@@ -66,7 +68,7 @@ function parseMultiArgs(argv: string[]): MultiConfig {
     process.exit(1);
   }
 
-  const bots: BotEntry[] = botsStr.split(',').map(entry => {
+  const bots: BotEntry[] = botsStr.split(',').map((entry) => {
     const [seatStr, profile] = entry.trim().split(':');
     return { seat: parseInt(seatStr, 10), profile: profile ?? 'gto_balanced' };
   });
@@ -78,12 +80,18 @@ function launchBot(config: MultiConfig, bot: BotEntry): ChildProcess {
   const mainScript = resolve(__dirname, 'main.ts');
   const args = [
     mainScript,
-    '--server', config.server,
-    '--room', config.room,
-    '--seat', String(bot.seat),
-    '--buyin', String(bot.buyin ?? config.buyin ?? 200),
-    '--profile', bot.profile,
-    '--delay', String(bot.delay ?? config.delay ?? 800),
+    '--server',
+    config.server,
+    '--room',
+    config.room,
+    '--seat',
+    String(bot.seat),
+    '--buyin',
+    String(bot.buyin ?? config.buyin ?? 200),
+    '--profile',
+    bot.profile,
+    '--delay',
+    String(bot.delay ?? config.delay ?? 800),
   ];
   if (bot.name) args.push('--name', bot.name);
   if (bot.userId) args.push('--userId', bot.userId);
@@ -102,7 +110,9 @@ function launchBot(config: MultiConfig, bot: BotEntry): ChildProcess {
 
 // ===== Main =====
 const config = parseMultiArgs(process.argv.slice(2));
-console.log(`[launcher] Starting ${config.bots.length} bots for room=${config.room} server=${config.server}`);
+console.log(
+  `[launcher] Starting ${config.bots.length} bots for room=${config.room} server=${config.server}`,
+);
 
 const children: ChildProcess[] = [];
 

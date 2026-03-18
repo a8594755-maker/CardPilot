@@ -34,11 +34,7 @@ export function createSessionStats(): SessionStats {
   };
 }
 
-export function recordAction(
-  stats: SessionStats,
-  action: string,
-  facingRaise: boolean,
-): void {
+export function recordAction(stats: SessionStats, action: string, facingRaise: boolean): void {
   if (action === 'raise' || action === 'all_in') stats.totalRaises++;
   else if (action === 'call') stats.totalCalls++;
   else if (action === 'fold') {
@@ -80,22 +76,21 @@ export function computeAdaptiveAdjustments(stats: SessionStats): AdaptiveAdjustm
   let foldAdj = 1.0;
 
   // If folding to raises too much (>60%), reduce fold weight, increase call/raise
-  const foldToRaiseRate = stats.facingRaiseCount > 0
-    ? stats.foldToRaiseCount / stats.facingRaiseCount
-    : 0;
+  const foldToRaiseRate =
+    stats.facingRaiseCount > 0 ? stats.foldToRaiseCount / stats.facingRaiseCount : 0;
 
-  if (foldToRaiseRate > 0.60) {
+  if (foldToRaiseRate > 0.6) {
     foldAdj -= 0.08;
     callAdj += 0.05;
     raiseAdj += 0.03;
-  } else if (foldToRaiseRate < 0.30) {
+  } else if (foldToRaiseRate < 0.3) {
     foldAdj += 0.04;
     callAdj -= 0.02;
   }
 
   // If on a losing streak (last 5 hands all negative), tighten up
   const recentResults = stats.lastNResults.slice(-5);
-  if (recentResults.length >= 5 && recentResults.every(r => r < 0)) {
+  if (recentResults.length >= 5 && recentResults.every((r) => r < 0)) {
     foldAdj += 0.05;
     raiseAdj -= 0.03;
   }

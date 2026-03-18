@@ -4,10 +4,10 @@
 import type { BotPersona } from './persona.js';
 
 export interface MoodState {
-  value: number;             // [-0.5, 0.5], 0 = neutral
-  target: number;            // slowly drifts toward this
-  lastUpdateHand: number;    // hand number of last mood update
-  recentResults: number[];   // last 10 hand net results
+  value: number; // [-0.5, 0.5], 0 = neutral
+  target: number; // slowly drifts toward this
+  lastUpdateHand: number; // hand number of last mood update
+  recentResults: number[]; // last 10 hand net results
 }
 
 export interface MoodMultipliers {

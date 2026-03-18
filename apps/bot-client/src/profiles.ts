@@ -21,7 +21,7 @@ const gtoBalanced: BotProfile = {
       const target = Math.round(2.5 * ctx.bigBlind);
       return clamp(target, ctx.minRaiseTo, ctx.maxRaiseTo);
     }
-    const betSize = Math.round(ctx.pot * 0.50);
+    const betSize = Math.round(ctx.pot * 0.5);
     const raiseTo = ctx.toCall + betSize;
     return clamp(raiseTo, ctx.minRaiseTo, ctx.maxRaiseTo);
   },
@@ -31,7 +31,7 @@ const gtoBalanced: BotProfile = {
 const limpFish: BotProfile = {
   id: 'limp_fish',
   displayName: 'Limp-Fish (more limping/calling)',
-  actionWeights: { raise: 0.75, call: 1.60, fold: 1.10 },
+  actionWeights: { raise: 0.75, call: 1.6, fold: 1.1 },
   unopenedLimpShare: 0.45,
   stochastic: true,
   personaAnchors: PERSONA_ANCHORS['limp_fish'],
@@ -71,8 +71,8 @@ const tag: BotProfile = {
 const lag: BotProfile = {
   id: 'lag',
   displayName: 'LAG (loose-aggressive / pressure)',
-  actionWeights: { raise: 1.75, call: 1.05, fold: 0.80 },
-  unopenedLimpShare: 0.10,
+  actionWeights: { raise: 1.75, call: 1.05, fold: 0.8 },
+  unopenedLimpShare: 0.1,
   stochastic: true,
   personaAnchors: PERSONA_ANCHORS['lag'],
   mistakeConfig: DEFAULT_MISTAKE_CONFIGS['lag'],
@@ -91,7 +91,7 @@ const lag: BotProfile = {
 const nit: BotProfile = {
   id: 'nit',
   displayName: 'Nit (very tight / risk-averse)',
-  actionWeights: { raise: 0.90, call: 0.70, fold: 1.60 },
+  actionWeights: { raise: 0.9, call: 0.7, fold: 1.6 },
   unopenedLimpShare: 0,
   stochastic: false,
   personaAnchors: PERSONA_ANCHORS['nit'],
@@ -111,7 +111,7 @@ const nit: BotProfile = {
 const postflopTrainer: BotProfile = {
   id: 'postflop_trainer',
   displayName: 'Postflop Trainer (loose caller)',
-  actionWeights: { raise: 0.80, call: 1.80, fold: 0.45 },
+  actionWeights: { raise: 0.8, call: 1.8, fold: 0.45 },
   unopenedLimpShare: 0.55,
   stochastic: true,
   personaAnchors: PERSONA_ANCHORS['postflop_trainer'],

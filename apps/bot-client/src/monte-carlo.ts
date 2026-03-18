@@ -20,11 +20,15 @@ for (let s = 0; s < 4; s++) {
 // rank value = card % 13 (0=deuce .. 12=ace), suit = card / 13 | 0
 
 // Workspace: reused across evaluateHand calls (single-threaded so safe)
-const _rc = new Uint8Array(13);     // rank counts
-const _sc = [                        // suit-grouped ranks (4 suits × max 7 cards)
-  new Uint8Array(7), new Uint8Array(7), new Uint8Array(7), new Uint8Array(7),
+const _rc = new Uint8Array(13); // rank counts
+const _sc = [
+  // suit-grouped ranks (4 suits × max 7 cards)
+  new Uint8Array(7),
+  new Uint8Array(7),
+  new Uint8Array(7),
+  new Uint8Array(7),
 ];
-const _scLen = new Uint8Array(4);    // how many cards in each suit
+const _scLen = new Uint8Array(4); // how many cards in each suit
 const _sortBuf = new Uint8Array(13); // for sorting unique ranks
 
 function evaluateHandFast(hand: Uint8Array, n: number): number {
@@ -43,7 +47,10 @@ function evaluateHandFast(hand: Uint8Array, n: number): number {
   // Check flush (5+ of same suit)
   let flushSuit = -1;
   for (let s = 0; s < 4; s++) {
-    if (_scLen[s] >= 5) { flushSuit = s; break; }
+    if (_scLen[s] >= 5) {
+      flushSuit = s;
+      break;
+    }
   }
 
   // Find straight from unique ranks (sorted desc)
@@ -66,7 +73,10 @@ function evaluateHandFast(hand: Uint8Array, n: number): number {
     for (let i = 1; i < fLen; i++) {
       const v = _sortBuf[i];
       let j = i - 1;
-      while (j >= 0 && _sortBuf[j] < v) { _sortBuf[j + 1] = _sortBuf[j]; j--; }
+      while (j >= 0 && _sortBuf[j] < v) {
+        _sortBuf[j + 1] = _sortBuf[j];
+        j--;
+      }
       _sortBuf[j + 1] = v;
     }
     // Deduplicate (shouldn't have dupes in same suit, but be safe)
@@ -80,22 +90,31 @@ function evaluateHandFast(hand: Uint8Array, n: number): number {
 
   // Classify by rank counts — find top groups
   // We need: best count, its rank; second-best count, its rank; etc.
-  let c1 = 0, r1 = 0; // best group
-  let c2 = 0, r2 = 0; // second group
-  let c3 = 0, r3 = 0; // third group (for kickers)
+  let c1 = 0,
+    r1 = 0; // best group
+  let c2 = 0,
+    r2 = 0; // second group
+  let c3 = 0,
+    r3 = 0; // third group (for kickers)
 
   for (let r = 12; r >= 0; r--) {
     const c = _rc[r];
     if (c === 0) continue;
     if (c > c1 || (c === c1 && r > r1)) {
-      c3 = c2; r3 = r2;
-      c2 = c1; r2 = r1;
-      c1 = c; r1 = r;
+      c3 = c2;
+      r3 = r2;
+      c2 = c1;
+      r2 = r1;
+      c1 = c;
+      r1 = r;
     } else if (c > c2 || (c === c2 && r > r2)) {
-      c3 = c2; r3 = r2;
-      c2 = c; r2 = r;
+      c3 = c2;
+      r3 = r2;
+      c2 = c;
+      r2 = r;
     } else if (c > c3 || (c === c3 && r > r3)) {
-      c3 = c; r3 = r;
+      c3 = c;
+      r3 = r;
     }
   }
 
@@ -109,12 +128,14 @@ function evaluateHandFast(hand: Uint8Array, n: number): number {
   if (flushSuit >= 0) {
     // _sortBuf already has flush ranks sorted desc from above
     const fLen = _scLen[flushSuit];
-    return 5_000_000
-      + _sortBuf[0] * 100_000
-      + (_sortBuf[1] ?? 0) * 1000
-      + (_sortBuf[2] ?? 0) * 100
-      + (fLen > 3 ? _sortBuf[3] : 0) * 10
-      + (fLen > 4 ? _sortBuf[4] : 0);
+    return (
+      5_000_000 +
+      _sortBuf[0] * 100_000 +
+      (_sortBuf[1] ?? 0) * 1000 +
+      (_sortBuf[2] ?? 0) * 100 +
+      (fLen > 3 ? _sortBuf[3] : 0) * 10 +
+      (fLen > 4 ? _sortBuf[4] : 0)
+    );
   }
 
   // Straight
@@ -151,8 +172,16 @@ function findStraightFast(sorted: Uint8Array, len: number): number {
     let hasWheel = true;
     for (const need of [0, 1, 2, 3]) {
       let found = false;
-      for (let j = 0; j < len; j++) { if (sorted[j] === need) { found = true; break; } }
-      if (!found) { hasWheel = false; break; }
+      for (let j = 0; j < len; j++) {
+        if (sorted[j] === need) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        hasWheel = false;
+        break;
+      }
     }
     if (hasWheel) return 3; // 5-high straight (rank 3 = "5")
   }
@@ -195,11 +224,20 @@ export function estimateEquity(
 
   // Build available deck (exclude seen cards)
   let seenCount = 0;
-  if (_seenMarks[h0] === 0) { _seenMarks[h0] = 1; _seenList[seenCount++] = h0; }
-  if (_seenMarks[h1] === 0) { _seenMarks[h1] = 1; _seenList[seenCount++] = h1; }
+  if (_seenMarks[h0] === 0) {
+    _seenMarks[h0] = 1;
+    _seenList[seenCount++] = h0;
+  }
+  if (_seenMarks[h1] === 0) {
+    _seenMarks[h1] = 1;
+    _seenList[seenCount++] = h1;
+  }
   for (let i = 0; i < boardLen; i++) {
     const b = _boardInts[i];
-    if (_seenMarks[b] === 0) { _seenMarks[b] = 1; _seenList[seenCount++] = b; }
+    if (_seenMarks[b] === 0) {
+      _seenMarks[b] = 1;
+      _seenList[seenCount++] = b;
+    }
   }
 
   let availLen = 0;

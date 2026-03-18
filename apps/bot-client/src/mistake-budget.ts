@@ -5,8 +5,8 @@ import type { Mix } from './types.js';
 
 export interface MistakeConfig {
   enabled: boolean;
-  mistakeEveryNHands: number;     // e.g., 25
-  maxMistakeMagnitude: number;    // 0.0 - 1.0
+  mistakeEveryNHands: number; // e.g., 25
+  maxMistakeMagnitude: number; // 0.0 - 1.0
   allowedSpots: 'all' | 'non_critical_only';
 }
 
@@ -75,7 +75,7 @@ export function shouldInjectMistake(
   if (config.allowedSpots === 'non_critical_only' && potSizeBB > 20) return false;
 
   // Strong hands: don't make mistakes (protect value)
-  if (handStrength >= 0.80) return false;
+  if (handStrength >= 0.8) return false;
 
   // Use hand number modulo for deterministic-ish timing
   if (handNumber % config.mistakeEveryNHands !== 0) return false;
@@ -91,12 +91,11 @@ export function injectMistake(
   potSizeBB: number,
 ): { mix: Mix; result: MistakeResult } {
   // Error magnitude inversely proportional to hand strength and pot size
-  const magnitude = config.maxMistakeMagnitude
-    * (1 - handStrength)
-    * Math.min(1, 10 / Math.max(potSizeBB, 1));
+  const magnitude =
+    config.maxMistakeMagnitude * (1 - handStrength) * Math.min(1, 10 / Math.max(potSizeBB, 1));
 
   const r = Math.random();
-  let newMix = { ...mix };
+  const newMix = { ...mix };
   let description: string;
   let sizingLeak = false;
 

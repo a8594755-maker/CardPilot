@@ -1,14 +1,18 @@
 #!/usr/bin/env node
 import { io, type Socket } from 'socket.io-client';
-import { appendFile, appendFileSync, existsSync, mkdirSync, statSync } from 'node:fs';
+import { appendFile, existsSync, mkdirSync, statSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getProfile } from './profiles.js';
 import { decide, quickHandStrength } from './decision.js';
 import {
-  createSessionStats, loadSessionStats, saveSessionStats,
-  recordAction, recordHandResult,
-  computeAdaptiveAdjustments, type SessionStats,
+  createSessionStats,
+  loadSessionStats,
+  saveSessionStats,
+  recordAction,
+  recordHandResult,
+  computeAdaptiveAdjustments,
+  type SessionStats,
 } from './session-stats.js';
 import { encodeFeatures, encodeFeaturesV2, loadModel, type MLP } from '@cardpilot/fast-model';
 import type { TrainingSample } from '@cardpilot/fast-model';
@@ -23,6 +27,7 @@ import { computeThinkingTime } from './thinking-time.js';
 import { analyzeRaiseContext } from './raise-context.js';
 import { getBoardTexture } from './board-integration.js';
 import { TraceLogger } from './trace-logger.js';
+import { RealtimeResolver } from './realtime-resolver.js';
 
 // ===== CLI argument parsing =====
 export interface BotArgs {
@@ -34,13 +39,13 @@ export interface BotArgs {
   name?: string;
   userId?: string;
   delay?: number; // ms to wait before acting (humanize)
-  mode?: 'train' | 'play';       // V2: train=clean labels, play=full personality
-  version?: 'v1' | 'v2' | 'v3' | 'v3.2';  // model/data version
+  mode?: 'train' | 'play'; // V2: train=clean labels, play=full personality
+  version?: 'v1' | 'v2' | 'v3' | 'v3.2'; // model/data version
   // In-process bot support (used by self-play orchestrator)
-  sharedModel?: MLP | null;      // shared model instance (avoids loading per-bot)
-  dataDir?: string;              // override data directory
-  skipPersistStats?: boolean;    // skip saving session stats to disk
-  quiet?: boolean;               // suppress routine bot logs (for high-throughput self-play)
+  sharedModel?: MLP | null; // shared model instance (avoids loading per-bot)
+  dataDir?: string; // override data directory
+  skipPersistStats?: boolean; // skip saving session stats to disk
+  quiet?: boolean; // suppress routine bot logs (for high-throughput self-play)
 }
 
 function parseArgs(argv: string[]): BotArgs {
@@ -66,7 +71,9 @@ function parseArgs(argv: string[]): BotArgs {
   const version = (args['version'] ?? 'v1') as 'v1' | 'v2' | 'v3' | 'v3.2';
 
   if (!room) {
-    console.error('Usage: --room <ROOM_CODE> [--server url] [--seat N] [--buyin N] [--profile id] [--name str] [--userId str] [--delay ms] [--mode train|play] [--version v1|v2|v3]');
+    console.error(
+      'Usage: --room <ROOM_CODE> [--server url] [--seat N] [--buyin N] [--profile id] [--name str] [--userId str] [--delay ms] [--mode train|play] [--version v1|v2|v3]',
+    );
     process.exit(1);
   }
 
@@ -96,7 +103,7 @@ export class PokerBot {
   private writeBuffer: string[] = [];
   private flushTimer: ReturnType<typeof setInterval> | null = null;
   private readonly FLUSH_INTERVAL_MS = 2000; // flush writes every 2s
-  private readonly FLUSH_BATCH_SIZE = 50;    // or when buffer hits 50 samples
+  private readonly FLUSH_BATCH_SIZE = 50; // or when buffer hits 50 samples
 
   // New enhancement state
   private persona: BotPersona;
@@ -108,7 +115,7 @@ export class PokerBot {
   private lastHandStrength: number | null = null; // for bad beat detection
   private preflopSampleCount = 0; // track ALL preflop samples for downsampling
   private readonly preflopKeepEvery: number;
-  private _pendingRebuy = false;  // debounce rebuy requests
+  private _pendingRebuy = false; // debounce rebuy requests
 
   // V2 mode/version
   private mode: 'train' | 'play';
@@ -118,6 +125,7 @@ export class PokerBot {
   private skipPersistStats: boolean;
   private quiet: boolean;
   private modelReloadTimer: ReturnType<typeof setInterval> | null = null;
+  private resolver: RealtimeResolver | null = null;
 
   constructor(private args: BotArgs) {
     this.mySeat = args.seat;
@@ -128,12 +136,19 @@ export class PokerBot {
     this.version = args.version ?? 'v1';
     this.skipPersistStats = args.skipPersistStats ?? false;
     this.quiet = args.quiet ?? false;
-    this.preflopKeepEvery = Math.max(1, parseInt(process.env['PREFLOP_KEEP_EVERY'] ?? '10', 10) || 10);
+    this.preflopKeepEvery = Math.max(
+      1,
+      parseInt(process.env['PREFLOP_KEEP_EVERY'] ?? '10', 10) || 10,
+    );
 
     // ── Load persistent session stats ──
-    this.sessionStats = this.skipPersistStats ? createSessionStats() : loadSessionStats(this.profile.id);
+    this.sessionStats = this.skipPersistStats
+      ? createSessionStats()
+      : loadSessionStats(this.profile.id);
     if (this.sessionStats.handsPlayed > 0) {
-      this.log(`Loaded stats: hands=${this.sessionStats.handsPlayed} net=${this.sessionStats.netChips}`);
+      this.log(
+        `Loaded stats: hands=${this.sessionStats.handsPlayed} net=${this.sessionStats.netChips}`,
+      );
     }
 
     // ── Initialize persona (fixed for entire session) ──
@@ -160,7 +175,16 @@ export class PokerBot {
         modelPath = join(__dirname, '..', '..', '..', 'models', 'cfr-combined-v3-preflop.json');
       } else {
         const modelFileName = this.version === 'v2' ? 'model-v2-latest.json' : 'model-latest.json';
-        modelPath = join(__dirname, '..', '..', '..', 'packages', 'fast-model', 'models', modelFileName);
+        modelPath = join(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          'packages',
+          'fast-model',
+          'models',
+          modelFileName,
+        );
       }
       this.fastModel = loadModel(modelPath);
       if (this.fastModel) {
@@ -171,20 +195,44 @@ export class PokerBot {
 
       // ── Hot-reload model every 5 minutes (only for standalone bots) ──
       let lastModelMtime = 0;
-      try { lastModelMtime = statSync(modelPath).mtimeMs; } catch {}
-      this.modelReloadTimer = setInterval(() => {
-        try {
-          const currentMtime = statSync(modelPath).mtimeMs;
-          if (currentMtime > lastModelMtime) {
-            const newModel = loadModel(modelPath);
-            if (newModel) {
-              this.fastModel = newModel;
-              lastModelMtime = currentMtime;
-              this.log('Model hot-reloaded!');
+      try {
+        lastModelMtime = statSync(modelPath).mtimeMs;
+      } catch {}
+      this.modelReloadTimer = setInterval(
+        () => {
+          try {
+            const currentMtime = statSync(modelPath).mtimeMs;
+            if (currentMtime > lastModelMtime) {
+              const newModel = loadModel(modelPath);
+              if (newModel) {
+                this.fastModel = newModel;
+                lastModelMtime = currentMtime;
+                this.log('Model hot-reloaded!');
+              }
             }
-          }
-        } catch {}
-      }, 5 * 60 * 1000);
+          } catch {}
+        },
+        5 * 60 * 1000,
+      );
+    }
+
+    // ── Real-time CFR resolver (opt-in via BOT_USE_RESOLVER=1) ──
+    if (process.env['BOT_USE_RESOLVER'] === '1') {
+      const __dirRes = dirname(fileURLToPath(import.meta.url));
+      this.resolver = new RealtimeResolver({
+        chartsPath: join(__dirRes, '..', '..', '..', 'data', 'preflop_charts.json'),
+        modelPath: join(__dirRes, '..', '..', '..', 'models', 'vnet-v2-pipeline.json'),
+        verbose: !this.quiet,
+        flopIterations: parseInt(process.env['RESOLVER_FLOP_ITERS'] ?? '1000', 10),
+        turnIterations: parseInt(process.env['RESOLVER_TURN_ITERS'] ?? '500', 10),
+        riverIterations: parseInt(process.env['RESOLVER_RIVER_ITERS'] ?? '300', 10),
+      });
+      if (this.resolver.initialize()) {
+        this.log('Real-time CFR resolver initialized');
+      } else {
+        this.log('Resolver initialization failed — disabled');
+        this.resolver = null;
+      }
     }
 
     // ── Data collection directories ──
@@ -210,7 +258,9 @@ export class PokerBot {
 
     const botUserId = args.userId ?? `bot-${this.profile.id}-${this.mySeat}-${Date.now()}`;
 
-    this.log(`Connecting to ${args.server} as "${this.myName}" (profile=${this.profile.id}, seat=${this.mySeat}, mode=${this.mode}, version=${this.version})`);
+    this.log(
+      `Connecting to ${args.server} as "${this.myName}" (profile=${this.profile.id}, seat=${this.mySeat}, mode=${this.mode}, version=${this.version})`,
+    );
 
     this.socket = io(args.server, {
       auth: {
@@ -247,21 +297,27 @@ export class PokerBot {
       this.seated = false;
     });
 
-    this.socket.on('connected', (data: { socketId: string; userId: string; displayName: string }) => {
-      this.log(`Server acknowledged: userId=${data.userId}, name=${data.displayName}`);
-    });
+    this.socket.on(
+      'connected',
+      (data: { socketId: string; userId: string; displayName: string }) => {
+        this.log(`Server acknowledged: userId=${data.userId}, name=${data.displayName}`);
+      },
+    );
 
-    this.socket.on('room_joined', (data: { tableId: string; roomCode: string; roomName: string }) => {
-      this.tableId = data.tableId;
-      this.log(`Joined room "${data.roomName}" (tableId=${data.tableId})`);
-      if (!this.seated) {
-        this.trySitDown();
-      }
-    });
+    this.socket.on(
+      'room_joined',
+      (data: { tableId: string; roomCode: string; roomName: string }) => {
+        this.tableId = data.tableId;
+        this.log(`Joined room "${data.roomName}" (tableId=${data.tableId})`);
+        if (!this.seated) {
+          this.trySitDown();
+        }
+      },
+    );
 
     this.socket.on('error_event', (data: { message: string }) => {
       this.log(`Server error: ${data.message}`);
-      if (!this.seated && data.message.includes('seat') || data.message.includes('Seat')) {
+      if ((!this.seated && data.message.includes('seat')) || data.message.includes('Seat')) {
         this.log('Will retry sit_down in 3s...');
         setTimeout(() => this.trySitDown(), 3000);
       }
@@ -283,9 +339,10 @@ export class PokerBot {
       this.handNumber++;
       this.lastProcessedActionCount = 0;
       this.lastHandStrength = null;
+      this.resolver?.resetHand();
 
       // Snapshot stack at hand start for P&L tracking
-      const me = this.latestState?.players.find(p => p.seat === this.mySeat);
+      const me = this.latestState?.players.find((p) => p.seat === this.mySeat);
       this.lastHandStack = me?.stack ?? null;
 
       // Notify opponent tracker of new hand
@@ -303,7 +360,7 @@ export class PokerBot {
 
       // Try to sit down if not seated yet
       if (!this.seated) {
-        const alreadySeated = state.players.some(p => p.seat === this.mySeat);
+        const alreadySeated = state.players.some((p) => p.seat === this.mySeat);
         if (alreadySeated) {
           this.seated = true;
           this.log('Already seated (detected from snapshot)');
@@ -318,7 +375,7 @@ export class PokerBot {
 
       // Detect hand ending for session stats + mood update
       if (!state.handId && this.lastHandStack !== null && this.lastHandId) {
-        const me = state.players.find(p => p.seat === this.mySeat);
+        const me = state.players.find((p) => p.seat === this.mySeat);
         if (me) {
           const net = me.stack - this.lastHandStack;
           const won = net > 0;
@@ -336,12 +393,16 @@ export class PokerBot {
           );
 
           if (this.sessionStats.handsPlayed % 10 === 0) {
-            const ftr = this.sessionStats.facingRaiseCount > 0
-              ? (this.sessionStats.foldToRaiseCount / this.sessionStats.facingRaiseCount * 100).toFixed(0)
-              : '0';
+            const ftr =
+              this.sessionStats.facingRaiseCount > 0
+                ? (
+                    (this.sessionStats.foldToRaiseCount / this.sessionStats.facingRaiseCount) *
+                    100
+                  ).toFixed(0)
+                : '0';
             this.log(
               `Stats: hands=${this.sessionStats.handsPlayed} wins=${this.sessionStats.handsWon} ` +
-              `net=${this.sessionStats.netChips} foldToRaise=${ftr}% mood=${this.moodState.value.toFixed(2)}`
+                `net=${this.sessionStats.netChips} foldToRaise=${ftr}% mood=${this.moodState.value.toFixed(2)}`,
             );
           }
 
@@ -364,7 +425,7 @@ export class PokerBot {
 
       // Auto-rebuy between hands when stack is low (catch busted bots that missed hand_ended)
       if (this.mode === 'train' && !state.handId && this.tableId) {
-        const me2 = state.players.find(p => p.seat === this.mySeat);
+        const me2 = state.players.find((p) => p.seat === this.mySeat);
         const bb2 = state.bigBlind || 1;
         if (me2 && me2.stack < bb2 * 10 && !this._pendingRebuy) {
           const rebuyAmount = this.args.buyin - me2.stack;
@@ -386,7 +447,9 @@ export class PokerBot {
 
     this.socket.on('advice_payload', (advice: AdvicePayload) => {
       if (advice.seat === this.mySeat && advice.mix) {
-        this.log(`Received advice: R=${advice.mix.raise.toFixed(2)} C=${advice.mix.call.toFixed(2)} F=${advice.mix.fold.toFixed(2)}`);
+        this.log(
+          `Received advice: R=${advice.mix.raise.toFixed(2)} C=${advice.mix.call.toFixed(2)} F=${advice.mix.fold.toFixed(2)}`,
+        );
         this.pendingAdvice = advice.mix;
 
         // Collect training sample
@@ -444,7 +507,7 @@ export class PokerBot {
     // Prune old dedup entries
     if (this.handActedMap.size > 200) {
       const entries = [...this.handActedMap];
-      entries.slice(0, 100).forEach(k => this.handActedMap.delete(k));
+      entries.slice(0, 100).forEach((k) => this.handActedMap.delete(k));
     }
 
     // V2 train mode: skip thinking time and advice wait entirely
@@ -462,7 +525,7 @@ export class PokerBot {
       ? quickHandStrength(this.myCards, state.board, state.street)
       : null;
 
-    const myPlayer = state.players.find(p => p.seat === this.mySeat);
+    const myPlayer = state.players.find((p) => p.seat === this.mySeat);
     const myStack = myPlayer?.stack ?? 0;
     const isAllInDecision = (state.legalActions.callAmount ?? 0) >= myStack * 0.9;
 
@@ -474,7 +537,7 @@ export class PokerBot {
       handStrength,
       boardTexture,
       raiseContext,
-      numPlayersInHand: state.players.filter(p => p.inHand && !p.folded).length,
+      numPlayersInHand: state.players.filter((p) => p.inHand && !p.folded).length,
       isAllInDecision,
       baseDelay: this.actDelay,
     });
@@ -515,17 +578,17 @@ export class PokerBot {
       if (!this.myCards || !state.handId) return null;
       if (state.street === 'SHOWDOWN' || state.street === 'RUN_IT_TWICE_PROMPT') return null;
 
-      const me = state.players.find(p => p.seat === this.mySeat);
+      const me = state.players.find((p) => p.seat === this.mySeat);
       if (!me) return null;
 
       const heroPosition = state.positions?.[this.mySeat] ?? 'BTN';
-      const villains = state.players.filter(p => p.inHand && !p.folded && p.seat !== this.mySeat);
+      const villains = state.players.filter((p) => p.inHand && !p.folded && p.seat !== this.mySeat);
       const numVillains = villains.length || 1;
       const heroInPosition = heroPosition === 'BTN' || heroPosition === 'CO';
       const heroRaisedPreflop = state.actions.some(
-        a => a.seat === this.mySeat && a.street === 'PREFLOP' && a.type === 'raise'
+        (a) => a.seat === this.mySeat && a.street === 'PREFLOP' && a.type === 'raise',
       );
-      const effectiveStack = Math.min(me.stack, ...villains.map(v => v.stack));
+      const effectiveStack = Math.min(me.stack, ...villains.map((v) => v.stack));
       const bb = state.bigBlind || 1;
       const callAmount = state.legalActions?.callAmount ?? 0;
 
@@ -550,13 +613,24 @@ export class PokerBot {
 
       if (shouldCollect) {
         const features = encodeFeaturesV2(
-          this.myCards, state.board, state.street, state.pot, bb, callAmount,
-          effectiveStack, heroPosition, heroInPosition, numVillains, heroRaisedPreflop,
-          state.actions, state.players, this.mySeat,
+          this.myCards,
+          state.board,
+          state.street,
+          state.pot,
+          bb,
+          callAmount,
+          effectiveStack,
+          heroPosition,
+          heroInPosition,
+          numVillains,
+          heroRaisedPreflop,
+          state.actions,
+          state.players,
+          this.mySeat,
         );
 
         const sample: TrainingSample = {
-          f: features.map(v => Math.round(v * 10000) / 10000),
+          f: features.map((v) => Math.round(v * 10000) / 10000),
           l: evResult.actionMix,
           sz: evResult.sizingMix,
           h: state.handId.slice(0, 8),
@@ -591,23 +665,27 @@ export class PokerBot {
     const callAmount = legal.callAmount ?? 0;
 
     // Default to a conservative legal action if EV label is unavailable.
-    let action: 'raise' | 'call' | 'fold' = legal.canCheck ? 'call' : (legal.canCall ? 'call' : 'fold');
+    let action: 'raise' | 'call' | 'fold' = legal.canCheck
+      ? 'call'
+      : legal.canCall
+        ? 'call'
+        : 'fold';
     let amount: number | undefined;
 
     if (evResult) {
       const picked = this.sampleFromWeights(evResult.actionMix);
-      action = picked === 0 ? 'raise' : (picked === 1 ? 'call' : 'fold');
+      action = picked === 0 ? 'raise' : picked === 1 ? 'call' : 'fold';
     }
 
     // Make sure action is legal; degrade gracefully.
     if (action === 'raise' && !legal.canRaise) {
-      action = legal.canCall ? 'call' : (legal.canCheck ? 'call' : 'fold');
+      action = legal.canCall ? 'call' : legal.canCheck ? 'call' : 'fold';
     }
     if (action === 'call' && !legal.canCall && !legal.canCheck) {
-      action = legal.canFold ? 'fold' : (legal.canRaise ? 'raise' : 'call');
+      action = legal.canFold ? 'fold' : legal.canRaise ? 'raise' : 'call';
     }
     if (action === 'fold' && !legal.canFold) {
-      action = legal.canCheck ? 'call' : (legal.canCall ? 'call' : 'raise');
+      action = legal.canCheck ? 'call' : legal.canCall ? 'call' : 'raise';
     }
 
     if (action === 'raise' && legal.canRaise) {
@@ -619,7 +697,7 @@ export class PokerBot {
         } else {
           const frac = SIZING_BUCKETS[Math.max(0, Math.min(SIZING_BUCKETS.length - 1, sizeIdx))];
           if (state.street === 'PREFLOP') {
-            const bbMult = frac <= 0.33 ? 2.5 : frac <= 0.50 ? 3.0 : frac <= 0.66 ? 4.0 : 5.0;
+            const bbMult = frac <= 0.33 ? 2.5 : frac <= 0.5 ? 3.0 : frac <= 0.66 ? 4.0 : 5.0;
             raiseTo = Math.round(bbMult * bb);
           } else {
             raiseTo = Math.round(callAmount + state.pot * frac);
@@ -629,7 +707,8 @@ export class PokerBot {
       amount = Math.max(legal.minRaise, Math.min(legal.maxRaise, raiseTo));
     }
 
-    const submittedAction = action === 'call' && legal.canCheck && callAmount <= 0 ? 'check' : action;
+    const submittedAction =
+      action === 'call' && legal.canCheck && callAmount <= 0 ? 'check' : action;
     const facingRaise = callAmount > bb;
     recordAction(this.sessionStats, submittedAction, facingRaise);
 
@@ -649,26 +728,37 @@ export class PokerBot {
       if (state.actorSeat !== this.mySeat && !this.pendingAdvice) return;
       if (state.street === 'SHOWDOWN' || state.street === 'RUN_IT_TWICE_PROMPT') return;
 
-      const me = state.players.find(p => p.seat === this.mySeat);
+      const me = state.players.find((p) => p.seat === this.mySeat);
       if (!me) return;
 
       const heroPosition = state.positions?.[this.mySeat] ?? 'BTN';
-      const villains = state.players.filter(p => p.inHand && !p.folded && p.seat !== this.mySeat);
+      const villains = state.players.filter((p) => p.inHand && !p.folded && p.seat !== this.mySeat);
       const numVillains = villains.length || 1;
       const heroInPosition = heroPosition === 'BTN' || heroPosition === 'CO';
       const heroRaisedPreflop = state.actions.some(
-        a => a.seat === this.mySeat && a.street === 'PREFLOP' && a.type === 'raise'
+        (a) => a.seat === this.mySeat && a.street === 'PREFLOP' && a.type === 'raise',
       );
-      const effectiveStack = Math.min(me.stack, ...villains.map(v => v.stack));
+      const effectiveStack = Math.min(me.stack, ...villains.map((v) => v.stack));
       const bb = state.bigBlind || 1;
       const callAmount = state.legalActions?.callAmount ?? 0;
 
       if (this.version === 'v2') {
         // V2: 54 features + EV-based labels with sizing
         const features = encodeFeaturesV2(
-          this.myCards, state.board, state.street, state.pot, bb, callAmount,
-          effectiveStack, heroPosition, heroInPosition, numVillains, heroRaisedPreflop,
-          state.actions, state.players, this.mySeat,
+          this.myCards,
+          state.board,
+          state.street,
+          state.pot,
+          bb,
+          callAmount,
+          effectiveStack,
+          heroPosition,
+          heroInPosition,
+          numVillains,
+          heroRaisedPreflop,
+          state.actions,
+          state.players,
+          this.mySeat,
         );
 
         const evResult = computeEvLabels({
@@ -690,7 +780,7 @@ export class PokerBot {
         }
 
         const sample: TrainingSample = {
-          f: features.map(v => Math.round(v * 10000) / 10000),
+          f: features.map((v) => Math.round(v * 10000) / 10000),
           l: evResult.actionMix,
           sz: evResult.sizingMix,
           h: state.handId.slice(0, 8),
@@ -701,12 +791,21 @@ export class PokerBot {
       } else {
         // V1: 48 features + GTO advice labels
         const features = encodeFeatures(
-          this.myCards, state.board, state.street, state.pot, bb, callAmount,
-          effectiveStack, heroPosition, heroInPosition, numVillains, heroRaisedPreflop,
+          this.myCards,
+          state.board,
+          state.street,
+          state.pot,
+          bb,
+          callAmount,
+          effectiveStack,
+          heroPosition,
+          heroInPosition,
+          numVillains,
+          heroRaisedPreflop,
         );
 
         const sample: TrainingSample = {
-          f: features.map(v => Math.round(v * 10000) / 10000),
+          f: features.map((v) => Math.round(v * 10000) / 10000),
           l: [advice.mix.raise, advice.mix.call, advice.mix.fold],
           h: state.handId.slice(0, 8),
           s: state.street,
@@ -741,6 +840,7 @@ export class PokerBot {
         holeCards: this.myCards,
         mySeat: this.mySeat,
         fastModel: this.fastModel,
+        resolver: this.resolver,
         // Omit: adaptiveAdj, persona, moodState, opponentAdj, handNumber
         // This skips persona/mood/opponent/adaptive/mistake layers
       });
@@ -750,11 +850,12 @@ export class PokerBot {
       const raiseContext = analyzeRaiseContext(state, this.mySeat);
       let opponentAdj;
       if (raiseContext.raiserSeat != null) {
-        const situation = state.street === 'FLOP' && raiseContext.facingType === 'facing_open'
-          ? 'facing_cbet' as const
-          : raiseContext.facingType !== 'unopened'
-            ? 'facing_raise' as const
-            : 'general' as const;
+        const situation =
+          state.street === 'FLOP' && raiseContext.facingType === 'facing_open'
+            ? ('facing_cbet' as const)
+            : raiseContext.facingType !== 'unopened'
+              ? ('facing_raise' as const)
+              : ('general' as const);
         opponentAdj = this.opponentTracker.computeAdjustment(raiseContext.raiserSeat, situation);
       }
 
@@ -770,12 +871,13 @@ export class PokerBot {
         opponentAdj,
         handNumber: this.handNumber,
         fastModel: this.fastModel,
+        resolver: this.resolver,
       });
     }
 
     this.log(
       `Hand ${state.handId.slice(0, 8)} ${state.street} pot=${state.pot} → ${result.action}` +
-      `${result.amount != null ? ` ${result.amount}` : ''} (${result.reasoning})`
+        `${result.amount != null ? ` ${result.amount}` : ''} (${result.reasoning})`,
     );
 
     // Log structured trace
@@ -811,7 +913,7 @@ export class PokerBot {
   }
 
   /** Buffer a sample line (batched write for perf) */
-  private bufferSample(line: string, dir: string): void {
+  private bufferSample(line: string, _dir: string): void {
     this.writeBuffer.push(line);
     this.sampleCount++;
     if (this.writeBuffer.length >= this.FLUSH_BATCH_SIZE) {
@@ -829,19 +931,18 @@ export class PokerBot {
     if (this.modelReloadTimer) clearInterval(this.modelReloadTimer);
     if (this.flushTimer) clearInterval(this.flushTimer);
     this.flushWriteBuffer(); // flush any remaining samples
-    try { this.socket.disconnect(); } catch {}
+    try {
+      this.socket.disconnect();
+    } catch {}
   }
 }
 
 // ===== Entry point (only when run as standalone script) =====
-const isMainModule = process.argv[1] && (
-  process.argv[1].endsWith('main.ts') || process.argv[1].endsWith('main.js')
-);
+const isMainModule =
+  process.argv[1] && (process.argv[1].endsWith('main.ts') || process.argv[1].endsWith('main.js'));
 if (!isMainModule) {
   // Imported as a module — don't auto-create bot
 } else {
-
-const botArgs = parseArgs(process.argv.slice(2));
-new PokerBot(botArgs);
-
+  const botArgs = parseArgs(process.argv.slice(2));
+  new PokerBot(botArgs);
 }

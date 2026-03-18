@@ -3,7 +3,7 @@
 // Runs predefined scenarios thousands of times to verify strategy correctness.
 // Usage: pnpm --filter bot-client regression
 
-import { decide, quickHandStrength } from './decision.js';
+import { decide } from './decision.js';
 import { getProfile } from './profiles.js';
 import { generatePersona } from './persona.js';
 import type { TableState, LegalActions, HandAction } from './types.js';
@@ -61,7 +61,7 @@ function buildTableState(s: RegressionScenario): TableState {
     lastFullBet: 0,
     actorSeat: s.heroSeat,
     handId: `regtest-${Date.now()}`,
-    players: s.players.map(p => ({
+    players: s.players.map((p) => ({
       seat: p.seat,
       userId: `player-${p.seat}`,
       name: `Player ${p.seat}`,
@@ -103,8 +103,11 @@ function runScenario(scenario: RegressionScenario, iterations: number): Scenario
       handNumber: i + 1,
     });
 
-    if (result.action === 'raise') { counts.raise++; totalRaiseAmount += result.amount ?? 0; raiseCount++; }
-    else if (result.action === 'call') counts.call++;
+    if (result.action === 'raise') {
+      counts.raise++;
+      totalRaiseAmount += result.amount ?? 0;
+      raiseCount++;
+    } else if (result.action === 'call') counts.call++;
     else if (result.action === 'fold') counts.fold++;
     else if (result.action === 'check') counts.check++;
   }
@@ -118,12 +121,30 @@ function runScenario(scenario: RegressionScenario, iterations: number): Scenario
 
   const violations: string[] = [];
   const e = scenario.expected;
-  if (e.minRaiseFreq != null && raiseFreq < e.minRaiseFreq) violations.push(`raise freq ${(raiseFreq * 100).toFixed(1)}% < min ${(e.minRaiseFreq * 100).toFixed(1)}%`);
-  if (e.maxRaiseFreq != null && raiseFreq > e.maxRaiseFreq) violations.push(`raise freq ${(raiseFreq * 100).toFixed(1)}% > max ${(e.maxRaiseFreq * 100).toFixed(1)}%`);
-  if (e.minCallFreq != null && callFreq < e.minCallFreq) violations.push(`call freq ${(callFreq * 100).toFixed(1)}% < min ${(e.minCallFreq * 100).toFixed(1)}%`);
-  if (e.maxCallFreq != null && callFreq > e.maxCallFreq) violations.push(`call freq ${(callFreq * 100).toFixed(1)}% > max ${(e.maxCallFreq * 100).toFixed(1)}%`);
-  if (e.minFoldFreq != null && foldFreq < e.minFoldFreq) violations.push(`fold freq ${(foldFreq * 100).toFixed(1)}% < min ${(e.minFoldFreq * 100).toFixed(1)}%`);
-  if (e.maxFoldFreq != null && foldFreq > e.maxFoldFreq) violations.push(`fold freq ${(foldFreq * 100).toFixed(1)}% > max ${(e.maxFoldFreq * 100).toFixed(1)}%`);
+  if (e.minRaiseFreq != null && raiseFreq < e.minRaiseFreq)
+    violations.push(
+      `raise freq ${(raiseFreq * 100).toFixed(1)}% < min ${(e.minRaiseFreq * 100).toFixed(1)}%`,
+    );
+  if (e.maxRaiseFreq != null && raiseFreq > e.maxRaiseFreq)
+    violations.push(
+      `raise freq ${(raiseFreq * 100).toFixed(1)}% > max ${(e.maxRaiseFreq * 100).toFixed(1)}%`,
+    );
+  if (e.minCallFreq != null && callFreq < e.minCallFreq)
+    violations.push(
+      `call freq ${(callFreq * 100).toFixed(1)}% < min ${(e.minCallFreq * 100).toFixed(1)}%`,
+    );
+  if (e.maxCallFreq != null && callFreq > e.maxCallFreq)
+    violations.push(
+      `call freq ${(callFreq * 100).toFixed(1)}% > max ${(e.maxCallFreq * 100).toFixed(1)}%`,
+    );
+  if (e.minFoldFreq != null && foldFreq < e.minFoldFreq)
+    violations.push(
+      `fold freq ${(foldFreq * 100).toFixed(1)}% < min ${(e.minFoldFreq * 100).toFixed(1)}%`,
+    );
+  if (e.maxFoldFreq != null && foldFreq > e.maxFoldFreq)
+    violations.push(
+      `fold freq ${(foldFreq * 100).toFixed(1)}% > max ${(e.maxFoldFreq * 100).toFixed(1)}%`,
+    );
 
   return {
     scenario: scenario.name,
@@ -166,7 +187,15 @@ const SCENARIOS: RegressionScenario[] = [
     street: 'FLOP',
     pot: 60,
     bigBlind: 10,
-    legalActions: { canFold: true, canCheck: false, canCall: true, callAmount: 20, canRaise: true, minRaise: 40, maxRaise: 1000 },
+    legalActions: {
+      canFold: true,
+      canCheck: false,
+      canCall: true,
+      callAmount: 20,
+      canRaise: true,
+      minRaise: 40,
+      maxRaise: 1000,
+    },
     actions: [
       { seat: 3, street: 'PREFLOP', type: 'raise', amount: 25, at: 1 },
       { seat: 0, street: 'PREFLOP', type: 'call', amount: 25, at: 2 },
@@ -187,10 +216,16 @@ const SCENARIOS: RegressionScenario[] = [
     street: 'PREFLOP',
     pot: 115,
     bigBlind: 10,
-    legalActions: { canFold: true, canCheck: false, canCall: true, callAmount: 100, canRaise: true, minRaise: 200, maxRaise: 1000 },
-    actions: [
-      { seat: 3, street: 'PREFLOP', type: 'raise', amount: 100, at: 1 },
-    ],
+    legalActions: {
+      canFold: true,
+      canCheck: false,
+      canCall: true,
+      callAmount: 100,
+      canRaise: true,
+      minRaise: 200,
+      maxRaise: 1000,
+    },
+    actions: [{ seat: 3, street: 'PREFLOP', type: 'raise', amount: 100, at: 1 }],
     positions: defaultPositions(0),
     heroSeat: 0,
     players: defaultPlayers(0),
@@ -206,7 +241,15 @@ const SCENARIOS: RegressionScenario[] = [
     street: 'FLOP',
     pot: 50,
     bigBlind: 10,
-    legalActions: { canFold: true, canCheck: false, canCall: true, callAmount: 25, canRaise: true, minRaise: 50, maxRaise: 1000 },
+    legalActions: {
+      canFold: true,
+      canCheck: false,
+      canCall: true,
+      callAmount: 25,
+      canRaise: true,
+      minRaise: 50,
+      maxRaise: 1000,
+    },
     actions: [
       { seat: 3, street: 'PREFLOP', type: 'raise', amount: 25, at: 1 },
       { seat: 0, street: 'PREFLOP', type: 'call', amount: 25, at: 2 },
@@ -227,7 +270,15 @@ const SCENARIOS: RegressionScenario[] = [
     street: 'FLOP',
     pot: 50,
     bigBlind: 10,
-    legalActions: { canFold: true, canCheck: false, canCall: true, callAmount: 15, canRaise: true, minRaise: 30, maxRaise: 1000 },
+    legalActions: {
+      canFold: true,
+      canCheck: false,
+      canCall: true,
+      callAmount: 15,
+      canRaise: true,
+      minRaise: 30,
+      maxRaise: 1000,
+    },
     actions: [
       { seat: 3, street: 'PREFLOP', type: 'raise', amount: 25, at: 1 },
       { seat: 0, street: 'PREFLOP', type: 'call', amount: 25, at: 2 },
@@ -248,7 +299,15 @@ const SCENARIOS: RegressionScenario[] = [
     street: 'FLOP',
     pot: 50,
     bigBlind: 10,
-    legalActions: { canFold: false, canCheck: true, canCall: false, callAmount: 0, canRaise: true, minRaise: 10, maxRaise: 1000 },
+    legalActions: {
+      canFold: false,
+      canCheck: true,
+      canCall: false,
+      callAmount: 0,
+      canRaise: true,
+      minRaise: 10,
+      maxRaise: 1000,
+    },
     actions: [
       { seat: 0, street: 'PREFLOP', type: 'raise', amount: 25, at: 1 },
       { seat: 3, street: 'PREFLOP', type: 'call', amount: 25, at: 2 },
@@ -256,7 +315,7 @@ const SCENARIOS: RegressionScenario[] = [
     positions: defaultPositions(0),
     heroSeat: 0,
     players: defaultPlayers(0),
-    expected: { minRaiseFreq: 0.10 }, // should bet at least sometimes
+    expected: { minRaiseFreq: 0.1 }, // should bet at least sometimes
   },
 
   // 6. Preflop open from BTN with KQs
@@ -268,12 +327,20 @@ const SCENARIOS: RegressionScenario[] = [
     street: 'PREFLOP',
     pot: 15,
     bigBlind: 10,
-    legalActions: { canFold: true, canCheck: true, canCall: false, callAmount: 0, canRaise: true, minRaise: 20, maxRaise: 1000 },
+    legalActions: {
+      canFold: true,
+      canCheck: true,
+      canCall: false,
+      callAmount: 0,
+      canRaise: true,
+      minRaise: 20,
+      maxRaise: 1000,
+    },
     actions: [],
     positions: defaultPositions(0),
     heroSeat: 0,
     players: defaultPlayers(0),
-    expected: { minRaiseFreq: 0.40 }, // should open most of the time
+    expected: { minRaiseFreq: 0.4 }, // should open most of the time
   },
 
   // 7. Nit profile should fold more with marginal hand
@@ -285,14 +352,20 @@ const SCENARIOS: RegressionScenario[] = [
     street: 'PREFLOP',
     pot: 40,
     bigBlind: 10,
-    legalActions: { canFold: true, canCheck: false, canCall: true, callAmount: 25, canRaise: true, minRaise: 50, maxRaise: 1000 },
-    actions: [
-      { seat: 3, street: 'PREFLOP', type: 'raise', amount: 25, at: 1 },
-    ],
+    legalActions: {
+      canFold: true,
+      canCheck: false,
+      canCall: true,
+      callAmount: 25,
+      canRaise: true,
+      minRaise: 50,
+      maxRaise: 1000,
+    },
+    actions: [{ seat: 3, street: 'PREFLOP', type: 'raise', amount: 25, at: 1 }],
     positions: { ...defaultPositions(0), 3: 'UTG' },
     heroSeat: 0,
     players: defaultPlayers(0),
-    expected: { minFoldFreq: 0.60 },
+    expected: { minFoldFreq: 0.6 },
   },
 
   // 8. LAG profile should raise more with medium hand
@@ -304,12 +377,20 @@ const SCENARIOS: RegressionScenario[] = [
     street: 'PREFLOP',
     pot: 15,
     bigBlind: 10,
-    legalActions: { canFold: true, canCheck: true, canCall: false, callAmount: 0, canRaise: true, minRaise: 20, maxRaise: 1000 },
+    legalActions: {
+      canFold: true,
+      canCheck: true,
+      canCall: false,
+      callAmount: 0,
+      canRaise: true,
+      minRaise: 20,
+      maxRaise: 1000,
+    },
     actions: [],
     positions: defaultPositions(0),
     heroSeat: 0,
     players: defaultPlayers(0),
-    expected: { minRaiseFreq: 0.50 },
+    expected: { minRaiseFreq: 0.5 },
   },
 
   // 9. Facing 3-bet with marginal hand (T9s)
@@ -321,7 +402,15 @@ const SCENARIOS: RegressionScenario[] = [
     street: 'PREFLOP',
     pot: 95,
     bigBlind: 10,
-    legalActions: { canFold: true, canCheck: false, canCall: true, callAmount: 55, canRaise: true, minRaise: 120, maxRaise: 1000 },
+    legalActions: {
+      canFold: true,
+      canCheck: false,
+      canCall: true,
+      callAmount: 55,
+      canRaise: true,
+      minRaise: 120,
+      maxRaise: 1000,
+    },
     actions: [
       { seat: 0, street: 'PREFLOP', type: 'raise', amount: 25, at: 1 },
       { seat: 3, street: 'PREFLOP', type: 'raise', amount: 80, at: 2 },
@@ -329,7 +418,7 @@ const SCENARIOS: RegressionScenario[] = [
     positions: defaultPositions(0),
     heroSeat: 0,
     players: defaultPlayers(0),
-    expected: { minFoldFreq: 0.30 }, // T9s suited has implied odds vs 3bet; ~35% fold is reasonable
+    expected: { minFoldFreq: 0.3 }, // T9s suited has implied odds vs 3bet; ~35% fold is reasonable
   },
 
   // 10. River with missed draw (should occasionally bluff as LAG)
@@ -341,7 +430,15 @@ const SCENARIOS: RegressionScenario[] = [
     street: 'RIVER',
     pot: 100,
     bigBlind: 10,
-    legalActions: { canFold: false, canCheck: true, canCall: false, callAmount: 0, canRaise: true, minRaise: 10, maxRaise: 1000 },
+    legalActions: {
+      canFold: false,
+      canCheck: true,
+      canCall: false,
+      callAmount: 0,
+      canRaise: true,
+      minRaise: 10,
+      maxRaise: 1000,
+    },
     actions: [
       { seat: 0, street: 'PREFLOP', type: 'raise', amount: 25, at: 1 },
       { seat: 3, street: 'PREFLOP', type: 'call', amount: 25, at: 2 },
@@ -361,7 +458,15 @@ const SCENARIOS: RegressionScenario[] = [
     street: 'FLOP',
     pot: 50,
     bigBlind: 10,
-    legalActions: { canFold: false, canCheck: true, canCall: false, callAmount: 0, canRaise: true, minRaise: 10, maxRaise: 1000 },
+    legalActions: {
+      canFold: false,
+      canCheck: true,
+      canCall: false,
+      callAmount: 0,
+      canRaise: true,
+      minRaise: 10,
+      maxRaise: 1000,
+    },
     actions: [
       { seat: 4, street: 'PREFLOP', type: 'raise', amount: 25, at: 1 }, // CO raises
       { seat: 2, street: 'PREFLOP', type: 'call', amount: 25, at: 2 }, // BB calls (hero)
@@ -372,7 +477,7 @@ const SCENARIOS: RegressionScenario[] = [
       { seat: 2, stack: 1000, inHand: true, folded: false },
       { seat: 4, stack: 1000, inHand: true, folded: false },
     ],
-    expected: { maxRaiseFreq: 0.20 }, // donk guardrail should suppress raise to ~20% or below
+    expected: { maxRaiseFreq: 0.2 }, // donk guardrail should suppress raise to ~20% or below
   },
 
   // 12. Donk guardrail EXEMPT: BB with set should still lead
@@ -384,7 +489,15 @@ const SCENARIOS: RegressionScenario[] = [
     street: 'FLOP',
     pot: 50,
     bigBlind: 10,
-    legalActions: { canFold: false, canCheck: true, canCall: false, callAmount: 0, canRaise: true, minRaise: 10, maxRaise: 1000 },
+    legalActions: {
+      canFold: false,
+      canCheck: true,
+      canCall: false,
+      callAmount: 0,
+      canRaise: true,
+      minRaise: 10,
+      maxRaise: 1000,
+    },
     actions: [
       { seat: 4, street: 'PREFLOP', type: 'raise', amount: 25, at: 1 }, // CO raises
       { seat: 2, street: 'PREFLOP', type: 'call', amount: 25, at: 2 }, // BB calls (hero)
@@ -395,7 +508,7 @@ const SCENARIOS: RegressionScenario[] = [
       { seat: 2, stack: 1000, inHand: true, folded: false },
       { seat: 4, stack: 1000, inHand: true, folded: false },
     ],
-    expected: { minRaiseFreq: 0.30 }, // exempt from guardrail: set should bet often
+    expected: { minRaiseFreq: 0.3 }, // exempt from guardrail: set should bet often
   },
 
   // 13. Preflop chart: UTG with 72o should fold (GTO chart: fold 100%)
@@ -407,12 +520,20 @@ const SCENARIOS: RegressionScenario[] = [
     street: 'PREFLOP',
     pot: 15,
     bigBlind: 10,
-    legalActions: { canFold: true, canCheck: true, canCall: false, callAmount: 0, canRaise: true, minRaise: 20, maxRaise: 1000 },
+    legalActions: {
+      canFold: true,
+      canCheck: true,
+      canCall: false,
+      callAmount: 0,
+      canRaise: true,
+      minRaise: 20,
+      maxRaise: 1000,
+    },
     actions: [],
     positions: { 0: 'BTN', 1: 'SB', 2: 'BB', 3: 'UTG', 4: 'CO', 5: 'MP' },
     heroSeat: 3,
     players: defaultPlayers(3),
-    expected: { maxRaiseFreq: 0.10 }, // GTO chart: pure fold; personality may add tiny raise
+    expected: { maxRaiseFreq: 0.1 }, // GTO chart: pure fold; personality may add tiny raise
   },
 
   // 14. Preflop chart: BTN with A5s should open (GTO chart: raise 80%)
@@ -424,7 +545,15 @@ const SCENARIOS: RegressionScenario[] = [
     street: 'PREFLOP',
     pot: 15,
     bigBlind: 10,
-    legalActions: { canFold: true, canCheck: true, canCall: false, callAmount: 0, canRaise: true, minRaise: 20, maxRaise: 1000 },
+    legalActions: {
+      canFold: true,
+      canCheck: true,
+      canCall: false,
+      callAmount: 0,
+      canRaise: true,
+      minRaise: 20,
+      maxRaise: 1000,
+    },
     actions: [],
     positions: defaultPositions(0),
     heroSeat: 0,
@@ -441,7 +570,15 @@ const SCENARIOS: RegressionScenario[] = [
     street: 'PREFLOP',
     pot: 40,
     bigBlind: 10,
-    legalActions: { canFold: true, canCheck: false, canCall: true, callAmount: 25, canRaise: true, minRaise: 50, maxRaise: 1000 },
+    legalActions: {
+      canFold: true,
+      canCheck: false,
+      canCall: true,
+      callAmount: 25,
+      canRaise: true,
+      minRaise: 50,
+      maxRaise: 1000,
+    },
     actions: [
       { seat: 0, street: 'PREFLOP', type: 'raise', amount: 25, at: 1 }, // BTN opens
     ],
@@ -472,7 +609,9 @@ function main(): void {
     const status = result.passed ? 'PASS' : 'FAIL';
     const icon = result.passed ? '+' : 'X';
     console.log(`[${icon}] ${status} | ${result.scenario} (${result.profileId})`);
-    console.log(`    Raise: ${(result.raiseFreq * 100).toFixed(1)}%  Call: ${(result.callFreq * 100).toFixed(1)}%  Fold: ${(result.foldFreq * 100).toFixed(1)}%${result.avgRaiseAmount > 0 ? `  AvgSize: ${result.avgRaiseAmount.toFixed(0)}` : ''}`);
+    console.log(
+      `    Raise: ${(result.raiseFreq * 100).toFixed(1)}%  Call: ${(result.callFreq * 100).toFixed(1)}%  Fold: ${(result.foldFreq * 100).toFixed(1)}%${result.avgRaiseAmount > 0 ? `  AvgSize: ${result.avgRaiseAmount.toFixed(0)}` : ''}`,
+    );
 
     if (!result.passed) {
       for (const v of result.violations) {

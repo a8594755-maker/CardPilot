@@ -3,19 +3,19 @@
 import type { Mix } from './types.js';
 
 export interface PersonaAnchors {
-  looseTightCenter: number;          // [-1, 1]
-  passiveAggressiveCenter: number;   // [-1, 1]
-  bluffCenter: number;               // [0, 0.3]
-  heroCallCenter: number;            // [0, 0.3]
-  variance: number;                  // standard deviation for randomization
+  looseTightCenter: number; // [-1, 1]
+  passiveAggressiveCenter: number; // [-1, 1]
+  bluffCenter: number; // [0, 0.3]
+  heroCallCenter: number; // [0, 0.3]
+  variance: number; // standard deviation for randomization
 }
 
 export interface BotPersona {
-  looseTightBias: number;            // [-1, 1] positive = tight
-  passiveAggressiveBias: number;     // [-1, 1] positive = aggressive
-  bluffFrequency: number;            // [0, 0.3]
-  heroCallTendency: number;          // [0, 0.3]
-  raiseMultiplier: number;           // derived, [0.7, 1.4]
+  looseTightBias: number; // [-1, 1] positive = tight
+  passiveAggressiveBias: number; // [-1, 1] positive = aggressive
+  bluffFrequency: number; // [0, 0.3]
+  heroCallTendency: number; // [0, 0.3]
+  raiseMultiplier: number; // derived, [0.7, 1.4]
   callMultiplier: number;
   foldMultiplier: number;
   seed: string;
@@ -26,15 +26,15 @@ export const PERSONA_ANCHORS: Record<string, PersonaAnchors> = {
   gto_balanced: {
     looseTightCenter: 0,
     passiveAggressiveCenter: 0,
-    bluffCenter: 0.10,
-    heroCallCenter: 0.10,
-    variance: 0.10,
+    bluffCenter: 0.1,
+    heroCallCenter: 0.1,
+    variance: 0.1,
   },
   limp_fish: {
     looseTightCenter: -0.3,
     passiveAggressiveCenter: -0.4,
     bluffCenter: 0.03,
-    heroCallCenter: 0.20,
+    heroCallCenter: 0.2,
     variance: 0.15,
   },
   tag: {
@@ -47,7 +47,7 @@ export const PERSONA_ANCHORS: Record<string, PersonaAnchors> = {
   lag: {
     looseTightCenter: -0.3,
     passiveAggressiveCenter: 0.4,
-    bluffCenter: 0.20,
+    bluffCenter: 0.2,
     heroCallCenter: 0.15,
     variance: 0.15,
   },
@@ -63,7 +63,7 @@ export const PERSONA_ANCHORS: Record<string, PersonaAnchors> = {
     passiveAggressiveCenter: -0.2,
     bluffCenter: 0.05,
     heroCallCenter: 0.25,
-    variance: 0.10,
+    variance: 0.1,
   },
 };
 
@@ -107,33 +107,32 @@ export function generatePersona(profileId: string, seed?: string): BotPersona {
 
   const looseTightBias = clamp(
     normalRandom(rng, anchors.looseTightCenter, anchors.variance),
-    -1, 1,
+    -1,
+    1,
   );
   const passiveAggressiveBias = clamp(
     normalRandom(rng, anchors.passiveAggressiveCenter, anchors.variance),
-    -1, 1,
+    -1,
+    1,
   );
   const bluffFrequency = clamp(
     normalRandom(rng, anchors.bluffCenter, anchors.variance * 0.5),
-    0, 0.3,
+    0,
+    0.3,
   );
   const heroCallTendency = clamp(
     normalRandom(rng, anchors.heroCallCenter, anchors.variance * 0.5),
-    0, 0.3,
+    0,
+    0.3,
   );
 
   // Derive multipliers from biases
-  const raiseMultiplier = clamp(
-    1.0 + passiveAggressiveBias * 0.3 - looseTightBias * 0.1,
-    0.7, 1.4,
-  );
-  const foldMultiplier = clamp(
-    1.0 + looseTightBias * 0.3 - passiveAggressiveBias * 0.1,
-    0.7, 1.4,
-  );
+  const raiseMultiplier = clamp(1.0 + passiveAggressiveBias * 0.3 - looseTightBias * 0.1, 0.7, 1.4);
+  const foldMultiplier = clamp(1.0 + looseTightBias * 0.3 - passiveAggressiveBias * 0.1, 0.7, 1.4);
   const callMultiplier = clamp(
     1.0 - looseTightBias * 0.15 - passiveAggressiveBias * 0.15,
-    0.7, 1.4,
+    0.7,
+    1.4,
   );
 
   return {
@@ -161,7 +160,7 @@ export function applyPersona(
   let f = mix.fold * persona.foldMultiplier;
 
   // Postflop bluff injection: low strength → add bluff raise frequency
-  if (street !== 'PREFLOP' && handStrength != null && handStrength < 0.30) {
+  if (street !== 'PREFLOP' && handStrength != null && handStrength < 0.3) {
     r += persona.bluffFrequency * 0.15;
   }
 

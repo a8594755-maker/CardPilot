@@ -13,7 +13,15 @@
 
 import { spawn, type ChildProcess } from 'node:child_process';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
-import { readdirSync, readFileSync, existsSync, statSync, openSync, readSync, closeSync } from 'node:fs';
+import {
+  readdirSync,
+  readFileSync,
+  existsSync,
+  statSync,
+  openSync,
+  readSync,
+  closeSync,
+} from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { freemem, totalmem } from 'node:os';
 import { monitorEventLoopDelay } from 'node:perf_hooks';
@@ -21,7 +29,11 @@ import { fileURLToPath } from 'node:url';
 import { io, type Socket } from 'socket.io-client';
 import { PokerBot } from './main.js';
 import { loadModel, type MLP } from '@cardpilot/fast-model';
-import { getEvTeacherQualityState, setEvTeacherQualityProfile, type EvTeacherQualityProfile } from './ev-teacher.js';
+import {
+  getEvTeacherQualityState,
+  setEvTeacherQualityProfile,
+  type EvTeacherQualityProfile,
+} from './ev-teacher.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..', '..', '..');
@@ -29,14 +41,13 @@ const DATA_DIR = join(ROOT, 'data');
 
 // ── Constants ──
 
-const PER_BOT_GB = 0.005;                  // ~5 MB per in-process bot (shared model)
-const RAM_TARGET_USAGE = 0.85;             // use up to 85% of total RAM
-const RAM_CRITICAL_PCT = 0.92;             // emergency scale-down threshold
-const DEFAULT_MAX_ROOMS_PER_SERVER = 30;   // single server event-loop cap
-const SCALE_CHECK_MS = 30_000;             // check every 30 seconds
+const PER_BOT_GB = 0.005; // ~5 MB per in-process bot (shared model)
+const RAM_TARGET_USAGE = 0.85; // use up to 85% of total RAM
+const RAM_CRITICAL_PCT = 0.92; // emergency scale-down threshold
+const DEFAULT_MAX_ROOMS_PER_SERVER = 30; // single server event-loop cap
+const SCALE_CHECK_MS = 30_000; // check every 30 seconds
 const MONITOR_INTERVAL_MS = 30_000;
 const SCALE_STEP_LIMIT = 1;
-const EVENT_LOOP_WARN_P99_MS = 180;
 const EVENT_LOOP_CRITICAL_P99_MS = 350;
 
 // ── CLI args ──
@@ -51,10 +62,10 @@ interface SelfPlayConfig {
   dashboardPort: number;
   mode: 'train' | 'play';
   version: 'v1' | 'v2' | 'v3';
-  minRate: number;               // samples/hour threshold (0 = disabled)
-  minRateGraceMinutes: number;   // how long low-rate must persist before recovery
-  recoverRooms: number;          // rooms to recycle per recovery action
-  recoverCooldownMinutes: number;// min minutes between recovery actions
+  minRate: number; // samples/hour threshold (0 = disabled)
+  minRateGraceMinutes: number; // how long low-rate must persist before recovery
+  recoverRooms: number; // rooms to recycle per recovery action
+  recoverCooldownMinutes: number; // min minutes between recovery actions
   maxRoomsPerServer: number;
   shards: number;
   shardIndex: number;
@@ -63,7 +74,7 @@ interface SelfPlayConfig {
 }
 
 function parseArgs(): SelfPlayConfig {
-  const argv = process.argv.slice(2).filter(a => a !== '--');
+  const argv = process.argv.slice(2).filter((a) => a !== '--');
   const args: Record<string, string> = {};
   for (let i = 0; i < argv.length; i++) {
     if (argv[i].startsWith('--') && argv[i].length > 2) {
@@ -74,7 +85,7 @@ function parseArgs(): SelfPlayConfig {
 
   // Support multiple servers: --servers "4000,4001,4002" or --servers "http://...,http://..."
   const rawServers = args['servers'] ?? args['server'] ?? '4000,4001,4002';
-  const servers = rawServers.split(',').map(s => {
+  const servers = rawServers.split(',').map((s) => {
     s = s.trim();
     if (/^\d+$/.test(s)) return `http://127.0.0.1:${s}`;
     return s;
@@ -94,7 +105,10 @@ function parseArgs(): SelfPlayConfig {
     minRateGraceMinutes: parseInt(args['min-rate-grace-min'] ?? '4', 10),
     recoverRooms: parseInt(args['recover-rooms'] ?? '1', 10),
     recoverCooldownMinutes: parseInt(args['recover-cooldown-min'] ?? '5', 10),
-    maxRoomsPerServer: parseInt(args['max-rooms-per-server'] ?? String(DEFAULT_MAX_ROOMS_PER_SERVER), 10),
+    maxRoomsPerServer: parseInt(
+      args['max-rooms-per-server'] ?? String(DEFAULT_MAX_ROOMS_PER_SERVER),
+      10,
+    ),
     shards: Math.max(1, parseInt(args['shards'] ?? '1', 10)),
     shardIndex: Math.max(0, parseInt(args['shard-index'] ?? '0', 10)),
     qualityCooldownMinutes: Math.max(1, parseInt(args['quality-cooldown-min'] ?? '2', 10)),
@@ -102,9 +116,14 @@ function parseArgs(): SelfPlayConfig {
   };
 }
 
-function calcIdealRooms(botsPerRoom: number, currentRooms: number, numServers: number, maxRoomsPerServer: number): number {
-  const totalGB = totalmem() / (1024 ** 3);
-  const usedGB = totalGB - freemem() / (1024 ** 3);
+function calcIdealRooms(
+  botsPerRoom: number,
+  currentRooms: number,
+  numServers: number,
+  maxRoomsPerServer: number,
+): number {
+  const totalGB = totalmem() / 1024 ** 3;
+  const usedGB = totalGB - freemem() / 1024 ** 3;
   const budgetGB = totalGB * RAM_TARGET_USAGE;
   const ourUsageGB = currentRooms * botsPerRoom * PER_BOT_GB;
   const availableGB = budgetGB - (usedGB - ourUsageGB);
@@ -117,15 +136,28 @@ function calcIdealRooms(botsPerRoom: number, currentRooms: number, numServers: n
 // ── Profiles to rotate across seats ──
 
 const PLAY_PROFILES = [
-  'gto_balanced', 'lag', 'tag', 'nit', 'limp_fish',
-  'gto_balanced', 'lag', 'tag', 'nit',
+  'gto_balanced',
+  'lag',
+  'tag',
+  'nit',
+  'limp_fish',
+  'gto_balanced',
+  'lag',
+  'tag',
+  'nit',
 ];
 
 // TRAIN mode: all GTO-balanced for clean, representative game states
 const TRAIN_PROFILES = [
-  'gto_balanced', 'gto_balanced', 'gto_balanced',
-  'gto_balanced', 'gto_balanced', 'gto_balanced',
-  'gto_balanced', 'gto_balanced', 'gto_balanced',
+  'gto_balanced',
+  'gto_balanced',
+  'gto_balanced',
+  'gto_balanced',
+  'gto_balanced',
+  'gto_balanced',
+  'gto_balanced',
+  'gto_balanced',
+  'gto_balanced',
 ];
 
 // Active profile list (set in main based on config.mode)
@@ -147,7 +179,7 @@ function log(msg: string): void {
 function countSamples(dataDir: string = DATA_DIR): number {
   try {
     if (!existsSync(dataDir)) return 0;
-    const files = readdirSync(dataDir).filter(f => f.endsWith('.jsonl'));
+    const files = readdirSync(dataDir).filter((f) => f.endsWith('.jsonl'));
     let total = 0;
     const chunkSize = 65536; // 64 KB read chunks
     const buf = Buffer.alloc(chunkSize);
@@ -164,7 +196,8 @@ function countSamples(dataDir: string = DATA_DIR): number {
       while (pos < size) {
         const bytesRead = readSync(fd, buf, 0, chunkSize, pos);
         for (let i = 0; i < bytesRead; i++) {
-          if (buf[i] === 0x0A) { // '\n'
+          if (buf[i] === 0x0a) {
+            // '\n'
             total++;
             lastCharWasNewline = true;
           } else {
@@ -194,13 +227,15 @@ function initializeSampleCounter(dataDir: string = DATA_DIR): SampleCounterState
   const offsets = new Map<string, number>();
   try {
     if (existsSync(dataDir)) {
-      const files = readdirSync(dataDir).filter(f => f.endsWith('.jsonl'));
+      const files = readdirSync(dataDir).filter((f) => f.endsWith('.jsonl'));
       for (const file of files) {
         const filePath = join(dataDir, file);
         offsets.set(filePath, statSync(filePath).size);
       }
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return { total, offsets };
 }
 
@@ -208,7 +243,7 @@ function initializeSampleCounter(dataDir: string = DATA_DIR): SampleCounterState
 function updateSampleCounter(counter: SampleCounterState, dataDir: string = DATA_DIR): number {
   try {
     if (!existsSync(dataDir)) return counter.total;
-    const files = readdirSync(dataDir).filter(f => f.endsWith('.jsonl'));
+    const files = readdirSync(dataDir).filter((f) => f.endsWith('.jsonl'));
     for (const file of files) {
       const filePath = join(dataDir, file);
       const size = statSync(filePath).size;
@@ -225,11 +260,13 @@ function updateSampleCounter(counter: SampleCounterState, dataDir: string = DATA
       closeSync(fd);
 
       for (let i = 0; i < bytesToRead; i++) {
-        if (buf[i] === 0x0A) counter.total++;
+        if (buf[i] === 0x0a) counter.total++;
       }
       counter.offsets.set(filePath, size);
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return counter.total;
 }
 
@@ -239,12 +276,12 @@ function updateSampleCounter(counter: SampleCounterState, dataDir: string = DATA
  */
 const _streetOffsets = new Map<string, number>(); // filePath → last read offset
 const _streetCounts = { PREFLOP: 0, FLOP: 0, TURN: 0, RIVER: 0 };
-let _streetCountsInitialized = false;
+const _streetCountsInitialized = false;
 
 function countSamplesByStreet(dataDir: string = DATA_DIR): Record<string, number> {
   try {
     if (!existsSync(dataDir)) return { ..._streetCounts };
-    const files = readdirSync(dataDir).filter(f => f.endsWith('.jsonl'));
+    const files = readdirSync(dataDir).filter((f) => f.endsWith('.jsonl'));
 
     for (const file of files) {
       const filePath = join(dataDir, file);
@@ -262,17 +299,31 @@ function countSamplesByStreet(dataDir: string = DATA_DIR): Record<string, number
       const chunk = buf.toString('utf-8');
       // Count street markers in new data
       let pos = 0;
-      while ((pos = chunk.indexOf('"s":"PREFLOP"', pos)) !== -1) { _streetCounts.PREFLOP++; pos++; }
+      while ((pos = chunk.indexOf('"s":"PREFLOP"', pos)) !== -1) {
+        _streetCounts.PREFLOP++;
+        pos++;
+      }
       pos = 0;
-      while ((pos = chunk.indexOf('"s":"FLOP"', pos)) !== -1) { _streetCounts.FLOP++; pos++; }
+      while ((pos = chunk.indexOf('"s":"FLOP"', pos)) !== -1) {
+        _streetCounts.FLOP++;
+        pos++;
+      }
       pos = 0;
-      while ((pos = chunk.indexOf('"s":"TURN"', pos)) !== -1) { _streetCounts.TURN++; pos++; }
+      while ((pos = chunk.indexOf('"s":"TURN"', pos)) !== -1) {
+        _streetCounts.TURN++;
+        pos++;
+      }
       pos = 0;
-      while ((pos = chunk.indexOf('"s":"RIVER"', pos)) !== -1) { _streetCounts.RIVER++; pos++; }
+      while ((pos = chunk.indexOf('"s":"RIVER"', pos)) !== -1) {
+        _streetCounts.RIVER++;
+        pos++;
+      }
 
       _streetOffsets.set(filePath, size);
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return { ..._streetCounts };
 }
 
@@ -306,31 +357,39 @@ async function spawnRoom(config: SelfPlayConfig, serverUrl: string): Promise<Liv
       reconnectionDelay: 2000,
       reconnectionAttempts: 10,
     });
-    const timer = setTimeout(() => { s.disconnect(); rej(new Error('Connection timeout')); }, 10_000);
-    s.on('connect', () => { clearTimeout(timer); res(s); });
+    const timer = setTimeout(() => {
+      s.disconnect();
+      rej(new Error('Connection timeout'));
+    }, 10_000);
+    s.on('connect', () => {
+      clearTimeout(timer);
+      res(s);
+    });
     s.on('connect_error', (err) => log(`Connection error (room ${idx}): ${err.message}`));
   });
 
-  const { tableId, roomCode } = await new Promise<{ tableId: string; roomCode: string }>((res, rej) => {
-    const timer = setTimeout(() => rej(new Error('Room creation timeout')), 15_000);
-    socket.once('room_created', (data: { tableId: string; roomCode: string }) => {
-      clearTimeout(timer);
-      res(data);
-    });
-    socket.once('error_event', (data: { message: string }) => {
-      clearTimeout(timer);
-      rej(new Error(data.message));
-    });
-    socket.emit('create_room', {
-      roomName: `Self-Play Room ${idx}`,
-      maxPlayers: 6,
-      smallBlind: Math.floor(config.bigBlind / 2),
-      bigBlind: config.bigBlind,
-      isPublic: false,
-      buyInMin: config.bigBlind * 20,
-      buyInMax: config.bigBlind * 200,
-    });
-  });
+  const { tableId, roomCode } = await new Promise<{ tableId: string; roomCode: string }>(
+    (res, rej) => {
+      const timer = setTimeout(() => rej(new Error('Room creation timeout')), 15_000);
+      socket.once('room_created', (data: { tableId: string; roomCode: string }) => {
+        clearTimeout(timer);
+        res(data);
+      });
+      socket.once('error_event', (data: { message: string }) => {
+        clearTimeout(timer);
+        rej(new Error(data.message));
+      });
+      socket.emit('create_room', {
+        roomName: `Self-Play Room ${idx}`,
+        maxPlayers: 6,
+        smallBlind: Math.floor(config.bigBlind / 2),
+        bigBlind: config.bigBlind,
+        isPublic: false,
+        buyInMin: config.bigBlind * 20,
+        buyInMax: config.bigBlind * 200,
+      });
+    },
+  );
 
   // Configure for maximum speed (selfPlayTurbo = zero delays)
   socket.emit('update_settings', {
@@ -439,10 +498,7 @@ function runTrainerV2(): Promise<void> {
     // Auto warm-start from V1 if V2 model doesn't exist yet
     const v2ModelExists = existsSync(v2OutPath);
     const trainerScript = join(ROOT, 'packages', 'fast-model', 'src', 'trainer.ts');
-    const trainerArgs = [
-      'tsx', trainerScript,
-      '--v2', '--data', v2DataDir, '--out', v2OutPath,
-    ];
+    const trainerArgs = ['tsx', trainerScript, '--v2', '--data', v2DataDir, '--out', v2OutPath];
     if (!v2ModelExists && existsSync(v1ModelPath)) {
       trainerArgs.push('--warm-start', v1ModelPath);
       log('  Using V1 model for warm-start transfer learning');
@@ -493,8 +549,18 @@ function formatDuration(hours: number): string {
 
 // ── Dashboard state ──
 
-interface DashboardEvent { time: string; badge: string; badgeClass: string; message: string; }
-interface RoomStats { roomCode: string; tableId: string; server: string; bots: { name: string; profile: string }[]; }
+interface DashboardEvent {
+  time: string;
+  badge: string;
+  badgeClass: string;
+  message: string;
+}
+interface RoomStats {
+  roomCode: string;
+  tableId: string;
+  server: string;
+  bots: { name: string; profile: string }[];
+}
 interface DashboardState {
   currentSamples: number;
   initialSamples: number;
@@ -519,23 +585,38 @@ interface DashboardState {
 }
 
 const dashboardState: DashboardState = {
-  currentSamples: 0, initialSamples: 0, newThisSession: 0, target: 1_000_000,
-  rate: 0, etaHours: Infinity, elapsedHours: 0,
-  isTraining: false, trainingSessions: 0, trainEvery: 50_000, nextTrainThreshold: 0,
+  currentSamples: 0,
+  initialSamples: 0,
+  newThisSession: 0,
+  target: 1_000_000,
+  rate: 0,
+  etaHours: Infinity,
+  elapsedHours: 0,
+  isTraining: false,
+  trainingSessions: 0,
+  trainEvery: 50_000,
+  nextTrainThreshold: 0,
   freeRAM: 0,
-  rooms: [], history: [], events: [],
-  pipelineVersion: 'v1', pipelineMode: 'play',
+  rooms: [],
+  history: [],
+  events: [],
+  pipelineVersion: 'v1',
+  pipelineMode: 'play',
   streetCounts: { PREFLOP: 0, FLOP: 0, TURN: 0, RIVER: 0 },
 };
 
 function addEvent(badge: string, badgeClass: string, message: string): void {
-  const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const time = new Date().toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
   dashboardState.events.unshift({ time, badge, badgeClass, message });
   if (dashboardState.events.length > 100) dashboardState.events.length = 100;
 }
 
 function syncDashboardRooms(liveRooms: LiveRoom[], botsPerRoom: number): void {
-  dashboardState.rooms = liveRooms.map(r => ({
+  dashboardState.rooms = liveRooms.map((r) => ({
     roomCode: r.roomCode,
     tableId: r.tableId,
     server: `:${new URL(r.serverUrl).port}`,
@@ -551,13 +632,16 @@ function startDashboardServer(port: number): void {
 
   const server = createServer((req: IncomingMessage, res: ServerResponse) => {
     if (req.url === '/api/stats') {
-      res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      });
       res.end(JSON.stringify(dashboardState));
     } else {
       res.writeHead(200, {
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'no-store, no-cache, must-revalidate',
-        'Pragma': 'no-cache',
+        Pragma: 'no-cache',
       });
       res.end(dashboardHtml);
     }
@@ -578,16 +662,18 @@ async function fetchShardStats(port: number): Promise<DashboardState | null> {
   try {
     const res = await fetch(`http://127.0.0.1:${port}/api/stats`);
     if (!res.ok) return null;
-    return await res.json() as DashboardState;
+    return (await res.json()) as DashboardState;
   } catch {
     return null;
   }
 }
 
-function mergeHistory(histories: Array<{ t: number; samples: number }[]>): Array<{ t: number; samples: number }> {
-  const nonEmpty = histories.filter(h => h.length > 0);
+function mergeHistory(
+  histories: Array<{ t: number; samples: number }[]>,
+): Array<{ t: number; samples: number }> {
+  const nonEmpty = histories.filter((h) => h.length > 0);
   if (nonEmpty.length === 0) return [];
-  const minLen = Math.min(...nonEmpty.map(h => h.length));
+  const minLen = Math.min(...nonEmpty.map((h) => h.length));
   const merged: Array<{ t: number; samples: number }> = [];
   for (let i = 0; i < minLen; i++) {
     let samples = 0;
@@ -606,44 +692,51 @@ function median(values: number[]): number {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 0
-    ? (sorted[mid - 1] + sorted[mid]) / 2
-    : sorted[mid];
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
 }
 
 function aggregateShardStates(states: DashboardState[]): DashboardState {
-  const active = states.length > 0 ? states : [{
-    ...dashboardState,
-    currentSamples: 0,
-    initialSamples: 0,
-    newThisSession: 0,
-    target: 0,
-    rate: 0,
-    etaHours: Infinity,
-    elapsedHours: 0,
-    isTraining: false,
-    trainingSessions: 0,
-    trainEvery: 0,
-    nextTrainThreshold: 0,
-    freeRAM: 0,
-    rooms: [],
-    history: [],
-    events: [],
-    streetCounts: { PREFLOP: 0, FLOP: 0, TURN: 0, RIVER: 0 },
-  }];
+  const active =
+    states.length > 0
+      ? states
+      : [
+          {
+            ...dashboardState,
+            currentSamples: 0,
+            initialSamples: 0,
+            newThisSession: 0,
+            target: 0,
+            rate: 0,
+            etaHours: Infinity,
+            elapsedHours: 0,
+            isTraining: false,
+            trainingSessions: 0,
+            trainEvery: 0,
+            nextTrainThreshold: 0,
+            freeRAM: 0,
+            rooms: [],
+            history: [],
+            events: [],
+            streetCounts: { PREFLOP: 0, FLOP: 0, TURN: 0, RIVER: 0 },
+          },
+        ];
 
   // Shards currently share the same dataset path, so progress metrics are global and duplicated.
   // Use one representative shard for dataset-global fields; sum only truly per-shard capacity fields.
-  const primary = active.reduce((best, s) => (s.currentSamples >= best.currentSamples ? s : best), active[0]);
+  const primary = active.reduce(
+    (best, s) => (s.currentSamples >= best.currentSamples ? s : best),
+    active[0],
+  );
   const totalCurrent = primary.currentSamples;
-  const totalTarget = Math.max(...active.map(x => x.target));
-  const rateCandidates = active.map(x => x.rate).filter(v => Number.isFinite(v) && v > 0);
-  const totalRate = rateCandidates.length > 0
-    ? median(rateCandidates)
-    : Math.max(...active.map(x => (Number.isFinite(x.rate) ? x.rate : 0)));
+  const totalTarget = Math.max(...active.map((x) => x.target));
+  const rateCandidates = active.map((x) => x.rate).filter((v) => Number.isFinite(v) && v > 0);
+  const totalRate =
+    rateCandidates.length > 0
+      ? median(rateCandidates)
+      : Math.max(...active.map((x) => (Number.isFinite(x.rate) ? x.rate : 0)));
   const totalInitial = primary.initialSamples;
   const totalNew = primary.newThisSession;
-  const freeRamCandidates = active.map(x => x.freeRAM).filter(v => Number.isFinite(v) && v > 0);
+  const freeRamCandidates = active.map((x) => x.freeRAM).filter((v) => Number.isFinite(v) && v > 0);
   const remaining = Math.max(0, totalTarget - totalCurrent);
   const eta = totalRate > 0 ? remaining / totalRate : Infinity;
 
@@ -655,15 +748,15 @@ function aggregateShardStates(states: DashboardState[]): DashboardState {
     target: totalTarget,
     rate: totalRate,
     etaHours: eta,
-    elapsedHours: Math.max(...active.map(x => x.elapsedHours)),
-    isTraining: active.some(x => x.isTraining),
-    trainingSessions: Math.max(...active.map(x => x.trainingSessions)),
-    trainEvery: Math.max(...active.map(x => x.trainEvery)),
-    nextTrainThreshold: Math.max(...active.map(x => x.nextTrainThreshold)),
+    elapsedHours: Math.max(...active.map((x) => x.elapsedHours)),
+    isTraining: active.some((x) => x.isTraining),
+    trainingSessions: Math.max(...active.map((x) => x.trainingSessions)),
+    trainEvery: Math.max(...active.map((x) => x.trainEvery)),
+    nextTrainThreshold: Math.max(...active.map((x) => x.nextTrainThreshold)),
     freeRAM: freeRamCandidates.length > 0 ? Math.min(...freeRamCandidates) : 0,
-    rooms: active.flatMap(x => x.rooms ?? []),
-    history: primary.history ?? mergeHistory(active.map(x => x.history ?? [])),
-    events: active.flatMap(x => x.events ?? []).slice(0, 100),
+    rooms: active.flatMap((x) => x.rooms ?? []),
+    history: primary.history ?? mergeHistory(active.map((x) => x.history ?? [])),
+    events: active.flatMap((x) => x.events ?? []).slice(0, 100),
     streetCounts: primary.streetCounts ?? { PREFLOP: 0, FLOP: 0, TURN: 0, RIVER: 0 },
   };
 }
@@ -672,21 +765,28 @@ function startAggregateDashboardServer(port: number, shardPorts: number[]): void
   const dashboardHtml = readFileSync(join(__dirname, 'dashboard.html'), 'utf-8');
   const server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
     if (req.url === '/api/stats') {
-      const shardStates = await Promise.all(shardPorts.map(p => fetchShardStats(p)));
+      const shardStates = await Promise.all(shardPorts.map((p) => fetchShardStats(p)));
       const activeStates = shardStates.filter((s): s is DashboardState => s != null);
       const merged = aggregateShardStates(activeStates);
-      res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      });
       res.end(JSON.stringify(merged));
       return;
     }
     res.writeHead(200, {
       'Content-Type': 'text/html; charset=utf-8',
       'Cache-Control': 'no-store, no-cache, must-revalidate',
-      'Pragma': 'no-cache',
+      Pragma: 'no-cache',
     });
     res.end(dashboardHtml);
   });
-  server.listen(port, () => log(`Aggregate dashboard running at http://localhost:${port} (shards: ${shardPorts.join(',')})`));
+  server.listen(port, () =>
+    log(
+      `Aggregate dashboard running at http://localhost:${port} (shards: ${shardPorts.join(',')})`,
+    ),
+  );
 }
 
 // ── Main ──
@@ -697,30 +797,52 @@ async function main(): Promise<void> {
   // Parent mode: fan out multiple shard processes to use multi-core CPU.
   if (config.shards > 1 && config.shardIndex === 0 && !config.shardWorker) {
     log(`Launching ${config.shards} self-play shards...`);
-    const shardPorts = Array.from({ length: config.shards }, (_, i) => config.dashboardPort + i + 1);
+    const shardPorts = Array.from(
+      { length: config.shards },
+      (_, i) => config.dashboardPort + i + 1,
+    );
     startAggregateDashboardServer(config.dashboardPort, shardPorts);
     const children: ChildProcess[] = [];
     for (let i = 0; i < config.shards; i++) {
       const childArgs = [
-        'tsx', join(__dirname, 'self-play.ts'),
-        '--servers', config.servers.join(','),
-        '--bots-per-room', String(config.botsPerRoom),
-        '--train-every', String(config.trainEvery),
-        '--target', String(config.target),
-        '--big-blind', String(config.bigBlind),
-        '--buy-in', String(config.buyIn),
-        '--dashboard-port', String(shardPorts[i]),
-        '--mode', config.mode,
-        '--version', config.version,
-        '--min-rate', String(config.minRate),
-        '--min-rate-grace-min', String(config.minRateGraceMinutes),
-        '--recover-rooms', String(config.recoverRooms),
-        '--recover-cooldown-min', String(config.recoverCooldownMinutes),
-        '--max-rooms-per-server', String(config.maxRoomsPerServer),
-        '--quality-cooldown-min', String(config.qualityCooldownMinutes),
-        '--shards', String(config.shards),
-        '--shard-index', String(i),
-        '--shard-worker', '1',
+        'tsx',
+        join(__dirname, 'self-play.ts'),
+        '--servers',
+        config.servers.join(','),
+        '--bots-per-room',
+        String(config.botsPerRoom),
+        '--train-every',
+        String(config.trainEvery),
+        '--target',
+        String(config.target),
+        '--big-blind',
+        String(config.bigBlind),
+        '--buy-in',
+        String(config.buyIn),
+        '--dashboard-port',
+        String(shardPorts[i]),
+        '--mode',
+        config.mode,
+        '--version',
+        config.version,
+        '--min-rate',
+        String(config.minRate),
+        '--min-rate-grace-min',
+        String(config.minRateGraceMinutes),
+        '--recover-rooms',
+        String(config.recoverRooms),
+        '--recover-cooldown-min',
+        String(config.recoverCooldownMinutes),
+        '--max-rooms-per-server',
+        String(config.maxRoomsPerServer),
+        '--quality-cooldown-min',
+        String(config.qualityCooldownMinutes),
+        '--shards',
+        String(config.shards),
+        '--shard-index',
+        String(i),
+        '--shard-worker',
+        '1',
       ];
       const child = spawn('npx', childArgs, {
         stdio: 'inherit',
@@ -732,7 +854,9 @@ async function main(): Promise<void> {
 
     const stopChildren = () => {
       for (const child of children) {
-        try { child.kill('SIGTERM'); } catch {}
+        try {
+          child.kill('SIGTERM');
+        } catch {}
       }
     };
     process.on('SIGINT', stopChildren);
@@ -743,7 +867,9 @@ async function main(): Promise<void> {
 
   // Worker mode: split work by shard index when possible.
   if (config.shards > 1) {
-    const shardServers = config.servers.filter((_, idx) => (idx % config.shards) === config.shardIndex);
+    const shardServers = config.servers.filter(
+      (_, idx) => idx % config.shards === config.shardIndex,
+    );
     if (shardServers.length > 0) config.servers = shardServers;
   }
   const isCoordinatorShard = config.shards <= 1 || config.shardIndex === 0;
@@ -778,14 +904,21 @@ async function main(): Promise<void> {
   log('╔══════════════════════════════════════════════════╗');
   log('║       CardPilot Self-Play Training Pipeline      ║');
   log('╚══════════════════════════════════════════════════╝');
-  const freeGB = freemem() / (1024 ** 3);
-  const initialRooms = calcIdealRooms(config.botsPerRoom, 0, config.servers.length, config.maxRoomsPerServer);
+  const freeGB = freemem() / 1024 ** 3;
+  const initialRooms = calcIdealRooms(
+    config.botsPerRoom,
+    0,
+    config.servers.length,
+    config.maxRoomsPerServer,
+  );
   log(`Servers:      ${config.servers.join(', ')}`);
   log(`Mode:         ${config.mode} | Version: ${config.version}`);
   log(`Profiles:     ${config.mode === 'train' ? 'all gto_balanced (TRAIN)' : 'mixed (PLAY)'}`);
   log(`Free RAM:     ${freeGB.toFixed(1)} GB`);
   log(`Initial rooms: ${initialRooms} (${initialRooms * config.botsPerRoom} in-process bots)`);
-  log(`Room cap:     ${config.servers.length} servers × ${config.maxRoomsPerServer}/server = ${config.servers.length * config.maxRoomsPerServer} max`);
+  log(
+    `Room cap:     ${config.servers.length} servers × ${config.maxRoomsPerServer}/server = ${config.servers.length * config.maxRoomsPerServer} max`,
+  );
   log(`Auto-scale:   ON (every ${SCALE_CHECK_MS / 60000} min, RAM ≤ ${RAM_TARGET_USAGE * 100}%)`);
   log(`Train every:  ${formatNumber(config.trainEvery)} samples`);
   log(`Target:       ${formatNumber(config.target)} samples`);
@@ -806,7 +939,9 @@ async function main(): Promise<void> {
   const initialSamples = sampleCounter.total;
   log(`Existing samples: ${formatNumber(initialSamples)}`);
   if (config.minRate > 0) {
-    log(`Min rate guard: ${formatNumber(Math.round(config.minRate))}/hr, grace=${config.minRateGraceMinutes}m, recover=${config.recoverRooms} room(s), cooldown=${config.recoverCooldownMinutes}m`);
+    log(
+      `Min rate guard: ${formatNumber(Math.round(config.minRate))}/hr, grace=${config.minRateGraceMinutes}m, recover=${config.recoverRooms} room(s), cooldown=${config.recoverCooldownMinutes}m`,
+    );
   } else {
     log('Min rate guard: disabled');
   }
@@ -819,7 +954,11 @@ async function main(): Promise<void> {
   dashboardState.pipelineVersion = config.version;
   dashboardState.pipelineMode = config.mode;
   dashboardState.history.push({ t: Date.now(), samples: initialSamples });
-  addEvent('START', 'milestone', `Pipeline started (${config.version}/${config.mode}) — ${formatNumber(initialSamples)} existing, ${config.servers.length} servers, cap ${config.servers.length * config.maxRoomsPerServer} rooms`);
+  addEvent(
+    'START',
+    'milestone',
+    `Pipeline started (${config.version}/${config.mode}) — ${formatNumber(initialSamples)} existing, ${config.servers.length} servers, cap ${config.servers.length * config.maxRoomsPerServer} rooms`,
+  );
   startDashboardServer(config.dashboardPort);
 
   // State
@@ -830,14 +969,17 @@ async function main(): Promise<void> {
   let isScaling = false;
   let lowRateSinceMs: number | null = null;
   let lastRecoveryAtMs = 0;
-  const rollingHistory: { t: number; samples: number }[] = [{ t: Date.now(), samples: initialSamples }];
+  const rollingHistory: { t: number; samples: number }[] = [
+    { t: Date.now(), samples: initialSamples },
+  ];
   let lastLoopP99Ms = 0;
   const eventLoopHist = monitorEventLoopDelay({ resolution: 20 });
   eventLoopHist.enable();
   let quality: EvTeacherQualityProfile = 'normal';
   let lastQualityChangeMs = 0;
 
-  const dynamicQualityEnabled = config.mode === 'train' && config.version === 'v2' && config.minRate > 0;
+  const dynamicQualityEnabled =
+    config.mode === 'train' && config.version === 'v2' && config.minRate > 0;
   if (dynamicQualityEnabled) {
     setEvTeacherQualityProfile('normal');
     const q = getEvTeacherQualityState();
@@ -846,23 +988,28 @@ async function main(): Promise<void> {
 
   // ── Centralized model hot-reload (every 5 min, updates all bots at once) ──
   let lastModelMtime = 0;
-  try { lastModelMtime = statSync(modelPath).mtimeMs; } catch {}
-  const modelReloadInterval = setInterval(() => {
-    try {
-      const mtime = statSync(modelPath).mtimeMs;
-      if (mtime > lastModelMtime) {
-        const newModel = loadModel(modelPath);
-        if (newModel) {
-          sharedModel = newModel;
-          lastModelMtime = mtime;
-          log('Shared model hot-reloaded — updating all bots');
-          for (const room of liveRooms) {
-            for (const bot of room.bots) bot.setModel(sharedModel);
+  try {
+    lastModelMtime = statSync(modelPath).mtimeMs;
+  } catch {}
+  const modelReloadInterval = setInterval(
+    () => {
+      try {
+        const mtime = statSync(modelPath).mtimeMs;
+        if (mtime > lastModelMtime) {
+          const newModel = loadModel(modelPath);
+          if (newModel) {
+            sharedModel = newModel;
+            lastModelMtime = mtime;
+            log('Shared model hot-reloaded — updating all bots');
+            for (const room of liveRooms) {
+              for (const bot of room.bots) bot.setModel(sharedModel);
+            }
           }
         }
-      }
-    } catch {}
-  }, 5 * 60 * 1000);
+      } catch {}
+    },
+    5 * 60 * 1000,
+  );
 
   // ── Wait for all game servers to be ready ──
   log('Waiting for game servers...');
@@ -874,7 +1021,7 @@ async function main(): Promise<void> {
         break;
       } catch {
         if (attempt === 20) log(`  ${serverUrl} — FAILED (continuing without it)`);
-        else await new Promise(r => setTimeout(r, 2000));
+        else await new Promise((r) => setTimeout(r, 2000));
       }
     }
   }
@@ -887,7 +1034,11 @@ async function main(): Promise<void> {
       liveRooms.push(room);
       syncDashboardRooms(liveRooms, config.botsPerRoom);
       const port = new URL(serverUrl).port;
-      addEvent('ROOM', 'success', `Room ${room.roomCode} on :${port} (${config.botsPerRoom} in-process bots)`);
+      addEvent(
+        'ROOM',
+        'success',
+        `Room ${room.roomCode} on :${port} (${config.botsPerRoom} in-process bots)`,
+      );
     } catch (err) {
       log(`Failed to create room on ${serverUrl}: ${(err as Error).message}`);
     }
@@ -908,8 +1059,8 @@ async function main(): Promise<void> {
     isScaling = true;
 
     try {
-      const totalGB = totalmem() / (1024 ** 3);
-      const currentFreeGB = freemem() / (1024 ** 3);
+      const totalGB = totalmem() / 1024 ** 3;
+      const currentFreeGB = freemem() / 1024 ** 3;
       const usagePct = ((totalGB - currentFreeGB) / totalGB) * 100;
       dashboardState.freeRAM = currentFreeGB;
       const loopCritical = lastLoopP99Ms >= EVENT_LOOP_CRITICAL_P99_MS;
@@ -919,14 +1070,27 @@ async function main(): Promise<void> {
         const room = liveRooms.pop()!;
         teardownRoom(room);
         syncDashboardRooms(liveRooms, config.botsPerRoom);
-        log(`[auto-scale] EMERGENCY scale-down (RAM ${usagePct.toFixed(0)}%) → ${liveRooms.length} rooms`);
-        addEvent('WARN', 'error', `Emergency scale-down: RAM ${usagePct.toFixed(0)}% → ${liveRooms.length} rooms`);
+        log(
+          `[auto-scale] EMERGENCY scale-down (RAM ${usagePct.toFixed(0)}%) → ${liveRooms.length} rooms`,
+        );
+        addEvent(
+          'WARN',
+          'error',
+          `Emergency scale-down: RAM ${usagePct.toFixed(0)}% → ${liveRooms.length} rooms`,
+        );
         isScaling = false;
         return;
       }
 
-      const ideal = calcIdealRooms(config.botsPerRoom, liveRooms.length, config.servers.length, config.maxRoomsPerServer);
-      log(`[auto-scale] RAM: ${currentFreeGB.toFixed(1)} GB free (${usagePct.toFixed(0)}% used), loop p99=${lastLoopP99Ms.toFixed(1)}ms | rooms: ${liveRooms.length} → ideal: ${ideal}`);
+      const ideal = calcIdealRooms(
+        config.botsPerRoom,
+        liveRooms.length,
+        config.servers.length,
+        config.maxRoomsPerServer,
+      );
+      log(
+        `[auto-scale] RAM: ${currentFreeGB.toFixed(1)} GB free (${usagePct.toFixed(0)}% used), loop p99=${lastLoopP99Ms.toFixed(1)}ms | rooms: ${liveRooms.length} → ideal: ${ideal}`,
+      );
 
       // Scale UP (round-robin across servers)
       if (ideal > liveRooms.length && !loopCritical) {
@@ -938,9 +1102,13 @@ async function main(): Promise<void> {
             liveRooms.push(room);
             syncDashboardRooms(liveRooms, config.botsPerRoom);
             const port = new URL(serverUrl).port;
-            addEvent('SCALE', 'success', `Scaled UP → ${liveRooms.length} rooms on :${port} (${currentFreeGB.toFixed(1)} GB free)`);
+            addEvent(
+              'SCALE',
+              'success',
+              `Scaled UP → ${liveRooms.length} rooms on :${port} (${currentFreeGB.toFixed(1)} GB free)`,
+            );
             log(`[auto-scale] +1 room on :${port} → ${liveRooms.length} total`);
-            await new Promise(r => setTimeout(r, 1000));
+            await new Promise((r) => setTimeout(r, 1000));
           } catch (err) {
             log(`[auto-scale] Failed to add room: ${(err as Error).message}`);
             break;
@@ -950,13 +1118,20 @@ async function main(): Promise<void> {
 
       // Scale DOWN
       if ((ideal < liveRooms.length || loopCritical) && liveRooms.length > 1) {
-        const toRemove = Math.min(SCALE_STEP_LIMIT, Math.max(liveRooms.length - ideal, loopCritical ? 1 : 0));
+        const toRemove = Math.min(
+          SCALE_STEP_LIMIT,
+          Math.max(liveRooms.length - ideal, loopCritical ? 1 : 0),
+        );
         for (let i = 0; i < toRemove && liveRooms.length > 1; i++) {
           const room = liveRooms.pop()!;
           teardownRoom(room);
           syncDashboardRooms(liveRooms, config.botsPerRoom);
           log(`[auto-scale] -1 room (${room.roomCode}) → ${liveRooms.length} total`);
-          addEvent('SCALE', 'error', `Scaled DOWN → ${liveRooms.length} rooms (RAM ${usagePct.toFixed(0)}%)`);
+          addEvent(
+            'SCALE',
+            'error',
+            `Scaled DOWN → ${liveRooms.length} rooms (RAM ${usagePct.toFixed(0)}%)`,
+          );
         }
       }
     } catch (err) {
@@ -972,8 +1147,14 @@ async function main(): Promise<void> {
     isScaling = true;
     try {
       const recycleCount = Math.max(1, Math.min(config.recoverRooms, liveRooms.length));
-      addEvent('RECOVER', 'error', `Low rate ${formatNumber(Math.round(currentRollingRate))}/hr < ${formatNumber(Math.round(config.minRate))}/hr, recycling ${recycleCount} room(s)`);
-      log(`[watchdog] Low rate detected (${Math.round(currentRollingRate)}/hr). Recycling ${recycleCount} room(s)...`);
+      addEvent(
+        'RECOVER',
+        'error',
+        `Low rate ${formatNumber(Math.round(currentRollingRate))}/hr < ${formatNumber(Math.round(config.minRate))}/hr, recycling ${recycleCount} room(s)`,
+      );
+      log(
+        `[watchdog] Low rate detected (${Math.round(currentRollingRate)}/hr). Recycling ${recycleCount} room(s)...`,
+      );
 
       for (let i = 0; i < recycleCount; i++) {
         const oldRoom = liveRooms.pop();
@@ -1012,7 +1193,8 @@ async function main(): Promise<void> {
 
     rollingHistory.push({ t: now, samples: currentSamples });
     const rollingWindowMs = Math.max(config.minRateGraceMinutes * 60_000, 180_000);
-    while (rollingHistory.length > 2 && rollingHistory[0].t < now - rollingWindowMs) rollingHistory.shift();
+    while (rollingHistory.length > 2 && rollingHistory[0].t < now - rollingWindowMs)
+      rollingHistory.shift();
     const oldest = rollingHistory[0];
     const rollingElapsedHrs = Math.max((now - oldest.t) / 3_600_000, 1 / 3600);
     const rollingRate = (currentSamples - oldest.samples) / rollingElapsedHrs;
@@ -1021,15 +1203,15 @@ async function main(): Promise<void> {
 
     const progress = Math.min(100, (currentSamples / config.target) * 100);
     const bar = '█'.repeat(Math.floor(progress / 5)) + '░'.repeat(20 - Math.floor(progress / 5));
-    const ramGB = (freemem() / (1024 ** 3)).toFixed(1);
+    const ramGB = (freemem() / 1024 ** 3).toFixed(1);
 
     log(
       `[${bar}] ${progress.toFixed(1)}% | ` +
-      `${formatNumber(currentSamples)} / ${formatNumber(config.target)} (+${formatNumber(deltaSinceLast)}) | ` +
-      `${formatNumber(Math.round(rate))}/hr avg | ` +
-      `${formatNumber(Math.round(deltaRate))}/hr now | ` +
-      `ETA: ${remaining > 0 ? formatDuration(etaHours) : 'DONE!'} | ` +
-      `${liveRooms.length} rooms | RAM: ${ramGB} GB | loop p99=${lastLoopP99Ms.toFixed(1)}ms`
+        `${formatNumber(currentSamples)} / ${formatNumber(config.target)} (+${formatNumber(deltaSinceLast)}) | ` +
+        `${formatNumber(Math.round(rate))}/hr avg | ` +
+        `${formatNumber(Math.round(deltaRate))}/hr now | ` +
+        `ETA: ${remaining > 0 ? formatDuration(etaHours) : 'DONE!'} | ` +
+        `${liveRooms.length} rooms | RAM: ${ramGB} GB | loop p99=${lastLoopP99Ms.toFixed(1)}ms`,
     );
 
     // Update dashboard
@@ -1052,7 +1234,7 @@ async function main(): Promise<void> {
       if (rollingRate < config.minRate * 0.8) targetQuality = 'low';
       else if (rollingRate > config.minRate * 1.25) targetQuality = 'high';
       else if (rollingRate >= config.minRate * 0.95 && quality === 'low') targetQuality = 'normal';
-      else if (rollingRate <= config.minRate * 1.10 && quality === 'high') targetQuality = 'normal';
+      else if (rollingRate <= config.minRate * 1.1 && quality === 'high') targetQuality = 'normal';
 
       const qualityCooldownMs = config.qualityCooldownMinutes * 60_000;
       if (targetQuality !== quality && now - lastQualityChangeMs >= qualityCooldownMs) {
@@ -1060,8 +1242,14 @@ async function main(): Promise<void> {
         quality = targetQuality;
         lastQualityChangeMs = now;
         const q = getEvTeacherQualityState();
-        addEvent('QUALITY', 'train', `EV quality → ${q.profile} (${q.iterations} iters / ${q.timeLimitMs}ms)`);
-        log(`[quality] EV teacher set to ${q.profile} (${q.iterations} iters / ${q.timeLimitMs}ms)`);
+        addEvent(
+          'QUALITY',
+          'train',
+          `EV quality → ${q.profile} (${q.iterations} iters / ${q.timeLimitMs}ms)`,
+        );
+        log(
+          `[quality] EV teacher set to ${q.profile} (${q.iterations} iters / ${q.timeLimitMs}ms)`,
+        );
       }
     }
 
@@ -1077,7 +1265,12 @@ async function main(): Promise<void> {
       const cooldownMs = config.recoverCooldownMinutes * 60_000;
       const coolingDown = now - lastRecoveryAtMs < cooldownMs;
       const canRecoverRooms = !dynamicQualityEnabled || quality === 'low';
-      if (lowRateSinceMs != null && now - lowRateSinceMs >= graceMs && !coolingDown && canRecoverRooms) {
+      if (
+        lowRateSinceMs != null &&
+        now - lowRateSinceMs >= graceMs &&
+        !coolingDown &&
+        canRecoverRooms
+      ) {
         await recoverLowRate(rollingRate);
         lowRateSinceMs = null;
       }
@@ -1092,7 +1285,8 @@ async function main(): Promise<void> {
         dashboardState.isTraining = true;
         addEvent('TRAIN', 'train', `Final ${config.version} training triggered`);
         try {
-          if (config.version === 'v2') await runTrainerV2(); else await runTrainer();
+          if (config.version === 'v2') await runTrainerV2();
+          else await runTrainer();
           dashboardState.trainingSessions++;
           // Load metrics after training
           dashboardState.v1Metrics = loadMetrics('model-latest');
@@ -1112,14 +1306,23 @@ async function main(): Promise<void> {
       dashboardState.isTraining = true;
       nextTrainThreshold += config.trainEvery;
       dashboardState.nextTrainThreshold = nextTrainThreshold;
-      addEvent('TRAIN', 'train', `${config.version.toUpperCase()} training at ${formatNumber(currentSamples)} samples`);
+      addEvent(
+        'TRAIN',
+        'train',
+        `${config.version.toUpperCase()} training at ${formatNumber(currentSamples)} samples`,
+      );
       try {
-        if (config.version === 'v2') await runTrainerV2(); else await runTrainer();
+        if (config.version === 'v2') await runTrainerV2();
+        else await runTrainer();
         dashboardState.trainingSessions++;
         // Load metrics after training
         dashboardState.v1Metrics = loadMetrics('model-latest');
         dashboardState.v2Metrics = loadMetrics('model-v2-latest');
-        addEvent('DONE', 'success', `${config.version.toUpperCase()} training complete — model updated`);
+        addEvent(
+          'DONE',
+          'success',
+          `${config.version.toUpperCase()} training complete — model updated`,
+        );
       } catch (err) {
         log(`Training error (non-fatal): ${(err as Error).message}`);
         addEvent('ERROR', 'error', `Training failed: ${(err as Error).message}`);

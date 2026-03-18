@@ -6,7 +6,13 @@ import type { RaiseContext } from './raise-context.js';
 import type { BotPersona } from './persona.js';
 
 export type PostflopSizeCategory = 'third_pot' | 'half_pot' | 'two_thirds_pot' | 'pot' | 'overbet';
-export type PreflopSizeCategory = 'min_open' | 'standard_open' | 'large_open' | '3bet_small' | '3bet_large' | '4bet';
+export type PreflopSizeCategory =
+  | 'min_open'
+  | 'standard_open'
+  | 'large_open'
+  | '3bet_small'
+  | '3bet_large'
+  | '4bet';
 
 export interface SizingDecision {
   amount: number;
@@ -74,7 +80,7 @@ function choosePreflopSizing(input: SizingInput): SizingDecision {
     category = '4bet';
   } else {
     // facing 4bet+: just jam or make a standard raise
-    target = (raiseContext.raiseSize * bb) * 2.2;
+    target = raiseContext.raiseSize * bb * 2.2;
     category = '4bet';
   }
 
@@ -84,12 +90,13 @@ function choosePreflopSizing(input: SizingInput): SizingDecision {
 
 // ===== Postflop sizing =====
 function choosePostflopSizing(input: SizingInput): SizingDecision {
-  const { pot, toCall, handStrength, boardTexture, street, persona, minRaiseTo, maxRaiseTo } = input;
+  const { pot, toCall, handStrength, boardTexture, street, persona, minRaiseTo, maxRaiseTo } =
+    input;
 
   // Candidate sizes
   const candidates: { category: PostflopSizeCategory; size: number; score: number }[] = [
     { category: 'third_pot', size: pot * 0.33, score: 0 },
-    { category: 'half_pot', size: pot * 0.50, score: 0 },
+    { category: 'half_pot', size: pot * 0.5, score: 0 },
     { category: 'two_thirds_pot', size: pot * 0.66, score: 0 },
     { category: 'pot', size: pot * 1.0, score: 0 },
     { category: 'overbet', size: pot * 1.5, score: 0 },
@@ -132,7 +139,7 @@ function choosePostflopSizing(input: SizingInput): SizingDecision {
     // Medium: thinner value or protection
     candidates[1].score += 2; // half_pot
     candidates[0].score += 1; // third_pot
-  } else if (handStrength >= 0.30) {
+  } else if (handStrength >= 0.3) {
     // Draw / semi-bluff: cheap
     candidates[0].score += 2; // third_pot (cheap semi-bluff)
     candidates[1].score += 1; // half_pot

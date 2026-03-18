@@ -83,13 +83,13 @@ function resolveSpot(
   // Opening ranges: hero is in an unopened pot
   if (facingType === 'unopened') {
     const openSpots: Record<string, string> = {
-      'UTG': 'UTG_unopened_open2.5x',
-      'HJ': 'HJ_unopened_open2.5x',
-      'CO': 'CO_unopened_open2.5x',
-      'BTN': 'BTN_unopened_open2.5x',
-      'SB': 'SB_unopened_open2.5x',
+      UTG: 'UTG_unopened_open2.5x',
+      HJ: 'HJ_unopened_open2.5x',
+      CO: 'CO_unopened_open2.5x',
+      BTN: 'BTN_unopened_open2.5x',
+      SB: 'SB_unopened_open2.5x',
       // MP falls back to UTG (more conservative, safe default)
-      'MP': 'UTG_unopened_open2.5x',
+      MP: 'UTG_unopened_open2.5x',
     };
     return openSpots[heroPosition] ?? null;
   }
@@ -97,12 +97,12 @@ function resolveSpot(
   // BB defense: hero is BB facing an open raise
   if (facingType === 'facing_open' && heroPosition === 'BB' && raiserPosition) {
     const defenseSpots: Record<string, string> = {
-      'UTG': 'BB_vs_UTG_facing_open2.5x',
-      'MP': 'BB_vs_UTG_facing_open2.5x', // MP → use UTG (tighter defense)
-      'HJ': 'BB_vs_UTG_facing_open2.5x', // HJ → use UTG (closest available)
-      'CO': 'BB_vs_CO_facing_open2.5x',
-      'BTN': 'BB_vs_BTN_facing_open2.5x',
-      'SB': 'BB_vs_BTN_facing_open2.5x', // SB → use BTN (widest defense)
+      UTG: 'BB_vs_UTG_facing_open2.5x',
+      MP: 'BB_vs_UTG_facing_open2.5x', // MP → use UTG (tighter defense)
+      HJ: 'BB_vs_UTG_facing_open2.5x', // HJ → use UTG (closest available)
+      CO: 'BB_vs_CO_facing_open2.5x',
+      BTN: 'BB_vs_BTN_facing_open2.5x',
+      SB: 'BB_vs_BTN_facing_open2.5x', // SB → use BTN (widest defense)
     };
     return defenseSpots[raiserPosition] ?? null;
   }

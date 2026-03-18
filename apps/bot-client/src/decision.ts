@@ -13,11 +13,16 @@ import type { MoodState } from './mood.js';
 import type { OpponentAdjustment } from './opponent-model.js';
 import type { RaiseContext } from './raise-context.js';
 import type { BoardTexture } from './board-integration.js';
+import type { RealtimeResolver } from './realtime-resolver.js';
 import { encodeFeatures, encodeFeaturesV2, type MLP } from '@cardpilot/fast-model';
 import { applyPersona } from './persona.js';
 import { getMoodMultipliers } from './mood.js';
 import { analyzeRaiseContext } from './raise-context.js';
-import { getBoardTexture, computeBoardTextureAdjustment, detectAggressor } from './board-integration.js';
+import {
+  getBoardTexture,
+  computeBoardTextureAdjustment,
+  detectAggressor,
+} from './board-integration.js';
 import { chooseSizing } from './sizing.js';
 import { lookupPreflopChart } from './preflop-chart.js';
 import { shouldInjectMistake, injectMistake } from './mistake-budget.js';
@@ -126,19 +131,19 @@ function getPositionAdjustment(
   switch (group) {
     case 'ip':
       return postflop
-        ? { raise: 1.20, call: 1.10, fold: 0.80 }
+        ? { raise: 1.2, call: 1.1, fold: 0.8 }
         : { raise: 1.15, call: 1.05, fold: 0.88 };
     case 'oop':
       return postflop
-        ? { raise: 0.85, call: 0.90, fold: 1.15 }
-        : { raise: 0.90, call: 0.95, fold: 1.10 };
+        ? { raise: 0.85, call: 0.9, fold: 1.15 }
+        : { raise: 0.9, call: 0.95, fold: 1.1 };
     case 'bb':
       if (!postflop && !unopened) {
         // BB facing a raise: defend wider (pot odds from blind already invested)
-        return { raise: 1.0, call: 1.25, fold: 0.80 };
+        return { raise: 1.0, call: 1.25, fold: 0.8 };
       }
       return postflop
-        ? { raise: 0.90, call: 0.95, fold: 1.10 }
+        ? { raise: 0.9, call: 0.95, fold: 1.1 }
         : { raise: 1.0, call: 1.05, fold: 0.95 };
     default:
       return { raise: 1.0, call: 1.0, fold: 1.0 };
@@ -187,7 +192,10 @@ function detectDonkSpot(state: TableState, mySeat: number): { isDonkSpot: boolea
 // ===== Donk guardrail: graduated suppression =====
 // Returns adjusted mix, or null if exempt (strong hand / low SPR / wet-board draw).
 function applyDonkGuardrail(
-  m: Mix, strength: number | null, spr: number, boardTexture: BoardTexture | null,
+  m: Mix,
+  strength: number | null,
+  spr: number,
+  boardTexture: BoardTexture | null,
 ): Mix | null {
   const s = strength ?? 0.5;
 
@@ -199,7 +207,7 @@ function applyDonkGuardrail(
   if (s >= 0.35 && s < 0.45 && boardTexture && boardTexture.wetness > 0.5) return null;
 
   // Graduated suppression: stronger hands get less reduction
-  const factor = s >= 0.60 ? 0.40 : DONK_SUPPRESS_FACTOR;
+  const factor = s >= 0.6 ? 0.4 : DONK_SUPPRESS_FACTOR;
   const raiseBefore = m.raise;
   const raiseAfter = raiseBefore * factor;
   const shifted = raiseBefore - raiseAfter;
@@ -214,8 +222,19 @@ function applyDonkGuardrail(
 // ===== Quick hand strength evaluator (self-contained, no external deps) =====
 
 const RANK_VALUES: Record<string, number> = {
-  'A': 14, 'K': 13, 'Q': 12, 'J': 11, 'T': 10,
-  '9': 9, '8': 8, '7': 7, '6': 6, '5': 5, '4': 4, '3': 3, '2': 2,
+  A: 14,
+  K: 13,
+  Q: 12,
+  J: 11,
+  T: 10,
+  '9': 9,
+  '8': 8,
+  '7': 7,
+  '6': 6,
+  '5': 5,
+  '4': 4,
+  '3': 3,
+  '2': 2,
 };
 
 function rankValue(r: string): number {
@@ -255,15 +274,15 @@ export function quickHandStrength(
   }
 
   // Postflop: check for made hands
-  const boardRanks = board.map(c => c[0]);
-  const boardSuits = board.map(c => c[1]);
+  const boardRanks = board.map((c) => c[0]);
+  const boardSuits = board.map((c) => c[1]);
   const heroR1 = holeCards[0][0];
   const heroR2 = holeCards[1][0];
   const heroS1 = holeCards[0][1];
   const heroS2 = holeCards[1][1];
 
-  const r1Matches = boardRanks.filter(r => r === heroR1).length;
-  const r2Matches = boardRanks.filter(r => r === heroR2).length;
+  const r1Matches = boardRanks.filter((r) => r === heroR1).length;
+  const r2Matches = boardRanks.filter((r) => r === heroR2).length;
 
   // Set (pocket pair + one on board)
   if (paired && r1Matches >= 1) return 0.95;
@@ -276,11 +295,11 @@ export function quickHandStrength(
   if (r2Matches >= 2) return 0.88;
 
   // Two pair
-  if (r1Matches >= 1 && r2Matches >= 1) return 0.80;
+  if (r1Matches >= 1 && r2Matches >= 1) return 0.8;
 
   // Overpair / underpair
   if (paired) {
-    const maxBoardRank = Math.max(...boardRanks.map(r => rankValue(r)));
+    const maxBoardRank = Math.max(...boardRanks.map((r) => rankValue(r)));
     if (r1 > maxBoardRank) return 0.72;
     return 0.55;
   }
@@ -301,15 +320,15 @@ export function quickHandStrength(
   }
 
   // Flush draw check
-  const s1BoardCount = boardSuits.filter(s => s === heroS1).length;
-  const s2BoardCount = boardSuits.filter(s => s === heroS2).length;
+  const s1BoardCount = boardSuits.filter((s) => s === heroS1).length;
+  const s2BoardCount = boardSuits.filter((s) => s === heroS2).length;
   if (s1BoardCount >= 2 || s2BoardCount >= 2) {
-    if (suited && s1BoardCount >= 2) return 0.40;
+    if (suited && s1BoardCount >= 2) return 0.4;
     return 0.35;
   }
 
   // Straight draw
-  const allRankValues = [r1, r2, ...boardRanks.map(r => rankValue(r))];
+  const allRankValues = [r1, r2, ...boardRanks.map((r) => rankValue(r))];
   const uniqueRanks = [...new Set(allRankValues)].sort((a, b) => a - b);
   let maxConsecutive = 1;
   let consecutive = 1;
@@ -346,7 +365,16 @@ function fallbackMix(
   const unopened = isUnopened(state);
 
   // Compute raw mix from hand strength + raise context
-  let rawMix = computeRawFallbackMix(la, toCall, bb, holeCards, state, profile, raiseContext, mcEquity);
+  let rawMix = computeRawFallbackMix(
+    la,
+    toCall,
+    bb,
+    holeCards,
+    state,
+    profile,
+    raiseContext,
+    mcEquity,
+  );
 
   // Apply hero position adjustment
   const heroPos = state.positions[mySeat];
@@ -375,32 +403,33 @@ function computeRawFallbackMix(
       return { raise: 0, call: 0, fold: 1 };
     }
 
-    const str = mcEquity ?? (holeCards ? quickHandStrength(holeCards, state.board, state.street) : 0.5);
+    const str =
+      mcEquity ?? (holeCards ? quickHandStrength(holeCards, state.board, state.street) : 0.5);
     const aggressive = profile.actionWeights.raise > 1.2;
 
     let raiseChance: number;
     if (state.street === 'PREFLOP') {
       // Preflop unopened: prefer raising (opening) over limping
       if (str >= 0.65) {
-        raiseChance = aggressive ? 0.80 : 0.65;
-      } else if (str >= 0.50) {
-        raiseChance = aggressive ? 0.55 : 0.40;
+        raiseChance = aggressive ? 0.8 : 0.65;
+      } else if (str >= 0.5) {
+        raiseChance = aggressive ? 0.55 : 0.4;
       } else if (str >= 0.35) {
-        raiseChance = aggressive ? 0.30 : 0.15;
+        raiseChance = aggressive ? 0.3 : 0.15;
       } else {
         raiseChance = aggressive ? 0.12 : 0.05;
       }
     } else {
       // Postflop: check vs bet based on hand strength
       if (str >= 0.75) {
-        raiseChance = aggressive ? 0.75 : 0.60;
+        raiseChance = aggressive ? 0.75 : 0.6;
       } else if (str >= 0.55) {
-        raiseChance = aggressive ? 0.40 : 0.25;
+        raiseChance = aggressive ? 0.4 : 0.25;
       } else if (str >= 0.35) {
-        raiseChance = aggressive ? 0.20 : 0.10;
+        raiseChance = aggressive ? 0.2 : 0.1;
       } else {
         // Weak: mostly check, small bluff frequency
-        raiseChance = aggressive ? 0.10 : 0.05;
+        raiseChance = aggressive ? 0.1 : 0.05;
       }
     }
 
@@ -411,9 +440,9 @@ function computeRawFallbackMix(
   if (!holeCards) {
     if (toCall <= 3 * bb) {
       const raiseChance = la.canRaise ? 0.08 : 0;
-      return { raise: raiseChance, call: 0.72, fold: 0.20 };
+      return { raise: raiseChance, call: 0.72, fold: 0.2 };
     }
-    return { raise: 0.03, call: 0.30, fold: 0.67 };
+    return { raise: 0.03, call: 0.3, fold: 0.67 };
   }
 
   // Hand-strength-aware fallback — use MC equity when available (more accurate postflop)
@@ -421,10 +450,17 @@ function computeRawFallbackMix(
   const potOdds = toCall / (state.pot + toCall);
 
   // === Raise context adjustments ===
-  const epRaiser = raiseContext.raiserPosition === 'UTG' || raiseContext.raiserPosition === 'UTG+1' || raiseContext.raiserPosition === 'MP';
+  const epRaiser =
+    raiseContext.raiserPosition === 'UTG' ||
+    raiseContext.raiserPosition === 'UTG+1' ||
+    raiseContext.raiserPosition === 'MP';
   const lpRaiser = raiseContext.raiserPosition === 'BTN' || raiseContext.raiserPosition === 'CO';
-  const facing3betPlus = raiseContext.facingType === 'facing_3bet' || raiseContext.facingType === 'facing_4bet_plus';
-  const largeBet = raiseContext.raiseSizeCategory === 'large' || raiseContext.raiseSizeCategory === 'overbet' || raiseContext.raiseSizeCategory === 'allin';
+  const facing3betPlus =
+    raiseContext.facingType === 'facing_3bet' || raiseContext.facingType === 'facing_4bet_plus';
+  const largeBet =
+    raiseContext.raiseSizeCategory === 'large' ||
+    raiseContext.raiseSizeCategory === 'overbet' ||
+    raiseContext.raiseSizeCategory === 'allin';
   const isMultiway = raiseContext.isMultiway;
   const shortSPR = raiseContext.spr < 3;
 
@@ -433,62 +469,98 @@ function computeRawFallbackMix(
     let raiseChance = la.canRaise ? 0.65 : 0;
     const foldChance = 0;
 
-    if (facing3betPlus) raiseChance *= 0.80;
-    if (isMultiway && strength < 0.85) raiseChance *= 0.70;
+    if (facing3betPlus) raiseChance *= 0.8;
+    if (isMultiway && strength < 0.85) raiseChance *= 0.7;
     if (shortSPR) raiseChance = Math.min(raiseChance * 1.2, 0.85);
 
     return { raise: raiseChance, call: 1 - raiseChance - foldChance, fold: foldChance };
   }
 
   // Strong hands (overpair, top pair good kicker)
-  if (strength >= 0.60) {
+  if (strength >= 0.6) {
     let raiseChance = la.canRaise ? 0.35 : 0;
-    let foldChance = 0.10;
+    let foldChance = 0.1;
 
-    if (facing3betPlus) { raiseChance *= 0.60; foldChance += 0.10; }
+    if (facing3betPlus) {
+      raiseChance *= 0.6;
+      foldChance += 0.1;
+    }
     if (largeBet) foldChance += 0.08;
     if (epRaiser) foldChance += 0.05;
-    if (lpRaiser) raiseChance *= 1.10;
-    if (isMultiway) { raiseChance *= 0.70; foldChance += 0.05; }
-    if (shortSPR) { raiseChance *= 1.15; foldChance *= 0.7; }
+    if (lpRaiser) raiseChance *= 1.1;
+    if (isMultiway) {
+      raiseChance *= 0.7;
+      foldChance += 0.05;
+    }
+    if (shortSPR) {
+      raiseChance *= 1.15;
+      foldChance *= 0.7;
+    }
 
-    return { raise: raiseChance, call: Math.max(0, 1 - raiseChance - foldChance), fold: foldChance };
+    return {
+      raise: raiseChance,
+      call: Math.max(0, 1 - raiseChance - foldChance),
+      fold: foldChance,
+    };
   }
 
   // Decent hands (top pair, second pair)
   if (strength >= 0.45) {
-    let raiseChance = la.canRaise ? 0.10 : 0;
+    let raiseChance = la.canRaise ? 0.1 : 0;
     let foldChance = Math.max(0.05, potOdds * 0.8);
 
-    if (facing3betPlus) { raiseChance = 0; foldChance += 0.20; }
-    if (largeBet) foldChance *= 1.30;
+    if (facing3betPlus) {
+      raiseChance = 0;
+      foldChance += 0.2;
+    }
+    if (largeBet) foldChance *= 1.3;
     if (epRaiser) foldChance *= 1.15;
-    if (lpRaiser) foldChance *= 0.90;
-    if (isMultiway) { raiseChance = 0; foldChance += 0.10; }
-    if (shortSPR) { foldChance += 0.15; raiseChance = 0; }
+    if (lpRaiser) foldChance *= 0.9;
+    if (isMultiway) {
+      raiseChance = 0;
+      foldChance += 0.1;
+    }
+    if (shortSPR) {
+      foldChance += 0.15;
+      raiseChance = 0;
+    }
 
-    foldChance = Math.min(foldChance, 0.80);
-    return { raise: raiseChance, call: Math.max(0, 1 - raiseChance - foldChance), fold: foldChance };
+    foldChance = Math.min(foldChance, 0.8);
+    return {
+      raise: raiseChance,
+      call: Math.max(0, 1 - raiseChance - foldChance),
+      fold: foldChance,
+    };
   }
 
   // Drawing hands (flush draw, OESD)
-  if (strength >= 0.30) {
+  if (strength >= 0.3) {
     if (potOdds <= 0.35) {
       let raiseChance = 0.08;
       let foldChance = 0.35;
-      if (isMultiway) { raiseChance = 0.03; foldChance = 0.30; }
-      if (facing3betPlus) { raiseChance = 0; foldChance = 0.55; }
-      if (largeBet) foldChance += 0.10;
-      return { raise: raiseChance, call: Math.max(0, 1 - raiseChance - foldChance), fold: foldChance };
+      if (isMultiway) {
+        raiseChance = 0.03;
+        foldChance = 0.3;
+      }
+      if (facing3betPlus) {
+        raiseChance = 0;
+        foldChance = 0.55;
+      }
+      if (largeBet) foldChance += 0.1;
+      return {
+        raise: raiseChance,
+        call: Math.max(0, 1 - raiseChance - foldChance),
+        fold: foldChance,
+      };
     }
-    return { raise: 0.03, call: 0.27, fold: 0.70 };
+    return { raise: 0.03, call: 0.27, fold: 0.7 };
   }
 
   // Weak hands
   if (toCall <= 2 * bb) {
     let foldChance = 0.63;
     if (facing3betPlus) foldChance = 0.85;
-    if (largeBet) foldChance = 0.80;
+    if (largeBet) foldChance = 0.8;
     return { raise: 0.02, call: Math.max(0, 1 - 0.02 - foldChance), fold: foldChance };
   }
   let foldChance = 0.87;
@@ -497,35 +569,49 @@ function computeRawFallbackMix(
 }
 
 // ===== Fast model prediction (imitation-learned middle layer) =====
-function fastModelMix(
-  model: MLP,
-  state: TableState,
-  holeCards: [string, string],
-): Mix {
-  const me = state.players.find(p => p.seat === state.actorSeat);
+function fastModelMix(model: MLP, state: TableState, holeCards: [string, string]): Mix {
+  const me = state.players.find((p) => p.seat === state.actorSeat);
   const heroPosition = state.positions?.[state.actorSeat ?? 0] ?? 'BTN';
-  const villains = state.players.filter(p => p.inHand && !p.folded && p.seat !== state.actorSeat);
+  const villains = state.players.filter((p) => p.inHand && !p.folded && p.seat !== state.actorSeat);
   const numVillains = villains.length || 1;
   const heroInPosition = heroPosition === 'BTN' || heroPosition === 'CO';
   const heroRaisedPreflop = state.actions.some(
-    a => a.seat === state.actorSeat && a.street === 'PREFLOP' && a.type === 'raise',
+    (a) => a.seat === state.actorSeat && a.street === 'PREFLOP' && a.type === 'raise',
   );
-  const effectiveStack = me
-    ? Math.min(me.stack, ...villains.map(v => v.stack))
-    : 100;
+  const effectiveStack = me ? Math.min(me.stack, ...villains.map((v) => v.stack)) : 100;
 
   const bb = state.bigBlind || 1;
   const callAmount = state.legalActions?.callAmount ?? 0;
 
   const features = model.isMultiHead
     ? encodeFeaturesV2(
-        holeCards, state.board, state.street, state.pot, bb, callAmount,
-        effectiveStack, heroPosition, heroInPosition, numVillains, heroRaisedPreflop,
-        state.actions, state.players, state.actorSeat ?? 0,
+        holeCards,
+        state.board,
+        state.street,
+        state.pot,
+        bb,
+        callAmount,
+        effectiveStack,
+        heroPosition,
+        heroInPosition,
+        numVillains,
+        heroRaisedPreflop,
+        state.actions,
+        state.players,
+        state.actorSeat ?? 0,
       )
     : encodeFeatures(
-        holeCards, state.board, state.street, state.pot, bb, callAmount,
-        effectiveStack, heroPosition, heroInPosition, numVillains, heroRaisedPreflop,
+        holeCards,
+        state.board,
+        state.street,
+        state.pot,
+        bb,
+        callAmount,
+        effectiveStack,
+        heroPosition,
+        heroInPosition,
+        numVillains,
+        heroRaisedPreflop,
       );
 
   return model.predict(features);
@@ -544,14 +630,25 @@ export interface DecisionContext {
   opponentAdj?: OpponentAdjustment;
   handNumber?: number;
   fastModel?: MLP | null;
+  /** Real-time CFR subgame resolver (Pluribus-style) */
+  resolver?: RealtimeResolver | null;
 }
 
 // ===== Main decision function (enhanced pipeline) =====
 export function decide(ctx: DecisionContext): DecisionResult {
   const {
-    state, profile, advice, holeCards, mySeat,
-    adaptiveAdj, persona, moodState, opponentAdj, handNumber,
+    state,
+    profile,
+    advice,
+    holeCards,
+    mySeat,
+    adaptiveAdj,
+    persona,
+    moodState,
+    opponentAdj,
+    handNumber,
     fastModel,
+    resolver,
   } = ctx;
 
   const la = state.legalActions;
@@ -596,8 +693,9 @@ export function decide(ctx: DecisionContext): DecisionResult {
   const strength = holeCards ? quickHandStrength(holeCards, state.board, state.street) : null;
   trace.handStrength = strength;
 
-  // Step 1: base mix — four-tier fallback
+  // Step 1: base mix — five-tier fallback
   //   0. GTO preflop chart (preflop only, covered spots)
+  //   0.5. Real-time CFR resolver (postflop, Pluribus-style subgame solving)
   //   1. Monte Carlo advice (strongest, slow)
   //   2. Learned fast model (fast, close to teacher)
   //   3. quickHandStrength heuristic (instant, basic) — now context-aware
@@ -605,18 +703,30 @@ export function decide(ctx: DecisionContext): DecisionResult {
   let source: string;
 
   // Tier 0: GTO preflop chart (replaces model for covered preflop spots)
-  const chartMix = (state.street === 'PREFLOP' && holeCards)
-    ? lookupPreflopChart(
-        raiseContext.heroPosition ?? '',
-        raiseContext.facingType,
-        raiseContext.raiserPosition,
-        holeCards,
-      )
-    : null;
+  const chartMix =
+    state.street === 'PREFLOP' && holeCards
+      ? lookupPreflopChart(
+          raiseContext.heroPosition ?? '',
+          raiseContext.facingType,
+          raiseContext.raiserPosition,
+          holeCards,
+        )
+      : null;
+
+  // Tier 0.5: Real-time CFR resolver (postflop only, when available)
+  const heroPos = state.positions[mySeat] ?? '';
+  const heroIsIP = heroPos === 'BTN' || heroPos === 'CO';
+  const resolverMix =
+    resolver?.isReady && holeCards && state.street !== 'PREFLOP' && state.board.length >= 3
+      ? resolver.getStrategy(holeCards, state.board, heroIsIP)
+      : null;
 
   if (chartMix) {
     baseMix = chartMix;
     source = 'preflop-chart';
+  } else if (resolverMix) {
+    baseMix = { raise: resolverMix.raise, call: resolverMix.call, fold: resolverMix.fold };
+    source = `cfr-resolve(${resolverMix.street},${resolverMix.solveTimeMs}ms)`;
   } else if (advice) {
     baseMix = { raise: advice.raise, call: advice.call, fold: advice.fold };
     source = 'advice';
@@ -628,7 +738,7 @@ export function decide(ctx: DecisionContext): DecisionResult {
     let mcEquity: number | undefined;
     if (holeCards && state.board.length >= 3 && process.env['BOT_USE_MC'] === '1') {
       const numOpponents = state.players.filter(
-        p => p.inHand && !p.folded && p.seat !== mySeat,
+        (p) => p.inHand && !p.folded && p.seat !== mySeat,
       ).length;
       if (numOpponents >= 1) {
         const mcResult = estimateEquity(holeCards, state.board, numOpponents, 500, 80);
@@ -637,9 +747,12 @@ export function decide(ctx: DecisionContext): DecisionResult {
     }
 
     baseMix = fallbackMix(state, profile, holeCards, mySeat, raiseContext, mcEquity);
-    source = mcEquity != null
-      ? `fallback+MC(eq=${mcEquity.toFixed(2)})`
-      : holeCards ? 'fallback+hand' : 'fallback';
+    source =
+      mcEquity != null
+        ? `fallback+MC(eq=${mcEquity.toFixed(2)})`
+        : holeCards
+          ? 'fallback+hand'
+          : 'fallback';
   }
   trace.source = source;
   trace.baseMix = copyMix(baseMix);
@@ -666,7 +779,10 @@ export function decide(ctx: DecisionContext): DecisionResult {
   if (boardTexture && state.street !== 'PREFLOP') {
     const isAggressor = detectAggressor(state.actions, mySeat, state.street);
     const btAdj = computeBoardTextureAdjustment(
-      boardTexture, isAggressor, strength ?? 0.5, state.street,
+      boardTexture,
+      isAggressor,
+      strength ?? 0.5,
+      state.street,
     );
     m = applyMultipliers(m, { raise: btAdj.raiseAdj, call: btAdj.callAdj, fold: btAdj.foldAdj });
     m = normalize(m);
@@ -675,17 +791,33 @@ export function decide(ctx: DecisionContext): DecisionResult {
 
   // Step 2d: apply adaptive session adjustments
   if (adaptiveAdj) {
-    m = applyMultipliers(m, { raise: adaptiveAdj.raiseAdj, call: adaptiveAdj.callAdj, fold: adaptiveAdj.foldAdj });
+    m = applyMultipliers(m, {
+      raise: adaptiveAdj.raiseAdj,
+      call: adaptiveAdj.callAdj,
+      fold: adaptiveAdj.foldAdj,
+    });
     m = normalize(m);
-    trace.adaptiveAdj = { raise: adaptiveAdj.raiseAdj, call: adaptiveAdj.callAdj, fold: adaptiveAdj.foldAdj };
+    trace.adaptiveAdj = {
+      raise: adaptiveAdj.raiseAdj,
+      call: adaptiveAdj.callAdj,
+      fold: adaptiveAdj.foldAdj,
+    };
   }
   trace.afterAdaptive = copyMix(m);
 
   // Step 2e: apply opponent adjustment
   if (opponentAdj) {
-    m = applyMultipliers(m, { raise: opponentAdj.raiseAdj, call: opponentAdj.callAdj, fold: opponentAdj.foldAdj });
+    m = applyMultipliers(m, {
+      raise: opponentAdj.raiseAdj,
+      call: opponentAdj.callAdj,
+      fold: opponentAdj.foldAdj,
+    });
     m = normalize(m);
-    trace.opponentAdj = { raise: opponentAdj.raiseAdj, call: opponentAdj.callAdj, fold: opponentAdj.foldAdj };
+    trace.opponentAdj = {
+      raise: opponentAdj.raiseAdj,
+      call: opponentAdj.callAdj,
+      fold: opponentAdj.foldAdj,
+    };
   }
   trace.afterOpponent = copyMix(m);
 
@@ -725,7 +857,7 @@ export function decide(ctx: DecisionContext): DecisionResult {
   // Step 3.5: mistake injection
   const bb = state.bigBlind || 1;
   const potBB = state.pot / bb;
-  const myPlayer = state.players.find(p => p.seat === mySeat);
+  const myPlayer = state.players.find((p) => p.seat === mySeat);
   const isAllIn = la.callAmount >= (myPlayer?.stack ?? 0) * 0.9;
   let sizingLeak = false;
 
@@ -796,20 +928,29 @@ export function decideLegacy(
 ): DecisionResult {
   const mySeat = state.actorSeat ?? 0;
   return decide({
-    state, profile, advice, holeCards, mySeat, adaptiveAdj, fastModel,
+    state,
+    profile,
+    advice,
+    holeCards,
+    mySeat,
+    adaptiveAdj,
+    fastModel,
   });
 }
 
 function formatReasoning(trace: DecisionTrace, finalMix: Mix): string {
   const pos = trace.position ? ` pos=${trace.position}` : '';
   const str = trace.handStrength != null ? ` str=${trace.handStrength.toFixed(2)}` : '';
-  const bt = trace.boardTexture ? ` board=${trace.boardTexture.category}(w=${trace.boardTexture.wetness})` : '';
+  const bt = trace.boardTexture
+    ? ` board=${trace.boardTexture.category}(w=${trace.boardTexture.wetness})`
+    : '';
   const rc = trace.raiseContext ? ` facing=${trace.raiseContext.facingType}` : '';
   const mood = trace.moodValue !== 0 ? ` mood=${trace.moodValue.toFixed(2)}` : '';
   const mistake = trace.mistakeApplied ? ` MISTAKE:${trace.mistakeDescription}` : '';
   const donk = trace.donkGuardrailApplied ? ' DONK_GUARD' : '';
 
-  const fmtMix = (m: Mix) => `R:${m.raise.toFixed(2)} C:${m.call.toFixed(2)} F:${m.fold.toFixed(2)}`;
+  const fmtMix = (m: Mix) =>
+    `R:${m.raise.toFixed(2)} C:${m.call.toFixed(2)} F:${m.fold.toFixed(2)}`;
 
   return (
     `src=${trace.source}${pos}${str}${bt}${rc}${mood}${mistake}${donk} ` +

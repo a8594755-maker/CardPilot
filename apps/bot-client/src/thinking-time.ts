@@ -89,7 +89,7 @@ export function computeThinkingTime(input: ThinkingTimeInput): ThinkingTimeResul
   }
 
   // Snap check: can check with weak hand
-  if (input.handStrength != null && input.handStrength < 0.20 && input.toCall === 0) {
+  if (input.handStrength != null && input.handStrength < 0.2 && input.toCall === 0) {
     if (Math.random() < 0.4) {
       const snapDelay = 300 + Math.floor(Math.random() * 400);
       return {

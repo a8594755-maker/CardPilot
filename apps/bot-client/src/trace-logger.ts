@@ -134,9 +134,11 @@ export class TraceLogger {
     const line = JSON.stringify(trace);
     if (this.traceFile) {
       // Lazy file append
-      import('fs').then(fs => {
-        fs.appendFileSync(this.traceFile!, line + '\n');
-      }).catch(() => {});
+      import('fs')
+        .then((fs) => {
+          fs.appendFileSync(this.traceFile!, line + '\n');
+        })
+        .catch(() => {});
     } else if (this.stdoutEnabled) {
       console.log(`[TRACE] ${line}`);
     }
@@ -157,8 +159,14 @@ export class TraceLogger {
     mistakeCount: number;
     donkGuardrailCount: number;
   } {
-    let raiseCount = 0, callCount = 0, foldCount = 0, checkCount = 0;
-    let adviceUsed = 0, fallbackUsed = 0, mistakeCount = 0, donkGuardrailCount = 0;
+    let raiseCount = 0,
+      callCount = 0,
+      foldCount = 0,
+      checkCount = 0;
+    let adviceUsed = 0,
+      fallbackUsed = 0,
+      mistakeCount = 0,
+      donkGuardrailCount = 0;
 
     for (const t of this.buffer) {
       if (t.resolvedAction === 'raise') raiseCount++;
@@ -175,20 +183,29 @@ export class TraceLogger {
 
     return {
       totalDecisions: this.buffer.length,
-      raiseCount, callCount, foldCount, checkCount,
-      adviceUsed, fallbackUsed, mistakeCount, donkGuardrailCount,
+      raiseCount,
+      callCount,
+      foldCount,
+      checkCount,
+      adviceUsed,
+      fallbackUsed,
+      mistakeCount,
+      donkGuardrailCount,
     };
   }
 
   formatReasoning(trace: DecisionTrace): string {
     const str = trace.handStrength != null ? ` str=${trace.handStrength.toFixed(2)}` : '';
-    const bt = trace.boardTexture ? ` board=${trace.boardTexture.category}(w=${trace.boardTexture.wetness})` : '';
+    const bt = trace.boardTexture
+      ? ` board=${trace.boardTexture.category}(w=${trace.boardTexture.wetness})`
+      : '';
     const rc = trace.raiseContext ? ` facing=${trace.raiseContext.facingType}` : '';
     const mood = trace.moodValue !== 0 ? ` mood=${trace.moodValue.toFixed(2)}` : '';
     const mistake = trace.mistakeApplied ? ` MISTAKE:${trace.mistakeDescription}` : '';
     const donk = trace.donkGuardrailApplied ? ' DONK_GUARD' : '';
 
-    const fmtMix = (m: Mix) => `R:${m.raise.toFixed(2)} C:${m.call.toFixed(2)} F:${m.fold.toFixed(2)}`;
+    const fmtMix = (m: Mix) =>
+      `R:${m.raise.toFixed(2)} C:${m.call.toFixed(2)} F:${m.fold.toFixed(2)}`;
 
     return (
       `src=${trace.source}${str}${bt}${rc}${mood}${mistake}${donk} ` +

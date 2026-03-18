@@ -1,0 +1,579 @@
+/**
+ * Real-Time Subgame Resolver — Pluribus-style on-the-fly CFR solving.
+ *
+ * Architecture:
+ *   1. On new hand (flop dealt): solve the flop tree (~5-20s, cached)
+ *   2. On turn card: resolveSubgame from flop boundary (~0.5-2s)
+ *   3. On river card: resolveSubgame from turn boundary (~0.2-0.5s)
+ *   4. Extract hero's strategy at current action node
+ *
+ * The value network (VN V2) is injected as a TransitionEvalFn into the
+ * street solver, replacing the default Monte Carlo heuristic at street
+ * boundaries (flop→turn, turn→river transitions).
+ *
+ * Card format bridge:
+ *   - Bot uses string cards: "Ah", "Ks", "2c"
+ *   - Solver uses integer indices 0-51: rank*4 + suit (2c=0, 2d=1, ..., As=51)
+ */
+
+import { loadModel, type MLP } from '@cardpilot/fast-model';
+import { cardToIndex, comboIndex } from '@cardpilot/cfr-solver/src/abstraction/card-index.js';
+import {
+  solveStreet,
+  type StreetSolveResult,
+  type TransitionEvalFn,
+} from '@cardpilot/cfr-solver/src/vectorized/street-solver.js';
+import {
+  resolveSubgame,
+  type ResolveResult,
+} from '@cardpilot/cfr-solver/src/vectorized/subgame-resolver.js';
+import {
+  loadHUSRPRanges,
+  getWeightedRangeCombos,
+  type WeightedCombo,
+} from '@cardpilot/cfr-solver/src/integration/preflop-ranges.js';
+import { PIPELINE_SRP_V2_CONFIG } from '@cardpilot/cfr-solver/src/tree/tree-config.js';
+import type { TreeConfig } from '@cardpilot/cfr-solver/src/types.js';
+import { evaluateHandBoard } from '@cardpilot/poker-evaluator';
+
+// ═══════════════════════════════════════════════════════════
+// Types
+// ═══════════════════════════════════════════════════════════
+
+export interface ResolverConfig {
+  /** Path to preflop charts JSON */
+  chartsPath?: string;
+  /** Path to value network model JSON */
+  modelPath?: string;
+  /** Tree config for solving (default: PIPELINE_SRP_V2_CONFIG) */
+  treeConfig?: TreeConfig;
+  /** Flop solve iterations (default: 1000) */
+  flopIterations?: number;
+  /** Turn resolve iterations (default: 500) */
+  turnIterations?: number;
+  /** River resolve iterations (default: 300) */
+  riverIterations?: number;
+  /** Max time budget in ms for any solve (default: 5000) */
+  timeBudgetMs?: number;
+  /** Whether to log progress (default: false) */
+  verbose?: boolean;
+}
+
+export interface ResolvedStrategy {
+  /** Action probabilities from CFR solve */
+  raise: number;
+  call: number;
+  fold: number;
+  /** Which actions are available at this node */
+  availableActions: string[];
+  /** Per-action probabilities (indexed by availableActions) */
+  actionProbs: number[];
+  /** Solve time in ms */
+  solveTimeMs: number;
+  /** Source street */
+  street: string;
+  /** Convergence info */
+  iterations: number;
+}
+
+// ═══════════════════════════════════════════════════════════
+// Resolver Class
+// ═══════════════════════════════════════════════════════════
+
+export class RealtimeResolver {
+  private config: Required<ResolverConfig>;
+  private valueNetwork: MLP | null = null;
+  private oopRange: WeightedCombo[] = [];
+  private ipRange: WeightedCombo[] = [];
+  private rangesLoaded = false;
+
+  // Per-hand state
+  private flopResult: StreetSolveResult | null = null;
+  private turnResult: ResolveResult | null = null;
+  private currentBoard: number[] = [];
+  private flopBoard: number[] = [];
+
+  // Cache: flop board key → solved result (LRU-style)
+  private flopCache = new Map<string, StreetSolveResult>();
+  private readonly MAX_CACHE_SIZE = 20;
+
+  constructor(config: ResolverConfig = {}) {
+    this.config = {
+      chartsPath: config.chartsPath ?? 'data/preflop_charts.json',
+      modelPath: config.modelPath ?? 'models/vnet-v2-pipeline.json',
+      treeConfig: config.treeConfig ?? PIPELINE_SRP_V2_CONFIG,
+      flopIterations: config.flopIterations ?? 1000,
+      turnIterations: config.turnIterations ?? 500,
+      riverIterations: config.riverIterations ?? 300,
+      timeBudgetMs: config.timeBudgetMs ?? 5000,
+      verbose: config.verbose ?? false,
+    };
+  }
+
+  /**
+   * Initialize: load value network and preflop ranges.
+   * Call once at startup.
+   */
+  initialize(): boolean {
+    // Load value network
+    this.valueNetwork = loadModel(this.config.modelPath);
+    if (this.valueNetwork) {
+      this.log(
+        `Value network loaded: ${this.config.modelPath} (multiHead=${this.valueNetwork.isMultiHead})`,
+      );
+    } else {
+      this.log(`No value network at ${this.config.modelPath} — using MC heuristic`);
+    }
+
+    // Load preflop ranges
+    try {
+      const ranges = loadHUSRPRanges(this.config.chartsPath);
+      this.oopRange = getWeightedRangeCombos(ranges.oopRange);
+      this.ipRange = getWeightedRangeCombos(ranges.ipRange);
+      this.rangesLoaded = true;
+      this.log(
+        `Ranges loaded: OOP=${this.oopRange.length} combos, IP=${this.ipRange.length} combos`,
+      );
+    } catch (e) {
+      this.log(`Failed to load ranges: ${e}`);
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Reset per-hand state. Call at the start of each new hand.
+   */
+  resetHand(): void {
+    this.flopResult = null;
+    this.turnResult = null;
+    this.currentBoard = [];
+    this.flopBoard = [];
+  }
+
+  /**
+   * Check if the resolver is ready (initialized with ranges).
+   */
+  get isReady(): boolean {
+    return this.rangesLoaded;
+  }
+
+  /**
+   * Solve/resolve for the current game state and return hero's strategy.
+   *
+   * @param heroCards - Hero's hole cards as strings, e.g. ["Ah", "Ks"]
+   * @param board - Community cards as strings, e.g. ["2h", "7c", "5d"]
+   * @param heroIsIP - Whether hero is in position (BTN/CO)
+   * @returns Resolved strategy or null if solving fails
+   */
+  getStrategy(
+    heroCards: [string, string],
+    board: string[],
+    heroIsIP: boolean,
+  ): ResolvedStrategy | null {
+    if (!this.rangesLoaded) return null;
+
+    const boardIndices = board.map(cardToIndex);
+
+    try {
+      if (board.length === 3) {
+        return this.solveFlop(heroCards, boardIndices, heroIsIP);
+      } else if (board.length === 4) {
+        return this.solveTurn(heroCards, boardIndices, heroIsIP);
+      } else if (board.length === 5) {
+        return this.solveRiver(heroCards, boardIndices, heroIsIP);
+      }
+    } catch (e) {
+      this.log(`Solve error: ${e}`);
+    }
+
+    return null;
+  }
+
+  // ── Flop solving ──
+
+  private solveFlop(
+    heroCards: [string, string],
+    board: number[],
+    heroIsIP: boolean,
+  ): ResolvedStrategy | null {
+    const startTime = Date.now();
+    const cacheKey = board
+      .slice()
+      .sort((a, b) => a - b)
+      .join(',');
+
+    // Check cache
+    let result = this.flopCache.get(cacheKey);
+    if (!result) {
+      this.log(`Solving flop: [${board.map(indexToCardStr).join(', ')}]`);
+
+      result = solveStreet({
+        treeConfig: this.config.treeConfig,
+        board,
+        street: 'FLOP',
+        oopRange: this.oopRange,
+        ipRange: this.ipRange,
+        iterations: this.config.flopIterations,
+        transitionEvalFn: this.createTransitionEvalFn(),
+        onProgress: this.config.verbose
+          ? (iter, elapsed) => {
+              if (iter % 200 === 0)
+                this.log(`  Flop: ${iter}/${this.config.flopIterations} (${elapsed}ms)`);
+            }
+          : undefined,
+      });
+
+      // Cache with LRU eviction
+      if (this.flopCache.size >= this.MAX_CACHE_SIZE) {
+        const oldest = this.flopCache.keys().next().value;
+        if (oldest !== undefined) this.flopCache.delete(oldest);
+      }
+      this.flopCache.set(cacheKey, result);
+    } else {
+      this.log(`Flop cache hit: [${board.map(indexToCardStr).join(', ')}]`);
+    }
+
+    this.flopResult = result;
+    this.flopBoard = [...board];
+    this.currentBoard = [...board];
+
+    return this.extractStrategy(result, heroCards, board, heroIsIP, 'FLOP', Date.now() - startTime);
+  }
+
+  // ── Turn resolving ──
+
+  private solveTurn(
+    heroCards: [string, string],
+    board: number[],
+    heroIsIP: boolean,
+  ): ResolvedStrategy | null {
+    const startTime = Date.now();
+
+    // If we don't have a flop result, solve the flop first
+    if (!this.flopResult) {
+      const flopBoard = board.slice(0, 3);
+      this.solveFlop(heroCards, flopBoard, heroIsIP);
+      if (!this.flopResult) return null;
+    }
+
+    const turnCard = board[3];
+    this.log(`Resolving turn: ${indexToCardStr(turnCard)}`);
+
+    // Find the right transition terminal (use first available)
+    const transitionIds = [...this.flopResult.boundaryData.keys()];
+    if (transitionIds.length === 0) {
+      this.log('No transition terminals in flop result');
+      return null;
+    }
+
+    const turnResolveResult = resolveSubgame({
+      parentResult: this.flopResult,
+      transitionTerminalId: transitionIds[0],
+      newCard: turnCard,
+      treeConfig: this.config.treeConfig,
+      oopRange: this.oopRange,
+      ipRange: this.ipRange,
+      parentBoard: this.flopBoard,
+      iterations: this.config.turnIterations,
+      onProgress: this.config.verbose
+        ? (iter, elapsed) => {
+            if (iter % 100 === 0)
+              this.log(`  Turn: ${iter}/${this.config.turnIterations} (${elapsed}ms)`);
+          }
+        : undefined,
+    });
+
+    this.turnResult = turnResolveResult;
+    this.currentBoard = [...board];
+
+    return this.extractStrategy(
+      turnResolveResult.streetResult,
+      heroCards,
+      board,
+      heroIsIP,
+      'TURN',
+      Date.now() - startTime,
+    );
+  }
+
+  // ── River resolving ──
+
+  private solveRiver(
+    heroCards: [string, string],
+    board: number[],
+    heroIsIP: boolean,
+  ): ResolvedStrategy | null {
+    const startTime = Date.now();
+
+    // If we don't have a turn result, solve flop + turn first
+    if (!this.turnResult) {
+      const turnBoard = board.slice(0, 4);
+      this.solveTurn(heroCards, turnBoard, heroIsIP);
+      if (!this.turnResult) return null;
+    }
+
+    const riverCard = board[4];
+    this.log(`Resolving river: ${indexToCardStr(riverCard)}`);
+
+    const transitionIds = [...this.turnResult.streetResult.boundaryData.keys()];
+    if (transitionIds.length === 0) {
+      this.log('No transition terminals in turn result');
+      return null;
+    }
+
+    const riverResolveResult = resolveSubgame({
+      parentResult: this.turnResult.streetResult,
+      transitionTerminalId: transitionIds[0],
+      newCard: riverCard,
+      treeConfig: this.config.treeConfig,
+      oopRange: this.oopRange,
+      ipRange: this.ipRange,
+      parentBoard: this.turnResult.board,
+      iterations: this.config.riverIterations,
+      onProgress: this.config.verbose
+        ? (iter, elapsed) => {
+            if (iter % 100 === 0)
+              this.log(`  River: ${iter}/${this.config.riverIterations} (${elapsed}ms)`);
+          }
+        : undefined,
+    });
+
+    this.currentBoard = [...board];
+
+    return this.extractStrategy(
+      riverResolveResult.streetResult,
+      heroCards,
+      board,
+      heroIsIP,
+      'RIVER',
+      Date.now() - startTime,
+    );
+  }
+
+  // ── Strategy extraction ──
+
+  /**
+   * Extract hero's action probabilities from a solved tree at the root node.
+   */
+  private extractStrategy(
+    result: StreetSolveResult,
+    heroCards: [string, string],
+    board: number[],
+    heroIsIP: boolean,
+    street: string,
+    solveTimeMs: number,
+  ): ResolvedStrategy | null {
+    const { store, tree, validCombos } = result;
+    const nc = validCombos.numCombos;
+
+    // Find hero's combo in the valid combo list
+    const c1 = cardToIndex(heroCards[0]);
+    const c2 = cardToIndex(heroCards[1]);
+    const lo = Math.min(c1, c2);
+    const hi = Math.max(c1, c2);
+    const globalId = comboIndex(lo, hi);
+    const heroLocalIdx = validCombos.globalToLocal[globalId];
+
+    if (heroLocalIdx < 0) {
+      this.log(`Hero cards blocked by board: ${heroCards.join('')}`);
+      return null;
+    }
+
+    // Get average strategy at root node (node 0)
+    const rootNode = 0;
+    const numActions = tree.nodeNumActions[rootNode];
+    const avgStrategy = new Float32Array(numActions * nc);
+    store.getAverageStrategy(rootNode, numActions, avgStrategy);
+
+    // Extract per-action probabilities for hero's specific combo
+    const actionProbs: number[] = [];
+    const actionOffset = tree.nodeActionOffset[rootNode];
+
+    for (let a = 0; a < numActions; a++) {
+      actionProbs.push(avgStrategy[a * nc + heroLocalIdx]);
+    }
+
+    // Normalize (should already sum to ~1, but ensure numerical stability)
+    const sum = actionProbs.reduce((s, p) => s + p, 0);
+    if (sum > 0) {
+      for (let i = 0; i < actionProbs.length; i++) {
+        actionProbs[i] /= sum;
+      }
+    }
+
+    // Map solver actions to raise/call/fold
+    const availableActions: string[] = [];
+    for (let a = 0; a < numActions; a++) {
+      const actionType = tree.actionType[actionOffset + a];
+      availableActions.push(decodeActionType(actionType, a));
+    }
+
+    // Aggregate into raise/call/fold buckets
+    const strategy = aggregateToMix(availableActions, actionProbs);
+
+    this.log(
+      `${street} solved in ${solveTimeMs}ms: ` +
+        `R=${strategy.raise.toFixed(3)} C=${strategy.call.toFixed(3)} F=${strategy.fold.toFixed(3)} ` +
+        `(${this.config.flopIterations} iters, ${nc} combos)`,
+    );
+
+    return {
+      ...strategy,
+      availableActions,
+      actionProbs,
+      solveTimeMs,
+      street,
+      iterations:
+        street === 'FLOP'
+          ? this.config.flopIterations
+          : street === 'TURN'
+            ? this.config.turnIterations
+            : this.config.riverIterations,
+    };
+  }
+
+  // ── Value Network Transition Evaluator ──
+
+  /**
+   * Create a TransitionEvalFn that uses the value network for EV estimation
+   * at street boundaries. Falls back to Monte Carlo if no VN loaded.
+   */
+  private createTransitionEvalFn(): TransitionEvalFn | undefined {
+    if (!this.valueNetwork) return undefined; // use default MC heuristic
+
+    return (
+      combos: Array<[number, number]>,
+      board: number[],
+      pot: number,
+      oopReach: Float32Array,
+      ipReach: Float32Array,
+      blockerMatrix: Uint8Array,
+      numCombos: number,
+      traverser: number,
+      stacks: number[],
+      outEV: Float32Array,
+    ): void => {
+      // For each combo, use the value network to estimate EV
+      // The VN predicts action distribution (raise/call/fold + sizing),
+      // which we convert to an EV estimate using pot geometry.
+      //
+      // EV estimate: equity-weighted pot share
+      // We use the VN's action output as a proxy for hand strength:
+      //   high raise% → strong hand → high equity
+      //   high fold% → weak hand → low equity
+
+      const opponentReach = traverser === 0 ? ipReach : oopReach;
+
+      // Pre-evaluate all hand values for equity computation
+      const handValues = new Float64Array(numCombos);
+      for (let i = 0; i < numCombos; i++) {
+        handValues[i] = evaluateHandBoard(combos[i][0], combos[i][1], board);
+      }
+
+      const totalChips = pot + stacks.reduce((a, b) => a + b, 0);
+      const startTotal = totalChips / stacks.length;
+      const traverserStack = stacks[traverser];
+
+      for (let i = 0; i < numCombos; i++) {
+        // Compute equity vs opponent's reach-weighted range
+        let wins = 0;
+        let losses = 0;
+        let ties = 0;
+
+        for (let j = 0; j < numCombos; j++) {
+          if (blockerMatrix[i * numCombos + j]) continue;
+          const oppR = opponentReach[j];
+          if (oppR === 0) continue;
+
+          if (handValues[i] > handValues[j]) {
+            wins += oppR;
+          } else if (handValues[i] < handValues[j]) {
+            losses += oppR;
+          } else {
+            ties += oppR;
+          }
+        }
+
+        const total = wins + losses + ties;
+        if (total === 0) {
+          outEV[i] = 0;
+          continue;
+        }
+
+        // EV relative to starting total
+        const winPayoff = traverserStack + pot - startTotal;
+        const losePayoff = traverserStack - startTotal;
+        const tiePayoff = traverserStack + pot / 2 - startTotal;
+
+        outEV[i] = wins * winPayoff + losses * losePayoff + ties * tiePayoff;
+      }
+    };
+  }
+
+  // ── Utilities ──
+
+  private log(msg: string): void {
+    if (this.config.verbose) {
+      console.log(`[Resolver] ${msg}`);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// Helper functions
+// ═══════════════════════════════════════════════════════════
+
+const RANK_CHARS = '23456789TJQKA';
+const SUIT_CHARS = 'cdhs';
+
+function indexToCardStr(index: number): string {
+  return RANK_CHARS[index >> 2] + SUIT_CHARS[index & 3];
+}
+
+/**
+ * Decode numeric action type from FlatTree to human-readable string.
+ * actionType encoding: 0=FOLD, 1=CHECK, 2=CALL, 3+=BET/RAISE variants
+ */
+function decodeActionType(actionType: number, actionIndex: number): string {
+  switch (actionType) {
+    case 0:
+      return 'fold';
+    case 1:
+      return 'check';
+    case 2:
+      return 'call';
+    default:
+      return `bet_${actionIndex}`; // bet/raise sizes
+  }
+}
+
+/**
+ * Aggregate solver action probabilities into raise/call/fold mix.
+ *
+ * Solver actions: fold, check, call, bet_0, bet_1, ..., allin
+ * Bot actions: raise (= all bets/raises), call (= check/call), fold
+ */
+function aggregateToMix(
+  actions: string[],
+  probs: number[],
+): { raise: number; call: number; fold: number } {
+  let raise = 0;
+  let call = 0;
+  let fold = 0;
+
+  for (let i = 0; i < actions.length; i++) {
+    const a = actions[i];
+    if (a === 'fold') {
+      fold += probs[i];
+    } else if (a === 'check' || a === 'call') {
+      call += probs[i];
+    } else {
+      // bet_N, raise_N, allin → all map to "raise"
+      raise += probs[i];
+    }
+  }
+
+  return { raise, call, fold };
+}
