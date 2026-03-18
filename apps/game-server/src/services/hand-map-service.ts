@@ -100,7 +100,12 @@ function expandHandClassToCombos(handClass: string): Array<[number, number]> {
   return combos;
 }
 
-function loadRanges(ipSpot: string, oopSpot: string, ipAction: string, oopAction: string): {
+function loadRanges(
+  ipSpot: string,
+  oopSpot: string,
+  ipAction: string,
+  oopAction: string,
+): {
   oop: PreflopRange;
   ip: PreflopRange;
 } {
@@ -113,8 +118,8 @@ function loadRanges(ipSpot: string, oopSpot: string, ipAction: string, oopAction
   }
 
   const allEntries = JSON.parse(readFileSync(chartsPath, 'utf-8')) as RangeEntry[];
-  const ipEntries = allEntries.filter(e => e.spot === ipSpot);
-  const oopEntries = allEntries.filter(e => e.spot === oopSpot);
+  const ipEntries = allEntries.filter((e) => e.spot === ipSpot);
+  const oopEntries = allEntries.filter((e) => e.spot === oopSpot);
 
   function buildRange(entries: RangeEntry[], actionKey: string): PreflopRange {
     const combos: Array<[number, number]> = [];
@@ -143,20 +148,73 @@ function loadRanges(ipSpot: string, oopSpot: string, ipAction: string, oopAction
 }
 
 // Config → preflop range spot mapping
-const CONFIG_RANGES: Record<string, { ipSpot: string; oopSpot: string; ipAction: string; oopAction: string }> = {
-  pipeline_srp: { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'call' },
-  pipeline_3bet: { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'raise' },
-  hu_btn_bb_srp_100bb: { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'call' },
-  hu_btn_bb_3bp_100bb: { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'raise' },
-  hu_btn_bb_srp_50bb: { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'call' },
-  hu_btn_bb_3bp_50bb: { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'raise' },
-  hu_co_bb_srp_100bb: { ipSpot: 'CO_unopened_open2.5x', oopSpot: 'BB_vs_CO_facing_open2.5x', ipAction: 'raise', oopAction: 'call' },
-  hu_co_bb_3bp_100bb: { ipSpot: 'CO_unopened_open2.5x', oopSpot: 'BB_vs_CO_facing_open2.5x', ipAction: 'raise', oopAction: 'raise' },
-  hu_utg_bb_srp_100bb: { ipSpot: 'UTG_unopened_open2.5x', oopSpot: 'BB_vs_UTG_facing_open2.5x', ipAction: 'raise', oopAction: 'call' },
+const CONFIG_RANGES: Record<
+  string,
+  { ipSpot: string; oopSpot: string; ipAction: string; oopAction: string }
+> = {
+  pipeline_srp: {
+    ipSpot: 'BTN_unopened_open2.5x',
+    oopSpot: 'BB_vs_BTN_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'call',
+  },
+  pipeline_3bet: {
+    ipSpot: 'BTN_unopened_open2.5x',
+    oopSpot: 'BB_vs_BTN_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'raise',
+  },
+  hu_btn_bb_srp_100bb: {
+    ipSpot: 'BTN_unopened_open2.5x',
+    oopSpot: 'BB_vs_BTN_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'call',
+  },
+  hu_btn_bb_3bp_100bb: {
+    ipSpot: 'BTN_unopened_open2.5x',
+    oopSpot: 'BB_vs_BTN_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'raise',
+  },
+  hu_btn_bb_srp_50bb: {
+    ipSpot: 'BTN_unopened_open2.5x',
+    oopSpot: 'BB_vs_BTN_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'call',
+  },
+  hu_btn_bb_3bp_50bb: {
+    ipSpot: 'BTN_unopened_open2.5x',
+    oopSpot: 'BB_vs_BTN_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'raise',
+  },
+  hu_co_bb_srp_100bb: {
+    ipSpot: 'CO_unopened_open2.5x',
+    oopSpot: 'BB_vs_CO_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'call',
+  },
+  hu_co_bb_3bp_100bb: {
+    ipSpot: 'CO_unopened_open2.5x',
+    oopSpot: 'BB_vs_CO_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'raise',
+  },
+  hu_utg_bb_srp_100bb: {
+    ipSpot: 'UTG_unopened_open2.5x',
+    oopSpot: 'BB_vs_UTG_facing_open2.5x',
+    ipAction: 'raise',
+    oopAction: 'call',
+  },
 };
 
 // Fallback for unknown configs
-const DEFAULT_RANGE = { ipSpot: 'BTN_unopened_open2.5x', oopSpot: 'BB_vs_BTN_facing_open2.5x', ipAction: 'raise', oopAction: 'call' };
+const DEFAULT_RANGE = {
+  ipSpot: 'BTN_unopened_open2.5x',
+  oopSpot: 'BB_vs_BTN_facing_open2.5x',
+  ipAction: 'raise',
+  oopAction: 'call',
+};
 
 // ─── Hand-map computation ───
 
@@ -181,9 +239,10 @@ function computeHandBuckets(
 
   for (let i = 0; i < ranked.length; i++) {
     const bucket = Math.min(Math.floor(i / bucketSize), numBuckets - 1);
-    const key = ranked[i].c1 < ranked[i].c2
-      ? `${ranked[i].c1},${ranked[i].c2}`
-      : `${ranked[i].c2},${ranked[i].c1}`;
+    const key =
+      ranked[i].c1 < ranked[i].c2
+        ? `${ranked[i].c1},${ranked[i].c2}`
+        : `${ranked[i].c2},${ranked[i].c1}`;
     result.set(key, bucket);
   }
   return result;
@@ -257,7 +316,12 @@ export function getHandMap(
   }
 
   const rangeConfig = CONFIG_RANGES[configName] ?? DEFAULT_RANGE;
-  const ranges = loadRanges(rangeConfig.ipSpot, rangeConfig.oopSpot, rangeConfig.ipAction, rangeConfig.oopAction);
+  const ranges = loadRanges(
+    rangeConfig.ipSpot,
+    rangeConfig.oopSpot,
+    rangeConfig.ipAction,
+    rangeConfig.oopAction,
+  );
   const dead = new Set(boardCards);
 
   const oopCombos = ranges.oop.combos.filter(([c1, c2]) => !dead.has(c1) && !dead.has(c2));
@@ -308,8 +372,8 @@ export function flopDistance(a: number[], b: number[]): number {
   const bRanks = b.map(indexToRank).sort((x, y) => y - x);
   const aSuits = new Set(a.map(indexToSuit)).size;
   const bSuits = new Set(b.map(indexToSuit)).size;
-  const aPaired = (aRanks[0] === aRanks[1] || aRanks[1] === aRanks[2]) ? 1 : 0;
-  const bPaired = (bRanks[0] === bRanks[1] || bRanks[1] === bRanks[2]) ? 1 : 0;
+  const aPaired = aRanks[0] === aRanks[1] || aRanks[1] === aRanks[2] ? 1 : 0;
+  const bPaired = bRanks[0] === bRanks[1] || bRanks[1] === bRanks[2] ? 1 : 0;
 
   return (
     3 * Math.abs(aRanks[0] - bRanks[0]) +

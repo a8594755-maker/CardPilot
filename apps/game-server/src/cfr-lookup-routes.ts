@@ -2,34 +2,139 @@
 // Used by the web frontend's CFR Lookup page for studying GTO strategies.
 // Supports both local filesystem (development) and iDrive e2/S3 (production).
 
-import type { Express, Request, Response } from "express";
-import { resolve } from "node:path";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { readFile } from "node:fs/promises";
-import { getHandMap, classifyFlop, flopDistance, cardToIndex } from "./services/hand-map-service.js";
+import type { Express, Request, Response } from 'express';
+import { resolve } from 'node:path';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import {
-  isS3Configured,
-  downloadText,
-  downloadJson,
-} from "@cardpilot/advice-engine/s3-client";
+  getHandMap,
+  classifyFlop,
+  flopDistance,
+  cardToIndex,
+} from './services/hand-map-service.js';
+import { isS3Configured, downloadText, downloadJson } from '@cardpilot/advice-engine/s3-client';
 
 // Config registry (mirrors cfr-solver tree-config.ts)
 const CFR_CONFIGS = [
   // HU configs
-  { name: 'pipeline_srp', label: 'HU BTN vs BB SRP 50bb (1 size)', positions: 'BTN vs BB', potType: 'SRP', stack: '50bb', players: 2, sizes: 1 },
-  { name: 'pipeline_3bet', label: 'HU BTN vs BB 3BP 50bb (1 size)', positions: 'BTN vs BB', potType: '3BP', stack: '50bb', players: 2, sizes: 1 },
-  { name: 'hu_btn_bb_srp_100bb', label: 'HU BTN vs BB SRP 100bb (3 sizes)', positions: 'BTN vs BB', potType: 'SRP', stack: '100bb', players: 2, sizes: 3 },
-  { name: 'hu_btn_bb_3bp_100bb', label: 'HU BTN vs BB 3BP 100bb (2 sizes)', positions: 'BTN vs BB', potType: '3BP', stack: '100bb', players: 2, sizes: 2 },
-  { name: 'hu_btn_bb_srp_50bb', label: 'HU BTN vs BB SRP 50bb (2 sizes)', positions: 'BTN vs BB', potType: 'SRP', stack: '50bb', players: 2, sizes: 2 },
-  { name: 'hu_btn_bb_3bp_50bb', label: 'HU BTN vs BB 3BP 50bb (2 sizes)', positions: 'BTN vs BB', potType: '3BP', stack: '50bb', players: 2, sizes: 2 },
-  { name: 'hu_co_bb_srp_100bb', label: 'HU CO vs BB SRP 100bb (2 sizes)', positions: 'CO vs BB', potType: 'SRP', stack: '100bb', players: 2, sizes: 2 },
-  { name: 'hu_co_bb_3bp_100bb', label: 'HU CO vs BB 3BP 100bb (1 size)', positions: 'CO vs BB', potType: '3BP', stack: '100bb', players: 2, sizes: 1 },
-  { name: 'hu_utg_bb_srp_100bb', label: 'HU UTG vs BB SRP 100bb (1 size)', positions: 'UTG vs BB', potType: 'SRP', stack: '100bb', players: 2, sizes: 1 },
+  {
+    name: 'pipeline_srp',
+    label: 'HU BTN vs BB SRP 50bb (1 size)',
+    positions: 'BTN vs BB',
+    potType: 'SRP',
+    stack: '50bb',
+    players: 2,
+    sizes: 1,
+  },
+  {
+    name: 'pipeline_3bet',
+    label: 'HU BTN vs BB 3BP 50bb (1 size)',
+    positions: 'BTN vs BB',
+    potType: '3BP',
+    stack: '50bb',
+    players: 2,
+    sizes: 1,
+  },
+  {
+    name: 'hu_btn_bb_srp_100bb',
+    label: 'HU BTN vs BB SRP 100bb (3 sizes)',
+    positions: 'BTN vs BB',
+    potType: 'SRP',
+    stack: '100bb',
+    players: 2,
+    sizes: 3,
+  },
+  {
+    name: 'hu_btn_bb_3bp_100bb',
+    label: 'HU BTN vs BB 3BP 100bb (2 sizes)',
+    positions: 'BTN vs BB',
+    potType: '3BP',
+    stack: '100bb',
+    players: 2,
+    sizes: 2,
+  },
+  {
+    name: 'hu_btn_bb_srp_50bb',
+    label: 'HU BTN vs BB SRP 50bb (2 sizes)',
+    positions: 'BTN vs BB',
+    potType: 'SRP',
+    stack: '50bb',
+    players: 2,
+    sizes: 2,
+  },
+  {
+    name: 'hu_btn_bb_3bp_50bb',
+    label: 'HU BTN vs BB 3BP 50bb (2 sizes)',
+    positions: 'BTN vs BB',
+    potType: '3BP',
+    stack: '50bb',
+    players: 2,
+    sizes: 2,
+  },
+  {
+    name: 'hu_co_bb_srp_100bb',
+    label: 'HU CO vs BB SRP 100bb (2 sizes)',
+    positions: 'CO vs BB',
+    potType: 'SRP',
+    stack: '100bb',
+    players: 2,
+    sizes: 2,
+  },
+  {
+    name: 'hu_co_bb_3bp_100bb',
+    label: 'HU CO vs BB 3BP 100bb (1 size)',
+    positions: 'CO vs BB',
+    potType: '3BP',
+    stack: '100bb',
+    players: 2,
+    sizes: 1,
+  },
+  {
+    name: 'hu_utg_bb_srp_100bb',
+    label: 'HU UTG vs BB SRP 100bb (1 size)',
+    positions: 'UTG vs BB',
+    potType: 'SRP',
+    stack: '100bb',
+    players: 2,
+    sizes: 1,
+  },
   // Multi-way configs
-  { name: 'mw3_btn_sb_bb_srp_100bb', label: '3-way BTN+SB+BB SRP 100bb', positions: 'BTN+SB+BB', potType: 'SRP', stack: '100bb', players: 3, sizes: 1 },
-  { name: 'mw3_btn_sb_bb_srp_50bb', label: '3-way BTN+SB+BB SRP 50bb', positions: 'BTN+SB+BB', potType: 'SRP', stack: '50bb', players: 3, sizes: 1 },
-  { name: 'mw3_co_btn_bb_srp_100bb', label: '3-way CO+BTN+BB SRP 100bb', positions: 'CO+BTN+BB', potType: 'SRP', stack: '100bb', players: 3, sizes: 1 },
-  { name: 'mw3_co_btn_bb_srp_50bb', label: '3-way CO+BTN+BB SRP 50bb', positions: 'CO+BTN+BB', potType: 'SRP', stack: '50bb', players: 3, sizes: 1 },
+  {
+    name: 'mw3_btn_sb_bb_srp_100bb',
+    label: '3-way BTN+SB+BB SRP 100bb',
+    positions: 'BTN+SB+BB',
+    potType: 'SRP',
+    stack: '100bb',
+    players: 3,
+    sizes: 1,
+  },
+  {
+    name: 'mw3_btn_sb_bb_srp_50bb',
+    label: '3-way BTN+SB+BB SRP 50bb',
+    positions: 'BTN+SB+BB',
+    potType: 'SRP',
+    stack: '50bb',
+    players: 3,
+    sizes: 1,
+  },
+  {
+    name: 'mw3_co_btn_bb_srp_100bb',
+    label: '3-way CO+BTN+BB SRP 100bb',
+    positions: 'CO+BTN+BB',
+    potType: 'SRP',
+    stack: '100bb',
+    players: 3,
+    sizes: 1,
+  },
+  {
+    name: 'mw3_co_btn_bb_srp_50bb',
+    label: '3-way CO+BTN+BB SRP 50bb',
+    positions: 'CO+BTN+BB',
+    potType: 'SRP',
+    stack: '50bb',
+    players: 3,
+    sizes: 1,
+  },
 ];
 
 // Output dir mapping (local filesystem)
@@ -113,7 +218,9 @@ function loadAllMetaLocal(dataDir: string): void {
     if (!existsSync(outputDir)) continue;
 
     try {
-      const files = readdirSync(outputDir).filter(f => f.endsWith('.meta.json')).sort();
+      const files = readdirSync(outputDir)
+        .filter((f) => f.endsWith('.meta.json'))
+        .sort();
       const flops: FlopMetaCached[] = [];
 
       for (const f of files) {
@@ -130,21 +237,29 @@ function loadAllMetaLocal(dataDir: string): void {
             bucketCount: meta.bucketCount || 50,
             ...classification,
           });
-        } catch { /* skip corrupt meta */ }
+        } catch {
+          /* skip corrupt meta */
+        }
       }
 
       if (flops.length > 0) metaCache.set(cfg.name, flops);
-    } catch { /* skip inaccessible dir */ }
+    } catch {
+      /* skip inaccessible dir */
+    }
   }
 
-  console.log(`[CFR] Meta cache loaded (local): ${[...metaCache.entries()].map(([k, v]) => `${k}(${v.length})`).join(', ') || 'no data'}`);
+  console.log(
+    `[CFR] Meta cache loaded (local): ${[...metaCache.entries()].map(([k, v]) => `${k}(${v.length})`).join(', ') || 'no data'}`,
+  );
 }
 
 async function loadAllMetaS3(): Promise<void> {
   for (const cfg of CFR_CONFIGS) {
     const s3Dir = getS3Dir(cfg.name);
     try {
-      const indexData = await downloadJson<Array<Record<string, unknown>>>(`meta/${s3Dir}/_index.json`);
+      const indexData = await downloadJson<Array<Record<string, unknown>>>(
+        `meta/${s3Dir}/_index.json`,
+      );
       if (!indexData || indexData.length === 0) continue;
 
       const flops: FlopMetaCached[] = [];
@@ -161,22 +276,35 @@ async function loadAllMetaS3(): Promise<void> {
             bucketCount: (meta.bucketCount as number) || 50,
             ...classification,
           });
-        } catch { /* skip corrupt entry */ }
+        } catch {
+          /* skip corrupt entry */
+        }
       }
 
       if (flops.length > 0) metaCache.set(cfg.name, flops);
-    } catch { /* config not available on S3 */ }
+    } catch {
+      /* config not available on S3 */
+    }
   }
 
-  console.log(`[CFR] Meta cache loaded (S3): ${[...metaCache.entries()].map(([k, v]) => `${k}(${v.length})`).join(', ') || 'no data'}`);
+  console.log(
+    `[CFR] Meta cache loaded (S3): ${[...metaCache.entries()].map(([k, v]) => `${k}(${v.length})`).join(', ') || 'no data'}`,
+  );
 }
 
 // ── JSONL board data LRU cache (Phase 1B) ────────────────────────────────────
 
-interface BoardEntry { key: string; probs: number[]; actions?: string[] }
+interface BoardEntry {
+  key: string;
+  probs: number[];
+  actions?: string[];
+}
 
 const BOARD_CACHE_MAX = 20;
-const boardDataCache = new Map<string, { meta: Record<string, unknown>; entries: BoardEntry[]; index: Map<string, BoardEntry> }>();
+const boardDataCache = new Map<
+  string,
+  { meta: Record<string, unknown>; entries: BoardEntry[]; index: Map<string, BoardEntry> }
+>();
 
 function parseBoardData(metaText: string, jsonlText: string) {
   const meta = JSON.parse(metaText);
@@ -189,13 +317,18 @@ function parseBoardData(metaText: string, jsonlText: string) {
       const entry: BoardEntry = JSON.parse(line);
       entries.push(entry);
       index.set(entry.key, entry);
-    } catch { /* skip malformed line */ }
+    } catch {
+      /* skip malformed line */
+    }
   }
 
   return { meta, entries, index };
 }
 
-function cacheBoardData(cacheKey: string, data: { meta: Record<string, unknown>; entries: BoardEntry[]; index: Map<string, BoardEntry> }) {
+function cacheBoardData(
+  cacheKey: string,
+  data: { meta: Record<string, unknown>; entries: BoardEntry[]; index: Map<string, BoardEntry> },
+) {
   if (boardDataCache.size >= BOARD_CACHE_MAX) {
     const oldest = boardDataCache.keys().next().value;
     if (oldest) boardDataCache.delete(oldest);
@@ -256,7 +389,7 @@ export function setupCfrLookupRoutes(app: Express): void {
   // Load all meta files into memory at startup
   if (useS3) {
     console.log('[CFR] S3 mode enabled — loading meta from iDrive e2');
-    s3MetaReady = loadAllMetaS3().catch(e => console.error('[CFR] Failed to load S3 meta:', e));
+    s3MetaReady = loadAllMetaS3().catch((e) => console.error('[CFR] Failed to load S3 meta:', e));
   } else {
     console.log(`[CFR] Local mode — loading meta from ${dataDir}`);
     loadAllMetaLocal(dataDir);
@@ -268,9 +401,9 @@ export function setupCfrLookupRoutes(app: Express): void {
     : (dir: string, config: string, boardId: number) => loadBoardDataLocal(dir, config, boardId);
 
   // GET /api/cfr/configs — list all available configs with solve status
-  app.get("/api/cfr/configs", async (_req: Request, res: Response) => {
+  app.get('/api/cfr/configs', async (_req: Request, res: Response) => {
     if (s3MetaReady) await s3MetaReady;
-    const configs = CFR_CONFIGS.map(cfg => {
+    const configs = CFR_CONFIGS.map((cfg) => {
       const solvedFlops = metaCache.get(cfg.name)?.length ?? 0;
       const totalFlops = 1755;
       return {
@@ -286,7 +419,7 @@ export function setupCfrLookupRoutes(app: Express): void {
   });
 
   // GET /api/cfr/flops?config=X — list solved flops with classification
-  app.get("/api/cfr/flops", async (req: Request, res: Response) => {
+  app.get('/api/cfr/flops', async (req: Request, res: Response) => {
     if (s3MetaReady) await s3MetaReady;
     const configName = req.query.config as string;
     if (!configName) {
@@ -298,7 +431,7 @@ export function setupCfrLookupRoutes(app: Express): void {
   });
 
   // GET /api/cfr/board-data?config=X&boardId=N — full JSONL + meta for client-side indexing
-  app.get("/api/cfr/board-data", async (req: Request, res: Response) => {
+  app.get('/api/cfr/board-data', async (req: Request, res: Response) => {
     const configName = req.query.config as string;
     const boardId = parseInt(req.query.boardId as string, 10);
 
@@ -318,7 +451,7 @@ export function setupCfrLookupRoutes(app: Express): void {
   });
 
   // GET /api/cfr/hand-map?config=X&boardId=N — hand class → bucket mapping
-  app.get("/api/cfr/hand-map", async (req: Request, res: Response) => {
+  app.get('/api/cfr/hand-map', async (req: Request, res: Response) => {
     const configName = req.query.config as string;
     const boardId = parseInt(req.query.boardId as string, 10);
 
@@ -328,7 +461,7 @@ export function setupCfrLookupRoutes(app: Express): void {
 
     // Use meta cache first, fall back to disk
     const cachedFlops = metaCache.get(configName);
-    const cachedMeta = cachedFlops?.find(f => f.boardId === boardId);
+    const cachedMeta = cachedFlops?.find((f) => f.boardId === boardId);
 
     if (cachedMeta) {
       try {
@@ -345,7 +478,9 @@ export function setupCfrLookupRoutes(app: Express): void {
 
       if (useS3) {
         const s3Dir = getS3Dir(configName);
-        metaText = await downloadText(`meta/${s3Dir}/flop_${String(boardId).padStart(3, '0')}.meta.json`);
+        metaText = await downloadText(
+          `meta/${s3Dir}/flop_${String(boardId).padStart(3, '0')}.meta.json`,
+        );
       } else {
         const outputDir = resolve(dataDir, OUTPUT_DIRS[configName] ?? configName);
         const metaPath = resolve(outputDir, `flop_${String(boardId).padStart(3, '0')}.meta.json`);
@@ -367,7 +502,7 @@ export function setupCfrLookupRoutes(app: Express): void {
   });
 
   // GET /api/cfr/nearest-flop?config=X&cards=As,Kh,7d — find nearest solved flop
-  app.get("/api/cfr/nearest-flop", (req: Request, res: Response) => {
+  app.get('/api/cfr/nearest-flop', (req: Request, res: Response) => {
     const configName = req.query.config as string;
     const cardsParam = req.query.cards as string;
 
@@ -375,8 +510,8 @@ export function setupCfrLookupRoutes(app: Express): void {
       return res.status(400).json({ ok: false, error: 'Missing config or cards parameter' });
     }
 
-    const queryCards = cardsParam.split(',').map(c => cardToIndex(c.trim()));
-    if (queryCards.some(c => c < 0) || queryCards.length < 3) {
+    const queryCards = cardsParam.split(',').map((c) => cardToIndex(c.trim()));
+    if (queryCards.some((c) => c < 0) || queryCards.length < 3) {
       return res.status(400).json({ ok: false, error: 'Invalid card format. Use e.g. As,Kh,7d' });
     }
 
@@ -412,7 +547,7 @@ export function setupCfrLookupRoutes(app: Express): void {
   });
 
   // GET /api/cfr/lookup?config=X&boardId=N&player=0&history=xb&bucket=42
-  app.get("/api/cfr/lookup", async (req: Request, res: Response) => {
+  app.get('/api/cfr/lookup', async (req: Request, res: Response) => {
     const configName = req.query.config as string;
     const boardId = parseInt(req.query.boardId as string, 10);
     const player = parseInt(req.query.player as string, 10);
@@ -421,13 +556,17 @@ export function setupCfrLookupRoutes(app: Express): void {
     const street = (req.query.street as string) ?? 'FLOP';
 
     if (!configName || isNaN(boardId) || isNaN(player) || isNaN(bucket)) {
-      return res.status(400).json({ ok: false, error: 'Missing required parameters: config, boardId, player, bucket' });
+      return res
+        .status(400)
+        .json({ ok: false, error: 'Missing required parameters: config, boardId, player, bucket' });
     }
 
     try {
       const data = await loadBoardData(dataDir, configName, boardId);
       if (!data) {
-        return res.status(404).json({ ok: false, error: `No JSONL data for board ${boardId} in config ${configName}` });
+        return res
+          .status(404)
+          .json({ ok: false, error: `No JSONL data for board ${boardId} in config ${configName}` });
       }
 
       const streetChar = street === 'FLOP' ? 'F' : street === 'TURN' ? 'T' : 'R';
@@ -437,7 +576,13 @@ export function setupCfrLookupRoutes(app: Express): void {
       const exactKey = `${keyPrefix}${bucket}`;
       const exact = data.index.get(exactKey);
       if (exact) {
-        return res.json({ ok: true, key: exact.key, probs: exact.probs, actions: exact.actions, source: 'exact' });
+        return res.json({
+          ok: true,
+          key: exact.key,
+          probs: exact.probs,
+          actions: exact.actions,
+          source: 'exact',
+        });
       }
 
       // Nearby bucket search (still fast — at most 10 lookups)
@@ -448,7 +593,15 @@ export function setupCfrLookupRoutes(app: Express): void {
           const nearKey = `${keyPrefix}${b}`;
           const near = data.index.get(nearKey);
           if (near) {
-            return res.json({ ok: true, key: near.key, probs: near.probs, actions: near.actions, source: 'nearby', requestedBucket: bucket, matchedBucket: b });
+            return res.json({
+              ok: true,
+              key: near.key,
+              probs: near.probs,
+              actions: near.actions,
+              source: 'nearby',
+              requestedBucket: bucket,
+              matchedBucket: b,
+            });
           }
         }
       }
@@ -460,7 +613,7 @@ export function setupCfrLookupRoutes(app: Express): void {
   });
 
   // GET /api/cfr/board-strategy?config=X&boardId=N&street=FLOP&history=x
-  app.get("/api/cfr/board-strategy", async (req: Request, res: Response) => {
+  app.get('/api/cfr/board-strategy', async (req: Request, res: Response) => {
     const configName = req.query.config as string;
     const boardId = parseInt(req.query.boardId as string, 10);
     const player = parseInt(req.query.player as string, 10);
@@ -492,7 +645,16 @@ export function setupCfrLookupRoutes(app: Express): void {
       }
 
       strategies.sort((a, b) => a.bucket - b.bucket);
-      return res.json({ ok: true, config: configName, boardId, player, street, history, strategies, count: strategies.length });
+      return res.json({
+        ok: true,
+        config: configName,
+        boardId,
+        player,
+        street,
+        history,
+        strategies,
+        count: strategies.length,
+      });
     } catch (e) {
       return res.status(500).json({ ok: false, error: (e as Error).message });
     }

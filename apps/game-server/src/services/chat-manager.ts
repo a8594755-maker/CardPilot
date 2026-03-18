@@ -9,9 +9,9 @@
  * All persistence is delegated to the injected ChatRepo instance.
  */
 
-import type { ChatRepo } from "./chat-repo";
-import type { ChatMessage, ChatMute, ChatUnreadCount } from "@cardpilot/shared-types";
-import { logInfo, logWarn } from "../logger";
+import type { ChatRepo } from './chat-repo';
+import type { ChatMessage, ChatMute, ChatUnreadCount } from '@cardpilot/shared-types';
+import { logInfo, logWarn } from '../logger';
 
 // ── Rate-limit window config ────────────────────────────────────────
 
@@ -20,7 +20,7 @@ const RATE_LIMIT_MAX_MESSAGES = 10;
 
 // ── Profanity word list (placeholder) ───────────────────────────────
 
-const PROFANITY_LIST: string[] = ["fuck", "shit", "ass", "damn", "bitch"];
+const PROFANITY_LIST: string[] = ['fuck', 'shit', 'ass', 'damn', 'bitch'];
 
 // ── Types ───────────────────────────────────────────────────────────
 
@@ -40,9 +40,7 @@ export interface SendMessageOpts {
   profanityFilterEnabled?: boolean;
 }
 
-export type SendMessageResult =
-  | { message: ChatMessage }
-  | { error: string };
+export type SendMessageResult = { message: ChatMessage } | { error: string };
 
 // ── ChatManager ─────────────────────────────────────────────────────
 
@@ -86,11 +84,11 @@ export class ChatManager {
     const trimmed = content.trim();
 
     if (trimmed.length === 0) {
-      return { valid: false, reason: "Message content must not be empty" };
+      return { valid: false, reason: 'Message content must not be empty' };
     }
 
     if (trimmed.length > 2000) {
-      return { valid: false, reason: "Message content must not exceed 2000 characters" };
+      return { valid: false, reason: 'Message content must not exceed 2000 characters' };
     }
 
     return { valid: true };
@@ -103,8 +101,8 @@ export class ChatManager {
 
     let filtered = content;
     for (const word of PROFANITY_LIST) {
-      const regex = new RegExp(word, "gi");
-      filtered = filtered.replace(regex, "***");
+      const regex = new RegExp(word, 'gi');
+      filtered = filtered.replace(regex, '***');
     }
     return filtered;
   }
@@ -125,7 +123,7 @@ export class ChatManager {
 
     // 1. Check if chat is enabled
     if (!chatEnabled) {
-      return { error: "Chat is currently disabled" };
+      return { error: 'Chat is currently disabled' };
     }
 
     // 2. Validate content
@@ -137,17 +135,17 @@ export class ChatManager {
     // 3. Check rate limit
     if (!this.checkRateLimit(clubId, senderUserId)) {
       logWarn({
-        event: "chat.rate_limit",
+        event: 'chat.rate_limit',
         message: `User ${senderUserId} exceeded rate limit in club ${clubId}`,
         userId: senderUserId,
       });
-      return { error: "You are sending messages too quickly. Please wait a moment." };
+      return { error: 'You are sending messages too quickly. Please wait a moment.' };
     }
 
     // 4. Check if user is muted
     const muted = await this.repo.isMuted(clubId, senderUserId);
     if (muted) {
-      return { error: "You are muted in this club" };
+      return { error: 'You are muted in this club' };
     }
 
     // 5. Apply profanity filter
@@ -159,17 +157,17 @@ export class ChatManager {
       tableId: tableId ?? null,
       senderUserId,
       senderDisplayName,
-      messageType: "text",
+      messageType: 'text',
       content: filteredContent,
       mentions: mentions ?? [],
     });
 
     if (!message) {
-      return { error: "Failed to persist message (offline mode)" };
+      return { error: 'Failed to persist message (offline mode)' };
     }
 
     logInfo({
-      event: "chat.message_sent",
+      event: 'chat.message_sent',
       message: `Message sent by ${senderUserId} in club ${clubId}`,
       userId: senderUserId,
     });
@@ -186,10 +184,7 @@ export class ChatManager {
     return this.repo.getHistory(clubId, tableId, before, limit);
   }
 
-  async deleteMessage(
-    messageId: string,
-    deletedBy: string,
-  ): Promise<void> {
+  async deleteMessage(messageId: string, deletedBy: string): Promise<void> {
     return this.repo.deleteMessage(messageId, deletedBy);
   }
 
@@ -217,7 +212,7 @@ export class ChatManager {
     tableId: string | undefined,
     lastReadMessageId: string,
   ): Promise<void> {
-    const scopeKey = tableId ? `table:${tableId}` : "club";
+    const scopeKey = tableId ? `table:${tableId}` : 'club';
     return this.repo.markRead(clubId, userId, scopeKey, lastReadMessageId);
   }
 

@@ -9,15 +9,15 @@
  * and economy logic (grantChips uses the club_ledger table).
  */
 
-import type { Club, ClubMember } from "@cardpilot/shared-types";
-import type { ClubManager } from "../club-manager";
-import type { ClubRepo } from "./club-repo";
-import { logInfo, logWarn } from "../logger";
+import type { Club, ClubMember } from '@cardpilot/shared-types';
+import type { ClubManager } from '../club-manager';
+import type { ClubRepo } from './club-repo';
+import { logInfo, logWarn } from '../logger';
 
 export interface ClubAccessDenied {
   allowed: false;
   reason: string;
-  code: "NOT_CLUB_TABLE" | "NOT_MEMBER" | "PENDING" | "BANNED" | "LEFT";
+  code: 'NOT_CLUB_TABLE' | 'NOT_MEMBER' | 'PENDING' | 'BANNED' | 'LEFT';
 }
 
 export interface ClubAccessAllowed {
@@ -46,25 +46,25 @@ export function requireActiveClubMember(
 ): ClubAccessResult {
   const clubInfo = clubManager.getClubForTableById(tableId);
   if (!clubInfo) {
-    return { allowed: false, reason: "Not a club table", code: "NOT_CLUB_TABLE" };
+    return { allowed: false, reason: 'Not a club table', code: 'NOT_CLUB_TABLE' };
   }
 
   const member = clubManager.getMember(clubInfo.clubId, userId);
   if (!member) {
-    return { allowed: false, reason: "You are not a member of this club", code: "NOT_MEMBER" };
+    return { allowed: false, reason: 'You are not a member of this club', code: 'NOT_MEMBER' };
   }
 
   switch (member.status) {
-    case "active":
+    case 'active':
       return { allowed: true, clubId: clubInfo.clubId, clubTableId: clubInfo.clubTableId, member };
-    case "pending":
-      return { allowed: false, reason: "Your join request is pending approval", code: "PENDING" };
-    case "banned":
-      return { allowed: false, reason: "You are banned from this club", code: "BANNED" };
-    case "left":
-      return { allowed: false, reason: "You have left this club", code: "LEFT" };
+    case 'pending':
+      return { allowed: false, reason: 'Your join request is pending approval', code: 'PENDING' };
+    case 'banned':
+      return { allowed: false, reason: 'You are banned from this club', code: 'BANNED' };
+    case 'left':
+      return { allowed: false, reason: 'You have left this club', code: 'LEFT' };
     default:
-      return { allowed: false, reason: "Access denied", code: "NOT_MEMBER" };
+      return { allowed: false, reason: 'Access denied', code: 'NOT_MEMBER' };
   }
 }
 
@@ -95,7 +95,7 @@ export function joinClub(
   displayName: string,
   clubCode: string,
   inviteCode?: string,
-): { status: "joined" | "pending" | "error"; message: string; clubId?: string } {
+): { status: 'joined' | 'pending' | 'error'; message: string; clubId?: string } {
   return clubManager.requestJoin(clubCode, userId, displayName, inviteCode);
 }
 
@@ -132,39 +132,39 @@ export async function grantChips(
 ): Promise<{ success: boolean; newBalance?: number; message: string }> {
   // Verify admin has permission
   const adminRole = clubManager.getMemberRole(clubId, adminId);
-  if (!adminRole || (adminRole !== "owner" && adminRole !== "admin")) {
-    return { success: false, message: "Only club admins can grant chips" };
+  if (!adminRole || (adminRole !== 'owner' && adminRole !== 'admin')) {
+    return { success: false, message: 'Only club admins can grant chips' };
   }
 
   // Verify target is an active member
   if (!clubManager.isActiveMember(clubId, targetId)) {
-    return { success: false, message: "Target user is not an active club member" };
+    return { success: false, message: 'Target user is not an active club member' };
   }
 
   if (amount === 0) {
-    return { success: false, message: "Amount must be non-zero" };
+    return { success: false, message: 'Amount must be non-zero' };
   }
 
   try {
     const tx = await repo.appendWalletTx({
       clubId,
       userId: targetId,
-      type: "admin_grant",
+      type: 'admin_grant',
       amount: Math.trunc(amount),
-      currency: "chips",
+      currency: 'chips',
       createdBy: adminId,
       note: `Admin grant by ${adminId}`,
       metaJson: { grantedBy: adminId },
     });
 
     if (!tx) {
-      return { success: false, message: "Club wallet repository is not enabled" };
+      return { success: false, message: 'Club wallet repository is not enabled' };
     }
 
     clubManager.setMemberBalance(clubId, targetId, tx.newBalance);
 
     logInfo({
-      event: "club.grant_chips",
+      event: 'club.grant_chips',
       message: `Admin ${adminId} granted ${Math.trunc(amount)} chips to ${targetId} in club ${clubId}`,
     });
 
@@ -176,7 +176,7 @@ export async function grantChips(
   } catch (error) {
     const message = (error as Error).message;
     logWarn({
-      event: "club.grant_chips.failed",
+      event: 'club.grant_chips.failed',
       message,
       clubId,
       adminId,

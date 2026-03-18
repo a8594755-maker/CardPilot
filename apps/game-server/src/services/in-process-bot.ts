@@ -8,37 +8,33 @@
  * server-side event handling is completely unchanged — the server sees
  * each in-process bot as a normal socket connection.
  */
-import { io, type Socket } from "socket.io-client";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
-import { appendFile, existsSync, mkdirSync } from "node:fs";
+import { io, type Socket } from 'socket.io-client';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { appendFile, existsSync, mkdirSync } from 'node:fs';
 
 // ── Bot logic imports (from bot-client, used directly in-process) ──
-import { getProfile } from "../../../bot-client/src/profiles.js";
-import { decide, quickHandStrength } from "../../../bot-client/src/decision.js";
+import { getProfile } from '../../../bot-client/src/profiles.js';
+import { decide, quickHandStrength } from '../../../bot-client/src/decision.js';
 import {
   createSessionStats,
   recordAction,
   recordHandResult,
   computeAdaptiveAdjustments,
   type SessionStats,
-} from "../../../bot-client/src/session-stats.js";
-import { generatePersona, type BotPersona } from "../../../bot-client/src/persona.js";
-import { createMoodState, updateMood, type MoodState } from "../../../bot-client/src/mood.js";
-import { OpponentTracker } from "../../../bot-client/src/opponent-model.js";
-import { computeThinkingTime } from "../../../bot-client/src/thinking-time.js";
-import { analyzeRaiseContext } from "../../../bot-client/src/raise-context.js";
-import { getBoardTexture } from "../../../bot-client/src/board-integration.js";
-import { TraceLogger } from "../../../bot-client/src/trace-logger.js";
-import { encodeFeatures, loadModel, type MLP } from "@cardpilot/fast-model";
-import type { TrainingSample } from "@cardpilot/fast-model";
-import type {
-  TableState,
-  AdvicePayload,
-  StrategyMix,
-} from "../../../bot-client/src/types.js";
+} from '../../../bot-client/src/session-stats.js';
+import { generatePersona, type BotPersona } from '../../../bot-client/src/persona.js';
+import { createMoodState, updateMood, type MoodState } from '../../../bot-client/src/mood.js';
+import { OpponentTracker } from '../../../bot-client/src/opponent-model.js';
+import { computeThinkingTime } from '../../../bot-client/src/thinking-time.js';
+import { analyzeRaiseContext } from '../../../bot-client/src/raise-context.js';
+import { getBoardTexture } from '../../../bot-client/src/board-integration.js';
+import { TraceLogger } from '../../../bot-client/src/trace-logger.js';
+import { encodeFeatures, loadModel, type MLP } from '@cardpilot/fast-model';
+import type { TrainingSample } from '@cardpilot/fast-model';
+import type { TableState, AdvicePayload, StrategyMix } from '../../../bot-client/src/types.js';
 
-import { logInfo, logWarn } from "../logger.js";
+import { logInfo, logWarn } from '../logger.js';
 
 // ══════════════════════════════════════════════════════════════
 // Config
@@ -66,16 +62,16 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const modelCache = new Map<string, MLP | null>();
 
 function getModelForVersion(version: string): MLP | null {
-  if (version === "v0") return null; // V0 = heuristic, no ML model
+  if (version === 'v0') return null; // V0 = heuristic, no ML model
 
   if (modelCache.has(version)) return modelCache.get(version)!;
 
   // V3 / V3.2 / V4 models live in project root models/ dir (CFR-trained)
-  if (version === "v3" || version === "v3.2" || version === "v4") {
+  if (version === 'v3' || version === 'v3.2' || version === 'v4') {
     const fileMap: Record<string, string> = {
-      "v3": "cfr-combined-v3.json",
-      "v3.2": "cfr-combined-v3-preflop.json",
-      "v4": "cfr-combined-v4.json",
+      v3: 'cfr-combined-v3.json',
+      'v3.2': 'cfr-combined-v3-preflop.json',
+      v4: 'cfr-combined-v4.json',
     };
     const modelPath = resolve(__dirname, `../../../../models/${fileMap[version]}`);
     const model = loadModel(modelPath);
@@ -84,15 +80,12 @@ function getModelForVersion(version: string): MLP | null {
   }
 
   const fileMap: Record<string, string> = {
-    v1: "model-v1.json",
-    v2: "model-v2-latest.json",
-    latest: "model-latest.json",
+    v1: 'model-v1.json',
+    v2: 'model-v2-latest.json',
+    latest: 'model-latest.json',
   };
   const fileName = fileMap[version] ?? `model-${version}.json`;
-  const modelPath = resolve(
-    __dirname,
-    `../../../../packages/fast-model/models/${fileName}`,
-  );
+  const modelPath = resolve(__dirname, `../../../../packages/fast-model/models/${fileName}`);
   const model = loadModel(modelPath);
   modelCache.set(version, model);
   return model;
@@ -102,7 +95,7 @@ function getModelForVersion(version: string): MLP | null {
 // Data collection directory (shared)
 // ══════════════════════════════════════════════════════════════
 
-const dataDir = resolve(__dirname, "../../../../data");
+const dataDir = resolve(__dirname, '../../../../data');
 let dataDirEnsured = false;
 
 function ensureDataDir(): void {
@@ -173,12 +166,12 @@ export class InProcessBot {
     this.traceLogger = new TraceLogger();
 
     // ── Load fast model (per-version, cached) ──
-    const mv = config.modelVersion ?? "v1";
+    const mv = config.modelVersion ?? 'v1';
     this.fastModel = getModelForVersion(mv);
     if (this.fastModel) {
       this.log(`Fast model loaded (${mv})`);
-    } else if (mv === "v0") {
-      this.log("V0 mode: heuristic only (no ML model)");
+    } else if (mv === 'v0') {
+      this.log('V0 mode: heuristic only (no ML model)');
     }
 
     // ── Ensure data directory exists ──
@@ -194,7 +187,7 @@ export class InProcessBot {
         displayName: this.myName,
         userId: config.userId,
       },
-      transports: ["websocket"],
+      transports: ['websocket'],
       reconnection: false, // in-process — no network partition
       forceNew: true, // each bot gets its own connection
     });
@@ -222,7 +215,7 @@ export class InProcessBot {
     this.socket.removeAllListeners();
     this.socket.disconnect();
 
-    this.log("Destroyed");
+    this.log('Destroyed');
 
     // Notify orchestrator
     this.destroyCallback?.();
@@ -236,11 +229,11 @@ export class InProcessBot {
   // ── Private helpers ──
 
   private log(msg: string): void {
-    logInfo({ event: "bot.inprocess", message: `${this.logPrefix} ${msg}` });
+    logInfo({ event: 'bot.inprocess', message: `${this.logPrefix} ${msg}` });
   }
 
   private warn(msg: string): void {
-    logWarn({ event: "bot.inprocess", message: `${this.logPrefix} ${msg}` });
+    logWarn({ event: 'bot.inprocess', message: `${this.logPrefix} ${msg}` });
   }
 
   /** Schedule a timeout that is automatically tracked for cleanup. */
@@ -256,77 +249,63 @@ export class InProcessBot {
   // ── Socket event wiring ──
 
   private wireEvents(): void {
-    this.socket.on("connect", () => {
+    this.socket.on('connect', () => {
       if (this.destroyed) return;
-      this.log("Connected, joining room...");
-      this.socket.emit("join_room_code", { roomCode: this.config.roomCode });
+      this.log('Connected, joining room...');
+      this.socket.emit('join_room_code', { roomCode: this.config.roomCode });
     });
 
-    this.socket.on("connect_error", (err) => {
+    this.socket.on('connect_error', (err) => {
       if (this.destroyed) return;
       this.warn(`Connection error: ${err.message}`);
     });
 
-    this.socket.on("disconnect", (reason) => {
+    this.socket.on('disconnect', (reason) => {
       if (this.destroyed) return;
       this.log(`Disconnected: ${reason}`);
       this.seated = false;
     });
 
     this.socket.on(
-      "connected",
+      'connected',
       (data: { socketId: string; userId: string; displayName: string }) => {
         if (this.destroyed) return;
-        this.log(
-          `Server acknowledged: userId=${data.userId}, name=${data.displayName}`,
-        );
+        this.log(`Server acknowledged: userId=${data.userId}, name=${data.displayName}`);
       },
     );
 
     this.socket.on(
-      "room_joined",
+      'room_joined',
       (data: { tableId: string; roomCode: string; roomName: string }) => {
         if (this.destroyed) return;
         this.tableId = data.tableId;
-        this.log(
-          `Joined room "${data.roomName}" (tableId=${data.tableId})`,
-        );
+        this.log(`Joined room "${data.roomName}" (tableId=${data.tableId})`);
         if (!this.seated) {
           this.trySitDown();
         }
       },
     );
 
-    this.socket.on("error_event", (data: { message: string }) => {
+    this.socket.on('error_event', (data: { message: string }) => {
       if (this.destroyed) return;
       this.warn(`Server error: ${data.message}`);
-      if (
-        !this.seated &&
-        (data.message.includes("seat") || data.message.includes("Seat"))
-      ) {
-        this.log("Will retry sit_down in 3s...");
+      if (!this.seated && (data.message.includes('seat') || data.message.includes('Seat'))) {
+        this.log('Will retry sit_down in 3s...');
         this.schedule(() => this.trySitDown(), 3000);
       }
     });
 
     // ── Hole cards ──
-    this.socket.on(
-      "hole_cards",
-      (data: { handId: string; cards: string[]; seat: number }) => {
-        if (this.destroyed) return;
-        if (
-          data.seat === this.mySeat &&
-          data.cards &&
-          data.cards.length >= 2
-        ) {
-          this.myCards = [data.cards[0], data.cards[1]];
-          this.log(`Hole cards: ${this.myCards[0]} ${this.myCards[1]}`);
-        }
-      },
-    );
+    this.socket.on('hole_cards', (data: { handId: string; cards: string[]; seat: number }) => {
+      if (this.destroyed) return;
+      if (data.seat === this.mySeat && data.cards && data.cards.length >= 2) {
+        this.myCards = [data.cards[0], data.cards[1]];
+        this.log(`Hole cards: ${this.myCards[0]} ${this.myCards[1]}`);
+      }
+    });
 
     // ── Hand started ──
-    this.socket.on("hand_started", (data: { handId: string }) => {
+    this.socket.on('hand_started', (data: { handId: string }) => {
       if (this.destroyed) return;
       this.myCards = null;
       this.pendingAdvice = null;
@@ -335,9 +314,7 @@ export class InProcessBot {
       this.lastProcessedActionCount = 0;
       this.lastHandStrength = null;
 
-      const me = this.latestState?.players.find(
-        (p) => p.seat === this.mySeat,
-      );
+      const me = this.latestState?.players.find((p) => p.seat === this.mySeat);
       this.lastHandStack = me?.stack ?? null;
 
       if (this.latestState) {
@@ -346,7 +323,7 @@ export class InProcessBot {
     });
 
     // ── Table snapshot ──
-    this.socket.on("table_snapshot", (state: TableState) => {
+    this.socket.on('table_snapshot', (state: TableState) => {
       if (this.destroyed) return;
       this.latestState = state;
 
@@ -356,12 +333,10 @@ export class InProcessBot {
 
       // Try to sit down if not seated yet
       if (!this.seated) {
-        const alreadySeated = state.players.some(
-          (p) => p.seat === this.mySeat,
-        );
+        const alreadySeated = state.players.some((p) => p.seat === this.mySeat);
         if (alreadySeated) {
           this.seated = true;
-          this.log("Already seated (detected from snapshot)");
+          this.log('Already seated (detected from snapshot)');
         } else {
           this.trySitDown();
           return;
@@ -372,21 +347,14 @@ export class InProcessBot {
       this.observeNewActions(state);
 
       // Detect hand ending for session stats + mood update
-      if (
-        !state.handId &&
-        this.lastHandStack !== null &&
-        this.lastHandId
-      ) {
+      if (!state.handId && this.lastHandStack !== null && this.lastHandId) {
         const me = state.players.find((p) => p.seat === this.mySeat);
         if (me) {
           const net = me.stack - this.lastHandStack;
           const won = net > 0;
           recordHandResult(this.sessionStats, net, won);
 
-          const wasBadBeat =
-            !won &&
-            this.lastHandStrength != null &&
-            this.lastHandStrength >= 0.65;
+          const wasBadBeat = !won && this.lastHandStrength != null && this.lastHandStrength >= 0.65;
           this.moodState = updateMood(
             this.moodState,
             {
@@ -403,11 +371,10 @@ export class InProcessBot {
             const ftr =
               this.sessionStats.facingRaiseCount > 0
                 ? (
-                    (this.sessionStats.foldToRaiseCount /
-                      this.sessionStats.facingRaiseCount) *
+                    (this.sessionStats.foldToRaiseCount / this.sessionStats.facingRaiseCount) *
                     100
                   ).toFixed(0)
-                : "0";
+                : '0';
             this.log(
               `Stats: hands=${this.sessionStats.handsPlayed} wins=${this.sessionStats.handsWon} ` +
                 `net=${this.sessionStats.netChips} foldToRaise=${ftr}% mood=${this.moodState.value.toFixed(2)}`,
@@ -422,7 +389,7 @@ export class InProcessBot {
     });
 
     // ── Advice payload ──
-    this.socket.on("advice_payload", (advice: AdvicePayload) => {
+    this.socket.on('advice_payload', (advice: AdvicePayload) => {
       if (this.destroyed) return;
       if (advice.seat === this.mySeat && advice.mix) {
         this.log(
@@ -435,40 +402,32 @@ export class InProcessBot {
     });
 
     // ── Action applied ──
-    this.socket.on(
-      "action_applied",
-      (data: { seat: number; action: string; amount: number }) => {
-        if (this.destroyed) return;
-        if (data.seat === this.mySeat) {
-          this.log(
-            `Action confirmed: ${data.action}${data.amount ? ` ${data.amount}` : ""}`,
-          );
-        }
-      },
-    );
+    this.socket.on('action_applied', (data: { seat: number; action: string; amount: number }) => {
+      if (this.destroyed) return;
+      if (data.seat === this.mySeat) {
+        this.log(`Action confirmed: ${data.action}${data.amount ? ` ${data.amount}` : ''}`);
+      }
+    });
 
     // ── All-in runout: always choose run once / agree to any choice ──
-    this.socket.on(
-      "all_in_prompt",
-      (data: { actorSeat: number; allowedRunCounts: number[] }) => {
-        if (this.destroyed) return;
-        if (data.actorSeat !== this.mySeat) return;
-        // Only submit immediately if we're the underdog (allowed > 1 option)
-        if (data.allowedRunCounts.length > 1) {
-          this.log("All-in prompt (underdog), choosing run once");
-          this.socket.emit("run_count_submit", {
-            tableId: this.tableId,
-            handId: this.lastHandId,
-            runCount: 1,
-          });
-        }
-        // Non-underdog: wait for allin_locked with targetRunCount
-      },
-    );
+    this.socket.on('all_in_prompt', (data: { actorSeat: number; allowedRunCounts: number[] }) => {
+      if (this.destroyed) return;
+      if (data.actorSeat !== this.mySeat) return;
+      // Only submit immediately if we're the underdog (allowed > 1 option)
+      if (data.allowedRunCounts.length > 1) {
+        this.log('All-in prompt (underdog), choosing run once');
+        this.socket.emit('run_count_submit', {
+          tableId: this.tableId,
+          handId: this.lastHandId,
+          runCount: 1,
+        });
+      }
+      // Non-underdog: wait for allin_locked with targetRunCount
+    });
 
     // ── When underdog has chosen, non-underdog bots agree immediately ──
     this.socket.on(
-      "allin_locked",
+      'allin_locked',
       (data: {
         handId: string;
         underdogSeat: number;
@@ -482,7 +441,7 @@ export class InProcessBot {
         if (data.submittedPlayerIds.includes(this.mySeat)) return;
         if (data.targetRunCount == null) return; // underdog hasn't chosen yet
         this.log(`All-in locked (target=${data.targetRunCount}), agreeing`);
-        this.socket.emit("run_count_submit", {
+        this.socket.emit('run_count_submit', {
           tableId: this.tableId,
           handId: data.handId,
           runCount: data.targetRunCount as 1 | 2 | 3,
@@ -507,7 +466,7 @@ export class InProcessBot {
   private trySitDown(): void {
     if (this.seated || !this.tableId || this.destroyed) return;
     this.log(`Sitting down at seat ${this.mySeat} with buyIn=${this.config.buyIn}`);
-    this.socket.emit("sit_down", {
+    this.socket.emit('sit_down', {
       tableId: this.tableId,
       seat: this.mySeat,
       buyIn: this.config.buyIn,
@@ -544,8 +503,7 @@ export class InProcessBot {
 
     const myPlayer = state.players.find((p) => p.seat === this.mySeat);
     const myStack = myPlayer?.stack ?? 0;
-    const isAllInDecision =
-      (state.legalActions.callAmount ?? 0) >= myStack * 0.9;
+    const isAllInDecision = (state.legalActions.callAmount ?? 0) >= myStack * 0.9;
 
     const thinkingTime = computeThinkingTime({
       street: state.street,
@@ -555,8 +513,7 @@ export class InProcessBot {
       handStrength,
       boardTexture,
       raiseContext,
-      numPlayersInHand: state.players.filter((p) => p.inHand && !p.folded)
-        .length,
+      numPlayersInHand: state.players.filter((p) => p.inHand && !p.folded).length,
       isAllInDecision,
       baseDelay: this.actDelay,
     });
@@ -574,7 +531,7 @@ export class InProcessBot {
         this.schedule(checkAndAct, 200);
         return;
       }
-      this.log("Advice timeout, using fallback");
+      this.log('Advice timeout, using fallback');
       this.act(state);
     };
 
@@ -595,32 +552,19 @@ export class InProcessBot {
       const state = this.latestState;
       if (!state || !this.myCards || !state.handId) return;
       if (state.actorSeat !== this.mySeat && !this.pendingAdvice) return;
-      if (
-        state.street === "SHOWDOWN" ||
-        state.street === "RUN_IT_TWICE_PROMPT"
-      )
-        return;
+      if (state.street === 'SHOWDOWN' || state.street === 'RUN_IT_TWICE_PROMPT') return;
 
       const me = state.players.find((p) => p.seat === this.mySeat);
       if (!me) return;
 
-      const heroPosition = state.positions?.[this.mySeat] ?? "BTN";
-      const villains = state.players.filter(
-        (p) => p.inHand && !p.folded && p.seat !== this.mySeat,
-      );
+      const heroPosition = state.positions?.[this.mySeat] ?? 'BTN';
+      const villains = state.players.filter((p) => p.inHand && !p.folded && p.seat !== this.mySeat);
       const numVillains = villains.length || 1;
-      const heroInPosition =
-        heroPosition === "BTN" || heroPosition === "CO";
+      const heroInPosition = heroPosition === 'BTN' || heroPosition === 'CO';
       const heroRaisedPreflop = state.actions.some(
-        (a) =>
-          a.seat === this.mySeat &&
-          a.street === "PREFLOP" &&
-          a.type === "raise",
+        (a) => a.seat === this.mySeat && a.street === 'PREFLOP' && a.type === 'raise',
       );
-      const effectiveStack = Math.min(
-        me.stack,
-        ...villains.map((v) => v.stack),
-      );
+      const effectiveStack = Math.min(me.stack, ...villains.map((v) => v.stack));
       const bb = state.bigBlind || 1;
 
       const features = encodeFeatures(
@@ -644,15 +588,13 @@ export class InProcessBot {
         s: state.street,
       };
 
-      const fileIdx = Math.floor(
-        this.sampleCount / this.MAX_SAMPLES_PER_FILE,
-      );
+      const fileIdx = Math.floor(this.sampleCount / this.MAX_SAMPLES_PER_FILE);
       const filePath = resolve(
         dataDir,
-        `training-samples${fileIdx > 0 ? `-${fileIdx}` : ""}.jsonl`,
+        `training-samples${fileIdx > 0 ? `-${fileIdx}` : ''}.jsonl`,
       );
       // Async write — never block the event loop
-      appendFile(filePath, JSON.stringify(sample) + "\n", () => {});
+      appendFile(filePath, JSON.stringify(sample) + '\n', () => {});
       this.sampleCount++;
     } catch {
       // Never let data collection crash the bot
@@ -675,24 +617,17 @@ export class InProcessBot {
     let opponentAdj;
     if (raiseContext.raiserSeat != null) {
       const situation =
-        state.street === "FLOP" && raiseContext.facingType === "facing_open"
-          ? ("facing_cbet" as const)
-          : raiseContext.facingType !== "unopened"
-            ? ("facing_raise" as const)
-            : ("general" as const);
-      opponentAdj = this.opponentTracker.computeAdjustment(
-        raiseContext.raiserSeat,
-        situation,
-      );
+        state.street === 'FLOP' && raiseContext.facingType === 'facing_open'
+          ? ('facing_cbet' as const)
+          : raiseContext.facingType !== 'unopened'
+            ? ('facing_raise' as const)
+            : ('general' as const);
+      opponentAdj = this.opponentTracker.computeAdjustment(raiseContext.raiserSeat, situation);
     }
 
     // Track hand strength for bad beat detection
     if (this.myCards) {
-      this.lastHandStrength = quickHandStrength(
-        this.myCards,
-        state.board,
-        state.street,
-      );
+      this.lastHandStrength = quickHandStrength(this.myCards, state.board, state.street);
     }
 
     const result = decide({
@@ -711,15 +646,14 @@ export class InProcessBot {
 
     this.log(
       `Hand ${state.handId.slice(0, 8)} ${state.street} pot=${state.pot} → ${result.action}` +
-        `${result.amount != null ? ` ${result.amount}` : ""} (${result.reasoning})`,
+        `${result.amount != null ? ` ${result.amount}` : ''} (${result.reasoning})`,
     );
 
     if (result.trace) {
       this.traceLogger.log(result.trace);
     }
 
-    const facingRaise =
-      (state.legalActions.callAmount ?? 0) > (state.bigBlind || 1);
+    const facingRaise = (state.legalActions.callAmount ?? 0) > (state.bigBlind || 1);
     recordAction(this.sessionStats, result.action, facingRaise);
 
     const payload: {
@@ -736,6 +670,6 @@ export class InProcessBot {
       payload.amount = result.amount;
     }
 
-    this.socket.emit("action_submit", payload);
+    this.socket.emit('action_submit', payload);
   }
 }

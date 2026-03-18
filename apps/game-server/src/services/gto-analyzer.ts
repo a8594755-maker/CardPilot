@@ -1,18 +1,22 @@
-import { getPostflopAdvice, type AdvicePrecision, type PostflopContext } from "@cardpilot/advice-engine";
-import type { Card } from "@cardpilot/poker-evaluator";
+import {
+  getPostflopAdvice,
+  type AdvicePrecision,
+  type PostflopContext,
+} from '@cardpilot/advice-engine';
+import type { Card } from '@cardpilot/poker-evaluator';
 import type {
   HistoryGTOHandRecord,
   HistoryGTOAnalysis,
   HistoryGTOSpotAnalysis,
   StrategyMix,
-} from "@cardpilot/shared-types";
+} from '@cardpilot/shared-types';
 
-const STREETS_ORDER = ["PREFLOP", "FLOP", "TURN", "RIVER"] as const;
+const STREETS_ORDER = ['PREFLOP', 'FLOP', 'TURN', 'RIVER'] as const;
 const STREET_SET = new Set(STREETS_ORDER);
 
 type StreetName = (typeof STREETS_ORDER)[number];
-type PostflopStreet = "FLOP" | "TURN" | "RIVER";
-type AnalyzerActionType = "fold" | "check" | "call" | "bet" | "raise" | "all_in";
+type PostflopStreet = 'FLOP' | 'TURN' | 'RIVER';
+type AnalyzerActionType = 'fold' | 'check' | 'call' | 'bet' | 'raise' | 'all_in';
 
 interface ReplayAction {
   idx: number;
@@ -32,8 +36,8 @@ interface DecisionPoint {
   effectiveStack: number;
   actionTimelineIdx?: number;
   decisionIndex: number;
-  aggressor: "hero" | "villain" | "none";
-  preflopAggressor: "hero" | "villain" | "none";
+  aggressor: 'hero' | 'villain' | 'none';
+  preflopAggressor: 'hero' | 'villain' | 'none';
   heroInPosition: boolean;
   numVillains: number;
   villainSeat?: number;
@@ -47,7 +51,7 @@ interface DecisionPoint {
  */
 export async function analyzeHandGTO(
   handRecord: HistoryGTOHandRecord,
-  precision: AdvicePrecision = "deep"
+  precision: AdvicePrecision = 'deep',
 ): Promise<HistoryGTOAnalysis> {
   const decisionPoints = extractDecisionPoints(handRecord);
   const spots: HistoryGTOSpotAnalysis[] = [];
@@ -56,7 +60,7 @@ export async function analyzeHandGTO(
   for (const dp of decisionPoints) {
     try {
       const context: PostflopContext = {
-        tableId: "history-analysis",
+        tableId: 'history-analysis',
         handId: `gto-${Date.now()}`,
         seat: handRecord.heroSeat,
         street: dp.street,
@@ -73,7 +77,7 @@ export async function analyzeHandGTO(
         numVillains: dp.numVillains,
         actionHistory: dp.actionHistory.map((a) => ({
           seat: a.seat,
-          street: a.street as PostflopContext["street"],
+          street: a.street as PostflopContext['street'],
           type: toAdviceActionType(a.type),
           amount: a.amount,
           at: 0,
@@ -84,7 +88,7 @@ export async function analyzeHandGTO(
       const advice = await getPostflopAdvice(context, precision);
 
       const heroActionKey = mapActionToMixKey(dp.heroAction);
-      const recommendedAction = advice.recommended ?? "call";
+      const recommendedAction = advice.recommended ?? 'call';
       const recommendedFreq = advice.mix[heroActionKey] ?? 0;
       const deviationScore = Math.round(Math.max(0, 1 - recommendedFreq) * 100);
 
@@ -93,7 +97,13 @@ export async function analyzeHandGTO(
       const equity = advice.math?.equityRequired ?? 0;
       const evLossBb = computeEvLossBb(deviationScore, dp.pot, bb);
 
-      const note = buildSpotNote(dp.heroAction, recommendedAction, recommendedFreq, advice.mix, evLossBb);
+      const note = buildSpotNote(
+        dp.heroAction,
+        recommendedAction,
+        recommendedFreq,
+        advice.mix,
+        evLossBb,
+      );
 
       spots.push({
         street: dp.street,
@@ -117,7 +127,10 @@ export async function analyzeHandGTO(
         note,
       });
     } catch (err) {
-      console.warn(`[gto-analyzer] Failed to analyze spot on ${dp.street}:`, (err as Error).message);
+      console.warn(
+        `[gto-analyzer] Failed to analyze spot on ${dp.street}:`,
+        (err as Error).message,
+      );
     }
   }
 
@@ -215,7 +228,7 @@ function extractDecisionPointsFromActions(hand: HistoryGTOHandRecord): DecisionP
   for (const seat of seatList) streetCommitted[seat] = 0;
 
   const points: DecisionPoint[] = [];
-  let currentStreet: StreetName = "PREFLOP";
+  let currentStreet: StreetName = 'PREFLOP';
   let currentBetTo = 0;
   let pot = 0;
   let streetAggressorSeat: number | null = null;
@@ -232,8 +245,8 @@ function extractDecisionPointsFromActions(hand: HistoryGTOHandRecord): DecisionP
     }
 
     const seat = action.seat;
-    if (typeof stacks[seat] !== "number") stacks[seat] = hand.stackSize;
-    if (typeof streetCommitted[seat] !== "number") streetCommitted[seat] = 0;
+    if (typeof stacks[seat] !== 'number') stacks[seat] = hand.stackSize;
+    if (typeof streetCommitted[seat] !== 'number') streetCommitted[seat] = 0;
 
     const committedBefore = streetCommitted[seat];
     const toCallBefore = Math.max(0, currentBetTo - committedBefore);
@@ -244,7 +257,11 @@ function extractDecisionPointsFromActions(hand: HistoryGTOHandRecord): DecisionP
     const maxOppStack = opponentStacks.length > 0 ? Math.max(...opponentStacks) : actorStackBefore;
     const effectiveStackBefore = Math.max(0, Math.min(actorStackBefore, maxOppStack));
 
-    if (seat === heroSeat && isPostflopStreet(action.street) && isPlayerDecisionAction(action.type)) {
+    if (
+      seat === heroSeat &&
+      isPostflopStreet(action.street) &&
+      isPlayerDecisionAction(action.type)
+    ) {
       const villainSeat = pickVillainSeat({
         heroSeat,
         villainSeats,
@@ -273,7 +290,7 @@ function extractDecisionPointsFromActions(hand: HistoryGTOHandRecord): DecisionP
       decisionIndex += 1;
     }
 
-    if (action.type === "fold") {
+    if (action.type === 'fold') {
       folded.add(seat);
     }
 
@@ -287,7 +304,11 @@ function extractDecisionPointsFromActions(hand: HistoryGTOHandRecord): DecisionP
     if (isAggressiveAction(action.type, toCallBefore, amount)) {
       currentBetTo = Math.max(currentBetTo, streetCommitted[seat]);
       streetAggressorSeat = seat;
-    } else if (action.type === "post_sb" || action.type === "post_bb" || action.type === "post_dead_blind") {
+    } else if (
+      action.type === 'post_sb' ||
+      action.type === 'post_bb' ||
+      action.type === 'post_dead_blind'
+    ) {
       currentBetTo = Math.max(currentBetTo, streetCommitted[seat]);
     }
   }
@@ -295,35 +316,42 @@ function extractDecisionPointsFromActions(hand: HistoryGTOHandRecord): DecisionP
   return points;
 }
 
-function normalizeActions(actions: HistoryGTOHandRecord["actions"]): ReplayAction[] {
+function normalizeActions(actions: HistoryGTOHandRecord['actions']): ReplayAction[] {
   const normalized: ReplayAction[] = [];
   for (let idx = 0; idx < actions.length; idx++) {
     const action = actions[idx];
-    const streetRaw = String(action.street ?? "").toUpperCase() as StreetName;
+    const streetRaw = String(action.street ?? '').toUpperCase() as StreetName;
     if (!STREET_SET.has(streetRaw)) continue;
     normalized.push({
       idx,
       seat: Number(action.seat ?? 0),
       street: streetRaw,
-      type: String(action.type ?? "check"),
+      type: String(action.type ?? 'check'),
       amount: Math.max(0, Number(action.amount ?? 0)),
     });
   }
   return normalized;
 }
 
-function computePreflopAggressor(actions: ReplayAction[], heroSeat: number): "hero" | "villain" | "none" {
+function computePreflopAggressor(
+  actions: ReplayAction[],
+  heroSeat: number,
+): 'hero' | 'villain' | 'none' {
   const preflopRaises = actions.filter(
-    (a) => a.street === "PREFLOP" && (a.type === "raise" || a.type === "bet" || a.type === "all_in")
+    (a) =>
+      a.street === 'PREFLOP' && (a.type === 'raise' || a.type === 'bet' || a.type === 'all_in'),
   );
-  if (preflopRaises.length === 0) return "none";
-  return preflopRaises[preflopRaises.length - 1].seat === heroSeat ? "hero" : "villain";
+  if (preflopRaises.length === 0) return 'none';
+  return preflopRaises[preflopRaises.length - 1].seat === heroSeat ? 'hero' : 'villain';
 }
 
-function mergePositionsBySeat(hand: HistoryGTOHandRecord, actions: ReplayAction[]): Record<number, string> {
+function mergePositionsBySeat(
+  hand: HistoryGTOHandRecord,
+  actions: ReplayAction[],
+): Record<number, string> {
   const fromPayload = hand.positionsBySeat ? normalizeSeatMap(hand.positionsBySeat) : {};
   if (Object.keys(fromPayload).length > 0) return fromPayload;
-  if (typeof hand.buttonSeat !== "number") return {};
+  if (typeof hand.buttonSeat !== 'number') return {};
 
   const seats = [...new Set(actions.map((a) => a.seat))].sort((a, b) => a - b);
   if (seats.length === 0) return {};
@@ -334,7 +362,7 @@ function normalizeSeatMap(input: Record<number, string>): Record<number, string>
   const out: Record<number, string> = {};
   for (const [key, value] of Object.entries(input)) {
     const seat = Number(key);
-    if (!Number.isFinite(seat) || typeof value !== "string" || value.length === 0) continue;
+    if (!Number.isFinite(seat) || typeof value !== 'string' || value.length === 0) continue;
     out[seat] = value;
   }
   return out;
@@ -342,26 +370,29 @@ function normalizeSeatMap(input: Record<number, string>): Record<number, string>
 
 function inferPositionsByButton(buttonSeat: number, seats: number[]): Record<number, string> {
   const sorted = [...new Set(seats)].sort((a, b) => a - b);
-  const clockwise = [...sorted.filter((s) => s > buttonSeat), ...sorted.filter((s) => s <= buttonSeat)];
+  const clockwise = [
+    ...sorted.filter((s) => s > buttonSeat),
+    ...sorted.filter((s) => s <= buttonSeat),
+  ];
   if (clockwise.length < 2) return {};
 
   const order = [buttonSeat, ...clockwise];
   const labelsByCount: Record<number, string[]> = {
-    2: ["BTN", "BB"],
-    3: ["BTN", "SB", "BB"],
-    4: ["BTN", "SB", "BB", "UTG"],
-    5: ["BTN", "SB", "BB", "UTG", "CO"],
-    6: ["BTN", "SB", "BB", "UTG", "HJ", "CO"],
-    7: ["BTN", "SB", "BB", "UTG", "MP", "HJ", "CO"],
-    8: ["BTN", "SB", "BB", "UTG", "UTG+1", "MP", "HJ", "CO"],
-    9: ["BTN", "SB", "BB", "UTG", "UTG+1", "MP", "MP+1", "HJ", "CO"],
+    2: ['BTN', 'BB'],
+    3: ['BTN', 'SB', 'BB'],
+    4: ['BTN', 'SB', 'BB', 'UTG'],
+    5: ['BTN', 'SB', 'BB', 'UTG', 'CO'],
+    6: ['BTN', 'SB', 'BB', 'UTG', 'HJ', 'CO'],
+    7: ['BTN', 'SB', 'BB', 'UTG', 'MP', 'HJ', 'CO'],
+    8: ['BTN', 'SB', 'BB', 'UTG', 'UTG+1', 'MP', 'HJ', 'CO'],
+    9: ['BTN', 'SB', 'BB', 'UTG', 'UTG+1', 'MP', 'MP+1', 'HJ', 'CO'],
   };
   const labels = labelsByCount[order.length];
   if (!labels) return {};
 
   const map: Record<number, string> = {};
   for (let i = 0; i < order.length; i++) {
-    map[order[i]] = labels[i] ?? "UNKNOWN";
+    map[order[i]] = labels[i] ?? 'UNKNOWN';
   }
   return map;
 }
@@ -371,7 +402,9 @@ function uniqueVillainSeats(actions: ReplayAction[], heroSeat: number): number[]
 }
 
 function initStacksBySeat(hand: HistoryGTOHandRecord, seats: number[]): Record<number, number> {
-  const stacksFromPayload = hand.stacksBySeatAtStart ? normalizeSeatNumberMap(hand.stacksBySeatAtStart) : {};
+  const stacksFromPayload = hand.stacksBySeatAtStart
+    ? normalizeSeatNumberMap(hand.stacksBySeatAtStart)
+    : {};
   const stacks: Record<number, number> = {};
   for (const seat of seats) {
     stacks[seat] = Math.max(0, stacksFromPayload[seat] ?? hand.stackSize);
@@ -409,61 +442,81 @@ function pickVillainSeat(args: {
   return args.villainSeats[0];
 }
 
-function resolveVillainPosition(villainSeat: number | undefined, positionsBySeat: Record<number, string>): string {
-  if (villainSeat == null) return "UNKNOWN";
-  return positionsBySeat[villainSeat] ?? "UNKNOWN";
+function resolveVillainPosition(
+  villainSeat: number | undefined,
+  positionsBySeat: Record<number, string>,
+): string {
+  if (villainSeat == null) return 'UNKNOWN';
+  return positionsBySeat[villainSeat] ?? 'UNKNOWN';
 }
 
-function aggressorRole(aggressorSeat: number | null, heroSeat: number): "hero" | "villain" | "none" {
-  if (aggressorSeat == null) return "none";
-  return aggressorSeat === heroSeat ? "hero" : "villain";
+function aggressorRole(
+  aggressorSeat: number | null,
+  heroSeat: number,
+): 'hero' | 'villain' | 'none' {
+  if (aggressorSeat == null) return 'none';
+  return aggressorSeat === heroSeat ? 'hero' : 'villain';
 }
 
 function boardForStreet(board: string[], street: PostflopStreet): string[] {
-  if (street === "FLOP") return board.slice(0, 3);
-  if (street === "TURN") return board.slice(0, 4);
+  if (street === 'FLOP') return board.slice(0, 3);
+  if (street === 'TURN') return board.slice(0, 4);
   return board.slice(0, 5);
 }
 
-function inferPotType(actions: ReplayAction[]): "SRP" | "3BP" | "4BP" {
+function inferPotType(actions: ReplayAction[]): 'SRP' | '3BP' | '4BP' {
   const preflopRaises = actions.filter(
-    (a) => a.street === "PREFLOP" && (a.type === "raise" || a.type === "bet" || a.type === "all_in")
+    (a) =>
+      a.street === 'PREFLOP' && (a.type === 'raise' || a.type === 'bet' || a.type === 'all_in'),
   ).length;
-  if (preflopRaises >= 3) return "4BP";
-  if (preflopRaises === 2) return "3BP";
-  return "SRP";
+  if (preflopRaises >= 3) return '4BP';
+  if (preflopRaises === 2) return '3BP';
+  return 'SRP';
 }
 
 function mapActionToMixKey(action: string): keyof StrategyMix {
-  if (action === "fold") return "fold";
-  if (action === "call" || action === "check") return "call";
-  return "raise";
+  if (action === 'fold') return 'fold';
+  if (action === 'call' || action === 'check') return 'call';
+  return 'raise';
 }
 
-function toAdviceActionType(action: string): "fold" | "check" | "call" | "raise" | "all_in" {
-  if (action === "fold" || action === "check" || action === "call" || action === "raise" || action === "all_in") {
+function toAdviceActionType(action: string): 'fold' | 'check' | 'call' | 'raise' | 'all_in' {
+  if (
+    action === 'fold' ||
+    action === 'check' ||
+    action === 'call' ||
+    action === 'raise' ||
+    action === 'all_in'
+  ) {
     return action;
   }
-  if (action === "bet") return "raise";
-  return "call";
+  if (action === 'bet') return 'raise';
+  return 'call';
 }
 
 function isPostflopStreet(street: string): street is PostflopStreet {
-  return street === "FLOP" || street === "TURN" || street === "RIVER";
+  return street === 'FLOP' || street === 'TURN' || street === 'RIVER';
 }
 
 function isPlayerDecisionAction(actionType: string): actionType is AnalyzerActionType {
-  return actionType === "fold" || actionType === "check" || actionType === "call" || actionType === "bet" || actionType === "raise" || actionType === "all_in";
+  return (
+    actionType === 'fold' ||
+    actionType === 'check' ||
+    actionType === 'call' ||
+    actionType === 'bet' ||
+    actionType === 'raise' ||
+    actionType === 'all_in'
+  );
 }
 
 function isAggressiveAction(actionType: string, toCallBefore: number, amount: number): boolean {
-  if (actionType === "bet" || actionType === "raise") return true;
-  if (actionType !== "all_in") return false;
+  if (actionType === 'bet' || actionType === 'raise') return true;
+  if (actionType !== 'all_in') return false;
   return toCallBefore === 0 || amount > toCallBefore;
 }
 
 function parseBigBlind(stakes: string): number | null {
-  const parts = stakes.split("/");
+  const parts = stakes.split('/');
   if (parts.length < 2) return null;
   const bb = Number(parts[1]);
   return Number.isFinite(bb) && bb > 0 ? bb : null;
@@ -476,7 +529,7 @@ function computeEvLossBb(deviationScore: number, pot: number, bb: number): numbe
 }
 
 function isInPosition(position: string): boolean {
-  return ["BTN", "CO", "HJ"].includes(position);
+  return ['BTN', 'CO', 'HJ'].includes(position);
 }
 
 function buildSpotNote(
@@ -484,7 +537,7 @@ function buildSpotNote(
   recommended: string,
   heroFreq: number,
   mix: StrategyMix,
-  evLossBb: number
+  evLossBb: number,
 ): string {
   const evNote = ` Approx EV proxy loss: ${evLossBb.toFixed(2)}bb (derived from deviation score × pot size).`;
   if (heroFreq >= 0.5) {

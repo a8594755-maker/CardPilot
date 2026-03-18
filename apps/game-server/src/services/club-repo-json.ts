@@ -4,9 +4,9 @@
  * NOT suitable for production (no concurrency, no ACID).
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
-import { resolve, dirname } from "node:path";
-import { randomUUID } from "node:crypto";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { randomUUID } from 'node:crypto';
 import type {
   Club,
   ClubMember,
@@ -22,9 +22,9 @@ import type {
   ClubRole,
   ClubMemberStatus,
   ClubTableStatus,
-} from "@cardpilot/shared-types";
-import { normalizeClubRole } from "@cardpilot/shared-types";
-import { logInfo, logWarn } from "../logger";
+} from '@cardpilot/shared-types';
+import { normalizeClubRole } from '@cardpilot/shared-types';
+import { logInfo, logWarn } from '../logger';
 
 interface AppendWalletTxInput {
   clubId: string;
@@ -52,7 +52,7 @@ interface JsonStore {
   invites: ClubInvite[];
   rulesets: ClubRuleset[];
   tables: ClubTable[];
-  auditLog: Array<Omit<ClubAuditLogEntry, "id"> & { id?: number }>;
+  auditLog: Array<Omit<ClubAuditLogEntry, 'id'> & { id?: number }>;
   walletLedgerEntries: ClubWalletTransaction[];
   walletAccounts: Array<{
     clubId: string;
@@ -93,13 +93,13 @@ export class ClubRepoJson {
   private writeTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(filePath?: string) {
-    this.filePath = filePath ?? resolve(process.cwd(), ".data", "clubs.json");
+    this.filePath = filePath ?? resolve(process.cwd(), '.data', 'clubs.json');
     const dir = dirname(this.filePath);
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 
     if (existsSync(this.filePath)) {
       try {
-        const parsed = JSON.parse(readFileSync(this.filePath, "utf-8")) as Partial<JsonStore>;
+        const parsed = JSON.parse(readFileSync(this.filePath, 'utf-8')) as Partial<JsonStore>;
         this.store = {
           ...EMPTY_STORE,
           ...parsed,
@@ -116,27 +116,32 @@ export class ClubRepoJson {
           walletAccounts: parsed.walletAccounts ?? [],
           playerDailyStats: parsed.playerDailyStats ?? [],
         };
-        logInfo({ event: "club_repo_json.loaded", message: `Loaded ${this.store.clubs.length} clubs from ${this.filePath}` });
+        logInfo({
+          event: 'club_repo_json.loaded',
+          message: `Loaded ${this.store.clubs.length} clubs from ${this.filePath}`,
+        });
       } catch (e) {
-        logWarn({ event: "club_repo_json.load_failed", message: (e as Error).message });
+        logWarn({ event: 'club_repo_json.load_failed', message: (e as Error).message });
         this.store = { ...EMPTY_STORE };
       }
     } else {
       this.store = { ...EMPTY_STORE };
-      logInfo({ event: "club_repo_json.init", message: `New JSON store at ${this.filePath}` });
+      logInfo({ event: 'club_repo_json.init', message: `New JSON store at ${this.filePath}` });
     }
   }
 
-  enabled(): boolean { return true; }
+  enabled(): boolean {
+    return true;
+  }
 
   private scheduleSave(): void {
     if (this.writeTimer) return;
     this.writeTimer = setTimeout(() => {
       this.writeTimer = null;
       try {
-        writeFileSync(this.filePath, JSON.stringify(this.store, null, 2), "utf-8");
+        writeFileSync(this.filePath, JSON.stringify(this.store, null, 2), 'utf-8');
       } catch (e) {
-        logWarn({ event: "club_repo_json.save_failed", message: (e as Error).message });
+        logWarn({ event: 'club_repo_json.save_failed', message: (e as Error).message });
       }
     }, 200); // debounce writes
   }
@@ -164,7 +169,7 @@ export class ClubRepoJson {
 
   async fetchClubsByUser(userId: string): Promise<Club[]> {
     const memberClubIds = this.store.members
-      .filter((m) => m.userId === userId && m.status === "active")
+      .filter((m) => m.userId === userId && m.status === 'active')
       .map((m) => m.clubId);
     return this.store.clubs.filter((c) => memberClubIds.includes(c.id));
   }
@@ -176,26 +181,40 @@ export class ClubRepoJson {
   // ═══════════════ MEMBERS ═══════════════
 
   async upsertMember(member: ClubMember): Promise<void> {
-    const idx = this.store.members.findIndex((m) => m.clubId === member.clubId && m.userId === member.userId);
+    const idx = this.store.members.findIndex(
+      (m) => m.clubId === member.clubId && m.userId === member.userId,
+    );
     if (idx >= 0) this.store.members[idx] = member;
     else this.store.members.push(member);
     this.scheduleSave();
   }
 
-  async updateMemberStatus(clubId: string, userId: string, status: ClubMemberStatus): Promise<void> {
+  async updateMemberStatus(
+    clubId: string,
+    userId: string,
+    status: ClubMemberStatus,
+  ): Promise<void> {
     const m = this.store.members.find((m) => m.clubId === clubId && m.userId === userId);
-    if (m) { m.status = status; m.lastSeenAt = new Date().toISOString(); }
+    if (m) {
+      m.status = status;
+      m.lastSeenAt = new Date().toISOString();
+    }
     this.scheduleSave();
   }
 
   async updateMemberRole(clubId: string, userId: string, role: ClubRole): Promise<void> {
     const m = this.store.members.find((m) => m.clubId === clubId && m.userId === userId);
-    if (m) { m.role = role; m.lastSeenAt = new Date().toISOString(); }
+    if (m) {
+      m.role = role;
+      m.lastSeenAt = new Date().toISOString();
+    }
     this.scheduleSave();
   }
 
   async deleteMember(clubId: string, userId: string): Promise<void> {
-    this.store.members = this.store.members.filter((m) => !(m.clubId === clubId && m.userId === userId));
+    this.store.members = this.store.members.filter(
+      (m) => !(m.clubId === clubId && m.userId === userId),
+    );
     this.scheduleSave();
   }
 
@@ -281,7 +300,10 @@ export class ClubRepoJson {
     this.scheduleSave();
   }
 
-  async updateTable(clubTableId: string, updates: { name?: string; config?: import("@cardpilot/shared-types").ClubTableConfig }): Promise<void> {
+  async updateTable(
+    clubTableId: string,
+    updates: { name?: string; config?: import('@cardpilot/shared-types').ClubTableConfig },
+  ): Promise<void> {
     const t = this.store.tables.find((table) => table.id === clubTableId);
     if (!t) return;
     if (updates.name !== undefined) t.name = updates.name;
@@ -290,12 +312,12 @@ export class ClubRepoJson {
   }
 
   async fetchTables(clubId: string): Promise<ClubTable[]> {
-    return this.store.tables.filter((t) => t.clubId === clubId && t.status !== "closed");
+    return this.store.tables.filter((t) => t.clubId === clubId && t.status !== 'closed');
   }
 
   // ═══════════════ AUDIT LOG ═══════════════
 
-  async appendAudit(entry: Omit<ClubAuditLogEntry, "id">): Promise<void> {
+  async appendAudit(entry: Omit<ClubAuditLogEntry, 'id'>): Promise<void> {
     this.store.auditLog.push({ ...entry, id: this.store.auditLog.length + 1 });
     // Keep only last 1000 entries on disk
     if (this.store.auditLog.length > 1000) this.store.auditLog = this.store.auditLog.slice(-1000);
@@ -313,7 +335,7 @@ export class ClubRepoJson {
 
   async appendWalletTx(input: AppendWalletTxInput): Promise<AppendWalletTxResult | null> {
     const now = new Date().toISOString();
-    const currency = input.currency ?? "chips";
+    const currency = input.currency ?? 'chips';
 
     if (input.idempotencyKey) {
       const existing = this.store.walletLedgerEntries.find(
@@ -335,14 +357,16 @@ export class ClubRepoJson {
     const currentBalance = await this.getWalletBalance(input.clubId, input.userId, currency);
     const newBalance = currentBalance + Math.trunc(input.amount);
     if (newBalance < 0) {
-      logWarn({ 
-        event: "club_repo_json.appendWalletTx.insufficient", 
-        clubId: input.clubId, 
-        userId: input.userId, 
-        currentBalance, 
-        amount: input.amount 
+      logWarn({
+        event: 'club_repo_json.appendWalletTx.insufficient',
+        clubId: input.clubId,
+        userId: input.userId,
+        currentBalance,
+        amount: input.amount,
       });
-      throw new Error(`Insufficient funds: Balance ${currentBalance}, trying to deduct ${Math.abs(Math.trunc(input.amount))}`);
+      throw new Error(
+        `Insufficient funds: Balance ${currentBalance}, trying to deduct ${Math.abs(Math.trunc(input.amount))}`,
+      );
     }
 
     const tx: ClubWalletTransaction = {
@@ -363,8 +387,8 @@ export class ClubRepoJson {
 
     this.store.walletLedgerEntries.push(tx);
 
-    const account = this.store.walletAccounts.find((a) =>
-      a.clubId === input.clubId && a.userId === input.userId && a.currency === currency
+    const account = this.store.walletAccounts.find(
+      (a) => a.clubId === input.clubId && a.userId === input.userId && a.currency === currency,
     );
     if (account) {
       account.currentBalance = newBalance;
@@ -381,11 +405,11 @@ export class ClubRepoJson {
 
     const day = now.slice(0, 10);
     const daily = this.getOrCreateDailyStats(input.clubId, input.userId, day);
-    if (input.type === "buy_in") {
+    if (input.type === 'buy_in') {
       daily.buyIn += Math.abs(Math.trunc(input.amount));
-    } else if (input.type === "cash_out") {
+    } else if (input.type === 'cash_out') {
       daily.cashOut += Math.abs(Math.trunc(input.amount));
-    } else if ((input.type === "deposit" || input.type === "admin_grant") && input.amount > 0) {
+    } else if ((input.type === 'deposit' || input.type === 'admin_grant') && input.amount > 0) {
       daily.deposits += Math.trunc(input.amount);
     }
     daily.updatedAt = now;
@@ -394,9 +418,9 @@ export class ClubRepoJson {
     return { tx, newBalance, wasDuplicate: false };
   }
 
-  async getWalletBalance(clubId: string, userId: string, currency = "chips"): Promise<number> {
-    const account = this.store.walletAccounts.find((a) =>
-      a.clubId === clubId && a.userId === userId && a.currency === currency
+  async getWalletBalance(clubId: string, userId: string, currency = 'chips'): Promise<number> {
+    const account = this.store.walletAccounts.find(
+      (a) => a.clubId === clubId && a.userId === userId && a.currency === currency,
     );
     if (account) return account.currentBalance;
     return this.store.walletLedgerEntries
@@ -404,7 +428,11 @@ export class ClubRepoJson {
       .reduce((sum, tx) => sum + tx.amount, 0);
   }
 
-  async getWalletBalances(clubId: string, userIds: string[], currency = "chips"): Promise<Map<string, number>> {
+  async getWalletBalances(
+    clubId: string,
+    userIds: string[],
+    currency = 'chips',
+  ): Promise<Map<string, number>> {
     const result = new Map<string, number>();
     for (const userId of [...new Set(userIds)]) {
       result.set(userId, await this.getWalletBalance(clubId, userId, currency));
@@ -415,7 +443,7 @@ export class ClubRepoJson {
   async listWalletTxs(
     clubId: string,
     userId: string,
-    currency = "chips",
+    currency = 'chips',
     limit = 50,
     offset = 0,
   ): Promise<ClubWalletTransaction[]> {
@@ -447,23 +475,32 @@ export class ClubRepoJson {
 
   async getClubLeaderboard(
     clubId: string,
-    timeRange: ClubLeaderboardRange = "week",
-    metric: ClubLeaderboardMetric = "net",
+    timeRange: ClubLeaderboardRange = 'week',
+    metric: ClubLeaderboardMetric = 'net',
     limit = 50,
   ): Promise<ClubLeaderboardEntry[]> {
     const fromDay = this.dayFromRange(timeRange);
-    const byUser = new Map<string, {
-      hands: number;
-      buyIn: number;
-      cashOut: number;
-      deposits: number;
-      net: number;
-    }>();
+    const byUser = new Map<
+      string,
+      {
+        hands: number;
+        buyIn: number;
+        cashOut: number;
+        deposits: number;
+        net: number;
+      }
+    >();
 
     for (const row of this.store.playerDailyStats) {
       if (row.clubId !== clubId) continue;
       if (row.day < fromDay) continue;
-      const current = byUser.get(row.userId) ?? { hands: 0, buyIn: 0, cashOut: 0, deposits: 0, net: 0 };
+      const current = byUser.get(row.userId) ?? {
+        hands: 0,
+        buyIn: 0,
+        cashOut: 0,
+        deposits: 0,
+        net: 0,
+      };
       current.hands += row.hands;
       current.buyIn += row.buyIn;
       current.cashOut += row.cashOut;
@@ -473,13 +510,14 @@ export class ClubRepoJson {
     }
 
     const rows = [...byUser.entries()].map(([userId, v]) => {
-      const metricValue = metric === "hands"
-        ? v.hands
-        : metric === "buyin"
-          ? v.buyIn
-          : metric === "deposits"
-            ? v.deposits
-            : v.net;
+      const metricValue =
+        metric === 'hands'
+          ? v.hands
+          : metric === 'buyin'
+            ? v.buyIn
+            : metric === 'deposits'
+              ? v.deposits
+              : v.net;
       return { userId, ...v, metricValue };
     });
 
@@ -487,7 +525,7 @@ export class ClubRepoJson {
 
     const walletByUser = new Map<string, number>();
     for (const row of this.store.walletAccounts) {
-      if (row.clubId !== clubId || row.currency !== "chips") continue;
+      if (row.clubId !== clubId || row.currency !== 'chips') continue;
       walletByUser.set(row.userId, row.currentBalance);
     }
 
@@ -510,7 +548,11 @@ export class ClubRepoJson {
     });
   }
 
-  private getOrCreateDailyStats(clubId: string, userId: string, day: string): {
+  private getOrCreateDailyStats(
+    clubId: string,
+    userId: string,
+    day: string,
+  ): {
     clubId: string;
     userId: string;
     day: string;
@@ -522,7 +564,9 @@ export class ClubRepoJson {
     rake: number;
     updatedAt: string;
   } {
-    let row = this.store.playerDailyStats.find((r) => r.clubId === clubId && r.userId === userId && r.day === day);
+    let row = this.store.playerDailyStats.find(
+      (r) => r.clubId === clubId && r.userId === userId && r.day === day,
+    );
     if (!row) {
       row = {
         clubId,
@@ -542,11 +586,11 @@ export class ClubRepoJson {
   }
 
   private dayFromRange(range: ClubLeaderboardRange): string {
-    if (range === "all") {
-      return "1970-01-01";
+    if (range === 'all') {
+      return '1970-01-01';
     }
     const now = new Date();
-    const dayCount = range === "day" ? 1 : range === "month" ? 30 : 7;
+    const dayCount = range === 'day' ? 1 : range === 'month' ? 30 : 7;
     const from = new Date(now.getTime() - (dayCount - 1) * 24 * 60 * 60 * 1000);
     return from.toISOString().slice(0, 10);
   }
@@ -562,7 +606,7 @@ export class ClubRepoJson {
   }> {
     const walletByClubUser = new Map<string, number>();
     for (const row of this.store.walletAccounts) {
-      if (row.currency !== "chips") continue;
+      if (row.currency !== 'chips') continue;
       walletByClubUser.set(`${row.clubId}:${row.userId}`, row.currentBalance);
     }
 
@@ -574,7 +618,7 @@ export class ClubRepoJson {
       })),
       invites: this.store.invites.filter((i) => !i.revoked),
       rulesets: this.store.rulesets,
-      tables: this.store.tables.filter((t) => t.status !== "closed"),
+      tables: this.store.tables.filter((t) => t.status !== 'closed'),
     };
   }
 }

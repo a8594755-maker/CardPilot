@@ -11,20 +11,20 @@
  * All audit work runs asynchronously after hand settlement — never blocks gameplay.
  */
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Server as SocketServer } from "socket.io";
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Server as SocketServer } from 'socket.io';
 import {
   AuditEngine,
   aggregateSessionLeaks,
   type AuditHandInput,
   type AuditHandResult,
-} from "@cardpilot/advice-engine";
+} from '@cardpilot/advice-engine';
 import type {
   DecisionPoint,
   GtoAuditResult,
   HandAuditSummary,
   SessionLeakSummary,
-} from "@cardpilot/shared-types";
+} from '@cardpilot/shared-types';
 
 // ── Public API ──
 
@@ -35,6 +35,8 @@ export interface AuditServiceConfig {
   io: SocketServer | null;
   /** Max concurrent audit jobs to avoid overloading the event loop. */
   maxConcurrentAudits?: number;
+  /** Optional callback invoked after each audit completes (e.g. for fast-battle session tracking). */
+  onAuditComplete?: (userId: string, summary: HandAuditSummary) => void;
 }
 
 export class AuditService {
@@ -42,6 +44,7 @@ export class AuditService {
   private readonly supabase: SupabaseClient | null;
   private readonly io: SocketServer | null;
   private readonly maxConcurrent: number;
+  private readonly onAuditCompleteCallback?: (userId: string, summary: HandAuditSummary) => void;
   private activeJobs = 0;
 
   // In-memory session audit cache for aggregation (sessionId → userId → HandAuditSummary[])
@@ -51,8 +54,9 @@ export class AuditService {
     this.supabase = config.supabaseAdmin;
     this.io = config.io;
     this.maxConcurrent = config.maxConcurrentAudits ?? 4;
+    this.onAuditCompleteCallback = config.onAuditComplete;
     console.log(
-      `[audit-service] initialized: supabase=${!!this.supabase}, io=${!!this.io}, maxConcurrent=${this.maxConcurrent}`
+      `[audit-service] initialized: supabase=${!!this.supabase}, io=${!!this.io}, maxConcurrent=${this.maxConcurrent}`,
     );
   }
 
@@ -62,7 +66,7 @@ export class AuditService {
    */
   queueHandAudit(input: AuditHandInput, sessionId?: string): void {
     if (this.activeJobs >= this.maxConcurrent) {
-      console.warn("[audit-service] audit queue full, dropping hand", input.handId);
+      console.warn('[audit-service] audit queue full, dropping hand', input.handId);
       return;
     }
 
@@ -109,9 +113,18 @@ export class AuditService {
       // Emit to client
       this.emitToClient(input.heroUserId, input.tableId, result.summary, sessionId);
 
+      // Notify external listeners (e.g. fast-battle pool manager)
+      if (this.onAuditCompleteCallback) {
+        try {
+          this.onAuditCompleteCallback(input.heroUserId, result.summary);
+        } catch {
+          /* don't let callback errors break audit flow */
+        }
+      }
+
       console.log(
         `[audit-service] hand=${input.handId} hero=${input.heroUserId} ` +
-        `decisions=${result.summary.decisionCount} leaked=${result.summary.totalLeakedBb.toFixed(2)}bb`
+          `decisions=${result.summary.decisionCount} leaked=${result.summary.totalLeakedBb.toFixed(2)}bb`,
       );
     } catch (err) {
       console.error(`[audit-service] audit failed for hand=${input.handId}:`, err);
@@ -148,7 +161,7 @@ export class AuditService {
         await this.updateSessionLeakSummary(sessionId, result.summary.heroUserId);
       }
     } catch (err) {
-      console.error("[audit-service] persistence failed:", err);
+      console.error('[audit-service] persistence failed:', err);
     }
   }
 
@@ -177,11 +190,11 @@ export class AuditService {
     }));
 
     const { error } = await this.supabase
-      .from("decision_points")
-      .upsert(rows, { onConflict: "id" });
+      .from('decision_points')
+      .upsert(rows, { onConflict: 'id' });
 
     if (error) {
-      console.warn("[audit-service] decision_points upsert failed:", error.message);
+      console.warn('[audit-service] decision_points upsert failed:', error.message);
     }
   }
 
@@ -212,11 +225,11 @@ export class AuditService {
     }));
 
     const { error } = await this.supabase
-      .from("gto_audits")
-      .upsert(rows, { onConflict: "decision_point_id" });
+      .from('gto_audits')
+      .upsert(rows, { onConflict: 'decision_point_id' });
 
     if (error) {
-      console.warn("[audit-service] gto_audits upsert failed:", error.message);
+      console.warn('[audit-service] gto_audits upsert failed:', error.message);
     }
   }
 
@@ -244,11 +257,11 @@ export class AuditService {
     };
 
     const { error } = await this.supabase
-      .from("session_leak_summaries")
-      .upsert(row, { onConflict: "room_session_id,hero_user_id" });
+      .from('session_leak_summaries')
+      .upsert(row, { onConflict: 'room_session_id,hero_user_id' });
 
     if (error) {
-      console.warn("[audit-service] session_leak_summaries upsert failed:", error.message);
+      console.warn('[audit-service] session_leak_summaries upsert failed:', error.message);
     }
   }
 
@@ -256,12 +269,12 @@ export class AuditService {
     userId: string,
     tableId: string,
     summary: HandAuditSummary,
-    sessionId?: string
+    sessionId?: string,
   ): void {
     if (!this.io) return;
 
     // Emit hand audit to the hero's room
-    this.io.to(tableId).emit("hand_audit_complete", {
+    this.io.to(tableId).emit('hand_audit_complete', {
       userId,
       summary,
     });
@@ -270,7 +283,7 @@ export class AuditService {
     if (sessionId) {
       const sessionSummary = this.getSessionLeakSummary(sessionId, userId);
       if (sessionSummary) {
-        this.io.to(tableId).emit("session_leak_update", {
+        this.io.to(tableId).emit('session_leak_update', {
           userId,
           summary: sessionSummary,
         });

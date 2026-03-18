@@ -6,15 +6,25 @@
  * Each bot runs as a lightweight in-process socket.io client (~1-2 MB)
  * instead of a child process (~80 MB).
  */
-import type { BotSeatConfig } from "@cardpilot/shared-types";
-import { InProcessBot } from "./in-process-bot.js";
-import { logInfo } from "../logger.js";
+import type { BotSeatConfig } from '@cardpilot/shared-types';
+import { InProcessBot } from './in-process-bot.js';
+import { logInfo, logWarn } from '../logger.js';
 
 const BOT_BUY_IN_BB = 100; // default: bot buys in for 100 big blinds
 
 const BOT_NAMES = [
-  "Atsuki", "Take", "Ryo", "Ryu", "Sean", "Joshua",
-  "Louis", "Issac", "Jack", "Emily", "Claire", "Mandy",
+  'Atsuki',
+  'Take',
+  'Ryo',
+  'Ryu',
+  'Sean',
+  'Joshua',
+  'Louis',
+  'Issac',
+  'Jack',
+  'Emily',
+  'Claire',
+  'Mandy',
 ];
 
 interface ActiveBot {
@@ -85,11 +95,14 @@ export function syncBots(
   // Remove bots that are no longer desired or whose profile changed
   for (const [seat, activeBot] of current.entries()) {
     const desired = botSeats.find(
-      (b) => b.seat === seat && b.profile === activeBot.profile && (b.modelVersion ?? "v1") === activeBot.modelVersion,
+      (b) =>
+        b.seat === seat &&
+        b.profile === activeBot.profile &&
+        (b.modelVersion ?? 'v1') === activeBot.modelVersion,
     );
     if (!desired) {
       logInfo({
-        event: "bot.removing",
+        event: 'bot.removing',
         message: `Removing bot seat=${seat} profile=${activeBot.profile} from table=${tableId}`,
       });
       activeBot.bot.destroy();
@@ -106,48 +119,55 @@ export function syncBots(
     staggerIndex++;
 
     setTimeout(() => {
-      // Guard: table may have been removed while waiting
-      const bots = tableBots.get(tableId);
-      if (!bots) return;
+      try {
+        // Guard: table may have been removed while waiting
+        const bots = tableBots.get(tableId);
+        if (!bots) return;
 
-      const mv = cfg.modelVersion ?? "v1";
-      const botName = pickBotName(tableId);
-      const userId = `bot-${cfg.profile}-${mv}-seat${cfg.seat}-${Date.now()}`;
+        const mv = cfg.modelVersion ?? 'v1';
+        const botName = pickBotName(tableId);
+        const userId = `bot-${cfg.profile}-${mv}-seat${cfg.seat}-${Date.now()}`;
 
-      logInfo({
-        event: "bot.spawning",
-        message: `Creating in-process bot seat=${cfg.seat} profile=${cfg.profile} model=${mv} name=${botName} for table=${tableId}`,
-      });
+        logInfo({
+          event: 'bot.spawning',
+          message: `Creating in-process bot seat=${cfg.seat} profile=${cfg.profile} model=${mv} name=${botName} for table=${tableId}`,
+        });
 
-      const bot = new InProcessBot({
-        serverUrl,
-        roomCode,
-        seat: cfg.seat,
-        buyIn,
-        profile: cfg.profile,
-        botName,
-        userId,
-        delay: 800,
-        modelVersion: mv,
-      });
+        const bot = new InProcessBot({
+          serverUrl,
+          roomCode,
+          seat: cfg.seat,
+          buyIn,
+          profile: cfg.profile,
+          botName,
+          userId,
+          delay: 800,
+          modelVersion: mv,
+        });
 
-      const activeBot: ActiveBot = {
-        seat: cfg.seat,
-        profile: cfg.profile,
-        modelVersion: mv,
-        bot,
-        userId,
-        name: botName,
-      };
-      bots.set(cfg.seat, activeBot);
+        const activeBot: ActiveBot = {
+          seat: cfg.seat,
+          profile: cfg.profile,
+          modelVersion: mv,
+          bot,
+          userId,
+          name: botName,
+        };
+        bots.set(cfg.seat, activeBot);
 
-      // Auto-clean on unexpected disconnect
-      bot.onDestroy(() => {
-        const currentBots = tableBots.get(tableId);
-        if (currentBots?.get(cfg.seat)?.userId === userId) {
-          currentBots.delete(cfg.seat);
-        }
-      });
+        // Auto-clean on unexpected disconnect
+        bot.onDestroy(() => {
+          const currentBots = tableBots.get(tableId);
+          if (currentBots?.get(cfg.seat)?.userId === userId) {
+            currentBots.delete(cfg.seat);
+          }
+        });
+      } catch (err) {
+        logWarn({
+          event: 'bot.spawn.error',
+          message: `Failed to create bot seat=${cfg.seat} profile=${cfg.profile} for table=${tableId}: ${(err as Error).message}`,
+        });
+      }
     }, delay);
   }
 }
@@ -160,7 +180,7 @@ export function removeAllBots(tableId: string): void {
   if (!bots) return;
 
   logInfo({
-    event: "bot.removeAll",
+    event: 'bot.removeAll',
     message: `Removing all ${bots.size} bots from table=${tableId}`,
   });
 
@@ -173,7 +193,9 @@ export function removeAllBots(tableId: string): void {
 /**
  * Get currently active bot seats for a table (for status display).
  */
-export function getActiveBots(tableId: string): Array<{ seat: number; profile: string; userId: string }> {
+export function getActiveBots(
+  tableId: string,
+): Array<{ seat: number; profile: string; userId: string }> {
   const bots = tableBots.get(tableId);
   if (!bots) return [];
   return [...bots.values()].map((b) => ({ seat: b.seat, profile: b.profile, userId: b.userId }));

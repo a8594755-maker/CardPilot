@@ -19,7 +19,7 @@ import type {
   NotificationType,
   NotificationPreferences,
 } from '@cardpilot/shared-types';
-import { logInfo, logWarn } from '../logger';
+import { logInfo } from '../logger';
 
 // ── Input shape shared by notify / notifyMany ──
 

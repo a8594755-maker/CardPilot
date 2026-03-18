@@ -1,33 +1,51 @@
-import express from "express";
-import cors from "cors";
-import { createServer } from "node:http";
-import { randomInt, randomUUID } from "node:crypto";
-import { Server, type Socket } from "socket.io";
-import { GameTable } from "@cardpilot/game-engine";
-import { getPreflopAdvice, getPostflopAdvice, calculateDeviation } from "@cardpilot/advice-engine";
-import { calculateEquity, type Card } from "@cardpilot/poker-evaluator";
-import { DEFAULT_CLUB_RULES, SHOWDOWN_SPEED_DELAYS_MS, describeHandStrength } from "@cardpilot/shared-types";
+import express from 'express';
+import cors from 'cors';
+import { createServer } from 'node:http';
+import { randomInt, randomUUID } from 'node:crypto';
+import { Server, type Socket } from 'socket.io';
+import { GameTable } from '@cardpilot/game-engine';
+import { getPreflopAdvice, getPostflopAdvice, calculateDeviation } from '@cardpilot/advice-engine';
+import { calculateEquity, type Card } from '@cardpilot/poker-evaluator';
+import { SHOWDOWN_SPEED_DELAYS_MS, describeHandStrength } from '@cardpilot/shared-types';
 import type {
-  ActionSubmitPayload, AdvicePayload, LobbyRoomSummary, TableState,
-  UpdateSettingsPayload, KickPlayerPayload, TransferOwnershipPayload,
-  SetCoHostPayload, GameControlPayload, JoinRoomWithPasswordPayload, AllInPrompt,
-  RoomFullState, TimerState, HistoryHandDetailCore, HistoryHandPlayerSummary, HistoryHandSummaryCore,
-  HistoryGTOHandRecord, SevenTwoBountyInfo,
-} from "@cardpilot/shared-types";
-import { getRuntimeConfig } from "./config";
-import { logError, logInfo, logWarn } from "./logger";
-import { SupabasePersistence, type PersistHandHistoryPayload, type RoomRecord, type SessionContextMetadata, type VerifiedIdentity } from "./supabase";
-import { RoomManager } from "./room-manager";
-import { ClubManager } from "./club-manager";
-import { ClubRepo, type AppendWalletTxInput } from "./services/club-repo";
-import { ClubRepoJson } from "./services/club-repo-json";
-import { AuditService } from "./services/audit-service";
-import { ChatRepo } from "./services/chat-repo";
-import { ChatManager } from "./services/chat-manager";
-import { NotificationRepo } from "./services/notification-repo";
-import { NotificationManager } from "./services/notification-manager";
-import { AnalyticsRepo } from "./services/analytics-repo";
-import { recordEgress, isOverBudget, getEgressStats } from "./services/egress-budget";
+  ActionSubmitPayload,
+  AdvicePayload,
+  LobbyRoomSummary,
+  TableState,
+  UpdateSettingsPayload,
+  KickPlayerPayload,
+  TransferOwnershipPayload,
+  SetCoHostPayload,
+  GameControlPayload,
+  AllInPrompt,
+  RoomFullState,
+  HistoryHandDetailCore,
+  HistoryHandPlayerSummary,
+  HistoryHandSummaryCore,
+  HistoryGTOHandRecord,
+  SevenTwoBountyInfo,
+} from '@cardpilot/shared-types';
+import { getRuntimeConfig } from './config';
+import { logError, logInfo, logWarn } from './logger';
+import {
+  SupabasePersistence,
+  type PersistHandHistoryPayload,
+  type RoomRecord,
+  type SessionContextMetadata,
+  type VerifiedIdentity,
+} from './supabase';
+import { RoomManager } from './room-manager';
+import { ClubManager } from './club-manager';
+import { ClubRepo, type AppendWalletTxInput } from './services/club-repo';
+import { ClubRepoJson } from './services/club-repo-json';
+import { AuditService } from './services/audit-service';
+import { FastBattlePoolManager, type FastBattleBridge } from './services/fast-battle-pool';
+import { ChatRepo } from './services/chat-repo';
+import { ChatManager } from './services/chat-manager';
+import { NotificationRepo } from './services/notification-repo';
+import { NotificationManager } from './services/notification-manager';
+import { AnalyticsRepo } from './services/analytics-repo';
+import { recordEgress, isOverBudget } from './services/egress-budget';
 import type {
   ChatSendPayload,
   ChatHistoryPayload,
@@ -36,15 +54,14 @@ import type {
   ChatUnmutePayload,
   ChatMarkReadPayload,
   ChatGetUnreadsPayload,
-} from "@cardpilot/shared-types";
+} from '@cardpilot/shared-types';
 import type {
   NotificationListPayload,
   NotificationMarkReadPayload,
   NotificationMarkAllReadPayload,
-  NotificationGetUnreadCountPayload,
   NotificationUpdatePrefsPayload,
   NotificationDeletePayload,
-} from "@cardpilot/shared-types";
+} from '@cardpilot/shared-types';
 import type {
   ClubAnalyticsGetPayload,
   ClubProfitChartGetPayload,
@@ -53,8 +70,14 @@ import type {
   ClubActivePlayersTrendGetPayload,
   ClubSessionsListPayload,
   ClubExportDataPayload,
-} from "@cardpilot/shared-types";
-import { syncBots, removeAllBots, shutdownAllBots, getBotUserIds, getBotModelVersions } from "./services/bot-orchestrator.js";
+} from '@cardpilot/shared-types';
+import {
+  syncBots,
+  removeAllBots,
+  shutdownAllBots,
+  getBotUserIds,
+  getBotModelVersions,
+} from './services/bot-orchestrator.js';
 import type {
   ClubCreatePayload,
   ClubUpdatePayload,
@@ -74,7 +97,6 @@ import type {
   ClubTableClosePayload,
   ClubTablePausePayload,
   ClubTableJoinPayload,
-  ClubRules,
   ClubWalletTransaction,
   ClubLeaderboardMetric,
   ClubLeaderboardRange,
@@ -82,14 +104,14 @@ import type {
   ClubBulkGrantCreditsPayload,
   ClubBulkRoleChangePayload,
   ClubBulkKickPayload,
-} from "@cardpilot/shared-types";
+} from '@cardpilot/shared-types';
 
 const runtimeConfig = getRuntimeConfig();
-const IDENTITY_DEBUG = process.env.CARDPILOT_DEBUG_IDENTITY === "1";
+const IDENTITY_DEBUG = process.env.CARDPILOT_DEBUG_IDENTITY === '1';
 
 type AnalyzeHandGTOFn = (
   handRecord: HistoryGTOHandRecord,
-  precision?: "fast" | "deep"
+  precision?: 'fast' | 'deep',
 ) => Promise<unknown>;
 
 let analyzeHandGTOFn: AnalyzeHandGTOFn | null = null;
@@ -101,12 +123,12 @@ async function getAnalyzeHandGTO(): Promise<AnalyzeHandGTOFn | null> {
 
   gtoAnalyzerLoadAttempted = true;
   try {
-    const mod = await import("./services/gto-analyzer");
+    const mod = await import('./services/gto-analyzer');
     analyzeHandGTOFn = mod.analyzeHandGTO as AnalyzeHandGTOFn;
     return analyzeHandGTOFn;
   } catch (error) {
     logWarn({
-      event: "gto_analyzer.unavailable",
+      event: 'gto_analyzer.unavailable',
       message: `GTO analyzer module unavailable: ${(error as Error).message}`,
     });
     return null;
@@ -115,29 +137,48 @@ async function getAnalyzeHandGTO(): Promise<AnalyzeHandGTOFn | null> {
 
 const app = express();
 app.use(cors({ origin: runtimeConfig.corsOrigin, credentials: true }));
-const healthPayload = { ok: true, service: "cardpilot-game-server" };
-app.get("/health", (_req, res) => res.json(healthPayload));
-app.get("/healthz", (_req, res) => res.json(healthPayload));
+app.use(express.json());
+const healthPayload = { ok: true, service: 'cardpilot-game-server' };
+app.get('/health', (_req, res) => res.json(healthPayload));
+app.get('/healthz', (_req, res) => res.json(healthPayload));
 const DEPLOY_COMMIT_REF =
   process.env.RAILWAY_GIT_COMMIT_SHA ||
   process.env.NETLIFY_COMMIT_REF ||
   process.env.COMMIT_REF ||
   process.env.GIT_COMMIT ||
-  "";
-app.get("/version", (_req, res) => res.json({ ok: true, commit: DEPLOY_COMMIT_REF || null }));
+  '';
+app.get('/version', (_req, res) => res.json({ ok: true, commit: DEPLOY_COMMIT_REF || null }));
 
 // ═══════════════════════════════════════════════════════════
 // CFR Lookup API (Phase 5)
 // ═══════════════════════════════════════════════════════════
-import { setupCfrLookupRoutes } from "./cfr-lookup-routes.js";
+import { setupCfrLookupRoutes } from './cfr-lookup-routes.js';
 setupCfrLookupRoutes(app);
+
+// ═══════════════════════════════════════════════════════════
+// GTO Solver API (EZ-GTO integration)
+// ═══════════════════════════════════════════════════════════
+import { createGtoRouter } from './routes/gto/index.js';
+app.use('/api/gto', createGtoRouter());
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
     origin: runtimeConfig.corsOrigin,
-    credentials: true
-  }
+    credentials: true,
+  },
+});
+
+// GTO Solver WebSocket namespace (isolated from game events)
+import { setGtoNamespace, cancelJob as cancelGtoJob } from './services/gto/solve-manager.js';
+const gtoNs = io.of('/gto');
+setGtoNamespace(gtoNs);
+gtoNs.on('connection', (gtoSocket) => {
+  gtoSocket.on('solve:subscribe', ({ jobId }: { jobId: string }) => gtoSocket.join(`job:${jobId}`));
+  gtoSocket.on('solve:unsubscribe', ({ jobId }: { jobId: string }) =>
+    gtoSocket.leave(`job:${jobId}`),
+  );
+  gtoSocket.on('solve:cancel', ({ jobId }: { jobId: string }) => cancelGtoJob(jobId));
 });
 
 type SeatBinding = {
@@ -164,7 +205,16 @@ const rejoinInfo = new Map<string, { tableId: string; seat: number; roomCode: st
 const tableSnapshotVersions = new Map<string, number>();
 
 // Pending seat requests: orderId -> request data
-type SeatRequest = { orderId: string; tableId: string; seat: number; buyIn: number; userId: string; userName: string; socketId: string; isRestore: boolean };
+type SeatRequest = {
+  orderId: string;
+  tableId: string;
+  seat: number;
+  buyIn: number;
+  userId: string;
+  userName: string;
+  socketId: string;
+  isRestore: boolean;
+};
 const pendingSeatRequests = new Map<string, SeatRequest>();
 const autoDealSchedule = new Map<string, ReturnType<typeof setTimeout>>();
 const tablesWithStartedHands = new Set<string>();
@@ -200,29 +250,42 @@ type PlayerSessionEntry = {
 };
 const sessionStatsByRoomCode = new Map<string, Map<string, PlayerSessionEntry>>(); // roomCode -> userId -> entry
 const clubLeaderboardRefreshTimers = new Map<string, ReturnType<typeof setTimeout>>();
-const CLUB_AUTH_REQUIRED_MESSAGE = "401 Unauthorized: authentication required for club access";
+const CLUB_AUTH_REQUIRED_MESSAGE = '401 Unauthorized: authentication required for club access';
 
 // Rebuy requests: seated player asks for more chips; club tables auto-approve, non-club rooms use host approval.
-type RebuyRequest = { orderId: string; tableId: string; seat: number; userId: string; userName: string; amount: number; approved: boolean; createdAt: number };
+type RebuyRequest = {
+  orderId: string;
+  tableId: string;
+  seat: number;
+  userId: string;
+  userName: string;
+  amount: number;
+  approved: boolean;
+  createdAt: number;
+};
 const pendingRebuys = new Map<string, RebuyRequest>(); // orderId → request
 const REBUY_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
 /** Saved hole cards from the last completed hand, for post-hand reveal */
 const lastHandHoleCards = new Map<string, Map<number, [string, string]>>();
 /** Pending 7-2 bounty claim: tableId -> claim info */
-const pendingBountyClaim = new Map<string, {
-  handId: string;
-  winnerSeat: number;
-  cards: [string, string];
-  dealtInSeats: number[];
-  bountyPerPlayer: number;
-  timeout: ReturnType<typeof setTimeout>;
-}>();
+const pendingBountyClaim = new Map<
+  string,
+  {
+    handId: string;
+    winnerSeat: number;
+    cards: [string, string];
+    dealtInSeats: number[];
+    bountyPerPlayer: number;
+    timeout: ReturnType<typeof setTimeout>;
+  }
+>();
 const supabase = new SupabasePersistence();
 if (!supabase.enabled()) {
   logWarn({
-    event: "supabase.disabled",
-    message: "Supabase persistence is DISABLED — hand history, room persistence, and player profiles will not be saved. Set SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY to enable.",
+    event: 'supabase.disabled',
+    message:
+      'Supabase persistence is DISABLED — hand history, room persistence, and player profiles will not be saved. Set SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY to enable.',
   });
 }
 
@@ -234,15 +297,152 @@ function getAuditService(): AuditService {
       supabaseAdmin: supabase.getAdminClient(),
       io,
       maxConcurrentAudits: 4,
+      onAuditComplete: (userId, summary) => {
+        // Feed audit results to fast-battle session tracking
+        fastBattlePool?.onAuditComplete(userId, summary);
+      },
     });
   }
   return auditService;
 }
 
-app.get("/healthz", (_req, res) => {
+// ── Fast Battle Pool Manager ──
+// Lazy-initialized on first use. Bridge functions provide access to server internals
+// without tightly coupling the pool manager to this module.
+let fastBattlePool: FastBattlePoolManager | null = null;
+
+function getFastBattlePool(): FastBattlePoolManager {
+  if (!fastBattlePool) {
+    const bridge: FastBattleBridge = {
+      io,
+      registerRoom(room) {
+        roomsByTableId.set(room.tableId, room as RoomInfo);
+        roomCodeToTableId.set(room.roomCode, room.tableId);
+      },
+      createTableIfNeeded(tableId: string) {
+        const room = roomsByTableId.get(tableId);
+        if (room) createTableIfNeeded(room);
+      },
+      createManagedRoom(params) {
+        roomManager.createRoom({
+          tableId: params.tableId,
+          roomCode: params.roomCode,
+          roomName: params.roomName,
+          ownerId: params.ownerId,
+          ownerName: params.ownerName,
+          settings: params.settings,
+        });
+      },
+      syncBots,
+      removeAllBots,
+      standUpPlayer,
+      sitDownInternal(
+        tableId: string,
+        seat: number,
+        buyIn: number,
+        userId: string,
+        name: string,
+        explicitSocketId?: string,
+      ): boolean {
+        try {
+          const table = tables.get(tableId);
+          if (!table) return false;
+          // Check seat not already occupied
+          if (table.getPublicState().players.some((p) => p.seat === seat)) return false;
+          table.addPlayer({ seat, userId, name, stack: buyIn });
+          // Use explicit socketId if provided (fast-battle), otherwise search socketIdentity
+          if (explicitSocketId) {
+            const existingSeat = socketSeat.get(explicitSocketId);
+            if (existingSeat && existingSeat.tableId !== tableId) {
+              const s = io.sockets.sockets.get(explicitSocketId);
+              if (s) s.leave(existingSeat.tableId);
+            }
+            socketSeat.set(explicitSocketId, { tableId, seat, userId, name });
+            const s = io.sockets.sockets.get(explicitSocketId);
+            if (s) s.join(tableId);
+          } else {
+            for (const [sid, ident] of socketIdentity.entries()) {
+              if (ident.userId === userId) {
+                const existingSeat = socketSeat.get(sid);
+                if (existingSeat && existingSeat.tableId !== tableId) {
+                  const s = io.sockets.sockets.get(sid);
+                  if (s) s.leave(existingSeat.tableId);
+                }
+                socketSeat.set(sid, { tableId, seat, userId, name });
+                const s = io.sockets.sockets.get(sid);
+                if (s) s.join(tableId);
+                break;
+              }
+            }
+          }
+          broadcastSnapshot(tableId);
+          scheduleAutoDealIfNeeded(tableId);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      getTable(tableId: string) {
+        return tables.get(tableId);
+      },
+      rebindSocket(socketId: string, tableId: string, seat: number, userId: string, name: string) {
+        socketSeat.set(socketId, { tableId, seat, userId, name });
+      },
+      destroyTable(tableId: string) {
+        // Fully remove table + version + room registries to prevent zombie snapshots
+        tables.delete(tableId);
+        tableSnapshotVersions.delete(tableId);
+        tablesWithStartedHands.delete(tableId);
+        clearAutoDealSchedule(tableId);
+        const room = roomsByTableId.get(tableId);
+        if (room) {
+          roomCodeToTableId.delete(room.roomCode);
+          roomsByTableId.delete(tableId);
+        }
+        roomManager.deleteRoom(tableId);
+        // Kick all sockets from the room so no stale broadcasts are received
+        const roomSockets = io.sockets.adapter.rooms.get(tableId);
+        if (roomSockets) {
+          for (const sid of roomSockets) {
+            const sock = io.sockets.sockets.get(sid);
+            if (sock) sock.leave(tableId);
+          }
+        }
+        // Clean up seat bindings for this table
+        for (const [sid, binding] of socketSeat.entries()) {
+          if (binding.tableId === tableId) socketSeat.delete(sid);
+        }
+      },
+      getAuditService() {
+        return getAuditService();
+      },
+      randomRoomCode() {
+        return randomRoomCode();
+      },
+      serverPort: runtimeConfig.port,
+      markTableStarted(tableId: string) {
+        tablesWithStartedHands.add(tableId);
+      },
+      scheduleAutoDeal(tableId: string) {
+        scheduleAutoDealIfNeeded(tableId, 200);
+      },
+      setButtonSeat(tableId: string, seat: number) {
+        const table = tables.get(tableId);
+        if (table) {
+          // Access internal state to set button position before first deal
+          (table as unknown as { state: { buttonSeat: number } }).state.buttonSeat = seat;
+        }
+      },
+    };
+    fastBattlePool = new FastBattlePoolManager(bridge);
+  }
+  return fastBattlePool;
+}
+
+app.get('/healthz', (_req, res) => {
   res.status(200).json({
     ok: true,
-    service: "cardpilot-game-server",
+    service: 'cardpilot-game-server',
     configVersion: runtimeConfig.version,
     env: runtimeConfig.envName,
     uptimeSec: Math.floor(process.uptime()),
@@ -255,7 +455,7 @@ app.get("/healthz", (_req, res) => {
 
 // Room manager handles ownership, settings, timers, kick/ban, auto-close
 const roomManager = new RoomManager((tableId, event, data) => {
-  if (event !== "room_state_update") {
+  if (event !== 'room_state_update') {
     io.to(tableId).emit(event, data);
     return;
   }
@@ -263,13 +463,16 @@ const roomManager = new RoomManager((tableId, event, data) => {
   const baseState = data as RoomFullState;
   const roomSockets = io.sockets.adapter.rooms.get(tableId);
   if (!roomSockets || roomSockets.size === 0) {
-    io.to(tableId).emit("room_state_update", withClubRoomStateMetadata(baseState, tableId));
+    io.to(tableId).emit('room_state_update', withClubRoomStateMetadata(baseState, tableId));
     return;
   }
 
   for (const sid of roomSockets) {
     const ident = socketIdentity.get(sid);
-    io.to(sid).emit("room_state_update", withClubRoomStateMetadata(baseState, tableId, ident?.userId));
+    io.to(sid).emit(
+      'room_state_update',
+      withClubRoomStateMetadata(baseState, tableId, ident?.userId),
+    );
   }
 });
 
@@ -279,7 +482,10 @@ const primaryClubRepo = new ClubRepo();
 const clubDataRepo: ClubDataRepo = primaryClubRepo.enabled() ? primaryClubRepo : new ClubRepoJson();
 const clubManager = new ClubManager();
 if (!primaryClubRepo.enabled()) {
-  logInfo({ event: "club_persistence.fallback", message: "Using JSON file fallback for club persistence (dev mode)" });
+  logInfo({
+    event: 'club_persistence.fallback',
+    message: 'Using JSON file fallback for club persistence (dev mode)',
+  });
 }
 clubManager.setRepo(clubDataRepo as unknown as ClubRepo);
 
@@ -306,7 +512,7 @@ void (async () => {
   // This avoids loading all open tables into memory at startup.
   const openClubTables = clubManager.listOpenTables();
   logInfo({
-    event: "club_manager.hydrate.complete",
+    event: 'club_manager.hydrate.complete',
     message: `Hydrated club data (${openClubTables.length} open tables, runtimes created on demand)`,
   });
 
@@ -319,14 +525,16 @@ void (async () => {
   const closedCount = await supabase.closeStaleRooms(activeTableIds);
   if (closedCount > 0) {
     logInfo({
-      event: "startup.stale_rooms_closed",
+      event: 'startup.stale_rooms_closed',
       message: `Closed ${closedCount} stale room(s) in Supabase`,
     });
   }
-})().catch((e) => logWarn({
-  event: "club_manager.hydrate_or_restore.failed",
-  message: (e as Error).message,
-}));
+})().catch((e) =>
+  logWarn({
+    event: 'club_manager.hydrate_or_restore.failed',
+    message: (e as Error).message,
+  }),
+);
 
 io.use(async (socket, next) => {
   const auth = (socket.handshake.auth ?? {}) as {
@@ -335,7 +543,7 @@ io.use(async (socket, next) => {
     userId?: string; // Accept userId from client
   };
 
-  const normalizedClientUserId = typeof auth.userId === "string" ? auth.userId.trim() : "";
+  const normalizedClientUserId = typeof auth.userId === 'string' ? auth.userId.trim() : '';
   let verifiedUserId: string | null = null;
 
   try {
@@ -345,12 +553,16 @@ io.use(async (socket, next) => {
     let resolvedIdentity = verifiedIdentity;
     // Only for unauthenticated identities, trust client guest id for stability.
     if (!verifiedIdentity.isAuthenticated && normalizedClientUserId) {
-      resolvedIdentity = { ...verifiedIdentity, userId: normalizedClientUserId, isAuthenticated: false };
+      resolvedIdentity = {
+        ...verifiedIdentity,
+        userId: normalizedClientUserId,
+        isAuthenticated: false,
+      };
     }
 
     if (IDENTITY_DEBUG) {
       logInfo({
-        event: "auth.identity.resolved",
+        event: 'auth.identity.resolved',
         userId: resolvedIdentity.userId,
         message: JSON.stringify({
           handshakeUserId: normalizedClientUserId || null,
@@ -366,10 +578,12 @@ io.use(async (socket, next) => {
     next();
   } catch {
     // Verification unavailable/failed: fall back to client-provided guest id (if any).
-    const fallbackUserId = normalizedClientUserId || `guest-${randomUUID().replace(/-/g, "").slice(0, 8)}`;
-    const fallbackDisplayName = typeof auth.displayName === "string" && auth.displayName.trim()
-      ? auth.displayName.trim().slice(0, 32)
-      : "Guest";
+    const fallbackUserId =
+      normalizedClientUserId || `guest-${randomUUID().replace(/-/g, '').slice(0, 8)}`;
+    const fallbackDisplayName =
+      typeof auth.displayName === 'string' && auth.displayName.trim()
+        ? auth.displayName.trim().slice(0, 32)
+        : 'Guest';
     const resolvedIdentity: VerifiedIdentity = {
       userId: fallbackUserId,
       displayName: fallbackDisplayName,
@@ -378,7 +592,7 @@ io.use(async (socket, next) => {
 
     if (IDENTITY_DEBUG) {
       logInfo({
-        event: "auth.identity.resolved",
+        event: 'auth.identity.resolved',
         userId: resolvedIdentity.userId,
         message: JSON.stringify({
           handshakeUserId: normalizedClientUserId || null,
@@ -412,10 +626,10 @@ function createTableIfNeeded(room: RoomInfo): GameTable {
       bigBlind: room.bigBlind,
       ante: settings?.ante ?? 0,
       runItTwiceEnabled: settings?.runItTwice ?? false,
-      gameType: settings?.gameType ?? "texas",
+      gameType: settings?.gameType ?? 'texas',
       bombPotEnabled: settings?.bombPotEnabled ?? false,
       bombPotFrequency: settings?.bombPotFrequency ?? 0,
-      doubleBoardMode: settings?.doubleBoardMode ?? "off",
+      doubleBoardMode: settings?.doubleBoardMode ?? 'off',
       rakeEnabled: simulatedFeeEnabled,
       rakePercent: simulatedFeeEnabled ? (settings?.simulatedFeePercent ?? 0) : 0,
       rakeCap: simulatedFeeEnabled && simulatedFeeCap > 0 ? simulatedFeeCap : undefined,
@@ -468,23 +682,27 @@ function socketIdBySeat(tableId: string, seat: number): string {
   for (const [sid, binding] of socketSeat.entries()) {
     if (binding.tableId === tableId && binding.seat === seat) return sid;
   }
-  return "";
+  return '';
 }
 
 function isSevenTwo(cards: string[]): boolean {
   if (!cards || cards.length < 2) return false;
-  const r0 = cards[0][0], r1 = cards[1][0];
-  return (r0 === "7" && r1 === "2") || (r0 === "2" && r1 === "7");
+  const r0 = cards[0][0],
+    r1 = cards[1][0];
+  return (r0 === '7' && r1 === '2') || (r0 === '2' && r1 === '7');
 }
 
-function applySevenTwoBounty(tableId: string, claim: {
-  handId: string;
-  winnerSeat: number;
-  cards: [string, string];
-  dealtInSeats: number[];
-  bountyPerPlayer: number;
-  timeout: ReturnType<typeof setTimeout>;
-}): void {
+function applySevenTwoBounty(
+  tableId: string,
+  claim: {
+    handId: string;
+    winnerSeat: number;
+    cards: [string, string];
+    dealtInSeats: number[];
+    bountyPerPlayer: number;
+    timeout: ReturnType<typeof setTimeout>;
+  },
+): void {
   const table = tables.get(tableId);
   if (!table) return;
 
@@ -521,19 +739,19 @@ function applySevenTwoBounty(tableId: string, claim: {
   };
 
   // Broadcast bounty claimed and reveal the cards
-  io.to(tableId).emit("seven_two_bounty_claimed", {
+  io.to(tableId).emit('seven_two_bounty_claimed', {
     tableId,
     handId: claim.handId,
     bounty: bountyInfo,
   });
-  io.to(tableId).emit("post_hand_reveal", {
+  io.to(tableId).emit('post_hand_reveal', {
     tableId,
     seat: claim.winnerSeat,
     cards: claim.cards,
   });
 
   logInfo({
-    event: "seven_two_bounty.claimed",
+    event: 'seven_two_bounty.claimed',
     tableId,
     handId: claim.handId,
     winnerSeat: claim.winnerSeat,
@@ -556,11 +774,18 @@ function isPersistentClubTable(tableId: string): boolean {
 }
 
 function maybeCheckRoomEmpty(tableId: string, currentCount: number): void {
+  // Skip for fast-battle tables — pool manager handles room lifecycle
+  if (tableId.startsWith('fb_') || fastBattlePool?.isFastBattleTable(tableId)) return;
   if (isPersistentClubTable(tableId)) {
     // Club tables: suspend runtime after idle TTL, but do NOT close the table.
-    roomManager.checkRoomEmpty(tableId, currentCount, () => {
-      handleClubTableIdleSuspend(tableId);
-    }, runtimeConfig.clubTableIdleTtlMs);
+    roomManager.checkRoomEmpty(
+      tableId,
+      currentCount,
+      () => {
+        handleClubTableIdleSuspend(tableId);
+      },
+      runtimeConfig.clubTableIdleTtlMs,
+    );
     return;
   }
   roomManager.checkRoomEmpty(tableId, currentCount, () => {
@@ -572,6 +797,10 @@ function maybeCheckRoomEmpty(tableId: string, currentCount: number): void {
  * If only bots remain at the table (no human players), remove all bots and clear botSeats.
  */
 function checkBotsOnlyAndRemove(tableId: string): void {
+  // Skip for fast-battle tables — pool manager handles bot lifecycle
+  // Use fb_ prefix as fail-safe (pool map state can be stale after releaseRoom)
+  if (tableId.startsWith('fb_') || fastBattlePool?.isFastBattleTable(tableId)) return;
+
   const table = tables.get(tableId);
   if (!table) return;
 
@@ -581,7 +810,9 @@ function checkBotsOnlyAndRemove(tableId: string): void {
   const botUserIds = getBotUserIds(tableId);
   if (botUserIds.size === 0) return;
 
-  const hasHumanSeated = state.players.some((p) => !botUserIds.has(p.userId) && !p.userId.startsWith("bot-"));
+  const hasHumanSeated = state.players.some(
+    (p) => !botUserIds.has(p.userId) && !p.userId.startsWith('bot-'),
+  );
   if (hasHumanSeated) return;
 
   // Also check if any human is connected to the room (observers/spectators)
@@ -589,13 +820,13 @@ function checkBotsOnlyAndRemove(tableId: string): void {
   if (roomSockets) {
     const hasHumanObserver = [...roomSockets].some((sid) => {
       const ident = socketIdentity.get(sid);
-      return ident && !ident.userId.startsWith("bot-");
+      return ident && !ident.userId.startsWith('bot-');
     });
     if (hasHumanObserver) return;
   }
 
   logInfo({
-    event: "bot.no_humans_remaining",
+    event: 'bot.no_humans_remaining',
     message: `No human players remain at table=${tableId}, removing all bots`,
   });
 
@@ -627,7 +858,7 @@ function checkBotsOnlyAndRemove(tableId: string): void {
 
 function isClubOwnerOrAdmin(clubId: string, userId: string): boolean {
   const role = clubManager.getMemberRole(clubId, userId);
-  return role === "owner" || role === "admin";
+  return role === 'owner' || role === 'admin';
 }
 
 function isClubAuthenticatedIdentity(identity: VerifiedIdentity): boolean {
@@ -636,13 +867,13 @@ function isClubAuthenticatedIdentity(identity: VerifiedIdentity): boolean {
   if (!supabase.enabled()) {
     return true;
   }
-  return identity.isAuthenticated && !identity.userId.startsWith("guest-");
+  return identity.isAuthenticated && !identity.userId.startsWith('guest-');
 }
 
 function emitClubUnauthorized(socket: Socket, reason?: string): void {
   const msg = reason ? `${CLUB_AUTH_REQUIRED_MESSAGE}: ${reason}` : CLUB_AUTH_REQUIRED_MESSAGE;
-  socket.emit("club_error", { code: "UNAUTHORIZED", message: msg });
-  socket.emit("error_event", { message: msg });
+  socket.emit('club_error', { code: 'UNAUTHORIZED', message: msg });
+  socket.emit('error_event', { message: msg });
 }
 
 function socketIdsForUser(userId: string): string[] {
@@ -658,10 +889,10 @@ function ensureClubTableRoom(clubId: string, clubTableId: string): string | null
   // Already has a runtime room?
   if (roomsByTableId.has(clubTableId)) return clubTableId;
 
-  logInfo({ event: "club_table.rehydrate", tableId: clubTableId, clubId });
+  logInfo({ event: 'club_table.rehydrate', tableId: clubTableId, clubId });
 
   const tableMeta = clubManager.getClubTable(clubId, clubTableId);
-  if (!tableMeta || tableMeta.status === "closed" || tableMeta.status === "finished") return null;
+  if (!tableMeta || tableMeta.status === 'closed' || tableMeta.status === 'finished') return null;
 
   const rules = clubManager.getRulesForTable(clubId, clubTableId);
   if (!rules) return null;
@@ -670,11 +901,11 @@ function ensureClubTableRoom(clubId: string, clubTableId: string): string | null
   const room: RoomInfo = {
     tableId: clubTableId,
     roomCode: clubTableId, // Club tables use their own ID as roomCode (never exposed to users)
-    roomName: `${club?.name ?? "Club"} — ${tableMeta.name}`,
+    roomName: `${club?.name ?? 'Club'} — ${tableMeta.name}`,
     maxPlayers: rules.maxSeats,
     smallBlind: rules.stakes.smallBlind,
     bigBlind: rules.stakes.bigBlind,
-    status: "OPEN",
+    status: 'OPEN',
     isPublic: false,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -688,7 +919,7 @@ function ensureClubTableRoom(clubId: string, clubTableId: string): string | null
     roomCode: clubTableId,
     roomName: room.roomName,
     ownerId: tableMeta.createdBy,
-    ownerName: "Club Host",
+    ownerName: 'Club Host',
     settings: {
       maxPlayers: rules.maxSeats,
       smallBlind: rules.stakes.smallBlind,
@@ -699,22 +930,27 @@ function ensureClubTableRoom(clubId: string, clubTableId: string): string | null
       timeBankSeconds: rules.time.timeBankSec,
       disconnectGracePeriod: rules.time.disconnectGraceSec,
       autoStartNextHand: rules.dealing.autoStartNextHand && rules.dealing.autoDealEnabled,
-      minPlayersToStart: Math.max(2, Math.min(rules.maxSeats, rules.dealing.minPlayersToStart ?? 2)),
+      minPlayersToStart: Math.max(
+        2,
+        Math.min(rules.maxSeats, rules.dealing.minPlayersToStart ?? 2),
+      ),
       spectatorAllowed: rules.moderation.allowSpectators,
       runItTwice: rules.runit.allowRunItTwice,
-      runItTwiceMode: rules.runit.allowRunItTwice ? "ask_players" : "off",
+      runItTwiceMode: rules.runit.allowRunItTwice ? 'ask_players' : 'off',
       straddleAllowed: rules.extras.straddleAllowed,
       bombPotEnabled: rules.extras.bombPotEnabled,
       rabbitHunting: rules.extras.rabbitHuntEnabled,
-      visibility: "private",
+      visibility: 'private',
     },
   });
 
-  supabase.upsertRoom(room).catch((e) => logWarn({
-    event: "club_table.create_room.persist_failed",
-    tableId: clubTableId,
-    message: (e as Error).message,
-  }));
+  supabase.upsertRoom(room).catch((e) =>
+    logWarn({
+      event: 'club_table.create_room.persist_failed',
+      tableId: clubTableId,
+      message: (e as Error).message,
+    }),
+  );
   return clubTableId;
 }
 
@@ -724,13 +960,13 @@ async function buildClubDetailPayload(clubId: string, viewerUserId: string) {
 
   // Ensure runtime rooms exist for all open tables.
   for (const t of detail.tables) {
-    if (t.status !== "closed" && t.status !== "finished") {
+    if (t.status !== 'closed' && t.status !== 'finished') {
       ensureClubTableRoom(clubId, t.id);
     }
   }
 
   const memberIds = [...new Set(detail.members.map((m) => m.userId).concat(viewerUserId))];
-  const walletBalances = await clubDataRepo.getWalletBalances(clubId, memberIds, "chips");
+  const walletBalances = await clubDataRepo.getWalletBalances(clubId, memberIds, 'chips');
   detail.members = detail.members.map((m) => {
     const balance = walletBalances.get(m.userId) ?? 0;
     clubManager.setMemberBalance(clubId, m.userId, balance);
@@ -751,10 +987,12 @@ async function buildClubDetailPayload(clubId: string, viewerUserId: string) {
       enriched.playerCount = state.players.length;
       enriched.maxPlayers = managed?.settings.maxPlayers ?? cfg.maxSeats ?? 6;
       enriched.stakes = `${state.smallBlind}/${state.bigBlind}`;
-      enriched.minPlayersToStart = managed?.settings.minPlayersToStart ?? cfg.minPlayersToStart ?? 2;
+      enriched.minPlayersToStart =
+        managed?.settings.minPlayersToStart ?? cfg.minPlayersToStart ?? 2;
     } else {
       enriched.playerCount = 0;
-      enriched.minPlayersToStart = managed?.settings.minPlayersToStart ?? cfg.minPlayersToStart ?? 2;
+      enriched.minPlayersToStart =
+        managed?.settings.minPlayersToStart ?? cfg.minPlayersToStart ?? 2;
     }
     return enriched;
   });
@@ -762,14 +1000,22 @@ async function buildClubDetailPayload(clubId: string, viewerUserId: string) {
   return detail;
 }
 
-async function emitClubDetail(socketId: string, clubId: string, viewerUserId: string): Promise<void> {
+async function emitClubDetail(
+  socketId: string,
+  clubId: string,
+  viewerUserId: string,
+): Promise<void> {
   const detail = await buildClubDetailPayload(clubId, viewerUserId);
   if (detail) {
-    io.to(socketId).emit("club_detail", detail);
+    io.to(socketId).emit('club_detail', detail);
   }
 }
 
-function withClubRoomStateMetadata(state: RoomFullState, tableId: string, viewerUserId?: string): RoomFullState {
+function withClubRoomStateMetadata(
+  state: RoomFullState,
+  tableId: string,
+  viewerUserId?: string,
+): RoomFullState {
   const clubInfo = getClubInfoForTableId(tableId);
   const hasStartedHand = tablesWithStartedHands.has(tableId);
   if (!clubInfo) {
@@ -791,15 +1037,15 @@ function withClubRoomStateMetadata(state: RoomFullState, tableId: string, viewer
 }
 
 async function emitDefaultLeaderboardToConnectedClubMembers(clubId: string): Promise<void> {
-  const defaultRange: ClubLeaderboardRange = "week";
-  const entries = await clubDataRepo.getClubLeaderboard(clubId, defaultRange, "net", 50);
+  const defaultRange: ClubLeaderboardRange = 'week';
+  const entries = await clubDataRepo.getClubLeaderboard(clubId, defaultRange, 'net', 50);
   const rankByUser = new Map(entries.map((entry) => [entry.userId, entry.rank]));
   for (const [sid, ident] of socketIdentity.entries()) {
     if (!clubManager.isActiveMember(clubId, ident.userId)) continue;
-    io.to(sid).emit("club_leaderboard", {
+    io.to(sid).emit('club_leaderboard', {
       clubId,
       timeRange: defaultRange,
-      metric: "net",
+      metric: 'net',
       entries,
       myRank: rankByUser.get(ident.userId) ?? null,
     });
@@ -810,11 +1056,13 @@ function scheduleClubLeaderboardRefresh(clubId: string): void {
   if (clubLeaderboardRefreshTimers.has(clubId)) return;
   const handle = setTimeout(() => {
     clubLeaderboardRefreshTimers.delete(clubId);
-    emitDefaultLeaderboardToConnectedClubMembers(clubId).catch((e) => logWarn({
-      event: "club_leaderboard.refresh.failed",
-      clubId,
-      message: (e as Error).message,
-    }));
+    emitDefaultLeaderboardToConnectedClubMembers(clubId).catch((e) =>
+      logWarn({
+        event: 'club_leaderboard.refresh.failed',
+        clubId,
+        message: (e as Error).message,
+      }),
+    );
   }, 100);
   clubLeaderboardRefreshTimers.set(clubId, handle);
 }
@@ -823,12 +1071,12 @@ async function emitWalletBalanceToUser(
   clubId: string,
   userId: string,
   balance: number,
-  currency = "chips",
+  currency = 'chips',
 ): Promise<void> {
   const payload = { balance: { clubId, userId, currency, balance } };
   for (const sid of socketIdsForUser(userId)) {
-    io.to(sid).emit("club_wallet_balance", payload);
-    io.to(sid).emit("club_credits_updated", { clubId, userId, newBalance: balance });
+    io.to(sid).emit('club_wallet_balance', payload);
+    io.to(sid).emit('club_credits_updated', { clubId, userId, newBalance: balance });
   }
   scheduleClubLeaderboardRefresh(clubId);
 }
@@ -837,18 +1085,26 @@ async function appendWalletTx(input: AppendWalletTxInput) {
   try {
     const result = await clubDataRepo.appendWalletTx(input);
     if (!result) {
-      throw new Error("Wallet transaction returned null");
+      throw new Error('Wallet transaction returned null');
     }
     clubManager.setMemberBalance(input.clubId, input.userId, result.newBalance);
     return result;
   } catch (err) {
     const msg = (err as Error).message;
-    logWarn({ event: "server.appendWalletTx.failed", message: msg, clubId: input.clubId, userId: input.userId });
+    logWarn({
+      event: 'server.appendWalletTx.failed',
+      message: msg,
+      clubId: input.clubId,
+      userId: input.userId,
+    });
     throw new Error(`Wallet transaction failed: ${msg}`);
   }
 }
 
-function getRoomSessionStats(tableId: string, create = false): Map<string, PlayerSessionEntry> | undefined {
+function getRoomSessionStats(
+  tableId: string,
+  create = false,
+): Map<string, PlayerSessionEntry> | undefined {
   const roomCode = roomCodeForTable(tableId);
   if (!roomCode) return undefined;
   if (!create) return sessionStatsByRoomCode.get(roomCode);
@@ -915,7 +1171,17 @@ function broadcastSessionStats(tableId: string): void {
   const table = tables.get(tableId);
   const currentPlayers = table ? table.getPublicState().players : [];
   const roomStats = getRoomSessionStats(tableId, false);
-  const entries: Array<{ seat: number | null; userId: string; name: string; totalBuyIn: number; totalCashOut: number; currentStack: number; net: number; handsPlayed: number; status: string }> = [];
+  const entries: Array<{
+    seat: number | null;
+    userId: string;
+    name: string;
+    totalBuyIn: number;
+    totalCashOut: number;
+    currentStack: number;
+    net: number;
+    handsPlayed: number;
+    status: string;
+  }> = [];
 
   if (roomStats) {
     for (const [uid, entry] of roomStats.entries()) {
@@ -930,12 +1196,12 @@ function broadcastSessionStats(tableId: string): void {
         currentStack,
         net: currentStack + entry.totalCashOut - entry.totalBuyIn,
         handsPlayed: entry.handsPlayed,
-        status: seated ? "seated" : "away",
+        status: seated ? 'seated' : 'away',
       });
     }
   }
 
-  io.to(tableId).emit("session_stats", { tableId, entries });
+  io.to(tableId).emit('session_stats', { tableId, entries });
 }
 
 function getRestorableStack(tableId: string, userId: string): number | null {
@@ -979,7 +1245,9 @@ async function applyApprovedRebuys(tableId: string): Promise<void> {
   const clubInfo = getClubInfoForTableId(tableId);
   const toRemove: string[] = [];
   const stateBefore = table.getPublicState();
-  const stackBySeatBefore = new Map<number, number>(stateBefore.players.map((player) => [player.seat, player.stack]));
+  const stackBySeatBefore = new Map<number, number>(
+    stateBefore.players.map((player) => [player.seat, player.stack]),
+  );
   for (const [orderId, deposit] of pendingRebuys.entries()) {
     if (deposit.tableId !== tableId || !deposit.approved) continue;
     try {
@@ -991,9 +1259,13 @@ async function applyApprovedRebuys(tableId: string): Promise<void> {
       if (currentStack + deposit.amount > room.settings.buyInMax) {
         const seatSocket = socketIdBySeat(tableId, deposit.seat);
         if (seatSocket) {
-          io.to(seatSocket).emit("system_message", { message: "Rebuy approval skipped: exceeds max buy-in for next hand." });
+          io.to(seatSocket).emit('system_message', {
+            message: 'Rebuy approval skipped: exceeds max buy-in for next hand.',
+          });
         }
-        io.to(tableId).emit("system_message", { message: `Rebuy approval for ${deposit.userName} skipped (exceeds max buy-in).` });
+        io.to(tableId).emit('system_message', {
+          message: `Rebuy approval for ${deposit.userName} skipped (exceeds max buy-in).`,
+        });
         toRemove.push(orderId);
         continue;
       }
@@ -1002,18 +1274,28 @@ async function applyApprovedRebuys(tableId: string): Promise<void> {
         if (!clubManager.isActiveMember(clubInfo.clubId, deposit.userId)) {
           const seatSocket = socketIdBySeat(tableId, deposit.seat);
           if (seatSocket) {
-            io.to(seatSocket).emit("system_message", { message: "Rebuy skipped: club membership is no longer active." });
+            io.to(seatSocket).emit('system_message', {
+              message: 'Rebuy skipped: club membership is no longer active.',
+            });
           }
           toRemove.push(orderId);
           continue;
         }
-        const walletBalance = await clubDataRepo.getWalletBalance(clubInfo.clubId, deposit.userId, "chips");
+        const walletBalance = await clubDataRepo.getWalletBalance(
+          clubInfo.clubId,
+          deposit.userId,
+          'chips',
+        );
         if (walletBalance < deposit.amount) {
           const seatSocket = socketIdBySeat(tableId, deposit.seat);
           if (seatSocket) {
-            io.to(seatSocket).emit("system_message", { message: "Rebuy skipped: Club has insufficient funds." });
+            io.to(seatSocket).emit('system_message', {
+              message: 'Rebuy skipped: Club has insufficient funds.',
+            });
           }
-          io.to(tableId).emit("system_message", { message: `Rebuy for ${deposit.userName} skipped: Club has insufficient funds.` });
+          io.to(tableId).emit('system_message', {
+            message: `Rebuy for ${deposit.userName} skipped: Club has insufficient funds.`,
+          });
           toRemove.push(orderId);
           continue;
         }
@@ -1021,22 +1303,31 @@ async function applyApprovedRebuys(tableId: string): Promise<void> {
           const tx = await appendWalletTx({
             clubId: clubInfo.clubId,
             userId: deposit.userId,
-            type: "buy_in",
+            type: 'buy_in',
             amount: -Math.trunc(deposit.amount),
-            currency: "chips",
-            refType: "table_rebuy",
+            currency: 'chips',
+            refType: 'table_rebuy',
             refId: `${tableId}:${deposit.seat}:${orderId}`,
             createdBy: deposit.userId,
             note: `Rebuy for seat ${deposit.seat} at ${room.roomName}`,
             metaJson: { tableId, seat: deposit.seat, orderId },
           });
-          await emitWalletBalanceToUser(clubInfo.clubId, deposit.userId, tx.newBalance, "chips");
+          await emitWalletBalanceToUser(clubInfo.clubId, deposit.userId, tx.newBalance, 'chips');
         } catch (error) {
           const errMsg = (error as Error).message;
-          logWarn({ event: "applyApprovedRebuys.wallet_failed", message: errMsg, clubId: clubInfo.clubId, userId: deposit.userId, amount: deposit.amount, orderId });
+          logWarn({
+            event: 'applyApprovedRebuys.wallet_failed',
+            message: errMsg,
+            clubId: clubInfo.clubId,
+            userId: deposit.userId,
+            amount: deposit.amount,
+            orderId,
+          });
           const seatSocket = socketIdBySeat(tableId, deposit.seat);
           if (seatSocket) {
-            io.to(seatSocket).emit("system_message", { message: `Rebuy failed: unable to reserve club funds. ${errMsg}` });
+            io.to(seatSocket).emit('system_message', {
+              message: `Rebuy failed: unable to reserve club funds. ${errMsg}`,
+            });
           }
           toRemove.push(orderId);
           continue;
@@ -1046,28 +1337,45 @@ async function applyApprovedRebuys(tableId: string): Promise<void> {
       try {
         table.addStack(deposit.seat, deposit.amount);
       } catch (addStackErr) {
-        console.warn("applyApprovedRebuys: addStack failed after wallet debit, issuing refund:", (addStackErr as Error).message);
+        console.warn(
+          'applyApprovedRebuys: addStack failed after wallet debit, issuing refund:',
+          (addStackErr as Error).message,
+        );
         if (clubInfo) {
           try {
             const refundTx = await appendWalletTx({
               clubId: clubInfo.clubId,
               userId: deposit.userId,
-              type: "adjustment",
+              type: 'adjustment',
               amount: Math.trunc(deposit.amount),
-              currency: "chips",
-              refType: "rebuy_refund",
+              currency: 'chips',
+              refType: 'rebuy_refund',
               refId: `${tableId}:${deposit.seat}:${orderId}:refund`,
               createdBy: deposit.userId,
               note: `Refund: rebuy addStack failed for seat ${deposit.seat}`,
-              metaJson: { tableId, seat: deposit.seat, orderId, reason: "addStack_failed" },
+              metaJson: { tableId, seat: deposit.seat, orderId, reason: 'addStack_failed' },
             });
-            await emitWalletBalanceToUser(clubInfo.clubId, deposit.userId, refundTx.newBalance, "chips");
+            await emitWalletBalanceToUser(
+              clubInfo.clubId,
+              deposit.userId,
+              refundTx.newBalance,
+              'chips',
+            );
             const seatSocket = socketIdBySeat(tableId, deposit.seat);
             if (seatSocket) {
-              io.to(seatSocket).emit("system_message", { message: "Rebuy failed to apply. Your wallet has been refunded." });
+              io.to(seatSocket).emit('system_message', {
+                message: 'Rebuy failed to apply. Your wallet has been refunded.',
+              });
             }
           } catch (refundErr) {
-            logWarn({ event: "applyApprovedRebuys.refund_failed", message: (refundErr as Error).message, clubId: clubInfo.clubId, userId: deposit.userId, amount: deposit.amount, orderId });
+            logWarn({
+              event: 'applyApprovedRebuys.refund_failed',
+              message: (refundErr as Error).message,
+              clubId: clubInfo.clubId,
+              userId: deposit.userId,
+              amount: deposit.amount,
+              orderId,
+            });
           }
         }
         toRemove.push(orderId);
@@ -1077,23 +1385,42 @@ async function applyApprovedRebuys(tableId: string): Promise<void> {
       recordSessionBuyIn(tableId, deposit.userId, deposit.userName, deposit.amount);
       setSessionLastStack(tableId, deposit.userId, deposit.userName, currentStack + deposit.amount);
       const sid = socketIdBySeat(tableId, deposit.seat);
-      if (sid) io.to(sid).emit("system_message", { message: `Rebuy of ${deposit.amount} credited for this hand.` });
-      io.to(tableId).emit("system_message", { message: `${deposit.userName} (Seat ${deposit.seat}) rebuy credited: ${deposit.amount}` });
+      if (sid)
+        io.to(sid).emit('system_message', {
+          message: `Rebuy of ${deposit.amount} credited for this hand.`,
+        });
+      io.to(tableId).emit('system_message', {
+        message: `${deposit.userName} (Seat ${deposit.seat}) rebuy credited: ${deposit.amount}`,
+      });
       broadcastSessionStats(tableId);
       stackBySeatBefore.set(deposit.seat, currentStack + deposit.amount);
     } catch (err) {
-      console.warn("applyApprovedRebuys: unexpected error:", (err as Error).message);
+      console.warn('applyApprovedRebuys: unexpected error:', (err as Error).message);
     }
     toRemove.push(orderId);
   }
   for (const id of toRemove) pendingRebuys.delete(id);
 }
 
-function getPendingRebuysForTable(tableId: string): Array<{ orderId: string; seat: number; userId: string; userName: string; amount: number }> {
-  const result: Array<{ orderId: string; seat: number; userId: string; userName: string; amount: number }> = [];
+function getPendingRebuysForTable(
+  tableId: string,
+): Array<{ orderId: string; seat: number; userId: string; userName: string; amount: number }> {
+  const result: Array<{
+    orderId: string;
+    seat: number;
+    userId: string;
+    userName: string;
+    amount: number;
+  }> = [];
   for (const [, deposit] of pendingRebuys.entries()) {
     if (deposit.tableId === tableId && !deposit.approved) {
-      result.push({ orderId: deposit.orderId, seat: deposit.seat, userId: deposit.userId, userName: deposit.userName, amount: deposit.amount });
+      result.push({
+        orderId: deposit.orderId,
+        seat: deposit.seat,
+        userId: deposit.userId,
+        userName: deposit.userName,
+        amount: deposit.amount,
+      });
     }
   }
   return result;
@@ -1103,10 +1430,18 @@ function cleanupStaleRebuys(): void {
   const now = Date.now();
   for (const [orderId, deposit] of pendingRebuys.entries()) {
     if (now - deposit.createdAt > REBUY_TTL_MS) {
-      logInfo({ event: "rebuy.stale_cleanup", orderId, tableId: deposit.tableId, userId: deposit.userId, ageSeconds: Math.round((now - deposit.createdAt) / 1000) });
+      logInfo({
+        event: 'rebuy.stale_cleanup',
+        orderId,
+        tableId: deposit.tableId,
+        userId: deposit.userId,
+        ageSeconds: Math.round((now - deposit.createdAt) / 1000),
+      });
       const seatSocket = socketIdBySeat(deposit.tableId, deposit.seat);
       if (seatSocket) {
-        io.to(seatSocket).emit("system_message", { message: "Your pending rebuy request has expired." });
+        io.to(seatSocket).emit('system_message', {
+          message: 'Your pending rebuy request has expired.',
+        });
       }
       pendingRebuys.delete(orderId);
     }
@@ -1117,12 +1452,12 @@ setInterval(cleanupStaleRebuys, 2 * 60 * 1000);
 function hasVoluntaryPreflopAction(state: TableState): boolean {
   const blindSeats = new Set<number>();
   for (const action of state.actions) {
-    if (action.street !== "PREFLOP") continue;
-    if ((action.type === "call" || action.type === "raise") && !blindSeats.has(action.seat)) {
+    if (action.street !== 'PREFLOP') continue;
+    if ((action.type === 'call' || action.type === 'raise') && !blindSeats.has(action.seat)) {
       blindSeats.add(action.seat);
       continue;
     }
-    if (action.type === "raise" || action.type === "call") {
+    if (action.type === 'raise' || action.type === 'call') {
       return true;
     }
   }
@@ -1132,12 +1467,12 @@ function hasVoluntaryPreflopAction(state: TableState): boolean {
 // ── Stale-advice guard: per-seat request counter ──
 const adviceRequestCounter = new Map<string, number>(); // key: `${tableId}:${seat}`
 
-type AdviceReason = "actor_changed" | "street_changed" | "action_applied" | "manual_request";
+type AdviceReason = 'actor_changed' | 'street_changed' | 'action_applied' | 'manual_request';
 
 async function emitAdviceIfNeeded(
   tableId: string,
   state: TableState,
-  reason: AdviceReason
+  reason: AdviceReason,
 ): Promise<void> {
   if (!state.handId || state.actorSeat == null) return;
 
@@ -1145,10 +1480,10 @@ async function emitAdviceIfNeeded(
   if (!table) return;
 
   // Only push advice in COACH mode immediately; REVIEW mode waits until hand end
-  if (table.getMode() === "REVIEW") return;
+  if (table.getMode() === 'REVIEW') return;
 
   // Advice engine is currently NLH-oriented. Skip variant hands for compatibility.
-  if ((state.gameType ?? "texas") !== "texas") return;
+  if ((state.gameType ?? 'texas') !== 'texas') return;
 
   const seat = state.actorSeat;
 
@@ -1168,7 +1503,7 @@ async function emitAdviceIfNeeded(
   const heroHand = table.getHeroHandCode(seat);
 
   logInfo({
-    event: "advice.requested",
+    event: 'advice.requested',
     tableId,
     handId: state.handId,
     seat,
@@ -1181,14 +1516,14 @@ async function emitAdviceIfNeeded(
   let advice: any;
 
   // Preflop advice
-  if (state.street === "PREFLOP") {
-    const line = hasVoluntaryPreflopAction(state) ? "facing_open" : "unopened";
-    let villainPos = "BB";
+  if (state.street === 'PREFLOP') {
+    const line = hasVoluntaryPreflopAction(state) ? 'facing_open' : 'unopened';
+    let villainPos = 'BB';
     let villainSeat: number | null = null;
-    
-    if (line === "facing_open") {
+
+    if (line === 'facing_open') {
       for (const action of state.actions) {
-        if (action.street === "PREFLOP" && action.type === "raise" && action.seat !== seat) {
+        if (action.street === 'PREFLOP' && action.type === 'raise' && action.seat !== seat) {
           villainPos = table.getPosition(action.seat);
           villainSeat = action.seat;
           break;
@@ -1206,25 +1541,25 @@ async function emitAdviceIfNeeded(
       villainPos,
       line,
       heroHand,
-      effectiveStackBb
+      effectiveStackBb,
     });
-  } 
+  }
   // Postflop advice (flop/turn/river)
-  else if (state.street === "FLOP" || state.street === "TURN" || state.street === "RIVER") {
+  else if (state.street === 'FLOP' || state.street === 'TURN' || state.street === 'RIVER') {
     const heroHandCards = table.getPrivateHoleCards(seat) ?? table.getHoleCards(seat);
     if (!heroHandCards) {
-      logWarn({ event: "advice.skip.no_hole_cards", tableId, seat, street: state.street });
+      logWarn({ event: 'advice.skip.no_hole_cards', tableId, seat, street: state.street });
       return;
     }
 
     const context = buildPostflopContext(tableId, state, seat, heroPos, heroHandCards);
     if (!context) {
-      logWarn({ event: "advice.skip.no_context", tableId, seat, street: state.street });
+      logWarn({ event: 'advice.skip.no_context', tableId, seat, street: state.street });
       return;
     }
 
     logInfo({
-      event: "advice.postflop_context",
+      event: 'advice.postflop_context',
       tableId,
       handId: state.handId,
       seat,
@@ -1240,7 +1575,7 @@ async function emitAdviceIfNeeded(
       advice = await getPostflopAdvice(context);
     } catch (error) {
       logWarn({
-        event: "advice.postflop_error",
+        event: 'advice.postflop_error',
         tableId,
         seat,
         street: state.street,
@@ -1257,7 +1592,7 @@ async function emitAdviceIfNeeded(
   const currentRequestId = adviceRequestCounter.get(counterKey) ?? 0;
   if (requestId !== currentRequestId) {
     logInfo({
-      event: "advice.stale_skipped",
+      event: 'advice.stale_skipped',
       tableId,
       seat,
       street: state.street,
@@ -1271,7 +1606,7 @@ async function emitAdviceIfNeeded(
   lastAdvice.set(`${tableId}:${seat}`, advice);
 
   logInfo({
-    event: "advice.emitted",
+    event: 'advice.emitted',
     tableId,
     handId: state.handId,
     seat,
@@ -1281,36 +1616,42 @@ async function emitAdviceIfNeeded(
     requestId,
   });
 
-  io.to(socketIdBySeat(tableId, seat)).emit("advice_payload", advice);
+  io.to(socketIdBySeat(tableId, seat)).emit('advice_payload', advice);
 }
 
-function buildPostflopContext(tableId: string, state: TableState, seat: number, heroPos: string, heroHand: string[]) {
+function buildPostflopContext(
+  tableId: string,
+  state: TableState,
+  seat: number,
+  heroPos: string,
+  heroHand: string[],
+) {
   const table = tables.get(tableId);
   if (!table || !state.handId) return null;
 
   // Find villain position (last aggressor or first active opponent)
-  let villainPos = "BTN";
+  let villainPos = 'BTN';
   let villainSeat: number | null = null;
-  let aggressor: "hero" | "villain" | "none" = "none";
-  
-  const streetActions = state.actions.filter(a => a.street === state.street);
+  let aggressor: 'hero' | 'villain' | 'none' = 'none';
+
+  const streetActions = state.actions.filter((a) => a.street === state.street);
   let lastRaiserSeat: number | null = null;
-  
+
   for (const action of streetActions) {
-    if (action.type === "raise") {
+    if (action.type === 'raise') {
       lastRaiserSeat = action.seat;
-      aggressor = action.seat === seat ? "hero" : "villain";
+      aggressor = action.seat === seat ? 'hero' : 'villain';
     }
   }
-  
+
   if (lastRaiserSeat !== null && lastRaiserSeat !== seat) {
     villainPos = table.getPosition(lastRaiserSeat);
     villainSeat = lastRaiserSeat;
   }
 
   if (villainSeat == null) {
-    const fallbackVillain = state.players.find((player) =>
-      player.inHand && !player.folded && player.seat !== seat
+    const fallbackVillain = state.players.find(
+      (player) => player.inHand && !player.folded && player.seat !== seat,
     );
     if (fallbackVillain) {
       villainSeat = fallbackVillain.seat;
@@ -1319,32 +1660,27 @@ function buildPostflopContext(tableId: string, state: TableState, seat: number, 
   }
 
   // Count active opponents
-  const numVillains = state.players.filter(p => 
-    p.inHand && !p.folded && p.seat !== seat
-  ).length;
+  const numVillains = state.players.filter((p) => p.inHand && !p.folded && p.seat !== seat).length;
 
   let preflopAggressorSeat: number | null = null;
   for (const action of state.actions) {
-    if (
-      action.street === "PREFLOP"
-      && (action.type === "raise" || action.type === "all_in")
-    ) {
+    if (action.street === 'PREFLOP' && (action.type === 'raise' || action.type === 'all_in')) {
       preflopAggressorSeat = action.seat;
     }
   }
 
-  const preflopAggressor: "hero" | "villain" | "none" = preflopAggressorSeat == null
-    ? "none"
-    : preflopAggressorSeat === seat
-      ? "hero"
-      : "villain";
+  const preflopAggressor: 'hero' | 'villain' | 'none' =
+    preflopAggressorSeat == null ? 'none' : preflopAggressorSeat === seat ? 'hero' : 'villain';
 
   const villainPosForIp = villainSeat != null ? table.getPosition(villainSeat) : villainPos;
   const heroInPosition = comparePositionOrder(heroPos, villainPosForIp) > 0;
 
   // Calculate pot size and amount to call
   const potSize = state.pot;
-  const toCall = Math.max(0, state.currentBet - (state.players.find(p => p.seat === seat)?.streetCommitted ?? 0));
+  const toCall = Math.max(
+    0,
+    state.currentBet - (state.players.find((p) => p.seat === seat)?.streetCommitted ?? 0),
+  );
   const effectiveStack = calculateEffectiveStack(state, seat, villainSeat);
   const effectiveStackBb = state.bigBlind > 0 ? round2(effectiveStack / state.bigBlind) : 0;
 
@@ -1352,7 +1688,7 @@ function buildPostflopContext(tableId: string, state: TableState, seat: number, 
     tableId,
     handId: state.handId,
     seat,
-    street: state.street as "FLOP" | "TURN" | "RIVER",
+    street: state.street as 'FLOP' | 'TURN' | 'RIVER',
     heroHand: [heroHand[0], heroHand[1]] as [string, string],
     board: state.board,
     heroPosition: heroPos,
@@ -1365,7 +1701,7 @@ function buildPostflopContext(tableId: string, state: TableState, seat: number, 
     preflopAggressor,
     heroInPosition,
     numVillains,
-    actionHistory: state.actions
+    actionHistory: state.actions,
   };
 }
 
@@ -1385,13 +1721,21 @@ function comparePositionOrder(heroPos: string, villainPos: string): number {
   return heroRank - villainRank;
 }
 
-function calculateEffectiveStackBb(state: TableState, heroSeat: number, villainSeat?: number | null): number {
+function calculateEffectiveStackBb(
+  state: TableState,
+  heroSeat: number,
+  villainSeat?: number | null,
+): number {
   const effectiveStack = calculateEffectiveStack(state, heroSeat, villainSeat ?? null);
   if (state.bigBlind <= 0) return 100;
   return round2(effectiveStack / state.bigBlind);
 }
 
-function calculateEffectiveStack(state: TableState, heroSeat: number, villainSeat: number | null): number {
+function calculateEffectiveStack(
+  state: TableState,
+  heroSeat: number,
+  villainSeat: number | null,
+): number {
   const heroStack = state.players.find((player) => player.seat === heroSeat)?.stack ?? 0;
   if (heroStack <= 0) return 0;
 
@@ -1418,9 +1762,9 @@ function emitPresence(tableId: string) {
   const presence = bindingsByTable(tableId).map(({ binding }) => ({
     seat: binding.seat,
     userId: binding.userId,
-    name: binding.name
+    name: binding.name,
   }));
-  io.to(tableId).emit("table_presence", { tableId, presence });
+  io.to(tableId).emit('table_presence', { tableId, presence });
 }
 
 function currentPlayerCount(tableId: string): number {
@@ -1440,7 +1784,7 @@ function toLobbySummary(room: RoomInfo): LobbyRoomSummary {
     maxPlayers: room.maxPlayers,
     playerCount: currentPlayerCount(room.tableId),
     status: room.status,
-    visibility: managed?.settings.visibility ?? "public",
+    visibility: managed?.settings.visibility ?? 'public',
     updatedAt: room.updatedAt ?? room.createdAt,
     ...(clubInfo && {
       clubId: clubInfo.clubId,
@@ -1469,7 +1813,7 @@ function trackSupabaseQuery(): void {
     if (supabaseQueryCount > SUPABASE_RATE_WARN_THRESHOLD && !supabaseRateWarned) {
       console.warn(
         `[egress-guard] HIGH Supabase query rate: ${supabaseQueryCount} queries in last 60s. ` +
-        `This may cause excessive egress billing. Consider setting DISABLE_SUPABASE=1 for training.`,
+          `This may cause excessive egress billing. Consider setting DISABLE_SUPABASE=1 for training.`,
       );
       supabaseRateWarned = true;
     } else if (supabaseQueryCount <= SUPABASE_RATE_WARN_THRESHOLD) {
@@ -1504,15 +1848,15 @@ async function emitLobbySnapshot(targetSocketId?: string): Promise<void> {
   // Filter out private rooms from lobby list
   const payload = {
     rooms: [...roomMap.values()]
-      .filter((room) => room.status === "OPEN" && room.visibility === "public")
+      .filter((room) => room.status === 'OPEN' && room.visibility === 'public')
       .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt))
-      .slice(0, 50)
+      .slice(0, 50),
   };
 
   if (targetSocketId) {
-    io.to(targetSocketId).emit("lobby_snapshot", payload);
+    io.to(targetSocketId).emit('lobby_snapshot', payload);
   } else {
-    io.emit("lobby_snapshot", payload);
+    io.emit('lobby_snapshot', payload);
   }
 }
 
@@ -1547,7 +1891,7 @@ function withSnapshotVersion(snapshot: TableState, stateVersion: number): TableS
   return { ...snapshot, stateVersion };
 }
 
-function buildSnapshotForSync(tableId: string, source: "hydrate" | "broadcast"): TableState | null {
+function buildSnapshotForSync(tableId: string, source: 'hydrate' | 'broadcast'): TableState | null {
   const table = tables.get(tableId);
   if (!table) return null;
 
@@ -1557,8 +1901,8 @@ function buildSnapshotForSync(tableId: string, source: "hydrate" | "broadcast"):
   const botIds = getBotUserIds(tableId);
   const botVersions = getBotModelVersions(tableId);
   snapshot.players = snapshot.players.map((p) => {
-    if (botIds.has(p.userId) || p.userId.startsWith("bot-")) {
-      return { ...p, isBot: true, modelVersion: botVersions.get(p.userId) ?? "v1" };
+    if (botIds.has(p.userId) || p.userId.startsWith('bot-')) {
+      return { ...p, isBot: true, modelVersion: botVersions.get(p.userId) ?? 'v1' };
     }
     return p;
   });
@@ -1576,14 +1920,15 @@ function buildSnapshotForSync(tableId: string, source: "hydrate" | "broadcast"):
     snapshot.pendingRebuys = deposits;
   }
 
-  const stateVersion = source === "broadcast"
-    ? nextSnapshotVersion(tableId)
-    : ensureSnapshotVersion(tableId);
+  // Always increment version — hydrate snapshots must never be stale relative to
+  // broadcasts the client already received, otherwise the client enters an infinite
+  // resync loop (requesting a new snapshot that keeps returning the same stale version).
+  const stateVersion = nextSnapshotVersion(tableId);
   snapshot = withSnapshotVersion(snapshot, stateVersion);
 
-  if (runtimeConfig.envName !== "production") {
+  if (runtimeConfig.envName !== 'production') {
     logInfo({
-      event: "snapshot.sync",
+      event: 'snapshot.sync',
       tableId,
       handId: snapshot.handId ?? undefined,
       street: snapshot.street,
@@ -1596,9 +1941,9 @@ function buildSnapshotForSync(tableId: string, source: "hydrate" | "broadcast"):
 }
 
 function emitHydratedSnapshot(socketId: string, tableId: string): void {
-  const snapshot = buildSnapshotForSync(tableId, "hydrate");
+  const snapshot = buildSnapshotForSync(tableId, 'hydrate');
   if (!snapshot) return;
-  io.to(socketId).emit("table_snapshot", snapshot);
+  io.to(socketId).emit('table_snapshot', snapshot);
   const pendingDecision = pendingRunCountDecisions.get(tableId);
   if (pendingDecision && pendingDecision.handId === snapshot.handId) {
     emitAllInLocked(tableId, pendingDecision, socketId);
@@ -1606,25 +1951,26 @@ function emitHydratedSnapshot(socketId: string, tableId: string): void {
 }
 
 function broadcastSnapshot(tableId: string) {
-  const snapshot = buildSnapshotForSync(tableId, "broadcast");
+  const snapshot = buildSnapshotForSync(tableId, 'broadcast');
   if (!snapshot) return;
-  io.to(tableId).emit("table_snapshot", snapshot);
+  io.to(tableId).emit('table_snapshot', snapshot);
   emitPresence(tableId);
   // Defer advice computation so it never blocks snapshot delivery or timer updates
   setImmediate(() => {
-    void emitAdviceIfNeeded(tableId, snapshot, "actor_changed").catch((err: unknown) => {
-      console.warn("[advice] deferred push error:", (err as Error).message);
+    void emitAdviceIfNeeded(tableId, snapshot, 'actor_changed').catch((err: unknown) => {
+      console.warn('[advice] deferred push error:', (err as Error).message);
     });
   });
 }
 
-function calculateAllPlayersEquity(table: GameTable, board: Card[]): Array<{ seat: number; winRate: number; tieRate: number; equityRate: number }> {
+function calculateAllPlayersEquity(
+  table: GameTable,
+  board: Card[],
+): Array<{ seat: number; winRate: number; tieRate: number; equityRate: number }> {
   const state = table.getPublicState();
-  const activeSeats = state.players
-    .filter((p) => p.inHand && !p.folded)
-    .map((p) => p.seat);
+  const activeSeats = state.players.filter((p) => p.inHand && !p.folded).map((p) => p.seat);
 
-  if ((state.gameType ?? "texas") !== "texas") {
+  if ((state.gameType ?? 'texas') !== 'texas') {
     const fallbackEquityRate = activeSeats.length > 0 ? 1 / activeSeats.length : 0;
     return activeSeats.map((seat) => ({
       seat,
@@ -1634,7 +1980,8 @@ function calculateAllPlayersEquity(table: GameTable, board: Card[]): Array<{ sea
     }));
   }
 
-  const equities: Array<{ seat: number; winRate: number; tieRate: number; equityRate: number }> = [];
+  const equities: Array<{ seat: number; winRate: number; tieRate: number; equityRate: number }> =
+    [];
 
   for (const seat of activeSeats) {
     const heroCards = table.getHoleCards(seat);
@@ -1673,15 +2020,17 @@ function calculateAllPlayersEquity(table: GameTable, board: Card[]): Array<{ sea
   return equities;
 }
 
-function calculateAllInHandHints(table: GameTable, board: Card[]): Array<{ seat: number; label: string }> {
+function calculateAllInHandHints(
+  table: GameTable,
+  board: Card[],
+): Array<{ seat: number; label: string }> {
   const state = table.getPublicState();
   return state.players
     .filter((player) => player.inHand && !player.folded)
     .map((player) => {
       const cards = table.getPrivateHoleCards(player.seat) ?? table.getHoleCards(player.seat);
-      const label = cards && cards.length >= 2
-        ? describeHandStrength(cards, board)
-        : "Unknown hand";
+      const label =
+        cards && cards.length >= 2 ? describeHandStrength(cards, board) : 'Unknown hand';
       return { seat: player.seat, label };
     });
 }
@@ -1723,13 +2072,17 @@ function buildAllInLockedPayload(pending: PendingRunCountDecisionState): {
   };
 }
 
-function emitAllInLocked(tableId: string, pending: PendingRunCountDecisionState, socketId?: string): void {
+function emitAllInLocked(
+  tableId: string,
+  pending: PendingRunCountDecisionState,
+  socketId?: string,
+): void {
   const payload = buildAllInLockedPayload(pending);
   if (socketId) {
-    io.to(socketId).emit("allin_locked", payload);
+    io.to(socketId).emit('allin_locked', payload);
     return;
   }
-  io.to(tableId).emit("allin_locked", payload);
+  io.to(tableId).emit('allin_locked', payload);
 }
 
 function resolveRunCountPreference(pending: PendingRunCountDecisionState): RunCountPreference {
@@ -1749,7 +2102,7 @@ function resolveRunCountPreference(pending: PendingRunCountDecisionState): RunCo
 function revealLockedHoleCards(
   tableId: string,
   table: GameTable,
-  pending: PendingRunCountDecisionState
+  pending: PendingRunCountDecisionState,
 ): Record<number, [string, string]> {
   for (const player of pending.eligiblePlayers) {
     table.revealPublicHand(player.seat);
@@ -1765,7 +2118,7 @@ function revealLockedHoleCards(
     }
   }
 
-  io.to(tableId).emit("reveal_hole_cards", { handId: pending.handId, revealed });
+  io.to(tableId).emit('reveal_hole_cards', { handId: pending.handId, revealed });
   return revealed;
 }
 
@@ -1788,7 +2141,7 @@ function finalizeRunCountDecision(
   clearPendingRunCountDecision(tableId);
 
   logInfo({
-    event: "all_in.run_count.finalized",
+    event: 'all_in.run_count.finalized',
     tableId,
     handId: pending.handId,
     runCount,
@@ -1799,8 +2152,8 @@ function finalizeRunCountDecision(
     preferencesBySeat: pending.preferencesBySeat,
   });
 
-  io.to(tableId).emit("run_count_confirmed", { handId: pending.handId, runCount });
-  io.to(tableId).emit("run_count_chosen", {
+  io.to(tableId).emit('run_count_confirmed', { handId: pending.handId, runCount });
+  io.to(tableId).emit('run_count_chosen', {
     runCount,
     seat: decidingSeat ?? pending.eligiblePlayers[0]?.seat ?? 1,
     auto,
@@ -1812,7 +2165,11 @@ function finalizeRunCountDecision(
   void handleSequentialRunout(tableId, table);
 }
 
-function scheduleRunCountDecisionTimeout(tableId: string, table: GameTable, pending: PendingRunCountDecisionState): void {
+function scheduleRunCountDecisionTimeout(
+  tableId: string,
+  table: GameTable,
+  pending: PendingRunCountDecisionState,
+): void {
   clearRunCountDecisionTimeout(tableId);
 
   const expectedHandId = pending.handId;
@@ -1823,10 +2180,10 @@ function scheduleRunCountDecisionTimeout(tableId: string, table: GameTable, pend
     if (!livePending || livePending.handId !== expectedHandId) return;
 
     logInfo({
-      event: "all_in.run_count.timeout_default",
+      event: 'all_in.run_count.timeout_default',
       tableId,
       handId: expectedHandId,
-      message: "Run-count decision timed out; defaulting unresolved seats to run once.",
+      message: 'Run-count decision timed out; defaulting unresolved seats to run once.',
     });
 
     finalizeRunCountDecision(tableId, table, livePending, undefined, true, 1);
@@ -1847,7 +2204,7 @@ function settleShowdownDecision(tableId: string, table: GameTable, expectedHandI
   const state = table.getPublicState();
   if (!state.handId || state.handId !== expectedHandId) return;
 
-  if (state.showdownPhase === "decision") {
+  if (state.showdownPhase === 'decision') {
     const settings = roomManager.getRoom(tableId)?.settings;
     table.finalizeShowdownReveals({
       autoMuckLosingHands: settings?.autoMuckLosingHands ?? true,
@@ -1859,7 +2216,7 @@ function settleShowdownDecision(tableId: string, table: GameTable, expectedHandI
 
 function maybeFinalizeShowdownDecision(tableId: string, table: GameTable): void {
   const state = table.getPublicState();
-  if (state.showdownPhase !== "decision" || !state.handId) return;
+  if (state.showdownPhase !== 'decision' || !state.handId) return;
 
   const contenders = table.getShowdownContenderSeats();
   if (contenders.length === 0) return;
@@ -1876,8 +2233,8 @@ function maybeFinalizeShowdownDecision(tableId: string, table: GameTable): void 
 function isRiverCallShowdown(state: TableState): boolean {
   for (let i = state.actions.length - 1; i >= 0; i -= 1) {
     const action = state.actions[i];
-    if (action.street !== "RIVER") continue;
-    if (action.type === "call") return true;
+    if (action.street !== 'RIVER') continue;
+    if (action.type === 'call') return true;
   }
   return false;
 }
@@ -1897,7 +2254,7 @@ function shouldForceRevealAtShowdown(tableId: string, state: TableState): boolea
 }
 
 function beginShowdownDecision(tableId: string, table: GameTable, state: TableState): void {
-  if (state.showdownPhase !== "decision" || !state.handId) {
+  if (state.showdownPhase !== 'decision' || !state.handId) {
     finalizeHandEnd(tableId, state);
     return;
   }
@@ -1913,7 +2270,7 @@ function beginShowdownDecision(tableId: string, table: GameTable, state: TableSt
       }
     }
     state = table.getPublicState();
-    if (state.showdownPhase !== "decision") {
+    if (state.showdownPhase !== 'decision') {
       finalizeHandEnd(tableId, state);
       return;
     }
@@ -1925,7 +2282,7 @@ function beginShowdownDecision(tableId: string, table: GameTable, state: TableSt
       table.revealPublicHand(seat);
     }
     state = table.getPublicState();
-    if (state.showdownPhase !== "decision") {
+    if (state.showdownPhase !== 'decision') {
       finalizeHandEnd(tableId, state);
       return;
     }
@@ -1951,25 +2308,31 @@ function beginShowdownDecision(tableId: string, table: GameTable, state: TableSt
 function emitShowdownResults(
   tableId: string,
   state: TableState,
-  settlement: ReturnType<GameTable["getSettlementResult"]> | null
+  settlement: ReturnType<GameTable['getSettlementResult']> | null,
 ): void {
   if (!state.handId) return;
 
-  const runCount: 1 | 2 | 3 = settlement?.runCount
-    ?? (state.runoutPayouts?.length === 3 ? 3 : state.runoutPayouts?.length === 2 ? 2 : 1);
-  const perRunWinners = settlement?.winnersByRun
-    ?? (state.runoutPayouts
-      ? state.runoutPayouts.map((run) => ({ run: run.run, board: [...run.board], winners: [...run.winners] }))
+  const runCount: 1 | 2 | 3 =
+    settlement?.runCount ??
+    (state.runoutPayouts?.length === 3 ? 3 : state.runoutPayouts?.length === 2 ? 2 : 1);
+  const perRunWinners =
+    settlement?.winnersByRun ??
+    (state.runoutPayouts
+      ? state.runoutPayouts.map((run) => ({
+          run: run.run,
+          board: [...run.board],
+          winners: [...run.winners],
+        }))
       : [{ run: 1 as const, board: [...state.board], winners: [...(state.winners ?? [])] }]);
 
   const totalPayouts: Record<number, number> = settlement?.payoutsBySeat
     ? { ...settlement.payoutsBySeat }
     : (state.winners ?? []).reduce<Record<number, number>>((acc, winner) => {
-      acc[winner.seat] = (acc[winner.seat] ?? 0) + winner.amount;
-      return acc;
-    }, {});
+        acc[winner.seat] = (acc[winner.seat] ?? 0) + winner.amount;
+        return acc;
+      }, {});
 
-  io.to(tableId).emit("showdown_results", {
+  io.to(tableId).emit('showdown_results', {
     handId: state.handId,
     runCount,
     perRunWinners,
@@ -1980,7 +2343,8 @@ function emitShowdownResults(
 async function handleSequentialRunout(tableId: string, table: GameTable): Promise<void> {
   try {
     const room = roomManager.getRoom(tableId);
-    const isTurbo = room?.settings.showdownSpeed === "turbo" || room?.settings.selfPlayTurbo === true;
+    const isTurbo =
+      room?.settings.showdownSpeed === 'turbo' || room?.settings.selfPlayTurbo === true;
 
     const runCount = table.getAllInRunCount();
     if (runCount > 1) {
@@ -1999,14 +2363,17 @@ async function handleSequentialRunout(tableId: string, table: GameTable): Promis
           for (let cardIndex = alreadyDealt; cardIndex < 5; cardIndex += 1) {
             const card = boards[runIndex][cardIndex];
             if (!card) continue;
-            const street = (cardIndex <= 2 ? "FLOP" : cardIndex === 3 ? "TURN" : "RIVER") as TableState["street"];
+            const street = (
+              cardIndex <= 2 ? 'FLOP' : cardIndex === 3 ? 'TURN' : 'RIVER'
+            ) as TableState['street'];
             const board = boards[runIndex].slice(0, cardIndex + 1);
             const equities = calculateAllPlayersEquity(table, [...board] as Card[]);
-            const hints = (street === "FLOP" || street === "TURN")
-              ? calculateAllInHandHints(table, [...board] as Card[])
-              : undefined;
+            const hints =
+              street === 'FLOP' || street === 'TURN'
+                ? calculateAllInHandHints(table, [...board] as Card[])
+                : undefined;
 
-            io.to(tableId).emit("reveal_board_card", {
+            io.to(tableId).emit('reveal_board_card', {
               handId: finalState.handId,
               runIndex: (runIndex + 1) as 1 | 2 | 3,
               card,
@@ -2019,10 +2386,10 @@ async function handleSequentialRunout(tableId: string, table: GameTable): Promis
 
             // Backward-compatible mirror for old clients that still use run_twice_reveal.
             if (runCount === 2) {
-              io.to(tableId).emit("run_twice_reveal", {
+              io.to(tableId).emit('run_twice_reveal', {
                 handId: finalState.handId,
                 street,
-                phase: runIndex === 0 ? "top" : "both",
+                phase: runIndex === 0 ? 'top' : 'both',
                 run1: {
                   newCards: runIndex === 0 ? [card] : [],
                   board: runIndex === 0 ? board : boards[0],
@@ -2066,18 +2433,19 @@ async function handleSequentialRunout(tableId: string, table: GameTable): Promis
       const { street, newCards } = result;
       const state = table.getPublicState();
 
-      if (street === "SHOWDOWN") {
+      if (street === 'SHOWDOWN') {
         emitShowdownResults(tableId, state, table.getSettlementResult());
         beginShowdownDecision(tableId, table, state);
         return;
       }
 
       const equities = calculateAllPlayersEquity(table, [...state.board] as Card[]);
-      const hints = (street === "FLOP" || street === "TURN")
-        ? calculateAllInHandHints(table, [...state.board] as Card[])
-        : undefined;
+      const hints =
+        street === 'FLOP' || street === 'TURN'
+          ? calculateAllInHandHints(table, [...state.board] as Card[])
+          : undefined;
 
-      io.to(tableId).emit("board_reveal", {
+      io.to(tableId).emit('board_reveal', {
         handId: state.handId,
         street,
         newCards,
@@ -2087,7 +2455,7 @@ async function handleSequentialRunout(tableId: string, table: GameTable): Promis
       });
       const boardStart = state.board.length - newCards.length;
       for (let i = 0; i < newCards.length; i += 1) {
-        io.to(tableId).emit("reveal_board_card", {
+        io.to(tableId).emit('reveal_board_card', {
           handId: state.handId,
           runIndex: 1,
           card: newCards[i],
@@ -2111,14 +2479,14 @@ async function handleSequentialRunout(tableId: string, table: GameTable): Promis
   } catch (error) {
     const state = table.getPublicState();
     logWarn({
-      event: "runout.sequence.failed",
+      event: 'runout.sequence.failed',
       tableId,
       handId: state.handId ?? undefined,
       message: (error as Error).message,
     });
 
     if (!state.handId) return;
-    if (state.showdownPhase === "decision") {
+    if (state.showdownPhase === 'decision') {
       settleShowdownDecision(tableId, table, state.handId);
       return;
     }
@@ -2160,7 +2528,7 @@ function resetHandIdleWatchdog(tableId: string): void {
     if (bindingsByTable(tableId).length >= 2) return;
 
     logWarn({
-      event: "hand.idle_watchdog.abort",
+      event: 'hand.idle_watchdog.abort',
       tableId,
       message: `No connected players for ${HAND_IDLE_TIMEOUT_MS / 1000}s; aborting stale hand.`,
     });
@@ -2170,18 +2538,22 @@ function resetHandIdleWatchdog(tableId: string): void {
     clearAutoDealSchedule(tableId);
     clearShowdownDecisionTimeout(tableId);
 
-    io.to(tableId).emit("hand_aborted", { reason: "Hand aborted: table idle too long" });
-    io.to(tableId).emit("system_message", { message: "Hand cancelled due to long inactivity. Bets have been refunded." });
+    io.to(tableId).emit('hand_aborted', { reason: 'Hand aborted: table idle too long' });
+    io.to(tableId).emit('system_message', {
+      message: 'Hand cancelled due to long inactivity. Bets have been refunded.',
+    });
     void (async () => {
       await flushDeferredStandUps(tableId);
       await processQueuedTableLeaves(tableId);
       touchLocalRoom(tableId);
       broadcastSnapshot(tableId);
-    })().catch((e) => logWarn({
-      event: "hand.idle_watchdog.cleanup_failed",
-      tableId,
-      message: (e as Error).message,
-    }));
+    })().catch((e) =>
+      logWarn({
+        event: 'hand.idle_watchdog.cleanup_failed',
+        tableId,
+        message: (e as Error).message,
+      }),
+    );
   }, HAND_IDLE_TIMEOUT_MS);
 
   handIdleWatchdogs.set(tableId, handle);
@@ -2209,7 +2581,7 @@ async function flushDeferredStandUps(tableId: string): Promise<void> {
   if (!deferredSeats || deferredSeats.size === 0) return;
   const remainingSeats = new Set<number>();
   for (const seatNum of deferredSeats) {
-    const stoodUp = await standUpPlayer(tableId, seatNum, "Left after hand ended");
+    const stoodUp = await standUpPlayer(tableId, seatNum, 'Left after hand ended');
     if (!stoodUp) {
       remainingSeats.add(seatNum);
     }
@@ -2229,7 +2601,7 @@ async function processQueuedTableLeaves(tableId: string): Promise<void> {
     const seatBinding = socketSeat.get(socketId);
     let didStandUp = true;
     if (seatBinding && seatBinding.tableId === tableId) {
-      didStandUp = await standUpPlayer(tableId, seatBinding.seat, "Left after hand ended");
+      didStandUp = await standUpPlayer(tableId, seatBinding.seat, 'Left after hand ended');
     }
     if (!didStandUp) {
       remaining.add(socketId);
@@ -2237,7 +2609,7 @@ async function processQueuedTableLeaves(tableId: string): Promise<void> {
     }
     const sock = io.sockets.sockets.get(socketId);
     if (sock) sock.leave(tableId);
-    io.to(socketId).emit("left_table", { tableId });
+    io.to(socketId).emit('left_table', { tableId });
   }
   if (remaining.size > 0) {
     pendingTableLeaves.set(tableId, remaining);
@@ -2262,24 +2634,30 @@ function getEligibleSeatNumbersForDeal(tableId: string, includeApprovedRebuys = 
   if (!room) return [];
 
   const connectedSeats = new Set(bindingsByTable(tableId).map(({ binding }) => binding.seat));
-  const approvedTotals = includeApprovedRebuys ? getApprovedRebuyTotalsBySeat(tableId) : new Map<number, number>();
-  return table.getPublicState().players
-    .filter((player) => player.status === "active")
-    .filter((player) => (player.stack + (approvedTotals.get(player.seat) ?? 0)) > 0)
+  const approvedTotals = includeApprovedRebuys
+    ? getApprovedRebuyTotalsBySeat(tableId)
+    : new Map<number, number>();
+  return table
+    .getPublicState()
+    .players.filter((player) => player.status === 'active')
+    .filter((player) => player.stack + (approvedTotals.get(player.seat) ?? 0) > 0)
     .filter((player) => room.settings.dealToAwayPlayers || connectedSeats.has(player.seat))
     .map((player) => player.seat);
 }
 
 function getHandStartValidationMessage(tableId: string): string | null {
   const room = roomManager.getRoom(tableId);
-  if (!room) return "Room not found";
-  if (roomManager.isPaused(tableId)) return "Game is paused";
+  if (!room) return 'Room not found';
+  if (roomManager.isPaused(tableId)) return 'Game is paused';
 
   const table = tables.get(tableId);
-  if (table?.isHandActive()) return "Hand in progress";
+  if (table?.isHandActive()) return 'Hand in progress';
 
   const eligibleSeats = getEligibleSeatNumbersForDeal(tableId, true);
-  const minPlayersToStart = Math.max(2, Math.min(room.settings.maxPlayers, room.settings.minPlayersToStart ?? 2));
+  const minPlayersToStart = Math.max(
+    2,
+    Math.min(room.settings.maxPlayers, room.settings.minPlayersToStart ?? 2),
+  );
   if (eligibleSeats.length < minPlayersToStart) {
     return `Need at least ${minPlayersToStart} eligible players to deal (currently ${eligibleSeats.length})`;
   }
@@ -2289,33 +2667,40 @@ function getHandStartValidationMessage(tableId: string): string | null {
 function getAutoStartSkipMessage(tableId: string): string | null {
   const room = roomManager.getRoom(tableId);
   if (!room) return null;
-  if (!room.settings.autoStartNextHand) return "Auto-start skipped: disabled in room settings.";
-  if (roomManager.isPaused(tableId)) return "Auto-start skipped: game is paused.";
+  if (!room.settings.autoStartNextHand) return 'Auto-start skipped: disabled in room settings.';
+  if (roomManager.isPaused(tableId)) return 'Auto-start skipped: game is paused.';
 
   const table = tables.get(tableId);
-  if (!table) return "Auto-start skipped: table not ready.";
-  if (table.isHandActive()) return "Auto-start skipped: hand still active.";
+  if (!table) return 'Auto-start skipped: table not ready.';
+  if (table.isHandActive()) return 'Auto-start skipped: hand still active.';
 
   const eligibleSeats = getEligibleSeatNumbersForDeal(tableId, true);
-  const minPlayersToStart = Math.max(2, Math.min(room.settings.maxPlayers, room.settings.minPlayersToStart ?? 2));
+  const minPlayersToStart = Math.max(
+    2,
+    Math.min(room.settings.maxPlayers, room.settings.minPlayersToStart ?? 2),
+  );
   if (eligibleSeats.length < minPlayersToStart) {
     const awayHint = room.settings.dealToAwayPlayers
-      ? ""
-      : " (away players are excluded; enable \"Deal to away players\" to include them)";
+      ? ''
+      : ' (away players are excluded; enable "Deal to away players" to include them)';
     return `Auto-start skipped: need at least ${minPlayersToStart} eligible players (currently ${eligibleSeats.length})${awayHint}.`;
   }
   return null;
 }
 
-async function startHandFlow(tableId: string, actorUserId: string, source: "manual" | "auto"): Promise<string> {
+async function startHandFlow(
+  tableId: string,
+  actorUserId: string,
+  source: 'manual' | 'auto',
+): Promise<string> {
   const room = roomsByTableId.get(tableId);
   if (!room) {
-    throw new Error("Room not found");
+    throw new Error('Room not found');
   }
 
   const existingTable = tables.get(tableId);
   if (existingTable?.isHandActive()) {
-    throw new Error("Hand in progress");
+    throw new Error('Hand in progress');
   }
 
   const table = createTableIfNeeded(room);
@@ -2324,11 +2709,13 @@ async function startHandFlow(tableId: string, actorUserId: string, source: "manu
     throw new Error(validationError);
   }
 
-  openRoomSessionIfNeeded(tableId, "start_hand").catch((e) => logWarn({
-    event: "session.open.failed",
-    tableId,
-    message: (e as Error).message,
-  }));
+  openRoomSessionIfNeeded(tableId, 'start_hand').catch((e) =>
+    logWarn({
+      event: 'session.open.failed',
+      tableId,
+      message: (e as Error).message,
+    }),
+  );
   await applyApprovedRebuys(tableId);
   applyRoomVariantSettings(tableId, table);
 
@@ -2349,7 +2736,7 @@ async function startHandFlow(tableId: string, actorUserId: string, source: "manu
   const playerUserIds = bindingsByTable(tableId).map((b) => b.binding.userId);
   roomManager.refillTimeBanks(tableId, playerUserIds);
   logInfo({
-    event: "hand.started",
+    event: 'hand.started',
     tableId,
     handId,
     userId: actorUserId,
@@ -2357,27 +2744,37 @@ async function startHandFlow(tableId: string, actorUserId: string, source: "manu
     seatedPlayers: playerUserIds.length,
   });
 
-  io.to(tableId).emit("hand_started", { handId });
+  io.to(tableId).emit('hand_started', { handId });
 
-  for (const { socketId, binding } of bindingsByTable(tableId)) {
+  const bindings = bindingsByTable(tableId);
+  for (const { socketId, binding } of bindings) {
     const cards = table.getPrivateHoleCards(binding.seat) ?? table.getHoleCards(binding.seat);
     if (cards) {
-      io.to(socketId).emit("hole_cards", { handId, cards, seat: binding.seat });
+      io.to(socketId).emit('hole_cards', { handId, cards, seat: binding.seat });
     }
   }
 
-  supabase.logEvent({
-    tableId,
-    eventType: "HAND_STARTED",
-    actorUserId,
-    handId,
-    payload: { buttonSeat: table.getPublicState().buttonSeat, source },
-  }).catch((e) => logWarn({
-    event: "supabase.log_event.failed",
-    tableId,
-    handId,
-    message: (e as Error).message,
-  }));
+  // ── Fast Battle: track hand start ──
+  if (fastBattlePool?.isFastBattleTable(tableId)) {
+    fastBattlePool.onHandStarted(tableId, handId);
+  }
+
+  supabase
+    .logEvent({
+      tableId,
+      eventType: 'HAND_STARTED',
+      actorUserId,
+      handId,
+      payload: { buttonSeat: table.getPublicState().buttonSeat, source },
+    })
+    .catch((e) =>
+      logWarn({
+        event: 'supabase.log_event.failed',
+        tableId,
+        handId,
+        message: (e as Error).message,
+      }),
+    );
 
   touchLocalRoom(tableId);
   broadcastSnapshot(tableId);
@@ -2403,11 +2800,12 @@ function scheduleAutoDealIfNeeded(tableId: string, delayOverrideMs?: number): vo
 
   const immediateSkip = getAutoStartSkipMessage(tableId);
   if (immediateSkip) {
-    io.to(tableId).emit("system_message", { message: immediateSkip });
+    io.to(tableId).emit('system_message', { message: immediateSkip });
     return;
   }
 
-  const baseDelay = SHOWDOWN_SPEED_DELAYS_MS[room.settings.showdownSpeed] ?? SHOWDOWN_SPEED_DELAYS_MS.normal;
+  const baseDelay =
+    SHOWDOWN_SPEED_DELAYS_MS[room.settings.showdownSpeed] ?? SHOWDOWN_SPEED_DELAYS_MS.normal;
   const delayMs = delayOverrideMs ?? (room.settings.selfPlayTurbo ? 0 : baseDelay);
 
   const handle = setTimeout(() => {
@@ -2417,12 +2815,14 @@ function scheduleAutoDealIfNeeded(tableId: string, delayOverrideMs?: number): vo
 
     const skipReason = getAutoStartSkipMessage(tableId);
     if (skipReason) {
-      io.to(tableId).emit("system_message", { message: skipReason });
+      io.to(tableId).emit('system_message', { message: skipReason });
       return;
     }
 
-    void startHandFlow(tableId, managed.ownership.ownerId, "auto").catch((err) => {
-      io.to(tableId).emit("system_message", { message: `Auto-start skipped: ${(err as Error).message}` });
+    void startHandFlow(tableId, managed.ownership.ownerId, 'auto').catch((err) => {
+      io.to(tableId).emit('system_message', {
+        message: `Auto-start skipped: ${(err as Error).message}`,
+      });
     });
   }, delayMs);
 
@@ -2430,12 +2830,14 @@ function scheduleAutoDealIfNeeded(tableId: string, delayOverrideMs?: number): vo
 }
 
 function finalizeHandEnd(tableId: string, state: TableState): void {
-  void finalizeHandEndAsync(tableId, state).catch((error) => logWarn({
-    event: "hand.finalize.failed",
-    tableId,
-    handId: state.handId ?? undefined,
-    message: (error as Error).message,
-  }));
+  void finalizeHandEndAsync(tableId, state).catch((error) =>
+    logWarn({
+      event: 'hand.finalize.failed',
+      tableId,
+      handId: state.handId ?? undefined,
+      message: (error as Error).message,
+    }),
+  );
 }
 
 async function finalizeHandEndAsync(tableId: string, state: TableState): Promise<void> {
@@ -2459,12 +2861,10 @@ async function finalizeHandEndAsync(tableId: string, state: TableState): Promise
   }
 
   // ── 7-2 Bounty detection ──
-  const room = roomsByTableId.get(tableId);
   const managedRoomForBounty = roomManager.getRoom(tableId);
   const bountyPerPlayer = managedRoomForBounty?.settings?.sevenTwoBounty ?? 0;
-  const isTexas = (state.gameType ?? "texas") === "texas";
+  const isTexas = (state.gameType ?? 'texas') === 'texas';
   let bountyInfo: SevenTwoBountyInfo | undefined;
-  let hasPendingBountyClaim = false;
 
   if (bountyPerPlayer > 0 && isTexas && table && settlement) {
     // Collect unique winner seats from settlement
@@ -2520,18 +2920,22 @@ async function finalizeHandEndAsync(tableId: string, state: TableState): Promise
 
         const claimTimeout = setTimeout(() => {
           pendingBountyClaim.delete(tableId);
-          logInfo({ event: "seven_two_bounty.forfeited", tableId, handId: state.handId, winnerSeat });
+          logInfo({
+            event: 'seven_two_bounty.forfeited',
+            tableId,
+            handId: state.handId,
+            winnerSeat,
+          });
         }, 10_000);
 
         pendingBountyClaim.set(tableId, {
-          handId: state.handId ?? "",
+          handId: state.handId ?? '',
           winnerSeat,
           cards: holeCards,
           dealtInSeats: payingSeats,
           bountyPerPlayer,
           timeout: claimTimeout,
         });
-        hasPendingBountyClaim = true;
       }
       // Only process the first 7-2 winner (simplification for common case)
       break;
@@ -2549,9 +2953,12 @@ async function finalizeHandEndAsync(tableId: string, state: TableState): Promise
   if (table) {
     const revealed: Record<number, [string, string]> = { ...(finalState.revealedHoles ?? {}) };
     for (const p of finalState.players) {
-      if (!botIds.has(p.userId) && !p.userId.startsWith("bot-")) continue;
+      if (!botIds.has(p.userId) && !p.userId.startsWith('bot-')) continue;
       if (revealed[p.seat]) continue; // already revealed at showdown
-      const cards = table.getPrivateHoleCards(p.seat) ?? table.getHoleCards(p.seat) ?? savedHoleCards?.get(p.seat);
+      const cards =
+        table.getPrivateHoleCards(p.seat) ??
+        table.getHoleCards(p.seat) ??
+        savedHoleCards?.get(p.seat);
       if (cards && cards.length >= 2) {
         revealed[p.seat] = [cards[0], cards[1]];
       }
@@ -2560,20 +2967,22 @@ async function finalizeHandEndAsync(tableId: string, state: TableState): Promise
   }
 
   logInfo({
-    event: "hand.ended",
+    event: 'hand.ended',
     tableId,
     handId: finalState.handId,
     winners: (finalState.winners ?? []).length,
     totalPot: settlement?.totalPot ?? finalState.pot,
     stateVersion: finalState.stateVersion,
   });
-  persistHandHistory(tableId, finalState, settlement, table).catch((e) => logWarn({
-    event: "hand_history.persist.failed",
-    tableId,
-    handId: finalState.handId,
-    message: (e as Error).message,
-  }));
-  io.to(tableId).emit("hand_ended", {
+  persistHandHistory(tableId, finalState, settlement, table).catch((e) =>
+    logWarn({
+      event: 'hand_history.persist.failed',
+      tableId,
+      handId: finalState.handId,
+      message: (e as Error).message,
+    }),
+  );
+  io.to(tableId).emit('hand_ended', {
     handId: finalState.handId,
     finalState,
     board: finalState.board,
@@ -2592,14 +3001,22 @@ async function finalizeHandEndAsync(tableId: string, state: TableState): Promise
   try {
     queueAuditForHand(tableId, state, table);
   } catch (e) {
-    logWarn({ event: "audit.queue.failed", tableId, handId: state.handId, message: (e as Error).message });
+    logWarn({
+      event: 'audit.queue.failed',
+      tableId,
+      handId: state.handId,
+      message: (e as Error).message,
+    });
   }
 
   // Cleanly mark hand as done in engine (nulls handId, resets handInProgress)
   if (table) table.clearHand();
 
   // Increment hands played for session stats
-  incrementHandsPlayed(tableId, state.players.filter((p) => p.inHand).map((p) => p.userId));
+  incrementHandsPlayed(
+    tableId,
+    state.players.filter((p) => p.inHand).map((p) => p.userId),
+  );
   syncSessionStacksFromState(tableId, state);
   broadcastSessionStats(tableId);
 
@@ -2611,32 +3028,37 @@ async function finalizeHandEndAsync(tableId: string, state: TableState): Promise
     for (const entry of settlement.ledger) {
       const player = playerBySeat.get(entry.seat);
       if (!player) continue;
-      statWrites.push(clubDataRepo.recordClubHandStats(
-        clubInfo.clubId,
-        player.userId,
-        1,
-        Math.trunc(entry.net),
-        0,
-      ).catch((e) => logWarn({
-        event: "club_leaderboard.record_hand_stats.failed",
-        tableId,
-        clubId: clubInfo.clubId,
-        userId: player.userId,
-        message: (e as Error).message,
-      })));
+      statWrites.push(
+        clubDataRepo
+          .recordClubHandStats(clubInfo.clubId, player.userId, 1, Math.trunc(entry.net), 0)
+          .catch((e) =>
+            logWarn({
+              event: 'club_leaderboard.record_hand_stats.failed',
+              tableId,
+              clubId: clubInfo.clubId,
+              userId: player.userId,
+              message: (e as Error).message,
+            }),
+          ),
+      );
     }
     await Promise.all(statWrites);
     scheduleClubLeaderboardRefresh(clubInfo.clubId);
   }
 
   // Bust-out auto-stand: players with no chips after hand ends
-  for (const p of state.players) {
-    if (p.stack <= 0) {
-      const sid = socketIdBySeat(tableId, p.seat);
-      if (sid) {
-        io.to(sid).emit("system_message", { message: "You busted out and were stood up. Rebuy to continue." });
+  // Skip for fast-battle tables — pool manager handles lifecycle (auto-rebuy / table switch)
+  if (!tableId.startsWith('fb_')) {
+    for (const p of state.players) {
+      if (p.stack <= 0) {
+        const sid = socketIdBySeat(tableId, p.seat);
+        if (sid) {
+          io.to(sid).emit('system_message', {
+            message: 'You busted out and were stood up. Rebuy to continue.',
+          });
+        }
+        await standUpPlayer(tableId, p.seat, 'Busted out');
       }
-      await standUpPlayer(tableId, p.seat, "Busted out");
     }
   }
 
@@ -2655,8 +3077,15 @@ async function finalizeHandEndAsync(tableId: string, state: TableState): Promise
 
   touchLocalRoom(tableId);
   broadcastSnapshot(tableId);
-  const wasAllInHand = state.players.some((player) => player.allIn);
-  scheduleAutoDealIfNeeded(tableId, wasAllInHand ? 4_000 : 2_000);
+
+  // ── Fast Battle: pool manager handles table switching, skip regular auto-deal ──
+  if (fastBattlePool?.isFastBattleTable(tableId)) {
+    const settlement = table?.getSettlementResult() ?? null;
+    fastBattlePool.onHandEnded(tableId, state, settlement);
+  } else {
+    const wasAllInHand = state.players.some((player) => player.allIn);
+    scheduleAutoDealIfNeeded(tableId, wasAllInHand ? 4_000 : 2_000);
+  }
 }
 
 function handleRoomAutoClose(tableId: string): void {
@@ -2684,7 +3113,7 @@ function handleRoomAutoClose(tableId: string): void {
     if (deposit.tableId === tableId) pendingRebuys.delete(orderId);
   }
 
-  io.to(tableId).emit("room_closed", { tableId, reason: "empty" });
+  io.to(tableId).emit('room_closed', { tableId, reason: 'empty' });
   const roomSockets = io.sockets.adapter.rooms.get(tableId);
   if (roomSockets) {
     for (const sid of roomSockets) {
@@ -2696,7 +3125,7 @@ function handleRoomAutoClose(tableId: string): void {
   for (const [sid, binding] of socketSeat.entries()) {
     if (binding.tableId !== tableId) continue;
     socketSeat.delete(sid);
-    io.to(sid).emit("left_table", { tableId });
+    io.to(sid).emit('left_table', { tableId });
   }
 
   tables.delete(tableId);
@@ -2707,8 +3136,8 @@ function handleRoomAutoClose(tableId: string): void {
     sessionStatsByRoomCode.delete(room.roomCode);
     roomCodeToTableId.delete(room.roomCode);
     roomsByTableId.delete(tableId);
-    closeRoomSessionIfOpen(tableId, "auto_close").catch(() => {});
-    supabase.touchRoom(tableId, "CLOSED").catch(() => {});
+    closeRoomSessionIfOpen(tableId, 'auto_close').catch(() => {});
+    supabase.touchRoom(tableId, 'CLOSED').catch(() => {});
   }
 
   debouncedLobbyBroadcast();
@@ -2740,10 +3169,10 @@ function suspendClubTableRuntime(tableId: string): void {
   if (!clubInfo) return;
 
   logInfo({
-    event: "club_table.suspend",
+    event: 'club_table.suspend',
     tableId,
     clubId: clubInfo.clubId,
-    message: "Suspending idle club table runtime",
+    message: 'Suspending idle club table runtime',
   });
 
   // Clear scheduled timers
@@ -2786,7 +3215,7 @@ function suspendClubTableRuntime(tableId: string): void {
   for (const [sid, binding] of socketSeat.entries()) {
     if (binding.tableId !== tableId) continue;
     socketSeat.delete(sid);
-    io.to(sid).emit("left_table", { tableId });
+    io.to(sid).emit('left_table', { tableId });
   }
 
   // Delete from room registries
@@ -2823,7 +3252,7 @@ function startTimerForActor(tableId: string): void {
     // Away player was dealt in (dealToAwayPlayers=true): auto-check/fold so the hand cannot stall.
     try {
       const { state: autoState, action: autoAction } = table.handleTimeout(state.actorSeat);
-      io.to(tableId).emit("action_applied", {
+      io.to(tableId).emit('action_applied', {
         seat: state.actorSeat,
         action: autoAction,
         amount: 0,
@@ -2832,56 +3261,58 @@ function startTimerForActor(tableId: string): void {
       });
       handlePostAction(tableId, table, autoState);
     } catch (err) {
-      console.warn("startTimerForActor: auto-action for away actor failed:", (err as Error).message);
+      console.warn(
+        'startTimerForActor: auto-action for away actor failed:',
+        (err as Error).message,
+      );
     }
     return;
   }
 
-  roomManager.startActionTimer(
-    tableId,
-    state.actorSeat,
-    actorBinding.binding.userId,
-    () => {
-      // Timeout: use engine's handleTimeout (auto-check if possible, otherwise fold)
-      const tbl = tables.get(tableId);
-      if (!tbl) return;
-      const s = tbl.getPublicState();
-      if (!s.handId || s.handId !== expectedHandId) return;
-      if (s.actorSeat == null || s.actorSeat !== expectedSeat || !s.legalActions) return;
-      const timedOutSeat = s.actorSeat;
-      try {
-        const { state: newState, action: timeoutAction, autoSatOut } = tbl.handleTimeout(timedOutSeat);
-        io.to(tableId).emit("action_applied", {
-          seat: timedOutSeat,
-          action: timeoutAction,
-          amount: 0,
-          pot: newState.pot,
-          auto: true,
+  roomManager.startActionTimer(tableId, state.actorSeat, actorBinding.binding.userId, () => {
+    // Timeout: use engine's handleTimeout (auto-check if possible, otherwise fold)
+    const tbl = tables.get(tableId);
+    if (!tbl) return;
+    const s = tbl.getPublicState();
+    if (!s.handId || s.handId !== expectedHandId) return;
+    if (s.actorSeat == null || s.actorSeat !== expectedSeat || !s.legalActions) return;
+    const timedOutSeat = s.actorSeat;
+    try {
+      const {
+        state: newState,
+        action: timeoutAction,
+        autoSatOut,
+      } = tbl.handleTimeout(timedOutSeat);
+      io.to(tableId).emit('action_applied', {
+        seat: timedOutSeat,
+        action: timeoutAction,
+        amount: 0,
+        pot: newState.pot,
+        auto: true,
+      });
+
+      // Engine tracks consecutive timeouts; mark as away (sitting_out) after repeated offenses
+      // Player stays at the table — they can press "I'm Back" to return
+      if (autoSatOut) {
+        io.to(tableId).emit('system_message', {
+          message: `Seat ${timedOutSeat} is away (timed out repeatedly).`,
         });
-
-        // Engine tracks consecutive timeouts; mark as away (sitting_out) after repeated offenses
-        // Player stays at the table — they can press "I'm Back" to return
-        if (autoSatOut) {
-          io.to(tableId).emit("system_message", {
-            message: `Seat ${timedOutSeat} is away (timed out repeatedly).`,
+        const room = roomManager.getRoom(tableId);
+        if (room) {
+          roomManager.addLog(room, 'PLAYER_SAT_OUT', {
+            targetId: actorBinding.binding.userId,
+            message: `Seat ${timedOutSeat} auto-away after consecutive timeouts`,
           });
-          const room = roomManager.getRoom(tableId);
-          if (room) {
-            roomManager.addLog(room, "PLAYER_SAT_OUT", {
-              targetId: actorBinding.binding.userId,
-              message: `Seat ${timedOutSeat} auto-away after consecutive timeouts`,
-            });
-          }
-          broadcastSnapshot(tableId);
         }
-
-        // Continue the hand
-        handlePostAction(tableId, tbl, newState);
-      } catch (err) {
-        console.warn("auto-action on timeout failed:", (err as Error).message);
+        broadcastSnapshot(tableId);
       }
+
+      // Continue the hand
+      handlePostAction(tableId, tbl, newState);
+    } catch (err) {
+      console.warn('auto-action on timeout failed:', (err as Error).message);
     }
-  );
+  });
 }
 
 /** Remove a player from their seat and clean up bindings */
@@ -2898,32 +3329,34 @@ async function standUpPlayer(tableId: string, seatNum: number, reason: string): 
       const tx = await appendWalletTx({
         clubId: clubInfo.clubId,
         userId: leavingPlayer.userId,
-        type: "cash_out",
+        type: 'cash_out',
         amount: Math.trunc(leavingPlayer.stack),
-        currency: "chips",
-        refType: "table_seat",
+        currency: 'chips',
+        refType: 'table_seat',
         refId: `${tableId}:${seatNum}`,
         createdBy: leavingPlayer.userId,
         note: `Cash-out from seat ${seatNum} (${reason})`,
         metaJson: { tableId, seat: seatNum, reason },
       });
-      await emitWalletBalanceToUser(clubInfo.clubId, leavingPlayer.userId, tx.newBalance, "chips");
+      await emitWalletBalanceToUser(clubInfo.clubId, leavingPlayer.userId, tx.newBalance, 'chips');
     } catch (error) {
       logWarn({
-        event: "club_wallet.cash_out.failed",
+        event: 'club_wallet.cash_out.failed',
         tableId,
         seat: seatNum,
         userId: leavingPlayer.userId,
         message: (error as Error).message,
       });
-      io.to(tableId).emit("system_message", { message: `Failed to cash out seat ${seatNum}. Try again.` });
+      io.to(tableId).emit('system_message', {
+        message: `Failed to cash out seat ${seatNum}. Try again.`,
+      });
       return false;
     }
   }
 
   // Find and remove socket binding
-  let removedSocketId = "";
-  let removedUserId = "";
+  let removedSocketId = '';
+  let removedUserId = '';
   for (const [sid, binding] of socketSeat.entries()) {
     if (binding.tableId === tableId && binding.seat === seatNum) {
       removedSocketId = sid;
@@ -2937,18 +3370,22 @@ async function standUpPlayer(tableId: string, seatNum: number, reason: string): 
   recordSessionCashOut(tableId, leavingPlayer.userId, leavingPlayer.stack);
   setSessionLastStack(tableId, leavingPlayer.userId, leavingPlayer.name, leavingPlayer.stack);
 
-  io.to(tableId).emit("system_message", { message: `Seat ${seatNum}: ${reason}` });
+  io.to(tableId).emit('system_message', { message: `Seat ${seatNum}: ${reason}` });
   if (removedSocketId) {
-    io.to(removedSocketId).emit("stood_up", { seat: seatNum, reason });
+    io.to(removedSocketId).emit('stood_up', { seat: seatNum, reason });
   }
 
-  supabase.removeSeat(tableId, seatNum).catch((e) => console.warn("standUpPlayer: removeSeat failed:", (e as Error).message));
-  supabase.logEvent({
-    tableId,
-    eventType: "STAND_UP",
-    actorUserId: removedUserId || "system",
-    payload: { seat: seatNum, reason }
-  }).catch((e) => console.warn("standUpPlayer: logEvent failed:", (e as Error).message));
+  supabase
+    .removeSeat(tableId, seatNum)
+    .catch((e) => console.warn('standUpPlayer: removeSeat failed:', (e as Error).message));
+  supabase
+    .logEvent({
+      tableId,
+      eventType: 'STAND_UP',
+      actorUserId: removedUserId || 'system',
+      payload: { seat: seatNum, reason },
+    })
+    .catch((e) => console.warn('standUpPlayer: logEvent failed:', (e as Error).message));
 
   touchLocalRoom(tableId);
   broadcastSnapshot(tableId);
@@ -2965,7 +3402,7 @@ function handlePostAction(tableId: string, table: GameTable, newState: TableStat
     roomManager.clearActionTimer(tableId);
     if (table.isRunoutPending()) {
       initiateRunoutFlow(tableId, table);
-    } else if (newState.showdownPhase === "decision") {
+    } else if (newState.showdownPhase === 'decision') {
       beginShowdownDecision(tableId, table, newState);
     } else {
       finalizeHandEnd(tableId, newState);
@@ -2974,6 +3411,28 @@ function handlePostAction(tableId: string, table: GameTable, newState: TableStat
     touchLocalRoom(tableId);
     broadcastSnapshot(tableId);
     startTimerForActor(tableId);
+
+    // Fast Battle: auto-fold if early fold is pending for the new actor
+    if (fastBattlePool?.isFastBattleTable(tableId) && newState.actorSeat != null) {
+      const earlyFoldUserId = fastBattlePool.consumeEarlyFold(tableId, newState.actorSeat);
+      if (earlyFoldUserId) {
+        setImmediate(() => {
+          const t = tables.get(tableId);
+          if (!t) return;
+          const st = t.getPublicState();
+          if (st.actorSeat !== newState.actorSeat) return; // actor already changed
+          const foldState = t.applyAction(newState.actorSeat!, 'fold');
+          io.to(tableId).emit('action_applied', {
+            seat: newState.actorSeat,
+            action: 'fold',
+            amount: 0,
+            pot: foldState.pot,
+          });
+          fastBattlePool!.onHeroFolded(tableId, earlyFoldUserId, foldState);
+          handlePostAction(tableId, t, foldState);
+        });
+      }
+    }
   }
 }
 
@@ -2983,7 +3442,7 @@ function initiateRunoutFlow(tableId: string, table: GameTable): void {
   if (!state.handId) return;
 
   // No cards remain to be run out on the river board.
-  if (state.board.length >= 5 || state.street === "RIVER" || state.street === "SHOWDOWN") {
+  if (state.board.length >= 5 || state.street === 'RIVER' || state.street === 'SHOWDOWN') {
     table.setAllInRunCount(1);
     touchLocalRoom(tableId);
     broadcastSnapshot(tableId);
@@ -3010,9 +3469,11 @@ function initiateRunoutFlow(tableId: string, table: GameTable): void {
   }
 
   const equities = calculateAllPlayersEquity(table, [...state.board] as Card[]);
-  const equityBySeat = new Map<number, number>(equities.map((entry) => [entry.seat, entry.equityRate]));
-  const underdogSeat = [...eligiblePlayers]
-    .sort((a, b) => {
+  const equityBySeat = new Map<number, number>(
+    equities.map((entry) => [entry.seat, entry.equityRate]),
+  );
+  const underdogSeat =
+    [...eligiblePlayers].sort((a, b) => {
       const wa = equityBySeat.get(a.seat) ?? 1;
       const wb = equityBySeat.get(b.seat) ?? 1;
       if (wa === wb) return a.seat - b.seat;
@@ -3044,14 +3505,14 @@ function initiateRunoutFlow(tableId: string, table: GameTable): void {
       recommendedRunCount: 1,
       defaultRunCount: 1,
       allowedRunCounts: isUnderdog ? [1, 2, 3] : [1],
-      promptMode: "run_count",
+      promptMode: 'run_count',
       reason: isUnderdog
-        ? "You are currently the underdog. Choose run once, twice, or three times."
-        : "Waiting for underdog run-count choice. You can approve or reject after they choose.",
+        ? 'You are currently the underdog. Choose run once, twice, or three times.'
+        : 'Waiting for underdog run-count choice. You can approve or reject after they choose.',
     };
     const socketId = socketIdBySeat(tableId, player.seat);
     if (socketId) {
-      io.to(socketId).emit("all_in_prompt", prompt);
+      io.to(socketId).emit('all_in_prompt', prompt);
     }
   }
 
@@ -3071,7 +3532,7 @@ function sanitizeRoomName(name?: string): string {
 }
 
 function randomRoomCode(length = runtimeConfig.roomCodeLength): string {
-  let code = "";
+  let code = '';
   for (let i = 0; i < length; i += 1) {
     code += ROOM_CODE_CHARS[randomInt(ROOM_CODE_CHARS.length)];
   }
@@ -3086,19 +3547,21 @@ async function generateUniqueRoomCode(): Promise<string> {
       // Race Supabase check against a 3s timeout to avoid hanging when Supabase is slow
       const existing = await Promise.race([
         supabase.findRoomByCode(candidate),
-        new Promise<null>((_, rej) => setTimeout(() => rej(new Error("findRoomByCode timeout (3s)")), 3000)),
+        new Promise<null>((_, rej) =>
+          setTimeout(() => rej(new Error('findRoomByCode timeout (3s)')), 3000),
+        ),
       ]);
       if (!existing) return candidate;
     } catch (err) {
       // Supabase unavailable, slow, or table missing — fall back to in-memory uniqueness only
       logWarn({
-        event: "room_code.generate.fallback_in_memory",
+        event: 'room_code.generate.fallback_in_memory',
         message: (err as Error).message,
       });
       return candidate;
     }
   }
-  throw new Error("cannot generate unique room code");
+  throw new Error('cannot generate unique room code');
 }
 
 async function ensureRoomByTableId(tableId: string): Promise<RoomInfo> {
@@ -3110,7 +3573,7 @@ async function ensureRoomByTableId(tableId: string): Promise<RoomInfo> {
     const hydrated: RoomInfo = {
       ...remote,
       createdAt: remote.updatedAt ?? new Date().toISOString(),
-      updatedAt: remote.updatedAt ?? new Date().toISOString()
+      updatedAt: remote.updatedAt ?? new Date().toISOString(),
     };
     registerRoom(hydrated);
     createTableIfNeeded(hydrated);
@@ -3124,7 +3587,7 @@ async function ensureRoomByTableId(tableId: string): Promise<RoomInfo> {
     maxPlayers: runtimeConfig.defaultCreateRoom.maxPlayers,
     smallBlind: runtimeConfig.defaultCreateRoom.smallBlind,
     bigBlind: runtimeConfig.defaultCreateRoom.bigBlind,
-    status: "OPEN",
+    status: 'OPEN',
     isPublic: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -3159,7 +3622,7 @@ async function ensureRoomByCode(roomCode: string): Promise<RoomInfo | null> {
   const hydrated: RoomInfo = {
     ...remote,
     createdAt: remote.updatedAt ?? new Date().toISOString(),
-    updatedAt: remote.updatedAt ?? new Date().toISOString()
+    updatedAt: remote.updatedAt ?? new Date().toISOString(),
   };
   registerRoom(hydrated);
   createTableIfNeeded(hydrated);
@@ -3181,7 +3644,7 @@ function ensureManagedRoom(room: RoomInfo, ownerFallback: VerifiedIdentity): voi
     const club = clubManager.getClub(clubInfo.clubId);
     const tableMeta = clubManager.getClubTable(clubInfo.clubId, clubInfo.clubTableId);
     if (rules && tableMeta) {
-      room.roomName = `${club?.name ?? "Club"} — ${tableMeta.name}`;
+      room.roomName = `${club?.name ?? 'Club'} — ${tableMeta.name}`;
       room.maxPlayers = rules.maxSeats;
       room.smallBlind = rules.stakes.smallBlind;
       room.bigBlind = rules.stakes.bigBlind;
@@ -3195,7 +3658,7 @@ function ensureManagedRoom(room: RoomInfo, ownerFallback: VerifiedIdentity): voi
         roomCode: room.roomCode,
         roomName: room.roomName,
         ownerId,
-        ownerName: ownerId === ownerFallback.userId ? ownerFallback.displayName : "Club Host",
+        ownerName: ownerId === ownerFallback.userId ? ownerFallback.displayName : 'Club Host',
         settings: {
           gameType: rules.extras.gameType,
           maxPlayers: rules.maxSeats,
@@ -3207,15 +3670,18 @@ function ensureManagedRoom(room: RoomInfo, ownerFallback: VerifiedIdentity): voi
           timeBankSeconds: rules.time.timeBankSec,
           disconnectGracePeriod: rules.time.disconnectGraceSec,
           autoStartNextHand: rules.dealing.autoStartNextHand && rules.dealing.autoDealEnabled,
-          minPlayersToStart: Math.max(2, Math.min(rules.maxSeats, rules.dealing.minPlayersToStart ?? 2)),
+          minPlayersToStart: Math.max(
+            2,
+            Math.min(rules.maxSeats, rules.dealing.minPlayersToStart ?? 2),
+          ),
           spectatorAllowed: rules.moderation.allowSpectators,
           runItTwice: rules.runit.allowRunItTwice,
-          runItTwiceMode: rules.runit.allowRunItTwice ? "ask_players" : "off",
+          runItTwiceMode: rules.runit.allowRunItTwice ? 'ask_players' : 'off',
           straddleAllowed: rules.extras.straddleAllowed,
           bombPotEnabled: rules.extras.bombPotEnabled,
           rabbitHunting: rules.extras.rabbitHuntEnabled,
           sevenTwoBounty: rules.extras.sevenTwoBounty,
-          visibility: "private",
+          visibility: 'private',
         },
       });
       return;
@@ -3228,17 +3694,20 @@ function ensureManagedRoom(room: RoomInfo, ownerFallback: VerifiedIdentity): voi
     roomCode: room.roomCode,
     roomName: room.roomName,
     ownerId,
-    ownerName: ownerId === ownerFallback.userId ? ownerFallback.displayName : "Host",
+    ownerName: ownerId === ownerFallback.userId ? ownerFallback.displayName : 'Host',
     settings: {
       maxPlayers: room.maxPlayers,
       smallBlind: room.smallBlind,
       bigBlind: room.bigBlind,
-      visibility: room.isPublic ? "public" : "private",
+      visibility: room.isPublic ? 'public' : 'private',
     },
   });
 }
 
-function buildSessionMetadata(tableId: string, trigger: string): SessionContextMetadata | undefined {
+function buildSessionMetadata(
+  tableId: string,
+  trigger: string,
+): SessionContextMetadata | undefined {
   const room = roomsByTableId.get(tableId);
   if (!room) return undefined;
   const managed = roomManager.getRoom(tableId);
@@ -3262,21 +3731,21 @@ async function closeRoomSessionIfOpen(tableId: string, trigger: string): Promise
   await supabase.closeRoomSession(tableId, { trigger, closedAt: new Date().toISOString() });
 }
 
-const RANK_ORDER: string[] = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"];
+const RANK_ORDER: string[] = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
 
 function rankValue(rank: string): number {
   const index = RANK_ORDER.indexOf(rank);
   return index === -1 ? -1 : index;
 }
 
-function classifyStartingHandBucket(cards: string[], gameType: TableState["gameType"]): string {
-  if (cards.length < 2) return "unknown";
+function classifyStartingHandBucket(cards: string[], gameType: TableState['gameType']): string {
+  if (cards.length < 2) return 'unknown';
 
   const ranks = cards.map((card) => card[0]).filter(Boolean);
   const suits = cards.map((card) => card[1]).filter(Boolean);
-  if (gameType === "omaha" || cards.length >= 4) {
+  if (gameType === 'omaha' || cards.length >= 4) {
     const sortedRanks = [...ranks].sort((a, b) => rankValue(b) - rankValue(a));
-    const topRanks = `${sortedRanks[0] ?? "X"}${sortedRanks[1] ?? "X"}`;
+    const topRanks = `${sortedRanks[0] ?? 'X'}${sortedRanks[1] ?? 'X'}`;
     const suitCounts = new Map<string, number>();
     for (const suit of suits) {
       suitCounts.set(suit, (suitCounts.get(suit) ?? 0) + 1);
@@ -3295,16 +3764,16 @@ function classifyStartingHandBucket(cards: string[], gameType: TableState["gameT
   const low = highFirst ? rb : ra;
 
   if (high === low) return `${high}${low}`;
-  if (high === "A" && low === "K") return sa === sb ? "AKs" : "AKo";
-  if (high === "A") return sa === sb ? "Axs" : "Axo";
-  if (high === "K") return "Kx";
+  if (high === 'A' && low === 'K') return sa === sb ? 'AKs' : 'AKo';
+  if (high === 'A') return sa === sb ? 'Axs' : 'Axo';
+  if (high === 'K') return 'Kx';
   return sa === sb ? `${high}${low}s` : `${high}${low}o`;
 }
 
 async function persistHandHistory(
   tableId: string,
   state: TableState,
-  settlement: ReturnType<GameTable["getSettlementResult"]>,
+  settlement: ReturnType<GameTable['getSettlementResult']>,
   table?: GameTable,
 ): Promise<void> {
   if (!supabase.enabled()) return;
@@ -3332,12 +3801,18 @@ async function persistHandHistory(
     if (!player) continue;
     netByUser[player.userId] = entry.net;
 
-    const position = state.positions?.[entry.seat] ?? (table ? table.getPosition(entry.seat) : `Seat ${entry.seat}`);
+    const position =
+      state.positions?.[entry.seat] ??
+      (table ? table.getPosition(entry.seat) : `Seat ${entry.seat}`);
     netByPosition[position] = (netByPosition[position] ?? 0) + entry.net;
 
-    const privateCards = table?.getPrivateHoleCards(entry.seat) ?? table?.getHoleCards(entry.seat) ?? null;
+    const privateCards =
+      table?.getPrivateHoleCards(entry.seat) ?? table?.getHoleCards(entry.seat) ?? null;
     if (privateCards && privateCards.length >= 2) {
-      startingHandBucketsByUser[player.userId] = classifyStartingHandBucket(privateCards, state.gameType ?? "texas");
+      startingHandBucketsByUser[player.userId] = classifyStartingHandBucket(
+        privateCards,
+        state.gameType ?? 'texas',
+      );
     }
   }
 
@@ -3351,10 +3826,11 @@ async function persistHandHistory(
     })),
     myNetByUser: netByUser,
     netByPosition: Object.keys(netByPosition).length > 0 ? netByPosition : undefined,
-    startingHandBucketsByUser: Object.keys(startingHandBucketsByUser).length > 0 ? startingHandBucketsByUser : undefined,
+    startingHandBucketsByUser:
+      Object.keys(startingHandBucketsByUser).length > 0 ? startingHandBucketsByUser : undefined,
     gameType: state.gameType,
     flags: {
-      allIn: state.actions.some((action) => action.type === "all_in"),
+      allIn: state.actions.some((action) => action.type === 'all_in'),
       runItTwice: settlement.runCount > 1,
       showdown: settlement.showdown,
       bombPot: state.isBombPotHand,
@@ -3373,9 +3849,11 @@ async function persistHandHistory(
   }
 
   // Ensure ALL bot hole cards are in revealedHoles for transparency
-  const revealedHolesForHistory: Record<number, [string, string]> = { ...(state.revealedHoles ?? {}) };
+  const revealedHolesForHistory: Record<number, [string, string]> = {
+    ...(state.revealedHoles ?? {}),
+  };
   for (const player of state.players) {
-    if (!player.userId.startsWith("bot-")) continue;
+    if (!player.userId.startsWith('bot-')) continue;
     if (revealedHolesForHistory[player.seat]) continue; // already revealed
     const botCards = table?.getPrivateHoleCards(player.seat) ?? table?.getHoleCards(player.seat);
     if (botCards && botCards.length >= 2) {
@@ -3387,7 +3865,11 @@ async function persistHandHistory(
     board: [...state.board],
     runoutBoards: state.runoutBoards ? state.runoutBoards.map((board) => [...board]) : [],
     doubleBoardPayouts: settlement.doubleBoardPayouts
-      ? settlement.doubleBoardPayouts.map((run) => ({ run: run.run, board: [...run.board], winners: [...run.winners] }))
+      ? settlement.doubleBoardPayouts.map((run) => ({
+          run: run.run,
+          board: [...run.board],
+          winners: [...run.winners],
+        }))
       : undefined,
     potLayers: settlement.potLayers.map((layer) => ({
       label: layer.label,
@@ -3397,16 +3879,19 @@ async function persistHandHistory(
     contributionsBySeat: { ...settlement.contributions },
     actionTimeline: [...state.actions],
     revealedHoles: revealedHolesForHistory,
-    privateHoleCardsByUser: Object.keys(privateHoleCardsByUser).length > 0 ? privateHoleCardsByUser : undefined,
+    privateHoleCardsByUser:
+      Object.keys(privateHoleCardsByUser).length > 0 ? privateHoleCardsByUser : undefined,
     payoutLedger: settlement.ledger.map((entry) => ({ ...entry })),
   };
 
   const viewerBotIds = getBotUserIds(tableId);
-  const viewerUserIds = [...new Set([
-    ...state.players.map((player) => player.userId),
-    managed?.ownership.ownerId ?? "",
-    ...(managed?.ownership.coHostIds ?? []),
-  ])].filter((userId) => userId.length > 0 && !viewerBotIds.has(userId));
+  const viewerUserIds = [
+    ...new Set([
+      ...state.players.map((player) => player.userId),
+      managed?.ownership.ownerId ?? '',
+      ...(managed?.ownership.coHostIds ?? []),
+    ]),
+  ].filter((userId) => userId.length > 0 && !viewerBotIds.has(userId));
 
   const payload: PersistHandHistoryPayload = {
     roomId: tableId,
@@ -3417,7 +3902,7 @@ async function persistHandHistory(
     summary,
     detail,
     viewerUserIds,
-    sessionMetadata: buildSessionMetadata(tableId, "hand_end"),
+    sessionMetadata: buildSessionMetadata(tableId, 'hand_end'),
   };
 
   if (!isOverBudget()) {
@@ -3433,17 +3918,15 @@ function queueAuditForHand(tableId: string, state: TableState, table: GameTable 
   // Capture positions from the engine while hand state is still live
   const positions: Record<number, string> = {};
   for (const p of state.players) {
-    positions[p.seat] = table.getPosition(p.seat) ?? "BTN";
+    positions[p.seat] = table.getPosition(p.seat) ?? 'BTN';
   }
 
-  const playerSeats = state.players
-    .filter((p) => p.inHand || !p.folded)
-    .map((p) => p.seat);
+  const playerSeats = state.players.filter((p) => p.inHand || !p.folded).map((p) => p.seat);
 
   // Queue an audit for each seated player who has revealed hole cards
   const revealedHoles = state.revealedHoles ?? {};
   for (const p of state.players) {
-    if (!p.userId || p.userId.startsWith("guest-")) continue;
+    if (!p.userId || p.userId.startsWith('guest-')) continue;
     const cards = revealedHoles[p.seat] as [string, string] | undefined;
     if (!cards || cards.length < 2) continue;
 
@@ -3464,12 +3947,12 @@ function queueAuditForHand(tableId: string, state: TableState, table: GameTable 
         board: [...state.board],
         totalPot: state.pot,
       },
-      undefined
+      undefined,
     );
   }
 }
 
-io.on("connection", (socket) => {
+io.on('connection', (socket) => {
   const identity = socketIdentity.get(socket.id);
   if (!identity) {
     socket.disconnect(true);
@@ -3478,16 +3961,18 @@ io.on("connection", (socket) => {
 
   const requireClubAuth = (): boolean => {
     if (isClubAuthenticatedIdentity(identity)) return true;
-    const reason = identity.userId.startsWith("guest-") ? "Guest accounts cannot access club features. Please log in." : "Authentication required.";
+    const reason = identity.userId.startsWith('guest-')
+      ? 'Guest accounts cannot access club features. Please log in.'
+      : 'Authentication required.';
     emitClubUnauthorized(socket, reason);
     return false;
   };
 
-  socket.emit("connected", {
+  socket.emit('connected', {
     socketId: socket.id,
     userId: identity.userId,
     displayName: identity.displayName,
-    supabaseEnabled: supabase.enabled()
+    supabaseEnabled: supabase.enabled(),
   });
   void emitLobbySnapshot(socket.id);
 
@@ -3502,7 +3987,7 @@ io.on("connection", (socket) => {
       roomManager.cancelDisconnectGrace(graceTableId, graceSeatNo);
       rejoinInfo.delete(identity.userId);
       logInfo({
-        event: "player.skip_auto_restore",
+        event: 'player.skip_auto_restore',
         userId: identity.userId,
         tableId: graceTableId,
         message: `Seat ${graceSeatNo} has pending leave — skipping auto-restore`,
@@ -3522,27 +4007,37 @@ io.on("connection", (socket) => {
         rejoinInfo.delete(identity.userId);
 
         // Notify the reconnected player
-        socket.emit("room_joined", {
+        socket.emit('room_joined', {
           tableId: graceTableId,
           roomCode: graceRoom.roomCode,
           roomName: graceRoom.roomName,
         });
         emitHydratedSnapshot(socket.id, graceTableId);
         const fullState = roomManager.getFullState(graceTableId);
-        if (fullState) socket.emit("room_state_update", withClubRoomStateMetadata(fullState, graceTableId, identity.userId));
+        if (fullState)
+          socket.emit(
+            'room_state_update',
+            withClubRoomStateMetadata(fullState, graceTableId, identity.userId),
+          );
 
         // Update Supabase
-        supabase.upsertSeat({
-          table_id: graceTableId,
-          seat_no: graceSeatNo,
-          user_id: identity.userId,
-          display_name: identity.displayName,
-          stack: tables.get(graceTableId)?.getPublicState().players.find((p) => p.seat === graceSeatNo)?.stack ?? 0,
-          is_connected: true,
-        }).catch((e) => console.warn("reconnect: upsertSeat failed:", (e as Error).message));
+        supabase
+          .upsertSeat({
+            table_id: graceTableId,
+            seat_no: graceSeatNo,
+            user_id: identity.userId,
+            display_name: identity.displayName,
+            stack:
+              tables
+                .get(graceTableId)
+                ?.getPublicState()
+                .players.find((p) => p.seat === graceSeatNo)?.stack ?? 0,
+            is_connected: true,
+          })
+          .catch((e) => console.warn('reconnect: upsertSeat failed:', (e as Error).message));
 
         logInfo({
-          event: "player.auto_reconnected",
+          event: 'player.auto_reconnected',
           userId: identity.userId,
           tableId: graceTableId,
           message: `Seat ${graceSeatNo} auto-restored`,
@@ -3552,11 +4047,20 @@ io.on("connection", (socket) => {
   }
 
   socket.on(
-    "create_room",
-    async (payload: { roomName?: string; maxPlayers?: number; smallBlind?: number; bigBlind?: number; isPublic?: boolean; buyInMin?: number; buyInMax?: number; visibility?: "public" | "private" }) => {
+    'create_room',
+    async (payload: {
+      roomName?: string;
+      maxPlayers?: number;
+      smallBlind?: number;
+      bigBlind?: number;
+      isPublic?: boolean;
+      buyInMin?: number;
+      buyInMax?: number;
+      visibility?: 'public' | 'private';
+    }) => {
       try {
         logInfo({
-          event: "room.create.requested",
+          event: 'room.create.requested',
           userId: identity.userId,
           message: identity.displayName,
           payload,
@@ -3567,7 +4071,7 @@ io.on("connection", (socket) => {
         if (ownedRoom) {
           const staleTableId = ownedRoom.tableId;
           logInfo({
-            event: "room.auto_close.stale",
+            event: 'room.auto_close.stale',
             tableId: staleTableId,
             userId: identity.userId,
             message: `Auto-closing stale room ${ownedRoom.roomCode} before creating new room`,
@@ -3580,7 +4084,10 @@ io.on("connection", (socket) => {
           removeAllBots(staleTableId);
           roomManager.endGame(staleTableId, identity.userId, identity.displayName);
 
-          io.to(staleTableId).emit("room_closed", { tableId: staleTableId, reason: "Host created a new room" });
+          io.to(staleTableId).emit('room_closed', {
+            tableId: staleTableId,
+            reason: 'Host created a new room',
+          });
 
           const staleTable = tables.get(staleTableId);
           if (staleTable) {
@@ -3617,28 +4124,42 @@ io.on("connection", (socket) => {
           tableSnapshotVersions.delete(staleTableId);
           roomManager.deleteRoom(staleTableId);
 
-          closeRoomSessionIfOpen(staleTableId, "auto_close_stale").catch(() => {});
-          supabase.touchRoom(staleTableId, "CLOSED").catch(() => {});
-          supabase.logEvent({
-            tableId: staleTableId,
-            eventType: "ROOM_CLOSED",
-            actorUserId: identity.userId,
-            payload: { reason: "auto_closed_stale_before_create" },
-          }).catch(() => {});
+          closeRoomSessionIfOpen(staleTableId, 'auto_close_stale').catch(() => {});
+          supabase.touchRoom(staleTableId, 'CLOSED').catch(() => {});
+          supabase
+            .logEvent({
+              tableId: staleTableId,
+              eventType: 'ROOM_CLOSED',
+              actorUserId: identity.userId,
+              payload: { reason: 'auto_closed_stale_before_create' },
+            })
+            .catch(() => {});
 
           debouncedLobbyBroadcast();
         }
 
         const roomCode = await generateUniqueRoomCode();
-        const tableId = `tbl_${randomUUID().replace(/-/g, "").slice(0, 10)}`;
+        const tableId = `tbl_${randomUUID().replace(/-/g, '').slice(0, 10)}`;
         const room: RoomInfo = {
           tableId,
           roomCode,
           roomName: sanitizeRoomName(payload.roomName),
-          maxPlayers: Math.min(runtimeConfig.maxPlayers, Math.max(runtimeConfig.minPlayers, Number(payload.maxPlayers ?? runtimeConfig.defaultCreateRoom.maxPlayers))),
-          smallBlind: Math.max(1, Number(payload.smallBlind ?? runtimeConfig.defaultCreateRoom.smallBlind)),
-          bigBlind: Math.max(2, Number(payload.bigBlind ?? runtimeConfig.defaultCreateRoom.bigBlind)),
-          status: "OPEN",
+          maxPlayers: Math.min(
+            runtimeConfig.maxPlayers,
+            Math.max(
+              runtimeConfig.minPlayers,
+              Number(payload.maxPlayers ?? runtimeConfig.defaultCreateRoom.maxPlayers),
+            ),
+          ),
+          smallBlind: Math.max(
+            1,
+            Number(payload.smallBlind ?? runtimeConfig.defaultCreateRoom.smallBlind),
+          ),
+          bigBlind: Math.max(
+            2,
+            Number(payload.bigBlind ?? runtimeConfig.defaultCreateRoom.bigBlind),
+          ),
+          status: 'OPEN',
           isPublic: payload.isPublic ?? true,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
@@ -3650,7 +4171,7 @@ io.on("connection", (socket) => {
         }
 
         registerRoom(room);
-        const table = createTableIfNeeded(room);
+        createTableIfNeeded(room);
         socket.join(room.tableId);
 
         // Register with room manager — creator is the owner
@@ -3664,162 +4185,246 @@ io.on("connection", (socket) => {
             maxPlayers: room.maxPlayers,
             smallBlind: room.smallBlind,
             bigBlind: room.bigBlind,
-            buyInMin: Math.max(1, Number(payload.buyInMin ?? room.bigBlind * runtimeConfig.defaultCreateRoom.buyInMinMultiplierBb)),
-            buyInMax: Math.max(1, Number(payload.buyInMax ?? room.bigBlind * runtimeConfig.defaultCreateRoom.buyInMaxMultiplierBb)),
-            visibility: payload.visibility ?? (payload.isPublic === false ? "private" : "public"),
+            buyInMin: Math.max(
+              1,
+              Number(
+                payload.buyInMin ??
+                  room.bigBlind * runtimeConfig.defaultCreateRoom.buyInMinMultiplierBb,
+              ),
+            ),
+            buyInMax: Math.max(
+              1,
+              Number(
+                payload.buyInMax ??
+                  room.bigBlind * runtimeConfig.defaultCreateRoom.buyInMaxMultiplierBb,
+              ),
+            ),
+            visibility: payload.visibility ?? (payload.isPublic === false ? 'private' : 'public'),
           },
         });
         if (IDENTITY_DEBUG) {
           logInfo({
-            event: "room.create.ownership",
+            event: 'room.create.ownership',
             userId: identity.userId,
-            message: JSON.stringify({ tableId: room.tableId, roomCode: room.roomCode, ownerId: identity.userId }),
+            message: JSON.stringify({
+              tableId: room.tableId,
+              roomCode: room.roomCode,
+              ownerId: identity.userId,
+            }),
           });
         }
 
         // Persist to Supabase in background — don't block room creation
-        supabase.upsertRoom(room).catch((e) => logWarn({
-          event: "room.create.persist_failed",
-          tableId: room.tableId,
-          message: (e as Error).message,
-        }));
-        openRoomSessionIfNeeded(room.tableId, "create_room").catch((e) => logWarn({
-          event: "session.open.failed",
-          tableId: room.tableId,
-          message: (e as Error).message,
-        }));
-        supabase.logEvent({
-          tableId: room.tableId,
-          eventType: "CREATE_ROOM",
-          actorUserId: identity.userId,
-          payload: {
-            roomCode: room.roomCode,
-            roomName: room.roomName,
-            maxPlayers: room.maxPlayers,
-            smallBlind: room.smallBlind,
-            bigBlind: room.bigBlind
-          }
-        }).catch((e) => logWarn({
-          event: "supabase.log_event.failed",
-          tableId: room.tableId,
-          message: (e as Error).message,
-        }));
+        supabase.upsertRoom(room).catch((e) =>
+          logWarn({
+            event: 'room.create.persist_failed',
+            tableId: room.tableId,
+            message: (e as Error).message,
+          }),
+        );
+        openRoomSessionIfNeeded(room.tableId, 'create_room').catch((e) =>
+          logWarn({
+            event: 'session.open.failed',
+            tableId: room.tableId,
+            message: (e as Error).message,
+          }),
+        );
+        supabase
+          .logEvent({
+            tableId: room.tableId,
+            eventType: 'CREATE_ROOM',
+            actorUserId: identity.userId,
+            payload: {
+              roomCode: room.roomCode,
+              roomName: room.roomName,
+              maxPlayers: room.maxPlayers,
+              smallBlind: room.smallBlind,
+              bigBlind: room.bigBlind,
+            },
+          })
+          .catch((e) =>
+            logWarn({
+              event: 'supabase.log_event.failed',
+              tableId: room.tableId,
+              message: (e as Error).message,
+            }),
+          );
 
-        socket.emit("room_created", {
+        socket.emit('room_created', {
           tableId: room.tableId,
           roomCode: room.roomCode,
-          roomName: room.roomName
+          roomName: room.roomName,
         });
-        socket.emit("room_joined", {
+        socket.emit('room_joined', {
           tableId: room.tableId,
           roomCode: room.roomCode,
-          roomName: room.roomName
+          roomName: room.roomName,
         });
         emitHydratedSnapshot(socket.id, room.tableId);
         const fullState = roomManager.getFullState(room.tableId);
-        if (fullState) socket.emit("room_state_update", withClubRoomStateMetadata(fullState, room.tableId, identity.userId));
+        if (fullState)
+          socket.emit(
+            'room_state_update',
+            withClubRoomStateMetadata(fullState, room.tableId, identity.userId),
+          );
         emitPresence(room.tableId);
         debouncedLobbyBroadcast();
       } catch (error) {
-        socket.emit("error_event", { message: (error as Error).message });
+        socket.emit('error_event', { message: (error as Error).message });
       }
-    }
+    },
   );
 
-  socket.on("request_lobby", async () => {
+  socket.on('request_lobby', async () => {
     await emitLobbySnapshot(socket.id);
   });
 
-  socket.on("request_history_rooms", async (payload?: { limit?: number }) => {
+  socket.on('request_history_rooms', async (payload?: { limit?: number }) => {
     try {
       if (!supabase.enabled()) {
-        socket.emit("history_rooms", { rooms: [], error: "Supabase persistence is not enabled on this server." });
+        socket.emit('history_rooms', {
+          rooms: [],
+          error: 'Supabase persistence is not enabled on this server.',
+        });
         return;
       }
       const rooms = await supabase.listHistoryRooms(identity.userId, payload?.limit ?? 50);
       recordEgress(rooms.length * 200);
-      socket.emit("history_rooms", { rooms });
+      socket.emit('history_rooms', { rooms });
     } catch (error) {
-      socket.emit("history_rooms", { rooms: [], error: (error as Error).message });
+      socket.emit('history_rooms', { rooms: [], error: (error as Error).message });
     }
   });
 
-  socket.on("request_history_sessions", async (payload: { roomId: string; limit?: number }) => {
+  socket.on('request_history_sessions', async (payload: { roomId: string; limit?: number }) => {
     try {
-      if (!payload?.roomId) throw new Error("roomId is required");
-      const sessions = await supabase.listHistorySessions(identity.userId, payload.roomId, payload.limit ?? 100);
+      if (!payload?.roomId) throw new Error('roomId is required');
+      const sessions = await supabase.listHistorySessions(
+        identity.userId,
+        payload.roomId,
+        payload.limit ?? 100,
+      );
       recordEgress(sessions.length * 150);
-      socket.emit("history_sessions", { roomId: payload.roomId, sessions });
+      socket.emit('history_sessions', { roomId: payload.roomId, sessions });
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("request_history_hands", async (payload: { roomSessionId: string; limit?: number; beforeEndedAt?: string }) => {
-    try {
-      if (!payload?.roomSessionId) throw new Error("roomSessionId is required");
-      const { hands, hasMore, nextCursor } = await supabase.listHistoryHands(identity.userId, payload.roomSessionId, {
-        limit: payload.limit ?? 50,
-        beforeEndedAt: payload.beforeEndedAt,
-      });
-      socket.emit("history_hands", { roomSessionId: payload.roomSessionId, hands, hasMore, nextCursor });
-    } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
-    }
-  });
+  socket.on(
+    'request_history_hands',
+    async (payload: { roomSessionId: string; limit?: number; beforeEndedAt?: string }) => {
+      try {
+        if (!payload?.roomSessionId) throw new Error('roomSessionId is required');
+        const { hands, hasMore, nextCursor } = await supabase.listHistoryHands(
+          identity.userId,
+          payload.roomSessionId,
+          {
+            limit: payload.limit ?? 50,
+            beforeEndedAt: payload.beforeEndedAt,
+          },
+        );
+        socket.emit('history_hands', {
+          roomSessionId: payload.roomSessionId,
+          hands,
+          hasMore,
+          nextCursor,
+        });
+      } catch (error) {
+        socket.emit('error_event', { message: (error as Error).message });
+      }
+    },
+  );
 
-  socket.on("request_room_hands", async (payload: { roomId: string; limit?: number }) => {
+  socket.on('request_room_hands', async (payload: { roomId: string; limit?: number }) => {
     try {
-      if (!payload?.roomId) throw new Error("roomId is required");
+      if (!payload?.roomId) throw new Error('roomId is required');
       // Verify user is in the room
       const room = roomManager.getRoom(payload.roomId);
-      if (!room) throw new Error("Room not found");
+      if (!room) throw new Error('Room not found');
       const hands = await supabase.listHandsByRoom(payload.roomId, payload.limit ?? 100);
-      socket.emit("room_hands", { roomId: payload.roomId, hands });
-    } catch (error) {
-      socket.emit("room_hands", { roomId: payload?.roomId ?? "", hands: [] });
+      socket.emit('room_hands', { roomId: payload.roomId, hands });
+    } catch {
+      socket.emit('room_hands', { roomId: payload?.roomId ?? '', hands: [] });
     }
   });
 
-  socket.on("request_history_hand_detail", async (payload: { handHistoryId: string }) => {
+  socket.on('request_history_hand_detail', async (payload: { handHistoryId: string }) => {
     try {
-      if (!payload?.handHistoryId) throw new Error("handHistoryId is required");
+      if (!payload?.handHistoryId) throw new Error('handHistoryId is required');
       const hand = await supabase.getHistoryHandDetail(identity.userId, payload.handHistoryId);
       recordEgress(hand ? 30_000 : 200); // hand detail ~30KB
-      socket.emit("history_hand_detail", { handHistoryId: payload.handHistoryId, hand });
+      socket.emit('history_hand_detail', { handHistoryId: payload.handHistoryId, hand });
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("history_gto_analyze", async (payload: { handId: string; handRecord: unknown; precision: "fast" | "deep" }) => {
-    try {
-      if (!payload?.handId || !payload?.handRecord) {
-        throw new Error("handId and handRecord are required");
+  socket.on(
+    'history_gto_analyze',
+    async (payload: { handId: string; handRecord: unknown; precision: 'fast' | 'deep' }) => {
+      try {
+        if (!payload?.handId || !payload?.handRecord) {
+          throw new Error('handId and handRecord are required');
+        }
+        const analyzeHandGTO = await getAnalyzeHandGTO();
+        if (!analyzeHandGTO) {
+          throw new Error('GTO analysis is temporarily unavailable on this server');
+        }
+        const precision = payload.precision === 'deep' ? 'deep' : 'fast';
+        const gtoAnalysis = await analyzeHandGTO(
+          payload.handRecord as Parameters<typeof analyzeHandGTO>[0],
+          precision,
+        );
+        socket.emit('history_gto_result', { handId: payload.handId, gtoAnalysis });
+      } catch (error) {
+        logWarn({ event: 'history_gto_analyze.failed', message: (error as Error).message });
+        socket.emit('history_gto_result', {
+          handId: payload?.handId ?? '',
+          gtoAnalysis: null,
+          error: (error as Error).message,
+        });
       }
-      const analyzeHandGTO = await getAnalyzeHandGTO();
-      if (!analyzeHandGTO) {
-        throw new Error("GTO analysis is temporarily unavailable on this server");
-      }
-      const precision = payload.precision === "deep" ? "deep" : "fast";
-      const gtoAnalysis = await analyzeHandGTO(payload.handRecord as Parameters<typeof analyzeHandGTO>[0], precision);
-      socket.emit("history_gto_result", { handId: payload.handId, gtoAnalysis });
-    } catch (error) {
-      logWarn({ event: "history_gto_analyze.failed", message: (error as Error).message });
-      socket.emit("history_gto_result", { handId: payload?.handId ?? "", gtoAnalysis: null, error: (error as Error).message });
-    }
-  });
+    },
+  );
 
-  socket.on("join_room_code", async (payload: { roomCode: string; password?: string }) => {
+  socket.on('join_room_code', async (payload: { roomCode: string; password?: string }) => {
     try {
-      console.log("[JOIN_ROOM_CODE] Request from", identity.userId, "payload:", payload);
-      
-      const room = await ensureRoomByCode(payload.roomCode);
-      console.log("[JOIN_ROOM_CODE] Room found:", room ? `${room.roomName} (${room.roomCode})` : "null");
-      
+      let room = await ensureRoomByCode(payload.roomCode);
+
+      // If user is in an active Fast Battle session but is joining a REGULAR room,
+      // end the Fast Battle session so the two don't interfere.
+      if (fastBattlePool?.isInFastBattle(identity.userId)) {
+        const isJoiningFbRoom = room?.tableId.startsWith('fb_');
+        if (!isJoiningFbRoom) {
+          // Joining a regular room — end Fast Battle cleanly
+          logInfo({
+            event: 'fast_battle.ended_on_regular_join',
+            userId: identity.userId,
+            requestedRoomCode: payload.roomCode,
+          });
+          fastBattlePool.endSession(identity.userId, socket.id);
+        } else {
+          // Joining an fb_ room — recover stale/missing room codes
+          const activeFastBattleTableId =
+            fastBattlePool.getSession(identity.userId)?.currentTableId ?? null;
+          if (activeFastBattleTableId) {
+            const activeFastBattleRoom = roomsByTableId.get(activeFastBattleTableId) ?? null;
+            if (!room && activeFastBattleRoom) {
+              room = activeFastBattleRoom;
+            } else if (
+              room &&
+              activeFastBattleRoom &&
+              room.tableId !== activeFastBattleRoom.tableId
+            ) {
+              room = activeFastBattleRoom;
+            }
+          }
+        }
+      }
+
       if (!room) {
-        console.log("[JOIN_ROOM_CODE] Room not found or closed");
-        throw new Error("Room not found or closed");
+        throw new Error('Room not found or closed');
       }
 
       const clubInfo = clubManager.getClubForTableById(room.tableId);
@@ -3827,81 +4432,122 @@ io.on("connection", (socket) => {
         return;
       }
 
-      if (room.status === "CLOSED") {
+      if (room.status === 'CLOSED') {
         if (clubInfo) {
           if (!clubManager.isActiveMember(clubInfo.clubId, identity.userId)) {
-            throw new Error("Club members only: this table is restricted to active club members.");
+            throw new Error('Club members only: this table is restricted to active club members.');
           }
         } else if (room.createdBy && room.createdBy !== identity.userId) {
-          throw new Error("Room is closed. Only the room host can reopen it.");
+          throw new Error('Room is closed. Only the room host can reopen it.');
         }
-        room.status = "OPEN";
+        room.status = 'OPEN';
         room.createdBy = room.createdBy ?? identity.userId;
         room.updatedAt = new Date().toISOString();
         registerRoom(room);
         ensureManagedRoom(room, identity);
-        openRoomSessionIfNeeded(room.tableId, "reopen_room").catch((e) => console.warn("join_room_code: reopen openRoomSession failed:", (e as Error).message));
-        supabase.upsertRoom(room).catch((e) => console.warn("join_room_code: reopen upsertRoom failed:", (e as Error).message));
+        openRoomSessionIfNeeded(room.tableId, 'reopen_room').catch((e) =>
+          console.warn('join_room_code: reopen openRoomSession failed:', (e as Error).message),
+        );
+        supabase
+          .upsertRoom(room)
+          .catch((e) =>
+            console.warn('join_room_code: reopen upsertRoom failed:', (e as Error).message),
+          );
       } else {
         ensureManagedRoom(room, identity);
       }
 
-      if (room.status !== "OPEN") {
-        throw new Error("Room not found or closed");
+      if (room.status !== 'OPEN') {
+        throw new Error('Room not found or closed');
       }
 
       // Check ban list
       if (roomManager.isBanned(room.tableId, identity.userId)) {
-        throw new Error("You are banned from this room");
+        throw new Error('You are banned from this room');
       }
 
       // Club membership gate: if the room belongs to a club, only active members can join
       if (clubInfo && !clubManager.isActiveMember(clubInfo.clubId, identity.userId)) {
-        throw new Error("Club members only: this table is restricted to active club members.");
+        throw new Error('Club members only: this table is restricted to active club members.');
       }
 
       // Check password for private rooms (non-club private rooms)
       const managed = roomManager.getRoom(room.tableId);
-      if (!clubInfo && managed?.settings.visibility === "private" && managed.settings.password) {
+      if (!clubInfo && managed?.settings.visibility === 'private' && managed.settings.password) {
         if (payload.password !== managed.settings.password) {
-          throw new Error("Incorrect room password");
+          throw new Error('Incorrect room password');
         }
       }
 
       socket.join(room.tableId);
-      const table = createTableIfNeeded(room);
+      createTableIfNeeded(room);
 
       // Cancel empty timer if someone joins
       maybeCheckRoomEmpty(room.tableId, currentPlayerCount(room.tableId) + 1);
 
-      supabase.touchRoom(room.tableId, "OPEN").catch((e) => console.warn("join_room_code: touchRoom failed:", (e as Error).message));
-      openRoomSessionIfNeeded(room.tableId, "join_room_code").catch((e) => console.warn("join_room_code: openRoomSession failed:", (e as Error).message));
-      supabase.logEvent({
-        tableId: room.tableId,
-        eventType: "JOIN_BY_CODE",
-        actorUserId: identity.userId,
-        payload: { roomCode: room.roomCode }
-      }).catch((e) => console.warn("join_room_code: logEvent failed:", (e as Error).message));
+      supabase
+        .touchRoom(room.tableId, 'OPEN')
+        .catch((e) => console.warn('join_room_code: touchRoom failed:', (e as Error).message));
+      openRoomSessionIfNeeded(room.tableId, 'join_room_code').catch((e) =>
+        console.warn('join_room_code: openRoomSession failed:', (e as Error).message),
+      );
+      supabase
+        .logEvent({
+          tableId: room.tableId,
+          eventType: 'JOIN_BY_CODE',
+          actorUserId: identity.userId,
+          payload: { roomCode: room.roomCode },
+        })
+        .catch((e) => console.warn('join_room_code: logEvent failed:', (e as Error).message));
 
-      console.log("[JOIN_ROOM_CODE] Emitting room_joined event");
-      socket.emit("room_joined", {
+      socket.emit('room_joined', {
         tableId: room.tableId,
         roomCode: room.roomCode,
-        roomName: room.roomName
+        roomName: room.roomName,
       });
+
+      // Fast-battle fallback: seat the human if they weren't already seated by seatHumanDirect
+      // ONLY for fb_ tables — never interfere with regular room seating
+      if (room.tableId.startsWith('fb_') && fastBattlePool?.isInFastBattle(identity.userId)) {
+        fastBattlePool.seatHumanOnJoin(identity.userId, room.tableId, socket.id);
+      }
+
       emitHydratedSnapshot(socket.id, room.tableId);
       const fullState = roomManager.getFullState(room.tableId);
-      if (fullState) socket.emit("room_state_update", withClubRoomStateMetadata(fullState, room.tableId, identity.userId));
+      if (fullState)
+        socket.emit(
+          'room_state_update',
+          withClubRoomStateMetadata(fullState, room.tableId, identity.userId),
+        );
       emitPresence(room.tableId);
       debouncedLobbyBroadcast();
-      console.log("[JOIN_ROOM_CODE] Successfully joined room");
     } catch (error) {
-      console.log("[JOIN_ROOM_CODE] Error:", (error as Error).message);
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("join_table", async (payload: { tableId: string }) => {
+  socket.on('join_table', async (payload: { tableId: string }) => {
+    // Fast-battle tables: redirect to fast_battle_rejoin flow to avoid creating zombie tables
+    if (payload.tableId.startsWith('fb_')) {
+      const pool = fastBattlePool;
+      if (pool) {
+        pool.handleReconnect(identity.userId, socket.id);
+        const session = pool.getSession(identity.userId);
+        if (session?.currentTableId) {
+          emitHydratedSnapshot(socket.id, session.currentTableId);
+        }
+      }
+      return;
+    }
+    // Joining a regular table — end any active Fast Battle session
+    if (fastBattlePool?.isInFastBattle(identity.userId)) {
+      logInfo({
+        event: 'fast_battle.ended_on_regular_join',
+        userId: identity.userId,
+        tableId: payload.tableId,
+      });
+      fastBattlePool.endSession(identity.userId, socket.id);
+    }
     const room = await ensureRoomByTableId(payload.tableId);
     ensureManagedRoom(room, identity);
 
@@ -3910,34 +4556,46 @@ io.on("connection", (socket) => {
     if (clubInfo) {
       if (!requireClubAuth()) return;
       if (!clubManager.isActiveMember(clubInfo.clubId, identity.userId)) {
-        socket.emit("error_event", { message: "Club members only: this table is restricted to active club members." });
+        socket.emit('error_event', {
+          message: 'Club members only: this table is restricted to active club members.',
+        });
         return;
       }
     }
 
-    const table = createTableIfNeeded(room);
+    createTableIfNeeded(room);
     socket.join(payload.tableId);
 
     // Cancel empty timer if someone joins the room
     maybeCheckRoomEmpty(payload.tableId, currentPlayerCount(payload.tableId) + 1);
 
-    supabase.touchRoom(payload.tableId, "OPEN").catch((e) => console.warn("join_table: touchRoom failed:", (e as Error).message));
-    openRoomSessionIfNeeded(payload.tableId, "join_table").catch((e) => console.warn("join_table: openRoomSession failed:", (e as Error).message));
-    supabase.logEvent({
-      tableId: payload.tableId,
-      eventType: "JOIN_TABLE",
-      actorUserId: identity.userId,
-      payload: { socketId: socket.id }
-    }).catch((e) => console.warn("join_table: logEvent failed:", (e as Error).message));
+    supabase
+      .touchRoom(payload.tableId, 'OPEN')
+      .catch((e) => console.warn('join_table: touchRoom failed:', (e as Error).message));
+    openRoomSessionIfNeeded(payload.tableId, 'join_table').catch((e) =>
+      console.warn('join_table: openRoomSession failed:', (e as Error).message),
+    );
+    supabase
+      .logEvent({
+        tableId: payload.tableId,
+        eventType: 'JOIN_TABLE',
+        actorUserId: identity.userId,
+        payload: { socketId: socket.id },
+      })
+      .catch((e) => console.warn('join_table: logEvent failed:', (e as Error).message));
 
-    socket.emit("room_joined", {
+    socket.emit('room_joined', {
       tableId: room.tableId,
       roomCode: room.roomCode,
-      roomName: room.roomName
+      roomName: room.roomName,
     });
     emitHydratedSnapshot(socket.id, room.tableId);
     const fullState = roomManager.getFullState(room.tableId);
-    if (fullState) socket.emit("room_state_update", withClubRoomStateMetadata(fullState, room.tableId, identity.userId));
+    if (fullState)
+      socket.emit(
+        'room_state_update',
+        withClubRoomStateMetadata(fullState, room.tableId, identity.userId),
+      );
     emitPresence(payload.tableId);
     debouncedLobbyBroadcast();
   });
@@ -3956,7 +4614,7 @@ io.on("connection", (socket) => {
     ensureManagedRoom(room, identity);
     const table = createTableIfNeeded(room);
     const managed = roomManager.getRoom(params.tableId);
-    if (!managed) throw new Error("Room not found");
+    if (!managed) throw new Error('Room not found');
 
     if (params.seat < 1 || params.seat > managed.settings.maxPlayers) {
       throw new Error(`Seat must be between 1 and ${managed.settings.maxPlayers}`);
@@ -3964,21 +4622,27 @@ io.on("connection", (socket) => {
 
     const existing = bindingByUser(params.tableId, params.userId);
     if (existing && existing.seat !== params.seat) {
-      throw new Error("You are already seated at this table. Stand up first to switch seats.");
+      throw new Error('You are already seated at this table. Stand up first to switch seats.');
     }
 
     if (table.getPublicState().players.some((p) => p.seat === params.seat)) {
-      throw new Error("Seat already occupied");
+      throw new Error('Seat already occupied');
     }
 
     const clubInfo = clubManager.getClubForTableById(params.tableId);
     if (clubInfo) {
       if (!clubManager.isActiveMember(clubInfo.clubId, params.userId)) {
-        throw new Error("Only active club members can sit at this table");
+        throw new Error('Only active club members can sit at this table');
       }
-      const walletBalance = await clubDataRepo.getWalletBalance(clubInfo.clubId, params.userId, "chips");
+      const walletBalance = await clubDataRepo.getWalletBalance(
+        clubInfo.clubId,
+        params.userId,
+        'chips',
+      );
       if (walletBalance < params.buyIn) {
-        throw new Error(`Club has insufficient funds (${walletBalance}) for buy-in ${params.buyIn}`);
+        throw new Error(
+          `Club has insufficient funds (${walletBalance}) for buy-in ${params.buyIn}`,
+        );
       }
     }
 
@@ -3994,10 +4658,10 @@ io.on("connection", (socket) => {
         const tx = await appendWalletTx({
           clubId: clubInfo.clubId,
           userId: params.userId,
-          type: "buy_in",
+          type: 'buy_in',
           amount: -Math.trunc(params.buyIn),
-          currency: "chips",
-          refType: "table_seat",
+          currency: 'chips',
+          refType: 'table_seat',
           refId: `${params.tableId}:${params.seat}`,
           createdBy: params.approvedByUserId,
           note: `Buy-in for seat ${params.seat} at ${room.roomName}`,
@@ -4008,7 +4672,7 @@ io.on("connection", (socket) => {
             approvedBy: params.approvedByUserId,
           },
         });
-        await emitWalletBalanceToUser(clubInfo.clubId, params.userId, tx.newBalance, "chips");
+        await emitWalletBalanceToUser(clubInfo.clubId, params.userId, tx.newBalance, 'chips');
       } catch (error) {
         table.removePlayer(params.seat);
         throw error;
@@ -4032,25 +4696,31 @@ io.on("connection", (socket) => {
     // Clear rejoin info since player is now seated
     rejoinInfo.delete(params.userId);
 
-    supabase.upsertSeat({
-      table_id: params.tableId,
-      seat_no: params.seat,
-      user_id: params.userId,
-      display_name: params.userName,
-      stack: params.buyIn,
-      is_connected: true,
-    }).catch((e) => console.warn("seatPlayerDirect: upsertSeat failed:", (e as Error).message));
+    supabase
+      .upsertSeat({
+        table_id: params.tableId,
+        seat_no: params.seat,
+        user_id: params.userId,
+        display_name: params.userName,
+        stack: params.buyIn,
+        is_connected: true,
+      })
+      .catch((e) => console.warn('seatPlayerDirect: upsertSeat failed:', (e as Error).message));
 
-    supabase.touchRoom(params.tableId, "OPEN").catch((e) => console.warn("seatPlayerDirect: touchRoom failed:", (e as Error).message));
-    supabase.logEvent({
-      tableId: params.tableId,
-      eventType: "SIT_DOWN",
-      actorUserId: params.userId,
-      payload: { seat: params.seat, buyIn: params.buyIn, restored: params.isRestore },
-    }).catch((e) => console.warn("seatPlayerDirect: logEvent failed:", (e as Error).message));
+    supabase
+      .touchRoom(params.tableId, 'OPEN')
+      .catch((e) => console.warn('seatPlayerDirect: touchRoom failed:', (e as Error).message));
+    supabase
+      .logEvent({
+        tableId: params.tableId,
+        eventType: 'SIT_DOWN',
+        actorUserId: params.userId,
+        payload: { seat: params.seat, buyIn: params.buyIn, restored: params.isRestore },
+      })
+      .catch((e) => console.warn('seatPlayerDirect: logEvent failed:', (e as Error).message));
 
     if (params.isRestore) {
-      io.to(params.socketId).emit("system_message", {
+      io.to(params.socketId).emit('system_message', {
         message: `Room funds tracking restored your previous stack (${params.buyIn}).`,
       });
     }
@@ -4062,192 +4732,214 @@ io.on("connection", (socket) => {
     debouncedLobbyBroadcast();
   };
 
-  socket.on("sit_down", async (payload: { tableId: string; seat: number; buyIn: number; name?: string }) => {
-    try {
-      console.log("[SIT_DOWN] Request from", identity.userId, "payload:", payload);
-      const room = await ensureRoomByTableId(payload.tableId);
-      ensureManagedRoom(room, identity);
-      const clubInfo = clubManager.getClubForTableById(payload.tableId);
-      if (clubInfo && !requireClubAuth()) {
-        return;
-      }
-      if (clubInfo && !clubManager.isActiveMember(clubInfo.clubId, identity.userId)) {
-        throw new Error("Only active club members can sit at this table");
-      }
-      const managed = roomManager.getRoom(payload.tableId);
-      if (!managed) throw new Error("Room not found");
-      if (IDENTITY_DEBUG) {
-        console.log("[SIT_DOWN] Identity/ownership check", {
-          requesterUserId: identity.userId,
-          ownerId: managed.ownership.ownerId,
-          isHostOrCoHost: roomManager.isHostOrCoHost(payload.tableId, identity.userId),
+  socket.on(
+    'sit_down',
+    async (payload: { tableId: string; seat: number; buyIn: number; name?: string }) => {
+      try {
+        console.log('[SIT_DOWN] Request from', identity.userId, 'payload:', payload);
+        const room = await ensureRoomByTableId(payload.tableId);
+        ensureManagedRoom(room, identity);
+        const clubInfo = clubManager.getClubForTableById(payload.tableId);
+        if (clubInfo && !requireClubAuth()) {
+          return;
+        }
+        if (clubInfo && !clubManager.isActiveMember(clubInfo.clubId, identity.userId)) {
+          throw new Error('Only active club members can sit at this table');
+        }
+        const managed = roomManager.getRoom(payload.tableId);
+        if (!managed) throw new Error('Room not found');
+        if (IDENTITY_DEBUG) {
+          console.log('[SIT_DOWN] Identity/ownership check', {
+            requesterUserId: identity.userId,
+            ownerId: managed.ownership.ownerId,
+            isHostOrCoHost: roomManager.isHostOrCoHost(payload.tableId, identity.userId),
+          });
+        }
+
+        if (payload.seat < 1 || payload.seat > managed.settings.maxPlayers) {
+          throw new Error(`Seat must be between 1 and ${managed.settings.maxPlayers}`);
+        }
+
+        const restoredStack = getRestorableStack(payload.tableId, identity.userId);
+        const isRestore = restoredStack != null;
+        if (isRestore) {
+          if (payload.buyIn < restoredStack) {
+            throw new Error(
+              `Table balance requires at least ${restoredStack} chips to rejoin this room`,
+            );
+          }
+        } else {
+          const { buyInMin, buyInMax } = managed.settings;
+          if (payload.buyIn < buyInMin || payload.buyIn > buyInMax) {
+            throw new Error(`Buy-in must be between ${buyInMin} and ${buyInMax}`);
+          }
+        }
+
+        await seatPlayerDirect({
+          tableId: payload.tableId,
+          seat: payload.seat,
+          buyIn: payload.buyIn,
+          userId: identity.userId,
+          userName: payload.name?.slice(0, 32) || identity.displayName,
+          socketId: socket.id,
+          isRestore,
+          approvedByUserId: identity.userId,
         });
+      } catch (error) {
+        socket.emit('error_event', { message: (error as Error).message });
       }
-
-      if (payload.seat < 1 || payload.seat > managed.settings.maxPlayers) {
-        throw new Error(`Seat must be between 1 and ${managed.settings.maxPlayers}`);
-      }
-
-      const restoredStack = getRestorableStack(payload.tableId, identity.userId);
-      const isRestore = restoredStack != null;
-      if (isRestore) {
-        if (payload.buyIn < restoredStack) {
-          throw new Error(`Table balance requires at least ${restoredStack} chips to rejoin this room`);
-        }
-      } else {
-        const { buyInMin, buyInMax } = managed.settings;
-        if (payload.buyIn < buyInMin || payload.buyIn > buyInMax) {
-          throw new Error(`Buy-in must be between ${buyInMin} and ${buyInMax}`);
-        }
-      }
-
-      await seatPlayerDirect({
-        tableId: payload.tableId,
-        seat: payload.seat,
-        buyIn: payload.buyIn,
-        userId: identity.userId,
-        userName: payload.name?.slice(0, 32) || identity.displayName,
-        socketId: socket.id,
-        isRestore,
-        approvedByUserId: identity.userId,
-      });
-    } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
-    }
-  });
+    },
+  );
 
   /* ═══════════ SEAT REQUEST / APPROVE / REJECT ═══════════ */
 
-  socket.on("seat_request", async (payload: { tableId: string; seat: number; buyIn: number; name?: string }) => {
-    try {
-      console.log("[SEAT_REQUEST] Received from", identity.userId, identity.displayName, "payload:", payload);
-      
-      const managed = roomManager.getRoom(payload.tableId);
-      if (!managed) throw new Error("Room not found");
+  socket.on(
+    'seat_request',
+    async (payload: { tableId: string; seat: number; buyIn: number; name?: string }) => {
+      try {
+        console.log(
+          '[SEAT_REQUEST] Received from',
+          identity.userId,
+          identity.displayName,
+          'payload:',
+          payload,
+        );
 
-      if (payload.seat < 1 || payload.seat > managed.settings.maxPlayers) {
-        throw new Error(`Seat must be between 1 and ${managed.settings.maxPlayers}`);
-      }
+        const managed = roomManager.getRoom(payload.tableId);
+        if (!managed) throw new Error('Room not found');
 
-      // Club membership gate
-      const clubInfo = clubManager.getClubForTableById(payload.tableId);
-      if (clubInfo && !requireClubAuth()) {
-        return;
-      }
-      if (clubInfo && !clubManager.isActiveMember(clubInfo.clubId, identity.userId)) {
-        throw new Error("Only active club members can request seats at this table");
-      }
-
-      if (IDENTITY_DEBUG) {
-        console.log("[SEAT_REQUEST] Identity/ownership check", {
-          requesterUserId: identity.userId,
-          ownerId: managed.ownership.ownerId,
-          isHostOrCoHost: roomManager.isHostOrCoHost(payload.tableId, identity.userId),
-        });
-      }
-
-      const restoredStack = getRestorableStack(payload.tableId, identity.userId);
-      const isRestore = restoredStack != null;
-      if (isRestore) {
-        if (payload.buyIn < restoredStack) {
-          throw new Error(`Table balance requires at least ${restoredStack} chips to rejoin this room`);
+        if (payload.seat < 1 || payload.seat > managed.settings.maxPlayers) {
+          throw new Error(`Seat must be between 1 and ${managed.settings.maxPlayers}`);
         }
-      } else {
-        const { buyInMin, buyInMax } = managed.settings;
-        if (payload.buyIn < buyInMin || payload.buyIn > buyInMax) {
-          throw new Error(`Buy-in must be between ${buyInMin} and ${buyInMax}`);
-        }
-      }
-      const requestedStack = payload.buyIn;
 
-      // Check seat availability
-      const table = tables.get(payload.tableId);
-      if (table) {
-        const state = table.getPublicState();
-        if (state.players.some((p) => p.seat === payload.seat)) {
-          throw new Error("Seat already occupied");
+        // Club membership gate
+        const clubInfo = clubManager.getClubForTableById(payload.tableId);
+        if (clubInfo && !requireClubAuth()) {
+          return;
         }
-      }
+        if (clubInfo && !clubManager.isActiveMember(clubInfo.clubId, identity.userId)) {
+          throw new Error('Only active club members can request seats at this table');
+        }
 
-      // Hosts/co-hosts should never need approval, even if client emitted seat_request.
-      if (roomManager.isHostOrCoHost(payload.tableId, identity.userId)) {
-        await seatPlayerDirect({
+        if (IDENTITY_DEBUG) {
+          console.log('[SEAT_REQUEST] Identity/ownership check', {
+            requesterUserId: identity.userId,
+            ownerId: managed.ownership.ownerId,
+            isHostOrCoHost: roomManager.isHostOrCoHost(payload.tableId, identity.userId),
+          });
+        }
+
+        const restoredStack = getRestorableStack(payload.tableId, identity.userId);
+        const isRestore = restoredStack != null;
+        if (isRestore) {
+          if (payload.buyIn < restoredStack) {
+            throw new Error(
+              `Table balance requires at least ${restoredStack} chips to rejoin this room`,
+            );
+          }
+        } else {
+          const { buyInMin, buyInMax } = managed.settings;
+          if (payload.buyIn < buyInMin || payload.buyIn > buyInMax) {
+            throw new Error(`Buy-in must be between ${buyInMin} and ${buyInMax}`);
+          }
+        }
+        const requestedStack = payload.buyIn;
+
+        // Check seat availability
+        const table = tables.get(payload.tableId);
+        if (table) {
+          const state = table.getPublicState();
+          if (state.players.some((p) => p.seat === payload.seat)) {
+            throw new Error('Seat already occupied');
+          }
+        }
+
+        // Hosts/co-hosts should never need approval, even if client emitted seat_request.
+        if (roomManager.isHostOrCoHost(payload.tableId, identity.userId)) {
+          await seatPlayerDirect({
+            tableId: payload.tableId,
+            seat: payload.seat,
+            buyIn: requestedStack,
+            userId: identity.userId,
+            userName: payload.name?.slice(0, 32) || identity.displayName,
+            socketId: socket.id,
+            isRestore,
+            approvedByUserId: identity.userId,
+          });
+          socket.emit('seat_approved', { seat: payload.seat, buyIn: requestedStack });
+          return;
+        }
+
+        if (clubInfo) {
+          await seatPlayerDirect({
+            tableId: payload.tableId,
+            seat: payload.seat,
+            buyIn: requestedStack,
+            userId: identity.userId,
+            userName: payload.name?.slice(0, 32) || identity.displayName,
+            socketId: socket.id,
+            isRestore,
+            approvedByUserId: identity.userId,
+          });
+          socket.emit('seat_approved', { seat: payload.seat, buyIn: requestedStack });
+          return;
+        }
+
+        const orderId = `req_${randomUUID().replace(/-/g, '').slice(0, 8)}`;
+        const userName = payload.name?.slice(0, 32) || identity.displayName;
+        const request: SeatRequest = {
+          orderId,
           tableId: payload.tableId,
           seat: payload.seat,
           buyIn: requestedStack,
           userId: identity.userId,
-          userName: payload.name?.slice(0, 32) || identity.displayName,
+          userName,
           socketId: socket.id,
           isRestore,
-          approvedByUserId: identity.userId,
-        });
-        socket.emit("seat_approved", { seat: payload.seat, buyIn: requestedStack });
-        return;
+        };
+        pendingSeatRequests.set(orderId, request);
+        console.log('[SEAT_REQUEST] Stored request:', orderId);
+
+        // Notify host/co-hosts currently in the room (whether seated or spectating)
+        const roomSockets = io.sockets.adapter.rooms.get(payload.tableId) ?? new Set<string>();
+        let notified = 0;
+        for (const sid of roomSockets) {
+          const id = socketIdentity.get(sid);
+          if (!id) continue;
+          if (!roomManager.isHostOrCoHost(payload.tableId, id.userId)) continue;
+          io.to(sid).emit('seat_request_pending', {
+            orderId,
+            userId: identity.userId,
+            userName,
+            seat: payload.seat,
+            buyIn: requestedStack,
+          });
+          notified += 1;
+        }
+        console.log('[SEAT_REQUEST] Notified', notified, 'host/co-host sockets');
+
+        socket.emit('seat_request_sent', { orderId, seat: payload.seat });
+        if (isRestore) {
+          socket.emit('system_message', {
+            message: `Seat request sent with restored stack ${requestedStack}.`,
+          });
+        }
+      } catch (error) {
+        console.error('[SEAT_REQUEST] Error:', (error as Error).message);
+        socket.emit('error_event', { message: (error as Error).message });
       }
+    },
+  );
 
-      if (clubInfo) {
-        await seatPlayerDirect({
-          tableId: payload.tableId,
-          seat: payload.seat,
-          buyIn: requestedStack,
-          userId: identity.userId,
-          userName: payload.name?.slice(0, 32) || identity.displayName,
-          socketId: socket.id,
-          isRestore,
-          approvedByUserId: identity.userId,
-        });
-        socket.emit("seat_approved", { seat: payload.seat, buyIn: requestedStack });
-        return;
-      }
-
-      const orderId = `req_${randomUUID().replace(/-/g, "").slice(0, 8)}`;
-      const userName = payload.name?.slice(0, 32) || identity.displayName;
-      const request: SeatRequest = {
-        orderId,
-        tableId: payload.tableId,
-        seat: payload.seat,
-        buyIn: requestedStack,
-        userId: identity.userId,
-        userName,
-        socketId: socket.id,
-        isRestore,
-      };
-      pendingSeatRequests.set(orderId, request);
-      console.log("[SEAT_REQUEST] Stored request:", orderId);
-
-      // Notify host/co-hosts currently in the room (whether seated or spectating)
-      const roomSockets = io.sockets.adapter.rooms.get(payload.tableId) ?? new Set<string>();
-      let notified = 0;
-      for (const sid of roomSockets) {
-        const id = socketIdentity.get(sid);
-        if (!id) continue;
-        if (!roomManager.isHostOrCoHost(payload.tableId, id.userId)) continue;
-        io.to(sid).emit("seat_request_pending", {
-          orderId, userId: identity.userId, userName, seat: payload.seat, buyIn: requestedStack,
-        });
-        notified += 1;
-      }
-      console.log("[SEAT_REQUEST] Notified", notified, "host/co-host sockets");
-
-      socket.emit("seat_request_sent", { orderId, seat: payload.seat });
-      if (isRestore) {
-        socket.emit("system_message", { message: `Seat request sent with restored stack ${requestedStack}.` });
-      }
-    } catch (error) {
-      console.error("[SEAT_REQUEST] Error:", (error as Error).message);
-      socket.emit("error_event", { message: (error as Error).message });
-    }
-  });
-
-  socket.on("approve_seat", async (payload: { tableId: string; orderId: string }) => {
+  socket.on('approve_seat', async (payload: { tableId: string; orderId: string }) => {
     try {
       if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId)) {
-        throw new Error("Only host/co-host can approve seat requests");
+        throw new Error('Only host/co-host can approve seat requests');
       }
 
       const request = pendingSeatRequests.get(payload.orderId);
       if (!request || request.tableId !== payload.tableId) {
-        throw new Error("Seat request not found or expired");
+        throw new Error('Seat request not found or expired');
       }
       pendingSeatRequests.delete(payload.orderId);
 
@@ -4263,50 +4955,56 @@ io.on("connection", (socket) => {
       });
 
       // Notify the requester
-      io.to(request.socketId).emit("seat_approved", { seat: request.seat, buyIn: request.buyIn });
+      io.to(request.socketId).emit('seat_approved', { seat: request.seat, buyIn: request.buyIn });
       if (request.isRestore) {
-        io.to(request.socketId).emit("system_message", { message: `Your previous room stack was restored (${request.buyIn}).` });
+        io.to(request.socketId).emit('system_message', {
+          message: `Your previous room stack was restored (${request.buyIn}).`,
+        });
       }
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("reject_seat", (payload: { tableId: string; orderId: string }) => {
+  socket.on('reject_seat', (payload: { tableId: string; orderId: string }) => {
     try {
       if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId)) {
-        throw new Error("Only host/co-host can reject seat requests");
+        throw new Error('Only host/co-host can reject seat requests');
       }
 
       const request = pendingSeatRequests.get(payload.orderId);
       if (!request || request.tableId !== payload.tableId) {
-        throw new Error("Seat request not found or expired");
+        throw new Error('Seat request not found or expired');
       }
       pendingSeatRequests.delete(payload.orderId);
 
       // Notify the requester
-      io.to(request.socketId).emit("seat_rejected", { seat: request.seat, reason: "Host declined your request" });
+      io.to(request.socketId).emit('seat_rejected', {
+        seat: request.seat,
+        reason: 'Host declined your request',
+      });
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
   /* ═══════════ DEPOSIT REQUEST FLOW ═══════════ */
 
-  socket.on("deposit_request", async (payload: { tableId: string; amount: number }) => {
+  socket.on('deposit_request', async (payload: { tableId: string; amount: number }) => {
     try {
       const binding = socketSeat.get(socket.id);
-      if (!binding || binding.tableId !== payload.tableId) throw new Error("Not seated at this table");
+      if (!binding || binding.tableId !== payload.tableId)
+        throw new Error('Not seated at this table');
 
       const managed = roomManager.getRoom(payload.tableId);
-      if (!managed) throw new Error("Room not found");
-      if (!managed.settings.rebuyAllowed) throw new Error("Rebuys are not allowed in this room");
+      if (!managed) throw new Error('Room not found');
+      if (!managed.settings.rebuyAllowed) throw new Error('Rebuys are not allowed in this room');
 
       const { buyInMax } = managed.settings;
       const table = tables.get(payload.tableId);
       const player = table?.getPublicState().players.find((p) => p.seat === binding.seat);
-      if (!player) throw new Error("Player not found");
-      if (payload.amount <= 0) throw new Error("Amount must be positive");
+      if (!player) throw new Error('Player not found');
+      if (payload.amount <= 0) throw new Error('Amount must be positive');
       const pendingForSeat = [...pendingRebuys.values()]
         .filter((deposit) => deposit.tableId === payload.tableId && deposit.seat === binding.seat)
         .reduce((sum, deposit) => sum + deposit.amount, 0);
@@ -4319,33 +5017,51 @@ io.on("connection", (socket) => {
         return;
       }
       if (clubInfo && !clubManager.isActiveMember(clubInfo.clubId, identity.userId)) {
-        throw new Error("Only active club members can rebuy at this table");
+        throw new Error('Only active club members can rebuy at this table');
       }
       if (clubInfo) {
-        const walletBalance = await clubDataRepo.getWalletBalance(clubInfo.clubId, identity.userId, "chips");
+        const walletBalance = await clubDataRepo.getWalletBalance(
+          clubInfo.clubId,
+          identity.userId,
+          'chips',
+        );
         const pendingForUser = [...pendingRebuys.values()]
-          .filter((deposit) => deposit.tableId === payload.tableId && deposit.userId === identity.userId)
+          .filter(
+            (deposit) => deposit.tableId === payload.tableId && deposit.userId === identity.userId,
+          )
           .reduce((sum, deposit) => sum + deposit.amount, 0);
         if (walletBalance < payload.amount + pendingForUser) {
-          throw new Error(`Club has insufficient funds (${walletBalance}) for rebuy ${payload.amount}`);
+          throw new Error(
+            `Club has insufficient funds (${walletBalance}) for rebuy ${payload.amount}`,
+          );
         }
       }
 
       const orderId = randomUUID();
       const deposit: RebuyRequest = {
-        orderId, tableId: payload.tableId, seat: binding.seat,
-        userId: identity.userId, userName: identity.displayName,
-        amount: payload.amount, approved: false, createdAt: Date.now(),
+        orderId,
+        tableId: payload.tableId,
+        seat: binding.seat,
+        userId: identity.userId,
+        userName: identity.displayName,
+        amount: payload.amount,
+        approved: false,
+        createdAt: Date.now(),
       };
       pendingRebuys.set(orderId, deposit);
 
       // Club table rebuys are hostless: auto-approved for active members.
       // selfPlayTurbo rooms also auto-approve (no host to approve manually).
-      const autoApprove = !!clubInfo || roomManager.isHostOrCoHost(payload.tableId, identity.userId) || !!managed.settings.selfPlayTurbo;
+      const autoApprove =
+        !!clubInfo ||
+        roomManager.isHostOrCoHost(payload.tableId, identity.userId) ||
+        !!managed.settings.selfPlayTurbo;
       if (autoApprove) {
         deposit.approved = true;
-        socket.emit("system_message", { message: `Rebuy of ${payload.amount} approved — credited at next hand start.` });
-        io.to(payload.tableId).emit("system_message", {
+        socket.emit('system_message', {
+          message: `Rebuy of ${payload.amount} approved — credited at next hand start.`,
+        });
+        io.to(payload.tableId).emit('system_message', {
           message: `${identity.displayName} (Seat ${binding.seat}) rebuy approved: ${payload.amount} (auto)`,
         });
       } else {
@@ -4355,68 +5071,80 @@ io.on("connection", (socket) => {
           const id = socketIdentity.get(sid);
           if (!id) continue;
           if (!roomManager.isHostOrCoHost(payload.tableId, id.userId)) continue;
-          io.to(sid).emit("deposit_request_pending", {
-            orderId, userId: identity.userId, userName: identity.displayName,
-            seat: binding.seat, amount: payload.amount,
+          io.to(sid).emit('deposit_request_pending', {
+            orderId,
+            userId: identity.userId,
+            userName: identity.displayName,
+            seat: binding.seat,
+            amount: payload.amount,
           });
         }
-        socket.emit("system_message", { message: `Rebuy request of ${payload.amount} sent to host for approval` });
+        socket.emit('system_message', {
+          message: `Rebuy request of ${payload.amount} sent to host for approval`,
+        });
       }
       broadcastSnapshot(payload.tableId);
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("approve_deposit", (payload: { tableId: string; orderId: string }) => {
+  socket.on('approve_deposit', (payload: { tableId: string; orderId: string }) => {
     try {
-      if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId)) throw new Error("Only host/co-host can approve deposits");
+      if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId))
+        throw new Error('Only host/co-host can approve deposits');
       const deposit = pendingRebuys.get(payload.orderId);
-      if (!deposit || deposit.tableId !== payload.tableId) throw new Error("Rebuy request not found");
+      if (!deposit || deposit.tableId !== payload.tableId)
+        throw new Error('Rebuy request not found');
 
       deposit.approved = true;
-      io.to(payload.tableId).emit("system_message", {
+      io.to(payload.tableId).emit('system_message', {
         message: `Rebuy of ${deposit.amount} for ${deposit.userName} approved — credits at next hand start.`,
       });
       broadcastSnapshot(payload.tableId);
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("reject_deposit", (payload: { tableId: string; orderId: string }) => {
+  socket.on('reject_deposit', (payload: { tableId: string; orderId: string }) => {
     try {
-      if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId)) throw new Error("Only host/co-host can reject deposits");
+      if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId))
+        throw new Error('Only host/co-host can reject deposits');
       const deposit = pendingRebuys.get(payload.orderId);
-      if (!deposit || deposit.tableId !== payload.tableId) throw new Error("Rebuy request not found");
+      if (!deposit || deposit.tableId !== payload.tableId)
+        throw new Error('Rebuy request not found');
       pendingRebuys.delete(payload.orderId);
 
       const sid = socketIdBySeat(payload.tableId, deposit.seat);
-      if (sid) io.to(sid).emit("system_message", { message: "Your rebuy request was declined by the host" });
+      if (sid)
+        io.to(sid).emit('system_message', {
+          message: 'Your rebuy request was declined by the host',
+        });
       broadcastSnapshot(payload.tableId);
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
   // Host adds chips to a bot player
-  socket.on("bot_add_chips", (payload: { tableId: string; seat: number; amount: number }) => {
+  socket.on('bot_add_chips', (payload: { tableId: string; seat: number; amount: number }) => {
     try {
       if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId)) {
-        throw new Error("Only host/co-host can add chips to bots");
+        throw new Error('Only host/co-host can add chips to bots');
       }
       const table = tables.get(payload.tableId);
-      if (!table) throw new Error("Table not found");
+      if (!table) throw new Error('Table not found');
 
       const state = table.getPublicState();
       const player = state.players.find((p) => p.seat === payload.seat);
-      if (!player) throw new Error("No player at that seat");
+      if (!player) throw new Error('No player at that seat');
 
       const botIds = getBotUserIds(payload.tableId);
       if (!botIds.has(player.userId)) {
-        throw new Error("Target player is not a bot");
+        throw new Error('Target player is not a bot');
       }
-      if (payload.amount <= 0) throw new Error("Amount must be positive");
+      if (payload.amount <= 0) throw new Error('Amount must be positive');
 
       const managed = roomManager.getRoom(payload.tableId);
       if (managed) {
@@ -4428,22 +5156,22 @@ io.on("connection", (socket) => {
 
       table.addStack(payload.seat, payload.amount);
 
-      io.to(payload.tableId).emit("system_message", {
+      io.to(payload.tableId).emit('system_message', {
         message: `Host added ${payload.amount} chips to ${player.name} (Seat ${payload.seat})`,
       });
       broadcastSnapshot(payload.tableId);
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("stand_up", async (payload: { tableId: string; seat?: number }) => {
+  socket.on('stand_up', async (payload: { tableId: string; seat?: number }) => {
     const table = tables.get(payload.tableId);
     if (!table) return;
 
     const binding = socketSeat.get(socket.id);
     if (!binding || binding.tableId !== payload.tableId) {
-      socket.emit("error_event", { message: "You can only stand up from your own seat" });
+      socket.emit('error_event', { message: 'You can only stand up from your own seat' });
       return;
     }
 
@@ -4452,44 +5180,50 @@ io.on("connection", (socket) => {
     // Defer if hand is active — mark as pending and process after hand ends
     if (table.isHandActive()) {
       let pending = pendingStandUps.get(payload.tableId);
-      if (!pending) { pending = new Set(); pendingStandUps.set(payload.tableId, pending); }
+      if (!pending) {
+        pending = new Set();
+        pendingStandUps.set(payload.tableId, pending);
+      }
       pending.add(seatNum);
-      socket.emit("system_message", { message: "Leaving after this hand." });
+      socket.emit('system_message', { message: 'Leaving after this hand.' });
       broadcastSnapshot(payload.tableId);
       return;
     }
 
-    await standUpPlayer(payload.tableId, seatNum, "Stood up");
+    await standUpPlayer(payload.tableId, seatNum, 'Stood up');
   });
 
   /* ═══════════ SIT OUT / SIT IN ═══════════ */
 
-  socket.on("sit_out", (payload: { tableId: string }) => {
+  socket.on('sit_out', (payload: { tableId: string }) => {
     try {
       const table = tables.get(payload.tableId);
-      if (!table) throw new Error("Table not found");
+      if (!table) throw new Error('Table not found');
       const binding = socketSeat.get(socket.id);
-      if (!binding || binding.tableId !== payload.tableId) throw new Error("Not seated at this table");
+      if (!binding || binding.tableId !== payload.tableId)
+        throw new Error('Not seated at this table');
 
       const state = table.getPublicState();
       const player = state.players.find((p) => p.seat === binding.seat);
-      if (!player) throw new Error("Player not found");
-      if (player.status === "sitting_out") throw new Error("Already sitting out");
+      if (!player) throw new Error('Player not found');
+      if (player.status === 'sitting_out') throw new Error('Already sitting out');
 
       // If hand is active and player is in the hand, defer until hand ends
       if (table.isHandActive() && player.inHand) {
         // Mark as pending sit-out via player status change at hand boundary
-        table.setPlayerStatus(binding.seat, "sitting_out");
-        socket.emit("system_message", { message: "You will sit out after this hand." });
+        table.setPlayerStatus(binding.seat, 'sitting_out');
+        socket.emit('system_message', { message: 'You will sit out after this hand.' });
       } else {
-        table.setPlayerStatus(binding.seat, "sitting_out");
-        socket.emit("system_message", { message: "You are now sitting out." });
-        io.to(payload.tableId).emit("system_message", { message: `${identity.displayName} is sitting out.` });
+        table.setPlayerStatus(binding.seat, 'sitting_out');
+        socket.emit('system_message', { message: 'You are now sitting out.' });
+        io.to(payload.tableId).emit('system_message', {
+          message: `${identity.displayName} is sitting out.`,
+        });
       }
 
       const room = roomManager.getRoom(payload.tableId);
       if (room) {
-        roomManager.addLog(room, "PLAYER_SAT_OUT", {
+        roomManager.addLog(room, 'PLAYER_SAT_OUT', {
           actorId: identity.userId,
           actorName: identity.displayName,
           message: `${identity.displayName} sat out`,
@@ -4497,76 +5231,79 @@ io.on("connection", (socket) => {
       }
       broadcastSnapshot(payload.tableId);
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("sit_in", (payload: { tableId: string }) => {
+  socket.on('sit_in', (payload: { tableId: string }) => {
     try {
       const table = tables.get(payload.tableId);
-      if (!table) throw new Error("Table not found");
+      if (!table) throw new Error('Table not found');
       const binding = socketSeat.get(socket.id);
-      if (!binding || binding.tableId !== payload.tableId) throw new Error("Not seated at this table");
+      if (!binding || binding.tableId !== payload.tableId)
+        throw new Error('Not seated at this table');
 
       const state = table.getPublicState();
       const player = state.players.find((p) => p.seat === binding.seat);
-      if (!player) throw new Error("Player not found");
-      if (player.status === "active") throw new Error("Already active");
+      if (!player) throw new Error('Player not found');
+      if (player.status === 'active') throw new Error('Already active');
 
-      table.setPlayerStatus(binding.seat, "active");
+      table.setPlayerStatus(binding.seat, 'active');
       table.resetConsecutiveTimeouts(binding.seat);
       // Also reset room-manager timeout count
       const room = roomManager.getRoom(payload.tableId);
       if (room) {
         room.timeoutCounts.set(identity.userId, 0);
-        roomManager.addLog(room, "SYSTEM_MESSAGE", {
+        roomManager.addLog(room, 'SYSTEM_MESSAGE', {
           actorId: identity.userId,
           actorName: identity.displayName,
           message: `${identity.displayName} is back`,
         });
       }
-      socket.emit("system_message", { message: "You are back in the game." });
-      io.to(payload.tableId).emit("system_message", { message: `${identity.displayName} is back.` });
+      socket.emit('system_message', { message: 'You are back in the game.' });
+      io.to(payload.tableId).emit('system_message', {
+        message: `${identity.displayName} is back.`,
+      });
       broadcastSnapshot(payload.tableId);
       scheduleAutoDealIfNeeded(payload.tableId);
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("start_hand", async (payload: { tableId: string }) => {
+  socket.on('start_hand', async (payload: { tableId: string }) => {
     try {
       await ensureRoomByTableId(payload.tableId);
       const binding = socketSeat.get(socket.id);
       const isSeatedAtTable = Boolean(binding && binding.tableId === payload.tableId);
       if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId) && !isSeatedAtTable) {
-        throw new Error("Only seated players or hosts can start a hand");
+        throw new Error('Only seated players or hosts can start a hand');
       }
 
       clearAutoDealSchedule(payload.tableId);
-      await startHandFlow(payload.tableId, identity.userId, "manual");
+      await startHandFlow(payload.tableId, identity.userId, 'manual');
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("action_submit", async (payload: ActionSubmitPayload) => {
+  socket.on('action_submit', async (payload: ActionSubmitPayload) => {
     try {
       const table = tables.get(payload.tableId);
-      if (!table) throw new Error("table not found");
+      if (!table) throw new Error('table not found');
       const prevState = table.getPublicState();
 
       if (!prevState.handId || payload.handId !== prevState.handId) {
-        throw new Error("stale or invalid handId");
+        throw new Error('stale or invalid handId');
       }
 
       if (roomManager.isPaused(payload.tableId)) {
-        throw new Error("Game is paused");
+        throw new Error('Game is paused');
       }
 
       const binding = socketSeat.get(socket.id);
       if (!binding || binding.tableId !== payload.tableId) {
-        throw new Error("player seat not found");
+        throw new Error('player seat not found');
       }
 
       // Check for stored advice to calculate deviation
@@ -4578,7 +5315,7 @@ io.on("connection", (socket) => {
 
       const newState = table.applyAction(binding.seat, payload.action, payload.amount);
       logInfo({
-        event: "hand.action_applied",
+        event: 'hand.action_applied',
         tableId: payload.tableId,
         handId: payload.handId,
         seat: binding.seat,
@@ -4588,11 +5325,11 @@ io.on("connection", (socket) => {
         street: newState.street,
       });
 
-      io.to(payload.tableId).emit("action_applied", {
+      io.to(payload.tableId).emit('action_applied', {
         seat: binding.seat,
         action: payload.action,
         amount: payload.amount ?? 0,
-        pot: newState.pot
+        pot: newState.pot,
       });
 
       // Send deviation feedback if we had advice for this spot
@@ -4601,20 +5338,28 @@ io.on("connection", (socket) => {
         const deviationPayload = {
           ...storedAdvice,
           deviation,
-          playerAction: payload.action
+          playerAction: payload.action,
         };
-        io.to(socketIdBySeat(payload.tableId, binding.seat)).emit("advice_deviation", deviationPayload);
+        io.to(socketIdBySeat(payload.tableId, binding.seat)).emit(
+          'advice_deviation',
+          deviationPayload,
+        );
         lastAdvice.delete(adviceKey);
       }
 
       if (prevState.street !== newState.street) {
-        io.to(payload.tableId).emit("street_advanced", { street: newState.street, board: newState.board });
+        io.to(payload.tableId).emit('street_advanced', {
+          street: newState.street,
+          board: newState.board,
+        });
         // Explicitly trigger advice on street change so turn/river is never missed
         if (newState.actorSeat != null) {
           setImmediate(() => {
-            void emitAdviceIfNeeded(payload.tableId, newState, "street_changed").catch((err: unknown) => {
-              console.warn("[advice] street_changed push error:", (err as Error).message);
-            });
+            void emitAdviceIfNeeded(payload.tableId, newState, 'street_changed').catch(
+              (err: unknown) => {
+                console.warn('[advice] street_changed push error:', (err as Error).message);
+              },
+            );
           });
         }
       }
@@ -4622,126 +5367,147 @@ io.on("connection", (socket) => {
       // Use shared post-action logic (handles runout, finalize, or next actor)
       handlePostAction(payload.tableId, table, newState);
 
-      supabase.logEvent({
-        tableId: payload.tableId,
-        eventType: "ACTION_SUBMIT",
-        actorUserId: identity.userId,
-        handId: payload.handId,
-        payload: {
-          seat: binding.seat,
-          action: payload.action,
-          amount: payload.amount ?? 0,
-          pot: newState.pot
+      // ── Fast Battle: track hero actions and detect fold ──
+      if (fastBattlePool?.isFastBattleTable(payload.tableId)) {
+        if (payload.action === 'fold') {
+          fastBattlePool.onHeroFolded(payload.tableId, identity.userId, newState);
+        } else {
+          fastBattlePool.onHeroAction(
+            payload.tableId,
+            identity.userId,
+            payload.action,
+            payload.amount ?? 0,
+            newState,
+          );
         }
-      }).catch((e) => logWarn({
-        event: "supabase.log_event.failed",
-        tableId: payload.tableId,
-        handId: payload.handId,
-        seat: binding.seat,
-        message: (e as Error).message,
-      }));
+      }
 
+      supabase
+        .logEvent({
+          tableId: payload.tableId,
+          eventType: 'ACTION_SUBMIT',
+          actorUserId: identity.userId,
+          handId: payload.handId,
+          payload: {
+            seat: binding.seat,
+            action: payload.action,
+            amount: payload.amount ?? 0,
+            pot: newState.pot,
+          },
+        })
+        .catch((e) =>
+          logWarn({
+            event: 'supabase.log_event.failed',
+            tableId: payload.tableId,
+            handId: payload.handId,
+            seat: binding.seat,
+            message: (e as Error).message,
+          }),
+        );
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("show_hand", (payload: { tableId: string; handId: string; seat: number; scope: "table" }) => {
+  socket.on(
+    'show_hand',
+    (payload: { tableId: string; handId: string; seat: number; scope: 'table' }) => {
+      try {
+        const table = tables.get(payload.tableId);
+        if (!table) throw new Error('table not found');
+        if (payload.scope !== 'table') throw new Error('unsupported show scope');
+
+        const binding = socketSeat.get(socket.id);
+        if (!binding || binding.tableId !== payload.tableId || binding.seat !== payload.seat) {
+          throw new Error('You can only show your own hand');
+        }
+
+        const room = roomManager.getRoom(payload.tableId);
+        if (!room?.handActive) throw new Error('hand already ended');
+
+        const state = table.getPublicState();
+        if (!state.handId || state.handId !== payload.handId) {
+          throw new Error('stale or invalid handId');
+        }
+
+        const player = state.players.find((p) => p.seat === payload.seat);
+        if (!player) throw new Error('player not found');
+
+        const inShowdownDecision = state.showdownPhase === 'decision';
+        const canShowInShowdown = inShowdownDecision && player.inHand && !player.folded;
+        const canShowAfterFold = (room.settings.allowShowAfterFold ?? false) && player.folded;
+        if (!canShowInShowdown && !canShowAfterFold) {
+          throw new Error('show hand is not allowed right now');
+        }
+
+        if (!table.revealPublicHand(payload.seat)) {
+          throw new Error('cannot reveal hand');
+        }
+
+        touchLocalRoom(payload.tableId);
+        broadcastSnapshot(payload.tableId);
+
+        if (state.showdownPhase === 'decision') {
+          maybeFinalizeShowdownDecision(payload.tableId, table);
+        }
+      } catch (error) {
+        socket.emit('error_event', { message: (error as Error).message });
+      }
+    },
+  );
+
+  socket.on('muck_hand', (payload: { tableId: string; handId: string; seat: number }) => {
     try {
       const table = tables.get(payload.tableId);
-      if (!table) throw new Error("table not found");
-      if (payload.scope !== "table") throw new Error("unsupported show scope");
+      if (!table) throw new Error('table not found');
 
       const binding = socketSeat.get(socket.id);
       if (!binding || binding.tableId !== payload.tableId || binding.seat !== payload.seat) {
-        throw new Error("You can only show your own hand");
+        throw new Error('You can only muck your own hand');
       }
 
       const room = roomManager.getRoom(payload.tableId);
-      if (!room?.handActive) throw new Error("hand already ended");
+      if (!room?.handActive) throw new Error('hand already ended');
 
       const state = table.getPublicState();
       if (!state.handId || state.handId !== payload.handId) {
-        throw new Error("stale or invalid handId");
+        throw new Error('stale or invalid handId');
       }
-
-      const player = state.players.find((p) => p.seat === payload.seat);
-      if (!player) throw new Error("player not found");
-
-      const inShowdownDecision = state.showdownPhase === "decision";
-      const canShowInShowdown = inShowdownDecision && player.inHand && !player.folded;
-      const canShowAfterFold = (room.settings.allowShowAfterFold ?? false) && player.folded;
-      if (!canShowInShowdown && !canShowAfterFold) {
-        throw new Error("show hand is not allowed right now");
-      }
-
-      if (!table.revealPublicHand(payload.seat)) {
-        throw new Error("cannot reveal hand");
-      }
-
-      touchLocalRoom(payload.tableId);
-      broadcastSnapshot(payload.tableId);
-
-      if (state.showdownPhase === "decision") {
-        maybeFinalizeShowdownDecision(payload.tableId, table);
-      }
-    } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
-    }
-  });
-
-  socket.on("muck_hand", (payload: { tableId: string; handId: string; seat: number }) => {
-    try {
-      const table = tables.get(payload.tableId);
-      if (!table) throw new Error("table not found");
-
-      const binding = socketSeat.get(socket.id);
-      if (!binding || binding.tableId !== payload.tableId || binding.seat !== payload.seat) {
-        throw new Error("You can only muck your own hand");
-      }
-
-      const room = roomManager.getRoom(payload.tableId);
-      if (!room?.handActive) throw new Error("hand already ended");
-
-      const state = table.getPublicState();
-      if (!state.handId || state.handId !== payload.handId) {
-        throw new Error("stale or invalid handId");
-      }
-      if (state.showdownPhase !== "decision") {
-        throw new Error("muck is only available during showdown");
+      if (state.showdownPhase !== 'decision') {
+        throw new Error('muck is only available during showdown');
       }
 
       const player = state.players.find((p) => p.seat === payload.seat);
       if (!player || !player.inHand || player.folded) {
-        throw new Error("only live showdown hands can muck");
+        throw new Error('only live showdown hands can muck');
       }
 
       if (!table.muckPublicHand(payload.seat)) {
-        throw new Error("cannot muck hand");
+        throw new Error('cannot muck hand');
       }
 
       touchLocalRoom(payload.tableId);
       broadcastSnapshot(payload.tableId);
       maybeFinalizeShowdownDecision(payload.tableId, table);
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
   // ── Post-hand show cards (after hand ended) ──
-  socket.on("show_hand_post", (payload: { tableId: string; seat: number }) => {
+  socket.on('show_hand_post', (payload: { tableId: string; seat: number }) => {
     try {
       const binding = socketSeat.get(socket.id);
       if (!binding || binding.tableId !== payload.tableId || binding.seat !== payload.seat) {
-        throw new Error("You can only show your own hand");
+        throw new Error('You can only show your own hand');
       }
 
       const savedCards = lastHandHoleCards.get(payload.tableId);
       const cards = savedCards?.get(payload.seat);
-      if (!cards) throw new Error("No saved cards to show");
+      if (!cards) throw new Error('No saved cards to show');
 
       // Broadcast the reveal to everyone
-      io.to(payload.tableId).emit("post_hand_reveal", {
+      io.to(payload.tableId).emit('post_hand_reveal', {
         tableId: payload.tableId,
         seat: payload.seat,
         cards,
@@ -4753,53 +5519,139 @@ io.on("connection", (socket) => {
         applySevenTwoBounty(payload.tableId, claim);
       }
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
   // ── Explicit 7-2 bounty claim (dedicated button) ──
-  socket.on("claim_seven_two_bounty", (payload: { tableId: string; seat: number }) => {
+  socket.on('claim_seven_two_bounty', (payload: { tableId: string; seat: number }) => {
     try {
       const binding = socketSeat.get(socket.id);
       if (!binding || binding.tableId !== payload.tableId || binding.seat !== payload.seat) {
-        throw new Error("You can only claim your own bounty");
+        throw new Error('You can only claim your own bounty');
       }
 
       const claim = pendingBountyClaim.get(payload.tableId);
       if (!claim || claim.winnerSeat !== payload.seat) {
-        throw new Error("No pending bounty claim for this seat");
+        throw new Error('No pending bounty claim for this seat');
       }
 
       applySevenTwoBounty(payload.tableId, claim);
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  const handleRunPreferenceSubmit = (payload: { tableId: string; handId: string; runCount: 1 | 2 | 3 }): void => {
+  // ── Fast Battle ──
+  socket.on('fast_battle_warmup', () => {
+    // Pre-create pool so rooms + bots are ready when user clicks Start Battle
+    getFastBattlePool();
+  });
+
+  socket.on(
+    'fast_battle_start',
+    (payload: { targetHandCount: number; bigBlind?: number; botModelVersion?: string }) => {
+      try {
+        getFastBattlePool().startSession({
+          userId: identity.userId,
+          socketId: socket.id,
+          displayName: identity.displayName,
+          targetHandCount: payload.targetHandCount,
+          bigBlind: payload.bigBlind,
+          botModelVersion: payload.botModelVersion,
+        });
+      } catch (error) {
+        socket.emit('fast_battle_error', {
+          message: (error as Error).message,
+          code: 'ALREADY_IN_SESSION',
+        });
+      }
+    },
+  );
+
+  socket.on('fast_battle_end', () => {
+    try {
+      getFastBattlePool().endSession(identity.userId, socket.id);
+    } catch (error) {
+      socket.emit('fast_battle_error', {
+        message: (error as Error).message,
+        code: 'END_FAILED' as const,
+      });
+    }
+  });
+
+  socket.on('fast_battle_early_fold', () => {
+    try {
+      const pool = getFastBattlePool();
+      const immediate = pool.requestEarlyFold(identity.userId);
+      if (immediate) {
+        // Hero's turn — fold immediately via game engine
+        const table = tables.get(immediate.tableId);
+        if (table) {
+          const foldState = table.applyAction(immediate.seat, 'fold');
+          io.to(immediate.tableId).emit('action_applied', {
+            seat: immediate.seat,
+            action: 'fold',
+            amount: 0,
+            pot: foldState.pot,
+          });
+          pool.onHeroFolded(immediate.tableId, identity.userId, foldState);
+          handlePostAction(immediate.tableId, table, foldState);
+        }
+      }
+      // If not immediate, flag is set — handlePostAction will auto-fold when hero's turn comes
+    } catch (error) {
+      console.warn('[fast_battle_early_fold] error:', (error as Error).message);
+    }
+  });
+
+  socket.on('fast_battle_rejoin', () => {
+    const pool = fastBattlePool;
+    if (!pool) {
+      socket.emit('fast_battle_rejoin_failed');
+      return;
+    }
+    const reconnected = pool.handleReconnect(identity.userId, socket.id);
+    if (reconnected) {
+      // Send snapshot for the current table
+      const session = pool.getSession(identity.userId);
+      if (session?.currentTableId) {
+        emitHydratedSnapshot(socket.id, session.currentTableId);
+      }
+    } else {
+      // No active session — tell client to leave the stale fb_ table
+      socket.emit('fast_battle_rejoin_failed');
+    }
+  });
+
+  const handleRunPreferenceSubmit = (payload: {
+    tableId: string;
+    handId: string;
+    runCount: 1 | 2 | 3;
+  }): void => {
     const table = tables.get(payload.tableId);
-    if (!table) throw new Error("table not found");
+    if (!table) throw new Error('table not found');
     const liveState = table.getPublicState();
     if (!liveState.handId || liveState.handId !== payload.handId) {
-      throw new Error("stale or invalid handId");
+      throw new Error('stale or invalid handId');
     }
 
     const pending = pendingRunCountDecisions.get(payload.tableId);
     if (!pending || pending.handId !== payload.handId) {
-      throw new Error("no pending run count decision");
+      throw new Error('no pending run count decision');
     }
 
     const binding = socketSeat.get(socket.id);
     if (!binding || binding.tableId !== payload.tableId) {
-      throw new Error("player seat not found");
+      throw new Error('player seat not found');
     }
 
     if (!pending.eligiblePlayers.some((player) => player.seat === binding.seat)) {
-      throw new Error("seat is not eligible for run count decision");
+      throw new Error('seat is not eligible for run count decision');
     }
 
     if (pending.preferencesBySeat[binding.seat] != null) {
-      throw new Error("run count choice already submitted");
+      throw new Error('run count choice already submitted');
     }
 
     const vote: RunCountPreference = payload.runCount === 3 ? 3 : payload.runCount === 2 ? 2 : 1;
@@ -4822,11 +5674,11 @@ io.on("connection", (socket) => {
     }
 
     if (pending.targetRunCount == null) {
-      throw new Error("Waiting for underdog run-count choice");
+      throw new Error('Waiting for underdog run-count choice');
     }
 
     if (pending.targetRunCount === 1) {
-      throw new Error("Run count already resolved to once");
+      throw new Error('Run count already resolved to once');
     }
 
     pending.preferencesBySeat[binding.seat] = vote;
@@ -4843,51 +5695,74 @@ io.on("connection", (socket) => {
       .every((player) => pending.preferencesBySeat[player.seat] != null);
     if (!allOpponentsSubmitted) return;
 
-    finalizeRunCountDecision(payload.tableId, table, pending, binding.seat, false, pending.targetRunCount);
+    finalizeRunCountDecision(
+      payload.tableId,
+      table,
+      pending,
+      binding.seat,
+      false,
+      pending.targetRunCount,
+    );
   };
 
-  socket.on("submit_run_preference", (payload: { tableId: string; handId: string; runCount: 1 | 2 | 3 }) => {
-    try {
-      handleRunPreferenceSubmit(payload);
-    } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
-    }
-  });
+  socket.on(
+    'submit_run_preference',
+    (payload: { tableId: string; handId: string; runCount: 1 | 2 | 3 }) => {
+      try {
+        handleRunPreferenceSubmit(payload);
+      } catch (error) {
+        socket.emit('error_event', { message: (error as Error).message });
+      }
+    },
+  );
 
   // Backward-compatible alias for older clients.
-  socket.on("run_count_submit", (payload: { tableId: string; handId: string; runCount: 1 | 2 | 3 }) => {
-    try {
-      handleRunPreferenceSubmit(payload);
-    } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
-    }
-  });
+  socket.on(
+    'run_count_submit',
+    (payload: { tableId: string; handId: string; runCount: 1 | 2 | 3 }) => {
+      try {
+        handleRunPreferenceSubmit(payload);
+      } catch (error) {
+        socket.emit('error_event', { message: (error as Error).message });
+      }
+    },
+  );
 
-  socket.on("request_think_extension", (payload: { tableId: string }) => {
+  socket.on('request_think_extension', (payload: { tableId: string }) => {
     try {
       const result = roomManager.requestThinkExtension(payload.tableId, identity.userId);
       if (!result.ok) {
-        socket.emit("error_event", { message: result.reason ?? "Failed to extend thinking time" });
+        socket.emit('error_event', { message: result.reason ?? 'Failed to extend thinking time' });
         return;
       }
 
-      socket.emit("think_extension_result", {
+      socket.emit('think_extension_result', {
         addedSeconds: result.addedSeconds ?? 0,
         remainingUses: result.remainingUses ?? 0,
       });
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("request_session_stats", (payload: { tableId: string }) => {
+  socket.on('request_session_stats', (payload: { tableId: string }) => {
     try {
       const room = roomManager.getRoom(payload.tableId);
-      if (!room) throw new Error("Room not found");
+      if (!room) throw new Error('Room not found');
       const table = tables.get(payload.tableId);
       const currentPlayers = table ? table.getPublicState().players : [];
       const roomStats = getRoomSessionStats(payload.tableId, false);
-      const entries: Array<{ seat: number | null; userId: string; name: string; totalBuyIn: number; totalCashOut: number; currentStack: number; net: number; handsPlayed: number; status: string }> = [];
+      const entries: Array<{
+        seat: number | null;
+        userId: string;
+        name: string;
+        totalBuyIn: number;
+        totalCashOut: number;
+        currentStack: number;
+        net: number;
+        handsPlayed: number;
+        status: string;
+      }> = [];
 
       if (roomStats) {
         for (const [uid, entry] of roomStats.entries()) {
@@ -4902,67 +5777,81 @@ io.on("connection", (socket) => {
             currentStack,
             net: currentStack + entry.totalCashOut - entry.totalBuyIn,
             handsPlayed: entry.handsPlayed,
-            status: seated ? "seated" : "away",
+            status: seated ? 'seated' : 'away',
           });
         }
       }
 
-      socket.emit("session_stats", { tableId: payload.tableId, entries });
+      socket.emit('session_stats', { tableId: payload.tableId, entries });
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("request_rejoin_stack", (payload: { tableId: string }) => {
+  socket.on('request_rejoin_stack', (payload: { tableId: string }) => {
     try {
       const room = roomManager.getRoom(payload.tableId);
-      if (!room) throw new Error("Room not found");
+      if (!room) throw new Error('Room not found');
       const stack = getRestorableStack(payload.tableId, identity.userId);
-      socket.emit("rejoin_stack_info", { tableId: payload.tableId, stack });
+      socket.emit('rejoin_stack_info', { tableId: payload.tableId, stack });
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("leave_table", async (payload: { tableId: string }) => {
+  socket.on('leave_table', async (payload: { tableId: string }) => {
     const binding = socketSeat.get(socket.id);
     const table = tables.get(payload.tableId);
     if (binding && binding.tableId === payload.tableId && table?.isHandActive()) {
       let pending = pendingStandUps.get(payload.tableId);
-      if (!pending) { pending = new Set(); pendingStandUps.set(payload.tableId, pending); }
+      if (!pending) {
+        pending = new Set();
+        pendingStandUps.set(payload.tableId, pending);
+      }
       pending.add(binding.seat);
       queueLeaveTableAfterHand(payload.tableId, socket.id);
       // Prevent auto-restore on reconnect — player explicitly chose to leave
       rejoinInfo.delete(identity.userId);
-      socket.emit("system_message", { message: "Leaving after this hand." });
+      socket.emit('system_message', { message: 'Leaving after this hand.' });
       touchLocalRoom(payload.tableId);
       broadcastSnapshot(payload.tableId);
       return;
     }
 
     if (binding && binding.tableId === payload.tableId) {
-      await standUpPlayer(payload.tableId, binding.seat, "Left table");
+      await standUpPlayer(payload.tableId, binding.seat, 'Left table');
     }
 
     // Prevent auto-restore on reconnect — player explicitly chose to leave
     rejoinInfo.delete(identity.userId);
     socket.leave(payload.tableId);
-    supabase.logEvent({
-      tableId: payload.tableId,
-      eventType: "LEAVE_TABLE",
-      actorUserId: identity.userId,
-      payload: { socketId: socket.id }
-    }).catch((e) => console.warn("leave_table: logEvent failed:", (e as Error).message));
-    socket.emit("left_table", { tableId: payload.tableId });
+    supabase
+      .logEvent({
+        tableId: payload.tableId,
+        eventType: 'LEAVE_TABLE',
+        actorUserId: identity.userId,
+        payload: { socketId: socket.id },
+      })
+      .catch((e) => console.warn('leave_table: logEvent failed:', (e as Error).message));
+    socket.emit('left_table', { tableId: payload.tableId });
     debouncedLobbyBroadcast();
   });
 
   /* ═══════════ ROOM MANAGEMENT SOCKET HANDLERS ═══════════ */
 
-  socket.on("request_table_snapshot", async (payload: { tableId: string }) => {
+  socket.on('request_table_snapshot', async (payload: { tableId: string }) => {
     try {
       if (!payload?.tableId) {
-        throw new Error("tableId is required");
+        throw new Error('tableId is required');
+      }
+      // Fast-battle tables: skip ensureRoomByTableId to avoid creating zombie tables.
+      // If the table exists, send snapshot; if not, silently ignore (table was released).
+      if (payload.tableId.startsWith('fb_')) {
+        const table = tables.get(payload.tableId);
+        if (table) {
+          emitHydratedSnapshot(socket.id, payload.tableId);
+        }
+        return;
       }
       const room = await ensureRoomByTableId(payload.tableId);
       ensureManagedRoom(room, identity);
@@ -4971,40 +5860,49 @@ io.on("connection", (socket) => {
         return;
       }
       if (clubInfo && !clubManager.isActiveMember(clubInfo.clubId, identity.userId)) {
-        throw new Error("Club members only: this table is restricted to active club members.");
+        throw new Error('Club members only: this table is restricted to active club members.');
       }
       emitHydratedSnapshot(socket.id, payload.tableId);
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("request_room_state", async (payload: { tableId: string }) => {
+  socket.on('request_room_state', async (payload: { tableId: string }) => {
     try {
       if (!payload?.tableId) {
-        throw new Error("tableId is required");
+        throw new Error('tableId is required');
       }
       const clubInfo = clubManager.getClubForTableById(payload.tableId);
       if (clubInfo && !requireClubAuth()) {
         return;
       }
       if (clubInfo && !clubManager.isActiveMember(clubInfo.clubId, identity.userId)) {
-        throw new Error("Club members only: this table is restricted to active club members.");
+        throw new Error('Club members only: this table is restricted to active club members.');
       }
       const state = roomManager.getFullState(payload.tableId);
-      if (state) socket.emit("room_state_update", withClubRoomStateMetadata(state, payload.tableId, identity.userId));
+      if (state)
+        socket.emit(
+          'room_state_update',
+          withClubRoomStateMetadata(state, payload.tableId, identity.userId),
+        );
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("update_settings", (payload: UpdateSettingsPayload) => {
+  socket.on('update_settings', (payload: UpdateSettingsPayload) => {
     try {
       if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId)) {
-        throw new Error("Only the host or co-host can change settings");
+        throw new Error('Only the host or co-host can change settings');
       }
-      const result = roomManager.updateSettings(payload.tableId, payload.settings, identity.userId, identity.displayName);
-      if (!result) throw new Error("Room not found");
+      const result = roomManager.updateSettings(
+        payload.tableId,
+        payload.settings,
+        identity.userId,
+        identity.displayName,
+      );
+      if (!result) throw new Error('Room not found');
 
       // Sync key settings back to RoomInfo for lobby display
       const managed = roomManager.getRoom(payload.tableId);
@@ -5013,12 +5911,15 @@ io.on("connection", (socket) => {
         roomInfo.smallBlind = managed.settings.smallBlind;
         roomInfo.bigBlind = managed.settings.bigBlind;
         roomInfo.maxPlayers = managed.settings.maxPlayers;
-        roomInfo.isPublic = managed.settings.visibility === "public";
+        roomInfo.isPublic = managed.settings.visibility === 'public';
         roomInfo.updatedAt = new Date().toISOString();
       }
 
       // Sync bot seats if botSeats or botBuyIn changed
-      if ((payload.settings.botSeats !== undefined || payload.settings.botBuyIn !== undefined) && managed) {
+      if (
+        (payload.settings.botSeats !== undefined || payload.settings.botBuyIn !== undefined) &&
+        managed
+      ) {
         const room = roomsByTableId.get(payload.tableId);
         if (room) {
           syncBots(
@@ -5034,49 +5935,51 @@ io.on("connection", (socket) => {
         }
       }
 
-      socket.emit("settings_updated", { applied: result.applied, deferred: result.deferred });
+      socket.emit('settings_updated', { applied: result.applied, deferred: result.deferred });
       if (Object.keys(result.deferred).length > 0) {
-        socket.emit("system_message", { message: `Some settings will apply next hand: ${Object.keys(result.deferred).join(", ")}` });
+        socket.emit('system_message', {
+          message: `Some settings will apply next hand: ${Object.keys(result.deferred).join(', ')}`,
+        });
       }
       debouncedLobbyBroadcast();
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
   // Bomb Pot manual trigger: host queues next hand as bomb pot
-  socket.on("queue_bomb_pot", (payload: { tableId: string }) => {
+  socket.on('queue_bomb_pot', (payload: { tableId: string }) => {
     try {
       if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId)) {
-        throw new Error("Only the host or co-host can trigger bomb pots");
+        throw new Error('Only the host or co-host can trigger bomb pots');
       }
       const table = tables.get(payload.tableId);
-      if (!table) throw new Error("Table not found");
+      if (!table) throw new Error('Table not found');
       table.queueBombPotNextHand();
-      io.to(payload.tableId).emit("bomb_pot_queued", { queuedBy: identity.displayName });
+      io.to(payload.tableId).emit('bomb_pot_queued', { queuedBy: identity.displayName });
       broadcastSnapshot(payload.tableId);
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("kick_player", (payload: KickPlayerPayload) => {
+  socket.on('kick_player', (payload: KickPlayerPayload) => {
     try {
       if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId)) {
-        throw new Error("Only the host or co-host can kick players");
+        throw new Error('Only the host or co-host can kick players');
       }
       const table = tables.get(payload.tableId);
       if (table?.isHandActive()) {
-        throw new Error("Cannot kick players during an active hand");
+        throw new Error('Cannot kick players during an active hand');
       }
       // Cannot kick yourself
       if (payload.targetUserId === identity.userId) {
-        throw new Error("Cannot kick yourself");
+        throw new Error('Cannot kick yourself');
       }
 
       // Find target's socket and binding
       let targetSocketId: string | null = null;
-      let targetName = "Unknown";
+      let targetName = 'Unknown';
       for (const [sid, b] of socketSeat.entries()) {
         if (b.tableId === payload.tableId && b.userId === payload.targetUserId) {
           targetSocketId = sid;
@@ -5086,9 +5989,13 @@ io.on("connection", (socket) => {
       }
 
       roomManager.kickPlayer(
-        payload.tableId, payload.targetUserId, targetName,
-        payload.reason ?? "", payload.ban ?? false,
-        identity.userId, identity.displayName
+        payload.tableId,
+        payload.targetUserId,
+        targetName,
+        payload.reason ?? '',
+        payload.ban ?? false,
+        identity.userId,
+        identity.displayName,
       );
 
       if (targetSocketId) {
@@ -5097,8 +6004,8 @@ io.on("connection", (socket) => {
           table.removePlayer(targetBinding.seat);
           socketSeat.delete(targetSocketId);
         }
-        io.to(targetSocketId).emit("kicked", {
-          reason: payload.reason ?? "Removed by host",
+        io.to(targetSocketId).emit('kicked', {
+          reason: payload.reason ?? 'Removed by host',
           banned: payload.ban ?? false,
         });
         const targetSocket = io.sockets.sockets.get(targetSocketId);
@@ -5108,111 +6015,133 @@ io.on("connection", (socket) => {
       broadcastSnapshot(payload.tableId);
       debouncedLobbyBroadcast();
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("transfer_ownership", (payload: TransferOwnershipPayload) => {
+  socket.on('transfer_ownership', (payload: TransferOwnershipPayload) => {
     try {
       if (!roomManager.isOwner(payload.tableId, identity.userId)) {
-        throw new Error("Only the owner can transfer ownership");
+        throw new Error('Only the owner can transfer ownership');
       }
       // Find target name
-      let targetName = "Unknown";
+      let targetName = 'Unknown';
       for (const b of socketSeat.values()) {
         if (b.tableId === payload.tableId && b.userId === payload.newOwnerId) {
           targetName = b.name;
           break;
         }
       }
-      const ok = roomManager.transferOwnership(payload.tableId, payload.newOwnerId, targetName, identity.userId, identity.displayName);
-      if (!ok) throw new Error("Transfer failed");
+      const ok = roomManager.transferOwnership(
+        payload.tableId,
+        payload.newOwnerId,
+        targetName,
+        identity.userId,
+        identity.displayName,
+      );
+      if (!ok) throw new Error('Transfer failed');
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("set_cohost", (payload: SetCoHostPayload) => {
+  socket.on('set_cohost', (payload: SetCoHostPayload) => {
     try {
       if (!roomManager.isOwner(payload.tableId, identity.userId)) {
-        throw new Error("Only the owner can manage co-hosts");
+        throw new Error('Only the owner can manage co-hosts');
       }
-      let userName = "Unknown";
+      let userName = 'Unknown';
       for (const b of socketSeat.values()) {
         if (b.tableId === payload.tableId && b.userId === payload.userId) {
           userName = b.name;
           break;
         }
       }
-      const ok = roomManager.setCoHost(payload.tableId, payload.userId, userName, payload.add, identity.userId, identity.displayName);
-      if (!ok) throw new Error("Failed to update co-host");
+      const ok = roomManager.setCoHost(
+        payload.tableId,
+        payload.userId,
+        userName,
+        payload.add,
+        identity.userId,
+        identity.displayName,
+      );
+      if (!ok) throw new Error('Failed to update co-host');
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
-  socket.on("game_control", (payload: GameControlPayload) => {
+  socket.on('game_control', (payload: GameControlPayload) => {
     try {
       if (!roomManager.isHostOrCoHost(payload.tableId, identity.userId)) {
-        throw new Error("Only the host or co-host can control the game");
+        throw new Error('Only the host or co-host can control the game');
       }
 
       switch (payload.action) {
-        case "pause": {
+        case 'pause': {
           // Defer pause if hand is active
           const tbl = tables.get(payload.tableId);
           if (tbl && tbl.isHandActive()) {
-            pendingPause.set(payload.tableId, { userId: identity.userId, displayName: identity.displayName });
-            io.to(payload.tableId).emit("system_message", { message: "Game will pause after the current hand ends" });
+            pendingPause.set(payload.tableId, {
+              userId: identity.userId,
+              displayName: identity.displayName,
+            });
+            io.to(payload.tableId).emit('system_message', {
+              message: 'Game will pause after the current hand ends',
+            });
             broadcastSnapshot(payload.tableId);
             return; // Don't broadcastSnapshot again at the end
           }
           roomManager.pauseGame(payload.tableId, identity.userId, identity.displayName);
           break;
         }
-        case "resume":
+        case 'resume':
           roomManager.resumeGame(payload.tableId, identity.userId, identity.displayName);
           // Restart timer if hand is active
           if (roomManager.getRoom(payload.tableId)?.handActive) {
             startTimerForActor(payload.tableId);
           }
           break;
-        case "end":
+        case 'end':
           if (!roomManager.isOwner(payload.tableId, identity.userId)) {
-            throw new Error("Only the host can stop auto-deal");
+            throw new Error('Only the host can stop auto-deal');
           }
           clearAutoDealSchedule(payload.tableId);
           clearShowdownDecisionTimeout(payload.tableId);
           clearPendingRunCountDecision(payload.tableId);
           roomManager.endGame(payload.tableId, identity.userId, identity.displayName);
-          closeRoomSessionIfOpen(payload.tableId, "game_control_end").catch((e) => console.warn("game_control(end): closeRoomSession failed:", (e as Error).message));
+          closeRoomSessionIfOpen(payload.tableId, 'game_control_end').catch((e) =>
+            console.warn('game_control(end): closeRoomSession failed:', (e as Error).message),
+          );
           break;
-        case "start":
+        case 'start':
           // Delegate to start_hand logic
-          socket.emit("error_event", { message: "Use start_hand event to start a hand" });
+          socket.emit('error_event', { message: 'Use start_hand event to start a hand' });
           return;
-        case "restart":
+        case 'restart':
           if (!roomManager.isOwner(payload.tableId, identity.userId)) {
-            throw new Error("Only the host can restart the game");
+            throw new Error('Only the host can restart the game');
           }
           clearAutoDealSchedule(payload.tableId);
           clearShowdownDecisionTimeout(payload.tableId);
           clearPendingRunCountDecision(payload.tableId);
           roomManager.endGame(payload.tableId, identity.userId, identity.displayName);
-          closeRoomSessionIfOpen(payload.tableId, "game_control_restart").catch((e) => console.warn("game_control(restart): closeRoomSession failed:", (e as Error).message));
+          closeRoomSessionIfOpen(payload.tableId, 'game_control_restart').catch((e) =>
+            console.warn('game_control(restart): closeRoomSession failed:', (e as Error).message),
+          );
           // Client should call start_hand after restart
           break;
       }
 
       broadcastSnapshot(payload.tableId);
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
   /* ═══════════ CLOSE ROOM (Host only) ═══════════ */
 
-  socket.on("close_room", (payload: { tableId: string }) => {
+  socket.on('close_room', (payload: { tableId: string }) => {
     try {
       const clubInfo = getClubInfoForTableId(payload.tableId);
       if (clubInfo) {
@@ -5220,18 +6149,21 @@ io.on("connection", (socket) => {
           return;
         }
         // Club tables: allow club owner/admin OR room owner
-        if (!isClubOwnerOrAdmin(clubInfo.clubId, identity.userId) && !roomManager.isOwner(payload.tableId, identity.userId)) {
-          throw new Error("Only club owner/admin or room host can close this table");
+        if (
+          !isClubOwnerOrAdmin(clubInfo.clubId, identity.userId) &&
+          !roomManager.isOwner(payload.tableId, identity.userId)
+        ) {
+          throw new Error('Only club owner/admin or room host can close this table');
         }
       } else {
         // Regular rooms: only room owner
         if (!roomManager.isOwner(payload.tableId, identity.userId)) {
-          throw new Error("Only the host can close the room");
+          throw new Error('Only the host can close the room');
         }
       }
 
       logInfo({
-        event: "room.close.requested",
+        event: 'room.close.requested',
         tableId: payload.tableId,
         userId: identity.userId,
         message: identity.displayName,
@@ -5249,7 +6181,10 @@ io.on("connection", (socket) => {
       roomManager.endGame(payload.tableId, identity.userId, identity.displayName);
 
       // Notify all players and send them back to lobby
-      io.to(payload.tableId).emit("room_closed", { tableId: payload.tableId, reason: "Host closed the room" });
+      io.to(payload.tableId).emit('room_closed', {
+        tableId: payload.tableId,
+        reason: 'Host closed the room',
+      });
 
       // Remove all players from the table and clean up bindings
       const table = tables.get(payload.tableId);
@@ -5290,14 +6225,16 @@ io.on("connection", (socket) => {
       tableSnapshotVersions.delete(payload.tableId);
       roomManager.deleteRoom(payload.tableId);
 
-      closeRoomSessionIfOpen(payload.tableId, "close_room").catch(() => {});
-      supabase.touchRoom(payload.tableId, "CLOSED").catch(() => {});
-      supabase.logEvent({
-        tableId: payload.tableId,
-        eventType: "ROOM_CLOSED",
-        actorUserId: identity.userId,
-        payload: { reason: "host_closed" },
-      }).catch(() => {});
+      closeRoomSessionIfOpen(payload.tableId, 'close_room').catch(() => {});
+      supabase.touchRoom(payload.tableId, 'CLOSED').catch(() => {});
+      supabase
+        .logEvent({
+          tableId: payload.tableId,
+          eventType: 'ROOM_CLOSED',
+          actorUserId: identity.userId,
+          payload: { reason: 'host_closed' },
+        })
+        .catch(() => {});
 
       debouncedLobbyBroadcast();
 
@@ -5306,16 +6243,16 @@ io.on("connection", (socket) => {
         void emitClubDetail(socket.id, clubInfo.clubId, identity.userId);
       }
     } catch (error) {
-      socket.emit("error_event", { message: (error as Error).message });
+      socket.emit('error_event', { message: (error as Error).message });
     }
   });
 
   /* ═══════════ CLUBS ═══════════ */
 
-  socket.on("club_create", async (payload: ClubCreatePayload) => {
+  socket.on('club_create', async (payload: ClubCreatePayload) => {
     try {
       if (!requireClubAuth()) return;
-      logInfo({ event: "club_create.start", userId: identity.userId, name: payload.name });
+      logInfo({ event: 'club_create.start', userId: identity.userId, name: payload.name });
       const club = await clubManager.createClub({
         ownerUserId: identity.userId,
         ownerDisplayName: identity.displayName,
@@ -5325,17 +6262,26 @@ io.on("connection", (socket) => {
         requireApprovalToJoin: payload.requireApprovalToJoin,
         badgeColor: payload.badgeColor,
       });
-      logInfo({ event: "club_create.success", clubId: club.id, code: club.code, userId: identity.userId });
-      socket.emit("club_created", { club });
+      logInfo({
+        event: 'club_create.success',
+        clubId: club.id,
+        code: club.code,
+        userId: identity.userId,
+      });
+      socket.emit('club_created', { club });
       // Refresh club list for the user
-      socket.emit("club_list", { clubs: clubManager.listMyClubs(identity.userId) });
+      socket.emit('club_list', { clubs: clubManager.listMyClubs(identity.userId) });
     } catch (error) {
-      logError({ event: "club_create.failed", userId: identity.userId, message: (error as Error).message });
-      socket.emit("club_error", { code: "CREATE_FAILED", message: (error as Error).message });
+      logError({
+        event: 'club_create.failed',
+        userId: identity.userId,
+        message: (error as Error).message,
+      });
+      socket.emit('club_error', { code: 'CREATE_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("club_update", (payload: ClubUpdatePayload) => {
+  socket.on('club_update', (payload: ClubUpdatePayload) => {
     try {
       if (!requireClubAuth()) return;
       const club = clubManager.updateClub(payload.clubId, identity.userId, {
@@ -5347,45 +6293,59 @@ io.on("connection", (socket) => {
         logoUrl: payload.logoUrl,
       });
       if (!club) {
-        socket.emit("club_error", { code: "UPDATE_DENIED", message: "Cannot update club — insufficient permissions or club not found" });
+        socket.emit('club_error', {
+          code: 'UPDATE_DENIED',
+          message: 'Cannot update club — insufficient permissions or club not found',
+        });
         return;
       }
-      socket.emit("club_updated", { club });
+      socket.emit('club_updated', { club });
     } catch (error) {
-      socket.emit("club_error", { code: "UPDATE_FAILED", message: (error as Error).message });
+      socket.emit('club_error', { code: 'UPDATE_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("club_list_my_clubs", () => {
+  socket.on('club_list_my_clubs', () => {
     try {
       if (!requireClubAuth()) {
-        console.log("[clubs] club_list_my_clubs denied for", identity.userId, "(not club-authenticated)");
+        console.log(
+          '[clubs] club_list_my_clubs denied for',
+          identity.userId,
+          '(not club-authenticated)',
+        );
         return;
       }
       const clubs = clubManager.listMyClubs(identity.userId);
-      console.log("[clubs] club_list_my_clubs →", identity.userId, "clubs:", clubs.length);
-      socket.emit("club_list", { clubs });
+      console.log('[clubs] club_list_my_clubs →', identity.userId, 'clubs:', clubs.length);
+      socket.emit('club_list', { clubs });
     } catch (error) {
-      console.warn("[clubs] club_list_my_clubs error for", identity.userId, (error as Error).message);
-      socket.emit("club_error", { code: "LIST_FAILED", message: (error as Error).message });
+      console.warn(
+        '[clubs] club_list_my_clubs error for',
+        identity.userId,
+        (error as Error).message,
+      );
+      socket.emit('club_error', { code: 'LIST_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("club_get_detail", async (payload: { clubId: string }) => {
+  socket.on('club_get_detail', async (payload: { clubId: string }) => {
     try {
       if (!requireClubAuth()) return;
       const result = await buildClubDetailPayload(payload.clubId, identity.userId);
       if (!result) {
-        socket.emit("club_error", { code: "DETAIL_DENIED", message: "Club not found or you are not a member" });
+        socket.emit('club_error', {
+          code: 'DETAIL_DENIED',
+          message: 'Club not found or you are not a member',
+        });
         return;
       }
-      socket.emit("club_detail", result);
+      socket.emit('club_detail', result);
     } catch (error) {
-      socket.emit("club_error", { code: "DETAIL_FAILED", message: (error as Error).message });
+      socket.emit('club_error', { code: 'DETAIL_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("club_join_request", (payload: ClubJoinRequestPayload) => {
+  socket.on('club_join_request', (payload: ClubJoinRequestPayload) => {
     try {
       if (!requireClubAuth()) return;
       const result = clubManager.requestJoin(
@@ -5394,205 +6354,276 @@ io.on("connection", (socket) => {
         identity.displayName,
         payload.inviteCode,
       );
-      socket.emit("club_join_result", {
-        clubId: result.clubId ?? "",
+      socket.emit('club_join_result', {
+        clubId: result.clubId ?? '',
         status: result.status,
         message: result.message,
       });
-      if (result.status === "joined") {
-        socket.emit("club_list", { clubs: clubManager.listMyClubs(identity.userId) });
+      if (result.status === 'joined') {
+        socket.emit('club_list', { clubs: clubManager.listMyClubs(identity.userId) });
       }
     } catch (error) {
-      socket.emit("club_error", { code: "JOIN_FAILED", message: (error as Error).message });
+      socket.emit('club_error', { code: 'JOIN_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("club_join_approve", (payload: ClubJoinDecisionPayload) => {
+  socket.on('club_join_approve', (payload: ClubJoinDecisionPayload) => {
     try {
       if (!requireClubAuth()) return;
       const member = clubManager.approveJoin(payload.clubId, identity.userId, payload.userId);
       if (!member) {
-        socket.emit("club_error", { code: "APPROVE_DENIED", message: "Cannot approve — insufficient permissions or member not found" });
+        socket.emit('club_error', {
+          code: 'APPROVE_DENIED',
+          message: 'Cannot approve — insufficient permissions or member not found',
+        });
         return;
       }
-      socket.emit("club_member_update", { clubId: payload.clubId, member });
+      socket.emit('club_member_update', { clubId: payload.clubId, member });
       // Notify the approved user if they're online
       for (const [sid, ident] of socketIdentity.entries()) {
         if (ident.userId === payload.userId) {
-          io.to(sid).emit("club_join_result", { clubId: payload.clubId, status: "joined", message: "Your join request has been approved!" });
-          io.to(sid).emit("club_list", { clubs: clubManager.listMyClubs(payload.userId) });
+          io.to(sid).emit('club_join_result', {
+            clubId: payload.clubId,
+            status: 'joined',
+            message: 'Your join request has been approved!',
+          });
+          io.to(sid).emit('club_list', { clubs: clubManager.listMyClubs(payload.userId) });
         }
       }
     } catch (error) {
-      socket.emit("club_error", { code: "APPROVE_FAILED", message: (error as Error).message });
+      socket.emit('club_error', { code: 'APPROVE_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("club_join_reject", (payload: ClubJoinDecisionPayload) => {
+  socket.on('club_join_reject', (payload: ClubJoinDecisionPayload) => {
     try {
       if (!requireClubAuth()) return;
       const ok = clubManager.rejectJoin(payload.clubId, identity.userId, payload.userId);
       if (!ok) {
-        socket.emit("club_error", { code: "REJECT_DENIED", message: "Cannot reject — insufficient permissions or member not found" });
+        socket.emit('club_error', {
+          code: 'REJECT_DENIED',
+          message: 'Cannot reject — insufficient permissions or member not found',
+        });
         return;
       }
       // Notify the rejected user if they're online
       for (const [sid, ident] of socketIdentity.entries()) {
         if (ident.userId === payload.userId) {
-          io.to(sid).emit("club_join_result", { clubId: payload.clubId, status: "error", message: "Your join request was rejected" });
+          io.to(sid).emit('club_join_result', {
+            clubId: payload.clubId,
+            status: 'error',
+            message: 'Your join request was rejected',
+          });
         }
       }
       // Refresh detail for admin
       void emitClubDetail(socket.id, payload.clubId, identity.userId);
     } catch (error) {
-      socket.emit("club_error", { code: "REJECT_FAILED", message: (error as Error).message });
+      socket.emit('club_error', { code: 'REJECT_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("club_invite_create", (payload: ClubInviteCreatePayload) => {
+  socket.on('club_invite_create', (payload: ClubInviteCreatePayload) => {
     try {
       if (!requireClubAuth()) return;
-      const invite = clubManager.createInvite(payload.clubId, identity.userId, payload.maxUses, payload.expiresInHours);
+      const invite = clubManager.createInvite(
+        payload.clubId,
+        identity.userId,
+        payload.maxUses,
+        payload.expiresInHours,
+      );
       if (!invite) {
-        socket.emit("club_error", { code: "INVITE_DENIED", message: "Cannot create invite — insufficient permissions" });
+        socket.emit('club_error', {
+          code: 'INVITE_DENIED',
+          message: 'Cannot create invite — insufficient permissions',
+        });
         return;
       }
       void emitClubDetail(socket.id, payload.clubId, identity.userId);
     } catch (error) {
-      socket.emit("club_error", { code: "INVITE_FAILED", message: (error as Error).message });
+      socket.emit('club_error', { code: 'INVITE_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("club_invite_revoke", (payload: ClubInviteRevokePayload) => {
+  socket.on('club_invite_revoke', (payload: ClubInviteRevokePayload) => {
     try {
       if (!requireClubAuth()) return;
       const ok = clubManager.revokeInvite(payload.clubId, identity.userId, payload.inviteId);
       if (!ok) {
-        socket.emit("club_error", { code: "REVOKE_DENIED", message: "Cannot revoke invite" });
+        socket.emit('club_error', { code: 'REVOKE_DENIED', message: 'Cannot revoke invite' });
         return;
       }
       void emitClubDetail(socket.id, payload.clubId, identity.userId);
     } catch (error) {
-      socket.emit("club_error", { code: "REVOKE_FAILED", message: (error as Error).message });
+      socket.emit('club_error', { code: 'REVOKE_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("club_member_update_role", (payload: ClubMemberUpdateRolePayload) => {
+  socket.on('club_member_update_role', (payload: ClubMemberUpdateRolePayload) => {
     try {
       if (!requireClubAuth()) return;
-      const member = clubManager.updateMemberRole(payload.clubId, identity.userId, payload.userId, payload.newRole);
+      const member = clubManager.updateMemberRole(
+        payload.clubId,
+        identity.userId,
+        payload.userId,
+        payload.newRole,
+      );
       if (!member) {
-        socket.emit("club_error", { code: "ROLE_DENIED", message: "Cannot update role — insufficient permissions" });
+        socket.emit('club_error', {
+          code: 'ROLE_DENIED',
+          message: 'Cannot update role — insufficient permissions',
+        });
         return;
       }
-      socket.emit("club_member_update", { clubId: payload.clubId, member });
+      socket.emit('club_member_update', { clubId: payload.clubId, member });
     } catch (error) {
-      socket.emit("club_error", { code: "ROLE_FAILED", message: (error as Error).message });
+      socket.emit('club_error', { code: 'ROLE_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("club_member_kick", (payload: ClubMemberKickPayload) => {
+  socket.on('club_member_kick', (payload: ClubMemberKickPayload) => {
     try {
       if (!requireClubAuth()) return;
       const ok = clubManager.kickMember(payload.clubId, identity.userId, payload.userId);
       if (!ok) {
-        socket.emit("club_error", { code: "KICK_DENIED", message: "Cannot kick member" });
+        socket.emit('club_error', { code: 'KICK_DENIED', message: 'Cannot kick member' });
         return;
       }
       void emitClubDetail(socket.id, payload.clubId, identity.userId);
     } catch (error) {
-      socket.emit("club_error", { code: "KICK_FAILED", message: (error as Error).message });
+      socket.emit('club_error', { code: 'KICK_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("club_member_ban", (payload: ClubMemberBanPayload) => {
+  socket.on('club_member_ban', (payload: ClubMemberBanPayload) => {
     try {
       if (!requireClubAuth()) return;
-      const ok = clubManager.banMember(payload.clubId, identity.userId, payload.userId, payload.reason, payload.expiresInHours);
+      const ok = clubManager.banMember(
+        payload.clubId,
+        identity.userId,
+        payload.userId,
+        payload.reason,
+        payload.expiresInHours,
+      );
       if (!ok) {
-        socket.emit("club_error", { code: "BAN_DENIED", message: "Cannot ban member" });
+        socket.emit('club_error', { code: 'BAN_DENIED', message: 'Cannot ban member' });
         return;
       }
       void emitClubDetail(socket.id, payload.clubId, identity.userId);
     } catch (error) {
-      socket.emit("club_error", { code: "BAN_FAILED", message: (error as Error).message });
+      socket.emit('club_error', { code: 'BAN_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("club_member_unban", (payload: ClubMemberUnbanPayload) => {
+  socket.on('club_member_unban', (payload: ClubMemberUnbanPayload) => {
     try {
       if (!requireClubAuth()) return;
       const ok = clubManager.unbanMember(payload.clubId, identity.userId, payload.userId);
       if (!ok) {
-        socket.emit("club_error", { code: "UNBAN_DENIED", message: "Cannot unban member" });
+        socket.emit('club_error', { code: 'UNBAN_DENIED', message: 'Cannot unban member' });
         return;
       }
       void emitClubDetail(socket.id, payload.clubId, identity.userId);
     } catch (error) {
-      socket.emit("club_error", { code: "UNBAN_FAILED", message: (error as Error).message });
+      socket.emit('club_error', { code: 'UNBAN_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("club_ruleset_create", (payload: ClubRulesetCreatePayload) => {
+  socket.on('club_ruleset_create', (payload: ClubRulesetCreatePayload) => {
     try {
       if (!requireClubAuth()) return;
-      const ruleset = clubManager.createRuleset(payload.clubId, identity.userId, payload.name, payload.rules, payload.isDefault);
+      const ruleset = clubManager.createRuleset(
+        payload.clubId,
+        identity.userId,
+        payload.name,
+        payload.rules,
+        payload.isDefault,
+      );
       if (!ruleset) {
-        socket.emit("club_error", { code: "RULESET_DENIED", message: "Cannot create ruleset — insufficient permissions" });
+        socket.emit('club_error', {
+          code: 'RULESET_DENIED',
+          message: 'Cannot create ruleset — insufficient permissions',
+        });
         return;
       }
       void emitClubDetail(socket.id, payload.clubId, identity.userId);
     } catch (error) {
-      socket.emit("club_error", { code: "RULESET_FAILED", message: (error as Error).message });
+      socket.emit('club_error', { code: 'RULESET_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("club_ruleset_update", (payload: ClubRulesetUpdatePayload) => {
+  socket.on('club_ruleset_update', (payload: ClubRulesetUpdatePayload) => {
     try {
       if (!requireClubAuth()) return;
-      const ruleset = clubManager.updateRuleset(payload.clubId, identity.userId, payload.rulesetId, {
-        name: payload.name,
-        rules: payload.rules,
+      const ruleset = clubManager.updateRuleset(
+        payload.clubId,
+        identity.userId,
+        payload.rulesetId,
+        {
+          name: payload.name,
+          rules: payload.rules,
+        },
+      );
+      if (!ruleset) {
+        socket.emit('club_error', {
+          code: 'RULESET_UPDATE_DENIED',
+          message: 'Cannot update ruleset',
+        });
+        return;
+      }
+      void emitClubDetail(socket.id, payload.clubId, identity.userId);
+    } catch (error) {
+      socket.emit('club_error', {
+        code: 'RULESET_UPDATE_FAILED',
+        message: (error as Error).message,
       });
-      if (!ruleset) {
-        socket.emit("club_error", { code: "RULESET_UPDATE_DENIED", message: "Cannot update ruleset" });
-        return;
-      }
-      void emitClubDetail(socket.id, payload.clubId, identity.userId);
-    } catch (error) {
-      socket.emit("club_error", { code: "RULESET_UPDATE_FAILED", message: (error as Error).message });
     }
   });
 
-  socket.on("club_ruleset_set_default", (payload: ClubRulesetSetDefaultPayload) => {
+  socket.on('club_ruleset_set_default', (payload: ClubRulesetSetDefaultPayload) => {
     try {
       if (!requireClubAuth()) return;
       const ok = clubManager.setDefaultRuleset(payload.clubId, identity.userId, payload.rulesetId);
       if (!ok) {
-        socket.emit("club_error", { code: "RULESET_DEFAULT_DENIED", message: "Cannot set default ruleset" });
+        socket.emit('club_error', {
+          code: 'RULESET_DEFAULT_DENIED',
+          message: 'Cannot set default ruleset',
+        });
         return;
       }
       void emitClubDetail(socket.id, payload.clubId, identity.userId);
     } catch (error) {
-      socket.emit("club_error", { code: "RULESET_DEFAULT_FAILED", message: (error as Error).message });
+      socket.emit('club_error', {
+        code: 'RULESET_DEFAULT_FAILED',
+        message: (error as Error).message,
+      });
     }
   });
 
-  socket.on("club_table_create", async (payload: ClubTableCreatePayload) => {
+  socket.on('club_table_create', async (payload: ClubTableCreatePayload) => {
     try {
       if (!requireClubAuth()) return;
-      const result = clubManager.createTable(payload.clubId, identity.userId, payload.name, payload.config, payload.templateRulesetId);
+      const result = clubManager.createTable(
+        payload.clubId,
+        identity.userId,
+        payload.name,
+        payload.config,
+        payload.templateRulesetId,
+      );
       if (!result) {
-        socket.emit("club_error", { code: "TABLE_DENIED", message: "Cannot create table — insufficient permissions" });
+        socket.emit('club_error', {
+          code: 'TABLE_DENIED',
+          message: 'Cannot create table — insufficient permissions',
+        });
         return;
       }
 
-      const { clubTable, rules } = result;
+      const { clubTable } = result;
 
       // Create runtime room using clubTable.id as the room's tableId (1:1 mapping)
       ensureClubTableRoom(payload.clubId, clubTable.id);
 
-      socket.emit("club_table_created", {
+      socket.emit('club_table_created', {
         clubId: payload.clubId,
         table: clubTable,
       });
@@ -5601,41 +6632,44 @@ io.on("connection", (socket) => {
       void emitClubDetail(socket.id, payload.clubId, identity.userId);
       debouncedLobbyBroadcast();
     } catch (error) {
-      socket.emit("club_error", { code: "TABLE_CREATE_FAILED", message: (error as Error).message });
+      socket.emit('club_error', { code: 'TABLE_CREATE_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("club_table_list", async (payload: { clubId: string }) => {
+  socket.on('club_table_list', async (payload: { clubId: string }) => {
     try {
       if (!requireClubAuth()) return;
       const detail = await buildClubDetailPayload(payload.clubId, identity.userId);
       if (!detail) {
-        socket.emit("club_error", { code: "TABLE_LIST_DENIED", message: "Not a member" });
+        socket.emit('club_error', { code: 'TABLE_LIST_DENIED', message: 'Not a member' });
         return;
       }
-      socket.emit("club_detail", detail);
+      socket.emit('club_detail', detail);
     } catch (error) {
-      socket.emit("club_error", { code: "TABLE_LIST_FAILED", message: (error as Error).message });
+      socket.emit('club_error', { code: 'TABLE_LIST_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("club_table_update", async (payload: ClubTableUpdatePayload) => {
+  socket.on('club_table_update', async (payload: ClubTableUpdatePayload) => {
     try {
       if (!requireClubAuth()) return;
       if (!isClubOwnerOrAdmin(payload.clubId, identity.userId)) {
-        socket.emit("club_error", { code: "TABLE_UPDATE_DENIED", message: "Only owner/admin can update tables" });
+        socket.emit('club_error', {
+          code: 'TABLE_UPDATE_DENIED',
+          message: 'Only owner/admin can update tables',
+        });
         return;
       }
 
       const currentTable = clubManager.getClubTable(payload.clubId, payload.tableId);
-      if (!currentTable || currentTable.status === "closed") {
-        socket.emit("club_error", { code: "TABLE_UPDATE_DENIED", message: "Table not found" });
+      if (!currentTable || currentTable.status === 'closed') {
+        socket.emit('club_error', { code: 'TABLE_UPDATE_DENIED', message: 'Table not found' });
         return;
       }
 
       const detailForRules = clubManager.getClubDetail(payload.clubId, identity.userId);
       if (!detailForRules) {
-        socket.emit("club_error", { code: "TABLE_UPDATE_DENIED", message: "Not a club member" });
+        socket.emit('club_error', { code: 'TABLE_UPDATE_DENIED', message: 'Not a club member' });
         return;
       }
 
@@ -5643,15 +6677,18 @@ io.on("connection", (socket) => {
       const serverTableId = payload.tableId; // clubTable.id = room tableId
       const liveTable = tables.get(serverTableId);
       if (liveTable?.isHandActive()) {
-        socket.emit("club_error", { code: "TABLE_UPDATE_DENIED", message: "Cannot update table while a hand is active" });
+        socket.emit('club_error', {
+          code: 'TABLE_UPDATE_DENIED',
+          message: 'Cannot update table while a hand is active',
+        });
         return;
       }
       const currentRules = clubManager.getRulesForTable(payload.clubId, payload.tableId);
       if (currentRules && payload.config?.maxSeats != null) {
         const occupiedSeats = liveTable?.getPublicState().players.length ?? 0;
         if (payload.config.maxSeats < occupiedSeats) {
-          socket.emit("club_error", {
-            code: "TABLE_UPDATE_DENIED",
+          socket.emit('club_error', {
+            code: 'TABLE_UPDATE_DENIED',
             message: `Cannot reduce seats below occupied count (${occupiedSeats})`,
           });
           return;
@@ -5663,7 +6700,7 @@ io.on("connection", (socket) => {
         config: payload.config,
       });
       if (!result) {
-        socket.emit("club_error", { code: "TABLE_UPDATE_DENIED", message: "Cannot update table" });
+        socket.emit('club_error', { code: 'TABLE_UPDATE_DENIED', message: 'Cannot update table' });
         return;
       }
 
@@ -5673,31 +6710,40 @@ io.on("connection", (socket) => {
       const club = clubManager.getClub(payload.clubId);
 
       if (managed) {
-        roomManager.updateSettings(serverTableId, {
-          gameType: result.rules.extras.gameType,
-          maxPlayers: result.rules.maxSeats,
-          smallBlind: result.rules.stakes.smallBlind,
-          bigBlind: result.rules.stakes.bigBlind,
-          buyInMin: result.rules.buyIn.minBuyIn,
-          buyInMax: result.rules.buyIn.maxBuyIn,
-          actionTimerSeconds: result.rules.time.actionTimeSec,
-          timeBankSeconds: result.rules.time.timeBankSec,
-          disconnectGracePeriod: result.rules.time.disconnectGraceSec,
-          autoStartNextHand: result.rules.dealing.autoStartNextHand && result.rules.dealing.autoDealEnabled,
-          minPlayersToStart: Math.max(2, Math.min(result.rules.maxSeats, result.rules.dealing.minPlayersToStart ?? 2)),
-          spectatorAllowed: result.rules.moderation.allowSpectators,
-          runItTwice: result.rules.runit.allowRunItTwice,
-          runItTwiceMode: result.rules.runit.allowRunItTwice ? "ask_players" : "off",
-          straddleAllowed: result.rules.extras.straddleAllowed,
-          bombPotEnabled: result.rules.extras.bombPotEnabled,
-          rabbitHunting: result.rules.extras.rabbitHuntEnabled,
-          sevenTwoBounty: result.rules.extras.sevenTwoBounty,
-          visibility: "private",
-        }, identity.userId, identity.displayName);
+        roomManager.updateSettings(
+          serverTableId,
+          {
+            gameType: result.rules.extras.gameType,
+            maxPlayers: result.rules.maxSeats,
+            smallBlind: result.rules.stakes.smallBlind,
+            bigBlind: result.rules.stakes.bigBlind,
+            buyInMin: result.rules.buyIn.minBuyIn,
+            buyInMax: result.rules.buyIn.maxBuyIn,
+            actionTimerSeconds: result.rules.time.actionTimeSec,
+            timeBankSeconds: result.rules.time.timeBankSec,
+            disconnectGracePeriod: result.rules.time.disconnectGraceSec,
+            autoStartNextHand:
+              result.rules.dealing.autoStartNextHand && result.rules.dealing.autoDealEnabled,
+            minPlayersToStart: Math.max(
+              2,
+              Math.min(result.rules.maxSeats, result.rules.dealing.minPlayersToStart ?? 2),
+            ),
+            spectatorAllowed: result.rules.moderation.allowSpectators,
+            runItTwice: result.rules.runit.allowRunItTwice,
+            runItTwiceMode: result.rules.runit.allowRunItTwice ? 'ask_players' : 'off',
+            straddleAllowed: result.rules.extras.straddleAllowed,
+            bombPotEnabled: result.rules.extras.bombPotEnabled,
+            rabbitHunting: result.rules.extras.rabbitHuntEnabled,
+            sevenTwoBounty: result.rules.extras.sevenTwoBounty,
+            visibility: 'private',
+          },
+          identity.userId,
+          identity.displayName,
+        );
       }
 
       if (roomInfo) {
-        roomInfo.roomName = `${club?.name ?? "Club"} — ${result.table.name}`;
+        roomInfo.roomName = `${club?.name ?? 'Club'} — ${result.table.name}`;
         roomInfo.smallBlind = result.rules.stakes.smallBlind;
         roomInfo.bigBlind = result.rules.stakes.bigBlind;
         roomInfo.maxPlayers = result.rules.maxSeats;
@@ -5706,38 +6752,43 @@ io.on("connection", (socket) => {
         if (managed) {
           managed.roomName = roomInfo.roomName;
         }
-        supabase.upsertRoom(roomInfo).catch((e) => logWarn({
-          event: "club_table.update.persist_failed",
-          tableId: serverTableId,
-          message: (e as Error).message,
-        }));
+        supabase.upsertRoom(roomInfo).catch((e) =>
+          logWarn({
+            event: 'club_table.update.persist_failed',
+            tableId: serverTableId,
+            message: (e as Error).message,
+          }),
+        );
       }
 
       if (liveTable) {
-        liveTable.updateBlindStructure(result.rules.stakes.smallBlind, result.rules.stakes.bigBlind, managed?.settings.ante ?? 0);
+        liveTable.updateBlindStructure(
+          result.rules.stakes.smallBlind,
+          result.rules.stakes.bigBlind,
+          managed?.settings.ante ?? 0,
+        );
         applyRoomVariantSettings(serverTableId, liveTable);
         broadcastSnapshot(serverTableId);
       }
 
       for (const [sid, ident] of socketIdentity.entries()) {
         if (!clubManager.isActiveMember(payload.clubId, ident.userId)) continue;
-        io.to(sid).emit("club_table_updated", { clubId: payload.clubId, table: result.table });
+        io.to(sid).emit('club_table_updated', { clubId: payload.clubId, table: result.table });
       }
 
       await emitClubDetail(socket.id, payload.clubId, identity.userId);
       debouncedLobbyBroadcast();
     } catch (error) {
-      socket.emit("club_error", { code: "TABLE_UPDATE_FAILED", message: (error as Error).message });
+      socket.emit('club_error', { code: 'TABLE_UPDATE_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("club_table_close", async (payload: ClubTableClosePayload) => {
+  socket.on('club_table_close', async (payload: ClubTableClosePayload) => {
     try {
       if (!requireClubAuth()) return;
-      const tableBeforeClose = clubManager.getClubTable(payload.clubId, payload.tableId);
       const ok = clubManager.closeTable(payload.clubId, identity.userId, payload.tableId);
       if (!ok) {
-        socket.emit("club_error", { code: "TABLE_CLOSE_DENIED", message: "Cannot close table" });
+        socket.emit('club_error', { code: 'TABLE_CLOSE_DENIED', message: 'Cannot close table' });
         return;
       }
 
@@ -5748,7 +6799,10 @@ io.on("connection", (socket) => {
         clearAutoDealSchedule(serverTableId);
         clearShowdownDecisionTimeout(serverTableId);
         roomManager.endGame(serverTableId, identity.userId, identity.displayName);
-        io.to(serverTableId).emit("room_closed", { tableId: serverTableId, reason: "Club table closed" });
+        io.to(serverTableId).emit('room_closed', {
+          tableId: serverTableId,
+          reason: 'Club table closed',
+        });
 
         const roomSockets = io.sockets.adapter.rooms.get(serverTableId);
         if (roomSockets) {
@@ -5763,7 +6817,7 @@ io.on("connection", (socket) => {
           socketSeat.delete(sid);
           const sock = io.sockets.sockets.get(sid);
           if (sock) sock.leave(serverTableId);
-          io.to(sid).emit("left_table", { tableId: serverTableId });
+          io.to(sid).emit('left_table', { tableId: serverTableId });
         }
 
         const room = roomsByTableId.get(serverTableId);
@@ -5786,56 +6840,62 @@ io.on("connection", (socket) => {
         tableSnapshotVersions.delete(serverTableId);
         roomManager.deleteRoom(serverTableId);
 
-        closeRoomSessionIfOpen(serverTableId, "club_table_close").catch(() => {});
-        supabase.touchRoom(serverTableId, "CLOSED").catch(() => {});
+        closeRoomSessionIfOpen(serverTableId, 'club_table_close').catch(() => {});
+        supabase.touchRoom(serverTableId, 'CLOSED').catch(() => {});
       }
 
       await emitClubDetail(socket.id, payload.clubId, identity.userId);
       debouncedLobbyBroadcast();
     } catch (error) {
-      socket.emit("club_error", { code: "TABLE_CLOSE_FAILED", message: (error as Error).message });
+      socket.emit('club_error', { code: 'TABLE_CLOSE_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("club_table_pause", (payload: ClubTablePausePayload) => {
+  socket.on('club_table_pause', (payload: ClubTablePausePayload) => {
     try {
       if (!requireClubAuth()) return;
       // Pause is deferred until hand end (enforced by rules)
       const ok = clubManager.pauseTable(payload.clubId, identity.userId, payload.tableId);
       if (!ok) {
-        socket.emit("club_error", { code: "TABLE_PAUSE_DENIED", message: "Cannot pause table" });
+        socket.emit('club_error', { code: 'TABLE_PAUSE_DENIED', message: 'Cannot pause table' });
         return;
       }
       void emitClubDetail(socket.id, payload.clubId, identity.userId);
     } catch (error) {
-      socket.emit("club_error", { code: "TABLE_PAUSE_FAILED", message: (error as Error).message });
+      socket.emit('club_error', { code: 'TABLE_PAUSE_FAILED', message: (error as Error).message });
     }
   });
 
   /* ═══════════ CLUB TABLE JOIN ═══════════ */
 
-  socket.on("club_table_join", async (payload: ClubTableJoinPayload) => {
+  socket.on('club_table_join', async (payload: ClubTableJoinPayload) => {
     try {
       if (!requireClubAuth()) return;
       if (!clubManager.isActiveMember(payload.clubId, identity.userId)) {
-        socket.emit("club_error", { code: "TABLE_JOIN_DENIED", message: "Only active club members can join tables" });
+        socket.emit('club_error', {
+          code: 'TABLE_JOIN_DENIED',
+          message: 'Only active club members can join tables',
+        });
         return;
       }
 
       const tableId = ensureClubTableRoom(payload.clubId, payload.tableId);
       if (!tableId) {
-        socket.emit("club_error", { code: "TABLE_JOIN_DENIED", message: "Table not found or closed" });
+        socket.emit('club_error', {
+          code: 'TABLE_JOIN_DENIED',
+          message: 'Table not found or closed',
+        });
         return;
       }
 
       const room = roomsByTableId.get(tableId);
       if (!room) {
-        socket.emit("club_error", { code: "TABLE_JOIN_DENIED", message: "Room not available" });
+        socket.emit('club_error', { code: 'TABLE_JOIN_DENIED', message: 'Room not available' });
         return;
       }
 
       if (roomManager.isBanned(tableId, identity.userId)) {
-        socket.emit("error_event", { message: "You are banned from this table" });
+        socket.emit('error_event', { message: 'You are banned from this table' });
         return;
       }
 
@@ -5843,16 +6903,15 @@ io.on("connection", (socket) => {
       createTableIfNeeded(room);
       maybeCheckRoomEmpty(tableId, currentPlayerCount(tableId) + 1);
 
-      supabase.touchRoom(tableId, "OPEN").catch(() => {});
-      openRoomSessionIfNeeded(tableId, "club_table_join").catch(() => {});
+      supabase.touchRoom(tableId, 'OPEN').catch(() => {});
+      openRoomSessionIfNeeded(tableId, 'club_table_join').catch(() => {});
 
-      const club = clubManager.getClub(payload.clubId);
-      socket.emit("room_joined", {
+      socket.emit('room_joined', {
         tableId,
         roomCode: tableId,
         roomName: room.roomName,
       });
-      socket.emit("club_table_joined", {
+      socket.emit('club_table_joined', {
         tableId,
         clubId: payload.clubId,
         roomName: room.roomName,
@@ -5860,195 +6919,287 @@ io.on("connection", (socket) => {
 
       emitHydratedSnapshot(socket.id, tableId);
       const fullState = roomManager.getFullState(tableId);
-      if (fullState) socket.emit("room_state_update", withClubRoomStateMetadata(fullState, tableId, identity.userId));
+      if (fullState)
+        socket.emit(
+          'room_state_update',
+          withClubRoomStateMetadata(fullState, tableId, identity.userId),
+        );
       emitPresence(tableId);
       debouncedLobbyBroadcast();
     } catch (error) {
-      socket.emit("club_error", { code: "TABLE_JOIN_FAILED", message: (error as Error).message });
+      socket.emit('club_error', { code: 'TABLE_JOIN_FAILED', message: (error as Error).message });
     }
   });
 
   /* ═══════════ CLUB CREDITS ═══════════ */
 
-  socket.on("club_wallet_balance_get", async (payload: { clubId: string; userId?: string; currency?: string }) => {
-    try {
-      if (!requireClubAuth()) return;
-      if (!clubManager.isActiveMember(payload.clubId, identity.userId)) {
-        socket.emit("club_error", { code: "WALLET_DENIED", message: "Not a club member" });
-        return;
-      }
-
-      const targetUserId = payload.userId ?? identity.userId;
-      if (targetUserId !== identity.userId && !isClubOwnerOrAdmin(payload.clubId, identity.userId)) {
-        socket.emit("club_error", { code: "WALLET_DENIED", message: "Only admins can view other members' credits" });
-        return;
-      }
-      if (!clubManager.getMember(payload.clubId, targetUserId)) {
-        socket.emit("club_error", { code: "WALLET_DENIED", message: "Target member not found" });
-        return;
-      }
-
-      const currency = payload.currency ?? "chips";
-      const balance = await clubDataRepo.getWalletBalance(payload.clubId, targetUserId, currency);
-      clubManager.setMemberBalance(payload.clubId, targetUserId, balance);
-      socket.emit("club_wallet_balance", { balance: { clubId: payload.clubId, userId: targetUserId, currency, balance } });
-    } catch (error) {
-      socket.emit("club_error", { code: "WALLET_BALANCE_FAILED", message: (error as Error).message });
-    }
-  });
-
-  socket.on("club_wallet_transactions_list", async (payload: { clubId: string; userId?: string; currency?: string; limit?: number; offset?: number }) => {
-    try {
-      if (!requireClubAuth()) return;
-      if (!clubManager.isActiveMember(payload.clubId, identity.userId)) {
-        socket.emit("club_error", { code: "WALLET_DENIED", message: "Not a club member" });
-        return;
-      }
-      const targetUserId = payload.userId ?? identity.userId;
-      if (targetUserId !== identity.userId && !isClubOwnerOrAdmin(payload.clubId, identity.userId)) {
-        socket.emit("club_error", { code: "WALLET_DENIED", message: "Only admins can view other members' ledger" });
-        return;
-      }
-      const currency = payload.currency ?? "chips";
-      const limit = Math.max(1, Math.min(payload.limit ?? 50, 200));
-      const offset = Math.max(0, payload.offset ?? 0);
-      const transactions: ClubWalletTransaction[] = await clubDataRepo.listWalletTxs(
-        payload.clubId,
-        targetUserId,
-        currency,
-        limit,
-        offset,
-      );
-      socket.emit("club_wallet_transactions", {
-        clubId: payload.clubId,
-        userId: targetUserId,
-        currency,
-        limit,
-        offset,
-        transactions,
-      });
-    } catch (error) {
-      socket.emit("club_error", { code: "WALLET_TX_LIST_FAILED", message: (error as Error).message });
-    }
-  });
-
-  socket.on("club_wallet_admin_deposit", async (payload: { clubId: string; userId: string; amount: number; currency?: string; note?: string; idempotencyKey?: string }) => {
-    try {
-      if (!requireClubAuth()) return;
-      if (!isClubOwnerOrAdmin(payload.clubId, identity.userId)) {
-        socket.emit("club_error", { code: "WALLET_ADMIN_DENIED", message: "Only owner/admin can deposit" });
-        return;
-      }
-      if (!clubManager.isActiveMember(payload.clubId, payload.userId)) {
-        socket.emit("club_error", { code: "WALLET_ADMIN_DENIED", message: "Target is not an active member" });
-        return;
-      }
-      const amount = Math.trunc(payload.amount);
-      if (amount <= 0) {
-        socket.emit("club_error", { code: "WALLET_ADMIN_DENIED", message: "Amount must be positive" });
-        return;
-      }
-
-      const tx = await appendWalletTx({
-        clubId: payload.clubId,
-        userId: payload.userId,
-        type: "admin_grant",
-        amount,
-        currency: payload.currency ?? "chips",
-        createdBy: identity.userId,
-        note: payload.note ?? "Admin deposit",
-        metaJson: { adminUserId: identity.userId },
-        idempotencyKey: payload.idempotencyKey ?? null,
-      });
-
-      await clubDataRepo.appendAudit({
-        clubId: payload.clubId,
-        actorUserId: identity.userId,
-        actionType: "wallet_admin_deposit",
-        payloadJson: {
-          targetUserId: payload.userId,
-          amount,
-          currency: payload.currency ?? "chips",
-          note: payload.note ?? "",
-          txId: tx.tx.id,
-        },
-        createdAt: new Date().toISOString(),
-      });
-
-      await emitWalletBalanceToUser(payload.clubId, payload.userId, tx.newBalance, payload.currency ?? "chips");
-      socket.emit("system_message", { message: `Granted ${amount} credits to member` });
-      await emitClubDetail(socket.id, payload.clubId, identity.userId);
-    } catch (error) {
-      socket.emit("club_error", { code: "WALLET_ADMIN_DEPOSIT_FAILED", message: (error as Error).message });
-    }
-  });
-
-  socket.on("club_wallet_admin_adjust", async (payload: { clubId: string; userId: string; amount: number; currency?: string; note?: string; idempotencyKey?: string }) => {
-    try {
-      if (!requireClubAuth()) return;
-      if (!isClubOwnerOrAdmin(payload.clubId, identity.userId)) {
-        socket.emit("club_error", { code: "WALLET_ADMIN_DENIED", message: "Only owner/admin can adjust balances" });
-        return;
-      }
-      if (!clubManager.isActiveMember(payload.clubId, payload.userId)) {
-        socket.emit("club_error", { code: "WALLET_ADMIN_DENIED", message: "Target is not an active member" });
-        return;
-      }
-
-      const amount = Math.trunc(payload.amount);
-      if (amount === 0) {
-        socket.emit("club_error", { code: "WALLET_ADMIN_DENIED", message: "Adjustment amount cannot be zero" });
-        return;
-      }
-
-      const currency = payload.currency ?? "chips";
-      if (amount < 0) {
-        const currentBalance = await clubDataRepo.getWalletBalance(payload.clubId, payload.userId, currency);
-        if (currentBalance + amount < 0) {
-          socket.emit("club_error", { code: "WALLET_ADMIN_DENIED", message: "Insufficient credits for adjustment" });
+  socket.on(
+    'club_wallet_balance_get',
+    async (payload: { clubId: string; userId?: string; currency?: string }) => {
+      try {
+        if (!requireClubAuth()) return;
+        if (!clubManager.isActiveMember(payload.clubId, identity.userId)) {
+          socket.emit('club_error', { code: 'WALLET_DENIED', message: 'Not a club member' });
           return;
         }
+
+        const targetUserId = payload.userId ?? identity.userId;
+        if (
+          targetUserId !== identity.userId &&
+          !isClubOwnerOrAdmin(payload.clubId, identity.userId)
+        ) {
+          socket.emit('club_error', {
+            code: 'WALLET_DENIED',
+            message: "Only admins can view other members' credits",
+          });
+          return;
+        }
+        if (!clubManager.getMember(payload.clubId, targetUserId)) {
+          socket.emit('club_error', { code: 'WALLET_DENIED', message: 'Target member not found' });
+          return;
+        }
+
+        const currency = payload.currency ?? 'chips';
+        const balance = await clubDataRepo.getWalletBalance(payload.clubId, targetUserId, currency);
+        clubManager.setMemberBalance(payload.clubId, targetUserId, balance);
+        socket.emit('club_wallet_balance', {
+          balance: { clubId: payload.clubId, userId: targetUserId, currency, balance },
+        });
+      } catch (error) {
+        socket.emit('club_error', {
+          code: 'WALLET_BALANCE_FAILED',
+          message: (error as Error).message,
+        });
       }
+    },
+  );
 
-      const tx = await appendWalletTx({
-        clubId: payload.clubId,
-        userId: payload.userId,
-        type: "adjustment",
-        amount,
-        currency,
-        createdBy: identity.userId,
-        note: payload.note ?? "Admin adjustment",
-        metaJson: { adminUserId: identity.userId },
-        idempotencyKey: payload.idempotencyKey ?? null,
-      });
+  socket.on(
+    'club_wallet_transactions_list',
+    async (payload: {
+      clubId: string;
+      userId?: string;
+      currency?: string;
+      limit?: number;
+      offset?: number;
+    }) => {
+      try {
+        if (!requireClubAuth()) return;
+        if (!clubManager.isActiveMember(payload.clubId, identity.userId)) {
+          socket.emit('club_error', { code: 'WALLET_DENIED', message: 'Not a club member' });
+          return;
+        }
+        const targetUserId = payload.userId ?? identity.userId;
+        if (
+          targetUserId !== identity.userId &&
+          !isClubOwnerOrAdmin(payload.clubId, identity.userId)
+        ) {
+          socket.emit('club_error', {
+            code: 'WALLET_DENIED',
+            message: "Only admins can view other members' ledger",
+          });
+          return;
+        }
+        const currency = payload.currency ?? 'chips';
+        const limit = Math.max(1, Math.min(payload.limit ?? 50, 200));
+        const offset = Math.max(0, payload.offset ?? 0);
+        const transactions: ClubWalletTransaction[] = await clubDataRepo.listWalletTxs(
+          payload.clubId,
+          targetUserId,
+          currency,
+          limit,
+          offset,
+        );
+        socket.emit('club_wallet_transactions', {
+          clubId: payload.clubId,
+          userId: targetUserId,
+          currency,
+          limit,
+          offset,
+          transactions,
+        });
+      } catch (error) {
+        socket.emit('club_error', {
+          code: 'WALLET_TX_LIST_FAILED',
+          message: (error as Error).message,
+        });
+      }
+    },
+  );
 
-      await clubDataRepo.appendAudit({
-        clubId: payload.clubId,
-        actorUserId: identity.userId,
-        actionType: "wallet_admin_adjust",
-        payloadJson: {
-          targetUserId: payload.userId,
+  socket.on(
+    'club_wallet_admin_deposit',
+    async (payload: {
+      clubId: string;
+      userId: string;
+      amount: number;
+      currency?: string;
+      note?: string;
+      idempotencyKey?: string;
+    }) => {
+      try {
+        if (!requireClubAuth()) return;
+        if (!isClubOwnerOrAdmin(payload.clubId, identity.userId)) {
+          socket.emit('club_error', {
+            code: 'WALLET_ADMIN_DENIED',
+            message: 'Only owner/admin can deposit',
+          });
+          return;
+        }
+        if (!clubManager.isActiveMember(payload.clubId, payload.userId)) {
+          socket.emit('club_error', {
+            code: 'WALLET_ADMIN_DENIED',
+            message: 'Target is not an active member',
+          });
+          return;
+        }
+        const amount = Math.trunc(payload.amount);
+        if (amount <= 0) {
+          socket.emit('club_error', {
+            code: 'WALLET_ADMIN_DENIED',
+            message: 'Amount must be positive',
+          });
+          return;
+        }
+
+        const tx = await appendWalletTx({
+          clubId: payload.clubId,
+          userId: payload.userId,
+          type: 'admin_grant',
+          amount,
+          currency: payload.currency ?? 'chips',
+          createdBy: identity.userId,
+          note: payload.note ?? 'Admin deposit',
+          metaJson: { adminUserId: identity.userId },
+          idempotencyKey: payload.idempotencyKey ?? null,
+        });
+
+        await clubDataRepo.appendAudit({
+          clubId: payload.clubId,
+          actorUserId: identity.userId,
+          actionType: 'wallet_admin_deposit',
+          payloadJson: {
+            targetUserId: payload.userId,
+            amount,
+            currency: payload.currency ?? 'chips',
+            note: payload.note ?? '',
+            txId: tx.tx.id,
+          },
+          createdAt: new Date().toISOString(),
+        });
+
+        await emitWalletBalanceToUser(
+          payload.clubId,
+          payload.userId,
+          tx.newBalance,
+          payload.currency ?? 'chips',
+        );
+        socket.emit('system_message', { message: `Granted ${amount} credits to member` });
+        await emitClubDetail(socket.id, payload.clubId, identity.userId);
+      } catch (error) {
+        socket.emit('club_error', {
+          code: 'WALLET_ADMIN_DEPOSIT_FAILED',
+          message: (error as Error).message,
+        });
+      }
+    },
+  );
+
+  socket.on(
+    'club_wallet_admin_adjust',
+    async (payload: {
+      clubId: string;
+      userId: string;
+      amount: number;
+      currency?: string;
+      note?: string;
+      idempotencyKey?: string;
+    }) => {
+      try {
+        if (!requireClubAuth()) return;
+        if (!isClubOwnerOrAdmin(payload.clubId, identity.userId)) {
+          socket.emit('club_error', {
+            code: 'WALLET_ADMIN_DENIED',
+            message: 'Only owner/admin can adjust balances',
+          });
+          return;
+        }
+        if (!clubManager.isActiveMember(payload.clubId, payload.userId)) {
+          socket.emit('club_error', {
+            code: 'WALLET_ADMIN_DENIED',
+            message: 'Target is not an active member',
+          });
+          return;
+        }
+
+        const amount = Math.trunc(payload.amount);
+        if (amount === 0) {
+          socket.emit('club_error', {
+            code: 'WALLET_ADMIN_DENIED',
+            message: 'Adjustment amount cannot be zero',
+          });
+          return;
+        }
+
+        const currency = payload.currency ?? 'chips';
+        if (amount < 0) {
+          const currentBalance = await clubDataRepo.getWalletBalance(
+            payload.clubId,
+            payload.userId,
+            currency,
+          );
+          if (currentBalance + amount < 0) {
+            socket.emit('club_error', {
+              code: 'WALLET_ADMIN_DENIED',
+              message: 'Insufficient credits for adjustment',
+            });
+            return;
+          }
+        }
+
+        const tx = await appendWalletTx({
+          clubId: payload.clubId,
+          userId: payload.userId,
+          type: 'adjustment',
           amount,
           currency,
-          note: payload.note ?? "",
-          txId: tx.tx.id,
-        },
-        createdAt: new Date().toISOString(),
-      });
+          createdBy: identity.userId,
+          note: payload.note ?? 'Admin adjustment',
+          metaJson: { adminUserId: identity.userId },
+          idempotencyKey: payload.idempotencyKey ?? null,
+        });
 
-      await emitWalletBalanceToUser(payload.clubId, payload.userId, tx.newBalance, currency);
-      socket.emit("system_message", { message: `Adjusted member credits by ${amount}` });
-      await emitClubDetail(socket.id, payload.clubId, identity.userId);
-    } catch (error) {
-      socket.emit("club_error", { code: "WALLET_ADMIN_ADJUST_FAILED", message: (error as Error).message });
-    }
-  });
+        await clubDataRepo.appendAudit({
+          clubId: payload.clubId,
+          actorUserId: identity.userId,
+          actionType: 'wallet_admin_adjust',
+          payloadJson: {
+            targetUserId: payload.userId,
+            amount,
+            currency,
+            note: payload.note ?? '',
+            txId: tx.tx.id,
+          },
+          createdAt: new Date().toISOString(),
+        });
+
+        await emitWalletBalanceToUser(payload.clubId, payload.userId, tx.newBalance, currency);
+        socket.emit('system_message', { message: `Adjusted member credits by ${amount}` });
+        await emitClubDetail(socket.id, payload.clubId, identity.userId);
+      } catch (error) {
+        socket.emit('club_error', {
+          code: 'WALLET_ADMIN_ADJUST_FAILED',
+          message: (error as Error).message,
+        });
+      }
+    },
+  );
 
   // ── Bulk / Batch Operations ──
 
-  socket.on("club_bulk_approve", async (payload: ClubBulkApprovePayload) => {
+  socket.on('club_bulk_approve', async (payload: ClubBulkApprovePayload) => {
     if (!identity) {
-      socket.emit("club_error", { code: "AUTH_REQUIRED", message: "Authentication required" });
+      socket.emit('club_error', { code: 'AUTH_REQUIRED', message: 'Authentication required' });
       return;
     }
     if (!requireClubAuth()) return;
@@ -6064,13 +7215,19 @@ io.on("connection", (socket) => {
         errors.push(`${uid}: ${(err as Error).message}`);
       }
     }
-    socket.emit("club_bulk_result", { clubId: payload.clubId, operation: "bulk_approve", succeeded, failed, errors });
+    socket.emit('club_bulk_result', {
+      clubId: payload.clubId,
+      operation: 'bulk_approve',
+      succeeded,
+      failed,
+      errors,
+    });
     void emitClubDetail(socket.id, payload.clubId, identity.userId);
   });
 
-  socket.on("club_bulk_grant_credits", async (payload: ClubBulkGrantCreditsPayload) => {
+  socket.on('club_bulk_grant_credits', async (payload: ClubBulkGrantCreditsPayload) => {
     if (!identity) {
-      socket.emit("club_error", { code: "AUTH_REQUIRED", message: "Authentication required" });
+      socket.emit('club_error', { code: 'AUTH_REQUIRED', message: 'Authentication required' });
       return;
     }
     if (!requireClubAuth()) return;
@@ -6086,12 +7243,18 @@ io.on("connection", (socket) => {
         errors.push(`${uid}: ${(err as Error).message}`);
       }
     }
-    socket.emit("club_bulk_result", { clubId: payload.clubId, operation: "bulk_grant_credits", succeeded, failed, errors });
+    socket.emit('club_bulk_result', {
+      clubId: payload.clubId,
+      operation: 'bulk_grant_credits',
+      succeeded,
+      failed,
+      errors,
+    });
   });
 
-  socket.on("club_bulk_role_change", async (payload: ClubBulkRoleChangePayload) => {
+  socket.on('club_bulk_role_change', async (payload: ClubBulkRoleChangePayload) => {
     if (!identity) {
-      socket.emit("club_error", { code: "AUTH_REQUIRED", message: "Authentication required" });
+      socket.emit('club_error', { code: 'AUTH_REQUIRED', message: 'Authentication required' });
       return;
     }
     if (!requireClubAuth()) return;
@@ -6107,13 +7270,19 @@ io.on("connection", (socket) => {
         errors.push(`${uid}: ${(err as Error).message}`);
       }
     }
-    socket.emit("club_bulk_result", { clubId: payload.clubId, operation: "bulk_role_change", succeeded, failed, errors });
+    socket.emit('club_bulk_result', {
+      clubId: payload.clubId,
+      operation: 'bulk_role_change',
+      succeeded,
+      failed,
+      errors,
+    });
     void emitClubDetail(socket.id, payload.clubId, identity.userId);
   });
 
-  socket.on("club_bulk_kick", async (payload: ClubBulkKickPayload) => {
+  socket.on('club_bulk_kick', async (payload: ClubBulkKickPayload) => {
     if (!identity) {
-      socket.emit("club_error", { code: "AUTH_REQUIRED", message: "Authentication required" });
+      socket.emit('club_error', { code: 'AUTH_REQUIRED', message: 'Authentication required' });
       return;
     }
     if (!requireClubAuth()) return;
@@ -6129,121 +7298,166 @@ io.on("connection", (socket) => {
         errors.push(`${uid}: ${(err as Error).message}`);
       }
     }
-    socket.emit("club_bulk_result", { clubId: payload.clubId, operation: "bulk_kick", succeeded, failed, errors });
+    socket.emit('club_bulk_result', {
+      clubId: payload.clubId,
+      operation: 'bulk_kick',
+      succeeded,
+      failed,
+      errors,
+    });
     void emitClubDetail(socket.id, payload.clubId, identity.userId);
   });
 
-  socket.on("club_leaderboard_get", async (payload: { clubId: string; timeRange?: ClubLeaderboardRange; metric?: ClubLeaderboardMetric; limit?: number }) => {
-    try {
-      if (!requireClubAuth()) return;
-      if (!clubManager.isActiveMember(payload.clubId, identity.userId)) {
-        socket.emit("club_error", { code: "LEADERBOARD_DENIED", message: "Not a club member" });
-        return;
+  socket.on(
+    'club_leaderboard_get',
+    async (payload: {
+      clubId: string;
+      timeRange?: ClubLeaderboardRange;
+      metric?: ClubLeaderboardMetric;
+      limit?: number;
+    }) => {
+      try {
+        if (!requireClubAuth()) return;
+        if (!clubManager.isActiveMember(payload.clubId, identity.userId)) {
+          socket.emit('club_error', { code: 'LEADERBOARD_DENIED', message: 'Not a club member' });
+          return;
+        }
+
+        const timeRange: ClubLeaderboardRange =
+          payload.timeRange === 'day' ||
+          payload.timeRange === 'week' ||
+          payload.timeRange === 'month' ||
+          payload.timeRange === 'all'
+            ? payload.timeRange
+            : 'week';
+        const metric: ClubLeaderboardMetric =
+          payload.metric === 'hands' || payload.metric === 'buyin' || payload.metric === 'deposits'
+            ? payload.metric
+            : 'net';
+        const limit = Math.max(1, Math.min(payload.limit ?? 50, 200));
+
+        const entries = await clubDataRepo.getClubLeaderboard(
+          payload.clubId,
+          timeRange,
+          metric,
+          limit,
+        );
+        const myRow = entries.find((entry) => entry.userId === identity.userId);
+        socket.emit('club_leaderboard', {
+          clubId: payload.clubId,
+          timeRange,
+          metric,
+          entries,
+          myRank: myRow?.rank ?? null,
+        });
+      } catch (error) {
+        socket.emit('club_error', {
+          code: 'LEADERBOARD_FAILED',
+          message: (error as Error).message,
+        });
       }
-
-      const timeRange: ClubLeaderboardRange =
-        payload.timeRange === "day" ||
-        payload.timeRange === "week" ||
-        payload.timeRange === "month" ||
-        payload.timeRange === "all"
-          ? payload.timeRange
-          : "week";
-      const metric: ClubLeaderboardMetric = payload.metric === "hands" || payload.metric === "buyin" || payload.metric === "deposits"
-        ? payload.metric
-        : "net";
-      const limit = Math.max(1, Math.min(payload.limit ?? 50, 200));
-
-      const entries = await clubDataRepo.getClubLeaderboard(payload.clubId, timeRange, metric, limit);
-      const myRow = entries.find((entry) => entry.userId === identity.userId);
-      socket.emit("club_leaderboard", {
-        clubId: payload.clubId,
-        timeRange,
-        metric,
-        entries,
-        myRank: myRow?.rank ?? null,
-      });
-    } catch (error) {
-      socket.emit("club_error", { code: "LEADERBOARD_FAILED", message: (error as Error).message });
-    }
-  });
+    },
+  );
 
   // Backward compatibility aliases.
-  socket.on("club_grant_credits", async (payload: { clubId: string; userId: string; amount: number; reason?: string }) => {
-    try {
-      if (!requireClubAuth()) return;
-      if (!isClubOwnerOrAdmin(payload.clubId, identity.userId)) {
-        socket.emit("club_error", { code: "GRANT_DENIED", message: "Only owner/admin can grant credits" });
-        return;
+  socket.on(
+    'club_grant_credits',
+    async (payload: { clubId: string; userId: string; amount: number; reason?: string }) => {
+      try {
+        if (!requireClubAuth()) return;
+        if (!isClubOwnerOrAdmin(payload.clubId, identity.userId)) {
+          socket.emit('club_error', {
+            code: 'GRANT_DENIED',
+            message: 'Only owner/admin can grant credits',
+          });
+          return;
+        }
+        if (!clubManager.isActiveMember(payload.clubId, payload.userId)) {
+          socket.emit('club_error', {
+            code: 'GRANT_DENIED',
+            message: 'Target is not an active member',
+          });
+          return;
+        }
+        const amount = Math.trunc(payload.amount);
+        if (amount <= 0) {
+          socket.emit('club_error', { code: 'GRANT_DENIED', message: 'Amount must be positive' });
+          return;
+        }
+        const tx = await appendWalletTx({
+          clubId: payload.clubId,
+          userId: payload.userId,
+          type: 'admin_grant',
+          amount,
+          currency: 'chips',
+          createdBy: identity.userId,
+          note: payload.reason ?? 'Legacy grant credits',
+          metaJson: { legacyEvent: 'club_grant_credits' },
+        });
+        await emitWalletBalanceToUser(payload.clubId, payload.userId, tx.newBalance, 'chips');
+        await emitClubDetail(socket.id, payload.clubId, identity.userId);
+      } catch (error) {
+        socket.emit('club_error', { code: 'GRANT_FAILED', message: (error as Error).message });
       }
-      if (!clubManager.isActiveMember(payload.clubId, payload.userId)) {
-        socket.emit("club_error", { code: "GRANT_DENIED", message: "Target is not an active member" });
-        return;
-      }
-      const amount = Math.trunc(payload.amount);
-      if (amount <= 0) {
-        socket.emit("club_error", { code: "GRANT_DENIED", message: "Amount must be positive" });
-        return;
-      }
-      const tx = await appendWalletTx({
-        clubId: payload.clubId,
-        userId: payload.userId,
-        type: "admin_grant",
-        amount,
-        currency: "chips",
-        createdBy: identity.userId,
-        note: payload.reason ?? "Legacy grant credits",
-        metaJson: { legacyEvent: "club_grant_credits" },
-      });
-      await emitWalletBalanceToUser(payload.clubId, payload.userId, tx.newBalance, "chips");
-      await emitClubDetail(socket.id, payload.clubId, identity.userId);
-    } catch (error) {
-      socket.emit("club_error", { code: "GRANT_FAILED", message: (error as Error).message });
-    }
-  });
+    },
+  );
 
-  socket.on("club_deduct_credits", async (payload: { clubId: string; userId: string; amount: number; reason?: string }) => {
-    try {
-      if (!requireClubAuth()) return;
-      if (!isClubOwnerOrAdmin(payload.clubId, identity.userId)) {
-        socket.emit("club_error", { code: "DEDUCT_DENIED", message: "Only owner/admin can deduct credits" });
-        return;
+  socket.on(
+    'club_deduct_credits',
+    async (payload: { clubId: string; userId: string; amount: number; reason?: string }) => {
+      try {
+        if (!requireClubAuth()) return;
+        if (!isClubOwnerOrAdmin(payload.clubId, identity.userId)) {
+          socket.emit('club_error', {
+            code: 'DEDUCT_DENIED',
+            message: 'Only owner/admin can deduct credits',
+          });
+          return;
+        }
+        if (!clubManager.isActiveMember(payload.clubId, payload.userId)) {
+          socket.emit('club_error', {
+            code: 'DEDUCT_DENIED',
+            message: 'Target is not an active member',
+          });
+          return;
+        }
+        const amount = Math.abs(Math.trunc(payload.amount));
+        if (amount <= 0) {
+          socket.emit('club_error', { code: 'DEDUCT_DENIED', message: 'Amount must be positive' });
+          return;
+        }
+        const currentBalance = await clubDataRepo.getWalletBalance(
+          payload.clubId,
+          payload.userId,
+          'chips',
+        );
+        if (currentBalance < amount) {
+          socket.emit('club_error', { code: 'DEDUCT_DENIED', message: 'Insufficient balance' });
+          return;
+        }
+        const tx = await appendWalletTx({
+          clubId: payload.clubId,
+          userId: payload.userId,
+          type: 'admin_deduct',
+          amount: -amount,
+          currency: 'chips',
+          createdBy: identity.userId,
+          note: payload.reason ?? 'Legacy deduct credits',
+          metaJson: { legacyEvent: 'club_deduct_credits' },
+        });
+        await emitWalletBalanceToUser(payload.clubId, payload.userId, tx.newBalance, 'chips');
+        await emitClubDetail(socket.id, payload.clubId, identity.userId);
+      } catch (error) {
+        socket.emit('club_error', { code: 'DEDUCT_FAILED', message: (error as Error).message });
       }
-      if (!clubManager.isActiveMember(payload.clubId, payload.userId)) {
-        socket.emit("club_error", { code: "DEDUCT_DENIED", message: "Target is not an active member" });
-        return;
-      }
-      const amount = Math.abs(Math.trunc(payload.amount));
-      if (amount <= 0) {
-        socket.emit("club_error", { code: "DEDUCT_DENIED", message: "Amount must be positive" });
-        return;
-      }
-      const currentBalance = await clubDataRepo.getWalletBalance(payload.clubId, payload.userId, "chips");
-      if (currentBalance < amount) {
-        socket.emit("club_error", { code: "DEDUCT_DENIED", message: "Insufficient balance" });
-        return;
-      }
-      const tx = await appendWalletTx({
-        clubId: payload.clubId,
-        userId: payload.userId,
-        type: "admin_deduct",
-        amount: -amount,
-        currency: "chips",
-        createdBy: identity.userId,
-        note: payload.reason ?? "Legacy deduct credits",
-        metaJson: { legacyEvent: "club_deduct_credits" },
-      });
-      await emitWalletBalanceToUser(payload.clubId, payload.userId, tx.newBalance, "chips");
-      await emitClubDetail(socket.id, payload.clubId, identity.userId);
-    } catch (error) {
-      socket.emit("club_error", { code: "DEDUCT_FAILED", message: (error as Error).message });
-    }
-  });
+    },
+  );
 
-  socket.on("club_request_addon", async (payload: { clubId: string; amount: number }) => {
+  socket.on('club_request_addon', async (payload: { clubId: string; amount: number }) => {
     try {
       if (!requireClubAuth()) return;
       if (!clubManager.isActiveMember(payload.clubId, identity.userId)) {
-        socket.emit("club_error", { code: "ADDON_DENIED", message: "Not a club member" });
+        socket.emit('club_error', { code: 'ADDON_DENIED', message: 'Not a club member' });
         return;
       }
 
@@ -6251,15 +7465,17 @@ io.on("connection", (socket) => {
         const tx = await appendWalletTx({
           clubId: payload.clubId,
           userId: identity.userId,
-          type: "admin_grant",
+          type: 'admin_grant',
           amount: Math.max(1, Math.trunc(payload.amount)),
-          currency: "chips",
+          currency: 'chips',
           createdBy: identity.userId,
-          note: "Self add-on",
+          note: 'Self add-on',
           metaJson: { addon: true },
         });
-        await emitWalletBalanceToUser(payload.clubId, identity.userId, tx.newBalance, "chips");
-        socket.emit("system_message", { message: `Add-on of ${payload.amount} credits auto-approved` });
+        await emitWalletBalanceToUser(payload.clubId, identity.userId, tx.newBalance, 'chips');
+        socket.emit('system_message', {
+          message: `Add-on of ${payload.amount} credits auto-approved`,
+        });
         await emitClubDetail(socket.id, payload.clubId, identity.userId);
         return;
       }
@@ -6268,8 +7484,8 @@ io.on("connection", (socket) => {
       if (!clubDetail) return;
       for (const [sid, ident] of socketIdentity.entries()) {
         const memberRole = clubManager.getMemberRole(payload.clubId, ident.userId);
-        if (memberRole === "owner" || memberRole === "admin") {
-          io.to(sid).emit("club_addon_request", {
+        if (memberRole === 'owner' || memberRole === 'admin') {
+          io.to(sid).emit('club_addon_request', {
             clubId: payload.clubId,
             userId: identity.userId,
             userName: identity.displayName,
@@ -6277,19 +7493,21 @@ io.on("connection", (socket) => {
           });
         }
       }
-      socket.emit("system_message", { message: `Add-on request of ${payload.amount} sent to club admins for approval` });
+      socket.emit('system_message', {
+        message: `Add-on request of ${payload.amount} sent to club admins for approval`,
+      });
     } catch (error) {
-      socket.emit("club_error", { code: "ADDON_FAILED", message: (error as Error).message });
+      socket.emit('club_error', { code: 'ADDON_FAILED', message: (error as Error).message });
     }
   });
 
   /* ═══════════ CHAT ═══════════ */
 
-  socket.on("chat_send", async (payload: ChatSendPayload) => {
+  socket.on('chat_send', async (payload: ChatSendPayload) => {
     try {
       if (!requireClubAuth()) return;
       if (!clubManager.isActiveMember(payload.clubId, identity.userId)) {
-        socket.emit("chat_error", { code: "CHAT_DENIED", message: "Not a club member" });
+        socket.emit('chat_error', { code: 'CHAT_DENIED', message: 'Not a club member' });
         return;
       }
       const clubDetail = clubManager.getClubDetail(payload.clubId, identity.userId);
@@ -6304,67 +7522,79 @@ io.on("connection", (socket) => {
         chatEnabled: moderation?.chatEnabled ?? true,
         profanityFilterEnabled: moderation?.profanityFilter ?? false,
       });
-      if ("error" in result) {
-        socket.emit("chat_error", { code: "CHAT_SEND_FAILED", message: result.error });
+      if ('error' in result) {
+        socket.emit('chat_error', { code: 'CHAT_SEND_FAILED', message: result.error });
         return;
       }
       // Broadcast to all club members
       for (const [sid, ident] of socketIdentity.entries()) {
         if (clubManager.isActiveMember(payload.clubId, ident.userId)) {
-          io.to(sid).emit("chat_message", { message: result.message });
+          io.to(sid).emit('chat_message', { message: result.message });
         }
       }
       // Send notifications for @mentions
       if (payload.mentions && payload.mentions.length > 0) {
-        const memberIds = clubDetail?.members.map(m => m.userId) ?? [];
-        const validMentions = payload.mentions.filter(id => memberIds.includes(id) && id !== identity.userId);
+        const memberIds = clubDetail?.members.map((m) => m.userId) ?? [];
+        const validMentions = payload.mentions.filter(
+          (id) => memberIds.includes(id) && id !== identity.userId,
+        );
         if (validMentions.length > 0) {
-          void notificationManager.notifyMany(validMentions.map(userId => ({
-            userId,
-            type: "chat_mention" as const,
-            clubId: payload.clubId,
-            title: `${identity.displayName} mentioned you`,
-            body: payload.content.slice(0, 100),
-            metadata: { messageId: result.message.id, senderDisplayName: identity.displayName },
-          })));
+          void notificationManager.notifyMany(
+            validMentions.map((userId) => ({
+              userId,
+              type: 'chat_mention' as const,
+              clubId: payload.clubId,
+              title: `${identity.displayName} mentioned you`,
+              body: payload.content.slice(0, 100),
+              metadata: { messageId: result.message.id, senderDisplayName: identity.displayName },
+            })),
+          );
         }
       }
     } catch (error) {
-      socket.emit("chat_error", { code: "CHAT_SEND_FAILED", message: (error as Error).message });
+      socket.emit('chat_error', { code: 'CHAT_SEND_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("chat_history", async (payload: ChatHistoryPayload) => {
+  socket.on('chat_history', async (payload: ChatHistoryPayload) => {
     try {
       if (!requireClubAuth()) return;
       if (!clubManager.isActiveMember(payload.clubId, identity.userId)) {
-        socket.emit("chat_error", { code: "CHAT_DENIED", message: "Not a club member" });
+        socket.emit('chat_error', { code: 'CHAT_DENIED', message: 'Not a club member' });
         return;
       }
-      const result = await chatManager.getHistory(payload.clubId, payload.tableId, payload.before, payload.limit);
-      socket.emit("chat_history_response", {
+      const result = await chatManager.getHistory(
+        payload.clubId,
+        payload.tableId,
+        payload.before,
+        payload.limit,
+      );
+      socket.emit('chat_history_response', {
         clubId: payload.clubId,
         tableId: payload.tableId ?? null,
         messages: result.messages,
         hasMore: result.hasMore,
       });
     } catch (error) {
-      socket.emit("chat_error", { code: "CHAT_HISTORY_FAILED", message: (error as Error).message });
+      socket.emit('chat_error', { code: 'CHAT_HISTORY_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("chat_delete", async (payload: ChatDeletePayload) => {
+  socket.on('chat_delete', async (payload: ChatDeletePayload) => {
     try {
       if (!requireClubAuth()) return;
       if (!isClubOwnerOrAdmin(payload.clubId, identity.userId)) {
-        socket.emit("chat_error", { code: "CHAT_DELETE_DENIED", message: "Only admin can delete messages" });
+        socket.emit('chat_error', {
+          code: 'CHAT_DELETE_DENIED',
+          message: 'Only admin can delete messages',
+        });
         return;
       }
       await chatManager.deleteMessage(payload.messageId, identity.userId);
       // Broadcast deletion to all club members
       for (const [sid, ident] of socketIdentity.entries()) {
         if (clubManager.isActiveMember(payload.clubId, ident.userId)) {
-          io.to(sid).emit("chat_message_deleted", {
+          io.to(sid).emit('chat_message_deleted', {
             clubId: payload.clubId,
             messageId: payload.messageId,
             deletedBy: identity.userId,
@@ -6372,69 +7602,97 @@ io.on("connection", (socket) => {
         }
       }
     } catch (error) {
-      socket.emit("chat_error", { code: "CHAT_DELETE_FAILED", message: (error as Error).message });
+      socket.emit('chat_error', { code: 'CHAT_DELETE_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("chat_mute", async (payload: ChatMutePayload) => {
+  socket.on('chat_mute', async (payload: ChatMutePayload) => {
     try {
       if (!requireClubAuth()) return;
       if (!isClubOwnerOrAdmin(payload.clubId, identity.userId)) {
-        socket.emit("chat_error", { code: "CHAT_MUTE_DENIED", message: "Only admin can mute users" });
+        socket.emit('chat_error', {
+          code: 'CHAT_MUTE_DENIED',
+          message: 'Only admin can mute users',
+        });
         return;
       }
-      const mute = await chatManager.muteUser(payload.clubId, payload.userId, identity.userId, payload.reason, payload.durationMinutes);
+      const mute = await chatManager.muteUser(
+        payload.clubId,
+        payload.userId,
+        identity.userId,
+        payload.reason,
+        payload.durationMinutes,
+      );
       // Notify the muted user
       for (const [sid, ident] of socketIdentity.entries()) {
         if (ident.userId === payload.userId) {
-          io.to(sid).emit("chat_mute_update", { clubId: payload.clubId, mute, userId: payload.userId });
+          io.to(sid).emit('chat_mute_update', {
+            clubId: payload.clubId,
+            mute,
+            userId: payload.userId,
+          });
         }
       }
     } catch (error) {
-      socket.emit("chat_error", { code: "CHAT_MUTE_FAILED", message: (error as Error).message });
+      socket.emit('chat_error', { code: 'CHAT_MUTE_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("chat_unmute", async (payload: ChatUnmutePayload) => {
+  socket.on('chat_unmute', async (payload: ChatUnmutePayload) => {
     try {
       if (!requireClubAuth()) return;
       if (!isClubOwnerOrAdmin(payload.clubId, identity.userId)) {
-        socket.emit("chat_error", { code: "CHAT_UNMUTE_DENIED", message: "Only admin can unmute users" });
+        socket.emit('chat_error', {
+          code: 'CHAT_UNMUTE_DENIED',
+          message: 'Only admin can unmute users',
+        });
         return;
       }
       await chatManager.unmuteUser(payload.clubId, payload.userId);
       for (const [sid, ident] of socketIdentity.entries()) {
         if (ident.userId === payload.userId) {
-          io.to(sid).emit("chat_mute_update", { clubId: payload.clubId, mute: null, userId: payload.userId });
+          io.to(sid).emit('chat_mute_update', {
+            clubId: payload.clubId,
+            mute: null,
+            userId: payload.userId,
+          });
         }
       }
     } catch (error) {
-      socket.emit("chat_error", { code: "CHAT_UNMUTE_FAILED", message: (error as Error).message });
+      socket.emit('chat_error', { code: 'CHAT_UNMUTE_FAILED', message: (error as Error).message });
     }
   });
 
-  socket.on("chat_mark_read", async (payload: ChatMarkReadPayload) => {
+  socket.on('chat_mark_read', async (payload: ChatMarkReadPayload) => {
     try {
       if (!requireClubAuth()) return;
-      await chatManager.markRead(payload.clubId, identity.userId, payload.tableId, payload.lastReadMessageId);
+      await chatManager.markRead(
+        payload.clubId,
+        identity.userId,
+        payload.tableId,
+        payload.lastReadMessageId,
+      );
     } catch (error) {
-      socket.emit("chat_error", { code: "CHAT_MARK_READ_FAILED", message: (error as Error).message });
+      socket.emit('chat_error', {
+        code: 'CHAT_MARK_READ_FAILED',
+        message: (error as Error).message,
+      });
     }
   });
 
-  socket.on("chat_get_unreads", async (payload: ChatGetUnreadsPayload) => {
+  socket.on('chat_get_unreads', async (payload: ChatGetUnreadsPayload) => {
     try {
       if (!requireClubAuth()) return;
       const unreads = await chatManager.getUnreads(payload.clubId, identity.userId);
-      socket.emit("chat_unreads", { unreads });
+      socket.emit('chat_unreads', { unreads });
     } catch (error) {
-      socket.emit("chat_error", { code: "CHAT_UNREADS_FAILED", message: (error as Error).message });
+      socket.emit('chat_error', { code: 'CHAT_UNREADS_FAILED', message: (error as Error).message });
     }
   });
 
   /* ═══════════ NOTIFICATIONS ═══════════ */
 
-  socket.on("notification_list", async (payload: NotificationListPayload) => {
+  socket.on('notification_list', async (payload: NotificationListPayload) => {
     try {
       if (!requireClubAuth()) return;
       const result = await notificationManager.list(identity.userId, {
@@ -6442,180 +7700,263 @@ io.on("connection", (socket) => {
         before: payload.before,
         unreadOnly: payload.unreadOnly,
       });
-      socket.emit("notification_list_response", {
+      socket.emit('notification_list_response', {
         notifications: result.notifications,
         hasMore: result.hasMore,
       });
     } catch (error) {
-      socket.emit("notification_error", { code: "NOTIFICATION_LIST_FAILED", message: (error as Error).message });
+      socket.emit('notification_error', {
+        code: 'NOTIFICATION_LIST_FAILED',
+        message: (error as Error).message,
+      });
     }
   });
 
-  socket.on("notification_mark_read", async (payload: NotificationMarkReadPayload) => {
+  socket.on('notification_mark_read', async (payload: NotificationMarkReadPayload) => {
     try {
       if (!requireClubAuth()) return;
       await notificationManager.markRead(identity.userId, payload.notificationIds);
     } catch (error) {
-      socket.emit("notification_error", { code: "NOTIFICATION_MARK_READ_FAILED", message: (error as Error).message });
+      socket.emit('notification_error', {
+        code: 'NOTIFICATION_MARK_READ_FAILED',
+        message: (error as Error).message,
+      });
     }
   });
 
-  socket.on("notification_mark_all_read", async (payload: NotificationMarkAllReadPayload) => {
+  socket.on('notification_mark_all_read', async (payload: NotificationMarkAllReadPayload) => {
     try {
       if (!requireClubAuth()) return;
       await notificationManager.markAllRead(identity.userId, payload.clubId);
     } catch (error) {
-      socket.emit("notification_error", { code: "NOTIFICATION_MARK_ALL_READ_FAILED", message: (error as Error).message });
+      socket.emit('notification_error', {
+        code: 'NOTIFICATION_MARK_ALL_READ_FAILED',
+        message: (error as Error).message,
+      });
     }
   });
 
-  socket.on("notification_get_unread_count", async () => {
+  socket.on('notification_get_unread_count', async () => {
     try {
       if (!requireClubAuth()) return;
       const count = await notificationManager.getUnreadCount(identity.userId);
-      socket.emit("notification_unread_count", { count });
+      socket.emit('notification_unread_count', { count });
     } catch (error) {
-      socket.emit("notification_error", { code: "NOTIFICATION_COUNT_FAILED", message: (error as Error).message });
+      socket.emit('notification_error', {
+        code: 'NOTIFICATION_COUNT_FAILED',
+        message: (error as Error).message,
+      });
     }
   });
 
-  socket.on("notification_update_prefs", async (payload: NotificationUpdatePrefsPayload) => {
+  socket.on('notification_update_prefs', async (payload: NotificationUpdatePrefsPayload) => {
     try {
       if (!requireClubAuth()) return;
       await notificationManager.updatePreferences(identity.userId, payload.preferences);
     } catch (error) {
-      socket.emit("notification_error", { code: "NOTIFICATION_PREFS_FAILED", message: (error as Error).message });
+      socket.emit('notification_error', {
+        code: 'NOTIFICATION_PREFS_FAILED',
+        message: (error as Error).message,
+      });
     }
   });
 
-  socket.on("notification_delete", async (payload: NotificationDeletePayload) => {
+  socket.on('notification_delete', async (payload: NotificationDeletePayload) => {
     try {
       if (!requireClubAuth()) return;
       await notificationManager.deleteNotifications(identity.userId, payload.notificationIds);
     } catch (error) {
-      socket.emit("notification_error", { code: "NOTIFICATION_DELETE_FAILED", message: (error as Error).message });
+      socket.emit('notification_error', {
+        code: 'NOTIFICATION_DELETE_FAILED',
+        message: (error as Error).message,
+      });
     }
   });
 
   /* ═══════════ ANALYTICS ═══════════ */
 
-  socket.on("club_analytics_get", async (payload: ClubAnalyticsGetPayload) => {
+  socket.on('club_analytics_get', async (payload: ClubAnalyticsGetPayload) => {
     try {
       const identity = socketIdentity.get(socket.id);
       if (!identity) {
-        socket.emit("club_analytics_error", { code: "AUTH_REQUIRED", message: "Not authenticated" });
+        socket.emit('club_analytics_error', {
+          code: 'AUTH_REQUIRED',
+          message: 'Not authenticated',
+        });
         return;
       }
       const userId = payload.userId ?? identity.userId;
-      const analytics = await analyticsRepo.getPlayerAnalytics(payload.clubId, userId, payload.timeRange);
-      socket.emit("club_analytics_response", { clubId: payload.clubId, userId, analytics });
+      const analytics = await analyticsRepo.getPlayerAnalytics(
+        payload.clubId,
+        userId,
+        payload.timeRange,
+      );
+      socket.emit('club_analytics_response', { clubId: payload.clubId, userId, analytics });
     } catch (error) {
-      socket.emit("club_analytics_error", { code: "ANALYTICS_FAILED", message: (error as Error).message });
+      socket.emit('club_analytics_error', {
+        code: 'ANALYTICS_FAILED',
+        message: (error as Error).message,
+      });
     }
   });
 
-  socket.on("club_profit_chart_get", async (payload: ClubProfitChartGetPayload) => {
+  socket.on('club_profit_chart_get', async (payload: ClubProfitChartGetPayload) => {
     try {
       const identity = socketIdentity.get(socket.id);
       if (!identity) {
-        socket.emit("club_analytics_error", { code: "AUTH_REQUIRED", message: "Not authenticated" });
+        socket.emit('club_analytics_error', {
+          code: 'AUTH_REQUIRED',
+          message: 'Not authenticated',
+        });
         return;
       }
       const userId = payload.userId ?? identity.userId;
       const data = await analyticsRepo.getProfitOverTime(payload.clubId, userId, payload.timeRange);
-      socket.emit("club_profit_chart_response", { clubId: payload.clubId, userId, data });
+      socket.emit('club_profit_chart_response', { clubId: payload.clubId, userId, data });
     } catch (error) {
-      socket.emit("club_analytics_error", { code: "PROFIT_CHART_FAILED", message: (error as Error).message });
+      socket.emit('club_analytics_error', {
+        code: 'PROFIT_CHART_FAILED',
+        message: (error as Error).message,
+      });
     }
   });
 
-  socket.on("club_hourly_heatmap_get", async (payload: ClubHourlyHeatmapGetPayload) => {
+  socket.on('club_hourly_heatmap_get', async (payload: ClubHourlyHeatmapGetPayload) => {
     try {
       const identity = socketIdentity.get(socket.id);
       if (!identity) {
-        socket.emit("club_analytics_error", { code: "AUTH_REQUIRED", message: "Not authenticated" });
+        socket.emit('club_analytics_error', {
+          code: 'AUTH_REQUIRED',
+          message: 'Not authenticated',
+        });
         return;
       }
       const userId = payload.userId ?? identity.userId;
       const data = await analyticsRepo.getHourlyHeatmap(payload.clubId, userId);
-      socket.emit("club_hourly_heatmap_response", { clubId: payload.clubId, userId, data });
+      socket.emit('club_hourly_heatmap_response', { clubId: payload.clubId, userId, data });
     } catch (error) {
-      socket.emit("club_analytics_error", { code: "HEATMAP_FAILED", message: (error as Error).message });
+      socket.emit('club_analytics_error', {
+        code: 'HEATMAP_FAILED',
+        message: (error as Error).message,
+      });
     }
   });
 
-  socket.on("club_overview_analytics_get", async (payload: ClubOverviewAnalyticsGetPayload) => {
+  socket.on('club_overview_analytics_get', async (payload: ClubOverviewAnalyticsGetPayload) => {
     try {
       const identity = socketIdentity.get(socket.id);
       if (!identity) {
-        socket.emit("club_analytics_error", { code: "AUTH_REQUIRED", message: "Not authenticated" });
+        socket.emit('club_analytics_error', {
+          code: 'AUTH_REQUIRED',
+          message: 'Not authenticated',
+        });
         return;
       }
       const overview = await analyticsRepo.getOverviewAnalytics(payload.clubId, payload.timeRange);
-      socket.emit("club_overview_analytics_response", { clubId: payload.clubId, overview });
+      socket.emit('club_overview_analytics_response', { clubId: payload.clubId, overview });
     } catch (error) {
-      socket.emit("club_analytics_error", { code: "OVERVIEW_FAILED", message: (error as Error).message });
+      socket.emit('club_analytics_error', {
+        code: 'OVERVIEW_FAILED',
+        message: (error as Error).message,
+      });
     }
   });
 
-  socket.on("club_active_players_trend_get", async (payload: ClubActivePlayersTrendGetPayload) => {
+  socket.on('club_active_players_trend_get', async (payload: ClubActivePlayersTrendGetPayload) => {
     try {
       const identity = socketIdentity.get(socket.id);
       if (!identity) {
-        socket.emit("club_analytics_error", { code: "AUTH_REQUIRED", message: "Not authenticated" });
+        socket.emit('club_analytics_error', {
+          code: 'AUTH_REQUIRED',
+          message: 'Not authenticated',
+        });
         return;
       }
       const data = await analyticsRepo.getActivePlayersTrend(payload.clubId, payload.timeRange);
-      socket.emit("club_active_players_trend_response", { clubId: payload.clubId, data });
+      socket.emit('club_active_players_trend_response', { clubId: payload.clubId, data });
     } catch (error) {
-      socket.emit("club_analytics_error", { code: "ACTIVE_TREND_FAILED", message: (error as Error).message });
+      socket.emit('club_analytics_error', {
+        code: 'ACTIVE_TREND_FAILED',
+        message: (error as Error).message,
+      });
     }
   });
 
-  socket.on("club_sessions_list", async (payload: ClubSessionsListPayload) => {
+  socket.on('club_sessions_list', async (payload: ClubSessionsListPayload) => {
     try {
       const identity = socketIdentity.get(socket.id);
       if (!identity) {
-        socket.emit("club_analytics_error", { code: "AUTH_REQUIRED", message: "Not authenticated" });
+        socket.emit('club_analytics_error', {
+          code: 'AUTH_REQUIRED',
+          message: 'Not authenticated',
+        });
         return;
       }
       const userId = payload.userId ?? identity.userId;
-      const result = await analyticsRepo.listSessions(payload.clubId, userId, payload.limit, payload.offset);
-      socket.emit("club_sessions_list_response", { clubId: payload.clubId, userId, sessions: result.sessions, hasMore: result.hasMore });
+      const result = await analyticsRepo.listSessions(
+        payload.clubId,
+        userId,
+        payload.limit,
+        payload.offset,
+      );
+      socket.emit('club_sessions_list_response', {
+        clubId: payload.clubId,
+        userId,
+        sessions: result.sessions,
+        hasMore: result.hasMore,
+      });
     } catch (error) {
-      socket.emit("club_analytics_error", { code: "SESSIONS_LIST_FAILED", message: (error as Error).message });
+      socket.emit('club_analytics_error', {
+        code: 'SESSIONS_LIST_FAILED',
+        message: (error as Error).message,
+      });
     }
   });
 
-  socket.on("club_export_data", async (payload: ClubExportDataPayload) => {
+  socket.on('club_export_data', async (payload: ClubExportDataPayload) => {
     try {
       const identity = socketIdentity.get(socket.id);
       if (!identity) {
-        socket.emit("club_analytics_error", { code: "AUTH_REQUIRED", message: "Not authenticated" });
+        socket.emit('club_analytics_error', {
+          code: 'AUTH_REQUIRED',
+          message: 'Not authenticated',
+        });
         return;
       }
-      let csvData = "";
+      let csvData = '';
       switch (payload.exportType) {
-        case "stats":
+        case 'stats':
           csvData = await analyticsRepo.exportPlayerStats(payload.clubId, payload.timeRange);
           break;
-        case "sessions":
-          csvData = await analyticsRepo.exportSessions(payload.clubId, identity.userId, payload.timeRange);
+        case 'sessions':
+          csvData = await analyticsRepo.exportSessions(
+            payload.clubId,
+            identity.userId,
+            payload.timeRange,
+          );
           break;
         default:
-          csvData = "";
+          csvData = '';
           break;
       }
       const fileName = `${payload.clubId}_${payload.exportType}_${new Date().toISOString().slice(0, 10)}.csv`;
-      socket.emit("club_export_data_response", { clubId: payload.clubId, exportType: payload.exportType, csvData, fileName });
+      socket.emit('club_export_data_response', {
+        clubId: payload.clubId,
+        exportType: payload.exportType,
+        csvData,
+        fileName,
+      });
     } catch (error) {
-      socket.emit("club_analytics_error", { code: "EXPORT_FAILED", message: (error as Error).message });
+      socket.emit('club_analytics_error', {
+        code: 'EXPORT_FAILED',
+        message: (error as Error).message,
+      });
     }
   });
 
   /* ═══════════ DISCONNECT ═══════════ */
 
-  socket.on("disconnect", async () => {
+  socket.on('disconnect', async () => {
     const binding = socketSeat.get(socket.id);
     if (binding) {
       const managed = roomManager.getRoom(binding.tableId);
@@ -6623,8 +7964,9 @@ io.on("connection", (socket) => {
 
       // Cache rejoin info for auto-restore on reconnect —
       // but NOT if the player explicitly requested to leave (pending stand-up / table leave)
-      const hasPendingLeave = pendingTableLeaves.get(binding.tableId)?.has(socket.id) ||
-                              pendingStandUps.get(binding.tableId)?.has(binding.seat);
+      const hasPendingLeave =
+        pendingTableLeaves.get(binding.tableId)?.has(socket.id) ||
+        pendingStandUps.get(binding.tableId)?.has(binding.seat);
       const roomCode = roomCodeForTable(binding.tableId);
       if (roomCode && !hasPendingLeave) {
         rejoinInfo.set(identity.userId, {
@@ -6634,43 +7976,52 @@ io.on("connection", (socket) => {
         });
       }
 
-      // If hand is active, use disconnect grace period instead of immediate removal
-      if (managed && table && table.isHandActive()) {
-        roomManager.startDisconnectGrace(
-          binding.tableId,
-          binding.seat,
-          identity.userId,
-          () => {
-            // Grace expired — auto-check/fold and remove player
-            const tbl = tables.get(binding.tableId);
-            if (tbl && tbl.isHandActive()) {
-              const state = tbl.getPublicState();
-              if (state.actorSeat === binding.seat) {
-                try {
-                  const { state: newState, action: timeoutAction } = tbl.handleTimeout(binding.seat);
-                  io.to(binding.tableId).emit("action_applied", {
-                    seat: binding.seat, action: timeoutAction, amount: 0,
-                    pot: newState.pot, auto: true,
-                  });
-                  handlePostAction(binding.tableId, tbl, newState);
-                } catch { /* already folded or hand ended */ }
+      // Fast-battle tables: skip standUpPlayer for bot sockets — pool manager handles lifecycle.
+      // Bot reconnects / pool room teardown are managed by FastBattlePoolManager.releaseRoom().
+      if (binding.tableId.startsWith('fb_') && identity.userId.startsWith('bot-')) {
+        // Just clean up the socket binding silently
+        socketSeat.delete(socket.id);
+      } else if (managed && table && table.isHandActive()) {
+        // If hand is active, use disconnect grace period instead of immediate removal
+        roomManager.startDisconnectGrace(binding.tableId, binding.seat, identity.userId, () => {
+          // Grace expired — auto-check/fold and remove player
+          const tbl = tables.get(binding.tableId);
+          if (tbl && tbl.isHandActive()) {
+            const state = tbl.getPublicState();
+            if (state.actorSeat === binding.seat) {
+              try {
+                const { state: newState, action: timeoutAction } = tbl.handleTimeout(binding.seat);
+                io.to(binding.tableId).emit('action_applied', {
+                  seat: binding.seat,
+                  action: timeoutAction,
+                  amount: 0,
+                  pot: newState.pot,
+                  auto: true,
+                });
+                handlePostAction(binding.tableId, tbl, newState);
+              } catch {
+                /* already folded or hand ended */
               }
             }
-            // Now remove the player (with club-wallet cash-out if applicable).
-            void standUpPlayer(binding.tableId, binding.seat, "Disconnected (grace expired)");
-            // Check room empty
-            maybeCheckRoomEmpty(binding.tableId, currentPlayerCount(binding.tableId));
-            debouncedLobbyBroadcast();
           }
-        );
+          // Now remove the player (with club-wallet cash-out if applicable).
+          void standUpPlayer(binding.tableId, binding.seat, 'Disconnected (grace expired)');
+          // Check room empty
+          maybeCheckRoomEmpty(binding.tableId, currentPlayerCount(binding.tableId));
+          debouncedLobbyBroadcast();
+        });
         // Mark disconnected in Supabase but keep seat for grace period
-        supabase.setDisconnected(binding.tableId, binding.seat).catch((e) => console.warn("disconnect: setDisconnected failed:", (e as Error).message));
+        supabase
+          .setDisconnected(binding.tableId, binding.seat)
+          .catch((e) => console.warn('disconnect: setDisconnected failed:', (e as Error).message));
         // Arm idle watchdog in case all players disconnect
         resetHandIdleWatchdog(binding.tableId);
       } else {
         // No active hand — remove player immediately
-        await standUpPlayer(binding.tableId, binding.seat, "Disconnected");
-        supabase.setDisconnected(binding.tableId, binding.seat).catch((e) => console.warn("disconnect: setDisconnected failed:", (e as Error).message));
+        await standUpPlayer(binding.tableId, binding.seat, 'Disconnected');
+        supabase
+          .setDisconnected(binding.tableId, binding.seat)
+          .catch((e) => console.warn('disconnect: setDisconnected failed:', (e as Error).message));
       }
 
       // Ownership transfer if disconnected player is the owner (exclude bots)
@@ -6683,13 +8034,17 @@ io.on("connection", (socket) => {
         roomManager.autoTransferOwnership(binding.tableId, onlinePlayers);
       }
 
-      supabase.touchRoom(binding.tableId, "OPEN").catch((e) => console.warn("disconnect: touchRoom failed:", (e as Error).message));
-      supabase.logEvent({
-        tableId: binding.tableId,
-        eventType: "SOCKET_DISCONNECT",
-        actorUserId: identity.userId,
-        payload: { seat: binding.seat }
-      }).catch((e) => console.warn("disconnect: logEvent failed:", (e as Error).message));
+      supabase
+        .touchRoom(binding.tableId, 'OPEN')
+        .catch((e) => console.warn('disconnect: touchRoom failed:', (e as Error).message));
+      supabase
+        .logEvent({
+          tableId: binding.tableId,
+          eventType: 'SOCKET_DISCONNECT',
+          actorUserId: identity.userId,
+          payload: { seat: binding.seat },
+        })
+        .catch((e) => console.warn('disconnect: logEvent failed:', (e as Error).message));
 
       socketSeat.delete(socket.id);
       touchLocalRoom(binding.tableId);
@@ -6699,6 +8054,11 @@ io.on("connection", (socket) => {
 
       debouncedLobbyBroadcast();
     }
+    // Clean up fast-battle session on disconnect
+    if (fastBattlePool?.isInFastBattle(identity.userId)) {
+      fastBattlePool.endSession(identity.userId, socket.id);
+    }
+
     socketIdentity.delete(socket.id);
   });
 });
@@ -6712,7 +8072,7 @@ async function gracefulShutdown(signal: NodeJS.Signals): Promise<void> {
   shutdownInProgress = true;
 
   logInfo({
-    event: "server.shutdown.start",
+    event: 'server.shutdown.start',
     message: signal,
     activeTables: tables.size,
     activeRooms: roomsByTableId.size,
@@ -6723,8 +8083,8 @@ async function gracefulShutdown(signal: NodeJS.Signals): Promise<void> {
   }
   forceExitTimer = setTimeout(() => {
     logError({
-      event: "server.shutdown.timeout",
-      message: "Forcing process exit after 12s timeout.",
+      event: 'server.shutdown.timeout',
+      message: 'Forcing process exit after 12s timeout.',
     });
     process.exit(1);
   }, 12_000);
@@ -6754,7 +8114,9 @@ async function gracefulShutdown(signal: NodeJS.Signals): Promise<void> {
     }
     clubLeaderboardRefreshTimers.clear();
 
-    await Promise.allSettled(tableIds.map((tableId) => closeRoomSessionIfOpen(tableId, "server_shutdown")));
+    await Promise.allSettled(
+      tableIds.map((tableId) => closeRoomSessionIfOpen(tableId, 'server_shutdown')),
+    );
 
     await new Promise<void>((resolve) => io.close(() => resolve()));
     await new Promise<void>((resolve, reject) => {
@@ -6772,7 +8134,7 @@ async function gracefulShutdown(signal: NodeJS.Signals): Promise<void> {
       forceExitTimer = null;
     }
 
-    logInfo({ event: "server.shutdown.complete" });
+    logInfo({ event: 'server.shutdown.complete' });
     process.exit(0);
   } catch (error) {
     if (forceExitTimer) {
@@ -6780,39 +8142,39 @@ async function gracefulShutdown(signal: NodeJS.Signals): Promise<void> {
       forceExitTimer = null;
     }
     logError({
-      event: "server.shutdown.failed",
+      event: 'server.shutdown.failed',
       message: (error as Error).message,
     });
     process.exit(1);
   }
 }
 
-for (const signal of ["SIGINT", "SIGTERM"] as const) {
+for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.on(signal, () => {
     void gracefulShutdown(signal);
   });
 }
 
-process.on("unhandledRejection", (reason) => {
+process.on('unhandledRejection', (reason) => {
   logError({
-    event: "process.unhandledRejection",
+    event: 'process.unhandledRejection',
     message: reason instanceof Error ? reason.message : String(reason),
     stack: reason instanceof Error ? reason.stack : undefined,
   });
 });
 
-process.on("uncaughtException", (error) => {
+process.on('uncaughtException', (error) => {
   logError({
-    event: "process.uncaughtException",
+    event: 'process.uncaughtException',
     message: error.message,
     stack: error.stack,
   });
-  void gracefulShutdown("SIGTERM" as NodeJS.Signals);
+  void gracefulShutdown('SIGTERM' as NodeJS.Signals);
 });
 
 httpServer.listen(port, () => {
   logInfo({
-    event: "server.started",
+    event: 'server.started',
     message: `http://localhost:${port}`,
     supabaseEnabled: supabase.enabled(),
     configVersion: runtimeConfig.version,

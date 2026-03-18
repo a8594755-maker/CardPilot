@@ -6,8 +6,8 @@
  * allowing the server to run in offline / dev mode.
  */
 
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { isOverBudget } from "./egress-budget";
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { isOverBudget } from './egress-budget';
 import type {
   Club,
   ClubMember,
@@ -16,7 +16,6 @@ import type {
   ClubTable,
   ClubTableConfig,
   ClubAuditLogEntry,
-  ClubWalletBalance,
   ClubWalletTransaction,
   ClubWalletTxType,
   ClubLeaderboardEntry,
@@ -27,9 +26,9 @@ import type {
   ClubVisibility,
   ClubTableStatus,
   ClubRules,
-} from "@cardpilot/shared-types";
-import { normalizeClubRole, DEFAULT_CLUB_TABLE_CONFIG } from "@cardpilot/shared-types";
-import { logInfo, logWarn } from "../logger";
+} from '@cardpilot/shared-types';
+import { normalizeClubRole, DEFAULT_CLUB_TABLE_CONFIG } from '@cardpilot/shared-types';
+import { logInfo, logWarn } from '../logger';
 
 // ── Row ↔ Domain mappers ──────────────────────────────────────────
 
@@ -38,9 +37,9 @@ function rowToClub(r: Record<string, unknown>): Club {
     id: String(r.id),
     code: String(r.code),
     name: String(r.name),
-    description: String(r.description ?? ""),
+    description: String(r.description ?? ''),
     ownerUserId: String(r.owner_user_id),
-    visibility: (r.visibility as ClubVisibility) ?? "private",
+    visibility: (r.visibility as ClubVisibility) ?? 'private',
     defaultRulesetId: r.default_ruleset_id ? String(r.default_ruleset_id) : null,
     isArchived: Boolean(r.is_archived),
     requireApprovalToJoin: Boolean(r.require_approval_to_join),
@@ -55,8 +54,8 @@ function rowToMember(r: Record<string, unknown>): ClubMember {
   return {
     clubId: String(r.club_id),
     userId: String(r.user_id),
-    role: normalizeClubRole(typeof r.role === "string" ? r.role : null),
-    status: (r.status as ClubMemberStatus) ?? "active",
+    role: normalizeClubRole(typeof r.role === 'string' ? r.role : null),
+    status: (r.status as ClubMemberStatus) ?? 'active',
     nicknameInClub: r.nickname_in_club ? String(r.nickname_in_club) : null,
     balance: Number(r.balance ?? 0),
     createdAt: String(r.created_at),
@@ -97,7 +96,7 @@ function rowToTable(r: Record<string, unknown>): ClubTable {
     clubId: String(r.club_id),
     name: String(r.name),
     config: (r.config_json as ClubTableConfig) ?? { ...DEFAULT_CLUB_TABLE_CONFIG },
-    status: (r.status as ClubTableStatus) ?? "open",
+    status: (r.status as ClubTableStatus) ?? 'open',
     createdBy: String(r.created_by),
     createdAt: String(r.created_at),
     handsPlayed: r.hands_played != null ? Number(r.hands_played) : undefined,
@@ -124,7 +123,7 @@ function rowToWalletTx(r: Record<string, unknown>): ClubWalletTransaction {
     userId: String(r.user_id),
     type: String(r.type) as ClubWalletTxType,
     amount: Number(r.amount ?? 0),
-    currency: String(r.currency ?? "chips"),
+    currency: String(r.currency ?? 'chips'),
     refType: r.ref_type ? String(r.ref_type) : null,
     refId: r.ref_id ? String(r.ref_id) : null,
     createdAt: String(r.created_at),
@@ -156,11 +155,11 @@ export interface AppendWalletTxResult {
 }
 
 function dayFromRange(range: ClubLeaderboardRange): string {
-  if (range === "all") {
-    return "1970-01-01";
+  if (range === 'all') {
+    return '1970-01-01';
   }
   const now = new Date();
-  const dayCount = range === "day" ? 1 : range === "month" ? 30 : 7;
+  const dayCount = range === 'day' ? 1 : range === 'month' ? 30 : 7;
   const from = new Date(now.getTime() - (dayCount - 1) * 24 * 60 * 60 * 1000);
   return from.toISOString().slice(0, 10);
 }
@@ -175,17 +174,17 @@ async function loadDisplayNames(
   if (uniqIds.length === 0) return names;
 
   const { data, error } = await db
-    .from("player_profiles")
-    .select("user_id, display_name")
-    .in("user_id", uniqIds);
+    .from('player_profiles')
+    .select('user_id, display_name')
+    .in('user_id', uniqIds);
   if (error) {
     logWarn({ event: warnEvent, message: error.message });
     return names;
   }
 
   for (const row of data ?? []) {
-    const userId = String((row as any).user_id ?? "");
-    const displayName = String((row as any).display_name ?? "");
+    const userId = String((row as any).user_id ?? '');
+    const displayName = String((row as any).display_name ?? '');
     if (!userId || !displayName) continue;
     names.set(userId, displayName);
   }
@@ -198,16 +197,17 @@ export class ClubRepo {
   private readonly db: SupabaseClient | null;
 
   constructor() {
-    const disabled = process.env.DISABLE_SUPABASE === "1";
+    const disabled = process.env.DISABLE_SUPABASE === '1';
     const url = disabled ? undefined : process.env.SUPABASE_URL;
     const serviceKey = disabled ? undefined : process.env.SUPABASE_SERVICE_ROLE_KEY;
-    this.db = url && serviceKey
-      ? createClient(url, serviceKey, { auth: { persistSession: false } })
-      : null;
+    this.db =
+      url && serviceKey ? createClient(url, serviceKey, { auth: { persistSession: false } }) : null;
 
     logInfo({
-      event: "club_repo.init",
-      message: this.db ? "ClubRepo connected to Supabase" : `ClubRepo running in offline mode${disabled ? " (DISABLED via env)" : " (no Supabase)"}`,
+      event: 'club_repo.init',
+      message: this.db
+        ? 'ClubRepo connected to Supabase'
+        : `ClubRepo running in offline mode${disabled ? ' (DISABLED via env)' : ' (no Supabase)'}`,
     });
   }
 
@@ -219,7 +219,7 @@ export class ClubRepo {
 
   async createClub(club: Club): Promise<void> {
     if (!this.db || isOverBudget()) return;
-    const { error } = await this.db.from("clubs").insert({
+    const { error } = await this.db.from('clubs').insert({
       id: club.id,
       code: club.code,
       name: club.name,
@@ -235,35 +235,44 @@ export class ClubRepo {
       updated_at: club.updatedAt,
     });
     if (error) {
-      logWarn({ event: "club_repo.createClub.failed", message: error.message });
+      logWarn({ event: 'club_repo.createClub.failed', message: error.message });
       throw new Error(`Failed to persist club: ${error.message}`);
     }
   }
 
   async updateClub(club: Club): Promise<void> {
     if (!this.db || isOverBudget()) return;
-    const { error } = await this.db.from("clubs").update({
-      name: club.name,
-      description: club.description,
-      visibility: club.visibility,
-      default_ruleset_id: club.defaultRulesetId,
-      is_archived: club.isArchived,
-      require_approval_to_join: club.requireApprovalToJoin,
-      badge_color: club.badgeColor,
-      logo_url: club.logoUrl,
-      updated_at: new Date().toISOString(),
-    }).eq("id", club.id);
+    const { error } = await this.db
+      .from('clubs')
+      .update({
+        name: club.name,
+        description: club.description,
+        visibility: club.visibility,
+        default_ruleset_id: club.defaultRulesetId,
+        is_archived: club.isArchived,
+        require_approval_to_join: club.requireApprovalToJoin,
+        badge_color: club.badgeColor,
+        logo_url: club.logoUrl,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', club.id);
     if (error) {
-      logWarn({ event: "club_repo.updateClub.failed", message: error.message });
+      logWarn({ event: 'club_repo.updateClub.failed', message: error.message });
       throw new Error(`Failed to update club: ${error.message}`);
     }
   }
 
   async fetchClubById(clubId: string): Promise<Club | null> {
     if (!this.db || isOverBudget()) return null;
-    const { data, error } = await this.db.from("clubs").select("id, code, name, description, owner_user_id, visibility, default_ruleset_id, is_archived, require_approval_to_join, badge_color, logo_url, created_at, updated_at").eq("id", clubId).maybeSingle();
+    const { data, error } = await this.db
+      .from('clubs')
+      .select(
+        'id, code, name, description, owner_user_id, visibility, default_ruleset_id, is_archived, require_approval_to_join, badge_color, logo_url, created_at, updated_at',
+      )
+      .eq('id', clubId)
+      .maybeSingle();
     if (error) {
-      logWarn({ event: "club_repo.fetchClubById.failed", message: error.message });
+      logWarn({ event: 'club_repo.fetchClubById.failed', message: error.message });
       throw new Error(`Failed to fetch club: ${error.message}`);
     }
     return data ? rowToClub(data) : null;
@@ -271,9 +280,15 @@ export class ClubRepo {
 
   async fetchClubByCode(code: string): Promise<Club | null> {
     if (!this.db || isOverBudget()) return null;
-    const { data, error } = await this.db.from("clubs").select("id, code, name, description, owner_user_id, visibility, default_ruleset_id, is_archived, require_approval_to_join, badge_color, logo_url, created_at, updated_at").eq("code", code.toUpperCase()).maybeSingle();
+    const { data, error } = await this.db
+      .from('clubs')
+      .select(
+        'id, code, name, description, owner_user_id, visibility, default_ruleset_id, is_archived, require_approval_to_join, badge_color, logo_url, created_at, updated_at',
+      )
+      .eq('code', code.toUpperCase())
+      .maybeSingle();
     if (error) {
-      logWarn({ event: "club_repo.fetchClubByCode.failed", message: error.message });
+      logWarn({ event: 'club_repo.fetchClubByCode.failed', message: error.message });
       throw new Error(`Failed to fetch club by code: ${error.message}`);
     }
     return data ? rowToClub(data) : null;
@@ -282,12 +297,12 @@ export class ClubRepo {
   async fetchClubsByUser(userId: string): Promise<Club[]> {
     if (!this.db || isOverBudget()) return [];
     const { data, error } = await this.db
-      .from("club_members")
-      .select("club_id, clubs(*)")
-      .eq("user_id", userId)
-      .eq("status", "active");
+      .from('club_members')
+      .select('club_id, clubs(*)')
+      .eq('user_id', userId)
+      .eq('status', 'active');
     if (error) {
-      logWarn({ event: "club_repo.fetchClubsByUser.failed", message: error.message });
+      logWarn({ event: 'club_repo.fetchClubsByUser.failed', message: error.message });
       throw new Error(`Failed to fetch user clubs: ${error.message}`);
     }
     return (data ?? [])
@@ -298,7 +313,10 @@ export class ClubRepo {
 
   async isCodeUnique(code: string): Promise<boolean> {
     if (!this.db || isOverBudget()) return true;
-    const { count, error } = await this.db.from("clubs").select("id", { count: "exact", head: true }).eq("code", code);
+    const { count, error } = await this.db
+      .from('clubs')
+      .select('id', { count: 'exact', head: true })
+      .eq('code', code);
     if (error) return true; // optimistic fallback
     return (count ?? 0) === 0;
   }
@@ -307,50 +325,69 @@ export class ClubRepo {
 
   async upsertMember(member: ClubMember): Promise<void> {
     if (!this.db || isOverBudget()) return;
-    const { error } = await this.db.from("club_members").upsert({
-      club_id: member.clubId,
-      user_id: member.userId,
-      role: member.role,
-      status: member.status,
-      nickname_in_club: member.nicknameInClub,
-      created_at: member.createdAt,
-      last_seen_at: member.lastSeenAt,
-    }, { onConflict: "club_id,user_id" });
+    const { error } = await this.db.from('club_members').upsert(
+      {
+        club_id: member.clubId,
+        user_id: member.userId,
+        role: member.role,
+        status: member.status,
+        nickname_in_club: member.nicknameInClub,
+        created_at: member.createdAt,
+        last_seen_at: member.lastSeenAt,
+      },
+      { onConflict: 'club_id,user_id' },
+    );
     if (error) {
-      logWarn({ event: "club_repo.upsertMember.failed", message: error.message });
+      logWarn({ event: 'club_repo.upsertMember.failed', message: error.message });
       throw new Error(`Failed to persist member: ${error.message}`);
     }
   }
 
-  async updateMemberStatus(clubId: string, userId: string, status: ClubMemberStatus): Promise<void> {
+  async updateMemberStatus(
+    clubId: string,
+    userId: string,
+    status: ClubMemberStatus,
+  ): Promise<void> {
     if (!this.db || isOverBudget()) return;
-    const { error } = await this.db.from("club_members").update({
-      status,
-      last_seen_at: new Date().toISOString(),
-    }).eq("club_id", clubId).eq("user_id", userId);
+    const { error } = await this.db
+      .from('club_members')
+      .update({
+        status,
+        last_seen_at: new Date().toISOString(),
+      })
+      .eq('club_id', clubId)
+      .eq('user_id', userId);
     if (error) {
-      logWarn({ event: "club_repo.updateMemberStatus.failed", message: error.message });
+      logWarn({ event: 'club_repo.updateMemberStatus.failed', message: error.message });
       throw new Error(`Failed to update member status: ${error.message}`);
     }
   }
 
   async updateMemberRole(clubId: string, userId: string, role: ClubRole): Promise<void> {
     if (!this.db || isOverBudget()) return;
-    const { error } = await this.db.from("club_members").update({
-      role,
-      last_seen_at: new Date().toISOString(),
-    }).eq("club_id", clubId).eq("user_id", userId);
+    const { error } = await this.db
+      .from('club_members')
+      .update({
+        role,
+        last_seen_at: new Date().toISOString(),
+      })
+      .eq('club_id', clubId)
+      .eq('user_id', userId);
     if (error) {
-      logWarn({ event: "club_repo.updateMemberRole.failed", message: error.message });
+      logWarn({ event: 'club_repo.updateMemberRole.failed', message: error.message });
       throw new Error(`Failed to update member role: ${error.message}`);
     }
   }
 
   async deleteMember(clubId: string, userId: string): Promise<void> {
     if (!this.db || isOverBudget()) return;
-    const { error } = await this.db.from("club_members").delete().eq("club_id", clubId).eq("user_id", userId);
+    const { error } = await this.db
+      .from('club_members')
+      .delete()
+      .eq('club_id', clubId)
+      .eq('user_id', userId);
     if (error) {
-      logWarn({ event: "club_repo.deleteMember.failed", message: error.message });
+      logWarn({ event: 'club_repo.deleteMember.failed', message: error.message });
       throw new Error(`Failed to delete member: ${error.message}`);
     }
   }
@@ -358,18 +395,18 @@ export class ClubRepo {
   async fetchMembers(clubId: string): Promise<ClubMember[]> {
     if (!this.db || isOverBudget()) return [];
     const { data, error } = await this.db
-      .from("club_members")
-      .select("club_id, user_id, role, status, nickname_in_club, created_at, last_seen_at")
-      .eq("club_id", clubId);
+      .from('club_members')
+      .select('club_id, user_id, role, status, nickname_in_club, created_at, last_seen_at')
+      .eq('club_id', clubId);
     if (error) {
-      logWarn({ event: "club_repo.fetchMembers.failed", message: error.message });
+      logWarn({ event: 'club_repo.fetchMembers.failed', message: error.message });
       throw new Error(`Failed to fetch members: ${error.message}`);
     }
     const members = (data ?? []).map((row: any) => rowToMember(row));
     const displayNames = await loadDisplayNames(
       this.db,
       members.map((member) => member.userId),
-      "club_repo.fetchMembers.player_profiles.failed",
+      'club_repo.fetchMembers.player_profiles.failed',
     );
 
     for (const member of members) {
@@ -382,13 +419,13 @@ export class ClubRepo {
   async fetchMember(clubId: string, userId: string): Promise<ClubMember | null> {
     if (!this.db || isOverBudget()) return null;
     const { data, error } = await this.db
-      .from("club_members")
-      .select("club_id, user_id, role, status, nickname_in_club, created_at, last_seen_at")
-      .eq("club_id", clubId)
-      .eq("user_id", userId)
+      .from('club_members')
+      .select('club_id, user_id, role, status, nickname_in_club, created_at, last_seen_at')
+      .eq('club_id', clubId)
+      .eq('user_id', userId)
       .maybeSingle();
     if (error) {
-      logWarn({ event: "club_repo.fetchMember.failed", message: error.message });
+      logWarn({ event: 'club_repo.fetchMember.failed', message: error.message });
       throw new Error(`Failed to fetch member: ${error.message}`);
     }
     return data ? rowToMember(data) : null;
@@ -396,16 +433,20 @@ export class ClubRepo {
 
   async touchMemberLastSeen(clubId: string, userId: string): Promise<void> {
     if (!this.db || isOverBudget()) return;
-    await this.db.from("club_members").update({
-      last_seen_at: new Date().toISOString(),
-    }).eq("club_id", clubId).eq("user_id", userId);
+    await this.db
+      .from('club_members')
+      .update({
+        last_seen_at: new Date().toISOString(),
+      })
+      .eq('club_id', clubId)
+      .eq('user_id', userId);
   }
 
   // ═══════════════ INVITES ═══════════════
 
   async createInvite(invite: ClubInvite): Promise<void> {
     if (!this.db || isOverBudget()) return;
-    const { error } = await this.db.from("club_invites").insert({
+    const { error } = await this.db.from('club_invites').insert({
       id: invite.id,
       club_id: invite.clubId,
       invite_code: invite.inviteCode,
@@ -417,38 +458,43 @@ export class ClubRepo {
       created_at: invite.createdAt,
     });
     if (error) {
-      logWarn({ event: "club_repo.createInvite.failed", message: error.message });
+      logWarn({ event: 'club_repo.createInvite.failed', message: error.message });
       throw new Error(`Failed to create invite: ${error.message}`);
     }
   }
 
   async revokeInvite(inviteId: string): Promise<void> {
     if (!this.db || isOverBudget()) return;
-    const { error } = await this.db.from("club_invites").update({ revoked: true }).eq("id", inviteId);
+    const { error } = await this.db
+      .from('club_invites')
+      .update({ revoked: true })
+      .eq('id', inviteId);
     if (error) {
-      logWarn({ event: "club_repo.revokeInvite.failed", message: error.message });
+      logWarn({ event: 'club_repo.revokeInvite.failed', message: error.message });
       throw new Error(`Failed to revoke invite: ${error.message}`);
     }
   }
 
   async incrementInviteUses(inviteId: string): Promise<void> {
     if (!this.db || isOverBudget()) return;
-    const { error } = await this.db.rpc("increment_invite_uses", { p_invite_id: inviteId });
+    const { error } = await this.db.rpc('increment_invite_uses', { p_invite_id: inviteId });
     if (error) {
-      logWarn({ event: "club_repo.incrementInviteUses.failed", message: error.message });
+      logWarn({ event: 'club_repo.incrementInviteUses.failed', message: error.message });
     }
   }
 
   async fetchInvites(clubId: string): Promise<ClubInvite[]> {
     if (!this.db || isOverBudget()) return [];
     const { data, error } = await this.db
-      .from("club_invites")
-      .select("id, club_id, invite_code, created_by, expires_at, max_uses, uses_count, revoked, created_at")
-      .eq("club_id", clubId)
-      .eq("revoked", false)
-      .order("created_at", { ascending: false });
+      .from('club_invites')
+      .select(
+        'id, club_id, invite_code, created_by, expires_at, max_uses, uses_count, revoked, created_at',
+      )
+      .eq('club_id', clubId)
+      .eq('revoked', false)
+      .order('created_at', { ascending: false });
     if (error) {
-      logWarn({ event: "club_repo.fetchInvites.failed", message: error.message });
+      logWarn({ event: 'club_repo.fetchInvites.failed', message: error.message });
       throw new Error(`Failed to fetch invites: ${error.message}`);
     }
     return (data ?? []).map(rowToInvite);
@@ -457,13 +503,15 @@ export class ClubRepo {
   async fetchInviteByCode(inviteCode: string): Promise<ClubInvite | null> {
     if (!this.db || isOverBudget()) return null;
     const { data, error } = await this.db
-      .from("club_invites")
-      .select("id, club_id, invite_code, created_by, expires_at, max_uses, uses_count, revoked, created_at")
-      .eq("invite_code", inviteCode)
-      .eq("revoked", false)
+      .from('club_invites')
+      .select(
+        'id, club_id, invite_code, created_by, expires_at, max_uses, uses_count, revoked, created_at',
+      )
+      .eq('invite_code', inviteCode)
+      .eq('revoked', false)
       .maybeSingle();
     if (error) {
-      logWarn({ event: "club_repo.fetchInviteByCode.failed", message: error.message });
+      logWarn({ event: 'club_repo.fetchInviteByCode.failed', message: error.message });
       throw new Error(`Failed to fetch invite: ${error.message}`);
     }
     return data ? rowToInvite(data) : null;
@@ -471,7 +519,10 @@ export class ClubRepo {
 
   async isInviteCodeUnique(code: string): Promise<boolean> {
     if (!this.db || isOverBudget()) return true;
-    const { count, error } = await this.db.from("club_invites").select("id", { count: "exact", head: true }).eq("invite_code", code);
+    const { count, error } = await this.db
+      .from('club_invites')
+      .select('id', { count: 'exact', head: true })
+      .eq('invite_code', code);
     if (error) return true;
     return (count ?? 0) === 0;
   }
@@ -480,7 +531,7 @@ export class ClubRepo {
 
   async createRuleset(rs: ClubRuleset): Promise<void> {
     if (!this.db || isOverBudget()) return;
-    const { error } = await this.db.from("club_rulesets").insert({
+    const { error } = await this.db.from('club_rulesets').insert({
       id: rs.id,
       club_id: rs.clubId,
       name: rs.name,
@@ -490,29 +541,35 @@ export class ClubRepo {
       created_at: rs.createdAt,
     });
     if (error) {
-      logWarn({ event: "club_repo.createRuleset.failed", message: error.message });
+      logWarn({ event: 'club_repo.createRuleset.failed', message: error.message });
       throw new Error(`Failed to create ruleset: ${error.message}`);
     }
   }
 
   async updateRuleset(rs: ClubRuleset): Promise<void> {
     if (!this.db || isOverBudget()) return;
-    const { error } = await this.db.from("club_rulesets").update({
-      name: rs.name,
-      rules_json: rs.rulesJson,
-      is_default: rs.isDefault,
-    }).eq("id", rs.id);
+    const { error } = await this.db
+      .from('club_rulesets')
+      .update({
+        name: rs.name,
+        rules_json: rs.rulesJson,
+        is_default: rs.isDefault,
+      })
+      .eq('id', rs.id);
     if (error) {
-      logWarn({ event: "club_repo.updateRuleset.failed", message: error.message });
+      logWarn({ event: 'club_repo.updateRuleset.failed', message: error.message });
       throw new Error(`Failed to update ruleset: ${error.message}`);
     }
   }
 
   async clearDefaultRuleset(clubId: string): Promise<void> {
     if (!this.db || isOverBudget()) return;
-    const { error } = await this.db.from("club_rulesets").update({ is_default: false }).eq("club_id", clubId);
+    const { error } = await this.db
+      .from('club_rulesets')
+      .update({ is_default: false })
+      .eq('club_id', clubId);
     if (error) {
-      logWarn({ event: "club_repo.clearDefaultRuleset.failed", message: error.message });
+      logWarn({ event: 'club_repo.clearDefaultRuleset.failed', message: error.message });
       throw new Error(`Failed to clear default ruleset: ${error.message}`);
     }
   }
@@ -520,12 +577,12 @@ export class ClubRepo {
   async fetchRulesets(clubId: string): Promise<ClubRuleset[]> {
     if (!this.db || isOverBudget()) return [];
     const { data, error } = await this.db
-      .from("club_rulesets")
-      .select("id, club_id, name, rules_json, created_by, is_default, created_at")
-      .eq("club_id", clubId)
-      .order("created_at", { ascending: false });
+      .from('club_rulesets')
+      .select('id, club_id, name, rules_json, created_by, is_default, created_at')
+      .eq('club_id', clubId)
+      .order('created_at', { ascending: false });
     if (error) {
-      logWarn({ event: "club_repo.fetchRulesets.failed", message: error.message });
+      logWarn({ event: 'club_repo.fetchRulesets.failed', message: error.message });
       throw new Error(`Failed to fetch rulesets: ${error.message}`);
     }
     return (data ?? []).map(rowToRuleset);
@@ -535,7 +592,7 @@ export class ClubRepo {
 
   async createTable(ct: ClubTable): Promise<void> {
     if (!this.db || isOverBudget()) return;
-    const { error } = await this.db.from("club_tables").insert({
+    const { error } = await this.db.from('club_tables').insert({
       id: ct.id,
       club_id: ct.clubId,
       name: ct.name,
@@ -548,29 +605,32 @@ export class ClubRepo {
       finished_at: ct.finishedAt ?? null,
     });
     if (error) {
-      logWarn({ event: "club_repo.createTable.failed", message: error.message });
+      logWarn({ event: 'club_repo.createTable.failed', message: error.message });
       throw new Error(`Failed to create table: ${error.message}`);
     }
   }
 
   async updateTableStatus(clubTableId: string, status: ClubTableStatus): Promise<void> {
     if (!this.db || isOverBudget()) return;
-    const { error } = await this.db.from("club_tables").update({ status }).eq("id", clubTableId);
+    const { error } = await this.db.from('club_tables').update({ status }).eq('id', clubTableId);
     if (error) {
-      logWarn({ event: "club_repo.updateTableStatus.failed", message: error.message });
+      logWarn({ event: 'club_repo.updateTableStatus.failed', message: error.message });
       throw new Error(`Failed to update table status: ${error.message}`);
     }
   }
 
-  async updateTable(clubTableId: string, updates: { name?: string; config?: ClubTableConfig }): Promise<void> {
+  async updateTable(
+    clubTableId: string,
+    updates: { name?: string; config?: ClubTableConfig },
+  ): Promise<void> {
     if (!this.db || isOverBudget()) return;
     const payload: Record<string, unknown> = {};
     if (updates.name !== undefined) payload.name = updates.name;
     if (updates.config !== undefined) payload.config_json = updates.config;
     if (Object.keys(payload).length === 0) return;
-    const { error } = await this.db.from("club_tables").update(payload).eq("id", clubTableId);
+    const { error } = await this.db.from('club_tables').update(payload).eq('id', clubTableId);
     if (error) {
-      logWarn({ event: "club_repo.updateTable.failed", message: error.message });
+      logWarn({ event: 'club_repo.updateTable.failed', message: error.message });
       throw new Error(`Failed to update table: ${error.message}`);
     }
   }
@@ -578,13 +638,15 @@ export class ClubRepo {
   async fetchTables(clubId: string): Promise<ClubTable[]> {
     if (!this.db || isOverBudget()) return [];
     const { data, error } = await this.db
-      .from("club_tables")
-      .select("id, club_id, name, config_json, status, created_by, created_at, hands_played, started_at, finished_at")
-      .eq("club_id", clubId)
-      .neq("status", "closed")
-      .order("created_at", { ascending: false });
+      .from('club_tables')
+      .select(
+        'id, club_id, name, config_json, status, created_by, created_at, hands_played, started_at, finished_at',
+      )
+      .eq('club_id', clubId)
+      .neq('status', 'closed')
+      .order('created_at', { ascending: false });
     if (error) {
-      logWarn({ event: "club_repo.fetchTables.failed", message: error.message });
+      logWarn({ event: 'club_repo.fetchTables.failed', message: error.message });
       throw new Error(`Failed to fetch tables: ${error.message}`);
     }
     return (data ?? []).map(rowToTable);
@@ -592,32 +654,42 @@ export class ClubRepo {
 
   async incrementHandsPlayed(clubTableId: string, handsPlayed: number): Promise<void> {
     if (!this.db || isOverBudget()) return;
-    const { error } = await this.db.from("club_tables").update({
-      hands_played: handsPlayed,
-      started_at: new Date().toISOString(),
-    }).eq("id", clubTableId);
+    const { error } = await this.db
+      .from('club_tables')
+      .update({
+        hands_played: handsPlayed,
+        started_at: new Date().toISOString(),
+      })
+      .eq('id', clubTableId);
     if (error) {
-      logWarn({ event: "club_repo.incrementHandsPlayed.failed", message: error.message });
+      logWarn({ event: 'club_repo.incrementHandsPlayed.failed', message: error.message });
     }
   }
 
-  async updateTableFinished(clubTableId: string, finishedAt: string, handsPlayed: number): Promise<void> {
+  async updateTableFinished(
+    clubTableId: string,
+    finishedAt: string,
+    handsPlayed: number,
+  ): Promise<void> {
     if (!this.db || isOverBudget()) return;
-    const { error } = await this.db.from("club_tables").update({
-      status: "finished",
-      finished_at: finishedAt,
-      hands_played: handsPlayed,
-    }).eq("id", clubTableId);
+    const { error } = await this.db
+      .from('club_tables')
+      .update({
+        status: 'finished',
+        finished_at: finishedAt,
+        hands_played: handsPlayed,
+      })
+      .eq('id', clubTableId);
     if (error) {
-      logWarn({ event: "club_repo.updateTableFinished.failed", message: error.message });
+      logWarn({ event: 'club_repo.updateTableFinished.failed', message: error.message });
     }
   }
 
   // ═══════════════ AUDIT LOG ═══════════════
 
-  async appendAudit(entry: Omit<ClubAuditLogEntry, "id">): Promise<void> {
+  async appendAudit(entry: Omit<ClubAuditLogEntry, 'id'>): Promise<void> {
     if (!this.db || isOverBudget()) return;
-    const { error } = await this.db.from("club_audit_log").insert({
+    const { error } = await this.db.from('club_audit_log').insert({
       club_id: entry.clubId,
       actor_user_id: entry.actorUserId,
       action_type: entry.actionType,
@@ -625,20 +697,20 @@ export class ClubRepo {
       created_at: entry.createdAt,
     });
     if (error) {
-      logWarn({ event: "club_repo.appendAudit.failed", message: error.message });
+      logWarn({ event: 'club_repo.appendAudit.failed', message: error.message });
     }
   }
 
   async fetchAuditLog(clubId: string, limit = 100): Promise<ClubAuditLogEntry[]> {
     if (!this.db || isOverBudget()) return [];
     const { data, error } = await this.db
-      .from("club_audit_log")
-      .select("id, club_id, actor_user_id, action_type, payload_json, created_at")
-      .eq("club_id", clubId)
-      .order("created_at", { ascending: false })
+      .from('club_audit_log')
+      .select('id, club_id, actor_user_id, action_type, payload_json, created_at')
+      .eq('club_id', clubId)
+      .order('created_at', { ascending: false })
       .limit(limit);
     if (error) {
-      logWarn({ event: "club_repo.fetchAuditLog.failed", message: error.message });
+      logWarn({ event: 'club_repo.fetchAuditLog.failed', message: error.message });
       throw new Error(`Failed to fetch audit log: ${error.message}`);
     }
     return (data ?? []).map(rowToAudit);
@@ -654,7 +726,7 @@ export class ClubRepo {
       userId,
       type,
       amount,
-      currency = "chips",
+      currency = 'chips',
       refType = null,
       refId = null,
       createdBy = null,
@@ -665,10 +737,11 @@ export class ClubRepo {
 
     const MAX_RPC_RETRIES = 3;
     const BASE_DELAY_MS = 300;
-    let lastRpcError: { message?: string; details?: string; hint?: string; code?: string } | null = null;
+    let lastRpcError: { message?: string; details?: string; hint?: string; code?: string } | null =
+      null;
 
     for (let attempt = 0; attempt < MAX_RPC_RETRIES; attempt++) {
-      const { data, error } = await this.db.rpc("club_wallet_append_tx", {
+      const { data, error } = await this.db.rpc('club_wallet_append_tx', {
         _club_id: clubId,
         _user_id: userId,
         _type: type,
@@ -685,7 +758,10 @@ export class ClubRepo {
       if (!error) {
         const row = Array.isArray(data) ? data[0] : null;
         if (!row?.tx_id) {
-          logWarn({ event: "club_repo.appendWalletTx.invalid_response", message: "Missing tx_id from RPC" });
+          logWarn({
+            event: 'club_repo.appendWalletTx.invalid_response',
+            message: 'Missing tx_id from RPC',
+          });
           return null;
         }
 
@@ -694,18 +770,34 @@ export class ClubRepo {
         const wasDuplicate = Boolean(row.was_duplicate ?? false);
 
         const { data: txRow, error: txError } = await this.db
-          .from("club_wallet_transactions")
-          .select("id, club_id, user_id, type, amount, currency, ref_type, ref_id, created_at, created_by, note, meta_json, idempotency_key")
-          .eq("id", txId)
+          .from('club_wallet_transactions')
+          .select(
+            'id, club_id, user_id, type, amount, currency, ref_type, ref_id, created_at, created_by, note, meta_json, idempotency_key',
+          )
+          .eq('id', txId)
           .maybeSingle();
 
         if (txError || !txRow) {
           if (txError) {
-            logWarn({ event: "club_repo.appendWalletTx.fetch_tx_failed", message: txError.message });
+            logWarn({
+              event: 'club_repo.appendWalletTx.fetch_tx_failed',
+              message: txError.message,
+            });
           }
           const fallbackTx: ClubWalletTransaction = {
-            id: txId, clubId, userId, type, amount, currency, refType, refId,
-            createdAt: new Date().toISOString(), createdBy, note, metaJson, idempotencyKey,
+            id: txId,
+            clubId,
+            userId,
+            type,
+            amount,
+            currency,
+            refType,
+            refId,
+            createdAt: new Date().toISOString(),
+            createdBy,
+            note,
+            metaJson,
+            idempotencyKey,
           };
           return { tx: fallbackTx, newBalance, wasDuplicate };
         }
@@ -715,43 +807,54 @@ export class ClubRepo {
 
       lastRpcError = error;
       logWarn({
-        event: "club_repo.appendWalletTx.rpc_retry",
+        event: 'club_repo.appendWalletTx.rpc_retry',
         attempt: attempt + 1,
         maxRetries: MAX_RPC_RETRIES,
         message: error.message,
         code: error.code,
-        clubId, userId, type, amount,
+        clubId,
+        userId,
+        type,
+        amount,
       });
 
       if (attempt < MAX_RPC_RETRIES - 1) {
         const delay = BASE_DELAY_MS * Math.pow(2, attempt);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
         continue;
       }
     }
 
     // All retries exhausted — fall back to manual method
     logWarn({
-      event: "club_repo.appendWalletTx.rpc_failed",
+      event: 'club_repo.appendWalletTx.rpc_failed',
       message: lastRpcError?.message,
       details: lastRpcError?.details,
       hint: lastRpcError?.hint,
       code: lastRpcError?.code,
-      clubId, userId, type, amount,
+      clubId,
+      userId,
+      type,
+      amount,
     });
     try {
       const fallback = await this.appendWalletTxManual(input);
       if (fallback) {
-        logInfo({ event: "club_repo.appendWalletTx.fallback_ok", clubId, userId, type, amount });
+        logInfo({ event: 'club_repo.appendWalletTx.fallback_ok', clubId, userId, type, amount });
       }
       return fallback;
     } catch (manualErr) {
-      logWarn({ event: "club_repo.appendWalletTx.fallback_failed", message: (manualErr as Error).message });
+      logWarn({
+        event: 'club_repo.appendWalletTx.fallback_failed',
+        message: (manualErr as Error).message,
+      });
       throw manualErr;
     }
   }
 
-  private async appendWalletTxManual(input: AppendWalletTxInput): Promise<AppendWalletTxResult | null> {
+  private async appendWalletTxManual(
+    input: AppendWalletTxInput,
+  ): Promise<AppendWalletTxResult | null> {
     if (!this.db || isOverBudget()) return null;
 
     const {
@@ -759,7 +862,7 @@ export class ClubRepo {
       userId,
       type,
       amount,
-      currency = "chips",
+      currency = 'chips',
       refType = null,
       refId = null,
       createdBy = null,
@@ -772,21 +875,21 @@ export class ClubRepo {
     // Idempotency check
     if (input.idempotencyKey) {
       const { data: existing } = await this.db
-        .from("club_wallet_transactions")
-        .select("id, created_at")
-        .eq("club_id", clubId)
-        .eq("user_id", userId)
-        .eq("currency", currency)
-        .eq("idempotency_key", input.idempotencyKey)
+        .from('club_wallet_transactions')
+        .select('id, created_at')
+        .eq('club_id', clubId)
+        .eq('user_id', userId)
+        .eq('currency', currency)
+        .eq('idempotency_key', input.idempotencyKey)
         .maybeSingle();
 
       if (existing) {
         const { data: balanceData } = await this.db
-          .from("club_wallet_accounts")
-          .select("current_balance")
-          .eq("club_id", clubId)
-          .eq("user_id", userId)
-          .eq("currency", currency)
+          .from('club_wallet_accounts')
+          .select('current_balance')
+          .eq('club_id', clubId)
+          .eq('user_id', userId)
+          .eq('currency', currency)
           .maybeSingle();
 
         return {
@@ -798,25 +901,29 @@ export class ClubRepo {
     }
 
     // Step 1: Ensure wallet account row exists and check balance for debits
-    await this.db
-      .from("club_wallet_accounts")
-      .upsert(
-        { club_id: clubId, user_id: userId, currency, current_balance: 0, updated_at: new Date().toISOString() },
-        { onConflict: "club_id,user_id,currency", ignoreDuplicates: true },
-      );
+    await this.db.from('club_wallet_accounts').upsert(
+      {
+        club_id: clubId,
+        user_id: userId,
+        currency,
+        current_balance: 0,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'club_id,user_id,currency', ignoreDuplicates: true },
+    );
 
     if (truncatedAmount < 0) {
       const { data: balCheck } = await this.db
-        .from("club_wallet_accounts")
-        .select("current_balance")
-        .eq("club_id", clubId)
-        .eq("user_id", userId)
-        .eq("currency", currency)
+        .from('club_wallet_accounts')
+        .select('current_balance')
+        .eq('club_id', clubId)
+        .eq('user_id', userId)
+        .eq('currency', currency)
         .maybeSingle();
 
       const curBal = Number(balCheck?.current_balance ?? 0);
       if (curBal + truncatedAmount < 0) {
-        throw new Error("insufficient_wallet_balance");
+        throw new Error('insufficient_wallet_balance');
       }
     }
 
@@ -836,59 +943,75 @@ export class ClubRepo {
     };
 
     const { data: insertedTx, error: insertError } = await this.db
-      .from("club_wallet_transactions")
+      .from('club_wallet_transactions')
       .insert(txData)
       .select()
       .single();
 
     if (insertError || !insertedTx) {
-      const msg = insertError?.message || "Unknown DB error during insert";
-      logWarn({ event: "club_repo.appendWalletTxManual.insert_failed", message: msg, details: insertError?.details, code: insertError?.code });
+      const msg = insertError?.message || 'Unknown DB error during insert';
+      logWarn({
+        event: 'club_repo.appendWalletTxManual.insert_failed',
+        message: msg,
+        details: insertError?.details,
+        code: insertError?.code,
+      });
       throw new Error(`Wallet DB insert failed: ${msg}`);
     }
 
     // Step 3: Try atomic balance increment via RPC, fall back to direct table update
     let newBalance: number;
 
-    const { data: incrementResult, error: incrementError } = await this.db
-      .rpc("club_wallet_atomic_increment", {
+    const { data: incrementResult, error: incrementError } = await this.db.rpc(
+      'club_wallet_atomic_increment',
+      {
         _club_id: clubId,
         _user_id: userId,
         _currency: currency,
         _delta: truncatedAmount,
-      });
+      },
+    );
 
     if (!incrementError) {
       newBalance = Number(incrementResult ?? 0);
     } else {
       // RPC unavailable (schema cache miss) — fall back to direct table update
-      logWarn({ event: "club_repo.appendWalletTxManual.rpc_fallback", message: incrementError.message });
+      logWarn({
+        event: 'club_repo.appendWalletTxManual.rpc_fallback',
+        message: incrementError.message,
+      });
 
       const { data: curRow } = await this.db
-        .from("club_wallet_accounts")
-        .select("current_balance")
-        .eq("club_id", clubId)
-        .eq("user_id", userId)
-        .eq("currency", currency)
+        .from('club_wallet_accounts')
+        .select('current_balance')
+        .eq('club_id', clubId)
+        .eq('user_id', userId)
+        .eq('currency', currency)
         .maybeSingle();
 
       const curBal = Number(curRow?.current_balance ?? 0);
       const computed = curBal + truncatedAmount;
 
       if (computed < 0) {
-        await this.db.from("club_wallet_transactions").delete().eq("id", (insertedTx as Record<string, unknown>).id);
-        throw new Error("insufficient_wallet_balance");
+        await this.db
+          .from('club_wallet_transactions')
+          .delete()
+          .eq('id', (insertedTx as Record<string, unknown>).id);
+        throw new Error('insufficient_wallet_balance');
       }
 
       const { error: writeError } = await this.db
-        .from("club_wallet_accounts")
+        .from('club_wallet_accounts')
         .update({ current_balance: computed, updated_at: new Date().toISOString() })
-        .eq("club_id", clubId)
-        .eq("user_id", userId)
-        .eq("currency", currency);
+        .eq('club_id', clubId)
+        .eq('user_id', userId)
+        .eq('currency', currency);
 
       if (writeError) {
-        await this.db.from("club_wallet_transactions").delete().eq("id", (insertedTx as Record<string, unknown>).id);
+        await this.db
+          .from('club_wallet_transactions')
+          .delete()
+          .eq('id', (insertedTx as Record<string, unknown>).id);
         throw new Error(`Balance update failed: ${writeError.message}`);
       }
 
@@ -902,19 +1025,19 @@ export class ClubRepo {
     };
   }
 
-  async getWalletBalance(clubId: string, userId: string, currency = "chips"): Promise<number> {
+  async getWalletBalance(clubId: string, userId: string, currency = 'chips'): Promise<number> {
     if (!this.db || isOverBudget()) return 0;
 
     const { data: account, error: accountError } = await this.db
-      .from("club_wallet_accounts")
-      .select("current_balance")
-      .eq("club_id", clubId)
-      .eq("user_id", userId)
-      .eq("currency", currency)
+      .from('club_wallet_accounts')
+      .select('current_balance')
+      .eq('club_id', clubId)
+      .eq('user_id', userId)
+      .eq('currency', currency)
       .maybeSingle();
 
     if (accountError) {
-      logWarn({ event: "club_repo.getWalletBalance.failed", message: accountError.message });
+      logWarn({ event: 'club_repo.getWalletBalance.failed', message: accountError.message });
       throw new Error(`Failed to fetch wallet balance: ${accountError.message}`);
     }
 
@@ -924,35 +1047,42 @@ export class ClubRepo {
 
     // Fallback to ledger only if account row missing (rare)
     const { data: txRows, error: txError } = await this.db
-      .from("club_wallet_transactions")
-      .select("amount")
-      .eq("club_id", clubId)
-      .eq("user_id", userId)
-      .eq("currency", currency);
+      .from('club_wallet_transactions')
+      .select('amount')
+      .eq('club_id', clubId)
+      .eq('user_id', userId)
+      .eq('currency', currency);
 
     if (txError) {
-      logWarn({ event: "club_repo.getWalletBalance.ledger_fallback_failed", message: txError.message });
+      logWarn({
+        event: 'club_repo.getWalletBalance.ledger_fallback_failed',
+        message: txError.message,
+      });
       throw new Error(`Failed to fetch wallet balance (ledger): ${txError.message}`);
     }
 
     return (txRows ?? []).reduce((sum, row) => sum + Number((row as any).amount ?? 0), 0);
   }
 
-  async getWalletBalances(clubId: string, userIds: string[], currency = "chips"): Promise<Map<string, number>> {
+  async getWalletBalances(
+    clubId: string,
+    userIds: string[],
+    currency = 'chips',
+  ): Promise<Map<string, number>> {
     const result = new Map<string, number>();
     if (!this.db || isOverBudget()) return result;
     if (userIds.length === 0) return result;
 
     const uniqUserIds = [...new Set(userIds)];
     const { data, error } = await this.db
-      .from("club_wallet_accounts")
-      .select("user_id, current_balance")
-      .eq("club_id", clubId)
-      .eq("currency", currency)
-      .in("user_id", uniqUserIds);
+      .from('club_wallet_accounts')
+      .select('user_id, current_balance')
+      .eq('club_id', clubId)
+      .eq('currency', currency)
+      .in('user_id', uniqUserIds);
 
     if (error) {
-      logWarn({ event: "club_repo.getWalletBalances.failed", message: error.message });
+      logWarn({ event: 'club_repo.getWalletBalances.failed', message: error.message });
       throw new Error(`Failed to fetch wallet balances: ${error.message}`);
     } else {
       for (const row of data ?? []) {
@@ -970,7 +1100,7 @@ export class ClubRepo {
   async listWalletTxs(
     clubId: string,
     userId: string,
-    currency = "chips",
+    currency = 'chips',
     limit = 50,
     offset = 0,
   ): Promise<ClubWalletTransaction[]> {
@@ -981,16 +1111,18 @@ export class ClubRepo {
     const to = safeOffset + safeLimit - 1;
 
     const { data, error } = await this.db
-      .from("club_wallet_transactions")
-      .select("id, club_id, user_id, type, amount, currency, ref_type, ref_id, created_at, created_by, note, meta_json, idempotency_key")
-      .eq("club_id", clubId)
-      .eq("user_id", userId)
-      .eq("currency", currency)
-      .order("created_at", { ascending: false })
+      .from('club_wallet_transactions')
+      .select(
+        'id, club_id, user_id, type, amount, currency, ref_type, ref_id, created_at, created_by, note, meta_json, idempotency_key',
+      )
+      .eq('club_id', clubId)
+      .eq('user_id', userId)
+      .eq('currency', currency)
+      .order('created_at', { ascending: false })
       .range(from, to);
 
     if (error) {
-      logWarn({ event: "club_repo.listWalletTxs.failed", message: error.message });
+      logWarn({ event: 'club_repo.listWalletTxs.failed', message: error.message });
       throw new Error(`Failed to list wallet transactions: ${error.message}`);
     }
     return (data ?? []).map((row) => rowToWalletTx(row as Record<string, unknown>));
@@ -1004,7 +1136,7 @@ export class ClubRepo {
     rakeDelta = 0,
   ): Promise<void> {
     if (!this.db || isOverBudget()) return;
-    const { error } = await this.db.rpc("club_record_hand_stats", {
+    const { error } = await this.db.rpc('club_record_hand_stats', {
       _club_id: clubId,
       _user_id: userId,
       _hands_delta: Math.trunc(handsDelta),
@@ -1012,19 +1144,19 @@ export class ClubRepo {
       _rake_delta: Math.trunc(rakeDelta),
     });
     if (error) {
-      logWarn({ event: "club_repo.recordClubHandStats.failed", message: error.message });
+      logWarn({ event: 'club_repo.recordClubHandStats.failed', message: error.message });
     }
   }
 
   async getClubLeaderboard(
     clubId: string,
-    timeRange: ClubLeaderboardRange = "week",
-    metric: ClubLeaderboardMetric = "net",
+    timeRange: ClubLeaderboardRange = 'week',
+    metric: ClubLeaderboardMetric = 'net',
     limit = 50,
   ): Promise<ClubLeaderboardEntry[]> {
     if (!this.db || isOverBudget()) return [];
 
-    const { data, error } = await this.db.rpc("club_get_leaderboard", {
+    const { data, error } = await this.db.rpc('club_get_leaderboard', {
       _club_id: clubId,
       _day_from: dayFromRange(timeRange),
       _metric: metric,
@@ -1032,7 +1164,7 @@ export class ClubRepo {
     });
 
     if (error) {
-      logWarn({ event: "club_repo.getClubLeaderboard.failed", message: error.message });
+      logWarn({ event: 'club_repo.getClubLeaderboard.failed', message: error.message });
       throw new Error(`Failed to fetch leaderboard: ${error.message}`);
     }
 
@@ -1055,7 +1187,7 @@ export class ClubRepo {
     const balances = await this.getWalletBalances(
       clubId,
       rows.map((row: ClubLeaderboardEntry) => row.userId),
-      "chips",
+      'chips',
     );
     return rows.map((row: ClubLeaderboardEntry) => ({
       ...row,
@@ -1070,29 +1202,54 @@ export class ClubRepo {
     rulesets: ClubRuleset[];
     tables: ClubTable[];
   }> {
-    if (!this.db || isOverBudget()) return { clubs: [], members: [], invites: [], rulesets: [], tables: [] };
+    if (!this.db || isOverBudget())
+      return { clubs: [], members: [], invites: [], rulesets: [], tables: [] };
 
-    const [clubsRes, membersRes, invitesRes, rulesetsRes, tablesRes, walletAccountsRes] = await Promise.all([
-      this.db.from("clubs").select("id, code, name, description, owner_user_id, visibility, default_ruleset_id, is_archived, require_approval_to_join, badge_color, logo_url, created_at, updated_at").eq("is_archived", false),
-      this.db.from("club_members").select("club_id, user_id, role, status, nickname_in_club, created_at, last_seen_at"),
-      this.db.from("club_invites").select("id, club_id, invite_code, created_by, expires_at, max_uses, uses_count, revoked, created_at").eq("revoked", false),
-      this.db.from("club_rulesets").select("id, club_id, name, rules_json, created_by, is_default, created_at"),
-      this.db.from("club_tables").select("id, club_id, name, config_json, status, created_by, created_at, hands_played, started_at, finished_at").neq("status", "closed"),
-      this.db.from("club_wallet_accounts").select("club_id, user_id, currency, current_balance"),
-    ]);
+    const [clubsRes, membersRes, invitesRes, rulesetsRes, tablesRes, walletAccountsRes] =
+      await Promise.all([
+        this.db
+          .from('clubs')
+          .select(
+            'id, code, name, description, owner_user_id, visibility, default_ruleset_id, is_archived, require_approval_to_join, badge_color, logo_url, created_at, updated_at',
+          )
+          .eq('is_archived', false),
+        this.db
+          .from('club_members')
+          .select('club_id, user_id, role, status, nickname_in_club, created_at, last_seen_at'),
+        this.db
+          .from('club_invites')
+          .select(
+            'id, club_id, invite_code, created_by, expires_at, max_uses, uses_count, revoked, created_at',
+          )
+          .eq('revoked', false),
+        this.db
+          .from('club_rulesets')
+          .select('id, club_id, name, rules_json, created_by, is_default, created_at'),
+        this.db
+          .from('club_tables')
+          .select(
+            'id, club_id, name, config_json, status, created_by, created_at, hands_played, started_at, finished_at',
+          )
+          .neq('status', 'closed'),
+        this.db.from('club_wallet_accounts').select('club_id, user_id, currency, current_balance'),
+      ]);
 
     // Throw on any failure to prevent partial/ghost state
     if (clubsRes.error) throw new Error(`Hydration failed (clubs): ${clubsRes.error.message}`);
-    if (membersRes.error) throw new Error(`Hydration failed (members): ${membersRes.error.message}`);
-    if (invitesRes.error) throw new Error(`Hydration failed (invites): ${invitesRes.error.message}`);
-    if (rulesetsRes.error) throw new Error(`Hydration failed (rulesets): ${rulesetsRes.error.message}`);
+    if (membersRes.error)
+      throw new Error(`Hydration failed (members): ${membersRes.error.message}`);
+    if (invitesRes.error)
+      throw new Error(`Hydration failed (invites): ${invitesRes.error.message}`);
+    if (rulesetsRes.error)
+      throw new Error(`Hydration failed (rulesets): ${rulesetsRes.error.message}`);
     if (tablesRes.error) throw new Error(`Hydration failed (tables): ${tablesRes.error.message}`);
-    if (walletAccountsRes.error) throw new Error(`Hydration failed (wallet): ${walletAccountsRes.error.message}`);
+    if (walletAccountsRes.error)
+      throw new Error(`Hydration failed (wallet): ${walletAccountsRes.error.message}`);
 
     const clubs = (clubsRes.data ?? []).map(rowToClub);
     const walletBalanceByClubUser = new Map<string, number>();
     for (const row of walletAccountsRes.data ?? []) {
-      if ((row as any).currency && String((row as any).currency) !== "chips") continue;
+      if ((row as any).currency && String((row as any).currency) !== 'chips') continue;
       walletBalanceByClubUser.set(
         `${String((row as any).club_id)}:${String((row as any).user_id)}`,
         Number((row as any).current_balance ?? 0),
@@ -1100,8 +1257,8 @@ export class ClubRepo {
     }
     const displayNames = await loadDisplayNames(
       this.db,
-      (membersRes.data ?? []).map((row: any) => String(row.user_id ?? "")),
-      "club_repo.hydrateAll.player_profiles.failed",
+      (membersRes.data ?? []).map((row: any) => String(row.user_id ?? '')),
+      'club_repo.hydrateAll.player_profiles.failed',
     );
 
     const members = (membersRes.data ?? []).map((row: any) => {
@@ -1116,7 +1273,7 @@ export class ClubRepo {
     const tables = (tablesRes.data ?? []).map(rowToTable);
 
     logInfo({
-      event: "club_repo.hydrateAll.complete",
+      event: 'club_repo.hydrateAll.complete',
       message: `Loaded ${clubs.length} clubs, ${members.length} members, ${invites.length} invites, ${rulesets.length} rulesets, ${tables.length} tables`,
     });
 

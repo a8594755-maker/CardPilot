@@ -1,4 +1,4 @@
-type LogLevel = "info" | "warn" | "error";
+type LogLevel = 'info' | 'warn' | 'error';
 
 type LogPayload = {
   event: string;
@@ -18,12 +18,12 @@ function write(level: LogLevel, payload: LogPayload): void {
   };
   const line = JSON.stringify(entry);
 
-  if (level === "error") {
+  if (level === 'error') {
     console.error(line);
     return;
   }
 
-  if (level === "warn") {
+  if (level === 'warn') {
     console.warn(line);
     return;
   }
@@ -32,13 +32,13 @@ function write(level: LogLevel, payload: LogPayload): void {
 }
 
 export function logInfo(payload: LogPayload): void {
-  write("info", payload);
+  write('info', payload);
 }
 
 export function logWarn(payload: LogPayload): void {
-  write("warn", payload);
+  write('warn', payload);
 }
 
 export function logError(payload: LogPayload): void {
-  write("error", payload);
+  write('error', payload);
 }

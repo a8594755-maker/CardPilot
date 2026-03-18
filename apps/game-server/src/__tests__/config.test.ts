@@ -1,13 +1,15 @@
-import { describe, it } from "node:test";
-import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { resolve } from "node:path";
-import { pathToFileURL } from "node:url";
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
-const configModuleUrl = pathToFileURL(resolve(process.cwd(), "src/config.ts")).href;
-const tsxLoaderUrl = pathToFileURL(resolve(process.cwd(), "../../node_modules/tsx/dist/loader.mjs")).href;
+const configModuleUrl = pathToFileURL(resolve(process.cwd(), 'src/config.ts')).href;
+const tsxLoaderUrl = pathToFileURL(
+  resolve(process.cwd(), '../../node_modules/tsx/dist/loader.mjs'),
+).href;
 const probeScript = `
 import { getRuntimeConfig } from "${configModuleUrl}";
 const runtime = getRuntimeConfig();
@@ -19,8 +21,8 @@ console.log(JSON.stringify({
 }));
 `;
 
-function runConfigProbe(extraEnv: Record<string, string | undefined>, nodeEnv = "development") {
-  const workingDir = mkdtempSync(resolve(tmpdir(), "cardpilot-config-test-"));
+function runConfigProbe(extraEnv: Record<string, string | undefined>, nodeEnv = 'development') {
+  const workingDir = mkdtempSync(resolve(tmpdir(), 'cardpilot-config-test-'));
   try {
     const env: NodeJS.ProcessEnv = { ...process.env, NODE_ENV: nodeEnv };
     delete env.SUPABASE_URL;
@@ -31,34 +33,39 @@ function runConfigProbe(extraEnv: Record<string, string | undefined>, nodeEnv = 
     delete env.FRONTEND_ORIGIN;
 
     for (const [key, value] of Object.entries(extraEnv)) {
-      if (typeof value === "undefined") {
+      if (typeof value === 'undefined') {
         delete env[key];
       } else {
         env[key] = value;
       }
     }
 
-    return spawnSync("node", ["--import", tsxLoaderUrl, "-e", probeScript], {
+    return spawnSync('node', ['--import', tsxLoaderUrl, '-e', probeScript], {
       cwd: workingDir,
       env,
-      encoding: "utf-8",
+      encoding: 'utf-8',
     });
   } finally {
     rmSync(workingDir, { recursive: true, force: true });
   }
 }
 
-function parseLastJsonLine(stdout: string): { url: string | null; anon: string | null; service: string | null; cors: string[] | true } {
-  const lastLine = stdout.trim().split("\n").at(-1);
-  assert.ok(lastLine, "expected probe output");
+function parseLastJsonLine(stdout: string): {
+  url: string | null;
+  anon: string | null;
+  service: string | null;
+  cors: string[] | true;
+} {
+  const lastLine = stdout.trim().split('\n').at(-1);
+  assert.ok(lastLine, 'expected probe output');
   return JSON.parse(lastLine);
 }
 
-describe("Runtime config Supabase env handling", () => {
-  it("falls back to guest/local mode when Supabase env is partially configured", () => {
+describe('Runtime config Supabase env handling', () => {
+  it('falls back to guest/local mode when Supabase env is partially configured', () => {
     const result = runConfigProbe({
-      SUPABASE_URL: "https://example.supabase.co",
-      SUPABASE_ANON_KEY: "sb_publishable_test",
+      SUPABASE_URL: 'https://example.supabase.co',
+      SUPABASE_ANON_KEY: 'sb_publishable_test',
     });
 
     assert.equal(result.status, 0, result.stderr);
@@ -66,61 +73,64 @@ describe("Runtime config Supabase env handling", () => {
     assert.equal(parsed.url, null);
     assert.equal(parsed.anon, null);
     assert.equal(parsed.service, null);
-    assert.match(`${result.stdout}\n${result.stderr}`, /Supabase disabled; falling back to guest\/local mode/);
+    assert.match(
+      `${result.stdout}\n${result.stderr}`,
+      /Supabase disabled; falling back to guest\/local mode/,
+    );
   });
 
-  it("fails fast when strict mode is enabled and Supabase env is partial", () => {
+  it('fails fast when strict mode is enabled and Supabase env is partial', () => {
     const result = runConfigProbe({
-      SUPABASE_URL: "https://example.supabase.co",
-      SUPABASE_ANON_KEY: "sb_publishable_test",
-      SUPABASE_STRICT_ENV: "true",
+      SUPABASE_URL: 'https://example.supabase.co',
+      SUPABASE_ANON_KEY: 'sb_publishable_test',
+      SUPABASE_STRICT_ENV: 'true',
     });
 
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /Incomplete Supabase env/);
   });
 
-  it("keeps Supabase env intact when all required keys are set", () => {
+  it('keeps Supabase env intact when all required keys are set', () => {
     const result = runConfigProbe({
-      SUPABASE_URL: "https://example.supabase.co",
-      SUPABASE_ANON_KEY: "sb_publishable_test",
-      SUPABASE_SERVICE_ROLE_KEY: "sb_service_role_test",
+      SUPABASE_URL: 'https://example.supabase.co',
+      SUPABASE_ANON_KEY: 'sb_publishable_test',
+      SUPABASE_SERVICE_ROLE_KEY: 'sb_service_role_test',
     });
 
     assert.equal(result.status, 0, result.stderr);
     const parsed = parseLastJsonLine(result.stdout);
-    assert.equal(parsed.url, "https://example.supabase.co");
-    assert.equal(parsed.anon, "sb_publishable_test");
-    assert.equal(parsed.service, "sb_service_role_test");
+    assert.equal(parsed.url, 'https://example.supabase.co');
+    assert.equal(parsed.anon, 'sb_publishable_test');
+    assert.equal(parsed.service, 'sb_service_role_test');
   });
 
-  it("fails fast by default in production when Supabase env is partial", () => {
+  it('fails fast by default in production when Supabase env is partial', () => {
     const result = runConfigProbe(
       {
-        SUPABASE_URL: "https://example.supabase.co",
-        SUPABASE_ANON_KEY: "sb_publishable_test",
+        SUPABASE_URL: 'https://example.supabase.co',
+        SUPABASE_ANON_KEY: 'sb_publishable_test',
       },
-      "production",
+      'production',
     );
 
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /Incomplete Supabase env/);
   });
 
-  it("includes FRONTEND_ORIGIN in the CORS allow-list", () => {
+  it('includes FRONTEND_ORIGIN in the CORS allow-list', () => {
     const result = runConfigProbe({
-      FRONTEND_ORIGIN: "http://127.0.0.1:3000",
+      FRONTEND_ORIGIN: 'http://127.0.0.1:3000',
     });
 
     assert.equal(result.status, 0, result.stderr);
     const parsed = parseLastJsonLine(result.stdout);
     assert.ok(Array.isArray(parsed.cors));
-    assert.ok(parsed.cors.includes("http://127.0.0.1:3000"));
+    assert.ok(parsed.cors.includes('http://127.0.0.1:3000'));
   });
 
-  it("supports wildcard CORS_ORIGIN", () => {
+  it('supports wildcard CORS_ORIGIN', () => {
     const result = runConfigProbe({
-      CORS_ORIGIN: "*",
+      CORS_ORIGIN: '*',
     });
 
     assert.equal(result.status, 0, result.stderr);

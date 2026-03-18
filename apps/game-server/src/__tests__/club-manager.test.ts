@@ -1,566 +1,601 @@
-import { describe, it } from "node:test";
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { ClubManager } from "../club-manager.js";
-import { DEFAULT_CLUB_RULES, DEFAULT_CLUB_TABLE_CONFIG } from "@cardpilot/shared-types";
-import { requireActiveClubMember } from "../services/club-service.js";
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { ClubManager } from '../club-manager.js';
+import { DEFAULT_CLUB_RULES, DEFAULT_CLUB_TABLE_CONFIG } from '@cardpilot/shared-types';
+import { requireActiveClubMember } from '../services/club-service.js';
 
-describe("ClubManager — club lifecycle", () => {
-  it("creates a club and owner is an active member with owner role", () => {
+describe('ClubManager — club lifecycle', () => {
+  it('creates a club and owner is an active member with owner role', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Test Club",
-      description: "A test club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Test Club',
+      description: 'A test club',
     });
 
     assert.ok(club.id);
     assert.ok(club.code);
-    assert.equal(club.name, "Test Club");
-    assert.equal(club.ownerUserId, "u1");
-    assert.equal(club.visibility, "private");
+    assert.equal(club.name, 'Test Club');
+    assert.equal(club.ownerUserId, 'u1');
+    assert.equal(club.visibility, 'private');
     assert.equal(club.requireApprovalToJoin, true);
 
-    const member = mgr.getMember(club.id, "u1");
+    const member = mgr.getMember(club.id, 'u1');
     assert.ok(member);
-    assert.equal(member!.role, "owner");
-    assert.equal(member!.status, "active");
+    assert.equal(member!.role, 'owner');
+    assert.equal(member!.status, 'active');
   });
 
-  it("lists clubs for a user", () => {
+  it('lists clubs for a user', () => {
     const mgr = new ClubManager();
-    mgr.createClub({ ownerUserId: "u1", ownerDisplayName: "Alice", name: "Club A" });
-    mgr.createClub({ ownerUserId: "u1", ownerDisplayName: "Alice", name: "Club B" });
+    mgr.createClub({ ownerUserId: 'u1', ownerDisplayName: 'Alice', name: 'Club A' });
+    mgr.createClub({ ownerUserId: 'u1', ownerDisplayName: 'Alice', name: 'Club B' });
 
-    const list = mgr.listMyClubs("u1");
+    const list = mgr.listMyClubs('u1');
     assert.equal(list.length, 2);
-    assert.ok(list.some((c) => c.name === "Club A"));
-    assert.ok(list.some((c) => c.name === "Club B"));
+    assert.ok(list.some((c) => c.name === 'Club A'));
+    assert.ok(list.some((c) => c.name === 'Club B'));
   });
 
-  it("updates club settings with admin permission", () => {
+  it('updates club settings with admin permission', () => {
     const mgr = new ClubManager();
-    const club = mgr.createClub({ ownerUserId: "u1", ownerDisplayName: "Alice", name: "Old Name" });
+    const club = mgr.createClub({ ownerUserId: 'u1', ownerDisplayName: 'Alice', name: 'Old Name' });
 
-    const updated = mgr.updateClub(club.id, "u1", { name: "New Name", description: "Updated" });
+    const updated = mgr.updateClub(club.id, 'u1', { name: 'New Name', description: 'Updated' });
     assert.ok(updated);
-    assert.equal(updated!.name, "New Name");
-    assert.equal(updated!.description, "Updated");
+    assert.equal(updated!.name, 'New Name');
+    assert.equal(updated!.description, 'Updated');
   });
 
-  it("rejects club update from non-admin", () => {
+  it('rejects club update from non-admin', () => {
     const mgr = new ClubManager();
-    const club = mgr.createClub({ ownerUserId: "u1", ownerDisplayName: "Alice", name: "Club" });
+    const club = mgr.createClub({ ownerUserId: 'u1', ownerDisplayName: 'Alice', name: 'Club' });
 
     // Add a regular member
-    mgr.requestJoin(club.code, "u2", "Bob");
+    mgr.requestJoin(club.code, 'u2', 'Bob');
     // Bob is auto-joined since requireApprovalToJoin is true, so he's pending
     // He can't update
-    const result = mgr.updateClub(club.id, "u2", { name: "Hacked" });
+    const result = mgr.updateClub(club.id, 'u2', { name: 'Hacked' });
     assert.equal(result, null);
   });
 });
 
-describe("Club membership gates — server integration contracts", () => {
-  it("non-member is denied by club_table_join gate for club tables", () => {
+describe('Club membership gates — server integration contracts', () => {
+  it('non-member is denied by club_table_join gate for club tables', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "owner",
-      ownerDisplayName: "Owner",
-      name: "Gate Club",
+      ownerUserId: 'owner',
+      ownerDisplayName: 'Owner',
+      name: 'Gate Club',
       requireApprovalToJoin: false,
     });
-    const table = mgr.createTable(club.id, "owner", "Main", DEFAULT_CLUB_TABLE_CONFIG)!;
+    const table = mgr.createTable(club.id, 'owner', 'Main', DEFAULT_CLUB_TABLE_CONFIG)!;
 
     const clubInfo = mgr.getClubForTableById(table.clubTable.id);
     assert.ok(clubInfo);
-    assert.equal(mgr.isActiveMember(clubInfo!.clubId, "stranger"), false);
+    assert.equal(mgr.isActiveMember(clubInfo!.clubId, 'stranger'), false);
   });
 
-  it("active member is allowed by join_table gate for club tables", () => {
+  it('active member is allowed by join_table gate for club tables', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "owner",
-      ownerDisplayName: "Owner",
-      name: "Gate Club",
+      ownerUserId: 'owner',
+      ownerDisplayName: 'Owner',
+      name: 'Gate Club',
       requireApprovalToJoin: false,
     });
-    mgr.requestJoin(club.code, "member1", "Member One");
+    mgr.requestJoin(club.code, 'member1', 'Member One');
 
-    const table = mgr.createTable(club.id, "owner", "Main", DEFAULT_CLUB_TABLE_CONFIG)!;
+    const table = mgr.createTable(club.id, 'owner', 'Main', DEFAULT_CLUB_TABLE_CONFIG)!;
     const clubInfo = mgr.getClubForTableById(table.clubTable.id);
 
     assert.ok(clubInfo);
-    assert.equal(mgr.isActiveMember(clubInfo!.clubId, "member1"), true);
+    assert.equal(mgr.isActiveMember(clubInfo!.clubId, 'member1'), true);
   });
 
-  it("pending member is denied by join gates until approved", () => {
+  it('pending member is denied by join gates until approved', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "owner",
-      ownerDisplayName: "Owner",
-      name: "Approval Club",
+      ownerUserId: 'owner',
+      ownerDisplayName: 'Owner',
+      name: 'Approval Club',
       requireApprovalToJoin: true,
     });
-    mgr.requestJoin(club.code, "u2", "Pending User");
+    mgr.requestJoin(club.code, 'u2', 'Pending User');
 
-    const table = mgr.createTable(club.id, "owner", "Main", DEFAULT_CLUB_TABLE_CONFIG)!;
+    const table = mgr.createTable(club.id, 'owner', 'Main', DEFAULT_CLUB_TABLE_CONFIG)!;
     const clubInfo = mgr.getClubForTableById(table.clubTable.id);
 
     assert.ok(clubInfo);
-    assert.equal(mgr.isActiveMember(clubInfo!.clubId, "u2"), false);
+    assert.equal(mgr.isActiveMember(clubInfo!.clubId, 'u2'), false);
   });
 
-  it("public lobby snapshot contract excludes private/club tables", () => {
-    // Try both possible paths (depends on cwd when running tests)
-    let source: string;
-    try {
-      source = readFileSync(resolve(process.cwd(), "src/server.ts"), "utf-8");
-    } catch {
-      source = readFileSync(resolve(process.cwd(), "apps/game-server/src/server.ts"), "utf-8");
-    }
-    assert.match(source, /\.filter\(\(room\) => room\.status === "OPEN" && room\.visibility === "public"\)/);
+  it('public lobby snapshot contract excludes private/club tables', () => {
+    const repoRoot = resolve(import.meta.dirname, '..', '..', '..', '..');
+    const source = readFileSync(resolve(repoRoot, 'apps/game-server/src/server.ts'), 'utf-8');
+    assert.match(
+      source,
+      /\.filter\(\(room\) => room\.status === ['"]OPEN['"] && room\.visibility === ['"]public['"]\)/,
+    );
   });
 });
 
-describe("ClubManager — membership flows", () => {
-  it("join without approval when requireApprovalToJoin=false", () => {
+describe('ClubManager — membership flows', () => {
+  it('join without approval when requireApprovalToJoin=false', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Open Club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Open Club',
       requireApprovalToJoin: false,
     });
 
-    const result = mgr.requestJoin(club.code, "u2", "Bob");
-    assert.equal(result.status, "joined");
-    assert.ok(mgr.isActiveMember(club.id, "u2"));
+    const result = mgr.requestJoin(club.code, 'u2', 'Bob');
+    assert.equal(result.status, 'joined');
+    assert.ok(mgr.isActiveMember(club.id, 'u2'));
   });
 
-  it("join with approval required — member starts as pending", () => {
+  it('join with approval required — member starts as pending', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Private Club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Private Club',
       requireApprovalToJoin: true,
     });
 
-    const result = mgr.requestJoin(club.code, "u2", "Bob");
-    assert.equal(result.status, "pending");
-    assert.equal(mgr.isActiveMember(club.id, "u2"), false);
+    const result = mgr.requestJoin(club.code, 'u2', 'Bob');
+    assert.equal(result.status, 'pending');
+    assert.equal(mgr.isActiveMember(club.id, 'u2'), false);
 
-    const member = mgr.getMember(club.id, "u2");
-    assert.equal(member!.status, "pending");
+    const member = mgr.getMember(club.id, 'u2');
+    assert.equal(member!.status, 'pending');
   });
 
-  it("approve join request", () => {
+  it('approve join request', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Approval Club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Approval Club',
     });
 
-    mgr.requestJoin(club.code, "u2", "Bob");
-    const approved = mgr.approveJoin(club.id, "u1", "u2");
+    mgr.requestJoin(club.code, 'u2', 'Bob');
+    const approved = mgr.approveJoin(club.id, 'u1', 'u2');
     assert.ok(approved);
-    assert.equal(approved!.status, "active");
-    assert.ok(mgr.isActiveMember(club.id, "u2"));
+    assert.equal(approved!.status, 'active');
+    assert.ok(mgr.isActiveMember(club.id, 'u2'));
   });
 
-  it("reject join request", () => {
+  it('reject join request', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Rejection Club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Rejection Club',
     });
 
-    mgr.requestJoin(club.code, "u2", "Bob");
-    const rejected = mgr.rejectJoin(club.id, "u1", "u2");
+    mgr.requestJoin(club.code, 'u2', 'Bob');
+    const rejected = mgr.rejectJoin(club.id, 'u1', 'u2');
     assert.equal(rejected, true);
-    assert.equal(mgr.getMember(club.id, "u2"), null);
+    assert.equal(mgr.getMember(club.id, 'u2'), null);
   });
 
-  it("join via invite code bypasses approval", () => {
+  it('join via invite code bypasses approval', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Invite Club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Invite Club',
       requireApprovalToJoin: true,
     });
 
-    const invite = mgr.createInvite(club.id, "u1", 10, 24);
+    const invite = mgr.createInvite(club.id, 'u1', 10, 24);
     assert.ok(invite);
 
-    const result = mgr.requestJoin(club.code, "u2", "Bob", invite!.inviteCode);
-    assert.equal(result.status, "joined");
-    assert.ok(mgr.isActiveMember(club.id, "u2"));
+    const result = mgr.requestJoin(club.code, 'u2', 'Bob', invite!.inviteCode);
+    assert.equal(result.status, 'joined');
+    assert.ok(mgr.isActiveMember(club.id, 'u2'));
   });
 
-  it("cannot join if banned", () => {
+  it('cannot join if banned', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Ban Club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Ban Club',
       requireApprovalToJoin: false,
     });
 
-    mgr.requestJoin(club.code, "u2", "Bob");
-    mgr.banMember(club.id, "u1", "u2", "Test ban");
+    mgr.requestJoin(club.code, 'u2', 'Bob');
+    mgr.banMember(club.id, 'u1', 'u2', 'Test ban');
 
-    const result = mgr.requestJoin(club.code, "u2", "Bob");
-    assert.equal(result.status, "error");
-    assert.ok(result.message.includes("banned"));
+    const result = mgr.requestJoin(club.code, 'u2', 'Bob');
+    assert.equal(result.status, 'error');
+    assert.ok(result.message.includes('banned'));
   });
 
-  it("already a member returns error", () => {
+  it('already a member returns error', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Dupe Club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Dupe Club',
       requireApprovalToJoin: false,
     });
 
-    mgr.requestJoin(club.code, "u2", "Bob");
-    const result = mgr.requestJoin(club.code, "u2", "Bob");
-    assert.equal(result.status, "error");
-    assert.ok(result.message.includes("Already"));
+    mgr.requestJoin(club.code, 'u2', 'Bob');
+    const result = mgr.requestJoin(club.code, 'u2', 'Bob');
+    assert.equal(result.status, 'error');
+    assert.ok(result.message.includes('Already'));
   });
 });
 
-describe("ClubManager — permission enforcement", () => {
+describe('ClubManager — permission enforcement', () => {
   function setupClubWithMembers() {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "owner",
-      ownerDisplayName: "Owner",
-      name: "Permission Club",
+      ownerUserId: 'owner',
+      ownerDisplayName: 'Owner',
+      name: 'Permission Club',
       requireApprovalToJoin: false,
     });
 
-    mgr.requestJoin(club.code, "admin1", "Admin");
-    mgr.updateMemberRole(club.id, "owner", "admin1", "admin");
+    mgr.requestJoin(club.code, 'admin1', 'Admin');
+    mgr.updateMemberRole(club.id, 'owner', 'admin1', 'admin');
 
-    mgr.requestJoin(club.code, "member1", "Member");
-    mgr.requestJoin(club.code, "member2", "Member Two");
+    mgr.requestJoin(club.code, 'member1', 'Member');
+    mgr.requestJoin(club.code, 'member2', 'Member Two');
 
     return { mgr, club };
   }
 
-  it("owner can promote to admin", () => {
+  it('owner can promote to admin', () => {
     const { mgr, club } = setupClubWithMembers();
-    const updated = mgr.updateMemberRole(club.id, "owner", "member1", "admin");
+    const updated = mgr.updateMemberRole(club.id, 'owner', 'member1', 'admin');
     assert.ok(updated);
-    assert.equal(updated!.role, "admin");
+    assert.equal(updated!.role, 'admin');
   });
 
-  it("admin cannot promote to admin (only owner can)", () => {
+  it('admin cannot promote to admin (only owner can)', () => {
     const { mgr, club } = setupClubWithMembers();
-    const updated = mgr.updateMemberRole(club.id, "admin1", "member1", "admin");
+    const updated = mgr.updateMemberRole(club.id, 'admin1', 'member1', 'admin');
     assert.equal(updated, null);
   });
 
-  it("admin can demote another admin to member", () => {
+  it('admin can demote another admin to member', () => {
     const { mgr, club } = setupClubWithMembers();
-    const promoted = mgr.updateMemberRole(club.id, "owner", "member1", "admin");
+    const promoted = mgr.updateMemberRole(club.id, 'owner', 'member1', 'admin');
     assert.ok(promoted);
 
-    const updated = mgr.updateMemberRole(club.id, "admin1", "member1", "member");
+    const updated = mgr.updateMemberRole(club.id, 'admin1', 'member1', 'member');
     assert.ok(updated);
-    assert.equal(updated!.role, "member");
+    assert.equal(updated!.role, 'member');
   });
 
-  it("member cannot change roles", () => {
+  it('member cannot change roles', () => {
     const { mgr, club } = setupClubWithMembers();
-    const updated = mgr.updateMemberRole(club.id, "member1", "member2", "admin");
+    const updated = mgr.updateMemberRole(club.id, 'member1', 'member2', 'admin');
     assert.equal(updated, null);
   });
 
-  it("member cannot approve pending joins (owner/admin only policy)", () => {
+  it('member cannot approve pending joins (owner/admin only policy)', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "owner",
-      ownerDisplayName: "Owner",
-      name: "Join Policy Club",
+      ownerUserId: 'owner',
+      ownerDisplayName: 'Owner',
+      name: 'Join Policy Club',
       requireApprovalToJoin: true,
     });
-    const invite = mgr.createInvite(club.id, "owner", 10, 24);
+    const invite = mgr.createInvite(club.id, 'owner', 10, 24);
     assert.ok(invite);
 
-    const memberJoin = mgr.requestJoin(club.code, "member1", "Member", invite!.inviteCode);
-    assert.equal(memberJoin.status, "joined");
+    const memberJoin = mgr.requestJoin(club.code, 'member1', 'Member', invite!.inviteCode);
+    assert.equal(memberJoin.status, 'joined');
 
-    const pendingJoin = mgr.requestJoin(club.code, "pending1", "Pending");
-    assert.equal(pendingJoin.status, "pending");
+    const pendingJoin = mgr.requestJoin(club.code, 'pending1', 'Pending');
+    assert.equal(pendingJoin.status, 'pending');
 
-    const approvedByMember = mgr.approveJoin(club.id, "member1", "pending1");
+    const approvedByMember = mgr.approveJoin(club.id, 'member1', 'pending1');
     assert.equal(approvedByMember, null);
   });
 
-  it("member cannot kick anyone", () => {
+  it('member cannot kick anyone', () => {
     const { mgr, club } = setupClubWithMembers();
-    const ok = mgr.kickMember(club.id, "member1", "member2");
+    const ok = mgr.kickMember(club.id, 'member1', 'member2');
     assert.equal(ok, false);
   });
 
-  it("member cannot kick member under owner/admin-only moderation policy", () => {
+  it('member cannot kick member under owner/admin-only moderation policy', () => {
     const { mgr, club } = setupClubWithMembers();
-    const ok = mgr.kickMember(club.id, "member1", "member2");
+    const ok = mgr.kickMember(club.id, 'member1', 'member2');
     assert.equal(ok, false);
-    assert.equal(mgr.isActiveMember(club.id, "member2"), true);
+    assert.equal(mgr.isActiveMember(club.id, 'member2'), true);
   });
 
-  it("member cannot kick admin (higher rank)", () => {
+  it('member cannot kick admin (higher rank)', () => {
     const { mgr, club } = setupClubWithMembers();
-    const ok = mgr.kickMember(club.id, "member1", "admin1");
-    assert.equal(ok, false);
-  });
-
-  it("cannot kick owner", () => {
-    const { mgr, club } = setupClubWithMembers();
-    const ok = mgr.kickMember(club.id, "admin1", "owner");
+    const ok = mgr.kickMember(club.id, 'member1', 'admin1');
     assert.equal(ok, false);
   });
 
-  it("ban and unban flow", () => {
+  it('cannot kick owner', () => {
     const { mgr, club } = setupClubWithMembers();
-    const banned = mgr.banMember(club.id, "admin1", "member1", "Bad behavior");
+    const ok = mgr.kickMember(club.id, 'admin1', 'owner');
+    assert.equal(ok, false);
+  });
+
+  it('ban and unban flow', () => {
+    const { mgr, club } = setupClubWithMembers();
+    const banned = mgr.banMember(club.id, 'admin1', 'member1', 'Bad behavior');
     assert.equal(banned, true);
-    assert.equal(mgr.isBanned(club.id, "member1"), true);
+    assert.equal(mgr.isBanned(club.id, 'member1'), true);
 
-    const unbanned = mgr.unbanMember(club.id, "admin1", "member1");
+    const unbanned = mgr.unbanMember(club.id, 'admin1', 'member1');
     assert.equal(unbanned, true);
-    assert.equal(mgr.isBanned(club.id, "member1"), false);
+    assert.equal(mgr.isBanned(club.id, 'member1'), false);
   });
 
-  it("admin can create tables", () => {
+  it('admin can create tables', () => {
     const { mgr, club } = setupClubWithMembers();
-    const result = mgr.createTable(club.id, "admin1", "Admin Table", DEFAULT_CLUB_TABLE_CONFIG);
+    const result = mgr.createTable(club.id, 'admin1', 'Admin Table', DEFAULT_CLUB_TABLE_CONFIG);
     assert.ok(result);
-    assert.equal(result!.clubTable.name, "Admin Table");
+    assert.equal(result!.clubTable.name, 'Admin Table');
   });
 
-  it("admin can update table name/config, member cannot", () => {
+  it('admin can update table name/config, member cannot', () => {
     const { mgr, club } = setupClubWithMembers();
 
-    const created = mgr.createTable(club.id, "owner", "Main", DEFAULT_CLUB_TABLE_CONFIG);
+    const created = mgr.createTable(club.id, 'owner', 'Main', DEFAULT_CLUB_TABLE_CONFIG);
     assert.ok(created);
 
-    const updatedByAdmin = mgr.updateTable(club.id, "admin1", created!.clubTable.id, {
-      name: "VIP",
+    const updatedByAdmin = mgr.updateTable(club.id, 'admin1', created!.clubTable.id, {
+      name: 'VIP',
       config: { maxSeats: 8, smallBlind: 2, bigBlind: 5 },
     });
     assert.ok(updatedByAdmin);
-    assert.equal(updatedByAdmin!.table.name, "VIP");
+    assert.equal(updatedByAdmin!.table.name, 'VIP');
     assert.equal(updatedByAdmin!.rules.maxSeats, 8);
 
-    const updatedByMember = mgr.updateTable(club.id, "member1", created!.clubTable.id, { name: "Member Edit" });
+    const updatedByMember = mgr.updateTable(club.id, 'member1', created!.clubTable.id, {
+      name: 'Member Edit',
+    });
     assert.equal(updatedByMember, null);
   });
 
-  it("member cannot create tables", () => {
+  it('member cannot create tables', () => {
     const { mgr, club } = setupClubWithMembers();
-    const result = mgr.createTable(club.id, "member1", "Illegal Table", DEFAULT_CLUB_TABLE_CONFIG);
+    const result = mgr.createTable(club.id, 'member1', 'Illegal Table', DEFAULT_CLUB_TABLE_CONFIG);
     assert.equal(result, null);
   });
 
-  it("non-member cannot access club detail", () => {
+  it('non-member cannot access club detail', () => {
     const { mgr, club } = setupClubWithMembers();
-    const detail = mgr.getClubDetail(club.id, "stranger");
+    const detail = mgr.getClubDetail(club.id, 'stranger');
     assert.equal(detail, null);
   });
 
-  it("pending member cannot access club detail", () => {
+  it('pending member cannot access club detail', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "owner",
-      ownerDisplayName: "Owner",
-      name: "Pending Test",
+      ownerUserId: 'owner',
+      ownerDisplayName: 'Owner',
+      name: 'Pending Test',
       requireApprovalToJoin: true,
     });
 
-    mgr.requestJoin(club.code, "pending_user", "Pending");
-    const detail = mgr.getClubDetail(club.id, "pending_user");
+    mgr.requestJoin(club.code, 'pending_user', 'Pending');
+    const detail = mgr.getClubDetail(club.id, 'pending_user');
     assert.equal(detail, null);
   });
 });
 
-describe("ClubManager — rulesets", () => {
-  it("creates a ruleset and sets as default", () => {
+describe('ClubManager — rulesets', () => {
+  it('creates a ruleset and sets as default', () => {
     const mgr = new ClubManager();
-    const club = mgr.createClub({ ownerUserId: "u1", ownerDisplayName: "Alice", name: "Rules Club" });
+    const club = mgr.createClub({
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Rules Club',
+    });
 
-    const ruleset = mgr.createRuleset(club.id, "u1", "Standard", { ...DEFAULT_CLUB_RULES }, true);
+    const ruleset = mgr.createRuleset(club.id, 'u1', 'Standard', { ...DEFAULT_CLUB_RULES }, true);
     assert.ok(ruleset);
     assert.equal(ruleset!.isDefault, true);
-    assert.equal(ruleset!.name, "Standard");
+    assert.equal(ruleset!.name, 'Standard');
 
     // Club should point to this ruleset
-    const detail = mgr.getClubDetail(club.id, "u1");
+    const detail = mgr.getClubDetail(club.id, 'u1');
     assert.ok(detail);
     assert.equal(detail!.detail.defaultRuleset?.id, ruleset!.id);
   });
 
-  it("enforces preventDealMidHand=true invariant", () => {
+  it('enforces preventDealMidHand=true invariant', () => {
     const mgr = new ClubManager();
-    const club = mgr.createClub({ ownerUserId: "u1", ownerDisplayName: "Alice", name: "Invariant Club" });
+    const club = mgr.createClub({
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Invariant Club',
+    });
 
-    const rules = { ...DEFAULT_CLUB_RULES, dealing: { ...DEFAULT_CLUB_RULES.dealing, preventDealMidHand: false } };
-    const ruleset = mgr.createRuleset(club.id, "u1", "Bad Rules", rules);
+    const rules = {
+      ...DEFAULT_CLUB_RULES,
+      dealing: { ...DEFAULT_CLUB_RULES.dealing, preventDealMidHand: false },
+    };
+    const ruleset = mgr.createRuleset(club.id, 'u1', 'Bad Rules', rules);
     assert.ok(ruleset);
     // Server must enforce this invariant
     assert.equal(ruleset!.rulesJson.dealing.preventDealMidHand, true);
   });
 
-  it("enforces maxSeats 2-9 range", () => {
+  it('enforces maxSeats 2-9 range', () => {
     const mgr = new ClubManager();
-    const club = mgr.createClub({ ownerUserId: "u1", ownerDisplayName: "Alice", name: "Seats Club" });
+    const club = mgr.createClub({
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Seats Club',
+    });
 
     const rules = { ...DEFAULT_CLUB_RULES, maxSeats: 15 };
-    const ruleset = mgr.createRuleset(club.id, "u1", "Too Many Seats", rules);
+    const ruleset = mgr.createRuleset(club.id, 'u1', 'Too Many Seats', rules);
     assert.ok(ruleset);
     assert.equal(ruleset!.rulesJson.maxSeats, 9);
   });
 
-  it("supports game variant + 7-2 bounty in rulesets", () => {
+  it('supports game variant + 7-2 bounty in rulesets', () => {
     const mgr = new ClubManager();
-    const club = mgr.createClub({ ownerUserId: "u1", ownerDisplayName: "Alice", name: "Variant Club" });
+    const club = mgr.createClub({
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Variant Club',
+    });
 
-    const ruleset = mgr.createRuleset(club.id, "u1", "PLO 2/5 + 7-2", {
+    const ruleset = mgr.createRuleset(club.id, 'u1', 'PLO 2/5 + 7-2', {
       ...DEFAULT_CLUB_RULES,
       extras: {
         ...DEFAULT_CLUB_RULES.extras,
-        gameType: "omaha",
+        gameType: 'omaha',
         sevenTwoBounty: 200,
       },
     });
     assert.ok(ruleset);
-    assert.equal(ruleset!.rulesJson.extras.gameType, "omaha");
+    assert.equal(ruleset!.rulesJson.extras.gameType, 'omaha');
     assert.equal(ruleset!.rulesJson.extras.sevenTwoBounty, 200);
   });
 });
 
-describe("ClubManager — invites", () => {
-  it("creates and revokes invites", () => {
+describe('ClubManager — invites', () => {
+  it('creates and revokes invites', () => {
     const mgr = new ClubManager();
-    const club = mgr.createClub({ ownerUserId: "u1", ownerDisplayName: "Alice", name: "Invite Club" });
+    const club = mgr.createClub({
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Invite Club',
+    });
 
-    const invite = mgr.createInvite(club.id, "u1", 5, 48);
+    const invite = mgr.createInvite(club.id, 'u1', 5, 48);
     assert.ok(invite);
     assert.ok(invite!.inviteCode);
     assert.equal(invite!.maxUses, 5);
     assert.equal(invite!.usesCount, 0);
 
-    const revoked = mgr.revokeInvite(club.id, "u1", invite!.id);
+    const revoked = mgr.revokeInvite(club.id, 'u1', invite!.id);
     assert.equal(revoked, true);
   });
 
-  it("member cannot create invites", () => {
+  it('member cannot create invites', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Restricted Invite",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Restricted Invite',
       requireApprovalToJoin: false,
     });
 
-    mgr.requestJoin(club.code, "u2", "Bob"); // joins as member
-    const invite = mgr.createInvite(club.id, "u2");
+    mgr.requestJoin(club.code, 'u2', 'Bob'); // joins as member
+    const invite = mgr.createInvite(club.id, 'u2');
     assert.equal(invite, null);
   });
 
-  it("members cannot create invites (owner/admin only policy)", () => {
+  it('members cannot create invites (owner/admin only policy)', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Invite Policy Club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Invite Policy Club',
       requireApprovalToJoin: false,
     });
 
-    mgr.requestJoin(club.code, "u2", "Member User");
+    mgr.requestJoin(club.code, 'u2', 'Member User');
 
-    const invite = mgr.createInvite(club.id, "u2");
+    const invite = mgr.createInvite(club.id, 'u2');
     assert.equal(invite, null);
   });
 
-  it("expired invite code is rejected", () => {
+  it('expired invite code is rejected', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Expired Invite Club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Expired Invite Club',
       requireApprovalToJoin: true,
     });
 
     // Create an invite that expired in the past
-    const invite = mgr.createInvite(club.id, "u1", 10, -1); // negative hours = already expired
+    const invite = mgr.createInvite(club.id, 'u1', 10, -1); // negative hours = already expired
     assert.ok(invite);
 
-    const result = mgr.requestJoin(club.code, "u2", "Bob", invite!.inviteCode);
-    assert.equal(result.status, "error");
-    assert.ok(result.message.includes("expired"));
+    const result = mgr.requestJoin(club.code, 'u2', 'Bob', invite!.inviteCode);
+    assert.equal(result.status, 'error');
+    assert.ok(result.message.includes('expired'));
   });
 });
 
-describe("ClubManager — tables", () => {
-  it("creates a table and can close it", () => {
+describe('ClubManager — tables', () => {
+  it('creates a table and can close it', () => {
     const mgr = new ClubManager();
-    const club = mgr.createClub({ ownerUserId: "u1", ownerDisplayName: "Alice", name: "Table Club" });
+    const club = mgr.createClub({
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Table Club',
+    });
 
-    const result = mgr.createTable(club.id, "u1", "Main Table", DEFAULT_CLUB_TABLE_CONFIG);
+    const result = mgr.createTable(club.id, 'u1', 'Main Table', DEFAULT_CLUB_TABLE_CONFIG);
     assert.ok(result);
-    assert.equal(result!.clubTable.status, "open");
+    assert.equal(result!.clubTable.status, 'open');
 
-    const closed = mgr.closeTable(club.id, "u1", result!.clubTable.id);
+    const closed = mgr.closeTable(club.id, 'u1', result!.clubTable.id);
     assert.equal(closed, true);
   });
 
-  it("pause table", () => {
+  it('pause table', () => {
     const mgr = new ClubManager();
-    const club = mgr.createClub({ ownerUserId: "u1", ownerDisplayName: "Alice", name: "Pause Club" });
+    const club = mgr.createClub({
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Pause Club',
+    });
 
-    const result = mgr.createTable(club.id, "u1", "Pausable", DEFAULT_CLUB_TABLE_CONFIG);
+    const result = mgr.createTable(club.id, 'u1', 'Pausable', DEFAULT_CLUB_TABLE_CONFIG);
     assert.ok(result);
 
-    const paused = mgr.pauseTable(club.id, "u1", result!.clubTable.id);
+    const paused = mgr.pauseTable(club.id, 'u1', result!.clubTable.id);
     assert.equal(paused, true);
   });
 
-  it("only owner can close a table", () => {
+  it('only owner can close a table', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "owner",
-      ownerDisplayName: "Owner",
-      name: "Owner Close Club",
+      ownerUserId: 'owner',
+      ownerDisplayName: 'Owner',
+      name: 'Owner Close Club',
       requireApprovalToJoin: false,
     });
-    mgr.requestJoin(club.code, "admin1", "Admin");
-    mgr.updateMemberRole(club.id, "owner", "admin1", "admin");
+    mgr.requestJoin(club.code, 'admin1', 'Admin');
+    mgr.updateMemberRole(club.id, 'owner', 'admin1', 'admin');
 
-    const created = mgr.createTable(club.id, "owner", "Always On", DEFAULT_CLUB_TABLE_CONFIG);
+    const created = mgr.createTable(club.id, 'owner', 'Always On', DEFAULT_CLUB_TABLE_CONFIG);
     assert.ok(created);
 
-    const closedByAdmin = mgr.closeTable(club.id, "admin1", created!.clubTable.id);
+    const closedByAdmin = mgr.closeTable(club.id, 'admin1', created!.clubTable.id);
     assert.equal(closedByAdmin, false);
 
-    const closedByOwner = mgr.closeTable(club.id, "owner", created!.clubTable.id);
+    const closedByOwner = mgr.closeTable(club.id, 'owner', created!.clubTable.id);
     assert.equal(closedByOwner, true);
   });
 
-  it("getClubForTableById resolves by table id", () => {
+  it('getClubForTableById resolves by table id', () => {
     const mgr = new ClubManager();
-    const club = mgr.createClub({ ownerUserId: "u1", ownerDisplayName: "Alice", name: "Lookup Club" });
+    const club = mgr.createClub({
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Lookup Club',
+    });
 
-    const result = mgr.createTable(club.id, "u1", "Lookup Table", DEFAULT_CLUB_TABLE_CONFIG);
+    const result = mgr.createTable(club.id, 'u1', 'Lookup Table', DEFAULT_CLUB_TABLE_CONFIG);
     assert.ok(result);
 
     const found = mgr.getClubForTableById(result!.clubTable.id);
@@ -568,118 +603,123 @@ describe("ClubManager — tables", () => {
     assert.equal(found!.clubId, club.id);
   });
 
-  it("isActiveMember correctly checks club membership for table access", () => {
+  it('isActiveMember correctly checks club membership for table access', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Access Club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Access Club',
       requireApprovalToJoin: true,
     });
 
     // Non-member cannot access
-    assert.equal(mgr.isActiveMember(club.id, "stranger"), false);
+    assert.equal(mgr.isActiveMember(club.id, 'stranger'), false);
 
     // Pending member cannot access
-    mgr.requestJoin(club.code, "u2", "Bob");
-    assert.equal(mgr.isActiveMember(club.id, "u2"), false);
+    mgr.requestJoin(club.code, 'u2', 'Bob');
+    assert.equal(mgr.isActiveMember(club.id, 'u2'), false);
 
     // Approved member can access
-    mgr.approveJoin(club.id, "u1", "u2");
-    assert.equal(mgr.isActiveMember(club.id, "u2"), true);
+    mgr.approveJoin(club.id, 'u1', 'u2');
+    assert.equal(mgr.isActiveMember(club.id, 'u2'), true);
 
     // Banned member cannot access
-    mgr.banMember(club.id, "u1", "u2", "Banned");
-    assert.equal(mgr.isActiveMember(club.id, "u2"), false);
+    mgr.banMember(club.id, 'u1', 'u2', 'Banned');
+    assert.equal(mgr.isActiveMember(club.id, 'u2'), false);
   });
 });
 
-describe("ClubManager — club table access enforcement", () => {
-  it("creating a club generates unique code and creates OWNER membership", () => {
+describe('ClubManager — club table access enforcement', () => {
+  it('creating a club generates unique code and creates OWNER membership', () => {
     const mgr = new ClubManager();
-    const club1 = mgr.createClub({ ownerUserId: "u1", ownerDisplayName: "Alice", name: "Club 1" });
-    const club2 = mgr.createClub({ ownerUserId: "u2", ownerDisplayName: "Bob", name: "Club 2" });
+    const club1 = mgr.createClub({ ownerUserId: 'u1', ownerDisplayName: 'Alice', name: 'Club 1' });
+    const club2 = mgr.createClub({ ownerUserId: 'u2', ownerDisplayName: 'Bob', name: 'Club 2' });
 
     assert.ok(club1.code);
     assert.ok(club2.code);
-    assert.notEqual(club1.code, club2.code, "Club codes must be unique");
+    assert.notEqual(club1.code, club2.code, 'Club codes must be unique');
     assert.equal(club1.code.length, 6);
 
-    const owner1 = mgr.getMember(club1.id, "u1");
+    const owner1 = mgr.getMember(club1.id, 'u1');
     assert.ok(owner1);
-    assert.equal(owner1!.role, "owner");
-    assert.equal(owner1!.status, "active");
+    assert.equal(owner1!.role, 'owner');
+    assert.equal(owner1!.status, 'active');
   });
 
-  it("joining by code creates MEMBER row idempotently", () => {
+  it('joining by code creates MEMBER row idempotently', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Idempotent Join Club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Idempotent Join Club',
       requireApprovalToJoin: false,
     });
 
-    const result1 = mgr.requestJoin(club.code, "u2", "Bob");
-    assert.equal(result1.status, "joined");
+    const result1 = mgr.requestJoin(club.code, 'u2', 'Bob');
+    assert.equal(result1.status, 'joined');
 
     // Second join attempt should return error (already member) — idempotent safety
-    const result2 = mgr.requestJoin(club.code, "u2", "Bob");
-    assert.equal(result2.status, "error");
-    assert.ok(result2.message.includes("Already"));
+    const result2 = mgr.requestJoin(club.code, 'u2', 'Bob');
+    assert.equal(result2.status, 'error');
+    assert.ok(result2.message.includes('Already'));
 
-    const member = mgr.getMember(club.id, "u2");
-    assert.equal(member!.role, "member");
+    const member = mgr.getMember(club.id, 'u2');
+    assert.equal(member!.role, 'member');
   });
 
-  it("non-member cannot list club tables (via getClubDetail)", () => {
+  it('non-member cannot list club tables (via getClubDetail)', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Table Access Club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Table Access Club',
     });
 
-    mgr.createTable(club.id, "u1", "Owner Table", DEFAULT_CLUB_TABLE_CONFIG);
+    mgr.createTable(club.id, 'u1', 'Owner Table', DEFAULT_CLUB_TABLE_CONFIG);
 
     // Non-member trying to get club detail (which includes tables)
-    const detail = mgr.getClubDetail(club.id, "stranger");
-    assert.equal(detail, null, "Non-member should not get club detail or table list");
+    const detail = mgr.getClubDetail(club.id, 'stranger');
+    assert.equal(detail, null, 'Non-member should not get club detail or table list');
   });
 
-  it("non-admin cannot create club table", () => {
+  it('non-admin cannot create club table', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Restricted Table Club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Restricted Table Club',
       requireApprovalToJoin: false,
     });
 
-    mgr.requestJoin(club.code, "u2", "Bob"); // joins as member
+    mgr.requestJoin(club.code, 'u2', 'Bob'); // joins as member
 
     // Regular member cannot create table
-    const result = mgr.createTable(club.id, "u2", "Illegal Table", DEFAULT_CLUB_TABLE_CONFIG);
-    assert.equal(result, null, "Regular member should not be able to create a table");
+    const result = mgr.createTable(club.id, 'u2', 'Illegal Table', DEFAULT_CLUB_TABLE_CONFIG);
+    assert.equal(result, null, 'Regular member should not be able to create a table');
 
     // Non-member cannot create table
-    const result2 = mgr.createTable(club.id, "stranger", "Outsider Table", DEFAULT_CLUB_TABLE_CONFIG);
-    assert.equal(result2, null, "Non-member should not be able to create a table");
+    const result2 = mgr.createTable(
+      club.id,
+      'stranger',
+      'Outsider Table',
+      DEFAULT_CLUB_TABLE_CONFIG,
+    );
+    assert.equal(result2, null, 'Non-member should not be able to create a table');
   });
 
-  it("club tables are identifiable via getClubForTableById after creation", () => {
+  it('club tables are identifiable via getClubForTableById after creation', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Isolation Club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Isolation Club',
     });
 
-    const result = mgr.createTable(club.id, "u1", "Private Table", DEFAULT_CLUB_TABLE_CONFIG);
+    const result = mgr.createTable(club.id, 'u1', 'Private Table', DEFAULT_CLUB_TABLE_CONFIG);
     assert.ok(result);
 
     // Unknown tableId — not findable
-    const before = mgr.getClubForTableById("non_existent_id");
+    const before = mgr.getClubForTableById('non_existent_id');
     assert.equal(before, null);
 
     // Created table — findable by id
@@ -688,189 +728,195 @@ describe("ClubManager — club table access enforcement", () => {
     assert.equal(after!.clubId, club.id);
 
     // isActiveMember correctly gates access
-    assert.equal(mgr.isActiveMember(club.id, "u1"), true, "Owner should be active member");
-    assert.equal(mgr.isActiveMember(club.id, "stranger"), false, "Non-member should not be active");
+    assert.equal(mgr.isActiveMember(club.id, 'u1'), true, 'Owner should be active member');
+    assert.equal(mgr.isActiveMember(club.id, 'stranger'), false, 'Non-member should not be active');
   });
 });
 
-describe("ClubService — requireActiveClubMember gate", () => {
-  it("returns NOT_CLUB_TABLE for non-club table ids", () => {
+describe('ClubService — requireActiveClubMember gate', () => {
+  it('returns NOT_CLUB_TABLE for non-club table ids', () => {
     const mgr = new ClubManager();
-    const result = requireActiveClubMember(mgr, "RANDOM_ID", "u1");
+    const result = requireActiveClubMember(mgr, 'RANDOM_ID', 'u1');
     assert.equal(result.allowed, false);
     if (!result.allowed) {
-      assert.equal(result.code, "NOT_CLUB_TABLE");
+      assert.equal(result.code, 'NOT_CLUB_TABLE');
     }
   });
 
-  it("returns NOT_MEMBER for non-members on club tables", () => {
+  it('returns NOT_MEMBER for non-members on club tables', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "owner",
-      ownerDisplayName: "Owner",
-      name: "Gate Club",
+      ownerUserId: 'owner',
+      ownerDisplayName: 'Owner',
+      name: 'Gate Club',
       requireApprovalToJoin: true,
     });
-    const table = mgr.createTable(club.id, "owner", "Gated Table", DEFAULT_CLUB_TABLE_CONFIG)!;
+    const table = mgr.createTable(club.id, 'owner', 'Gated Table', DEFAULT_CLUB_TABLE_CONFIG)!;
 
-    const result = requireActiveClubMember(mgr, table.clubTable.id, "stranger");
+    const result = requireActiveClubMember(mgr, table.clubTable.id, 'stranger');
     assert.equal(result.allowed, false);
     if (!result.allowed) {
-      assert.equal(result.code, "NOT_MEMBER");
+      assert.equal(result.code, 'NOT_MEMBER');
     }
   });
 
-  it("returns PENDING for pending members", () => {
+  it('returns PENDING for pending members', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "owner",
-      ownerDisplayName: "Owner",
-      name: "Pending Gate Club",
+      ownerUserId: 'owner',
+      ownerDisplayName: 'Owner',
+      name: 'Pending Gate Club',
       requireApprovalToJoin: true,
     });
-    mgr.requestJoin(club.code, "u2", "Pending User");
-    const table = mgr.createTable(club.id, "owner", "Gated Table", DEFAULT_CLUB_TABLE_CONFIG)!;
+    mgr.requestJoin(club.code, 'u2', 'Pending User');
+    const table = mgr.createTable(club.id, 'owner', 'Gated Table', DEFAULT_CLUB_TABLE_CONFIG)!;
 
-    const result = requireActiveClubMember(mgr, table.clubTable.id, "u2");
+    const result = requireActiveClubMember(mgr, table.clubTable.id, 'u2');
     assert.equal(result.allowed, false);
     if (!result.allowed) {
-      assert.equal(result.code, "PENDING");
+      assert.equal(result.code, 'PENDING');
     }
   });
 
-  it("returns BANNED for banned members", () => {
+  it('returns BANNED for banned members', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "owner",
-      ownerDisplayName: "Owner",
-      name: "Ban Gate Club",
+      ownerUserId: 'owner',
+      ownerDisplayName: 'Owner',
+      name: 'Ban Gate Club',
       requireApprovalToJoin: false,
     });
-    mgr.requestJoin(club.code, "u2", "User");
-    mgr.banMember(club.id, "owner", "u2", "Test ban");
-    const table = mgr.createTable(club.id, "owner", "Gated Table", DEFAULT_CLUB_TABLE_CONFIG)!;
+    mgr.requestJoin(club.code, 'u2', 'User');
+    mgr.banMember(club.id, 'owner', 'u2', 'Test ban');
+    const table = mgr.createTable(club.id, 'owner', 'Gated Table', DEFAULT_CLUB_TABLE_CONFIG)!;
 
-    const result = requireActiveClubMember(mgr, table.clubTable.id, "u2");
+    const result = requireActiveClubMember(mgr, table.clubTable.id, 'u2');
     assert.equal(result.allowed, false);
     if (!result.allowed) {
-      assert.equal(result.code, "BANNED");
+      assert.equal(result.code, 'BANNED');
     }
   });
 
-  it("returns allowed:true for active members", () => {
+  it('returns allowed:true for active members', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "owner",
-      ownerDisplayName: "Owner",
-      name: "Active Gate Club",
+      ownerUserId: 'owner',
+      ownerDisplayName: 'Owner',
+      name: 'Active Gate Club',
       requireApprovalToJoin: false,
     });
-    mgr.requestJoin(club.code, "u2", "Active User");
-    const table = mgr.createTable(club.id, "owner", "Gated Table", DEFAULT_CLUB_TABLE_CONFIG)!;
+    mgr.requestJoin(club.code, 'u2', 'Active User');
+    const table = mgr.createTable(club.id, 'owner', 'Gated Table', DEFAULT_CLUB_TABLE_CONFIG)!;
 
-    const result = requireActiveClubMember(mgr, table.clubTable.id, "u2");
+    const result = requireActiveClubMember(mgr, table.clubTable.id, 'u2');
     assert.equal(result.allowed, true);
     if (result.allowed) {
       assert.equal(result.clubId, club.id);
-      assert.equal(result.member.userId, "u2");
-      assert.equal(result.member.status, "active");
+      assert.equal(result.member.userId, 'u2');
+      assert.equal(result.member.status, 'active');
     }
   });
 
-  it("full approval workflow: pending -> approved -> can join table", () => {
+  it('full approval workflow: pending -> approved -> can join table', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "owner",
-      ownerDisplayName: "Owner",
-      name: "Workflow Club",
+      ownerUserId: 'owner',
+      ownerDisplayName: 'Owner',
+      name: 'Workflow Club',
       requireApprovalToJoin: true,
     });
-    const table = mgr.createTable(club.id, "owner", "Workflow Table", DEFAULT_CLUB_TABLE_CONFIG)!;
+    const table = mgr.createTable(club.id, 'owner', 'Workflow Table', DEFAULT_CLUB_TABLE_CONFIG)!;
 
     // Step 1: Request join (pending)
-    mgr.requestJoin(club.code, "u2", "Applicant");
-    const r1 = requireActiveClubMember(mgr, table.clubTable.id, "u2");
+    mgr.requestJoin(club.code, 'u2', 'Applicant');
+    const r1 = requireActiveClubMember(mgr, table.clubTable.id, 'u2');
     assert.equal(r1.allowed, false);
-    if (!r1.allowed) assert.equal(r1.code, "PENDING");
+    if (!r1.allowed) assert.equal(r1.code, 'PENDING');
 
     // Step 2: Approve
-    mgr.approveJoin(club.id, "owner", "u2");
-    const r2 = requireActiveClubMember(mgr, table.clubTable.id, "u2");
+    mgr.approveJoin(club.id, 'owner', 'u2');
+    const r2 = requireActiveClubMember(mgr, table.clubTable.id, 'u2');
     assert.equal(r2.allowed, true);
   });
 });
 
-describe("ClubManager — hydrate/persist interface", () => {
-  it("setRepo accepts a repo and hydrate runs without error when no repo", async () => {
+describe('ClubManager — hydrate/persist interface', () => {
+  it('setRepo accepts a repo and hydrate runs without error when no repo', async () => {
     const mgr = new ClubManager();
     // hydrate without repo should be a no-op
     await mgr.hydrate();
     // Should still work as empty in-memory store
-    const clubs = mgr.listMyClubs("anyone");
+    const clubs = mgr.listMyClubs('anyone');
     assert.deepEqual(clubs, []);
   });
 
-  it("setRepo + createClub triggers persistence (no error without real DB)", () => {
+  it('setRepo + createClub triggers persistence (no error without real DB)', () => {
     const mgr = new ClubManager();
     // Create a mock repo that's disabled
-    const mockRepo = { enabled: () => false, hydrateAll: async () => ({ clubs: [], members: [], invites: [], rulesets: [], tables: [] }), createClub: async () => {}, upsertMember: async () => {}, appendAudit: async () => {} } as any;
+    const mockRepo = {
+      enabled: () => false,
+      hydrateAll: async () => ({ clubs: [], members: [], invites: [], rulesets: [], tables: [] }),
+      createClub: async () => {},
+      upsertMember: async () => {},
+      appendAudit: async () => {},
+    } as any;
     mgr.setRepo(mockRepo);
 
     // Creating a club should not throw even with disabled repo
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Persist Test Club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Persist Test Club',
     });
     assert.ok(club.id);
     assert.ok(club.code);
   });
 });
 
-describe("ClubManager — create→list persistence contract", () => {
-  it("create club → listMyClubs immediately includes it (no rehydrate needed)", () => {
+describe('ClubManager — create→list persistence contract', () => {
+  it('create club → listMyClubs immediately includes it (no rehydrate needed)', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Persist Club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Persist Club',
     });
 
-    const list = mgr.listMyClubs("u1");
+    const list = mgr.listMyClubs('u1');
     assert.equal(list.length, 1);
     assert.equal(list[0].id, club.id);
-    assert.equal(list[0].name, "Persist Club");
-    assert.equal(list[0].myRole, "owner");
-    assert.equal(list[0].myStatus, "active");
+    assert.equal(list[0].name, 'Persist Club');
+    assert.equal(list[0].myRole, 'owner');
+    assert.equal(list[0].myStatus, 'active');
   });
 
-  it("create club → join → listMyClubs includes club for joiner", () => {
+  it('create club → join → listMyClubs includes club for joiner', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Join Test Club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Join Test Club',
       requireApprovalToJoin: false,
     });
 
-    mgr.requestJoin(club.code, "u2", "Bob");
+    mgr.requestJoin(club.code, 'u2', 'Bob');
 
-    const ownerList = mgr.listMyClubs("u1");
-    const memberList = mgr.listMyClubs("u2");
+    const ownerList = mgr.listMyClubs('u1');
+    const memberList = mgr.listMyClubs('u2');
     assert.equal(ownerList.length, 1);
     assert.equal(memberList.length, 1);
-    assert.equal(memberList[0].myRole, "member");
+    assert.equal(memberList[0].myRole, 'member');
   });
 
-  it("rehydrate from mock repo restores clubs and memberships", async () => {
+  it('rehydrate from mock repo restores clubs and memberships', async () => {
     const now = new Date().toISOString();
     const mockClub = {
-      id: "c1",
-      code: "TEST01",
-      name: "Rehydrated Club",
-      description: "",
-      ownerUserId: "u1",
-      visibility: "private" as const,
+      id: 'c1',
+      code: 'TEST01',
+      name: 'Rehydrated Club',
+      description: '',
+      ownerUserId: 'u1',
+      visibility: 'private' as const,
       defaultRulesetId: null,
       isArchived: false,
       requireApprovalToJoin: true,
@@ -880,15 +926,15 @@ describe("ClubManager — create→list persistence contract", () => {
       updatedAt: now,
     };
     const mockMember = {
-      clubId: "c1",
-      userId: "u1",
-      role: "owner" as const,
-      status: "active" as const,
+      clubId: 'c1',
+      userId: 'u1',
+      role: 'owner' as const,
+      status: 'active' as const,
       nicknameInClub: null,
       balance: 0,
       createdAt: now,
       lastSeenAt: now,
-      displayName: "Alice",
+      displayName: 'Alice',
     };
     const mockRepo = {
       enabled: () => true,
@@ -908,19 +954,19 @@ describe("ClubManager — create→list persistence contract", () => {
     mgr.setRepo(mockRepo);
     await mgr.hydrate();
 
-    const list = mgr.listMyClubs("u1");
+    const list = mgr.listMyClubs('u1');
     assert.equal(list.length, 1);
-    assert.equal(list[0].id, "c1");
-    assert.equal(list[0].name, "Rehydrated Club");
-    assert.equal(list[0].myRole, "owner");
+    assert.equal(list[0].id, 'c1');
+    assert.equal(list[0].name, 'Rehydrated Club');
+    assert.equal(list[0].myRole, 'owner');
 
     // Club detail should also work
-    const detail = mgr.getClubDetail("c1", "u1");
+    const detail = mgr.getClubDetail('c1', 'u1');
     assert.ok(detail);
-    assert.equal(detail!.detail.club.name, "Rehydrated Club");
+    assert.equal(detail!.detail.club.name, 'Rehydrated Club');
   });
 
-  it("create club with disabled repo still works in-memory", () => {
+  it('create club with disabled repo still works in-memory', () => {
     const mgr = new ClubManager();
     const mockRepo = {
       enabled: () => false,
@@ -932,39 +978,39 @@ describe("ClubManager — create→list persistence contract", () => {
     mgr.setRepo(mockRepo);
 
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "No DB Club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'No DB Club',
     });
 
-    const list = mgr.listMyClubs("u1");
+    const list = mgr.listMyClubs('u1');
     assert.equal(list.length, 1);
     assert.equal(list[0].id, club.id);
   });
 });
 
-describe("ClubManager — audit log", () => {
-  it("records audit entries for club actions", () => {
+describe('ClubManager — audit log', () => {
+  it('records audit entries for club actions', () => {
     const mgr = new ClubManager();
     const club = mgr.createClub({
-      ownerUserId: "u1",
-      ownerDisplayName: "Alice",
-      name: "Audit Club",
+      ownerUserId: 'u1',
+      ownerDisplayName: 'Alice',
+      name: 'Audit Club',
       requireApprovalToJoin: false,
     });
 
-    mgr.requestJoin(club.code, "u2", "Bob");
-    mgr.updateMemberRole(club.id, "u1", "u2", "admin");
-    mgr.kickMember(club.id, "u1", "u2");
+    mgr.requestJoin(club.code, 'u2', 'Bob');
+    mgr.updateMemberRole(club.id, 'u1', 'u2', 'admin');
+    mgr.kickMember(club.id, 'u1', 'u2');
 
-    const detail = mgr.getClubDetail(club.id, "u1");
+    const detail = mgr.getClubDetail(club.id, 'u1');
     assert.ok(detail);
     // Should have: club_created, member_joined, role_changed, member_kicked
     assert.ok(detail!.auditLog.length >= 4);
     const types = detail!.auditLog.map((e) => e.actionType);
-    assert.ok(types.includes("club_created"));
-    assert.ok(types.includes("member_joined"));
-    assert.ok(types.includes("role_changed"));
-    assert.ok(types.includes("member_kicked"));
+    assert.ok(types.includes('club_created'));
+    assert.ok(types.includes('member_joined'));
+    assert.ok(types.includes('role_changed'));
+    assert.ok(types.includes('member_kicked'));
   });
 });

@@ -1,15 +1,15 @@
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import type { RoomSettings } from "@cardpilot/shared-types";
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import type { RoomSettings } from '@cardpilot/shared-types';
 
 const ENV_FILES_BY_PRIORITY = [
-  ".env",
-  ".env.local",
-  "apps/game-server/.env",
-  "apps/game-server/.env.local",
+  '.env',
+  '.env.local',
+  'apps/game-server/.env',
+  'apps/game-server/.env.local',
 ] as const;
 
-const ROOM_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const ROOM_CODE_LENGTH = 6;
 
 const ROOM_LIMITS = {
@@ -23,18 +23,18 @@ const DEFAULT_BUY_IN_MIN = 2_000;
 const DEFAULT_BUY_IN_MAX = 20_000;
 
 const DEFAULT_CORS_ORIGINS = [
-  "http://127.0.0.1:5173",
-  "http://127.0.0.1:5174",
-  "http://127.0.0.1:4173",
-  "http://localhost:5173",
-  "http://localhost:5174",
-  "http://localhost:4173",
-  "https://cardpilotcouch.netlify.app",
-  "https://cardpilotgame-server-production.up.railway.app",
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5174',
+  'http://127.0.0.1:4173',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:4173',
+  'https://cardpilotcouch.netlify.app',
+  'https://cardpilotgame-server-production.up.railway.app',
 ];
 
 const DEFAULTS: RoomSettings = {
-  gameType: "texas",
+  gameType: 'texas',
   maxPlayers: 6,
   spectatorAllowed: true,
   smallBlind: DEFAULT_SMALL_BLIND,
@@ -47,8 +47,8 @@ const DEFAULTS: RoomSettings = {
   addOnAllowed: false,
   straddleAllowed: false,
   runItTwice: false,
-  runItTwiceMode: "off",
-  visibility: "public",
+  runItTwiceMode: 'off',
+  visibility: 'public',
   password: null,
   hostStartRequired: false,
   actionTimerSeconds: 15,
@@ -63,7 +63,7 @@ const DEFAULTS: RoomSettings = {
   rabbitHunting: false,
   autoStartNextHand: true,
   minPlayersToStart: 2,
-  showdownSpeed: "normal",
+  showdownSpeed: 'normal',
   dealToAwayPlayers: false,
   revealAllAtShowdown: true,
   autoRevealOnAllInCall: true,
@@ -72,12 +72,12 @@ const DEFAULTS: RoomSettings = {
   allowShowAfterFold: false,
   allowShowCalledHandRequest: false,
   bombPotEnabled: false,
-  bombPotTriggerMode: "frequency",
+  bombPotTriggerMode: 'frequency',
   bombPotFrequency: 0,
   bombPotProbability: 0,
-  bombPotAnteMode: "bb_multiplier",
+  bombPotAnteMode: 'bb_multiplier',
   bombPotAnteValue: 1,
-  doubleBoardMode: "off",
+  doubleBoardMode: 'off',
   sevenTwoBounty: 0,
   simulatedFeeEnabled: false,
   simulatedFeePercent: 5,
@@ -121,13 +121,13 @@ function loadEnvFilesOnce(): void {
   if (loaded) return;
 
   const cwd = process.cwd();
-  const candidateRoots = [cwd, resolve(cwd, "../..")];
+  const candidateRoots = [cwd, resolve(cwd, '../..')];
 
   for (const root of candidateRoots) {
     for (const relPath of ENV_FILES_BY_PRIORITY) {
       const fullPath = resolve(root, relPath);
       if (!existsSync(fullPath)) continue;
-      parseDotEnv(readFileSync(fullPath, "utf-8"));
+      parseDotEnv(readFileSync(fullPath, 'utf-8'));
     }
   }
 
@@ -135,15 +135,18 @@ function loadEnvFilesOnce(): void {
 }
 
 function parseDotEnv(content: string): void {
-  for (const rawLine of content.split("\n")) {
+  for (const rawLine of content.split('\n')) {
     const line = rawLine.trim();
-    if (!line || line.startsWith("#")) continue;
+    if (!line || line.startsWith('#')) continue;
 
-    const idx = line.indexOf("=");
+    const idx = line.indexOf('=');
     if (idx < 1) continue;
     const key = line.slice(0, idx).trim();
     let value = line.slice(idx + 1).trim();
-    if ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'"))) {
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
       value = value.slice(1, -1);
     }
 
@@ -168,33 +171,31 @@ function parseBooleanEnv(name: string, fallback: boolean): boolean {
   if (!raw) return fallback;
 
   const normalized = raw.trim().toLowerCase();
-  if (["1", "true", "yes", "on"].includes(normalized)) return true;
-  if (["0", "false", "no", "off"].includes(normalized)) return false;
+  if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
+  if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
 
   throw new Error(`[config] ${name} must be boolean-like (true/false/1/0), received "${raw}"`);
 }
 
 function parseSupabaseEnvGuard(): void {
-  const envName = (process.env.NODE_ENV || "").toLowerCase();
-  const isTest = envName === "test";
-  const isProduction = envName === "production";
+  const envName = (process.env.NODE_ENV || '').toLowerCase();
+  const isTest = envName === 'test';
+  const isProduction = envName === 'production';
 
   if (isTest) {
     return;
   }
 
-  const keys = [
-    "SUPABASE_URL",
-    "SUPABASE_ANON_KEY",
-    "SUPABASE_SERVICE_ROLE_KEY",
-  ] as const;
+  const keys = ['SUPABASE_URL', 'SUPABASE_ANON_KEY', 'SUPABASE_SERVICE_ROLE_KEY'] as const;
 
-  const defined = keys.filter((key) => typeof process.env[key] === "string" && process.env[key]!.trim().length > 0);
+  const defined = keys.filter(
+    (key) => typeof process.env[key] === 'string' && process.env[key]!.trim().length > 0,
+  );
   if (defined.length === 0) {
     if (isProduction) {
       console.warn(
         `[config] Supabase env is not configured in production. ` +
-        `Set ${keys.join(", ")} (recommended) or keep all unset only if you intentionally run without Supabase.`,
+          `Set ${keys.join(', ')} (recommended) or keep all unset only if you intentionally run without Supabase.`,
       );
     }
     return;
@@ -203,12 +204,12 @@ function parseSupabaseEnvGuard(): void {
   if (defined.length === keys.length) return;
 
   const missing = keys.filter((key) => !defined.includes(key));
-  const message = `[config] Incomplete Supabase env: set ${keys.join(", ")} together (or leave all unset).`;
-  const details = `Set: ${defined.join(", ")} | Missing: ${missing.join(", ")}`;
+  const message = `[config] Incomplete Supabase env: set ${keys.join(', ')} together (or leave all unset).`;
+  const details = `Set: ${defined.join(', ')} | Missing: ${missing.join(', ')}`;
 
   // In production, fail fast by default on partial Supabase config.
   // Override with SUPABASE_STRICT_ENV=false only if you explicitly accept fallback mode.
-  if (parseBooleanEnv("SUPABASE_STRICT_ENV", isProduction)) {
+  if (parseBooleanEnv('SUPABASE_STRICT_ENV', isProduction)) {
     throw new Error(`${message} ${details}`);
   }
 
@@ -219,22 +220,20 @@ function parseSupabaseEnvGuard(): void {
 }
 
 function parseCorsOrigin(): string[] | true {
-  const frontendOrigin = process.env.FRONTEND_ORIGIN?.trim() ?? "";
+  const frontendOrigin = process.env.FRONTEND_ORIGIN?.trim() ?? '';
   const raw = process.env.CORS_ORIGIN?.trim();
-  if (raw === "*") return true;
+  if (raw === '*') return true;
 
   const values = raw
     ? raw
-        .split(",")
+        .split(',')
         .map((value) => value.trim())
         .filter((value) => value.length > 0)
     : [];
 
-  const merged = Array.from(new Set([
-    ...values,
-    ...(frontendOrigin ? [frontendOrigin] : []),
-    ...DEFAULT_CORS_ORIGINS,
-  ]));
+  const merged = Array.from(
+    new Set([...values, ...(frontendOrigin ? [frontendOrigin] : []), ...DEFAULT_CORS_ORIGINS]),
+  );
 
   return merged;
 }
@@ -243,18 +242,21 @@ function buildConfig(): RuntimeConfig {
   loadEnvFilesOnce();
   parseSupabaseEnvGuard();
 
-  const handIdleSeconds = parsePositiveInt("HAND_IDLE_TIMEOUT_SECONDS", 60);
-  const showdownDecisionSeconds = parsePositiveInt("SHOWDOWN_DECISION_TIMEOUT_SECONDS", 4);
-  const runCountDecisionSeconds = parsePositiveInt("RUN_COUNT_DECISION_TIMEOUT_SECONDS", 15);
-  const tableBalanceRejoinWindowMinutes = parsePositiveInt("TABLE_BALANCE_REJOIN_WINDOW_MINUTES", 360);
-  const roomEmptyTtlMinutes = parsePositiveInt("ROOM_EMPTY_TTL_MINUTES", 10);
-  const clubTableIdleTtlMinutes = parsePositiveInt("CLUB_TABLE_IDLE_TTL_MINUTES", 10);
+  const handIdleSeconds = parsePositiveInt('HAND_IDLE_TIMEOUT_SECONDS', 60);
+  const showdownDecisionSeconds = parsePositiveInt('SHOWDOWN_DECISION_TIMEOUT_SECONDS', 4);
+  const runCountDecisionSeconds = parsePositiveInt('RUN_COUNT_DECISION_TIMEOUT_SECONDS', 15);
+  const tableBalanceRejoinWindowMinutes = parsePositiveInt(
+    'TABLE_BALANCE_REJOIN_WINDOW_MINUTES',
+    360,
+  );
+  const roomEmptyTtlMinutes = parsePositiveInt('ROOM_EMPTY_TTL_MINUTES', 10);
+  const clubTableIdleTtlMinutes = parsePositiveInt('CLUB_TABLE_IDLE_TTL_MINUTES', 10);
 
-  const port = parsePositiveInt("PORT", 4000);
+  const port = parsePositiveInt('PORT', 4000);
 
   return {
-    version: "v1",
-    envName: process.env.NODE_ENV || "development",
+    version: 'v1',
+    envName: process.env.NODE_ENV || 'development',
     port,
     corsOrigin: parseCorsOrigin(),
     handIdleTimeoutMs: handIdleSeconds * 1_000,
@@ -267,7 +269,7 @@ function buildConfig(): RuntimeConfig {
     roomCodeAlphabet: ROOM_CODE_ALPHABET,
     minPlayers: ROOM_LIMITS.minPlayers,
     maxPlayers: ROOM_LIMITS.maxPlayers,
-    defaultRoomName: "Training Room",
+    defaultRoomName: 'Training Room',
     defaultRoomSettings: { ...DEFAULTS },
     defaultCreateRoom: {
       maxPlayers: 6,

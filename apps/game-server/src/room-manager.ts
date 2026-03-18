@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomUUID } from 'node:crypto';
 import type {
   RoomSettings,
   RoomOwnership,
@@ -7,8 +7,8 @@ import type {
   RoomFullState,
   RoomStatus,
   TimerState,
-} from "@cardpilot/shared-types";
-import { getRuntimeConfig } from "./config";
+} from '@cardpilot/shared-types';
+import { getRuntimeConfig } from './config';
 
 const runtimeConfig = getRuntimeConfig();
 const DEFAULTS: RoomSettings = { ...runtimeConfig.defaultRoomSettings };
@@ -39,7 +39,10 @@ export interface ManagedRoom {
   // Per-player consecutive timeout count: userId -> count
   timeoutCounts: Map<string, number>;
   // Disconnect grace: seatNumber -> { userId, handle, disconnectedAt }
-  disconnectGrace: Map<number, { userId: string; handle: ReturnType<typeof setTimeout>; disconnectedAt: number }>;
+  disconnectGrace: Map<
+    number,
+    { userId: string; handle: ReturnType<typeof setTimeout>; disconnectedAt: number }
+  >;
   // Room empty timer
   emptyTimerHandle: ReturnType<typeof setTimeout> | null;
   // Hand active?
@@ -76,8 +79,14 @@ export class RoomManager {
     if (settings.bigBlind <= settings.smallBlind) {
       settings.bigBlind = settings.smallBlind * 2;
     }
-    settings.maxPlayers = Math.min(runtimeConfig.maxPlayers, Math.max(runtimeConfig.minPlayers, settings.maxPlayers));
-    settings.minPlayersToStart = Math.min(settings.maxPlayers, Math.max(2, Math.floor(settings.minPlayersToStart ?? 2)));
+    settings.maxPlayers = Math.min(
+      runtimeConfig.maxPlayers,
+      Math.max(runtimeConfig.minPlayers, settings.maxPlayers),
+    );
+    settings.minPlayersToStart = Math.min(
+      settings.maxPlayers,
+      Math.max(2, Math.floor(settings.minPlayersToStart ?? 2)),
+    );
 
     const room: ManagedRoom = {
       tableId: params.tableId,
@@ -89,7 +98,7 @@ export class RoomManager {
         ownerName: params.ownerName,
         coHostIds: [],
       },
-      status: "WAITING",
+      status: 'WAITING',
       banList: [],
       log: [],
       emptySince: null,
@@ -110,7 +119,7 @@ export class RoomManager {
     };
 
     this.rooms.set(params.tableId, room);
-    this.addLog(room, "SYSTEM_MESSAGE", {
+    this.addLog(room, 'SYSTEM_MESSAGE', {
       message: `Room created by ${params.ownerName}`,
       actorId: params.ownerId,
       actorName: params.ownerName,
@@ -125,7 +134,7 @@ export class RoomManager {
 
   getActiveRoomOwnedBy(userId: string): ManagedRoom | null {
     for (const room of this.rooms.values()) {
-      if (room.ownership.ownerId === userId && room.status !== "CLOSED") {
+      if (room.ownership.ownerId === userId && room.status !== 'CLOSED') {
         return room;
       }
     }
@@ -160,7 +169,13 @@ export class RoomManager {
     return this.isOwner(tableId, userId) || this.isCoHost(tableId, userId);
   }
 
-  transferOwnership(tableId: string, newOwnerId: string, newOwnerName: string, actorId: string, actorName: string): boolean {
+  transferOwnership(
+    tableId: string,
+    newOwnerId: string,
+    newOwnerName: string,
+    actorId: string,
+    actorName: string,
+  ): boolean {
     const room = this.rooms.get(tableId);
     if (!room) return false;
 
@@ -170,9 +185,11 @@ export class RoomManager {
     // Remove from co-host if they were one
     room.ownership.coHostIds = room.ownership.coHostIds.filter((id) => id !== newOwnerId);
 
-    this.addLog(room, "OWNER_CHANGED", {
-      actorId, actorName,
-      targetId: newOwnerId, targetName: newOwnerName,
+    this.addLog(room, 'OWNER_CHANGED', {
+      actorId,
+      actorName,
+      targetId: newOwnerId,
+      targetName: newOwnerName,
       message: `Owner changed: ${oldOwner} → ${newOwnerName}`,
     });
 
@@ -180,22 +197,31 @@ export class RoomManager {
     return true;
   }
 
-  setCoHost(tableId: string, userId: string, userName: string, add: boolean, actorId: string, actorName: string): boolean {
+  setCoHost(
+    tableId: string,
+    userId: string,
+    userName: string,
+    add: boolean,
+    actorId: string,
+    actorName: string,
+  ): boolean {
     const room = this.rooms.get(tableId);
     if (!room) return false;
 
     if (add) {
       if (!room.ownership.coHostIds.includes(userId)) {
         room.ownership.coHostIds.push(userId);
-        this.addLog(room, "SYSTEM_MESSAGE", {
-          actorId, actorName,
+        this.addLog(room, 'SYSTEM_MESSAGE', {
+          actorId,
+          actorName,
           message: `${actorName} promoted ${userName} to co-host`,
         });
       }
     } else {
       room.ownership.coHostIds = room.ownership.coHostIds.filter((id) => id !== userId);
-      this.addLog(room, "SYSTEM_MESSAGE", {
-        actorId, actorName,
+      this.addLog(room, 'SYSTEM_MESSAGE', {
+        actorId,
+        actorName,
         message: `${actorName} removed ${userName} from co-host`,
       });
     }
@@ -207,7 +233,7 @@ export class RoomManager {
   /** Auto-transfer ownership when owner disconnects. Returns new owner userId or null. */
   autoTransferOwnership(
     tableId: string,
-    seatedOnlinePlayers: Array<{ userId: string; name: string }>
+    seatedOnlinePlayers: Array<{ userId: string; name: string }>,
   ): { newOwnerId: string; newOwnerName: string } | null {
     const room = this.rooms.get(tableId);
     if (!room) return null;
@@ -234,7 +260,12 @@ export class RoomManager {
 
   /* ═══════════ SETTINGS ═══════════ */
 
-  updateSettings(tableId: string, partial: Partial<RoomSettings>, actorId: string, actorName: string): { applied: Partial<RoomSettings>; deferred: Partial<RoomSettings> } | null {
+  updateSettings(
+    tableId: string,
+    partial: Partial<RoomSettings>,
+    actorId: string,
+    actorName: string,
+  ): { applied: Partial<RoomSettings>; deferred: Partial<RoomSettings> } | null {
     const room = this.rooms.get(tableId);
     if (!room) return null;
 
@@ -243,28 +274,56 @@ export class RoomManager {
 
     // Fields that can ALWAYS be changed
     const alwaysEditable: Array<keyof RoomSettings> = [
-      "spectatorAllowed", "visibility", "password", "hostStartRequired",
-      "actionTimerSeconds", "timeBankSeconds", "timeBankRefillPerHand",
-      "timeBankHandsToFill",
-      "thinkExtensionSecondsPerUse", "thinkExtensionQuotaPerHour",
-      "disconnectGracePeriod", "maxConsecutiveTimeouts",
-      "autoStartNextHand", "minPlayersToStart", "showdownSpeed", "dealToAwayPlayers", "revealAllAtShowdown",
-      "autoRevealOnAllInCall", "autoRevealWinningHands", "autoMuckLosingHands",
-      "allowShowAfterFold", "allowShowCalledHandRequest",
-      "roomFundsTracking",
-      "botSeats",
-      "botBuyIn",
+      'spectatorAllowed',
+      'visibility',
+      'password',
+      'hostStartRequired',
+      'actionTimerSeconds',
+      'timeBankSeconds',
+      'timeBankRefillPerHand',
+      'timeBankHandsToFill',
+      'thinkExtensionSecondsPerUse',
+      'thinkExtensionQuotaPerHour',
+      'disconnectGracePeriod',
+      'maxConsecutiveTimeouts',
+      'autoStartNextHand',
+      'minPlayersToStart',
+      'showdownSpeed',
+      'dealToAwayPlayers',
+      'revealAllAtShowdown',
+      'autoRevealOnAllInCall',
+      'autoRevealWinningHands',
+      'autoMuckLosingHands',
+      'allowShowAfterFold',
+      'allowShowCalledHandRequest',
+      'roomFundsTracking',
+      'botSeats',
+      'botBuyIn',
     ];
 
     // Fields that can only change pre-game or apply next hand
     const preGameOnly: Array<keyof RoomSettings> = [
-      "gameType", "maxPlayers", "smallBlind", "bigBlind", "ante",
-      "blindStructure", "buyInMin", "buyInMax", "rebuyAllowed", "addOnAllowed",
-      "straddleAllowed", "runItTwice", "runItTwiceMode",
-      "bombPotEnabled", "bombPotTriggerMode", "bombPotFrequency",
-      "bombPotProbability", "bombPotAnteMode", "bombPotAnteValue",
-      "doubleBoardMode",
-      "sevenTwoBounty",
+      'gameType',
+      'maxPlayers',
+      'smallBlind',
+      'bigBlind',
+      'ante',
+      'blindStructure',
+      'buyInMin',
+      'buyInMax',
+      'rebuyAllowed',
+      'addOnAllowed',
+      'straddleAllowed',
+      'runItTwice',
+      'runItTwiceMode',
+      'bombPotEnabled',
+      'bombPotTriggerMode',
+      'bombPotFrequency',
+      'bombPotProbability',
+      'bombPotAnteMode',
+      'bombPotAnteValue',
+      'doubleBoardMode',
+      'sevenTwoBounty',
     ];
 
     for (const key of alwaysEditable) {
@@ -291,20 +350,42 @@ export class RoomManager {
     }
 
     // Clamp timer-related settings
-    room.settings.maxPlayers = Math.min(runtimeConfig.maxPlayers, Math.max(runtimeConfig.minPlayers, Math.floor(room.settings.maxPlayers)));
-    room.settings.minPlayersToStart = Math.min(room.settings.maxPlayers, Math.max(2, Math.floor(room.settings.minPlayersToStart ?? 2)));
+    room.settings.maxPlayers = Math.min(
+      runtimeConfig.maxPlayers,
+      Math.max(runtimeConfig.minPlayers, Math.floor(room.settings.maxPlayers)),
+    );
+    room.settings.minPlayersToStart = Math.min(
+      room.settings.maxPlayers,
+      Math.max(2, Math.floor(room.settings.minPlayersToStart ?? 2)),
+    );
     const minTimer = room.settings.selfPlayTurbo ? 1 : 5;
-    room.settings.actionTimerSeconds = Math.max(minTimer, Math.min(120, Math.floor(room.settings.actionTimerSeconds)));
-    room.settings.timeBankSeconds = Math.max(0, Math.min(300, Math.floor(room.settings.timeBankSeconds)));
-    room.settings.timeBankRefillPerHand = Math.max(0, Math.min(60, Math.floor(room.settings.timeBankRefillPerHand)));
-    room.settings.thinkExtensionSecondsPerUse = Math.max(1, Math.min(60, Math.floor(room.settings.thinkExtensionSecondsPerUse)));
-    room.settings.thinkExtensionQuotaPerHour = Math.max(0, Math.min(20, Math.floor(room.settings.thinkExtensionQuotaPerHour)));
+    room.settings.actionTimerSeconds = Math.max(
+      minTimer,
+      Math.min(120, Math.floor(room.settings.actionTimerSeconds)),
+    );
+    room.settings.timeBankSeconds = Math.max(
+      0,
+      Math.min(300, Math.floor(room.settings.timeBankSeconds)),
+    );
+    room.settings.timeBankRefillPerHand = Math.max(
+      0,
+      Math.min(60, Math.floor(room.settings.timeBankRefillPerHand)),
+    );
+    room.settings.thinkExtensionSecondsPerUse = Math.max(
+      1,
+      Math.min(60, Math.floor(room.settings.thinkExtensionSecondsPerUse)),
+    );
+    room.settings.thinkExtensionQuotaPerHour = Math.max(
+      0,
+      Math.min(20, Math.floor(room.settings.thinkExtensionQuotaPerHour)),
+    );
 
     const changedKeys = [...Object.keys(applied), ...Object.keys(deferred)];
     if (changedKeys.length > 0) {
-      this.addLog(room, "SETTINGS_CHANGED", {
-        actorId, actorName,
-        message: `${actorName} changed settings: ${changedKeys.join(", ")}`,
+      this.addLog(room, 'SETTINGS_CHANGED', {
+        actorId,
+        actorName,
+        message: `${actorName} changed settings: ${changedKeys.join(', ')}`,
         payload: { applied, deferred },
       });
       this.emitRoomUpdate(room);
@@ -315,20 +396,34 @@ export class RoomManager {
 
   /* ═══════════ KICK / BAN ═══════════ */
 
-  kickPlayer(tableId: string, targetUserId: string, targetName: string, reason: string, ban: boolean, actorId: string, actorName: string): boolean {
+  kickPlayer(
+    tableId: string,
+    targetUserId: string,
+    targetName: string,
+    reason: string,
+    ban: boolean,
+    actorId: string,
+    actorName: string,
+  ): boolean {
     const room = this.rooms.get(tableId);
     if (!room) return false;
 
     if (ban && !room.banList.includes(targetUserId)) {
       room.banList.push(targetUserId);
-      this.addLog(room, "PLAYER_BANNED", {
-        actorId, actorName, targetId: targetUserId, targetName,
-        message: `${actorName} banned ${targetName}${reason ? `: ${reason}` : ""}`,
+      this.addLog(room, 'PLAYER_BANNED', {
+        actorId,
+        actorName,
+        targetId: targetUserId,
+        targetName,
+        message: `${actorName} banned ${targetName}${reason ? `: ${reason}` : ''}`,
       });
     } else {
-      this.addLog(room, "PLAYER_KICKED", {
-        actorId, actorName, targetId: targetUserId, targetName,
-        message: `${actorName} kicked ${targetName}${reason ? `: ${reason}` : ""}`,
+      this.addLog(room, 'PLAYER_KICKED', {
+        actorId,
+        actorName,
+        targetId: targetUserId,
+        targetName,
+        message: `${actorName} kicked ${targetName}${reason ? `: ${reason}` : ''}`,
       });
     }
 
@@ -348,11 +443,11 @@ export class RoomManager {
     if (!room) return;
     room.handActive = active;
     if (active) {
-      room.status = "PLAYING";
+      room.status = 'PLAYING';
     } else if (room.paused) {
-      room.status = "PAUSED";
+      room.status = 'PAUSED';
     } else {
-      room.status = "WAITING";
+      room.status = 'WAITING';
     }
     room.updatedAt = new Date().toISOString();
   }
@@ -361,11 +456,12 @@ export class RoomManager {
     const room = this.rooms.get(tableId);
     if (!room) return false;
     room.paused = true;
-    room.status = "PAUSED";
+    room.status = 'PAUSED';
     // Stop action timer while paused
     this.clearActionTimer(tableId);
-    this.addLog(room, "GAME_PAUSED", {
-      actorId, actorName,
+    this.addLog(room, 'GAME_PAUSED', {
+      actorId,
+      actorName,
       message: `${actorName} paused the game`,
     });
     this.emitRoomUpdate(room);
@@ -376,9 +472,10 @@ export class RoomManager {
     const room = this.rooms.get(tableId);
     if (!room || !room.paused) return false;
     room.paused = false;
-    room.status = room.handActive ? "PLAYING" : "WAITING";
-    this.addLog(room, "GAME_RESUMED", {
-      actorId, actorName,
+    room.status = room.handActive ? 'PLAYING' : 'WAITING';
+    this.addLog(room, 'GAME_RESUMED', {
+      actorId,
+      actorName,
       message: `${actorName} resumed the game`,
     });
     this.emitRoomUpdate(room);
@@ -391,10 +488,11 @@ export class RoomManager {
     room.handActive = false;
     room.settings.autoStartNextHand = false;
     room.paused = false;
-    room.status = "WAITING";
+    room.status = 'WAITING';
     this.clearActionTimer(tableId);
-    this.addLog(room, "GAME_ENDED", {
-      actorId, actorName,
+    this.addLog(room, 'GAME_ENDED', {
+      actorId,
+      actorName,
       message: `${actorName} ended the game`,
     });
     this.emitRoomUpdate(room);
@@ -422,7 +520,7 @@ export class RoomManager {
     tableId: string,
     seat: number,
     userId: string,
-    onTimeout: () => void
+    onTimeout: () => void,
   ): TimerState | null {
     const room = this.rooms.get(tableId);
     if (!room || room.paused) return null;
@@ -451,29 +549,32 @@ export class RoomManager {
     return timerState;
   }
 
-  requestThinkExtension(tableId: string, userId: string): { ok: boolean; reason?: string; remainingUses?: number; addedSeconds?: number } {
+  requestThinkExtension(
+    tableId: string,
+    userId: string,
+  ): { ok: boolean; reason?: string; remainingUses?: number; addedSeconds?: number } {
     const room = this.rooms.get(tableId);
     if (!room || !room.timer) {
-      return { ok: false, reason: "No active timer" };
+      return { ok: false, reason: 'No active timer' };
     }
     if (room.activeTimerUserId !== userId || room.activeTimerSeat !== room.timer.seat) {
-      return { ok: false, reason: "Not your turn" };
+      return { ok: false, reason: 'Not your turn' };
     }
     if (room.timer.usingTimeBank) {
-      return { ok: false, reason: "Cannot extend while using time bank" };
+      return { ok: false, reason: 'Cannot extend while using time bank' };
     }
     if (!room.activeTimerOnTimeout) {
-      return { ok: false, reason: "Timer context missing" };
+      return { ok: false, reason: 'Timer context missing' };
     }
 
     const quota = room.settings.thinkExtensionQuotaPerHour;
     if (quota <= 0) {
-      return { ok: false, reason: "Think extension is disabled in this room" };
+      return { ok: false, reason: 'Think extension is disabled in this room' };
     }
 
     const usage = this.normalizeThinkExtensionWindow(room, userId);
     if (usage.used >= quota) {
-      return { ok: false, reason: "Hourly think-extension quota reached", remainingUses: 0 };
+      return { ok: false, reason: 'Hourly think-extension quota reached', remainingUses: 0 };
     }
 
     const now = Date.now();
@@ -492,10 +593,15 @@ export class RoomManager {
       clearTimeout(room.actionTimerHandle);
     }
     room.actionTimerHandle = setTimeout(() => {
-      this.enterTimeBankOrTimeout(room, room.activeTimerSeat ?? room.timer!.seat, userId, room.activeTimerOnTimeout!);
+      this.enterTimeBankOrTimeout(
+        room,
+        room.activeTimerSeat ?? room.timer!.seat,
+        userId,
+        room.activeTimerOnTimeout!,
+      );
     }, newRemaining * 1000);
 
-    this.addLog(room, "SYSTEM_MESSAGE", {
+    this.addLog(room, 'SYSTEM_MESSAGE', {
       targetId: userId,
       message: `Player used think extension (+${addedSeconds}s)`,
     });
@@ -552,22 +658,31 @@ export class RoomManager {
     }
   }
 
-  private handleTimeout(room: ManagedRoom, seat: number, userId: string, onTimeout: () => void): void {
+  private handleTimeout(
+    room: ManagedRoom,
+    seat: number,
+    userId: string,
+    onTimeout: () => void,
+  ): void {
     const count = (room.timeoutCounts.get(userId) ?? 0) + 1;
     room.timeoutCounts.set(userId, count);
 
-    this.addLog(room, "PLAYER_TIMED_OUT", {
+    this.addLog(room, 'PLAYER_TIMED_OUT', {
       targetId: userId,
       message: `Seat ${seat} timed out (auto-fold)`,
     });
 
     // Check consecutive timeout threshold
     if (count >= room.settings.maxConsecutiveTimeouts) {
-      this.addLog(room, "PLAYER_SAT_OUT", {
+      this.addLog(room, 'PLAYER_SAT_OUT', {
         targetId: userId,
         message: `Seat ${seat} auto sat-out after ${count} consecutive timeouts`,
       });
-      this.onEvent(room.tableId, "player_auto_sitout", { seat, userId, reason: "consecutive_timeouts" });
+      this.onEvent(room.tableId, 'player_auto_sitout', {
+        seat,
+        userId,
+        reason: 'consecutive_timeouts',
+      });
     }
 
     room.timer = null;
@@ -579,13 +694,24 @@ export class RoomManager {
     this.emitRoomUpdate(room);
   }
 
-  private armMainTimer(room: ManagedRoom, seat: number, userId: string, onTimeout: () => void, mainSeconds: number): void {
+  private armMainTimer(
+    room: ManagedRoom,
+    seat: number,
+    userId: string,
+    onTimeout: () => void,
+    mainSeconds: number,
+  ): void {
     room.actionTimerHandle = setTimeout(() => {
       this.enterTimeBankOrTimeout(room, seat, userId, onTimeout);
     }, mainSeconds * 1000);
   }
 
-  private enterTimeBankOrTimeout(room: ManagedRoom, seat: number, userId: string, onTimeout: () => void): void {
+  private enterTimeBankOrTimeout(
+    room: ManagedRoom,
+    seat: number,
+    userId: string,
+    onTimeout: () => void,
+  ): void {
     const timeBankLeft = room.timeBanks.get(userId) ?? room.settings.timeBankSeconds;
     if (timeBankLeft > 0 && room.timer) {
       room.timer.usingTimeBank = true;
@@ -603,10 +729,16 @@ export class RoomManager {
           clearInterval(bankInterval);
           return;
         }
-        room.timer.timeBankRemaining = Math.max(0, room.timer.timeBankRemaining - 1);
-        room.timeBanks.set(userId, room.timer.timeBankRemaining);
+
+        // Calculate remaining based on elapsed time to prevent drift
+        const elapsed = (Date.now() - room.timer.startedAt) / 1000;
+        const remaining = Math.max(0, timeBankLeft - elapsed);
+
+        room.timer.timeBankRemaining = remaining;
+        room.timeBanks.set(userId, remaining);
         this.emitTimerUpdate(room);
-        if (room.timer.timeBankRemaining <= 0) {
+
+        if (remaining <= 0) {
           clearInterval(bankInterval);
         }
       }, 1000);
@@ -616,7 +748,10 @@ export class RoomManager {
     this.handleTimeout(room, seat, userId, onTimeout);
   }
 
-  private normalizeThinkExtensionWindow(room: ManagedRoom, userId: string): { windowStartedAt: number; used: number } {
+  private normalizeThinkExtensionWindow(
+    room: ManagedRoom,
+    userId: string,
+  ): { windowStartedAt: number; used: number } {
     const now = Date.now();
     const current = room.thinkExtensionUsage.get(userId);
     if (!current || now - current.windowStartedAt >= 3_600_000) {
@@ -633,7 +768,7 @@ export class RoomManager {
     tableId: string,
     seat: number,
     userId: string,
-    onGraceExpired: () => void
+    onGraceExpired: () => void,
   ): void {
     const room = this.rooms.get(tableId);
     if (!room) return;
@@ -644,7 +779,7 @@ export class RoomManager {
 
     const handle = setTimeout(() => {
       room.disconnectGrace.delete(seat);
-      this.addLog(room, "SYSTEM_MESSAGE", {
+      this.addLog(room, 'SYSTEM_MESSAGE', {
         targetId: userId,
         message: `Seat ${seat} reconnect window expired — auto-fold`,
       });
@@ -657,7 +792,11 @@ export class RoomManager {
       disconnectedAt: Date.now(),
     });
 
-    this.onEvent(tableId, "player_disconnected", { seat, userId, graceSeconds: room.settings.disconnectGracePeriod });
+    this.onEvent(tableId, 'player_disconnected', {
+      seat,
+      userId,
+      graceSeconds: room.settings.disconnectGracePeriod,
+    });
   }
 
   cancelDisconnectGrace(tableId: string, seat: number): boolean {
@@ -667,7 +806,7 @@ export class RoomManager {
     if (!grace) return false;
     clearTimeout(grace.handle);
     room.disconnectGrace.delete(seat);
-    this.onEvent(tableId, "player_reconnected", { seat, userId: grace.userId });
+    this.onEvent(tableId, 'player_reconnected', { seat, userId: grace.userId });
     return true;
   }
 
@@ -703,10 +842,10 @@ export class RoomManager {
       if (!room.emptySince) {
         room.emptySince = Date.now();
         room.emptyTimerHandle = setTimeout(() => {
-          this.onEvent(tableId, "room_auto_close_check", {});
+          this.onEvent(tableId, 'room_auto_close_check', {});
           onDestroy();
         }, ttl);
-        this.onEvent(tableId, "room_empty_countdown", { ttlMs: ttl });
+        this.onEvent(tableId, 'room_empty_countdown', { ttlMs: ttl });
       }
     } else {
       // Cancel empty timer
@@ -734,25 +873,32 @@ export class RoomManager {
     if (room.handActive) {
       // Extend TTL
       room.emptyTimerHandle = setTimeout(() => {
-        this.onEvent(tableId, "room_auto_close_check", {});
+        this.onEvent(tableId, 'room_auto_close_check', {});
       }, ROOM_EMPTY_TTL_MS);
       return false;
     }
 
-    this.addLog(room, "SYSTEM_MESSAGE", { message: "Room auto-closed (empty)" });
-    room.status = "CLOSED";
-    this.onEvent(tableId, "room_destroyed", {});
+    this.addLog(room, 'SYSTEM_MESSAGE', { message: 'Room auto-closed (empty)' });
+    room.status = 'CLOSED';
+    this.onEvent(tableId, 'room_destroyed', {});
     this.deleteRoom(tableId);
     return true;
   }
 
   /* ═══════════ ROOM LOG ═══════════ */
 
-  addLog(room: ManagedRoom, type: RoomLogEventType, data: {
-    actorId?: string; actorName?: string;
-    targetId?: string; targetName?: string;
-    message: string; payload?: Record<string, unknown>;
-  }): RoomLogEntry {
+  addLog(
+    room: ManagedRoom,
+    type: RoomLogEventType,
+    data: {
+      actorId?: string;
+      actorName?: string;
+      targetId?: string;
+      targetName?: string;
+      message: string;
+      payload?: Record<string, unknown>;
+    },
+  ): RoomLogEntry {
     const entry: RoomLogEntry = {
       id: randomUUID().slice(0, 8),
       timestamp: Date.now(),
@@ -764,7 +910,7 @@ export class RoomManager {
     if (room.log.length > MAX_LOG_ENTRIES) {
       room.log = room.log.slice(-MAX_LOG_ENTRIES);
     }
-    this.onEvent(room.tableId, "room_log", entry);
+    this.onEvent(room.tableId, 'room_log', entry);
     return entry;
   }
 
@@ -784,17 +930,20 @@ export class RoomManager {
       banList: [...room.banList],
       timer: room.timer ? { ...room.timer } : null,
       thinkExtensionUsageByUser: Object.fromEntries(
-        [...room.thinkExtensionUsage.entries()].map(([userId, usage]) => {
+        [...room.thinkExtensionUsage.entries()].map(([userId]) => {
           const normalized = this.normalizeThinkExtensionWindow(room, userId);
           const quota = room.settings.thinkExtensionQuotaPerHour;
-          return [userId, {
-            used: normalized.used,
-            quota,
-            remaining: Math.max(0, quota - normalized.used),
-            windowStartedAt: normalized.windowStartedAt,
-            windowResetAt: normalized.windowStartedAt + 3_600_000,
-          }];
-        })
+          return [
+            userId,
+            {
+              used: normalized.used,
+              quota,
+              remaining: Math.max(0, quota - normalized.used),
+              windowStartedAt: normalized.windowStartedAt,
+              windowResetAt: normalized.windowStartedAt + 3_600_000,
+            },
+          ];
+        }),
       ),
       log: room.log.slice(-50), // Send last 50 entries to client
       emptySince: room.emptySince,
@@ -805,12 +954,12 @@ export class RoomManager {
 
   private emitRoomUpdate(room: ManagedRoom): void {
     room.updatedAt = new Date().toISOString();
-    this.onEvent(room.tableId, "room_state_update", this.getFullState(room.tableId));
+    this.onEvent(room.tableId, 'room_state_update', this.getFullState(room.tableId));
   }
 
   private emitTimerUpdate(room: ManagedRoom): void {
     if (room.timer) {
-      this.onEvent(room.tableId, "timer_update", { ...room.timer });
+      this.onEvent(room.tableId, 'timer_update', { ...room.timer });
     }
   }
 }
