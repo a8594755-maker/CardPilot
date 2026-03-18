@@ -27,7 +27,7 @@ export interface EvalMetrics {
   top1Accuracy: number;
   calibration: CalibrationBin[];
   perStreet: Record<string, StreetMetrics>;
-  sizingTop1Accuracy?: number;  // V2 only: sizing head accuracy
+  sizingTop1Accuracy?: number; // V2 only: sizing head accuracy
   sampleCount: number;
 }
 
@@ -39,9 +39,9 @@ function relu(x: number): number {
 
 function softmax(logits: number[]): number[] {
   const maxVal = Math.max(...logits);
-  const exps = logits.map(v => Math.exp(v - maxVal));
+  const exps = logits.map((v) => Math.exp(v - maxVal));
   const sum = exps.reduce((a, b) => a + b, 0);
-  return exps.map(e => e / sum);
+  return exps.map((e) => e / sum);
 }
 
 function denseForward(
@@ -77,8 +77,18 @@ function predict(model: ModelWeights, features: number[]): PredictionResult {
     for (const layer of model.layers) {
       current = denseForward(current, layer.weights, layer.biases, relu);
     }
-    const actionLogits = denseForward(current, model.actionHead!.weights, model.actionHead!.biases, null);
-    const sizingLogits = denseForward(current, model.sizingHead!.weights, model.sizingHead!.biases, null);
+    const actionLogits = denseForward(
+      current,
+      model.actionHead!.weights,
+      model.actionHead!.biases,
+      null,
+    );
+    const sizingLogits = denseForward(
+      current,
+      model.sizingHead!.weights,
+      model.sizingHead!.biases,
+      null,
+    );
     return {
       actionProbs: softmax(actionLogits),
       sizingProbs: softmax(sizingLogits),
@@ -124,8 +134,11 @@ function argmax(arr: number[]): number {
 export function evaluateModel(model: ModelWeights, samples: TrainingSample[]): EvalMetrics {
   if (samples.length === 0) {
     return {
-      klDivergence: 0, top1Accuracy: 0, calibration: [],
-      perStreet: {}, sampleCount: 0,
+      klDivergence: 0,
+      top1Accuracy: 0,
+      calibration: [],
+      perStreet: {},
+      sampleCount: 0,
     };
   }
 
@@ -167,7 +180,10 @@ export function evaluateModel(model: ModelWeights, samples: TrainingSample[]): E
 
     // Per-street
     const street = sample.s || 'UNKNOWN';
-    if (!streetKL[street]) { streetKL[street] = []; streetTop1[street] = []; }
+    if (!streetKL[street]) {
+      streetKL[street] = [];
+      streetTop1[street] = [];
+    }
     streetKL[street].push(kl);
     streetTop1[street].push(match);
 
@@ -185,12 +201,22 @@ export function evaluateModel(model: ModelWeights, samples: TrainingSample[]): E
   for (let b = 0; b < NUM_BINS; b++) {
     const count = binConfidence[b].length;
     if (count === 0) {
-      calibration.push({ binCenter: (b + 0.5) / NUM_BINS, avgConfidence: 0, avgAccuracy: 0, count: 0 });
+      calibration.push({
+        binCenter: (b + 0.5) / NUM_BINS,
+        avgConfidence: 0,
+        avgAccuracy: 0,
+        count: 0,
+      });
       continue;
     }
     const avgConf = binConfidence[b].reduce((a, v) => a + v, 0) / count;
     const avgAcc = binCorrect[b].filter(Boolean).length / count;
-    calibration.push({ binCenter: (b + 0.5) / NUM_BINS, avgConfidence: avgConf, avgAccuracy: avgAcc, count });
+    calibration.push({
+      binCenter: (b + 0.5) / NUM_BINS,
+      avgConfidence: avgConf,
+      avgAccuracy: avgAcc,
+      count,
+    });
   }
 
   // Build per-street metrics
@@ -236,9 +262,9 @@ export function printMetrics(metrics: EvalMetrics): void {
   for (const [street, sm] of Object.entries(metrics.perStreet)) {
     console.log(
       `    ${street.padEnd(8)}: ` +
-      `KL=${sm.klDivergence.toFixed(4)}  ` +
-      `Acc=${(sm.top1Accuracy * 100).toFixed(1)}%  ` +
-      `N=${sm.sampleCount}`
+        `KL=${sm.klDivergence.toFixed(4)}  ` +
+        `Acc=${(sm.top1Accuracy * 100).toFixed(1)}%  ` +
+        `N=${sm.sampleCount}`,
     );
   }
 
@@ -247,9 +273,9 @@ export function printMetrics(metrics: EvalMetrics): void {
     if (bin.count > 0) {
       console.log(
         `    [${(bin.binCenter - 0.05).toFixed(2)}-${(bin.binCenter + 0.05).toFixed(2)}]: ` +
-        `conf=${bin.avgConfidence.toFixed(3)}  ` +
-        `acc=${bin.avgAccuracy.toFixed(3)}  ` +
-        `n=${bin.count}`
+          `conf=${bin.avgConfidence.toFixed(3)}  ` +
+          `acc=${bin.avgAccuracy.toFixed(3)}  ` +
+          `n=${bin.count}`,
       );
     }
   }

@@ -1,6 +1,6 @@
-import { randomInt } from "node:crypto";
-import { v4 as uuidv4 } from "uuid";
-import pokersolver from "pokersolver";
+import { randomInt } from 'node:crypto';
+import { v4 as uuidv4 } from 'uuid';
+import { evaluateBestHand, compareHands, type HandEvaluation } from '@cardpilot/poker-evaluator';
 import type {
   HandAction,
   HandActionType,
@@ -16,26 +16,28 @@ import type {
   Street,
   TablePlayer,
   TableState,
-} from "@cardpilot/shared-types";
-import { getClockwiseSeatsFromButton as canonicalClockwiseSeats } from "@cardpilot/shared-types";
+} from '@cardpilot/shared-types';
+import { getClockwiseSeatsFromButton as canonicalClockwiseSeats } from '@cardpilot/shared-types';
 
-const RANKS = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"];
-const SUITS = ["s", "h", "d", "c"];
-const { Hand } = pokersolver as unknown as {
-  Hand: {
-    solve(cards: string[]): { descr: string; rank: number };
-    winners(hands: Array<{ descr: string; rank: number }>): Array<{ descr: string; rank: number }>;
-  };
-};
+const RANKS = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
+const SUITS = ['s', 'h', 'd', 'c'];
+
+// Pre-compute FULL_DECK to avoid regenerating it every shuffle
+const FULL_DECK: string[] = [];
+for (const r of RANKS) {
+  for (const s of SUITS) {
+    FULL_DECK.push(`${r}${s}`);
+  }
+}
 
 const POSITION_LABELS_BY_COUNT: Record<number, readonly string[]> = {
   // orderedFromButton() starts from seat left of button (clockwise)
   // HU special case: first seat in that order is BB, second is SB(button)
-  2: ["BB", "SB"],
-  3: ["SB", "BB", "BTN"],
-  4: ["SB", "BB", "UTG", "BTN"],
-  5: ["SB", "BB", "UTG", "CO", "BTN"],
-  6: ["SB", "BB", "UTG", "HJ", "CO", "BTN"],
+  2: ['BB', 'SB'],
+  3: ['SB', 'BB', 'BTN'],
+  4: ['SB', 'BB', 'UTG', 'BTN'],
+  5: ['SB', 'BB', 'UTG', 'CO', 'BTN'],
+  6: ['SB', 'BB', 'UTG', 'HJ', 'CO', 'BTN'],
 };
 
 type TableMode = 'COACH' | 'REVIEW' | 'CASUAL';
@@ -54,7 +56,7 @@ type MutableTableState = TableState & {
   shownHands: Record<number, [string, string]>;
   revealedHoles: Record<number, [string, string]>;
   muckedSeats: number[];
-  showdownPhase: "none" | "decision";
+  showdownPhase: 'none' | 'decision';
   /** The currentBet value at which the last FULL bet/raise occurred. */
   lastReopenBet: number;
   /** Seats that have voluntarily acted since the most recent FULL raise level. */
@@ -115,22 +117,21 @@ export class GameTable {
   }) {
     this.ante = Math.max(0, params.ante ?? 0);
     this.runItTwiceEnabled = params.runItTwiceEnabled ?? false;
-    this.gameType = params.gameType ?? "texas";
+    this.gameType = params.gameType ?? 'texas';
     this.bombPotEnabled = params.bombPotEnabled ?? false;
-    this.bombPotTriggerMode = params.bombPotTriggerMode ?? "frequency";
+    this.bombPotTriggerMode = params.bombPotTriggerMode ?? 'frequency';
     this.bombPotFrequency = Math.max(0, Math.floor(params.bombPotFrequency ?? 0));
     this.bombPotProbability = Math.max(0, Math.min(100, params.bombPotProbability ?? 0));
-    this.bombPotAnteMode = params.bombPotAnteMode ?? "bb_multiplier";
+    this.bombPotAnteMode = params.bombPotAnteMode ?? 'bb_multiplier';
     this.bombPotAnteValue = Math.max(0, params.bombPotAnteValue ?? 1);
-    this.doubleBoardMode = params.doubleBoardMode ?? "off";
-    this.holeCardCount = this.gameType === "omaha" ? 4 : 2;
+    this.doubleBoardMode = params.doubleBoardMode ?? 'off';
+    this.holeCardCount = this.gameType === 'omaha' ? 4 : 2;
     this.rakePercent = Math.max(0, params.rakePercent ?? 0);
     this.rakeEnabled = params.rakeEnabled ?? this.rakePercent > 0;
     this.maxConsecutiveTimeouts = Math.max(1, params.maxConsecutiveTimeouts ?? 3);
     // rakeCap<=0 means uncapped rake
-    this.rakeCap = params.rakeCap != null && params.rakeCap > 0
-      ? params.rakeCap
-      : Number.POSITIVE_INFINITY;
+    this.rakeCap =
+      params.rakeCap != null && params.rakeCap > 0 ? params.rakeCap : Number.POSITIVE_INFINITY;
 
     this.state = {
       tableId: params.tableId,
@@ -139,7 +140,7 @@ export class GameTable {
       bigBlind: params.bigBlind,
       ante: this.ante,
       buttonSeat: 1,
-      street: "SHOWDOWN",
+      street: 'SHOWDOWN',
       board: [],
       pot: 0,
       currentBet: 0,
@@ -151,7 +152,7 @@ export class GameTable {
       players: [],
       actions: [],
       legalActions: null,
-      mode: params.mode ?? "COACH",
+      mode: params.mode ?? 'COACH',
       gameType: this.gameType,
       isBombPotHand: false,
       isDoubleBoardHand: false,
@@ -160,7 +161,7 @@ export class GameTable {
       shownHands: {},
       revealedHoles: {},
       muckedSeats: [],
-      showdownPhase: "none",
+      showdownPhase: 'none',
       ritVotes: {},
       runItTwiceEnabled: this.runItTwiceEnabled,
       nextBlindLevel: null,
@@ -173,33 +174,37 @@ export class GameTable {
       pendingDeadBlinds: new Map(),
       pendingDeadBlindActions: [],
       lastReopenBet: 0,
-      actedSinceLastFullRaise: new Set<number>()
+      actedSinceLastFullRaise: new Set<number>(),
     };
   }
 
-  handleTimeout(seat: number): { state: TableState; action: PlayerActionType; autoSatOut: boolean } {
+  handleTimeout(seat: number): {
+    state: TableState;
+    action: PlayerActionType;
+    autoSatOut: boolean;
+  } {
     if (this.state.handId === null) {
-      throw new Error("no active hand");
+      throw new Error('no active hand');
     }
 
-    if (this.state.street === "RUN_IT_TWICE_PROMPT") {
-      const state = this.applyAction(seat, "vote_rit", undefined, false);
+    if (this.state.street === 'RUN_IT_TWICE_PROMPT') {
+      const state = this.applyAction(seat, 'vote_rit', undefined, false);
       const timeoutCount = (this.consecutiveTimeouts.get(seat) ?? 0) + 1;
       this.consecutiveTimeouts.set(seat, timeoutCount);
       const autoSatOut = this.applyTimeoutSitOutIfNeeded(seat, timeoutCount);
-      return { state, action: "vote_rit", autoSatOut };
+      return { state, action: 'vote_rit', autoSatOut };
     }
 
     if (this.state.actorSeat !== seat) {
-      throw new Error("not your turn");
+      throw new Error('not your turn');
     }
 
     const legal = this.computeLegalActions();
     if (!legal) {
-      throw new Error("no legal actions for timeout");
+      throw new Error('no legal actions for timeout');
     }
 
-    const fallbackAction: PlayerActionType = legal.canCheck ? "check" : "fold";
+    const fallbackAction: PlayerActionType = legal.canCheck ? 'check' : 'fold';
     const state = this.applyAction(seat, fallbackAction);
     const timeoutCount = (this.consecutiveTimeouts.get(seat) ?? 0) + 1;
     this.consecutiveTimeouts.set(seat, timeoutCount);
@@ -237,38 +242,38 @@ export class GameTable {
     doubleBoardMode?: DoubleBoardMode;
   }): void {
     if (this.isHandActive()) {
-      throw new Error("cannot update variant settings during an active hand");
+      throw new Error('cannot update variant settings during an active hand');
     }
-    if (typeof params.runItTwiceEnabled === "boolean") {
+    if (typeof params.runItTwiceEnabled === 'boolean') {
       this.runItTwiceEnabled = params.runItTwiceEnabled;
       this.state.runItTwiceEnabled = this.runItTwiceEnabled;
     }
     if (params.gameType) {
       this.gameType = params.gameType;
     }
-    if (typeof params.bombPotEnabled === "boolean") {
+    if (typeof params.bombPotEnabled === 'boolean') {
       this.bombPotEnabled = params.bombPotEnabled;
     }
     if (params.bombPotTriggerMode) {
       this.bombPotTriggerMode = params.bombPotTriggerMode;
     }
-    if (typeof params.bombPotFrequency === "number") {
+    if (typeof params.bombPotFrequency === 'number') {
       this.bombPotFrequency = Math.max(0, Math.floor(params.bombPotFrequency));
     }
-    if (typeof params.bombPotProbability === "number") {
+    if (typeof params.bombPotProbability === 'number') {
       this.bombPotProbability = Math.max(0, Math.min(100, params.bombPotProbability));
     }
     if (params.bombPotAnteMode) {
       this.bombPotAnteMode = params.bombPotAnteMode;
     }
-    if (typeof params.bombPotAnteValue === "number") {
+    if (typeof params.bombPotAnteValue === 'number') {
       this.bombPotAnteValue = Math.max(0, params.bombPotAnteValue);
     }
     if (params.doubleBoardMode) {
       this.doubleBoardMode = params.doubleBoardMode;
     }
 
-    this.holeCardCount = this.gameType === "omaha" ? 4 : 2;
+    this.holeCardCount = this.gameType === 'omaha' ? 4 : 2;
     this.state.gameType = this.gameType;
     this.state.holeCardCount = this.holeCardCount;
   }
@@ -341,7 +346,7 @@ export class GameTable {
   }
 
   finalizeShowdownReveals(params?: { autoMuckLosingHands?: boolean }): void {
-    if (this.state.showdownPhase !== "decision") return;
+    if (this.state.showdownPhase !== 'decision') return;
     const winners = new Set((this.state.winners ?? []).map((w) => w.seat));
     const contenders = this.getShowdownContenderSeats();
     const autoMuckLosingHands = params?.autoMuckLosingHands ?? true;
@@ -358,15 +363,23 @@ export class GameTable {
       }
     }
 
-    this.state.showdownPhase = "none";
+    this.state.showdownPhase = 'none';
   }
 
-  addPlayer(player: { seat: number; userId: string; name: string; stack: number; status?: PlayerStatus; isNewPlayer?: boolean; isBot?: boolean }): void {
+  addPlayer(player: {
+    seat: number;
+    userId: string;
+    name: string;
+    stack: number;
+    status?: PlayerStatus;
+    isNewPlayer?: boolean;
+    isBot?: boolean;
+  }): void {
     if (this.state.players.some((p) => p.seat === player.seat)) {
-      throw new Error("seat already occupied");
+      throw new Error('seat already occupied');
     }
     if (player.stack <= 0) {
-      throw new Error("stack must be greater than 0");
+      throw new Error('stack must be greater than 0');
     }
     this.state.players.push({
       seat: player.seat,
@@ -387,7 +400,7 @@ export class GameTable {
 
   addStack(seat: number, amount: number): void {
     const player = this.state.players.find((p) => p.seat === seat);
-    if (!player) throw new Error("player not found");
+    if (!player) throw new Error('player not found');
     player.stack += amount;
   }
 
@@ -400,14 +413,16 @@ export class GameTable {
     this.state.pendingToAct.delete(seat);
     this.state.actedSinceLastFullRaise.delete(seat);
     this.state.pendingDeadBlinds.delete(seat);
-    this.state.pendingDeadBlindActions = this.state.pendingDeadBlindActions.filter((action) => action.seat !== seat);
+    this.state.pendingDeadBlindActions = this.state.pendingDeadBlindActions.filter(
+      (action) => action.seat !== seat,
+    );
     this.state.holeCards.delete(seat);
     this.consecutiveTimeouts.delete(seat);
   }
 
   startHand(): { handId: string } {
     if (this.isHandActive()) {
-      throw new Error("hand already active");
+      throw new Error('hand already active');
     }
 
     if (this.pendingBlindLevel) {
@@ -419,11 +434,9 @@ export class GameTable {
       this.state.nextBlindLevel = null;
     }
 
-    const seated = this.state.players.filter(
-      (p) => p.stack > 0 && p.status === 'active'
-    );
+    const seated = this.state.players.filter((p) => p.stack > 0 && p.status === 'active');
     if (seated.length < 2) {
-      throw new Error("need at least 2 players with chips");
+      throw new Error('need at least 2 players with chips');
     }
 
     const handId = uuidv4();
@@ -433,7 +446,7 @@ export class GameTable {
     this.state.pendingDeadBlindActions = [];
 
     this.state.handId = handId;
-    this.state.street = "PREFLOP";
+    this.state.street = 'PREFLOP';
     this.handInProgress = true;
     this.state.board = [];
     this.state.actions = [...pendingDeadBlindActions];
@@ -457,7 +470,7 @@ export class GameTable {
     this.state.shownHands = {};
     this.state.revealedHoles = {};
     this.state.muckedSeats = [];
-    this.state.showdownPhase = "none";
+    this.state.showdownPhase = 'none';
     this.allInRunCount = 1;
     this.runoutPending = false;
     this.collectedFee = 0;
@@ -466,10 +479,11 @@ export class GameTable {
     this.doubleBoardPayouts = null;
 
     this.handCounter += 1;
-    this.holeCardCount = this.gameType === "omaha" ? 4 : 2;
+    this.holeCardCount = this.gameType === 'omaha' ? 4 : 2;
     this.isBombPotHand = this.shouldDealBombPotHand();
-    this.isDoubleBoardHand = this.doubleBoardMode === "always"
-      || (this.doubleBoardMode === "bomb_pot" && this.isBombPotHand);
+    this.isDoubleBoardHand =
+      this.doubleBoardMode === 'always' ||
+      (this.doubleBoardMode === 'bomb_pot' && this.isBombPotHand);
     this.state.gameType = this.gameType;
     this.state.holeCardCount = this.holeCardCount;
     this.state.isBombPotHand = this.isBombPotHand;
@@ -513,7 +527,7 @@ export class GameTable {
       for (const seat of sortedSeats) {
         const commit = this.commitForcedChips(seat, bombAnte, { countToStreet: false });
         if (commit > 0) {
-          this.logAction({ seat, street: "PREFLOP", type: "ante", amount: commit, at: Date.now() });
+          this.logAction({ seat, street: 'PREFLOP', type: 'ante', amount: commit, at: Date.now() });
         }
       }
     } else if (this.ante > 0) {
@@ -531,8 +545,8 @@ export class GameTable {
     }
 
     if (this.isBombPotHand) {
-      this.state.street = "FLOP";
-      this.dealStreetBoardCards("FLOP");
+      this.state.street = 'FLOP';
+      this.dealStreetBoardCards('FLOP');
       this.state.currentBet = 0;
       this.state.minRaiseTo = this.state.bigBlind;
       this.state.lastFullRaiseSize = this.state.bigBlind;
@@ -545,7 +559,7 @@ export class GameTable {
       this.state.pendingToAct = new Set(
         this.activePlayers()
           .filter((p) => !p.allIn)
-          .map((p) => p.seat)
+          .map((p) => p.seat),
       );
       this.state.actorSeat = this.nextActorFrom(this.state.buttonSeat);
       return { handId };
@@ -563,13 +577,13 @@ export class GameTable {
       sbSeat = this.getRelativeSeat(0);
       bbSeat = this.getRelativeSeat(1);
     }
-    this.commitBlind(sbSeat, this.state.smallBlind, "post_sb");
-    this.commitBlind(bbSeat, this.state.bigBlind, "post_bb");
+    this.commitBlind(sbSeat, this.state.smallBlind, 'post_sb');
+    this.commitBlind(bbSeat, this.state.bigBlind, 'post_bb');
 
     this.state.pendingToAct = new Set(
       this.activePlayers()
         .filter((p) => !p.allIn)
-        .map((p) => p.seat)
+        .map((p) => p.seat),
     );
     // First to act preflop: next pending player after BB
     // Multi-way: finds UTG; HU: wraps to SB/button
@@ -588,13 +602,13 @@ export class GameTable {
 
   updateBlindStructure(smallBlind: number, bigBlind: number, ante: number): void {
     if (smallBlind <= 0 || bigBlind <= 0) {
-      throw new Error("blinds must be greater than 0");
+      throw new Error('blinds must be greater than 0');
     }
     if (smallBlind >= bigBlind) {
-      throw new Error("small blind must be less than big blind");
+      throw new Error('small blind must be less than big blind');
     }
     if (ante < 0) {
-      throw new Error("ante cannot be negative");
+      throw new Error('ante cannot be negative');
     }
 
     const next = { smallBlind, bigBlind, ante };
@@ -606,24 +620,29 @@ export class GameTable {
     return this.allInRunCount;
   }
 
-  applyAction(seat: number, action: PlayerActionType, amount?: number, ritVote?: boolean): TableState {
-    if (action === "vote_rit") {
+  applyAction(
+    seat: number,
+    action: PlayerActionType,
+    amount?: number,
+    ritVote?: boolean,
+  ): TableState {
+    if (action === 'vote_rit') {
       return this.applyRitVote(seat, ritVote);
     }
 
     if (this.state.handId === null || this.state.actorSeat === null) {
-      throw new Error("no active hand");
+      throw new Error('no active hand');
     }
-    if (this.state.street === "RUN_IT_TWICE_PROMPT") {
-      throw new Error("waiting for run-it-twice votes");
+    if (this.state.street === 'RUN_IT_TWICE_PROMPT') {
+      throw new Error('waiting for run-it-twice votes');
     }
     if (this.state.actorSeat !== seat) {
-      throw new Error("not your turn");
+      throw new Error('not your turn');
     }
 
     const player = this.playerBySeat(seat);
     if (!player.inHand || player.folded || player.allIn) {
-      throw new Error("player cannot act");
+      throw new Error('player cannot act');
     }
 
     this.consecutiveTimeouts.set(seat, 0);
@@ -633,43 +652,43 @@ export class GameTable {
     let actionAmount = 0;
 
     // Validate action legality
-    if (action === "check" && toCall > 0) {
-      throw new Error("cannot check when facing a bet");
+    if (action === 'check' && toCall > 0) {
+      throw new Error('cannot check when facing a bet');
     }
-    if (action === "call" && toCall === 0) {
-      throw new Error("nothing to call");
+    if (action === 'call' && toCall === 0) {
+      throw new Error('nothing to call');
     }
-    if (action === "raise") {
+    if (action === 'raise') {
       if (amount === undefined) {
-        throw new Error("raise amount required");
+        throw new Error('raise amount required');
       }
       if (amount < this.state.minRaiseTo && amount < player.stack + player.streetCommitted) {
         throw new Error(`raise must be at least ${this.state.minRaiseTo}`);
       }
       if (amount <= this.state.currentBet) {
-        throw new Error("raise must increase current bet");
+        throw new Error('raise must increase current bet');
       }
       const needed = amount - player.streetCommitted;
       if (needed > player.stack) {
-        throw new Error("insufficient chips for raise");
+        throw new Error('insufficient chips for raise');
       }
     }
-    if (action === "all_in") {
+    if (action === 'all_in') {
       // all_in is always legal if player has chips
       if (player.stack <= 0) {
-        throw new Error("no chips to go all-in");
+        throw new Error('no chips to go all-in');
       }
     }
 
     // Apply action
-    if (action === "fold") {
+    if (action === 'fold') {
       player.folded = true;
       player.inHand = false;
       this.markActedSinceLastFullRaise(seat);
-    } else if (action === "check") {
+    } else if (action === 'check') {
       // no chip movement
       this.markActedSinceLastFullRaise(seat);
-    } else if (action === "call") {
+    } else if (action === 'call') {
       const commit = Math.min(toCall, player.stack);
       player.stack -= commit;
       player.streetCommitted += commit;
@@ -677,7 +696,7 @@ export class GameTable {
       actionAmount = commit;
       if (player.stack === 0) player.allIn = true;
       this.markActedSinceLastFullRaise(seat);
-    } else if (action === "raise") {
+    } else if (action === 'raise') {
       const raiseTo = amount as number;
       const previousBet = this.state.currentBet;
       const previousMinRaiseTo = this.state.minRaiseTo;
@@ -701,7 +720,7 @@ export class GameTable {
         this.state.pendingToAct = new Set(
           this.activePlayers()
             .filter((p) => p.seat !== seat && !p.allIn)
-            .map((p) => p.seat)
+            .map((p) => p.seat),
         );
       } else {
         // Short all-in raise via "raise": not a full raise, so no reopen reset.
@@ -710,10 +729,10 @@ export class GameTable {
         this.state.pendingToAct = this.pendingSeatsAfterIncompleteRaise(
           seat,
           previousBet,
-          pendingBeforeAction
+          pendingBeforeAction,
         );
       }
-    } else if (action === "all_in") {
+    } else if (action === 'all_in') {
       const previousBet = this.state.currentBet;
       const previousMinRaiseTo = this.state.minRaiseTo;
       const commit = player.stack;
@@ -741,7 +760,7 @@ export class GameTable {
           this.state.pendingToAct = new Set(
             this.activePlayers()
               .filter((p) => p.seat !== seat && !p.allIn)
-              .map((p) => p.seat)
+              .map((p) => p.seat),
           );
         } else {
           // Incomplete all-in raise: no reopen reset.
@@ -750,7 +769,7 @@ export class GameTable {
           this.state.pendingToAct = this.pendingSeatsAfterIncompleteRaise(
             seat,
             previousBet,
-            pendingBeforeAction
+            pendingBeforeAction,
           );
         }
       } else {
@@ -767,7 +786,7 @@ export class GameTable {
       street: this.state.street,
       type: action,
       amount: actionAmount,
-      at: Date.now()
+      at: Date.now(),
     });
 
     this.state.pendingToAct.delete(seat);
@@ -803,7 +822,7 @@ export class GameTable {
 
   getHeroHandCode(seat: number): string {
     const cards = this.state.holeCards.get(seat);
-    if (!cards || cards.length < 2) return "72o";
+    if (!cards || cards.length < 2) return '72o';
     const [a, b] = cards;
     const [ra, sa] = [a[0], a[1]];
     const [rb, sb] = [b[0], b[1]];
@@ -813,7 +832,7 @@ export class GameTable {
     const high = aIdx <= bIdx ? ra : rb;
     const low = aIdx <= bIdx ? rb : ra;
     if (high === low) return `${high}${low}`;
-    const suited = sa === sb ? "s" : "o";
+    const suited = sa === sb ? 's' : 'o';
     return `${high}${low}${suited}`;
   }
 
@@ -821,23 +840,25 @@ export class GameTable {
     // Use persistent position if available (handles folded players)
     if (this.state.positions[seat]) return this.state.positions[seat];
 
-    const activeSeats = this.activePlayers().map((p) => p.seat).sort((a, b) => a - b);
+    const activeSeats = this.activePlayers()
+      .map((p) => p.seat)
+      .sort((a, b) => a - b);
     const order = orderedFromButton(this.state.buttonSeat, activeSeats);
     const labelOrder = POSITION_LABELS_BY_COUNT[order.length];
-    if (!labelOrder) return "UNKNOWN";
+    if (!labelOrder) return 'UNKNOWN';
     const idx = order.indexOf(seat);
-    return idx >= 0 ? labelOrder[idx] : "UNKNOWN";
+    return idx >= 0 ? labelOrder[idx] : 'UNKNOWN';
   }
 
   isHandActive(): boolean {
-    return this.handInProgress
-      && this.state.handId !== null
-      && (
-        this.state.actorSeat !== null
-        || this.runoutPending
-        || this.state.street === "RUN_IT_TWICE_PROMPT"
-        || this.state.showdownPhase === "decision"
-      );
+    return (
+      this.handInProgress &&
+      this.state.handId !== null &&
+      (this.state.actorSeat !== null ||
+        this.runoutPending ||
+        this.state.street === 'RUN_IT_TWICE_PROMPT' ||
+        this.state.showdownPhase === 'decision')
+    );
   }
 
   /** Called by the server after finalizeHandEnd to cleanly mark the hand as done.
@@ -849,7 +870,7 @@ export class GameTable {
     this.state.board = [];
     this.state.pot = 0;
     this.state.runoutBoards = undefined;
-    this.state.street = "PREFLOP";
+    this.state.street = 'PREFLOP';
     this.state.winners = undefined;
     this.state.revealedHoles = {};
     this.state.actorSeat = null;
@@ -866,7 +887,7 @@ export class GameTable {
   toggleSitOut(seat: number): PlayerStatus {
     const player = this.playerBySeat(seat);
     if (player.inHand) {
-      throw new Error("Cannot change sit-out status during an active hand");
+      throw new Error('Cannot change sit-out status during an active hand');
     }
     player.status = player.status === 'active' ? 'sitting_out' : 'active';
     return player.status;
@@ -889,16 +910,16 @@ export class GameTable {
   postDeadBlind(seat: number): void {
     const player = this.playerBySeat(seat);
     if (this.isHandActive()) {
-      throw new Error("Cannot post dead blind during an active hand");
+      throw new Error('Cannot post dead blind during an active hand');
     }
     const amount = Math.min(player.stack, this.state.bigBlind);
-    if (amount <= 0) throw new Error("No chips to post");
+    if (amount <= 0) throw new Error('No chips to post');
     player.stack -= amount;
     this.state.pendingDeadBlinds.set(seat, (this.state.pendingDeadBlinds.get(seat) ?? 0) + amount);
     this.state.pendingDeadBlindActions.push({
       seat,
-      street: "PREFLOP",
-      type: "post_dead_blind" as HandActionType,
+      street: 'PREFLOP',
+      type: 'post_dead_blind' as HandActionType,
       amount,
       at: Date.now(),
     });
@@ -952,9 +973,8 @@ export class GameTable {
     const hasActedSinceLastFullRaise = this.state.actedSinceLastFullRaise.has(player.seat);
     const raiseIncrementFaced = Math.max(0, this.state.currentBet - player.streetCommitted);
     const fullRaiseFaced = raiseIncrementFaced >= this.state.lastFullRaiseSize;
-    const raiseBlockedByIncompleteAllIn = hasActedSinceLastFullRaise
-      && raiseIncrementFaced > 0
-      && !fullRaiseFaced;
+    const raiseBlockedByIncompleteAllIn =
+      hasActedSinceLastFullRaise && raiseIncrementFaced > 0 && !fullRaiseFaced;
     const canRaise = maxRaise > this.state.currentBet && !raiseBlockedByIncompleteAllIn;
     const minRaise = Math.min(this.state.minRaiseTo, maxRaise);
 
@@ -965,31 +985,31 @@ export class GameTable {
       callAmount,
       canRaise,
       minRaise,
-      maxRaise
+      maxRaise,
     };
   }
 
   private advanceStreetOrShowdown(): void {
-    if (this.state.street === "PREFLOP") {
-      this.state.street = "FLOP";
-      this.dealStreetBoardCards("FLOP");
+    if (this.state.street === 'PREFLOP') {
+      this.state.street = 'FLOP';
+      this.dealStreetBoardCards('FLOP');
       this.prepareNextStreet();
       return;
     }
-    if (this.state.street === "FLOP") {
-      this.state.street = "TURN";
-      this.dealStreetBoardCards("TURN");
+    if (this.state.street === 'FLOP') {
+      this.state.street = 'TURN';
+      this.dealStreetBoardCards('TURN');
       this.prepareNextStreet();
       return;
     }
-    if (this.state.street === "TURN") {
-      this.state.street = "RIVER";
-      this.dealStreetBoardCards("RIVER");
+    if (this.state.street === 'TURN') {
+      this.state.street = 'RIVER';
+      this.dealStreetBoardCards('RIVER');
       this.prepareNextStreet();
       return;
     }
 
-    this.state.street = "SHOWDOWN";
+    this.state.street = 'SHOWDOWN';
     this.showdown();
   }
 
@@ -1005,23 +1025,23 @@ export class GameTable {
       while (this.state.board.length < 5) {
         if (this.state.board.length === 0) {
           this.state.board.push(this.drawCard(), this.drawCard(), this.drawCard());
-          this.state.street = "FLOP";
+          this.state.street = 'FLOP';
         } else if (this.state.board.length === 3) {
           this.state.board.push(this.drawCard());
-          this.state.street = "TURN";
+          this.state.street = 'TURN';
         } else if (this.state.board.length === 4) {
           this.state.board.push(this.drawCard());
-          this.state.street = "RIVER";
+          this.state.street = 'RIVER';
         }
       }
-      this.state.street = "SHOWDOWN";
+      this.state.street = 'SHOWDOWN';
       this.showdown();
       return;
     }
 
     const baseBoard = [...this.state.board];
     const boards: string[][] = [];
-    const solvedByRun: Array<Array<{ seat: number; hand: { descr: string; rank: number } }>> = [];
+    const solvedByRun: Array<Array<{ seat: number; hand: HandEvaluation }>> = [];
     const payoutsByRun: Array<Map<number, { amount: number; handName?: string }>> = [];
 
     for (let i = 0; i < runCount; i += 1) {
@@ -1032,17 +1052,19 @@ export class GameTable {
     }
 
     const sidePots = this.buildSidePots(contenders);
-    const {
-      sidePots: distributableSidePots,
-      collectedFee,
-    } = this.applyRakeToSidePots(sidePots);
+    const { sidePots: distributableSidePots, collectedFee } = this.applyRakeToSidePots(sidePots);
     this.collectedFee = collectedFee;
 
     for (const sidePot of distributableSidePots) {
       // Deterministic odd-chip policy across runs: earlier runs receive +1 first.
       const runAmounts = this.splitPotAcrossRuns(sidePot.amount, runCount);
       for (let i = 0; i < runCount; i += 1) {
-        this.distributeSolvedPot(runAmounts[i], solvedByRun[i], sidePot.eligibleSeats, payoutsByRun[i]);
+        this.distributeSolvedPot(
+          runAmounts[i],
+          solvedByRun[i],
+          sidePot.eligibleSeats,
+          payoutsByRun[i],
+        );
       }
     }
 
@@ -1058,7 +1080,7 @@ export class GameTable {
       winners: this.mapPayoutsToWinners(payoutsByRun[index]),
     }));
     this.state.board = [...boards[boards.length - 1]];
-    this.state.street = "SHOWDOWN";
+    this.state.street = 'SHOWDOWN';
     this.state.winners = this.mapPayoutsToWinners(payouts);
     this.state.pot = 0;
     this.state.actorSeat = null;
@@ -1087,23 +1109,26 @@ export class GameTable {
     return allocations;
   }
 
-  private solveContenders(contenders: TablePlayer[], board: string[]): Array<{ seat: number; hand: { descr: string; rank: number } }> {
+  private solveContenders(
+    contenders: TablePlayer[],
+    board: string[],
+  ): Array<{ seat: number; hand: HandEvaluation }> {
     return contenders.map((p) => {
-      const cards = this.state.holeCards.get(p.seat) ?? ["2c", "7d"];
+      const cards = this.state.holeCards.get(p.seat) ?? ['2c', '7d'];
       const hand = this.solveBestHand(cards, board);
       return { seat: p.seat, hand };
     });
   }
 
-  private solveBestHand(holeCards: string[], board: string[]): { descr: string; rank: number } {
-    if (this.gameType === "omaha" && holeCards.length >= 4 && board.length >= 3) {
-      let best: { descr: string; rank: number } | null = null;
+  private solveBestHand(holeCards: string[], board: string[]): HandEvaluation {
+    if (this.gameType === 'omaha' && holeCards.length >= 4 && board.length >= 3) {
+      let best: HandEvaluation | null = null;
       const holeCombos = combinations(holeCards, 2);
       const boardCombos = combinations(board, 3);
       for (const holeCombo of holeCombos) {
         for (const boardCombo of boardCombos) {
-          const candidate = Hand.solve(toSolverCards([...holeCombo, ...boardCombo]));
-          if (!best || this.isSolverHandBetter(candidate, best)) {
+          const candidate = evaluateBestHand([...holeCombo, ...boardCombo]);
+          if (!best || compareHands(candidate, best) > 0) {
             best = candidate;
           }
         }
@@ -1112,33 +1137,31 @@ export class GameTable {
     }
 
     const fallbackCards = [...holeCards.slice(0, 2), ...board];
-    return Hand.solve(toSolverCards(fallbackCards));
-  }
-
-  private isSolverHandBetter(candidate: { descr: string; rank: number }, current: { descr: string; rank: number }): boolean {
-    const winners = Hand.winners([candidate, current]);
-    const candidateWins = winners.some((w) => w === candidate);
-    const currentWins = winners.some((w) => w === current);
-    return candidateWins && !currentWins;
+    return evaluateBestHand(fallbackCards);
   }
 
   private resolveWinnerSeats(
-    solved: Array<{ seat: number; hand: { descr: string; rank: number } }>,
-    eligibleSeats: number[]
+    solved: Array<{ seat: number; hand: HandEvaluation }>,
+    eligibleSeats: number[],
   ): number[] {
     const eligible = solved.filter((s) => eligibleSeats.includes(s.seat));
     if (eligible.length === 0) return [];
-    const winners = Hand.winners(eligible.map((s) => s.hand));
-    return eligible
-      .filter((s) => winners.some((w) => w === s.hand))
-      .map((s) => s.seat);
+
+    let bestHand = eligible[0].hand;
+    for (let i = 1; i < eligible.length; i++) {
+      if (compareHands(eligible[i].hand, bestHand) > 0) {
+        bestHand = eligible[i].hand;
+      }
+    }
+
+    return eligible.filter((s) => compareHands(s.hand, bestHand) === 0).map((s) => s.seat);
   }
 
   private distributeSolvedPot(
     potAmount: number,
-    solved: Array<{ seat: number; hand: { descr: string; rank: number } }>,
+    solved: Array<{ seat: number; hand: HandEvaluation }>,
     eligibleSeats: number[],
-    payouts: Map<number, { amount: number; handName?: string }>
+    payouts: Map<number, { amount: number; handName?: string }>,
   ): void {
     if (potAmount <= 0) return;
     const winnerSeats = this.resolveWinnerSeats(solved, eligibleSeats);
@@ -1160,12 +1183,14 @@ export class GameTable {
       const existing = payouts.get(seat);
       payouts.set(seat, {
         amount: (existing?.amount ?? 0) + amt,
-        handName: existing?.handName ?? solvedEntry?.hand.descr,
+        handName: existing?.handName ?? solvedEntry?.hand.rankName,
       });
     }
   }
 
-  private buildSidePots(contenders: TablePlayer[]): Array<{ amount: number; eligibleSeats: number[] }> {
+  private buildSidePots(
+    contenders: TablePlayer[],
+  ): Array<{ amount: number; eligibleSeats: number[] }> {
     const contributors = this.state.players
       .map((p) => ({ seat: p.seat, contributed: this.state.contributed.get(p.seat) ?? 0 }))
       .filter((c) => c.contributed > 0)
@@ -1173,7 +1198,9 @@ export class GameTable {
 
     if (contributors.length === 0) return [];
 
-    const levels = [...new Set(contributors.map((c) => c.contributed).filter((v) => v > 0))].sort((a, b) => a - b);
+    const levels = [...new Set(contributors.map((c) => c.contributed).filter((v) => v > 0))].sort(
+      (a, b) => a - b,
+    );
     const sidePots: Array<{ amount: number; eligibleSeats: number[] }> = [];
 
     let prevLevel = 0;
@@ -1203,17 +1230,17 @@ export class GameTable {
     // Deal all remaining cards at once (will be revealed step by step by server)
     while (this.state.board.length < 5) {
       if (this.state.board.length === 0) {
-        this.dealStreetBoardCards("FLOP");
-        this.state.street = "FLOP";
+        this.dealStreetBoardCards('FLOP');
+        this.state.street = 'FLOP';
       } else if (this.state.board.length === 3) {
-        this.dealStreetBoardCards("TURN");
-        this.state.street = "TURN";
+        this.dealStreetBoardCards('TURN');
+        this.state.street = 'TURN';
       } else if (this.state.board.length === 4) {
-        this.dealStreetBoardCards("RIVER");
-        this.state.street = "RIVER";
+        this.dealStreetBoardCards('RIVER');
+        this.state.street = 'RIVER';
       }
     }
-    this.state.street = "SHOWDOWN";
+    this.state.street = 'SHOWDOWN';
     this.showdown();
   }
 
@@ -1232,7 +1259,7 @@ export class GameTable {
     }
     this.state.handId = null;
     this.handInProgress = false;
-    this.state.street = "SHOWDOWN";
+    this.state.street = 'SHOWDOWN';
     this.state.board = [];
     this.state.pot = 0;
     this.state.currentBet = 0;
@@ -1249,7 +1276,7 @@ export class GameTable {
     this.state.shownHands = {};
     this.state.revealedHoles = {};
     this.state.muckedSeats = [];
-    this.state.showdownPhase = "none";
+    this.state.showdownPhase = 'none';
     this.state.pendingToAct.clear();
     this.state.holeCards.clear();
     this.state.contributed.clear();
@@ -1286,10 +1313,10 @@ export class GameTable {
 
   /** Get the next street to reveal in sequential runout */
   getNextRevealStreet(): Street | null {
-    if (this.state.board.length === 0) return "FLOP";
-    if (this.state.board.length === 3) return "TURN";
-    if (this.state.board.length === 4) return "RIVER";
-    if (this.state.board.length === 5) return "SHOWDOWN";
+    if (this.state.board.length === 0) return 'FLOP';
+    if (this.state.board.length === 3) return 'TURN';
+    if (this.state.board.length === 4) return 'RIVER';
+    if (this.state.board.length === 5) return 'SHOWDOWN';
     return null;
   }
 
@@ -1299,19 +1326,19 @@ export class GameTable {
     if (!nextStreet) return null;
 
     const newCards: string[] = [];
-    if (nextStreet === "FLOP" && this.state.board.length === 0) {
-      newCards.push(...this.dealStreetBoardCards("FLOP"));
-      this.state.street = "FLOP";
-    } else if (nextStreet === "TURN" && this.state.board.length === 3) {
-      newCards.push(...this.dealStreetBoardCards("TURN"));
-      this.state.street = "TURN";
-    } else if (nextStreet === "RIVER" && this.state.board.length === 4) {
-      newCards.push(...this.dealStreetBoardCards("RIVER"));
-      this.state.street = "RIVER";
-    } else if (nextStreet === "SHOWDOWN" && this.state.board.length === 5) {
-      this.state.street = "SHOWDOWN";
+    if (nextStreet === 'FLOP' && this.state.board.length === 0) {
+      newCards.push(...this.dealStreetBoardCards('FLOP'));
+      this.state.street = 'FLOP';
+    } else if (nextStreet === 'TURN' && this.state.board.length === 3) {
+      newCards.push(...this.dealStreetBoardCards('TURN'));
+      this.state.street = 'TURN';
+    } else if (nextStreet === 'RIVER' && this.state.board.length === 4) {
+      newCards.push(...this.dealStreetBoardCards('RIVER'));
+      this.state.street = 'RIVER';
+    } else if (nextStreet === 'SHOWDOWN' && this.state.board.length === 5) {
+      this.state.street = 'SHOWDOWN';
       this.showdown();
-      return { street: "SHOWDOWN", newCards: [] };
+      return { street: 'SHOWDOWN', newCards: [] };
     }
 
     return { street: nextStreet, newCards };
@@ -1330,7 +1357,7 @@ export class GameTable {
     this.state.pendingToAct = new Set(
       this.activePlayers()
         .filter((p) => !p.allIn)
-        .map((p) => p.seat)
+        .map((p) => p.seat),
     );
 
     // Post-flop: first active player clockwise of button
@@ -1338,7 +1365,10 @@ export class GameTable {
     this.state.actorSeat = first;
 
     // If only one or zero players can act (rest are all-in), signal runout
-    if (this.state.pendingToAct.size <= 1 && this.activePlayers().filter(p => !p.allIn).length <= 1) {
+    if (
+      this.state.pendingToAct.size <= 1 &&
+      this.activePlayers().filter((p) => !p.allIn).length <= 1
+    ) {
       if (this.state.pendingToAct.size === 0) {
         this.state.actorSeat = null;
         this.state.pendingToAct.clear();
@@ -1362,10 +1392,7 @@ export class GameTable {
     const board = this.state.board;
     const solved = this.solveContenders(contenders, board);
     const sidePots = this.buildSidePots(contenders);
-    const {
-      sidePots: distributableSidePots,
-      collectedFee,
-    } = this.applyRakeToSidePots(sidePots);
+    const { sidePots: distributableSidePots, collectedFee } = this.applyRakeToSidePots(sidePots);
     this.collectedFee = collectedFee;
     const payouts = new Map<number, { amount: number; handName?: string }>();
 
@@ -1394,10 +1421,7 @@ export class GameTable {
     const solvedPrimary = this.solveContenders(contenders, boardPrimary);
     const solvedSecondary = this.solveContenders(contenders, boardSecondary);
     const sidePots = this.buildSidePots(contenders);
-    const {
-      sidePots: distributableSidePots,
-      collectedFee,
-    } = this.applyRakeToSidePots(sidePots);
+    const { sidePots: distributableSidePots, collectedFee } = this.applyRakeToSidePots(sidePots);
     this.collectedFee = collectedFee;
 
     const payoutsPrimary = new Map<number, { amount: number; handName?: string }>();
@@ -1406,7 +1430,12 @@ export class GameTable {
       const boardAAmount = Math.ceil(sidePot.amount / 2);
       const boardBAmount = Math.floor(sidePot.amount / 2);
       this.distributeSolvedPot(boardAAmount, solvedPrimary, sidePot.eligibleSeats, payoutsPrimary);
-      this.distributeSolvedPot(boardBAmount, solvedSecondary, sidePot.eligibleSeats, payoutsSecondary);
+      this.distributeSolvedPot(
+        boardBAmount,
+        solvedSecondary,
+        sidePot.eligibleSeats,
+        payoutsSecondary,
+      );
     }
 
     const mergedPayouts = this.mergePayoutMaps(payoutsPrimary, payoutsSecondary);
@@ -1436,28 +1465,32 @@ export class GameTable {
     this.state.shownCards = {};
     this.state.shownHands = {};
     this.state.pot = 0;
-    this.state.street = "SHOWDOWN";
+    this.state.street = 'SHOWDOWN';
     this.state.actorSeat = null;
     this.state.pendingToAct.clear();
-    this.state.showdownPhase = "none";
+    this.state.showdownPhase = 'none';
     this.state.muckedSeats = [];
     this.collectedFee = 0;
     this.settlementResult = this.createSettlementResult(false);
   }
 
-  private commitBlind(seat: number, amount: number, type: "post_sb" | "post_bb") {
+  private commitBlind(seat: number, amount: number, type: 'post_sb' | 'post_bb') {
     const commit = this.commitForcedChips(seat, amount, { countToStreet: true });
-    this.logAction({ seat, street: "PREFLOP", type, amount: commit, at: Date.now() });
+    this.logAction({ seat, street: 'PREFLOP', type, amount: commit, at: Date.now() });
   }
 
   private collectAnte(seat: number): void {
     const commit = this.commitForcedChips(seat, this.ante, { countToStreet: false });
     if (commit > 0) {
-      this.logAction({ seat, street: "PREFLOP", type: "ante", amount: commit, at: Date.now() });
+      this.logAction({ seat, street: 'PREFLOP', type: 'ante', amount: commit, at: Date.now() });
     }
   }
 
-  private commitForcedChips(seat: number, amount: number, opts: { countToStreet: boolean }): number {
+  private commitForcedChips(
+    seat: number,
+    amount: number,
+    opts: { countToStreet: boolean },
+  ): number {
     const player = this.playerBySeat(seat);
     const commit = Math.min(player.stack, amount);
     if (commit <= 0) return 0;
@@ -1481,7 +1514,7 @@ export class GameTable {
   private pendingSeatsAfterIncompleteRaise(
     excludingSeat: number,
     previousBet: number,
-    pendingBeforeAction: ReadonlySet<number>
+    pendingBeforeAction: ReadonlySet<number>,
   ): Set<number> {
     const pending = new Set<number>();
     for (const player of this.activePlayers()) {
@@ -1516,7 +1549,9 @@ export class GameTable {
     const indexBySeat = new Map<number, number>();
     clockwiseFromButtonLeft.forEach((seat, index) => indexBySeat.set(seat, index));
     return [...seats].sort(
-      (a, b) => (indexBySeat.get(a) ?? Number.MAX_SAFE_INTEGER) - (indexBySeat.get(b) ?? Number.MAX_SAFE_INTEGER)
+      (a, b) =>
+        (indexBySeat.get(a) ?? Number.MAX_SAFE_INTEGER) -
+        (indexBySeat.get(b) ?? Number.MAX_SAFE_INTEGER),
     );
   }
 
@@ -1534,7 +1569,7 @@ export class GameTable {
   private applyShowdownVisibilityPolicy(contenders: TablePlayer[]): void {
     const contenderSeats = contenders.map((player) => player.seat);
     if (contenderSeats.length < 2) {
-      this.state.showdownPhase = "none";
+      this.state.showdownPhase = 'none';
       this.state.muckedSeats = [];
       return;
     }
@@ -1543,7 +1578,7 @@ export class GameTable {
     const mustForceReveal = calledShowdown;
     if (mustForceReveal) {
       this.revealShowdownHands(contenderSeats);
-      this.state.showdownPhase = "none";
+      this.state.showdownPhase = 'none';
       this.state.muckedSeats = [];
       return;
     }
@@ -1554,15 +1589,16 @@ export class GameTable {
   private didRiverEndWithCall(): boolean {
     for (let i = this.state.actions.length - 1; i >= 0; i -= 1) {
       const action = this.state.actions[i];
-      if (action.street !== "RIVER") continue;
-      return action.type === "call";
+      if (action.street !== 'RIVER') continue;
+      return action.type === 'call';
     }
     return false;
   }
 
-  private applyRakeToSidePots(
-    sidePots: Array<{ amount: number; eligibleSeats: number[] }>
-  ): { sidePots: Array<{ amount: number; eligibleSeats: number[] }>; collectedFee: number } {
+  private applyRakeToSidePots(sidePots: Array<{ amount: number; eligibleSeats: number[] }>): {
+    sidePots: Array<{ amount: number; eligibleSeats: number[] }>;
+    collectedFee: number;
+  } {
     const grossPot = this.state.pot;
     const fee = this.calculateRake(grossPot);
     const netPot = Math.max(0, grossPot - fee);
@@ -1570,12 +1606,18 @@ export class GameTable {
 
     if (fee <= 0) {
       return {
-        sidePots: sidePots.map((sidePot) => ({ amount: sidePot.amount, eligibleSeats: [...sidePot.eligibleSeats] })),
+        sidePots: sidePots.map((sidePot) => ({
+          amount: sidePot.amount,
+          eligibleSeats: [...sidePot.eligibleSeats],
+        })),
         collectedFee: 0,
       };
     }
 
-    const adjusted = sidePots.map((sidePot) => ({ amount: sidePot.amount, eligibleSeats: [...sidePot.eligibleSeats] }));
+    const adjusted = sidePots.map((sidePot) => ({
+      amount: sidePot.amount,
+      eligibleSeats: [...sidePot.eligibleSeats],
+    }));
     let remainingFee = fee;
     for (const sidePot of adjusted) {
       if (remainingFee <= 0) break;
@@ -1609,12 +1651,15 @@ export class GameTable {
 
   private drawCard(): string {
     const card = this.state.deck.pop();
-    if (!card) throw new Error("deck exhausted");
+    if (!card) throw new Error('deck exhausted');
     return card;
   }
 
   private getRelativeSeat(offsetFromButton: number): number {
-    const activeSeats = this.state.players.filter((p) => p.inHand).map((p) => p.seat).sort((a, b) => a - b);
+    const activeSeats = this.state.players
+      .filter((p) => p.inHand)
+      .map((p) => p.seat)
+      .sort((a, b) => a - b);
     const ordered = orderedFromButton(this.state.buttonSeat, activeSeats);
     return ordered[offsetFromButton % ordered.length];
   }
@@ -1655,15 +1700,15 @@ export class GameTable {
     if (!this.bombPotEnabled) return false;
 
     switch (this.bombPotTriggerMode) {
-      case "frequency":
+      case 'frequency':
         if (this.bombPotFrequency <= 0) return false;
         return this.handCounter % this.bombPotFrequency === 0;
-      case "probability":
+      case 'probability':
         if (this.bombPotProbability <= 0) return false;
         if (this.bombPotProbability >= 100) return true;
         // Deterministic seeded RNG: hash(tableId + handCounter)
         return this.seededBombPotRoll() < this.bombPotProbability;
-      case "manual":
+      case 'manual':
         return false; // Only triggered via forceNextBombPot (handled above)
       default:
         return false;
@@ -1682,7 +1727,7 @@ export class GameTable {
 
   /** Compute the bomb pot ante amount based on settings. */
   private computeBombPotAnte(): number {
-    if (this.bombPotAnteMode === "fixed") {
+    if (this.bombPotAnteMode === 'fixed') {
       return Math.max(1, this.bombPotAnteValue);
     }
     // bb_multiplier mode
@@ -1690,8 +1735,8 @@ export class GameTable {
     return this.state.bigBlind * multiplier;
   }
 
-  private dealStreetBoardCards(street: "FLOP" | "TURN" | "RIVER"): string[] {
-    if (street === "FLOP") {
+  private dealStreetBoardCards(street: 'FLOP' | 'TURN' | 'RIVER'): string[] {
+    if (street === 'FLOP') {
       const dealt = [this.drawCard(), this.drawCard(), this.drawCard()];
       this.state.board.push(...dealt);
       if (this.isDoubleBoardHand) {
@@ -1710,7 +1755,7 @@ export class GameTable {
 
   private enterRunItTwicePrompt(): void {
     const contenders = this.activePlayers().map((p) => p.seat);
-    this.state.street = "RUN_IT_TWICE_PROMPT";
+    this.state.street = 'RUN_IT_TWICE_PROMPT';
     this.state.ritVotes = {};
     for (const seat of contenders) {
       this.state.ritVotes[seat] = null;
@@ -1722,25 +1767,25 @@ export class GameTable {
 
   private applyRitVote(seat: number, ritVote?: boolean): TableState {
     if (this.state.handId === null) {
-      throw new Error("no active hand");
+      throw new Error('no active hand');
     }
-    if (this.state.street !== "RUN_IT_TWICE_PROMPT") {
-      throw new Error("run-it-twice vote not expected");
+    if (this.state.street !== 'RUN_IT_TWICE_PROMPT') {
+      throw new Error('run-it-twice vote not expected');
     }
-    if (typeof ritVote !== "boolean") {
-      throw new Error("run-it-twice vote required");
+    if (typeof ritVote !== 'boolean') {
+      throw new Error('run-it-twice vote required');
     }
 
     const contender = this.activePlayers().some((p) => p.seat === seat);
     if (!contender) {
-      throw new Error("seat is not eligible to vote");
+      throw new Error('seat is not eligible to vote');
     }
 
     this.state.ritVotes[seat] = ritVote;
     this.logAction({
       seat,
-      street: "RUN_IT_TWICE_PROMPT",
-      type: "vote_rit",
+      street: 'RUN_IT_TWICE_PROMPT',
+      type: 'vote_rit',
       amount: 0,
       at: Date.now(),
     });
@@ -1763,18 +1808,18 @@ export class GameTable {
   private applyTimeoutSitOutIfNeeded(seat: number, timeoutCount: number): boolean {
     if (timeoutCount < this.maxConsecutiveTimeouts) return false;
     const player = this.playerBySeat(seat);
-    player.status = "sitting_out";
+    player.status = 'sitting_out';
     return true;
   }
 
   private enterShowdownDecisionState(contenderSeats: number[]): void {
     if (contenderSeats.length < 2) {
-      this.state.showdownPhase = "none";
+      this.state.showdownPhase = 'none';
       this.state.muckedSeats = [];
       return;
     }
 
-    this.state.showdownPhase = "decision";
+    this.state.showdownPhase = 'decision';
     this.state.muckedSeats = [];
   }
 
@@ -1782,7 +1827,9 @@ export class GameTable {
     return this.settlementResult;
   }
 
-  private mapPayoutsToWinners(payouts: Map<number, { amount: number; handName?: string }>): Array<{ seat: number; amount: number; handName?: string }> {
+  private mapPayoutsToWinners(
+    payouts: Map<number, { amount: number; handName?: string }>,
+  ): Array<{ seat: number; amount: number; handName?: string }> {
     return [...payouts.entries()]
       .map(([seat, payout]) => ({ seat, amount: payout.amount, handName: payout.handName }))
       .sort((a, b) => a.seat - b.seat);
@@ -1790,7 +1837,7 @@ export class GameTable {
 
   private mergePayoutMaps(
     map1: Map<number, { amount: number; handName?: string }>,
-    map2: Map<number, { amount: number; handName?: string }>
+    map2: Map<number, { amount: number; handName?: string }>,
   ): Map<number, { amount: number; handName?: string }> {
     const merged = new Map<number, { amount: number; handName?: string }>();
 
@@ -1810,14 +1857,15 @@ export class GameTable {
 
   private buildPotLayers(): Array<{ label: string; amount: number; eligibleSeats: number[] }> {
     const contenders = this.state.players.filter((p) => p.inHand && !p.folded);
-    const contendersForPots = contenders.length > 0
-      ? contenders
-      : this.state.players.filter((p) => (this.state.contributed.get(p.seat) ?? 0) > 0);
+    const contendersForPots =
+      contenders.length > 0
+        ? contenders
+        : this.state.players.filter((p) => (this.state.contributed.get(p.seat) ?? 0) > 0);
 
     const sidePots = this.buildSidePots(contendersForPots);
     if (sidePots.length > 0) {
       return sidePots.map((sidePot, index) => ({
-        label: index === 0 ? "Main Pot" : `Side Pot ${index}`,
+        label: index === 0 ? 'Main Pot' : `Side Pot ${index}`,
         amount: sidePot.amount,
         eligibleSeats: [...sidePot.eligibleSeats],
       }));
@@ -1825,11 +1873,13 @@ export class GameTable {
 
     const total = [...this.state.contributed.values()].reduce((sum, amount) => sum + amount, 0);
     if (total <= 0) return [];
-    return [{
-      label: "Main Pot",
-      amount: total,
-      eligibleSeats: [...new Set((this.state.winners ?? []).map((winner) => winner.seat))],
-    }];
+    return [
+      {
+        label: 'Main Pot',
+        amount: total,
+        eligibleSeats: [...new Set((this.state.winners ?? []).map((winner) => winner.seat))],
+      },
+    ];
   }
 
   private createSettlementResult(showdown: boolean): SettlementResult {
@@ -1842,18 +1892,26 @@ export class GameTable {
     const collectedFee = this.collectedFee;
     const runCountRaw = this.state.runoutPayouts?.length ?? 1;
     const runCount: 1 | 2 | 3 = runCountRaw === 3 ? 3 : runCountRaw === 2 ? 2 : 1;
-    const winnersByRun = runCount > 1
-      ? this.state.runoutPayouts!.map((run) => ({ run: run.run, board: [...run.board], winners: [...run.winners] }))
-      : [{
-          run: 1 as const,
-          board: [...this.state.board],
-          winners: [...(this.state.winners ?? [])],
-        }];
-    const boards = runCount > 1
-      ? [...(this.state.runoutBoards ?? [])]
-      : this.doubleBoardPayouts && this.doubleBoardPayouts.length === 2
-        ? this.doubleBoardPayouts.map((run) => [...run.board])
-        : [[...this.state.board]];
+    const winnersByRun =
+      runCount > 1
+        ? this.state.runoutPayouts!.map((run) => ({
+            run: run.run,
+            board: [...run.board],
+            winners: [...run.winners],
+          }))
+        : [
+            {
+              run: 1 as const,
+              board: [...this.state.board],
+              winners: [...(this.state.winners ?? [])],
+            },
+          ];
+    const boards =
+      runCount > 1
+        ? [...(this.state.runoutBoards ?? [])]
+        : this.doubleBoardPayouts && this.doubleBoardPayouts.length === 2
+          ? this.doubleBoardPayouts.map((run) => [...run.board])
+          : [[...this.state.board]];
 
     const payoutsBySeat: Record<number, number> = {};
     for (const winner of this.state.winners ?? []) {
@@ -1865,8 +1923,8 @@ export class GameTable {
     if (totalPaid + collectedFee !== totalPot) {
       console.error(
         `[CONSERVATION VIOLATION] totalPaid+collectedFee=${totalPaid + collectedFee} != totalPot=${totalPot}, ` +
-        `handId=${this.state.handId}, winners=${JSON.stringify(this.state.winners)}, ` +
-        `contributions=${JSON.stringify(Object.fromEntries(this.state.contributed))}`
+          `handId=${this.state.handId}, winners=${JSON.stringify(this.state.winners)}, ` +
+          `contributions=${JSON.stringify(Object.fromEntries(this.state.contributed))}`,
       );
     }
 
@@ -1876,19 +1934,20 @@ export class GameTable {
     if (sumStacksAfter + collectedFee !== sumStacksBefore) {
       console.error(
         `[CONSERVATION VIOLATION] sumStacksAfter+collectedFee=${sumStacksAfter + collectedFee} != sumStacksBefore=${sumStacksBefore}, ` +
-        `handId=${this.state.handId}`
+          `handId=${this.state.handId}`,
       );
     }
 
-    const payoutsBySeatByRun = runCount > 1
-      ? winnersByRun.map((run) => {
-          const bySeat: Record<number, number> = {};
-          for (const winner of run.winners) {
-            bySeat[winner.seat] = (bySeat[winner.seat] ?? 0) + winner.amount;
-          }
-          return bySeat;
-        })
-      : undefined;
+    const payoutsBySeatByRun =
+      runCount > 1
+        ? winnersByRun.map((run) => {
+            const bySeat: Record<number, number> = {};
+            for (const winner of run.winners) {
+              bySeat[winner.seat] = (bySeat[winner.seat] ?? 0) + winner.amount;
+            }
+            return bySeat;
+          })
+        : undefined;
 
     const ledger = this.state.players
       .map((player) => {
@@ -1910,7 +1969,7 @@ export class GameTable {
       .sort((a, b) => a.seat - b.seat);
 
     return {
-      handId: this.state.handId ?? "",
+      handId: this.state.handId ?? '',
       totalPot,
       rake: collectedFee,
       collectedFee,
@@ -1939,12 +1998,7 @@ export class GameTable {
 }
 
 function shuffledDeck(): string[] {
-  const deck: string[] = [];
-  for (const r of RANKS) {
-    for (const s of SUITS) {
-      deck.push(`${r}${s}`);
-    }
-  }
+  const deck = [...FULL_DECK];
   for (let i = deck.length - 1; i > 0; i -= 1) {
     const j = randomInt(i + 1);
     [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -1963,32 +2017,38 @@ function orderedFromButton(buttonSeat: number, seats: number[]): number[] {
   return canonicalClockwiseSeats(buttonSeat, seats);
 }
 
-function combinations<T>(items: readonly T[], choose: number): T[][] {
-  if (choose <= 0 || choose > items.length) return [];
-  if (choose === 1) return items.map((item) => [item]);
+/**
+ * Evaluate hand + board from card indices (0-51).
+ * index = rank * 4 + suit, rank: 0=2..12=A, suit: 0=c,1=d,2=h,3=s
+ * Returns a numeric value suitable for comparing hand strength.
+ */
+export function evaluateHandBoard(h0: number, h1: number, board: number[]): number {
+  const RANK_CHARS = '23456789TJQKA';
+  const SUIT_CHARS = 'cdhs';
+  const toCard = (idx: number): string => RANK_CHARS[idx >> 2] + SUIT_CHARS[idx & 3];
+  const cards = [toCard(h0), toCard(h1), ...board.map(toCard)];
+  return evaluateBestHand(cards).value;
+}
+
+function combinations<T>(arr: T[], k: number): T[][] {
+  if (k === 0) return [[]];
+  if (arr.length < k) return [];
+
   const result: T[][] = [];
-  const walk = (start: number, path: T[]): void => {
-    if (path.length === choose) {
-      result.push([...path]);
+
+  function backtrack(start: number, current: T[]) {
+    if (current.length === k) {
+      result.push([...current]);
       return;
     }
-    for (let i = start; i <= items.length - (choose - path.length); i += 1) {
-      path.push(items[i]);
-      walk(i + 1, path);
-      path.pop();
+
+    for (let i = start; i < arr.length; i++) {
+      current.push(arr[i]);
+      backtrack(i + 1, current);
+      current.pop();
     }
-  };
-  walk(0, []);
+  }
+
+  backtrack(0, []);
   return result;
-}
-
-function toSolverCards(cards: string[]): string[] {
-  return cards.map((c) => `${c[0]}${solverSuit(c[1])}`);
-}
-
-function solverSuit(suit: string): string {
-  if (suit === "s") return "s";
-  if (suit === "h") return "h";
-  if (suit === "d") return "d";
-  return "c";
 }

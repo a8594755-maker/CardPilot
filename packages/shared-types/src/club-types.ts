@@ -48,8 +48,8 @@ export interface ClubRulesRunIt {
 }
 
 export interface ClubRulesTableControls {
-  canPauseMidHand: boolean;        // must be false
-  pauseAppliesAfterHand: boolean;  // must be true
+  canPauseMidHand: boolean; // must be false
+  pauseAppliesAfterHand: boolean; // must be true
   standUpAppliesAfterHand: boolean;
 }
 
@@ -60,7 +60,7 @@ export interface ClubRulesModeration {
 }
 
 export interface ClubRulesEconomy {
-  rakeEnabled: boolean;     // default false — play-money only
+  rakeEnabled: boolean; // default false — play-money only
   serviceFeeEnabled: boolean; // default false
 }
 
@@ -182,8 +182,16 @@ export function clubTableConfigToClubRules(config: ClubTableConfig): ClubRules {
   return {
     stakes: { smallBlind: config.smallBlind, bigBlind: config.bigBlind },
     maxSeats: config.maxSeats,
-    buyIn: { minBuyIn: config.minBuyIn, maxBuyIn: config.maxBuyIn, defaultBuyIn: config.defaultBuyIn },
-    time: { actionTimeSec: config.actionTimeSec, timeBankSec: config.timeBankSec, disconnectGraceSec: config.disconnectGraceSec },
+    buyIn: {
+      minBuyIn: config.minBuyIn,
+      maxBuyIn: config.maxBuyIn,
+      defaultBuyIn: config.defaultBuyIn,
+    },
+    time: {
+      actionTimeSec: config.actionTimeSec,
+      timeBankSec: config.timeBankSec,
+      disconnectGraceSec: config.disconnectGraceSec,
+    },
     dealing: {
       autoDealEnabled: config.autoStartNextHand,
       minPlayersToStart: config.minPlayersToStart,
@@ -192,9 +200,21 @@ export function clubTableConfigToClubRules(config: ClubTableConfig): ClubRules {
       allowManualDeal: true,
       preventDealMidHand: true,
     },
-    runit: { allowRunItTwice: config.allowRunItTwice, runItTwiceWhoChooses: 'all-in-initiator', promptTimeoutSec: 15 },
-    tableControls: { canPauseMidHand: false, pauseAppliesAfterHand: true, standUpAppliesAfterHand: true },
-    moderation: { chatEnabled: true, profanityFilter: false, allowSpectators: config.allowSpectators },
+    runit: {
+      allowRunItTwice: config.allowRunItTwice,
+      runItTwiceWhoChooses: 'all-in-initiator',
+      promptTimeoutSec: 15,
+    },
+    tableControls: {
+      canPauseMidHand: false,
+      pauseAppliesAfterHand: true,
+      standUpAppliesAfterHand: true,
+    },
+    moderation: {
+      chatEnabled: true,
+      profanityFilter: false,
+      allowSpectators: config.allowSpectators,
+    },
     economy: { rakeEnabled: false, serviceFeeEnabled: false },
     extras: {
       gameType: config.gameType,
@@ -316,14 +336,14 @@ export interface ClubTable {
 }
 
 export type ClubWalletTxType =
-  | "deposit"
-  | "admin_grant"
-  | "admin_deduct"
-  | "buy_in"
-  | "cash_out"
-  | "transfer_in"
-  | "transfer_out"
-  | "adjustment";
+  | 'deposit'
+  | 'admin_grant'
+  | 'admin_deduct'
+  | 'buy_in'
+  | 'cash_out'
+  | 'transfer_in'
+  | 'transfer_out'
+  | 'adjustment';
 
 export interface ClubWalletTransaction {
   id: string;
@@ -340,7 +360,7 @@ export interface ClubWalletTransaction {
   metaJson: Record<string, unknown>;
   idempotencyKey?: string | null;
   /** Transaction status for observability ("success" | "pending" | "failed"). Absent means "success" for backwards compat. */
-  status?: "success" | "pending" | "failed";
+  status?: 'success' | 'pending' | 'failed';
   /** Human-readable error detail when status is "failed". */
   errorDetail?: string;
 }
@@ -352,9 +372,9 @@ export interface ClubWalletBalance {
   balance: number;
 }
 
-export type ClubLeaderboardMetric = "net" | "hands" | "buyin" | "deposits";
+export type ClubLeaderboardMetric = 'net' | 'hands' | 'buyin' | 'deposits';
 
-export type ClubLeaderboardRange = "day" | "week" | "month" | "all";
+export type ClubLeaderboardRange = 'day' | 'week' | 'month' | 'all';
 
 export interface ClubLeaderboardEntry {
   rank: number;
@@ -413,16 +433,13 @@ const ROLE_RANK: Record<ClubRole, number> = {
 };
 
 export function normalizeClubRole(role: string | null | undefined): ClubRole {
-  if (role === "owner" || role === "admin" || role === "member") {
+  if (role === 'owner' || role === 'admin' || role === 'member') {
     return role;
   }
-  return "member";
+  return 'member';
 }
 
-export function hasClubPermission(
-  actorRole: ClubRole,
-  requiredRole: ClubRole,
-): boolean {
+export function hasClubPermission(actorRole: ClubRole, requiredRole: ClubRole): boolean {
   return ROLE_RANK[actorRole] >= ROLE_RANK[requiredRole];
 }
 

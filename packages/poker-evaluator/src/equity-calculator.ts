@@ -1,13 +1,13 @@
 // Monte Carlo equity calculator for Texas Hold'em
 
-import { createShuffledDeck, type Card, parseCard } from "./card-utils.js";
-import { evaluateBestHand, compareHands } from "./evaluator.js";
+import { createShuffledDeck, FULL_DECK, type Card, parseCard } from './card-utils.js';
+import { evaluateBestHand, compareHands } from './evaluator.js';
 
 export interface EquityResult {
-  win: number;      // Win probability (0-1)
-  tie: number;      // Tie probability (0-1)
-  lose: number;     // Lose probability (0-1)
-  equity: number;   // Overall equity: win + tie/2 (0-1)
+  win: number; // Win probability (0-1)
+  tie: number; // Tie probability (0-1)
+  lose: number; // Lose probability (0-1)
+  equity: number; // Overall equity: win + tie/2 (0-1)
   simulations: number;
 }
 
@@ -28,33 +28,53 @@ export function calculateEquity(params: {
   simulations?: number;
 }): EquityResult {
   const { heroHand, villainHands, board, simulations = 10000 } = params;
-  
+
   const deadCards = new Set([...heroHand, ...villainHands.flat(), ...board]);
   const cardsNeeded = 5 - board.length;
-  
+
   if (cardsNeeded < 0) {
     throw new Error('Board cannot have more than 5 cards');
   }
-  
+
+  // Optimization: Filter available cards once, outside the loop
+  const availableCards = FULL_DECK.filter((c) => !deadCards.has(c));
+
+  // Need to ensure we have enough cards
+  if (availableCards.length < cardsNeeded) {
+    throw new Error('Not enough cards remaining in deck');
+  }
+
   let wins = 0;
   let ties = 0;
   let losses = 0;
-  
+
   for (let i = 0; i < simulations; i++) {
-    const deck = createShuffledDeck(`sim-${i}`).filter(c => !deadCards.has(c));
-    const runout = deck.slice(0, cardsNeeded);
+    // Optimization: Shuffle only the available cards
+    // We only need 'cardsNeeded' random cards.
+    // Fisher-Yates shuffle on a copy of availableCards is sufficient.
+    const runout: Card[] = [];
+    const deck = [...availableCards]; // Clone to avoid mutating the base set
+
+    // Partial shuffle just enough to get the cards we need
+    for (let j = 0; j < cardsNeeded; j++) {
+      const idx = Math.floor(Math.random() * (deck.length - j));
+      const picked = deck[idx];
+      deck[idx] = deck[deck.length - 1 - j]; // Swap with end
+      runout.push(picked);
+    }
+
     const finalBoard = [...board, ...runout];
-    
+
     const heroEval = evaluateBestHand([...heroHand, ...finalBoard]);
-    
+
     let heroWins = true;
     let isTie = false;
     let isLoss = false;
-    
+
     for (const villainHand of villainHands) {
       const villainEval = evaluateBestHand([...villainHand, ...finalBoard]);
       const cmp = compareHands(heroEval, villainEval);
-      
+
       if (cmp < 0) {
         heroWins = false;
         isLoss = true;
@@ -63,24 +83,24 @@ export function calculateEquity(params: {
         isTie = true;
       }
     }
-    
+
     if (isLoss) losses++;
     else if (heroWins && !isTie) wins++;
     else if (isTie) ties++;
     else losses++;
   }
-  
+
   const win = wins / simulations;
   const tie = ties / simulations;
   const lose = losses / simulations;
   const equity = win + tie / 2;
-  
+
   return {
     win: round4(win),
     tie: round4(tie),
     lose: round4(lose),
     equity: round4(equity),
-    simulations
+    simulations,
   };
 }
 
@@ -93,7 +113,7 @@ export function calculateHandStrength(heroHand: [Card, Card], board: Card[]): nu
     heroHand,
     villainHands: randomHands,
     board,
-    simulations: 1000
+    simulations: 1000,
   });
   return result.equity;
 }
@@ -116,7 +136,7 @@ export function calculateCallEV(params: {
 }): number {
   const { potSize, toCall, equity } = params;
   const potOdds = calculatePotOdds(potSize, toCall);
-  
+
   if (equity >= potOdds) {
     return round4((potSize + toCall) * equity - toCall);
   }
@@ -132,11 +152,11 @@ export function calculateOuts(params: {
   targetHand: 'flush' | 'straight' | 'set' | 'two_pair' | 'pair';
 }): number {
   const { heroHand, board, targetHand } = params;
-  
+
   // Simplified outs calculation
   const heroCards = heroHand.map(parseCard);
   const boardCards = board.map(parseCard);
-  
+
   switch (targetHand) {
     case 'flush': {
       // Count flush draw outs
@@ -147,25 +167,25 @@ export function calculateOuts(params: {
       const maxSuit = Math.max(...Object.values(suits));
       return maxSuit === 4 ? 9 : 0; // 9 outs for flush draw
     }
-    
+
     case 'straight': {
       // Simplified: assume open-ended straight draw = 8 outs, gutshot = 4
       // This is a rough approximation
       return 8; // Conservative estimate
     }
-    
+
     case 'set': {
       // Pair to set: 2 outs
       const isPair = heroCards[0].rank === heroCards[1].rank;
       return isPair ? 2 : 0;
     }
-    
+
     case 'two_pair':
     case 'pair': {
       // Overcards to make pair: ~6 outs
       return 6;
     }
-    
+
     default:
       return 0;
   }
@@ -186,11 +206,11 @@ export function outsToEquity(outs: number, streets: 1 | 2): number {
 function generateRandomOpponentHands(
   heroHand: [Card, Card],
   board: Card[],
-  count: number
+  count: number,
 ): Array<[Card, Card]> {
   const deadCards = new Set([...heroHand, ...board]);
-  const availableCards = createShuffledDeck().filter(c => !deadCards.has(c));
-  
+  const availableCards = createShuffledDeck().filter((c) => !deadCards.has(c));
+
   const hands: Array<[Card, Card]> = [];
   for (let i = 0; i < Math.min(count, Math.floor(availableCards.length / 2)); i++) {
     hands.push([availableCards[i * 2], availableCards[i * 2 + 1]]);

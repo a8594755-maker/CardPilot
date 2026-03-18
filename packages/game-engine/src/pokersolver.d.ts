@@ -1,4 +1,4 @@
-declare module "pokersolver" {
+declare module 'pokersolver' {
   const pokersolver: {
     Hand: typeof Hand;
   };

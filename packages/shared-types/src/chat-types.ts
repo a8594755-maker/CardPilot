@@ -10,7 +10,7 @@ export interface ChatMessage {
   senderDisplayName: string;
   messageType: ChatMessageType;
   content: string;
-  mentions: string[];         // userId array
+  mentions: string[]; // userId array
   deletedAt: string | null;
   deletedBy: string | null;
   createdAt: string;
@@ -29,7 +29,7 @@ export interface ChatMute {
 export interface ChatReadCursor {
   clubId: string;
   userId: string;
-  scopeKey: string;           // 'club' or 'table:{tableId}'
+  scopeKey: string; // 'club' or 'table:{tableId}'
   lastReadMessageId: string | null;
   lastReadAt: string;
 }

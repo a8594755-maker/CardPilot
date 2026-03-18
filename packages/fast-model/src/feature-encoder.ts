@@ -21,14 +21,31 @@
  */
 
 const RANK_VALUES: Record<string, number> = {
-  '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8,
-  '9': 9, 'T': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14,
+  '2': 2,
+  '3': 3,
+  '4': 4,
+  '5': 5,
+  '6': 6,
+  '7': 7,
+  '8': 8,
+  '9': 9,
+  T: 10,
+  J: 11,
+  Q: 12,
+  K: 13,
+  A: 14,
 };
 
-const SUIT_INDEX: Record<string, number> = { 's': 0, 'h': 1, 'd': 2, 'c': 3 };
+const SUIT_INDEX: Record<string, number> = { s: 0, h: 1, d: 2, c: 3 };
 
 const POSITION_INDEX: Record<string, number> = {
-  'UTG': 0, 'MP': 1, 'HJ': 2, 'CO': 3, 'BTN': 4, 'SB': 5, 'BB': 6,
+  UTG: 0,
+  MP: 1,
+  HJ: 2,
+  CO: 3,
+  BTN: 4,
+  SB: 5,
+  BB: 6,
 };
 
 /** Total number of features in V1 encoded vector */
@@ -103,11 +120,7 @@ export function encodeFeatures(
 
   // ── Street one-hot (3 features: flop, turn, river) ──
   const st = street.toUpperCase();
-  features.push(
-    st === 'FLOP' ? 1 : 0,
-    st === 'TURN' ? 1 : 0,
-    st === 'RIVER' ? 1 : 0,
-  );
+  features.push(st === 'FLOP' ? 1 : 0, st === 'TURN' ? 1 : 0, st === 'RIVER' ? 1 : 0);
 
   // ── Position one-hot (7 features) ──
   const posIdx = POSITION_INDEX[heroPosition.toUpperCase()] ?? -1;
@@ -122,13 +135,13 @@ export function encodeFeatures(
   const potNorm = Math.min(pot / (100 * bb), 5); // cap at 500bb pots → 5
   const toCallNorm = Math.min(toCall / (100 * bb), 5);
   const spr = pot > 0 ? Math.min(effectiveStack / pot, 20) / 20 : 1; // SPR capped at 20 → [0, 1]
-  const potOdds = (pot + toCall) > 0 ? toCall / (pot + toCall) : 0;
+  const potOdds = pot + toCall > 0 ? toCall / (pot + toCall) : 0;
   features.push(potNorm, toCallNorm, spr, potOdds);
 
   // ── Action context (3 features) ──
   features.push(
     Math.min(numVillains, 5) / 5,
-    toCall > 0 ? 1 : 0,     // facing bet
+    toCall > 0 ? 1 : 0, // facing bet
     isAggressor ? 1 : 0,
   );
 
@@ -140,7 +153,7 @@ export function encodeFeatures(
 export interface ActionRecord {
   seat: number;
   street: string;
-  type: string;     // 'fold' | 'check' | 'call' | 'raise' | 'all_in' | ...
+  type: string; // 'fold' | 'check' | 'call' | 'raise' | 'all_in' | ...
   amount: number;
 }
 
@@ -187,12 +200,12 @@ function aggregateActions(actions: ActionRecord[], street: string): ActionAggreg
         raisesOnStreet++;
         if (a.amount > 0) lastBetAmount = a.amount;
         // Check-raise: this seat previously checked on this street
-        if (a.seat < 30 && (checkedSeats & (1 << a.seat))) {
+        if (a.seat < 30 && checkedSeats & (1 << a.seat)) {
           isCheckRaised = true;
         }
       }
     } else if (a.type === 'check' && a.street === streetUpper && a.seat < 30) {
-      checkedSeats |= (1 << a.seat);
+      checkedSeats |= 1 << a.seat;
     }
   }
 
@@ -221,8 +234,17 @@ export function encodeFeaturesV2(
 ): number[] {
   // Start with the V1 48-feature base
   const features = encodeFeatures(
-    holeCards, board, street, pot, bigBlind, toCall,
-    effectiveStack, heroPosition, heroInPosition, numVillains, isAggressor,
+    holeCards,
+    board,
+    street,
+    pot,
+    bigBlind,
+    toCall,
+    effectiveStack,
+    heroPosition,
+    heroInPosition,
+    numVillains,
+    isAggressor,
   );
 
   // ── V2 betting history summary (6 features, single-pass aggregation) ──
@@ -241,9 +263,8 @@ export function encodeFeaturesV2(
   features.push(Math.min(agg.totalRaises, 10) / 10);
 
   // [52] lastBetPotFrac: last bet as fraction of pot, capped at 2.0
-  const lastBetFrac = (agg.lastBetAmount > 0 && pot > 0)
-    ? Math.min(agg.lastBetAmount / pot, 2.0) / 2.0
-    : 0;
+  const lastBetFrac =
+    agg.lastBetAmount > 0 && pot > 0 ? Math.min(agg.lastBetAmount / pot, 2.0) / 2.0 : 0;
   features.push(lastBetFrac);
 
   // [53] allInPressure: any opponent is all-in

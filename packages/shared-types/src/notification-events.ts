@@ -1,12 +1,16 @@
 // ===== Notification Socket Events =====
 
-import type { Notification, NotificationType, NotificationPreferences } from './notification-types.js';
+import type {
+  Notification,
+  NotificationType,
+  NotificationPreferences,
+} from './notification-types.js';
 
 // ── Client → Server Payloads ──
 
 export interface NotificationListPayload {
-  limit?: number;              // default 50
-  before?: string;             // cursor: notification id
+  limit?: number; // default 50
+  before?: string; // cursor: notification id
   unreadOnly?: boolean;
 }
 
@@ -15,7 +19,7 @@ export interface NotificationMarkReadPayload {
 }
 
 export interface NotificationMarkAllReadPayload {
-  clubId?: string;             // scope to club, omit for all
+  clubId?: string; // scope to club, omit for all
 }
 
 export interface NotificationGetUnreadCountPayload {}

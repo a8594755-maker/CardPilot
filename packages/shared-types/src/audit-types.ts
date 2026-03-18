@@ -5,7 +5,7 @@
  * Used by: game-server (producer), advice-engine (compute), web (consumer).
  */
 
-import type { HandAction, Street, StrategyMix, PlayerActionType, Position } from './index.js';
+import type { Street, StrategyMix, PlayerActionType } from './index.js';
 
 // ── Line & Spot Classification ──
 
@@ -87,9 +87,9 @@ export interface GtoAuditResult {
   /** What hero actually did (denormalized for query convenience) */
   actualAction: PlayerActionType;
   /** Deviation metrics */
-  deviationScore: number;       // 0 = perfect GTO, 1 = worst possible
-  evDiffBb: number;             // EV leaked in big blinds (negative = leaked)
-  evDiffChips: number;          // EV leaked in chips
+  deviationScore: number; // 0 = perfect GTO, 1 = worst possible
+  evDiffBb: number; // EV leaked in big blinds (negative = leaked)
+  evDiffChips: number; // EV leaked in chips
   /** Classification */
   deviationType: ActionDeviationType;
   /** Context (denormalized for dashboards) */
@@ -184,7 +184,7 @@ export interface LeakCategory {
   label: string;
   description: string;
   leakedBb: number;
-  frequency: number;      // how often this leak occurs as fraction of total decisions
+  frequency: number; // how often this leak occurs as fraction of total decisions
   spotType?: SpotType;
   street?: string;
   lineTag?: string;
@@ -208,11 +208,11 @@ export interface DrillSuggestion {
 // ── Exploit / Node Lock Types (Phase 2 placeholder) ──
 
 export interface VillainModelParams {
-  foldToCbet: number;         // 0-1
-  bluffFreqFlop: number;      // 0-1
-  bluffFreqTurn: number;      // 0-1
-  bluffFreqRiver: number;     // 0-1
-  aggressionFactor: number;   // 0-5+
+  foldToCbet: number; // 0-1
+  bluffFreqFlop: number; // 0-1
+  bluffFreqTurn: number; // 0-1
+  bluffFreqRiver: number; // 0-1
+  aggressionFactor: number; // 0-5+
   riverUnderbluff: boolean;
   riverOverbluff: boolean;
 }
@@ -232,7 +232,7 @@ export interface ExploitResult {
   exploitMix: StrategyMix;
   evShiftBb: number;
   villainModel: VillainModelParams;
-  label: string;   // e.g. "Exploit (vs underbluff): check 85%"
+  label: string; // e.g. "Exploit (vs underbluff): check 85%"
 }
 
 // ── Club Training Metrics (Phase 3 placeholder) ──

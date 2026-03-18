@@ -10,7 +10,7 @@ export enum HandRank {
   THREE_OF_A_KIND = 4,
   TWO_PAIR = 3,
   ONE_PAIR = 2,
-  HIGH_CARD = 1
+  HIGH_CARD = 1,
 }
 
 export const HAND_RANK_NAMES: Record<HandRank, string> = {
@@ -23,7 +23,7 @@ export const HAND_RANK_NAMES: Record<HandRank, string> = {
   [HandRank.THREE_OF_A_KIND]: 'Three of a Kind',
   [HandRank.TWO_PAIR]: 'Two Pair',
   [HandRank.ONE_PAIR]: 'One Pair',
-  [HandRank.HIGH_CARD]: 'High Card'
+  [HandRank.HIGH_CARD]: 'High Card',
 };
 
 export interface HandEvaluation {

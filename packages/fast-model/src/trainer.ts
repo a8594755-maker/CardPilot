@@ -14,7 +14,14 @@
  * Streaming: Chunked training for large datasets (10M+ samples).
  */
 
-import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync } from 'node:fs';
+import {
+  readFileSync,
+  writeFileSync,
+  appendFileSync,
+  readdirSync,
+  existsSync,
+  mkdirSync,
+} from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRandomModel, createRandomModelV2 } from './mlp.js';
@@ -25,8 +32,8 @@ import type { ModelWeights, TrainingSample, LayerWeights } from './types.js';
 // ── Config ──
 
 const HIDDEN_SIZES = [64, 32];
-const ACTION_OUTPUT_SIZE = 3;  // raise, call, fold
-const SIZING_OUTPUT_SIZE = 5;  // 33%, 50%, 66%, 100%, all-in
+const ACTION_OUTPUT_SIZE = 3; // raise, call, fold
+const SIZING_OUTPUT_SIZE = 5; // 33%, 50%, 66%, 100%, all-in
 const SIZING_LOSS_WEIGHT = 1.0;
 const SIZING_RAISE_THRESHOLD = 0.2; // only train sizing when raise label > this
 const LEARNING_RATE_INIT = 0.01;
@@ -61,6 +68,16 @@ interface TrainerArgs {
   batchSize: number; // batch size override
   maxEpochs: number; // max epochs override
   filesPerPass: number; // max files per pass (0 = all)
+  logFile: string | null; // direct file logging (bypasses stdout buffering)
+}
+
+/** Direct-write logger that bypasses stdout block buffering */
+let _logFile: string | null = null;
+function logSync(msg: string): void {
+  console.log(msg);
+  if (_logFile) {
+    appendFileSync(_logFile, msg + '\n');
+  }
 }
 
 function parseTrainerArgs(): TrainerArgs {
@@ -84,10 +101,11 @@ function parseTrainerArgs(): TrainerArgs {
   let batchSize = BATCH_SIZE;
   let maxEpochs = MAX_EPOCHS;
   let filesPerPass = 0; // 0 = all files
+  let logFile: string | null = null;
 
   const argv = process.argv.slice(2);
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === '--data' && argv[i + 1]) dataDirs = argv[++i].split(',').map(d => d.trim());
+    if (argv[i] === '--data' && argv[i + 1]) dataDirs = argv[++i].split(',').map((d) => d.trim());
     if (argv[i] === '--out' && argv[i + 1]) outPath = argv[++i];
     if (argv[i] === '--v2') isV2 = true;
     if (argv[i] === '--warm-start' && argv[i + 1]) warmStart = argv[++i];
@@ -115,7 +133,10 @@ function parseTrainerArgs(): TrainerArgs {
       if (Number.isFinite(parsed) && parsed > 0) initialLr = parsed;
     }
     if (argv[i] === '--hidden' && argv[i + 1]) {
-      hiddenSizes = argv[++i].split(',').map(s => parseInt(s.trim(), 10)).filter(n => n > 0);
+      hiddenSizes = argv[++i]
+        .split(',')
+        .map((s) => parseInt(s.trim(), 10))
+        .filter((n) => n > 0);
     }
     if (argv[i] === '--streaming') streaming = true;
     if (argv[i] === '--chunk-size' && argv[i + 1]) {
@@ -140,6 +161,7 @@ function parseTrainerArgs(): TrainerArgs {
       const parsed = parseInt(argv[++i], 10);
       if (Number.isFinite(parsed) && parsed > 0) filesPerPass = parsed;
     }
+    if (argv[i] === '--log' && argv[i + 1]) logFile = argv[++i];
   }
 
   return {
@@ -162,6 +184,7 @@ function parseTrainerArgs(): TrainerArgs {
     batchSize,
     maxEpochs,
     filesPerPass,
+    logFile,
   };
 }
 
@@ -175,7 +198,7 @@ function collectFiles(dataDirs: string | string[]): string[] {
       console.error(`Data directory not found: ${dir}`);
       process.exit(1);
     }
-    for (const f of readdirSync(dir).filter(f => f.endsWith('.jsonl'))) {
+    for (const f of readdirSync(dir).filter((f) => f.endsWith('.jsonl'))) {
       files.push(join(dir, f)); // full path
     }
   }
@@ -196,7 +219,10 @@ function loadSamples(
 
   const samples: TrainingSample[] = [];
   for (const file of files) {
-    const filepath = file.includes('/') || file.includes('\\') ? file : join(Array.isArray(dataDirs) ? dataDirs[0] : dataDirs, file);
+    const filepath =
+      file.includes('/') || file.includes('\\')
+        ? file
+        : join(Array.isArray(dataDirs) ? dataDirs[0] : dataDirs, file);
     if (!existsSync(filepath)) continue;
     const lines = readFileSync(filepath, 'utf-8').split('\n');
     for (const line of lines) {
@@ -204,7 +230,12 @@ function loadSamples(
       if (!trimmed) continue;
       try {
         const sample = JSON.parse(trimmed) as TrainingSample;
-        if (sample.f && sample.l && sample.f.length === expectedFeatureCount && sample.l.length === 3) {
+        if (
+          sample.f &&
+          sample.l &&
+          sample.f.length === expectedFeatureCount &&
+          sample.l.length === 3
+        ) {
           samples.push(sample);
           if (maxSamples != null && samples.length >= maxSamples) {
             return samples;
@@ -240,7 +271,10 @@ function argmax(arr: number[]): number {
 
 const MAX_OVERSAMPLE_RATIO = 3; // cap at 3x original dataset size
 
-function balanceSamples(samples: TrainingSample[], maxOversampleRatio: number = MAX_OVERSAMPLE_RATIO): TrainingSample[] {
+function balanceSamples(
+  samples: TrainingSample[],
+  maxOversampleRatio: number = MAX_OVERSAMPLE_RATIO,
+): TrainingSample[] {
   // Step 1: Group by street
   const byStreet = new Map<string, TrainingSample[]>();
   for (const s of samples) {
@@ -250,8 +284,10 @@ function balanceSamples(samples: TrainingSample[], maxOversampleRatio: number = 
   }
 
   // Cap target to avoid massive oversampling (e.g. 6K PREFLOP vs 100 RIVER)
-  const maxStreetCount = Math.max(...[...byStreet.values()].map(g => g.length));
-  const medianCount = [...byStreet.values()].map(g => g.length).sort((a, b) => a - b)[Math.floor(byStreet.size / 2)];
+  const maxStreetCount = Math.max(...[...byStreet.values()].map((g) => g.length));
+  const medianCount = [...byStreet.values()].map((g) => g.length).sort((a, b) => a - b)[
+    Math.floor(byStreet.size / 2)
+  ];
   const streetTarget = Math.min(maxStreetCount, medianCount * 4);
 
   // Step 2: Oversample minority streets to capped target
@@ -339,13 +375,13 @@ function forwardWithCache(model: ModelWeights, features: number[]): ForwardCache
 
     if (isOutput) {
       const maxVal = Math.max(...preAct);
-      const exps = preAct.map(v => Math.exp(v - maxVal));
+      const exps = preAct.map((v) => Math.exp(v - maxVal));
       const sum = exps.reduce((a, b) => a + b, 0);
-      const probs = exps.map(e => e / sum);
+      const probs = exps.map((e) => e / sum);
       outputs.push(probs);
       return { inputs, outputs, probs };
     } else {
-      const activated = preAct.map(v => v > 0 ? v : 0);
+      const activated = preAct.map((v) => (v > 0 ? v : 0));
       outputs.push(activated);
       current = activated;
     }
@@ -369,8 +405,8 @@ interface Gradients {
 function backprop(model: ModelWeights, cache: ForwardCache, target: number[]): Gradients {
   const { layers } = model;
   const numLayers = layers.length;
-  const grads: LayerWeights[] = layers.map(l => ({
-    weights: l.weights.map(row => new Array<number>(row.length).fill(0)),
+  const grads: LayerWeights[] = layers.map((l) => ({
+    weights: l.weights.map((row) => new Array<number>(row.length).fill(0)),
     biases: new Array<number>(l.biases.length).fill(0),
   }));
 
@@ -432,8 +468,8 @@ function accumulateGrads(acc: Gradients, grads: Gradients): void {
 
 function zeroGrads(model: ModelWeights): Gradients {
   return {
-    layers: model.layers.map(l => ({
-      weights: l.weights.map(row => new Array<number>(row.length).fill(0)),
+    layers: model.layers.map((l) => ({
+      weights: l.weights.map((row) => new Array<number>(row.length).fill(0)),
       biases: new Array<number>(l.biases.length).fill(0),
     })),
   };
@@ -450,7 +486,7 @@ function evaluateV1(model: ModelWeights, samples: TrainingSample[]): number {
 
 function cloneLayer(l: LayerWeights): LayerWeights {
   return {
-    weights: l.weights.map(row => row.slice()),
+    weights: l.weights.map((row) => row.slice()),
     biases: l.biases.slice(),
   };
 }
@@ -470,7 +506,9 @@ function cloneWeights(model: ModelWeights): ModelWeights {
 }
 
 function trainV1(trainSet: TrainingSample[], valSet: TrainingSample[]): ModelWeights {
-  console.log(`Initializing V1 MLP: input=${FEATURE_COUNT} → [${HIDDEN_SIZES.join(', ')}] → ${ACTION_OUTPUT_SIZE}`);
+  console.log(
+    `Initializing V1 MLP: input=${FEATURE_COUNT} → [${HIDDEN_SIZES.join(', ')}] → ${ACTION_OUTPUT_SIZE}`,
+  );
 
   const model = createRandomModel(FEATURE_COUNT, HIDDEN_SIZES, ACTION_OUTPUT_SIZE);
   let bestModel = cloneWeights(model);
@@ -509,8 +547,8 @@ function trainV1(trainSet: TrainingSample[], valSet: TrainingSample[]): ModelWei
     const indicator = valLoss < bestValLoss ? ' *' : '';
     console.log(
       `Epoch ${String(epoch).padStart(3)}/${MAX_EPOCHS}  ` +
-      `train_loss=${trainLoss.toFixed(4)}  val_loss=${valLoss.toFixed(4)}  ` +
-      `lr=${lr.toExponential(2)}${indicator}`
+        `train_loss=${trainLoss.toFixed(4)}  val_loss=${valLoss.toFixed(4)}  ` +
+        `lr=${lr.toExponential(2)}${indicator}`,
     );
 
     if (valLoss < bestValLoss) {
@@ -562,7 +600,7 @@ function warmStartV2FromV1(v1Path: string): ModelWeights {
   const v1Layer2 = v1.layers[2]; // 32→3
 
   // Pad layers[0] weights: each row gets 6 extra zeros for new V2 features
-  const paddedWeights0 = v1Layer0.weights.map(row => {
+  const paddedWeights0 = v1Layer0.weights.map((row) => {
     const padded = [...row];
     for (let i = 0; i < FEATURE_COUNT_V2 - FEATURE_COUNT; i++) {
       padded.push(0);
@@ -592,10 +630,10 @@ function warmStartV2FromV1(v1Path: string): ModelWeights {
   return {
     layers: [
       { weights: paddedWeights0, biases: [...v1Layer0.biases] },
-      { weights: v1Layer1.weights.map(r => [...r]), biases: [...v1Layer1.biases] },
+      { weights: v1Layer1.weights.map((r) => [...r]), biases: [...v1Layer1.biases] },
     ],
     actionHead: {
-      weights: v1Layer2.weights.map(r => [...r]),
+      weights: v1Layer2.weights.map((r) => [...r]),
       biases: [...v1Layer2.biases],
     },
     sizingHead: {
@@ -620,8 +658,8 @@ function warmStartV2FromV1(v1Path: string): ModelWeights {
  */
 interface V2Buffers {
   // Forward cache
-  backboneInputs: Float64Array[];   // one per backbone layer
-  backboneOutputs: Float64Array[];  // one per backbone layer
+  backboneInputs: Float64Array[]; // one per backbone layer
+  backboneOutputs: Float64Array[]; // one per backbone layer
   actionPreAct: Float64Array;
   actionProbs: Float64Array;
   sizingPreAct: Float64Array;
@@ -632,17 +670,17 @@ interface V2Buffers {
   backboneDeltaAction: Float64Array;
   backboneDeltaSizing: Float64Array;
   delta: Float64Array;
-  prevDelta: Float64Array;  // for largest input dim
+  prevDelta: Float64Array; // for largest input dim
 }
 
 interface GradientsV2Flat {
   /** Flat Float64Arrays for each backbone layer's weights and biases */
-  layerWeights: Float64Array[];   // [outDim * inDim] per layer
-  layerBiases: Float64Array[];    // [outDim] per layer
-  layerInDims: number[];          // input dim per layer
-  actionWeights: Float64Array;    // [ACTION_OUTPUT_SIZE * backboneDim]
+  layerWeights: Float64Array[]; // [outDim * inDim] per layer
+  layerBiases: Float64Array[]; // [outDim] per layer
+  layerInDims: number[]; // input dim per layer
+  actionWeights: Float64Array; // [ACTION_OUTPUT_SIZE * backboneDim]
   actionBiases: Float64Array;
-  sizingWeights: Float64Array;    // [SIZING_OUTPUT_SIZE * backboneDim]
+  sizingWeights: Float64Array; // [SIZING_OUTPUT_SIZE * backboneDim]
   sizingBiases: Float64Array;
   backboneDim: number;
 }
@@ -726,7 +764,10 @@ function softmaxInto(preAct: Float64Array, out: Float64Array, len: number): void
   let maxVal = preAct[0];
   for (let i = 1; i < len; i++) if (preAct[i] > maxVal) maxVal = preAct[i];
   let sum = 0;
-  for (let i = 0; i < len; i++) { out[i] = Math.exp(preAct[i] - maxVal); sum += out[i]; }
+  for (let i = 0; i < len; i++) {
+    out[i] = Math.exp(preAct[i] - maxVal);
+    sum += out[i];
+  }
   for (let i = 0; i < len; i++) out[i] /= sum;
 }
 
@@ -878,12 +919,19 @@ function backpropV2Into(
         prevDelta[i] = prevOutput[i] > 0 ? sum : 0;
       }
       // Swap delta ↔ prevDelta
-      for (let i = 0; i < inDim; i++) { delta[i] = prevDelta[i]; }
+      for (let i = 0; i < inDim; i++) {
+        delta[i] = prevDelta[i];
+      }
     }
   }
 }
 
-function sgdUpdateV2Flat(model: ModelWeights, grads: GradientsV2Flat, lr: number, batchSize: number): void {
+function sgdUpdateV2Flat(
+  model: ModelWeights,
+  grads: GradientsV2Flat,
+  lr: number,
+  batchSize: number,
+): void {
   const scale = lr / batchSize;
 
   // Backbone
@@ -936,7 +984,8 @@ function evaluateV2Loss(model: ModelWeights, samples: TrainingSample[]): number 
     }
     if (sample.sz && sample.l[0] > SIZING_RAISE_THRESHOLD) {
       for (let i = 0; i < sample.sz.length; i++) {
-        loss += SIZING_LOSS_WEIGHT * (-sample.sz[i] * Math.log(Math.max(buf.sizingProbs[i], 1e-10)));
+        loss +=
+          SIZING_LOSS_WEIGHT * (-sample.sz[i] * Math.log(Math.max(buf.sizingProbs[i], 1e-10)));
       }
     }
     totalLoss += loss;
@@ -948,6 +997,9 @@ interface V2TrainOptions {
   hardExampleFraction: number;
   disableHardMining: boolean;
   initialLr: number;
+  batchSize?: number;
+  maxEpochs?: number;
+  hiddenSizes?: number[];
 }
 
 function trainV2(
@@ -956,11 +1008,19 @@ function trainV2(
   warmStartModel?: ModelWeights,
   options?: V2TrainOptions,
 ): ModelWeights {
+  const batchSize = options?.batchSize ?? BATCH_SIZE;
+  const maxEpochs = options?.maxEpochs ?? MAX_EPOCHS;
+  const hs = options?.hiddenSizes ?? HIDDEN_SIZES;
   const model = warmStartModel
     ? warmStartModel
-    : createRandomModelV2(FEATURE_COUNT_V2, HIDDEN_SIZES, ACTION_OUTPUT_SIZE, SIZING_OUTPUT_SIZE);
+    : createRandomModelV2(FEATURE_COUNT_V2, hs, ACTION_OUTPUT_SIZE, SIZING_OUTPUT_SIZE);
 
-  console.log(`Initializing V2 MLP: input=${FEATURE_COUNT_V2} → [${HIDDEN_SIZES.join(', ')}] → action(${ACTION_OUTPUT_SIZE}) + sizing(${SIZING_OUTPUT_SIZE})${warmStartModel ? ' [warm-started from V1]' : ''}`);
+  logSync(
+    `Initializing V2 MLP: input=${FEATURE_COUNT_V2} → [${hs.join(', ')}] → action(${ACTION_OUTPUT_SIZE}) + sizing(${SIZING_OUTPUT_SIZE})${warmStartModel ? ' [warm-started]' : ''}`,
+  );
+  logSync(
+    `  Train: ${trainSet.length.toLocaleString()}, Val: ${valSet.length.toLocaleString()}, Batch: ${batchSize}, MaxEpochs: ${maxEpochs}`,
+  );
 
   // Pre-allocate all scratch buffers once
   const buf = createV2Buffers(model);
@@ -974,7 +1034,7 @@ function trainV2(
   const hardExampleFraction = options?.hardExampleFraction ?? HARD_EXAMPLE_FRACTION;
   const enableHardMining = !options?.disableHardMining && hardExampleFraction > 0;
 
-  for (let epoch = 1; epoch <= MAX_EPOCHS; epoch++) {
+  for (let epoch = 1; epoch <= maxEpochs; epoch++) {
     if (epoch > 1 && (epoch - 1) % LR_DECAY_EVERY === 0) {
       lr *= LR_DECAY_FACTOR;
       console.log(`  LR decay → ${lr.toExponential(2)}`);
@@ -983,7 +1043,7 @@ function trainV2(
     // Hard example mining after epoch 1 (reuses pre-allocated buffers)
     if (epoch === 2 && enableHardMining) {
       console.log('  Hard example mining: identifying difficult samples...');
-      const losses = trainSet.map(s => {
+      const losses = trainSet.map((s) => {
         forwardV2Into(model, s.f, buf);
         let loss = 0;
         for (let i = 0; i < s.l.length; i++) {
@@ -993,17 +1053,21 @@ function trainV2(
       });
       losses.sort((a, b) => b.loss - a.loss);
       const hardCount = Math.floor(losses.length * hardExampleFraction);
-      const hardExamples = losses.slice(0, hardCount).map(x => x.sample);
+      const hardExamples = losses.slice(0, hardCount).map((x) => x.sample);
       workingTrainSet = [...trainSet, ...hardExamples];
       console.log(`  Added ${hardCount} hard examples (${workingTrainSet.length} total)`);
     }
 
     shuffle(workingTrainSet);
 
+    const epochStart = Date.now();
     let epochLoss = 0;
-    for (let start = 0; start < workingTrainSet.length; start += BATCH_SIZE) {
-      const end = Math.min(start + BATCH_SIZE, workingTrainSet.length);
-      const batchSize = end - start;
+    const totalBatches = Math.ceil(workingTrainSet.length / batchSize);
+    const logEvery = Math.max(1, Math.floor(totalBatches / 10)); // log 10 times per epoch
+
+    for (let start = 0; start < workingTrainSet.length; start += batchSize) {
+      const end = Math.min(start + batchSize, workingTrainSet.length);
+      const bs = end - start;
       zeroGradsV2Flat(accGrads);
 
       for (let b = start; b < end; b++) {
@@ -1020,29 +1084,42 @@ function trainV2(
         const hasSizing = sample.sz && sample.l[0] > SIZING_RAISE_THRESHOLD;
         if (hasSizing) {
           for (let i = 0; i < sample.sz!.length; i++) {
-            loss += SIZING_LOSS_WEIGHT * (-sample.sz![i] * Math.log(Math.max(buf.sizingProbs[i], 1e-10)));
+            loss +=
+              SIZING_LOSS_WEIGHT * (-sample.sz![i] * Math.log(Math.max(buf.sizingProbs[i], 1e-10)));
           }
         }
         epochLoss += loss;
 
         backpropV2Into(
-          model, buf, accGrads, sample.l,
+          model,
+          buf,
+          accGrads,
+          sample.l,
           hasSizing ? sample.sz! : null,
           SIZING_LOSS_WEIGHT,
         );
       }
 
-      sgdUpdateV2Flat(model, accGrads, lr, batchSize);
+      sgdUpdateV2Flat(model, accGrads, lr, bs);
+
+      // Progress logging within epoch
+      const batchIdx = Math.floor(start / batchSize);
+      if (batchIdx > 0 && batchIdx % logEvery === 0) {
+        const pct = ((start / workingTrainSet.length) * 100).toFixed(0);
+        const elapsed = ((Date.now() - epochStart) / 1000).toFixed(0);
+        logSync(`  Epoch ${epoch}: ${pct}% (${elapsed}s)`);
+      }
     }
 
+    const epochSec = ((Date.now() - epochStart) / 1000).toFixed(1);
     const trainLoss = epochLoss / workingTrainSet.length;
     const valLoss = valSet.length > 0 ? evaluateV2Loss(model, valSet) : trainLoss;
 
     const indicator = valLoss < bestValLoss ? ' *' : '';
-    console.log(
-      `Epoch ${String(epoch).padStart(3)}/${MAX_EPOCHS}  ` +
-      `train_loss=${trainLoss.toFixed(4)}  val_loss=${valLoss.toFixed(4)}  ` +
-      `lr=${lr.toExponential(2)}${indicator}`
+    logSync(
+      `Epoch ${String(epoch).padStart(3)}/${maxEpochs}  ` +
+        `train_loss=${trainLoss.toFixed(4)}  val_loss=${valLoss.toFixed(4)}  ` +
+        `lr=${lr.toExponential(2)}  ${epochSec}s${indicator}`,
     );
 
     if (valLoss < bestValLoss) {
@@ -1135,11 +1212,15 @@ function splitByFlop(
         if (sample.f?.length === featureCount && sample.l?.length === 3) {
           valSet.push(sample);
         }
-      } catch { /* skip */ }
+      } catch {
+        /* skip */
+      }
     }
   }
 
-  console.log(`  Flop split: ${trainFiles.length} train files, ${valFiles.length} val files (${valSet.length} val samples)`);
+  console.log(
+    `  Flop split: ${trainFiles.length} train files, ${valFiles.length} val files (${valSet.length} val samples)`,
+  );
   return { trainFiles, valFiles, valSet };
 }
 
@@ -1148,7 +1229,7 @@ function splitByFlop(
  * Loads one file at a time into memory, runs mini-epochs, then moves to the next.
  */
 function trainStreamingV2(
-  trainFiles: string[],  // full paths
+  trainFiles: string[], // full paths
   valSet: TrainingSample[],
   featureCount: number,
   opts: {
@@ -1167,16 +1248,23 @@ function trainStreamingV2(
   let model: ModelWeights;
   if (resumeModel) {
     model = resumeModel;
-    console.log(`Resuming from model (inputSize=${model.inputSize}, layers=${model.layers.length})`);
+    console.log(
+      `Resuming from model (inputSize=${model.inputSize}, layers=${model.layers.length})`,
+    );
   } else {
     model = createRandomModelV2(featureCount, hiddenSizes, ACTION_OUTPUT_SIZE, SIZING_OUTPUT_SIZE);
   }
   model.architecture = { hiddenSizes };
 
-  console.log(`Streaming V2: input=${featureCount} → [${hiddenSizes.join(', ')}] → action(${ACTION_OUTPUT_SIZE}) + sizing(${SIZING_OUTPUT_SIZE})`);
-  const effectiveFilesPerPass = filesPerPass > 0 ? Math.min(filesPerPass, trainFiles.length) : trainFiles.length;
+  console.log(
+    `Streaming V2: input=${featureCount} → [${hiddenSizes.join(', ')}] → action(${ACTION_OUTPUT_SIZE}) + sizing(${SIZING_OUTPUT_SIZE})`,
+  );
+  const effectiveFilesPerPass =
+    filesPerPass > 0 ? Math.min(filesPerPass, trainFiles.length) : trainFiles.length;
   console.log(`  ${trainFiles.length} training files, ${valSet.length} validation samples`);
-  console.log(`  Batch size: ${batchSize}, Max passes: ${maxPasses}, Files/pass: ${effectiveFilesPerPass}`);
+  console.log(
+    `  Batch size: ${batchSize}, Max passes: ${maxPasses}, Files/pass: ${effectiveFilesPerPass}`,
+  );
 
   // Pre-allocate buffers
   const buf = createV2Buffers(model);
@@ -1229,13 +1317,22 @@ function trainStreamingV2(
           const hasSizing = sample.sz && sample.l[0] > SIZING_RAISE_THRESHOLD;
           if (hasSizing) {
             for (let i = 0; i < sample.sz!.length; i++) {
-              loss += SIZING_LOSS_WEIGHT * (-sample.sz![i] * Math.log(Math.max(buf.sizingProbs[i], 1e-10)));
+              loss +=
+                SIZING_LOSS_WEIGHT *
+                (-sample.sz![i] * Math.log(Math.max(buf.sizingProbs[i], 1e-10)));
             }
           }
           passLoss += loss;
           passSamples++;
 
-          backpropV2Into(model, buf, accGrads, sample.l, hasSizing ? sample.sz! : null, SIZING_LOSS_WEIGHT);
+          backpropV2Into(
+            model,
+            buf,
+            accGrads,
+            sample.l,
+            hasSizing ? sample.sz! : null,
+            SIZING_LOSS_WEIGHT,
+          );
         }
 
         sgdUpdateV2Flat(model, accGrads, lr, bs);
@@ -1248,8 +1345,8 @@ function trainStreamingV2(
     const indicator = valLoss < bestValLoss ? ' *' : '';
     console.log(
       `Pass ${String(pass).padStart(3)}/${maxPasses}  ` +
-      `train_loss=${trainLoss.toFixed(4)}  val_loss=${valLoss.toFixed(4)}  ` +
-      `samples=${passSamples.toLocaleString()}  lr=${lr.toExponential(2)}${indicator}`
+        `train_loss=${trainLoss.toFixed(4)}  val_loss=${valLoss.toFixed(4)}  ` +
+        `samples=${passSamples.toLocaleString()}  lr=${lr.toExponential(2)}${indicator}`,
     );
 
     if (valLoss < bestValLoss) {
@@ -1271,28 +1368,6 @@ function trainStreamingV2(
   bestModel.version = 'v2';
   bestModel.architecture = { hiddenSizes };
   return bestModel;
-}
-
-/**
- * Load samples from specific files (for streaming training).
- */
-function loadSamplesFromFiles(files: string[], featureCount: number): TrainingSample[] {
-  const samples: TrainingSample[] = [];
-  for (const filepath of files) {
-    if (!existsSync(filepath)) continue;
-    const lines = readFileSync(filepath, 'utf-8').split('\n');
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed) continue;
-      try {
-        const sample = JSON.parse(trimmed) as TrainingSample;
-        if (sample.f?.length === featureCount && sample.l?.length === 3) {
-          samples.push(sample);
-        }
-      } catch { /* skip */ }
-    }
-  }
-  return samples;
 }
 
 // ── Entry point ──
@@ -1320,7 +1395,14 @@ function main(): void {
   } = args;
   const featureCount = isV2 ? FEATURE_COUNT_V2 : FEATURE_COUNT;
 
-  console.log(`Loading samples from: ${dataDirs.join(', ')}`);
+  // Set up direct log file if specified (bypasses stdout block buffering)
+  if (args.logFile) {
+    _logFile = args.logFile;
+    writeFileSync(_logFile, ''); // truncate
+    logSync(`Log file: ${_logFile}`);
+  }
+
+  logSync(`Loading samples from: ${dataDirs.join(', ')}`);
   console.log(`Mode: ${isV2 ? 'V2 (multi-head)' : 'V1 (single-head)'}`);
   console.log(`Architecture: [${hiddenSizes.join(', ')}]`);
   if (streaming) console.log(`Streaming mode: ON`);
@@ -1376,7 +1458,9 @@ function main(): void {
   if (maxSamples != null) console.log(`Sample cap: ${maxSamples}`);
   if (isV2) {
     const hardMiningText = disableHardMining ? 'off' : `on(${hardExampleFraction})`;
-    console.log(`V2 options: maxOversampleRatio=${maxOversampleRatio}, hardMining=${hardMiningText}, lr=${initialLr}`);
+    console.log(
+      `V2 options: maxOversampleRatio=${maxOversampleRatio}, hardMining=${hardMiningText}, lr=${initialLr}`,
+    );
   }
   let allSamples = loadSamples(dataDirs, featureCount, maxSamples);
   console.log(`Loaded ${allSamples.length} samples`);
@@ -1386,12 +1470,14 @@ function main(): void {
     process.exit(1);
   }
 
-  // V2: apply anti-bias sampling before split
-  if (isV2) {
+  // V2: apply anti-bias sampling before split (skip when hard mining disabled)
+  if (isV2 && !disableHardMining) {
     console.log('Applying anti-bias sampling...');
     const beforeCount = allSamples.length;
     allSamples = balanceSamples(allSamples, maxOversampleRatio);
     console.log(`  ${beforeCount} → ${allSamples.length} samples after balancing`);
+  } else if (isV2) {
+    console.log('Skipping anti-bias sampling (hard mining disabled)');
   }
 
   // Shuffle and split
@@ -1416,29 +1502,48 @@ function main(): void {
       warmStartModel = warmStartV2FromV1(warmStart);
     }
   } else if (isV2 && !warmStart) {
-    // Auto-detect V1 model for warm-start
-    const __dirname = dirname(fileURLToPath(import.meta.url));
-    const defaultV1Path = join(__dirname, '..', 'models', 'model-latest.json');
-    if (existsSync(defaultV1Path)) {
-      console.log(`Auto-detected V1 model for warm-start: ${defaultV1Path}`);
-      try {
-        warmStartModel = warmStartV2FromV1(defaultV1Path);
-      } catch (err) {
-        console.log(`  Warm-start failed (using random init): ${(err as Error).message}`);
+    // Skip auto warm-start when custom architecture is specified (incompatible layer shapes)
+    const customArch = hiddenSizes[0] !== HIDDEN_SIZES[0] || hiddenSizes[1] !== HIDDEN_SIZES[1];
+    if (!customArch) {
+      const __dirname = dirname(fileURLToPath(import.meta.url));
+      const defaultV1Path = join(__dirname, '..', 'models', 'model-latest.json');
+      if (existsSync(defaultV1Path)) {
+        console.log(`Auto-detected V1 model for warm-start: ${defaultV1Path}`);
+        try {
+          warmStartModel = warmStartV2FromV1(defaultV1Path);
+        } catch (err) {
+          console.log(`  Warm-start failed (using random init): ${(err as Error).message}`);
+        }
       }
     }
   }
 
   // If custom hidden sizes differ from default and no warm start, create fresh model
-  if (isV2 && !warmStartModel && (hiddenSizes[0] !== HIDDEN_SIZES[0] || hiddenSizes[1] !== HIDDEN_SIZES[1])) {
-    warmStartModel = createRandomModelV2(featureCount, hiddenSizes, ACTION_OUTPUT_SIZE, SIZING_OUTPUT_SIZE);
+  if (
+    isV2 &&
+    !warmStartModel &&
+    (hiddenSizes[0] !== HIDDEN_SIZES[0] || hiddenSizes[1] !== HIDDEN_SIZES[1])
+  ) {
+    warmStartModel = createRandomModelV2(
+      featureCount,
+      hiddenSizes,
+      ACTION_OUTPUT_SIZE,
+      SIZING_OUTPUT_SIZE,
+    );
     warmStartModel.architecture = { hiddenSizes };
     console.log(`Custom architecture: [${hiddenSizes.join(', ')}]`);
   }
 
   // Train
   const bestModel = isV2
-    ? trainV2(trainSet, valSet, warmStartModel, { hardExampleFraction, disableHardMining, initialLr })
+    ? trainV2(trainSet, valSet, warmStartModel, {
+        hardExampleFraction,
+        disableHardMining,
+        initialLr,
+        batchSize,
+        maxEpochs,
+        hiddenSizes,
+      })
     : trainV1(trainSet, valSet);
 
   bestModel.architecture = { hiddenSizes };

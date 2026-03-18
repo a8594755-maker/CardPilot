@@ -6,16 +6,16 @@ import type { ChatMessage, ChatMute, ChatUnreadCount } from './chat-types.js';
 
 export interface ChatSendPayload {
   clubId: string;
-  tableId?: string;           // omit for club-level chat
+  tableId?: string; // omit for club-level chat
   content: string;
-  mentions?: string[];        // userId array
+  mentions?: string[]; // userId array
 }
 
 export interface ChatHistoryPayload {
   clubId: string;
   tableId?: string;
-  before?: string;            // cursor: message id
-  limit?: number;             // default 50
+  before?: string; // cursor: message id
+  limit?: number; // default 50
 }
 
 export interface ChatDeletePayload {
@@ -27,7 +27,7 @@ export interface ChatMutePayload {
   clubId: string;
   userId: string;
   reason?: string;
-  durationMinutes?: number;   // omit for permanent
+  durationMinutes?: number; // omit for permanent
 }
 
 export interface ChatUnmutePayload {
@@ -66,7 +66,7 @@ export interface ChatMessageDeletedPayload {
 
 export interface ChatMuteUpdatePayload {
   clubId: string;
-  mute: ChatMute | null;       // null = unmuted
+  mute: ChatMute | null; // null = unmuted
   userId: string;
 }
 

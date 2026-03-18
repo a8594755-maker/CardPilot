@@ -1,16 +1,16 @@
-import { describe, it, before } from "node:test";
-import assert from "node:assert/strict";
-import { GameTable } from "../index.js";
+import { describe, it, before } from 'node:test';
+import assert from 'node:assert/strict';
+import { GameTable } from '../index.js';
 
 function makeTable(sb = 50, bb = 100) {
-  const t = new GameTable({ tableId: "test", smallBlind: sb, bigBlind: bb });
-  t.addPlayer({ seat: 1, userId: "u1", name: "Alice", stack: 10000 });
-  t.addPlayer({ seat: 2, userId: "u2", name: "Bob", stack: 10000 });
+  const t = new GameTable({ tableId: 'test', smallBlind: sb, bigBlind: bb });
+  t.addPlayer({ seat: 1, userId: 'u1', name: 'Alice', stack: 10000 });
+  t.addPlayer({ seat: 2, userId: 'u2', name: 'Bob', stack: 10000 });
   return t;
 }
 
 function make6Max(sb = 50, bb = 100) {
-  const t = new GameTable({ tableId: "test6", smallBlind: sb, bigBlind: bb });
+  const t = new GameTable({ tableId: 'test6', smallBlind: sb, bigBlind: bb });
   for (let i = 1; i <= 6; i++) {
     t.addPlayer({ seat: i, userId: `u${i}`, name: `P${i}`, stack: 10000 });
   }
@@ -33,39 +33,45 @@ function orderedFromButton(buttonSeat: number, seats: number[]): number[] {
 
 // ────────── Basic setup ──────────
 
-describe("GameTable setup", () => {
-  it("should require at least 2 players to start", () => {
-    const t = new GameTable({ tableId: "t", smallBlind: 50, bigBlind: 100 });
-    t.addPlayer({ seat: 1, userId: "u1", name: "A", stack: 10000 });
+describe('GameTable setup', () => {
+  it('should require at least 2 players to start', () => {
+    const t = new GameTable({ tableId: 't', smallBlind: 50, bigBlind: 100 });
+    t.addPlayer({ seat: 1, userId: 'u1', name: 'A', stack: 10000 });
     assert.throws(() => t.startHand(), /need at least 2 players/);
   });
 
-  it("should not allow duplicate seats", () => {
+  it('should not allow duplicate seats', () => {
     const t = makeTable();
-    assert.throws(() => t.addPlayer({ seat: 1, userId: "u3", name: "C", stack: 5000 }), /seat already occupied/);
+    assert.throws(
+      () => t.addPlayer({ seat: 1, userId: 'u3', name: 'C', stack: 5000 }),
+      /seat already occupied/,
+    );
   });
 
-  it("should reject seating with zero stack", () => {
-    const t = new GameTable({ tableId: "stack0", smallBlind: 50, bigBlind: 100 });
-    assert.throws(() => t.addPlayer({ seat: 1, userId: "u1", name: "A", stack: 0 }), /stack must be greater than 0/);
+  it('should reject seating with zero stack', () => {
+    const t = new GameTable({ tableId: 'stack0', smallBlind: 50, bigBlind: 100 });
+    assert.throws(
+      () => t.addPlayer({ seat: 1, userId: 'u1', name: 'A', stack: 0 }),
+      /stack must be greater than 0/,
+    );
   });
 
-  it("should start hand and set PREFLOP", () => {
+  it('should start hand and set PREFLOP', () => {
     const t = makeTable();
     const { handId } = t.startHand();
     const s = t.getPublicState();
     assert.ok(handId);
-    assert.equal(s.street, "PREFLOP");
+    assert.equal(s.street, 'PREFLOP');
     assert.equal(s.handId, handId);
   });
 
-  it("should not allow starting a new hand while one is active", () => {
+  it('should not allow starting a new hand while one is active', () => {
     const t = makeTable();
     t.startHand();
     assert.throws(() => t.startHand(), /hand already active/);
   });
 
-  it("should deal hole cards to each player", () => {
+  it('should deal hole cards to each player', () => {
     const t = makeTable();
     t.startHand();
     assert.ok(t.getHoleCards(1));
@@ -77,8 +83,8 @@ describe("GameTable setup", () => {
 
 // ────────── Blinds ──────────
 
-describe("Blinds", () => {
-  it("should post SB and BB correctly", () => {
+describe('Blinds', () => {
+  it('should post SB and BB correctly', () => {
     const t = makeTable(50, 100);
     t.startHand();
     const s = t.getPublicState();
@@ -87,16 +93,16 @@ describe("Blinds", () => {
     assert.equal(totalStacks + s.pot, 20000);
   });
 
-  it("should handle short-stacked blind (player cannot cover)", () => {
-    const t = new GameTable({ tableId: "t", smallBlind: 50, bigBlind: 100 });
-    t.addPlayer({ seat: 1, userId: "u1", name: "A", stack: 30 }); // can't cover blind
-    t.addPlayer({ seat: 2, userId: "u2", name: "B", stack: 10000 });
+  it('should handle short-stacked blind (player cannot cover)', () => {
+    const t = new GameTable({ tableId: 't', smallBlind: 50, bigBlind: 100 });
+    t.addPlayer({ seat: 1, userId: 'u1', name: 'A', stack: 30 }); // can't cover blind
+    t.addPlayer({ seat: 2, userId: 'u2', name: 'B', stack: 10000 });
     t.startHand();
     const s = t.getPublicState();
     // One player posts what they can (30), other posts their blind
-    assert.ok(s.pot > 0, "pot should be positive");
-    const shortPlayer = s.players.find(p => p.stack === 0);
-    assert.ok(shortPlayer, "short-stacked player should be all-in with 0 stack");
+    assert.ok(s.pot > 0, 'pot should be positive');
+    const shortPlayer = s.players.find((p) => p.stack === 0);
+    assert.ok(shortPlayer, 'short-stacked player should be all-in with 0 stack');
     assert.ok(shortPlayer.allIn);
     // Total chips conserved
     const totalStacks = s.players.reduce((sum, p) => sum + p.stack, 0);
@@ -106,16 +112,16 @@ describe("Blinds", () => {
 
 // ────────── Legal actions ──────────
 
-describe("Legal actions", () => {
-  it("should provide legal actions for the actor", () => {
+describe('Legal actions', () => {
+  it('should provide legal actions for the actor', () => {
     const t = makeTable();
     t.startHand();
     const s = t.getPublicState();
-    assert.ok(s.legalActions, "legalActions should not be null when there is an actor");
+    assert.ok(s.legalActions, 'legalActions should not be null when there is an actor');
     assert.ok(s.actorSeat);
   });
 
-  it("should allow fold, call, raise preflop for the first actor", () => {
+  it('should allow fold, call, raise preflop for the first actor', () => {
     const t = makeTable(50, 100);
     t.startHand();
     const s = t.getPublicState();
@@ -125,104 +131,104 @@ describe("Legal actions", () => {
     assert.ok(la.canRaise);
   });
 
-  it("should have no legal actions when hand is not active", () => {
+  it('should have no legal actions when hand is not active', () => {
     const t = makeTable();
     const s = t.getPublicState();
     assert.equal(s.legalActions, null);
   });
 
-  it("should not allow check when facing a bet (SB preflop)", () => {
+  it('should not allow check when facing a bet (SB preflop)', () => {
     // In HU, seat 2 is SB. After BB (seat 1) checks, the hand advances.
     // We need a scenario where a player faces a bet. Let's use 6-max.
     const t = make6Max(50, 100);
     t.startHand();
-    let s = t.getPublicState();
+    const s = t.getPublicState();
     // First actor in 6-max preflop is UTG (seat after BB). They face a bet (BB=100).
     const actor = s.actorSeat!;
     // UTG faces currentBet=100 and has streetCommitted=0 → cannot check
-    assert.throws(() => t.applyAction(actor, "check"), /cannot check/);
+    assert.throws(() => t.applyAction(actor, 'check'), /cannot check/);
   });
 
-  it("should treat seat 0 as a valid actor (no falsy guard bug)", () => {
-    const t = new GameTable({ tableId: "seat0", smallBlind: 50, bigBlind: 100 });
-    t.addPlayer({ seat: 0, userId: "u0", name: "Zero", stack: 10000 });
-    t.addPlayer({ seat: 1, userId: "u1", name: "One", stack: 10000 });
+  it('should treat seat 0 as a valid actor (no falsy guard bug)', () => {
+    const t = new GameTable({ tableId: 'seat0', smallBlind: 50, bigBlind: 100 });
+    t.addPlayer({ seat: 0, userId: 'u0', name: 'Zero', stack: 10000 });
+    t.addPlayer({ seat: 1, userId: 'u1', name: 'One', stack: 10000 });
     t.startHand();
     const s = t.getPublicState();
 
     // If actorSeat were checked with a falsy guard, legalActions would incorrectly be null.
-    assert.equal(typeof s.actorSeat, "number");
-    assert.ok(s.legalActions, "legalActions must exist even when actorSeat can be 0");
+    assert.equal(typeof s.actorSeat, 'number');
+    assert.ok(s.legalActions, 'legalActions must exist even when actorSeat can be 0');
   });
 });
 
 // ────────── Actions ──────────
 
-describe("Fold", () => {
-  it("should end hand when one player folds in heads-up", () => {
+describe('Fold', () => {
+  it('should end hand when one player folds in heads-up', () => {
     const t = makeTable();
     t.startHand();
     const s = t.getPublicState();
     const actor = s.actorSeat!;
-    const result = t.applyAction(actor, "fold");
-    assert.equal(result.street, "SHOWDOWN");
+    const result = t.applyAction(actor, 'fold');
+    assert.equal(result.street, 'SHOWDOWN');
     assert.equal(result.actorSeat, null);
     assert.ok(result.winners);
     assert.equal(result.winners!.length, 1);
   });
 });
 
-describe("Call", () => {
-  it("should move chips to pot on call", () => {
+describe('Call', () => {
+  it('should move chips to pot on call', () => {
     // Use 6-max so UTG is first to act and can call
     const t = make6Max(50, 100);
     t.startHand();
     const s = t.getPublicState();
     const actor = s.actorSeat!;
     const before = s.pot;
-    const result = t.applyAction(actor, "call");
+    const result = t.applyAction(actor, 'call');
     assert.ok(result.pot > before, `pot should increase: was ${before}, now ${result.pot}`);
   });
 });
 
-describe("Raise", () => {
-  it("should enforce minimum raise", () => {
+describe('Raise', () => {
+  it('should enforce minimum raise', () => {
     const t = makeTable(50, 100);
     t.startHand();
     const s = t.getPublicState();
     const actor = s.actorSeat!;
     // min raise to is 200 (BB*2)
-    assert.throws(() => t.applyAction(actor, "raise", 150), /raise must be at least/);
+    assert.throws(() => t.applyAction(actor, 'raise', 150), /raise must be at least/);
   });
 
-  it("should allow valid raise and update currentBet", () => {
+  it('should allow valid raise and update currentBet', () => {
     const t = makeTable(50, 100);
     t.startHand();
     const s = t.getPublicState();
     const actor = s.actorSeat!;
-    const result = t.applyAction(actor, "raise", 300);
+    const result = t.applyAction(actor, 'raise', 300);
     assert.equal(result.currentBet, 300);
   });
 
-  it("should update minRaiseTo after a raise", () => {
+  it('should update minRaiseTo after a raise', () => {
     const t = makeTable(50, 100);
     t.startHand();
     const s = t.getPublicState();
     const actor = s.actorSeat!;
-    const result = t.applyAction(actor, "raise", 300);
+    const result = t.applyAction(actor, 'raise', 300);
     // minRaiseTo = 300 + (300 - 100) = 500
     assert.equal(result.minRaiseTo, 500);
   });
 });
 
-describe("All-in", () => {
-  it("should allow all-in action", () => {
+describe('All-in', () => {
+  it('should allow all-in action', () => {
     const t = makeTable(50, 100);
     t.startHand();
     const s = t.getPublicState();
     const actor = s.actorSeat!;
-    const result = t.applyAction(actor, "all_in");
-    const p = result.players.find(pl => pl.seat === actor)!;
+    const result = t.applyAction(actor, 'all_in');
+    const p = result.players.find((pl) => pl.seat === actor)!;
     assert.equal(p.stack, 0);
     assert.ok(p.allIn);
   });
@@ -230,54 +236,54 @@ describe("All-in", () => {
 
 // ────────── Street advancement ──────────
 
-describe("Street advancement", () => {
-  it("should advance to FLOP after preflop action completes", () => {
+describe('Street advancement', () => {
+  it('should advance to FLOP after preflop action completes', () => {
     const t = makeTable(50, 100);
     t.startHand();
     let s = t.getPublicState();
     // Player 1 (SB/BTN) calls
-    t.applyAction(s.actorSeat!, "call");
+    t.applyAction(s.actorSeat!, 'call');
     s = t.getPublicState();
     // Player 2 (BB) checks
-    const result = t.applyAction(s.actorSeat!, "check");
-    assert.equal(result.street, "FLOP");
+    const result = t.applyAction(s.actorSeat!, 'check');
+    assert.equal(result.street, 'FLOP');
     assert.equal(result.board.length, 3);
   });
 
-  it("should advance through all streets to showdown", () => {
+  it('should advance through all streets to showdown', () => {
     const t = makeTable(50, 100);
     t.startHand();
     let s = t.getPublicState();
 
     // PREFLOP: call + check
-    t.applyAction(s.actorSeat!, "call");
+    t.applyAction(s.actorSeat!, 'call');
     s = t.getPublicState();
-    t.applyAction(s.actorSeat!, "check");
+    t.applyAction(s.actorSeat!, 'check');
     s = t.getPublicState();
-    assert.equal(s.street, "FLOP");
+    assert.equal(s.street, 'FLOP');
     assert.equal(s.board.length, 3);
 
     // FLOP: check + check
-    t.applyAction(s.actorSeat!, "check");
+    t.applyAction(s.actorSeat!, 'check');
     s = t.getPublicState();
-    t.applyAction(s.actorSeat!, "check");
+    t.applyAction(s.actorSeat!, 'check');
     s = t.getPublicState();
-    assert.equal(s.street, "TURN");
+    assert.equal(s.street, 'TURN');
     assert.equal(s.board.length, 4);
 
     // TURN: check + check
-    t.applyAction(s.actorSeat!, "check");
+    t.applyAction(s.actorSeat!, 'check');
     s = t.getPublicState();
-    t.applyAction(s.actorSeat!, "check");
+    t.applyAction(s.actorSeat!, 'check');
     s = t.getPublicState();
-    assert.equal(s.street, "RIVER");
+    assert.equal(s.street, 'RIVER');
     assert.equal(s.board.length, 5);
 
     // RIVER: check + check → showdown
-    t.applyAction(s.actorSeat!, "check");
+    t.applyAction(s.actorSeat!, 'check');
     s = t.getPublicState();
-    const result = t.applyAction(s.actorSeat!, "check");
-    assert.equal(result.street, "SHOWDOWN");
+    const result = t.applyAction(s.actorSeat!, 'check');
+    assert.equal(result.street, 'SHOWDOWN');
     assert.equal(result.actorSeat, null);
     assert.ok(result.winners);
   });
@@ -285,8 +291,8 @@ describe("Street advancement", () => {
 
 // ────────── Pot invariants ──────────
 
-describe("Pot invariants", () => {
-  it("pot + all stacks should equal total buy-in at all times", () => {
+describe('Pot invariants', () => {
+  it('pot + all stacks should equal total buy-in at all times', () => {
     const totalBuyIn = 20000;
     const t = makeTable(50, 100);
     t.startHand();
@@ -295,51 +301,55 @@ describe("Pot invariants", () => {
     let s = t.getPublicState();
     const checkInvariant = () => {
       const totalStacks = s.players.reduce((sum, p) => sum + p.stack, 0);
-      assert.equal(totalStacks + s.pot, totalBuyIn, `invariant violated: stacks=${totalStacks} pot=${s.pot}`);
+      assert.equal(
+        totalStacks + s.pot,
+        totalBuyIn,
+        `invariant violated: stacks=${totalStacks} pot=${s.pot}`,
+      );
     };
 
     checkInvariant();
 
     // Preflop
-    t.applyAction(s.actorSeat!, "call");
+    t.applyAction(s.actorSeat!, 'call');
     s = t.getPublicState();
     checkInvariant();
 
-    t.applyAction(s.actorSeat!, "check");
+    t.applyAction(s.actorSeat!, 'check');
     s = t.getPublicState();
     checkInvariant();
 
     // Flop
-    t.applyAction(s.actorSeat!, "check");
+    t.applyAction(s.actorSeat!, 'check');
     s = t.getPublicState();
     checkInvariant();
 
-    t.applyAction(s.actorSeat!, "check");
+    t.applyAction(s.actorSeat!, 'check');
     s = t.getPublicState();
     checkInvariant();
 
     // Turn
-    t.applyAction(s.actorSeat!, "check");
+    t.applyAction(s.actorSeat!, 'check');
     s = t.getPublicState();
     checkInvariant();
 
-    t.applyAction(s.actorSeat!, "check");
+    t.applyAction(s.actorSeat!, 'check');
     s = t.getPublicState();
     checkInvariant();
 
     // River
-    t.applyAction(s.actorSeat!, "check");
+    t.applyAction(s.actorSeat!, 'check');
     s = t.getPublicState();
     checkInvariant();
 
-    const final = t.applyAction(s.actorSeat!, "check");
+    const final = t.applyAction(s.actorSeat!, 'check');
     const totalStacks = final.players.reduce((sum, p) => sum + p.stack, 0);
     // After showdown, pot is awarded so total stacks should equal total buy-in
     assert.equal(totalStacks, totalBuyIn, `after showdown stacks should equal buy-in`);
-    assert.equal(final.pot, 0, "pot must be zero after showdown settlement");
+    assert.equal(final.pot, 0, 'pot must be zero after showdown settlement');
   });
 
-  it("stack should never go negative", () => {
+  it('stack should never go negative', () => {
     const t = makeTable(50, 100);
     t.startHand();
     let s = t.getPublicState();
@@ -347,65 +357,65 @@ describe("Pot invariants", () => {
       assert.ok(p.stack >= 0, `player ${p.seat} stack is negative: ${p.stack}`);
     }
     // Do some actions
-    t.applyAction(s.actorSeat!, "raise", 500);
+    t.applyAction(s.actorSeat!, 'raise', 500);
     s = t.getPublicState();
     for (const p of s.players) {
       assert.ok(p.stack >= 0, `player ${p.seat} stack is negative: ${p.stack}`);
     }
   });
 
-  it("pot should never go negative", () => {
+  it('pot should never go negative', () => {
     const t = makeTable(50, 100);
     t.startHand();
     const s = t.getPublicState();
     assert.ok(s.pot >= 0);
-    const result = t.applyAction(s.actorSeat!, "fold");
+    const result = t.applyAction(s.actorSeat!, 'fold');
     assert.ok(result.pot >= 0);
   });
 
-  it("abortHand should refund exactly committed chips and preserve total chips", () => {
+  it('abortHand should refund exactly committed chips and preserve total chips', () => {
     const t = makeTable(50, 100);
     const initialTotal = 20000;
     t.startHand();
     let s = t.getPublicState();
 
     // Build a non-trivial preflop: call -> raise -> all-in
-    t.applyAction(s.actorSeat!, "call");
+    t.applyAction(s.actorSeat!, 'call');
     s = t.getPublicState();
 
-    t.applyAction(s.actorSeat!, "raise", 500);
+    t.applyAction(s.actorSeat!, 'raise', 500);
     s = t.getPublicState();
 
-    t.applyAction(s.actorSeat!, "all_in");
+    t.applyAction(s.actorSeat!, 'all_in');
 
     // Abort hand mid-action and verify conservation
     t.abortHand();
     const afterAbort = t.getPublicState();
     const totalStacks = afterAbort.players.reduce((sum, p) => sum + p.stack, 0);
 
-    assert.equal(totalStacks, initialTotal, "total chips must be preserved after abort refund");
-    assert.equal(afterAbort.pot, 0, "pot must reset to 0 after abort");
-    assert.equal(afterAbort.handId, null, "hand must be cleared after abort");
+    assert.equal(totalStacks, initialTotal, 'total chips must be preserved after abort refund');
+    assert.equal(afterAbort.pot, 0, 'pot must reset to 0 after abort');
+    assert.equal(afterAbort.handId, null, 'hand must be cleared after abort');
   });
 });
 
 // ────────── Turn enforcement ──────────
 
-describe("Turn enforcement", () => {
-  it("should reject action from wrong seat", () => {
+describe('Turn enforcement', () => {
+  it('should reject action from wrong seat', () => {
     const t = makeTable();
     t.startHand();
     const s = t.getPublicState();
-    const wrongSeat = s.players.find(p => p.seat !== s.actorSeat)!.seat;
-    assert.throws(() => t.applyAction(wrongSeat, "fold"), /not your turn/);
+    const wrongSeat = s.players.find((p) => p.seat !== s.actorSeat)!.seat;
+    assert.throws(() => t.applyAction(wrongSeat, 'fold'), /not your turn/);
   });
 
-  it("should reject action when no hand is active", () => {
+  it('should reject action when no hand is active', () => {
     const t = makeTable();
-    assert.throws(() => t.applyAction(1, "fold"), /no active hand/);
+    assert.throws(() => t.applyAction(1, 'fold'), /no active hand/);
   });
 
-  it("should always finish a heads-up hand within a bounded number of actions", () => {
+  it('should always finish a heads-up hand within a bounded number of actions', () => {
     const t = makeTable(50, 100);
     t.startHand();
 
@@ -413,39 +423,39 @@ describe("Turn enforcement", () => {
     for (let i = 0; i < 40; i++) {
       const s = t.getPublicState();
       if (!s.handId || s.actorSeat === null) {
-        assert.equal(s.street, "SHOWDOWN");
+        assert.equal(s.street, 'SHOWDOWN');
         return;
       }
       const legal = s.legalActions;
-      assert.ok(legal, "legal actions must exist while hand is active");
+      assert.ok(legal, 'legal actions must exist while hand is active');
 
       if (legal!.canCheck) {
-        t.applyAction(s.actorSeat, "check");
+        t.applyAction(s.actorSeat, 'check');
       } else if (legal!.canCall) {
-        t.applyAction(s.actorSeat, "call");
+        t.applyAction(s.actorSeat, 'call');
       } else {
-        t.applyAction(s.actorSeat, "fold");
+        t.applyAction(s.actorSeat, 'fold');
       }
     }
 
-    assert.fail("hand did not terminate within bounded action count (possible turn loop)");
+    assert.fail('hand did not terminate within bounded action count (possible turn loop)');
   });
 });
 
 // ────────── 6-max positions ──────────
 
-describe("Positions", () => {
-  it("should assign correct positions in heads-up", () => {
+describe('Positions', () => {
+  it('should assign correct positions in heads-up', () => {
     const t = makeTable();
     t.startHand();
     const s = t.getPublicState();
     const pos1 = t.getPosition(1);
     const pos2 = t.getPosition(2);
     const positions = [pos1, pos2].sort();
-    assert.deepEqual(positions, ["BB", "SB"]);
+    assert.deepEqual(positions, ['BB', 'SB']);
   });
 
-  it("should assign positions in 6-max", () => {
+  it('should assign positions in 6-max', () => {
     const t = make6Max();
     t.startHand();
     const positions = new Set<string>();
@@ -453,111 +463,134 @@ describe("Positions", () => {
       positions.add(t.getPosition(i));
     }
     assert.equal(positions.size, 6);
-    assert.ok(positions.has("SB"));
-    assert.ok(positions.has("BB"));
-    assert.ok(positions.has("BTN"));
+    assert.ok(positions.has('SB'));
+    assert.ok(positions.has('BB'));
+    assert.ok(positions.has('BTN'));
   });
 
-  it("should map 3-handed positions in button order", () => {
+  it('should map 3-handed positions in button order', () => {
     const t = makeNMax(3);
     t.startHand();
     const s = t.getPublicState();
-    const activeSeats = s.players.filter((player) => player.inHand).map((player) => player.seat).sort((a, b) => a - b);
+    const activeSeats = s.players
+      .filter((player) => player.inHand)
+      .map((player) => player.seat)
+      .sort((a, b) => a - b);
     const order = orderedFromButton(s.buttonSeat, activeSeats);
-    assert.deepEqual(order.map((seat) => t.getPosition(seat)), ["SB", "BB", "BTN"]);
+    assert.deepEqual(
+      order.map((seat) => t.getPosition(seat)),
+      ['SB', 'BB', 'BTN'],
+    );
   });
 
-  it("should map 4-handed positions in button order", () => {
+  it('should map 4-handed positions in button order', () => {
     const t = makeNMax(4);
     t.startHand();
     const s = t.getPublicState();
-    const activeSeats = s.players.filter((player) => player.inHand).map((player) => player.seat).sort((a, b) => a - b);
+    const activeSeats = s.players
+      .filter((player) => player.inHand)
+      .map((player) => player.seat)
+      .sort((a, b) => a - b);
     const order = orderedFromButton(s.buttonSeat, activeSeats);
-    assert.deepEqual(order.map((seat) => t.getPosition(seat)), ["SB", "BB", "UTG", "BTN"]);
+    assert.deepEqual(
+      order.map((seat) => t.getPosition(seat)),
+      ['SB', 'BB', 'UTG', 'BTN'],
+    );
   });
 
-  it("should map 5-handed positions in button order", () => {
+  it('should map 5-handed positions in button order', () => {
     const t = makeNMax(5);
     t.startHand();
     const s = t.getPublicState();
-    const activeSeats = s.players.filter((player) => player.inHand).map((player) => player.seat).sort((a, b) => a - b);
+    const activeSeats = s.players
+      .filter((player) => player.inHand)
+      .map((player) => player.seat)
+      .sort((a, b) => a - b);
     const order = orderedFromButton(s.buttonSeat, activeSeats);
-    assert.deepEqual(order.map((seat) => t.getPosition(seat)), ["SB", "BB", "UTG", "CO", "BTN"]);
+    assert.deepEqual(
+      order.map((seat) => t.getPosition(seat)),
+      ['SB', 'BB', 'UTG', 'CO', 'BTN'],
+    );
   });
 });
 
 // ────────── Timeout handling ──────────
 
-describe("Timeout handling", () => {
-  it("should auto-check (not fold) when player can check on timeout", () => {
+describe('Timeout handling', () => {
+  it('should auto-check (not fold) when player can check on timeout', () => {
     const t = makeTable(50, 100);
     t.startHand();
     let s = t.getPublicState();
 
     // HU preflop: SB/button acts first. Call to go to BB.
-    t.applyAction(s.actorSeat!, "call");
+    t.applyAction(s.actorSeat!, 'call');
     s = t.getPublicState();
     // BB can check here (no raise to face)
     const bbSeat = s.actorSeat!;
-    assert.ok(s.legalActions?.canCheck, "BB should be able to check");
+    assert.ok(s.legalActions?.canCheck, 'BB should be able to check');
 
     // Simulate timeout — should check, not fold
     const { action, state: resultState } = t.handleTimeout(bbSeat);
-    assert.equal(action, "check", "timeout should auto-check when check is available");
-    assert.equal(resultState.street, "FLOP", "hand should advance to flop after check");
+    assert.equal(action, 'check', 'timeout should auto-check when check is available');
+    assert.equal(resultState.street, 'FLOP', 'hand should advance to flop after check');
   });
 
-  it("should auto-fold when player faces a bet on timeout", () => {
+  it('should auto-fold when player faces a bet on timeout', () => {
     const t = make6Max(50, 100);
     t.startHand();
-    let s = t.getPublicState();
+    const s = t.getPublicState();
 
     // UTG faces BB bet (100) and cannot check
     const utg = s.actorSeat!;
-    assert.ok(!s.legalActions?.canCheck, "UTG should not be able to check");
-    assert.ok(s.legalActions?.canCall, "UTG should be able to call");
+    assert.ok(!s.legalActions?.canCheck, 'UTG should not be able to check');
+    assert.ok(s.legalActions?.canCall, 'UTG should be able to call');
 
     // Simulate timeout — should fold
     const { action } = t.handleTimeout(utg);
-    assert.equal(action, "fold", "timeout should auto-fold when facing a bet");
+    assert.equal(action, 'fold', 'timeout should auto-fold when facing a bet');
   });
 
-  it("should auto-check on flop when no bet has been made", () => {
+  it('should auto-check on flop when no bet has been made', () => {
     const t = makeTable(50, 100);
     t.startHand();
     let s = t.getPublicState();
 
     // Advance to flop: SB calls, BB checks
-    t.applyAction(s.actorSeat!, "call");
+    t.applyAction(s.actorSeat!, 'call');
     s = t.getPublicState();
-    t.applyAction(s.actorSeat!, "check");
+    t.applyAction(s.actorSeat!, 'check');
     s = t.getPublicState();
-    assert.equal(s.street, "FLOP");
+    assert.equal(s.street, 'FLOP');
 
     // First actor on flop can check
     const flopActor = s.actorSeat!;
-    assert.ok(s.legalActions?.canCheck, "flop actor should be able to check");
+    assert.ok(s.legalActions?.canCheck, 'flop actor should be able to check');
 
     const { action } = t.handleTimeout(flopActor);
-    assert.equal(action, "check", "timeout on flop with no bet should auto-check");
+    assert.equal(action, 'check', 'timeout on flop with no bet should auto-check');
   });
 
-  it("should track consecutive timeouts and auto-sit-out after 2", () => {
-    const t = new GameTable({ tableId: "test", smallBlind: 50, bigBlind: 100, maxConsecutiveTimeouts: 2 });
-    t.addPlayer({ seat: 1, userId: "u1", name: "Alice", stack: 10000 });
-    t.addPlayer({ seat: 2, userId: "u2", name: "Bob", stack: 10000 });
+  it('should track consecutive timeouts and auto-sit-out after 2', () => {
+    const t = new GameTable({
+      tableId: 'test',
+      smallBlind: 50,
+      bigBlind: 100,
+      maxConsecutiveTimeouts: 2,
+    });
+    t.addPlayer({ seat: 1, userId: 'u1', name: 'Alice', stack: 10000 });
+    t.addPlayer({ seat: 2, userId: 'u2', name: 'Bob', stack: 10000 });
     t.startHand();
     let s = t.getPublicState();
 
     // First timeout
     const actor1 = s.actorSeat!;
     const { autoSatOut: satOut1 } = t.handleTimeout(actor1);
-    assert.equal(satOut1, false, "first timeout should NOT auto-sit-out");
+    assert.equal(satOut1, false, 'first timeout should NOT auto-sit-out');
 
     // Need to complete the hand and start a new one
     s = t.getPublicState();
     if (s.actorSeat !== null) {
-      t.applyAction(s.actorSeat, "fold");
+      t.applyAction(s.actorSeat, 'fold');
     }
     t.clearHand();
 
@@ -568,13 +601,13 @@ describe("Timeout handling", () => {
     // Same seat as before should get a second consecutive timeout
     if (actor2 === actor1) {
       const { autoSatOut: satOut2 } = t.handleTimeout(actor2);
-      assert.equal(satOut2, true, "second consecutive timeout should auto-sit-out");
-      const player = t.getPublicState().players.find(p => p.seat === actor2);
-      assert.equal(player?.status, "sitting_out", "player should be sitting_out after 2 timeouts");
+      assert.equal(satOut2, true, 'second consecutive timeout should auto-sit-out');
+      const player = t.getPublicState().players.find((p) => p.seat === actor2);
+      assert.equal(player?.status, 'sitting_out', 'player should be sitting_out after 2 timeouts');
     }
   });
 
-  it("should reset consecutive timeout counter when player acts voluntarily", () => {
+  it('should reset consecutive timeout counter when player acts voluntarily', () => {
     const t = make6Max(50, 100);
     t.startHand();
     let s = t.getPublicState();
@@ -590,26 +623,26 @@ describe("Timeout handling", () => {
       if (t.isRunoutPending()) break;
       const la = s.legalActions;
       if (!la) break;
-      if (la.canCheck) t.applyAction(s.actorSeat, "check");
-      else if (la.canCall) t.applyAction(s.actorSeat, "call");
-      else t.applyAction(s.actorSeat, "fold");
+      if (la.canCheck) t.applyAction(s.actorSeat, 'check');
+      else if (la.canCall) t.applyAction(s.actorSeat, 'call');
+      else t.applyAction(s.actorSeat, 'fold');
     }
     if (t.isRunoutPending()) t.performRunout();
     s = t.getPublicState();
-    if (s.showdownPhase === "decision") {
+    if (s.showdownPhase === 'decision') {
       t.finalizeShowdownReveals({ autoMuckLosingHands: true });
     }
     t.clearHand();
 
     // Start new hand and the same seat acts voluntarily
-    const eligible = t.getPublicState().players.filter(p => p.stack > 0 && p.status === 'active');
+    const eligible = t.getPublicState().players.filter((p) => p.stack > 0 && p.status === 'active');
     if (eligible.length >= 2) {
       t.startHand();
       s = t.getPublicState();
       if (s.actorSeat === firstActor) {
         // Voluntary action resets the counter
-        if (s.legalActions?.canCall) t.applyAction(firstActor, "call");
-        else if (s.legalActions?.canCheck) t.applyAction(firstActor, "check");
+        if (s.legalActions?.canCall) t.applyAction(firstActor, 'call');
+        else if (s.legalActions?.canCheck) t.applyAction(firstActor, 'check');
       }
 
       // Complete this hand
@@ -619,31 +652,36 @@ describe("Timeout handling", () => {
         if (t.isRunoutPending()) break;
         const la = s.legalActions;
         if (!la) break;
-        if (la.canCheck) t.applyAction(s.actorSeat, "check");
-        else if (la.canCall) t.applyAction(s.actorSeat, "call");
-        else t.applyAction(s.actorSeat, "fold");
+        if (la.canCheck) t.applyAction(s.actorSeat, 'check');
+        else if (la.canCall) t.applyAction(s.actorSeat, 'call');
+        else t.applyAction(s.actorSeat, 'fold');
       }
       if (t.isRunoutPending()) t.performRunout();
       s = t.getPublicState();
-      if (s.showdownPhase === "decision") {
+      if (s.showdownPhase === 'decision') {
         t.finalizeShowdownReveals({ autoMuckLosingHands: true });
       }
       t.clearHand();
 
       // Now a timeout should NOT trigger auto-sit-out (counter was reset by voluntary action)
-      if (t.getPublicState().players.filter(p => p.stack > 0 && p.status === 'active').length >= 2) {
+      if (
+        t.getPublicState().players.filter((p) => p.stack > 0 && p.status === 'active').length >= 2
+      ) {
         t.startHand();
         s = t.getPublicState();
         if (s.actorSeat === firstActor) {
           const { autoSatOut } = t.handleTimeout(firstActor);
-          assert.equal(autoSatOut, false,
-            "timeout after voluntary action should NOT auto-sit-out (counter reset)");
+          assert.equal(
+            autoSatOut,
+            false,
+            'timeout after voluntary action should NOT auto-sit-out (counter reset)',
+          );
         }
       }
     }
   });
 
-  it("should preserve chip conservation through timeout actions", () => {
+  it('should preserve chip conservation through timeout actions', () => {
     const t = makeTable(50, 100);
     const initialTotal = 20000;
     t.startHand();
@@ -658,26 +696,26 @@ describe("Timeout handling", () => {
     }
     if (t.isRunoutPending()) t.performRunout();
     s = t.getPublicState();
-    if (s.showdownPhase === "decision") {
+    if (s.showdownPhase === 'decision') {
       t.finalizeShowdownReveals({ autoMuckLosingHands: true });
     }
 
     const totalStacks = s.players.reduce((sum, p) => sum + p.stack, 0);
-    assert.equal(totalStacks, initialTotal, "chip conservation must hold with all-timeout hand");
+    assert.equal(totalStacks, initialTotal, 'chip conservation must hold with all-timeout hand');
   });
 });
 
 // ────────── Mode ──────────
 
-describe("Mode", () => {
-  it("should default to COACH mode", () => {
+describe('Mode', () => {
+  it('should default to COACH mode', () => {
     const t = makeTable();
-    assert.equal(t.getMode(), "COACH");
+    assert.equal(t.getMode(), 'COACH');
   });
 
-  it("should allow setting mode", () => {
+  it('should allow setting mode', () => {
     const t = makeTable();
-    t.setMode("REVIEW");
-    assert.equal(t.getMode(), "REVIEW");
+    t.setMode('REVIEW');
+    assert.equal(t.getMode(), 'REVIEW');
   });
 });

@@ -1,4 +1,4 @@
-type Rank = "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "T" | "J" | "Q" | "K" | "A";
+type Rank = '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'T' | 'J' | 'Q' | 'K' | 'A';
 
 type ParsedCard = {
   rank: Rank;
@@ -7,14 +7,14 @@ type ParsedCard = {
 };
 
 const RANK_VALUE: Record<Rank, number> = {
-  "2": 2,
-  "3": 3,
-  "4": 4,
-  "5": 5,
-  "6": 6,
-  "7": 7,
-  "8": 8,
-  "9": 9,
+  '2': 2,
+  '3': 3,
+  '4': 4,
+  '5': 5,
+  '6': 6,
+  '7': 7,
+  '8': 8,
+  '9': 9,
   T: 10,
   J: 11,
   Q: 12,
@@ -23,15 +23,35 @@ const RANK_VALUE: Record<Rank, number> = {
 };
 
 const RANK_NAME: Record<number, string> = {
-  2: "Twos", 3: "Threes", 4: "Fours", 5: "Fives", 6: "Sixes",
-  7: "Sevens", 8: "Eights", 9: "Nines", 10: "Tens",
-  11: "Jacks", 12: "Queens", 13: "Kings", 14: "Aces",
+  2: 'Twos',
+  3: 'Threes',
+  4: 'Fours',
+  5: 'Fives',
+  6: 'Sixes',
+  7: 'Sevens',
+  8: 'Eights',
+  9: 'Nines',
+  10: 'Tens',
+  11: 'Jacks',
+  12: 'Queens',
+  13: 'Kings',
+  14: 'Aces',
 };
 
 const RANK_NAME_SINGULAR: Record<number, string> = {
-  2: "Two", 3: "Three", 4: "Four", 5: "Five", 6: "Six",
-  7: "Seven", 8: "Eight", 9: "Nine", 10: "Ten",
-  11: "Jack", 12: "Queen", 13: "King", 14: "Ace",
+  2: 'Two',
+  3: 'Three',
+  4: 'Four',
+  5: 'Five',
+  6: 'Six',
+  7: 'Seven',
+  8: 'Eight',
+  9: 'Nine',
+  10: 'Ten',
+  11: 'Jack',
+  12: 'Queen',
+  13: 'King',
+  14: 'Ace',
 };
 
 function rankLabel(v: number): string {
@@ -43,7 +63,7 @@ function rankSingular(v: number): string {
 }
 
 function parseCard(card: string): ParsedCard | null {
-  if (typeof card !== "string" || card.length < 2) return null;
+  if (typeof card !== 'string' || card.length < 2) return null;
   const rank = card[0] as Rank;
   const suit = card[1];
   if (!(rank in RANK_VALUE)) return null;
@@ -68,10 +88,6 @@ function findStraightHigh(values: number[]): number | null {
   return null;
 }
 
-function hasStraight(values: number[]): boolean {
-  return findStraightHigh(values) !== null;
-}
-
 function getFlushSuit(cards: ParsedCard[]): string | null {
   const suitCounts = new Map<string, number>();
   for (const card of cards) {
@@ -83,10 +99,6 @@ function getFlushSuit(cards: ParsedCard[]): string | null {
   return null;
 }
 
-function hasFlush(cards: ParsedCard[]): boolean {
-  return getFlushSuit(cards) !== null;
-}
-
 function hasFlushDraw(cards: ParsedCard[]): boolean {
   const suitCounts = new Map<string, number>();
   for (const card of cards) {
@@ -95,7 +107,9 @@ function hasFlushDraw(cards: ParsedCard[]): boolean {
   return [...suitCounts.values()].some((count) => count === 4);
 }
 
-function straightDrawLabel(values: number[]): "Open-ended straight draw" | "Gutshot straight draw" | null {
+function straightDrawLabel(
+  values: number[],
+): 'Open-ended straight draw' | 'Gutshot straight draw' | null {
   const uniq = [...new Set(values)].sort((a, b) => a - b);
   const allValues = uniq.includes(14) ? [1, ...uniq] : uniq;
   const set = new Set(allValues);
@@ -117,8 +131,8 @@ function straightDrawLabel(values: number[]): "Open-ended straight draw" | "Guts
     }
   }
 
-  if (hasOpenEnded) return "Open-ended straight draw";
-  if (hasGutshot) return "Gutshot straight draw";
+  if (hasOpenEnded) return 'Open-ended straight draw';
+  if (hasGutshot) return 'Gutshot straight draw';
   return null;
 }
 
@@ -132,8 +146,8 @@ export function describeHandStrength(holeCards: string[], boardCards: string[]):
   const parsedBoard = boardCards.map(parseCard).filter((c): c is ParsedCard => c !== null);
   const all = [...parsedHole, ...parsedBoard];
 
-  if (parsedHole.length < 2) return "No hand data";
-  if (parsedBoard.length === 0) return "No board yet";
+  if (parsedHole.length < 2) return 'No hand data';
+  if (parsedBoard.length === 0) return 'No board yet';
 
   const values = all.map((c) => c.value);
   const rankCountMap = countByRank(all);
@@ -148,7 +162,7 @@ export function describeHandStrength(holeCards: string[], boardCards: string[]):
     const flushCards = all.filter((c) => c.suit === flushSuit);
     const sfHigh = findStraightHigh(flushCards.map((c) => c.value));
     if (sfHigh !== null) {
-      if (sfHigh === 14) return "Royal Flush";
+      if (sfHigh === 14) return 'Royal Flush';
       return `Straight Flush (${rankSingular(sfHigh)}-high)`;
     }
   }
@@ -161,22 +175,19 @@ export function describeHandStrength(holeCards: string[], boardCards: string[]):
 
   // Full House
   if (rankCounts[0] === 3 && rankCounts[1] >= 2) {
-    const trips = [...rankCountMap.entries()]
-      .filter(([, c]) => c >= 3)
-      .sort((a, b) => b[0] - a[0]);
+    const trips = [...rankCountMap.entries()].filter(([, c]) => c >= 3).sort((a, b) => b[0] - a[0]);
     const pairs = [...rankCountMap.entries()]
       .filter(([r, c]) => c >= 2 && r !== trips[0][0])
       .sort((a, b) => b[0] - a[0]);
     if (trips.length > 0 && pairs.length > 0) {
       return `Full House (${rankLabel(trips[0][0])} full of ${rankLabel(pairs[0][0])})`;
     }
-    return "Full House";
+    return 'Full House';
   }
 
   // Flush
   if (flushSuit) {
-    const flushCards = all.filter((c) => c.suit === flushSuit)
-      .sort((a, b) => b.value - a.value);
+    const flushCards = all.filter((c) => c.suit === flushSuit).sort((a, b) => b.value - a.value);
     return `Flush (${rankSingular(flushCards[0].value)}-high)`;
   }
 
@@ -201,7 +212,7 @@ export function describeHandStrength(holeCards: string[], boardCards: string[]):
     if (pairs.length >= 2) {
       return `Two Pair (${rankLabel(pairs[0][0])} and ${rankLabel(pairs[1][0])})`;
     }
-    return "Two Pair";
+    return 'Two Pair';
   }
 
   // One Pair
@@ -211,10 +222,15 @@ export function describeHandStrength(holeCards: string[], boardCards: string[]):
     const boardTop = Math.max(...boardValues);
     const isPocket = parsedHole.filter((c) => c.value === pairRank).length === 2;
     if (isPocket) return `Pocket ${rankLabel(pairRank)}`;
-    if (pairRank === boardTop && holeValues.has(pairRank)) return `Top Pair (${rankLabel(pairRank)})`;
+    if (pairRank === boardTop && holeValues.has(pairRank))
+      return `Top Pair (${rankLabel(pairRank)})`;
     // Check if it's middle or bottom pair
     const boardRanks = [...new Set(boardValues)].sort((a, b) => b - a);
-    if (holeValues.has(pairRank) && boardRanks.length >= 2 && pairRank === boardRanks[boardRanks.length - 1]) {
+    if (
+      holeValues.has(pairRank) &&
+      boardRanks.length >= 2 &&
+      pairRank === boardRanks[boardRanks.length - 1]
+    ) {
       return `Bottom Pair (${rankLabel(pairRank)})`;
     }
     if (holeValues.has(pairRank)) return `Pair of ${rankLabel(pairRank)}`;
@@ -224,10 +240,10 @@ export function describeHandStrength(holeCards: string[], boardCards: string[]):
   // Draws (only pre-river)
   if (parsedBoard.length < 5) {
     const drawParts: string[] = [];
-    if (hasFlushDraw(all)) drawParts.push("Flush draw");
+    if (hasFlushDraw(all)) drawParts.push('Flush draw');
     const straightDraw = straightDrawLabel(values);
     if (straightDraw) drawParts.push(straightDraw);
-    if (drawParts.length > 0) return drawParts.join(" + ");
+    if (drawParts.length > 0) return drawParts.join(' + ');
   }
 
   // High card

@@ -1,4 +1,4 @@
-import type { ClubRole } from "./club-types.js";
+import type { ClubRole } from './club-types.js';
 
 // ===== Core Poker Types =====
 
@@ -69,9 +69,9 @@ export interface AllInPrompt {
   allowedRunCounts: Array<1 | 2 | 3>;
   reason: string;
   /** Prompt mode for run-it-twice negotiation (backward compatible). */
-  promptMode?: "run_count" | "yes_no";
+  promptMode?: 'run_count' | 'yes_no';
   /** Two-step voting stage when promptMode=yes_no. */
-  voteStep?: "underdog" | "opponent";
+  voteStep?: 'underdog' | 'opponent';
   /** Underdog seat that initiated a yes/no request, used in opponent prompt copy. */
   requestedBySeat?: number;
 }
@@ -205,7 +205,13 @@ export interface TableState {
   /** True when host requested pause but a hand is still active */
   pendingPause?: boolean;
   /** Pending rebuy requests visible to all players */
-  pendingRebuys?: Array<{ orderId: string; seat: number; userId: string; userName: string; amount: number }>;
+  pendingRebuys?: Array<{
+    orderId: string;
+    seat: number;
+    userId: string;
+    userName: string;
+    amount: number;
+  }>;
   /** Showdown-revealed hole cards by seat (always public once shown). */
   shownCards: Record<number, [string, string]>;
   /** Backward-compatible alias for shownCards. */
@@ -215,7 +221,7 @@ export interface TableState {
   /** Seats that explicitly mucked at showdown */
   muckedSeats?: number[];
   /** Showdown reveal state used by clients to render SHOW/MUCK actions */
-  showdownPhase?: "none" | "decision";
+  showdownPhase?: 'none' | 'decision';
   /** Run-it-twice prompt votes keyed by seat while in RUN_IT_TWICE_PROMPT street. */
   ritVotes?: Record<number, boolean | null>;
   /** Feature flag for run-it-twice negotiation at all-in closures. */
@@ -425,9 +431,9 @@ export interface HistoryGTOHandRecord {
   }>;
   actionTimeline?: Array<{
     idx: number;
-    street: "PREFLOP" | "FLOP" | "TURN" | "RIVER";
+    street: 'PREFLOP' | 'FLOP' | 'TURN' | 'RIVER';
     seat: number;
-    type: "fold" | "check" | "call" | "bet" | "raise" | "all_in";
+    type: 'fold' | 'check' | 'call' | 'bet' | 'raise' | 'all_in';
     amount: number;
     betTo?: number;
     raiseTo?: number;
@@ -553,10 +559,10 @@ export interface BlindStructureLevel {
 }
 
 export interface BotSeatConfig {
-  seat: number;               // 1–9
-  profile: string;            // 'gto_balanced' | 'limp_fish' | 'tag' | 'lag' | 'nit'
-  displayName?: string;       // custom name, e.g. "Bot-1"
-  modelVersion?: string;      // 'v0' (heuristic) | 'v1' (trained) — default 'v1'
+  seat: number; // 1–9
+  profile: string; // 'gto_balanced' | 'limp_fish' | 'tag' | 'lag' | 'nit'
+  displayName?: string; // custom name, e.g. "Bot-1"
+  modelVersion?: string; // 'v0' (heuristic) | 'v1' (trained) — default 'v1'
 }
 
 export interface RoomSettings {
@@ -573,48 +579,48 @@ export interface RoomSettings {
   addOnAllowed: boolean;
   straddleAllowed: boolean;
   runItTwice: boolean;
-  runItTwiceMode: RunItTwiceMode;         // Always / Ask Players / Off
+  runItTwiceMode: RunItTwiceMode; // Always / Ask Players / Off
   visibility: RoomVisibility;
   password: string | null;
   hostStartRequired: boolean;
-  actionTimerSeconds: number;              // per-action countdown (e.g. 15)
-  timeBankSeconds: number;                 // extra time bank per player (e.g. 60)
-  timeBankRefillPerHand: number;           // seconds refilled each hand (e.g. 5)
-  timeBankHandsToFill: number;             // number of played hands to fill time bank
-  thinkExtensionSecondsPerUse: number;     // extra seconds added when player requests extension
-  thinkExtensionQuotaPerHour: number;      // per-player max extension uses per hour
-  disconnectGracePeriod: number;           // seconds to reconnect before auto-fold
-  maxConsecutiveTimeouts: number;          // auto sit-out after N timeouts
+  actionTimerSeconds: number; // per-action countdown (e.g. 15)
+  timeBankSeconds: number; // extra time bank per player (e.g. 60)
+  timeBankRefillPerHand: number; // seconds refilled each hand (e.g. 5)
+  timeBankHandsToFill: number; // number of played hands to fill time bank
+  thinkExtensionSecondsPerUse: number; // extra seconds added when player requests extension
+  thinkExtensionQuotaPerHour: number; // per-player max extension uses per hour
+  disconnectGracePeriod: number; // seconds to reconnect before auto-fold
+  maxConsecutiveTimeouts: number; // auto sit-out after N timeouts
   // ── New PokerNow-style settings (Host-only) ──
-  useCentsValues: boolean;                 // display chip values as cents
-  rabbitHunting: boolean;                  // allow players to see undealt cards
-  autoStartNextHand: boolean;              // auto start the next hand
-  minPlayersToStart: number;               // minimum seated players required to auto/start a hand
-  showdownSpeed: ShowdownSpeed;            // fast(3s) / normal(6s) / slow(9s)
-  dealToAwayPlayers: boolean;              // deal hands to players marked as away
-  revealAllAtShowdown: boolean;            // reveal all hands when no more action possible
-  autoRevealOnAllInCall: boolean;          // auto reveal involved hands when action is closed and only runout remains
-  autoRevealWinningHands: boolean;         // force winners to reveal at showdown
-  autoMuckLosingHands: boolean;            // default losing hands to muck
-  allowShowAfterFold: boolean;             // allow folded players to voluntarily show before hand end
-  allowShowCalledHandRequest: boolean;     // optional casino-style called hand request
-  bombPotEnabled: boolean;                 // enable bomb pots
-  bombPotTriggerMode: BombPotTriggerMode;  // frequency / manual / probability
-  bombPotFrequency: number;                // every N hands (used when mode=frequency)
-  bombPotProbability: number;              // 0-100 chance each hand (used when mode=probability)
-  bombPotAnteMode: BombPotAnteMode;        // bb_multiplier or fixed chips
-  bombPotAnteValue: number;                // multiplier of BB or fixed chip amount
-  doubleBoardMode: DoubleBoardMode;        // always / only on bomb pot / off
-  sevenTwoBounty: number;                  // 0 = off, >0 = bounty amount per player
-  simulatedFeeEnabled: boolean;            // simulated rake/fee
-  simulatedFeePercent: number;             // fee as % of pot (e.g. 5)
-  simulatedFeeCap: number;                 // max fee per hand
-  allowGuestChat: boolean;                 // allow guests to send chat messages
-  autoTrimExcessBets: boolean;             // auto trim bets exceeding pot/call
-  roomFundsTracking: boolean;              // track session funds and allow rejoin stack restoration
+  useCentsValues: boolean; // display chip values as cents
+  rabbitHunting: boolean; // allow players to see undealt cards
+  autoStartNextHand: boolean; // auto start the next hand
+  minPlayersToStart: number; // minimum seated players required to auto/start a hand
+  showdownSpeed: ShowdownSpeed; // fast(3s) / normal(6s) / slow(9s)
+  dealToAwayPlayers: boolean; // deal hands to players marked as away
+  revealAllAtShowdown: boolean; // reveal all hands when no more action possible
+  autoRevealOnAllInCall: boolean; // auto reveal involved hands when action is closed and only runout remains
+  autoRevealWinningHands: boolean; // force winners to reveal at showdown
+  autoMuckLosingHands: boolean; // default losing hands to muck
+  allowShowAfterFold: boolean; // allow folded players to voluntarily show before hand end
+  allowShowCalledHandRequest: boolean; // optional casino-style called hand request
+  bombPotEnabled: boolean; // enable bomb pots
+  bombPotTriggerMode: BombPotTriggerMode; // frequency / manual / probability
+  bombPotFrequency: number; // every N hands (used when mode=frequency)
+  bombPotProbability: number; // 0-100 chance each hand (used when mode=probability)
+  bombPotAnteMode: BombPotAnteMode; // bb_multiplier or fixed chips
+  bombPotAnteValue: number; // multiplier of BB or fixed chip amount
+  doubleBoardMode: DoubleBoardMode; // always / only on bomb pot / off
+  sevenTwoBounty: number; // 0 = off, >0 = bounty amount per player
+  simulatedFeeEnabled: boolean; // simulated rake/fee
+  simulatedFeePercent: number; // fee as % of pot (e.g. 5)
+  simulatedFeeCap: number; // max fee per hand
+  allowGuestChat: boolean; // allow guests to send chat messages
+  autoTrimExcessBets: boolean; // auto trim bets exceeding pot/call
+  roomFundsTracking: boolean; // track session funds and allow rejoin stack restoration
   // ── GTO Bot Settings (Host-only) ──
-  botSeats: BotSeatConfig[];               // [] = no bots
-  botBuyIn?: number;                       // bot buy-in in chips; undefined = 100 * bigBlind
+  botSeats: BotSeatConfig[]; // [] = no bots
+  botBuyIn?: number; // bot buy-in in chips; undefined = 100 * bigBlind
   // ── Self-Play Turbo (zero delays for bot-only training rooms) ──
   selfPlayTurbo?: boolean;
 }
@@ -710,12 +716,24 @@ export interface RoomLogEntry {
   payload?: Record<string, unknown>;
 }
 
+export interface SessionStatsEntry {
+  seat: number | null;
+  userId: string;
+  name: string;
+  totalBuyIn: number;
+  totalCashOut: number;
+  currentStack: number;
+  net: number;
+  handsPlayed: number;
+  status: string;
+}
+
 export interface TimerState {
   seat: number;
-  remaining: number;        // seconds left on action timer
+  remaining: number; // seconds left on action timer
   timeBankRemaining: number; // seconds left in time bank
   usingTimeBank: boolean;
-  startedAt: number;         // timestamp when timer started
+  startedAt: number; // timestamp when timer started
 }
 
 export interface ThinkExtensionUsageState {
@@ -737,7 +755,7 @@ export interface RoomFullState {
   settings: RoomSettings;
   ownership: RoomOwnership;
   status: RoomStatus;
-  banList: string[];         // banned userIds
+  banList: string[]; // banned userIds
   timer: TimerState | null;
   thinkExtensionUsageByUser?: Record<string, ThinkExtensionUsageState>;
   log: RoomLogEntry[];
@@ -803,3 +821,9 @@ export * from './notification-events.js';
 // Re-export analytics types and events
 export * from './analytics-types.js';
 export * from './analytics-events.js';
+
+// Re-export fast-battle types
+export * from './fast-battle-types.js';
+
+// Re-export database types (GTO solver)
+export * from './database-types.js';

@@ -50,11 +50,11 @@ export interface StrategyMix {
 
 /** V2 sizing bucket distribution (probabilities over 5 raise size candidates) */
 export interface SizingMix {
-  third: number;      // 33% pot
-  half: number;       // 50% pot
-  twoThirds: number;  // 66% pot
-  pot: number;        // 100% pot
-  allIn: number;      // all-in
+  third: number; // 33% pot
+  half: number; // 50% pot
+  twoThirds: number; // 66% pot
+  pot: number; // 100% pot
+  allIn: number; // all-in
 }
 
 /** Combined prediction result (V2 multi-head) */

@@ -18,9 +18,21 @@ import type {
   HistoryGTOAnalysis,
 } from './index.js';
 import type { HandAuditSummary, SessionLeakSummary } from './audit-types.js';
+import type {
+  FastBattleStartPayload,
+  FastBattleSessionStartedPayload,
+  FastBattleTableAssignedPayload,
+  FastBattleHandResultPayload,
+  FastBattleProgressPayload,
+  FastBattleSessionEndedPayload,
+  FastBattleErrorPayload,
+} from './fast-battle-types.js';
 
 // Re-export types from index.ts for convenience
-export type { AdvicePayloadFromIndex as AdvicePayload, LobbyRoomSummaryFromIndex as LobbyRoomSummary };
+export type {
+  AdvicePayloadFromIndex as AdvicePayload,
+  LobbyRoomSummaryFromIndex as LobbyRoomSummary,
+};
 
 // ===== Client → Server Events =====
 
@@ -61,9 +73,9 @@ export interface JoinRoomCodePayload {
 
 export interface SeatInfo {
   index: number;
-  user: { 
-    id: string; 
-    nickname: string; 
+  user: {
+    id: string;
+    nickname: string;
     avatar?: string;
   } | null;
   stack: number;
@@ -219,7 +231,10 @@ export const SOCKET_EVENT_NAMES = {
     'request_history_hand_detail',
     'history_gto_analyze',
     'show_hand_post',
-    'claim_seven_two_bounty'
+    'claim_seven_two_bounty',
+    'fast_battle_warmup',
+    'fast_battle_start',
+    'fast_battle_end',
   ] as const,
   serverToClient: [
     'connected',
@@ -274,7 +289,13 @@ export const SOCKET_EVENT_NAMES = {
     'player_reconnected',
     'player_auto_sitout',
     'seven_two_bounty_claimed',
-    'post_hand_reveal'
+    'post_hand_reveal',
+    'fast_battle_session_started',
+    'fast_battle_table_assigned',
+    'fast_battle_hand_result',
+    'fast_battle_progress',
+    'fast_battle_session_ended',
+    'fast_battle_error',
   ] as const,
 };
 
@@ -298,10 +319,19 @@ export interface ClientToServerEvents {
   reject_seat: (payload: { tableId: string; orderId: string }) => void;
   stand_up: (payload: { tableId: string; seat: number }) => void;
   start_hand: (payload: { tableId: string }) => void;
-  action_submit: (payload: { tableId: string; handId: string; action: PlayerActionType; amount?: number }) => void;
-  show_hand: (payload: { tableId: string; handId: string; seat: number; scope: "table" }) => void;
+  action_submit: (payload: {
+    tableId: string;
+    handId: string;
+    action: PlayerActionType;
+    amount?: number;
+  }) => void;
+  show_hand: (payload: { tableId: string; handId: string; seat: number; scope: 'table' }) => void;
   muck_hand: (payload: { tableId: string; handId: string; seat: number }) => void;
-  submit_run_preference: (payload: { tableId: string; handId: string; runCount: 1 | 2 | 3 }) => void;
+  submit_run_preference: (payload: {
+    tableId: string;
+    handId: string;
+    runCount: 1 | 2 | 3;
+  }) => void;
   run_count_submit: (payload: { tableId: string; handId: string; runCount: 1 | 2 | 3 }) => void;
   request_think_extension: (payload: { tableId: string }) => void;
   deposit_request: (payload: { tableId: string; amount: number }) => void;
@@ -312,23 +342,47 @@ export interface ClientToServerEvents {
   leave_table: (payload: { tableId: string }) => void;
   request_room_state: (payload: { tableId: string }) => void;
   update_settings: (payload: { tableId: string; settings: Record<string, unknown> }) => void;
-  kick_player: (payload: { tableId: string; targetUserId: string; reason?: string; ban?: boolean }) => void;
+  kick_player: (payload: {
+    tableId: string;
+    targetUserId: string;
+    reason?: string;
+    ban?: boolean;
+  }) => void;
   transfer_ownership: (payload: { tableId: string; newOwnerId: string }) => void;
   set_cohost: (payload: { tableId: string; userId: string; add: boolean }) => void;
-  game_control: (payload: { tableId: string; action: 'start' | 'pause' | 'resume' | 'end' | 'restart' }) => void;
+  game_control: (payload: {
+    tableId: string;
+    action: 'start' | 'pause' | 'resume' | 'end' | 'restart';
+  }) => void;
   close_room: (payload: { tableId: string }) => void;
   request_history_rooms: (payload?: { limit?: number }) => void;
   request_history_sessions: (payload: { roomId: string; limit?: number }) => void;
-  request_history_hands: (payload: { roomSessionId: string; limit?: number; beforeEndedAt?: string }) => void;
+  request_history_hands: (payload: {
+    roomSessionId: string;
+    limit?: number;
+    beforeEndedAt?: string;
+  }) => void;
   request_history_hand_detail: (payload: { handHistoryId: string }) => void;
   request_room_hands: (payload: { roomId: string; limit?: number }) => void;
-  history_gto_analyze: (payload: { handId: string; handRecord: HistoryGTOHandRecord; precision: 'fast' | 'deep' }) => void;
+  history_gto_analyze: (payload: {
+    handId: string;
+    handRecord: HistoryGTOHandRecord;
+    precision: 'fast' | 'deep';
+  }) => void;
   show_hand_post: (payload: { tableId: string; seat: number }) => void;
   claim_seven_two_bounty: (payload: { tableId: string; seat: number }) => void;
+  fast_battle_warmup: () => void;
+  fast_battle_start: (payload: FastBattleStartPayload) => void;
+  fast_battle_end: () => void;
 }
 
 export interface ServerToClientEvents {
-  connected: (data: { socketId: string; userId: string; displayName?: string; supabaseEnabled: boolean }) => void;
+  connected: (data: {
+    socketId: string;
+    userId: string;
+    displayName?: string;
+    supabaseEnabled: boolean;
+  }) => void;
   lobby_snapshot: (payload: { rooms: LobbyRoomSummaryFromIndex[] }) => void;
   room_created: (payload: { tableId: string; roomCode: string; roomName: string }) => void;
   room_joined: (payload: { tableId: string; roomCode: string; roomName: string }) => void;
@@ -336,7 +390,13 @@ export interface ServerToClientEvents {
   presence: (payload: { players: Array<{ seat: number; userId: string; name: string }> }) => void;
   hole_cards: (payload: { handId: string; cards: string[]; seat: number }) => void;
   hand_started: (payload: { handId: string }) => void;
-  action_applied: (payload: { seat: number; action: string; amount: number; pot: number; auto?: boolean }) => void;
+  action_applied: (payload: {
+    seat: number;
+    action: string;
+    amount: number;
+    pot: number;
+    auto?: boolean;
+  }) => void;
   street_advanced: (payload: { street: Street; board: string[] }) => void;
   board_reveal: (payload: {
     handId: string;
@@ -370,13 +430,16 @@ export interface ServerToClientEvents {
     defaultRunCount: 1 | 2 | 3;
     allowedRunCounts: Array<1 | 2 | 3>;
     reason: string;
-    promptMode?: "run_count" | "yes_no";
-    voteStep?: "underdog" | "opponent";
+    promptMode?: 'run_count' | 'yes_no';
+    voteStep?: 'underdog' | 'opponent';
     requestedBySeat?: number;
   }) => void;
   run_count_confirmed: (payload: { handId: string; runCount: 1 | 2 | 3 }) => void;
   run_count_chosen: (payload: { runCount: 1 | 2 | 3; seat: number; auto?: boolean }) => void;
-  reveal_hole_cards: (payload: { handId: string; revealed: Record<number, [string, string]> }) => void;
+  reveal_hole_cards: (payload: {
+    handId: string;
+    revealed: Record<number, [string, string]>;
+  }) => void;
   reveal_board_card: (payload: {
     handId: string;
     runIndex: 1 | 2 | 3;
@@ -401,26 +464,54 @@ export interface ServerToClientEvents {
     board?: string[];
     runoutBoards?: string[][];
     runoutPayouts?: RunoutPayout[];
-    players?: TableState["players"];
+    players?: TableState['players'];
     pot?: number;
     winners?: Array<{ seat: number; amount: number; handName?: string }>;
     settlement?: SettlementResult;
   }) => void;
   hand_aborted: (payload: { reason: string }) => void;
   advice_payload: (payload: AdvicePayloadFromIndex) => void;
-  advice_deviation: (payload: AdvicePayloadFromIndex & { deviation: number; playerAction: string }) => void;
+  advice_deviation: (
+    payload: AdvicePayloadFromIndex & { deviation: number; playerAction: string },
+  ) => void;
   error_event: (payload: { message: string }) => void;
   left_table: (payload: { tableId: string }) => void;
   room_state_update: (payload: unknown) => void;
   timer_update: (payload: unknown) => void;
   room_log: (payload: unknown) => void;
-  seat_request_pending: (payload: { orderId: string; userId: string; userName: string; seat: number; buyIn: number }) => void;
+  seat_request_pending: (payload: {
+    orderId: string;
+    userId: string;
+    userName: string;
+    seat: number;
+    buyIn: number;
+  }) => void;
   seat_request_sent: (payload: { orderId: string; seat: number }) => void;
   seat_approved: (payload: { seat: number; buyIn: number }) => void;
   seat_rejected: (payload: { seat: number; reason: string }) => void;
-  deposit_request_pending: (payload: { orderId: string; userId: string; userName: string; seat: number; amount: number }) => void;
-  session_stats: (payload: { tableId: string; entries: Array<{ seat: number | null; userId: string; name: string; totalBuyIn: number; currentStack: number; net: number; handsPlayed: number }> }) => void;
-  settings_updated: (payload: { applied: Record<string, unknown>; deferred: Record<string, unknown> }) => void;
+  deposit_request_pending: (payload: {
+    orderId: string;
+    userId: string;
+    userName: string;
+    seat: number;
+    amount: number;
+  }) => void;
+  session_stats: (payload: {
+    tableId: string;
+    entries: Array<{
+      seat: number | null;
+      userId: string;
+      name: string;
+      totalBuyIn: number;
+      currentStack: number;
+      net: number;
+      handsPlayed: number;
+    }>;
+  }) => void;
+  settings_updated: (payload: {
+    applied: Record<string, unknown>;
+    deferred: Record<string, unknown>;
+  }) => void;
   think_extension_result: (payload: { addedSeconds: number; remainingUses: number }) => void;
   kicked: (payload: { reason: string; banned: boolean }) => void;
   room_closed: (payload?: { tableId?: string; reason?: string }) => void;
@@ -428,15 +519,34 @@ export interface ServerToClientEvents {
   system_message: (payload: { message: string }) => void;
   history_rooms: (payload: { rooms: HistoryRoomSummary[] }) => void;
   history_sessions: (payload: { roomId: string; sessions: HistorySessionSummary[] }) => void;
-  history_hands: (payload: { roomSessionId: string; hands: HistoryHandSummary[]; hasMore: boolean; nextCursor?: string }) => void;
+  history_hands: (payload: {
+    roomSessionId: string;
+    hands: HistoryHandSummary[];
+    hasMore: boolean;
+    nextCursor?: string;
+  }) => void;
   room_hands: (payload: { roomId: string; hands: HistoryHandSummary[] }) => void;
   history_hand_detail: (payload: { handHistoryId: string; hand: HistoryHandDetail | null }) => void;
-  history_gto_result: (payload: { handId: string; gtoAnalysis: HistoryGTOAnalysis | null; error?: string }) => void;
+  history_gto_result: (payload: {
+    handId: string;
+    gtoAnalysis: HistoryGTOAnalysis | null;
+    error?: string;
+  }) => void;
   hand_audit_complete: (payload: { userId: string; summary: HandAuditSummary }) => void;
   session_leak_update: (payload: { userId: string; summary: SessionLeakSummary }) => void;
   player_disconnected: (payload: { seat: number; userId: string; graceSeconds: number }) => void;
   player_reconnected: (payload: { seat: number; userId: string }) => void;
   player_auto_sitout: (payload: { seat: number; userId: string; reason: string }) => void;
-  seven_two_bounty_claimed: (payload: { tableId: string; handId: string; bounty: SevenTwoBountyInfo }) => void;
+  seven_two_bounty_claimed: (payload: {
+    tableId: string;
+    handId: string;
+    bounty: SevenTwoBountyInfo;
+  }) => void;
   post_hand_reveal: (payload: { tableId: string; seat: number; cards: [string, string] }) => void;
+  fast_battle_session_started: (payload: FastBattleSessionStartedPayload) => void;
+  fast_battle_table_assigned: (payload: FastBattleTableAssignedPayload) => void;
+  fast_battle_hand_result: (payload: FastBattleHandResultPayload) => void;
+  fast_battle_progress: (payload: FastBattleProgressPayload) => void;
+  fast_battle_session_ended: (payload: FastBattleSessionEndedPayload) => void;
+  fast_battle_error: (payload: FastBattleErrorPayload) => void;
 }

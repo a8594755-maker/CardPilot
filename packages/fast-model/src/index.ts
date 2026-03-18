@@ -11,12 +11,24 @@
  *   - FEATURE_COUNT_V2    — V2 feature vector length (54)
  */
 
-export { encodeFeatures, encodeFeaturesV2, FEATURE_COUNT, FEATURE_COUNT_V2 } from './feature-encoder.js';
+export {
+  encodeFeatures,
+  encodeFeaturesV2,
+  FEATURE_COUNT,
+  FEATURE_COUNT_V2,
+} from './feature-encoder.js';
 export type { ActionRecord, PlayerRecord } from './feature-encoder.js';
 export { MLP, createRandomModel, createRandomModelV2 } from './mlp.js';
 export { evaluateModel, printMetrics } from './evaluate.js';
 export type { EvalMetrics, CalibrationBin, StreetMetrics } from './evaluate.js';
-export type { ModelWeights, TrainingSample, StrategyMix, SizingMix, PredictResult, LayerWeights } from './types.js';
+export type {
+  ModelWeights,
+  TrainingSample,
+  StrategyMix,
+  SizingMix,
+  PredictResult,
+  LayerWeights,
+} from './types.js';
 
 import { readFileSync, existsSync } from 'node:fs';
 import { MLP } from './mlp.js';

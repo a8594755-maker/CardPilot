@@ -6,7 +6,7 @@
  *   - Model loading from JSON weights
  */
 
-import type { ModelWeights, StrategyMix, SizingMix, PredictResult, LayerWeights } from './types.js';
+import type { ModelWeights, StrategyMix, PredictResult, LayerWeights } from './types.js';
 
 /**
  * ReLU activation: max(0, x)
@@ -21,9 +21,9 @@ function relu(x: number): number {
  */
 function softmax(logits: number[]): number[] {
   const maxVal = Math.max(...logits);
-  const exps = logits.map(v => Math.exp(v - maxVal));
+  const exps = logits.map((v) => Math.exp(v - maxVal));
   const sum = exps.reduce((a, b) => a + b, 0);
-  return exps.map(e => e / sum);
+  return exps.map((e) => e / sum);
 }
 
 /**
