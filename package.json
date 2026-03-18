@@ -18,17 +18,34 @@
     "build:web": "npm run build -w @cardpilot/web",
     "build:server": "npm run build -w @cardpilot/game-server",
     "typecheck": "npm run typecheck --workspaces",
-    "lint": "npm run lint --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "npm run test --workspaces --if-present",
-    "ci:verify": "npm run lint && npm run typecheck && npm run test && npm run build:web && npm run build:server",
+    "ci:verify": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build:web && npm run build:server",
     "self-play": "npx tsx apps/bot-client/src/self-play.ts",
     "self-play:v2": "npx tsx apps/bot-client/src/self-play.ts --mode train --version v2 --target 1000000 --train-every 50000",
     "train": "npx tsx packages/fast-model/src/trainer.ts",
     "train:v2": "npx tsx packages/fast-model/src/trainer.ts --v2",
-    "dev:server:training": "DISABLE_SUPABASE=1 npm run dev -w @cardpilot/game-server"
+    "dev:server:training": "DISABLE_SUPABASE=1 npm run dev -w @cardpilot/game-server",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "prettier --write",
+      "eslint --fix --no-warn-ignored"
+    ],
+    "*.{json,md,css,html}": "prettier --write"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "concurrently": "^9.1.2",
-    "typescript": "^5.7.3"
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.2",
+    "prettier": "^3.8.1",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.56.1"
   }
 }
