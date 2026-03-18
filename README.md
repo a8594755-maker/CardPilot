@@ -1,170 +1,110 @@
 # CardPilot
 
-CardPilot is a multiplayer poker training product with a server-authoritative game loop, history review, and coaching overlays.
+Full-stack multiplayer poker training platform with GTO solver, AI bots, and coaching tools.
+
+## Features
+
+- **Multiplayer poker** — server-authoritative game engine with side pots, run-it-twice, bomb pots, double board
+- **GTO Solver Workspace** — browser-based CFR solver with strategy browser, range editor, play mode
+- **AI Bot System** — CFR-based decision pipeline with real-time subgame resolving (Pluribus-style)
+- **Clubs** — create/join clubs with tables, credits, leaderboards, chat, analytics
+- **Fast Battle** — speed poker mode for rapid GTO practice
+- **Coaching Overlays** — real-time GTO advice, preflop charts, hand history review
+- **Mobile Responsive** — adaptive UI with bottom tabs and touch support
 
 ## Repository Structure
 
-- `apps/game-server`: Express + Socket.IO authoritative server
-- `apps/web`: React + Vite client
-- `packages/game-engine`: poker hand state machine and settlement engine
-- `packages/advice-engine`: strategy/advice helpers
-- `packages/shared-types`: shared DTOs and contracts
-- `backend/sql`: schema and Supabase migrations
+```
+apps/
+  game-server/       Express + Socket.IO authoritative server
+  bot-client/        AI poker bot with real-time resolver
+  web/               React + Vite client (SPA)
+
+packages/
+  shared-types/      DTOs, socket events, type contracts
+  game-engine/       Poker state machine, settlement, side pots
+  poker-evaluator/   Hand evaluation, equity, board texture
+  advice-engine/     GTO advice, line recognition, postflop engine
+  cfr-solver/        CFR+ solver (vectorized), pipeline, value network
+  fast-model/        Lightweight MLP for real-time inference
+```
+
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for detailed architecture documentation.
 
 ## Prerequisites
 
-- Node.js `>=20` (see `.nvmrc`)
+- Node.js `>=24` (see `.nvmrc`)
 - npm (workspace mode)
 
 ## Quick Start
 
-1. Install dependencies:
-
 ```bash
 npm install
-```
-
-2. Prepare environment:
-
-```bash
 cp .env.example .env.local
-```
-
-3. (Optional) Apply Supabase SQL migrations in order:
-
-```sql
--- backend/sql/001_init.sql
--- backend/sql/002_supabase_multiplayer.sql
--- backend/sql/003_lobby_room_code.sql
--- backend/sql/004_hand_history_room_sessions.sql
-```
-
-4. Start web + server:
-
-```bash
 npm run dev
 ```
 
-5. Open:
+Open `http://127.0.0.1:5173`
 
-- `http://127.0.0.1:5173`
-
-## Standard Commands
+## Commands
 
 ```bash
-npm run lint
-npm run typecheck
-npm run test
-npm run build:web
-npm run build:server
-npm run env:doctor
-npm run ci:verify
-npm run data:upload:v2
-npm run data:download:v2
+npm run lint         # ESLint across all packages
+npm run typecheck    # TypeScript check all workspaces
+npm run test         # Unit tests (Node test runner + Vitest)
+npm run build:web    # Vite production build
+npm run build:server # Server TypeScript compile
+npm run ci:verify    # Full CI pipeline locally
+npm run env:doctor   # Environment health check
 ```
 
-Deployment health check example:
+## Environment Variables
 
-```bash
-npm run env:doctor -- --server-url https://your-railway-app.up.railway.app
-```
+See `.env.example` for all available variables. Key ones:
 
-## Large Training Data (IDrive E2, no Git LFS)
+| Variable                    | Description                               |
+| --------------------------- | ----------------------------------------- |
+| `PORT`                      | Server port (default: 4000)               |
+| `VITE_SERVER_URL`           | Server URL for web client                 |
+| `SUPABASE_URL`              | Supabase project URL (unset = guest mode) |
+| `SUPABASE_ANON_KEY`         | Supabase publishable key                  |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key                 |
+| `BOT_USE_RESOLVER`          | Enable real-time resolver in bot          |
 
-- `data/v2/training-samples.jsonl` is intentionally kept out of Git and Git LFS.
-- A tracked manifest lives at `data/metadata/training-samples-v2.manifest.json`.
-- Upload/download use IDrive E2 via AWS CLI:
-
-```bash
-npm run data:upload:v2
-npm run data:download:v2
-```
-
-- Credentials are loaded from `packages/cfr-solver/scripts/cluster.env`:
-  - `E2_PROFILE`
-  - `E2_ENDPOINT`
-  - `E2_BUCKET`
-- Re-download and overwrite local file:
-
-```bash
-npm run data:download:v2 -- --force
-```
+When Supabase is not configured, the app runs in guest/local mode.
 
 ## Supabase Auth Setup (Google OAuth)
 
-To enable Google sign-in you need a Supabase project with the Google provider configured:
+1. Create a Google OAuth client in [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. Enable Google provider in Supabase dashboard (Authentication > Providers > Google)
+3. Set Site URL and redirect URLs in Supabase (Authentication > URL Configuration)
+4. Set environment variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 
-1. **Create a Google OAuth client** in the [Google Cloud Console](https://console.cloud.google.com/apis/credentials):
-   - Application type: **Web application**
-   - Authorized redirect URI: `https://<YOUR_PROJECT_REF>.supabase.co/auth/v1/callback`
+## CFR Training Data
 
-2. **Enable Google provider** in the Supabase dashboard:
-   - Go to **Authentication → Providers → Google**
-   - Toggle **Enable**
-   - Paste your Google **Client ID** and **Client Secret**
+Large training data is stored on IDrive E2 (not in Git):
 
-3. **Set Site URL** in the Supabase dashboard:
-   - Go to **Authentication → URL Configuration**
-   - **Site URL**: your production URL (e.g. `https://cardpilot.app`)
-   - **Redirect URLs**: add all environments, e.g.:
-     - `http://localhost:5173` (local dev)
-     - `http://127.0.0.1:5173` (local dev, if Vite runs on 127.0.0.1)
-     - `https://cardpilot.app` (production)
-     - Any Netlify preview URLs if needed
+```bash
+npm run data:upload:v2
+npm run data:download:v2
+```
 
-4. **Set environment variables** (see `.env.example`):
-   - Web: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
-   - Optional Web override: `VITE_OAUTH_REDIRECT_URL` (forces OAuth callback origin)
-   - Server: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+## Deployment
 
-When Supabase is not configured (env vars unset), the Google button is hidden and the app falls back to guest/local mode.
-If only part of the server Supabase env is set, startup behavior depends on environment:
-
-- `NODE_ENV=production`: fails fast by default.
-- non-production: falls back to guest/local mode with a warning.
-  Set `SUPABASE_STRICT_ENV=false` only if you intentionally want fallback in production.
-
-### Auth Regression Checklist (Refresh + Signup)
-
-1. Clear browser storage (`localStorage` + Supabase auth keys), sign in, then reload:
-   - Expected: no repeated `400 /auth/v1/token?grant_type=refresh_token` spam.
-2. Corrupt/remove the stored refresh token, then reload:
-   - Expected: app clears local auth state, lands in logged-out UI, and does not loop refresh errors.
-3. Attempt signup with an existing email:
-   - Expected: UI shows a practical hint (e.g. already registered), and dev console logs raw Supabase error details.
-4. Open two tabs and reload both at the same time:
-   - Expected: no burst of concurrent refresh failures.
-
-If signup fails with a message indicating signups are disabled, enable:
-
-- **Supabase Dashboard → Authentication → Providers → Email → Allow new users to sign up**
-
-## Deployment Notes
-
-- Web deploy is compatible with Netlify (`netlify.toml` is included).
-- Server deploy can run on Railway/Node hosts (`PORT` respected).
-- Use `docs/OPERATIONS.md` for runtime config, health checks, and shutdown behavior.
+- **Web**: Netlify-compatible (`netlify.toml` included)
+- **Server**: Railway/Node hosts (`PORT` env var respected)
+- See `DEPLOY.md` and `docs/OPERATIONS.md` for details
 
 ## Trust & Safety
 
-- `/privacy` and `/terms` are available in the web app.
-- CardPilot is explicitly play-money only and not a real-money gambling platform.
-- Vulnerability reporting is documented in `SECURITY.md`.
+- Play-money only — not a real-money gambling platform
+- `/privacy` and `/terms` available in the web app
+- Vulnerability reporting: `SECURITY.md`
 
-## Credits
+## Links
 
-- Credits are managed through room buy-in/rebuy flows and club credit grant/deduct controls.
-- Club credit data uses ledger-backed storage on the server.
-
-## Governance & Maintenance
-
-- Contribution guide: `CONTRIBUTING.md`
-- Release discipline: `RELEASE.md`
-- Change log: `CHANGELOG.md`
-- Ownership: `.github/CODEOWNERS`
-
-## Known Limitations
-
-- No rake is applied in current settlement flows.
-- Service reliability depends on Supabase availability when persistence is enabled.
-- Some production controls (rate limiting, deeper observability) are still lightweight by design.
+- [Architecture](docs/ARCHITECTURE.md)
+- [Contributing](CONTRIBUTING.md)
+- [Changelog](CHANGELOG.md)
+- [Operations](docs/OPERATIONS.md)
+- [Solver Guide](docs/solver-integration-guide.md)
