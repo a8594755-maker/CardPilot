@@ -1,14 +1,9 @@
-import React, { memo, useState } from "react";
-import type {
-  Club,
-  ClubRuleset,
-  ClubGameType,
-  ClubRules,
-} from "@cardpilot/shared-types";
-import { DEFAULT_CLUB_RULES } from "@cardpilot/shared-types";
-import { RulesSummary } from "../shared";
-import type { ClubPermissions } from "../hooks/useClubPermissions";
-import type { ClubSocketActions } from "../hooks/useClubSocket";
+import React, { memo, useState } from 'react';
+import type { Club, ClubRuleset, ClubGameType, ClubRules } from '@cardpilot/shared-types';
+import { DEFAULT_CLUB_RULES } from '@cardpilot/shared-types';
+import { RulesSummary } from '../shared';
+import type { ClubPermissions } from '../hooks/useClubPermissions';
+import type { ClubSocketActions } from '../hooks/useClubSocket';
 
 // ── Props ──
 
@@ -32,20 +27,20 @@ export const RulesetsTab = memo(function RulesetsTab({
   showToast,
 }: RulesetsTabProps) {
   // ── Default-ruleset selector state ──
-  const [selectedDefaultId, setSelectedDefaultId] = useState(
-    defaultRuleset?.id ?? ""
-  );
+  const [selectedDefaultId, setSelectedDefaultId] = useState(defaultRuleset?.id ?? '');
 
   // ── Create-form visibility ──
   const [showForm, setShowForm] = useState(false);
 
   // ── Create-form field state ──
-  const [formName, setFormName] = useState("");
+  const [formName, setFormName] = useState('');
   const [formSB, setFormSB] = useState(DEFAULT_CLUB_RULES.stakes.smallBlind);
   const [formBB, setFormBB] = useState(DEFAULT_CLUB_RULES.stakes.bigBlind);
   const [formMaxSeats, setFormMaxSeats] = useState(DEFAULT_CLUB_RULES.maxSeats);
   const [formActionTimer, setFormActionTimer] = useState(DEFAULT_CLUB_RULES.time.actionTimeSec);
-  const [formGameType, setFormGameType] = useState<ClubGameType>(DEFAULT_CLUB_RULES.extras.gameType);
+  const [formGameType, setFormGameType] = useState<ClubGameType>(
+    DEFAULT_CLUB_RULES.extras.gameType,
+  );
   const [formMinBuyIn, setFormMinBuyIn] = useState(DEFAULT_CLUB_RULES.buyIn.minBuyIn);
   const [formMaxBuyIn, setFormMaxBuyIn] = useState(DEFAULT_CLUB_RULES.buyIn.maxBuyIn);
   const [formTimeBank, setFormTimeBank] = useState(DEFAULT_CLUB_RULES.time.timeBankSec);
@@ -62,7 +57,7 @@ export const RulesetsTab = memo(function RulesetsTab({
 
   function handleCreate() {
     if (!formName.trim()) {
-      showToast("Ruleset name is required");
+      showToast('Ruleset name is required');
       return;
     }
 
@@ -99,7 +94,7 @@ export const RulesetsTab = memo(function RulesetsTab({
     });
 
     // Reset form
-    setFormName("");
+    setFormName('');
     setFormSB(DEFAULT_CLUB_RULES.stakes.smallBlind);
     setFormBB(DEFAULT_CLUB_RULES.stakes.bigBlind);
     setFormMaxSeats(DEFAULT_CLUB_RULES.maxSeats);
@@ -156,7 +151,7 @@ export const RulesetsTab = memo(function RulesetsTab({
             className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-slate-300 hover:text-white transition-colors"
           >
             <span>Create Ruleset</span>
-            <span className="text-slate-500">{showForm ? "−" : "+"}</span>
+            <span className="text-slate-500">{showForm ? '−' : '+'}</span>
           </button>
 
           {showForm && (
@@ -332,9 +327,7 @@ export const RulesetsTab = memo(function RulesetsTab({
 
       {/* ── Ruleset Card List ── */}
       {rulesets.length === 0 ? (
-        <div className="py-8 text-center text-xs text-slate-500">
-          No rulesets created yet.
-        </div>
+        <div className="py-8 text-center text-xs text-slate-500">No rulesets created yet.</div>
       ) : (
         <div className="space-y-3">
           {rulesets.map((rs) => (

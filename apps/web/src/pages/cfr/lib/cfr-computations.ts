@@ -123,7 +123,10 @@ export function aggregateByPrimaryBucket(
 
   const averaged = new Map<number, number[]>();
   for (const [b, { sums, count }] of result) {
-    averaged.set(b, sums.map(s => s / count));
+    averaged.set(
+      b,
+      sums.map((s) => s / count),
+    );
   }
   return averaged;
 }
@@ -164,12 +167,15 @@ export function getAggregatedProbs(
     }
   }
   if (!sums || count === 0) return null;
-  return sums.map(s => s / count);
+  return sums.map((s) => s / count);
 }
 
 /** Build strength labels scaled to the actual bucket count. */
 export function buildStrengthLabels(bc: number): Array<{
-  from: number; to: number; label: string; cls: string;
+  from: number;
+  to: number;
+  label: string;
+  cls: string;
 }> {
   if (bc === 50) {
     return [

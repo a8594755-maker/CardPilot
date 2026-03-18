@@ -81,11 +81,16 @@ export function CfrPage({ initialMode = 'postflop' }: CfrPageProps) {
   return (
     <div className="flex h-full max-lg:flex-col relative">
       {/* Collapsible sidebar wrapper */}
-      <div className={`transition-all duration-200 max-lg:w-full max-lg:min-w-0 ${sidebarCollapsed ? 'lg:w-0 lg:min-w-0 lg:overflow-hidden' : 'lg:w-[380px] lg:min-w-[380px]'}`}>
+      <div
+        className={`transition-all duration-200 max-lg:w-full max-lg:min-w-0 ${sidebarCollapsed ? 'lg:w-0 lg:min-w-0 lg:overflow-hidden' : 'lg:w-[380px] lg:min-w-[380px]'}`}
+      >
         <FlopSidebar
           configs={postflopState.configs}
           selectedConfig={postflopState.selectedConfig}
-          onSelectConfig={(name) => { postflopActions.selectConfig(name); browserActions.resetFilters(); }}
+          onSelectConfig={(name) => {
+            postflopActions.selectConfig(name);
+            browserActions.resetFilters();
+          }}
           filteredFlops={browser.filteredFlops}
           totalFlops={postflopState.flops.length}
           selectedBoardId={postflopState.selectedBoardId}
@@ -110,7 +115,16 @@ export function CfrPage({ initialMode = 'postflop' }: CfrPageProps) {
           className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 z-20 w-6 h-12 items-center justify-center bg-[var(--cp-bg-elevated)] border border-white/10 border-l-0 rounded-r-md text-slate-400 hover:text-white transition-colors"
           title="Expand sidebar"
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <polyline points="9 18 15 12 9 6" />
           </svg>
         </button>
@@ -145,7 +159,12 @@ export function CfrPage({ initialMode = 'postflop' }: CfrPageProps) {
         {postflopState.error && (
           <div className="mx-6 mt-4 bg-red-500/10 border border-red-500/30 rounded-lg px-4 py-2 text-red-300 text-sm">
             {postflopState.error}
-            <button onClick={postflopActions.clearError} className="ml-2 text-red-400 hover:text-red-300 underline">dismiss</button>
+            <button
+              onClick={postflopActions.clearError}
+              className="ml-2 text-red-400 hover:text-red-300 underline"
+            >
+              dismiss
+            </button>
           </div>
         )}
 
@@ -157,8 +176,8 @@ export function CfrPage({ initialMode = 'postflop' }: CfrPageProps) {
         )}
 
         {/* Content */}
-        {!postflopState.loadingBoard && (
-          postflopState.mode === 'training' ? (
+        {!postflopState.loadingBoard &&
+          (postflopState.mode === 'training' ? (
             <div className="flex-1 p-6 max-w-[1400px] w-full mx-auto">
               <TrainingMode
                 indexed={postflopState.indexed}
@@ -180,8 +199,7 @@ export function CfrPage({ initialMode = 'postflop' }: CfrPageProps) {
                 onSelectBoard={postflopActions.selectBoard}
               />
             </div>
-          )
-        )}
+          ))}
       </main>
     </div>
   );

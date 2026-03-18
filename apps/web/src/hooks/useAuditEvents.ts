@@ -5,9 +5,9 @@
  * hand audit summaries + session leak summary in state.
  */
 
-import { useEffect, useState, useCallback } from "react";
-import type { Socket } from "socket.io-client";
-import type { HandAuditSummary, SessionLeakSummary } from "@cardpilot/shared-types";
+import { useEffect, useState } from 'react';
+import type { Socket } from 'socket.io-client';
+import type { HandAuditSummary, SessionLeakSummary } from '@cardpilot/shared-types';
 
 export interface AuditState {
   /** Most recent hand audit summaries (newest first), capped at 50 */
@@ -37,12 +37,12 @@ export function useAuditEvents(socket: Socket | null, userId: string | null): Au
       setSessionLeak(data.summary);
     };
 
-    socket.on("hand_audit_complete", onHandAudit);
-    socket.on("session_leak_update", onSessionLeak);
+    socket.on('hand_audit_complete', onHandAudit);
+    socket.on('session_leak_update', onSessionLeak);
 
     return () => {
-      socket.off("hand_audit_complete", onHandAudit);
-      socket.off("session_leak_update", onSessionLeak);
+      socket.off('hand_audit_complete', onHandAudit);
+      socket.off('session_leak_update', onSessionLeak);
     };
   }, [socket, userId]);
 

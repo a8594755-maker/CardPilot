@@ -1,6 +1,9 @@
-import React, { memo, useEffect } from "react";
-import type { Notification } from "@cardpilot/shared-types";
-import type { NotificationActions, NotificationState } from "../../pages/clubs/hooks/useNotifications";
+import React, { memo, useEffect } from 'react';
+import type { Notification } from '@cardpilot/shared-types';
+import type {
+  NotificationActions,
+  NotificationState,
+} from '../../pages/clubs/hooks/useNotifications';
 
 interface NotificationPanelProps {
   state: NotificationState;
@@ -10,17 +13,17 @@ interface NotificationPanelProps {
 }
 
 const NOTIFICATION_ICONS: Record<string, string> = {
-  table_opened: "🎯",
-  table_started: "🃏",
-  join_request_received: "📩",
-  join_request_approved: "✅",
-  join_request_rejected: "❌",
-  role_changed: "👑",
-  kicked: "🚫",
-  banned: "⛔",
-  credit_granted: "💰",
-  credit_deducted: "💸",
-  chat_mention: "💬",
+  table_opened: '🎯',
+  table_started: '🃏',
+  join_request_received: '📩',
+  join_request_approved: '✅',
+  join_request_rejected: '❌',
+  role_changed: '👑',
+  kicked: '🚫',
+  banned: '⛔',
+  credit_granted: '💰',
+  credit_deducted: '💸',
+  chat_mention: '💬',
 };
 
 export const NotificationPanel = memo(function NotificationPanel({
@@ -74,8 +77,17 @@ export const NotificationPanel = memo(function NotificationPanel({
             onClick={onClose}
             className="text-slate-500 hover:text-slate-300 transition-colors"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
             </svg>
           </button>
         </div>
@@ -91,9 +103,7 @@ export const NotificationPanel = memo(function NotificationPanel({
         )}
 
         {state.loading && state.notifications.length === 0 && (
-          <div className="px-4 py-8 text-center text-xs text-slate-500">
-            Loading...
-          </div>
+          <div className="px-4 py-8 text-center text-xs text-slate-500">Loading...</div>
         )}
 
         {state.notifications.map((notification) => (
@@ -101,12 +111,12 @@ export const NotificationPanel = memo(function NotificationPanel({
             key={notification.id}
             onClick={() => handleNotificationClick(notification)}
             className={`w-full text-left px-4 py-3 border-b border-slate-800/50 hover:bg-slate-800/40 transition-colors ${
-              !notification.isRead ? "bg-slate-800/20" : ""
+              !notification.isRead ? 'bg-slate-800/20' : ''
             }`}
           >
             <div className="flex items-start gap-3">
               <span className="text-lg shrink-0 mt-0.5">
-                {NOTIFICATION_ICONS[notification.type] ?? "🔔"}
+                {NOTIFICATION_ICONS[notification.type] ?? '🔔'}
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
@@ -137,7 +147,7 @@ export const NotificationPanel = memo(function NotificationPanel({
               disabled={state.loading}
               className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors disabled:opacity-50"
             >
-              {state.loading ? "Loading..." : "Load more"}
+              {state.loading ? 'Loading...' : 'Load more'}
             </button>
           </div>
         )}
@@ -149,7 +159,7 @@ export const NotificationPanel = memo(function NotificationPanel({
 function formatRelativeTime(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const seconds = Math.floor(diff / 1000);
-  if (seconds < 60) return "just now";
+  if (seconds < 60) return 'just now';
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.floor(minutes / 60);

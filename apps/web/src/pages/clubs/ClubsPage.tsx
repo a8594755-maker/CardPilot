@@ -1,10 +1,7 @@
-import { useState, useCallback } from "react";
-import type { Socket } from "socket.io-client";
-import type {
-  ClubListItem,
-  ClubDetailPayload,
-} from "@cardpilot/shared-types";
-import { ClubDetailView } from "./ClubDetailView";
+import { useState, useCallback } from 'react';
+import type { Socket } from 'socket.io-client';
+import type { ClubListItem, ClubDetailPayload } from '@cardpilot/shared-types';
+import { ClubDetailView } from './ClubDetailView';
 
 interface ClubsPageProps {
   socket: Socket | null;
@@ -32,36 +29,36 @@ export function ClubsPage({
   showToast,
 }: ClubsPageProps) {
   const [showCreate, setShowCreate] = useState(false);
-  const [createName, setCreateName] = useState("");
-  const [createDesc, setCreateDesc] = useState("");
+  const [createName, setCreateName] = useState('');
+  const [createDesc, setCreateDesc] = useState('');
   const [createRequireApproval, setCreateRequireApproval] = useState(true);
-  const [createColor, setCreateColor] = useState("#6366f1");
-  const [joinCode, setJoinCode] = useState("");
-  const [inviteCode, setInviteCode] = useState("");
+  const [createColor, setCreateColor] = useState('#6366f1');
+  const [joinCode, setJoinCode] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
 
   const handleCreate = useCallback(() => {
     if (!socket || !createName.trim()) return;
-    socket.emit("club_create", {
+    socket.emit('club_create', {
       name: createName.trim(),
       description: createDesc.trim(),
       requireApprovalToJoin: createRequireApproval,
       badgeColor: createColor,
     });
     setShowCreate(false);
-    setCreateName("");
-    setCreateDesc("");
-    showToast("Creating club...");
+    setCreateName('');
+    setCreateDesc('');
+    showToast('Creating club...');
   }, [socket, createName, createDesc, createRequireApproval, createColor, showToast]);
 
   const handleJoin = useCallback(() => {
     if (!socket || !joinCode.trim()) return;
-    socket.emit("club_join_request", {
+    socket.emit('club_join_request', {
       clubCode: joinCode.trim().toUpperCase(),
       inviteCode: inviteCode.trim() || undefined,
     });
-    setJoinCode("");
-    setInviteCode("");
-    showToast("Joining club...");
+    setJoinCode('');
+    setInviteCode('');
+    showToast('Joining club...');
   }, [socket, joinCode, inviteCode, showToast]);
 
   // If viewing a club detail
@@ -72,7 +69,7 @@ export function ClubsPage({
         isConnected={isConnected}
         userId={userId}
         detail={clubDetail}
-        onBack={() => onSelectClub("")}
+        onBack={() => onSelectClub('')}
         onJoinTable={onJoinClubTable}
         showToast={showToast}
       />
@@ -92,7 +89,7 @@ export function ClubsPage({
               className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10 transition-all disabled:opacity-50"
               title="Refresh clubs"
             >
-              {clubsLoading ? "Syncing\u2026" : "\u21bb Refresh"}
+              {clubsLoading ? 'Syncing\u2026' : '\u21bb Refresh'}
             </button>
             <button
               onClick={() => setShowCreate(true)}
@@ -169,7 +166,7 @@ export function ClubsPage({
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold text-white shadow-lg"
-                    style={{ backgroundColor: club.badgeColor ?? "#6366f1" }}
+                    style={{ backgroundColor: club.badgeColor ?? '#6366f1' }}
                   >
                     {club.name[0]?.toUpperCase()}
                   </div>
@@ -231,11 +228,11 @@ export function ClubsPage({
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Badge Color</label>
                 <div className="flex gap-2">
-                  {["#6366f1", "#ef4444", "#22c55e", "#f59e0b", "#06b6d4", "#ec4899"].map((c) => (
+                  {['#6366f1', '#ef4444', '#22c55e', '#f59e0b', '#06b6d4', '#ec4899'].map((c) => (
                     <button
                       key={c}
                       onClick={() => setCreateColor(c)}
-                      className={`w-8 h-8 rounded-lg transition-transform ${createColor === c ? "ring-2 ring-white scale-110" : "opacity-60 hover:opacity-100"}`}
+                      className={`w-8 h-8 rounded-lg transition-transform ${createColor === c ? 'ring-2 ring-white scale-110' : 'opacity-60 hover:opacity-100'}`}
                       style={{ backgroundColor: c }}
                     />
                   ))}
@@ -253,7 +250,10 @@ export function ClubsPage({
               </label>
 
               <div className="flex gap-2 pt-2">
-                <button onClick={() => setShowCreate(false)} className="flex-1 btn-secondary text-sm">
+                <button
+                  onClick={() => setShowCreate(false)}
+                  className="flex-1 btn-secondary text-sm"
+                >
                   Cancel
                 </button>
                 <button

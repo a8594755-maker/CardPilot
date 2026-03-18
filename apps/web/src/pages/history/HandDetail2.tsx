@@ -1,12 +1,17 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { HandActionRecord, HandRecord, GTOAnalysis, LocalGTOSpot } from "../../lib/hand-history.js";
-import { formatHandAsPokerStars } from "../../lib/hand-history.js";
-import { PokerCard } from "../../components/PokerCard.js";
-import type { Socket } from "socket.io-client";
-import type { HistoryGTOAnalysis } from "@cardpilot/shared-types";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type {
+  HandActionRecord,
+  HandRecord,
+  GTOAnalysis,
+  LocalGTOSpot,
+} from '../../lib/hand-history.js';
+import { formatHandAsPokerStars } from '../../lib/hand-history.js';
+import { PokerCard } from '../../components/PokerCard.js';
+import type { Socket } from 'socket.io-client';
+import type { HistoryGTOAnalysis } from '@cardpilot/shared-types';
 
-const STREETS = ["PREFLOP", "FLOP", "TURN", "RIVER"];
-const EDITABLE_TAGS = ["SRP", "3bet_pot", "4bet_pot", "all_in"];
+const STREETS = ['PREFLOP', 'FLOP', 'TURN', 'RIVER'];
+const EDITABLE_TAGS = ['SRP', '3bet_pot', '4bet_pot', 'all_in'];
 
 function splitBoard(board: string[]) {
   return {
@@ -28,14 +33,14 @@ function computeRunningPot(actions: HandActionRecord[], upToIndex: number): numb
   let pot = 0;
   for (let i = 0; i <= upToIndex; i++) {
     const a = actions[i];
-    if (a.type !== "fold" && a.type !== "check") {
+    if (a.type !== 'fold' && a.type !== 'check') {
       pot += a.amount;
     }
   }
   return pot;
 }
 
-type GtoState = "idle" | "loading" | "success" | "error";
+type GtoState = 'idle' | 'loading' | 'success' | 'error';
 
 function mapServerToLocal(server: HistoryGTOAnalysis): GTOAnalysis {
   return {
@@ -45,26 +50,28 @@ function mapServerToLocal(server: HistoryGTOAnalysis): GTOAnalysis {
       action: s.heroAction,
       gtoAction: s.recommended.action,
       evDiff: s.deviationScore,
-      accuracy: s.deviationScore <= 20 ? "good" : s.deviationScore <= 50 ? "ok" : "bad",
+      accuracy: s.deviationScore <= 20 ? 'good' : s.deviationScore <= 50 ? 'ok' : 'bad',
     })),
     analyzedAt: server.computedAt,
     precision: server.precision,
     streetScores: server.streetScores,
-    spots: server.spots.map((s): LocalGTOSpot => ({
-      street: s.street,
-      pot: s.pot,
-      toCall: s.toCall,
-      effectiveStack: s.effectiveStack,
-      heroAction: s.heroAction,
-      heroAmount: s.heroAmount,
-      recommendedAction: s.recommended.action,
-      recommendedMix: s.recommended.mix,
-      deviationScore: s.deviationScore,
-      evLossBb: s.evLossBb,
-      actionTimelineIdx: s.actionTimelineIdx,
-      decisionIndex: s.decisionIndex,
-      note: s.note,
-    })),
+    spots: server.spots.map(
+      (s): LocalGTOSpot => ({
+        street: s.street,
+        pot: s.pot,
+        toCall: s.toCall,
+        effectiveStack: s.effectiveStack,
+        heroAction: s.heroAction,
+        heroAmount: s.heroAmount,
+        recommendedAction: s.recommended.action,
+        recommendedMix: s.recommended.mix,
+        deviationScore: s.deviationScore,
+        evLossBb: s.evLossBb,
+        actionTimelineIdx: s.actionTimelineIdx,
+        decisionIndex: s.decisionIndex,
+        note: s.note,
+      }),
+    ),
   };
 }
 
@@ -98,9 +105,9 @@ export function HandDetail2({
   socket?: Socket | null;
   onSaveAnalysis?: (handId: string, analysis: GTOAnalysis) => void;
 }) {
-  const [customTag, setCustomTag] = useState("");
-  const [copied, setCopied] = useState<"hh" | "json" | null>(null);
-  const [gtoState, setGtoState] = useState<GtoState>("idle");
+  const [customTag, setCustomTag] = useState('');
+  const [copied, setCopied] = useState<'hh' | 'json' | null>(null);
+  const [gtoState, setGtoState] = useState<GtoState>('idle');
   const [gtoResult, setGtoResult] = useState<HistoryGTOAnalysis | null>(null);
   const [gtoError, setGtoError] = useState<string | null>(null);
   const [selectedActionIdx, setSelectedActionIdx] = useState<number | null>(null);
@@ -108,7 +115,7 @@ export function HandDetail2({
 
   // Reset GTO state when hand changes; restore from local cache if available
   useEffect(() => {
-    setGtoState(hand?.gtoAnalysis ? "success" : "idle");
+    setGtoState(hand?.gtoAnalysis ? 'success' : 'idle');
     setGtoResult(null);
     setGtoError(null);
     setSelectedActionIdx(null);
@@ -117,54 +124,63 @@ export function HandDetail2({
   // Listen for GTO result from server
   useEffect(() => {
     if (!socket || !hand) return;
-    const handler = (payload: { handId: string; gtoAnalysis: HistoryGTOAnalysis | null; error?: string }) => {
+    const handler = (payload: {
+      handId: string;
+      gtoAnalysis: HistoryGTOAnalysis | null;
+      error?: string;
+    }) => {
       if (payload.handId !== hand.id) return;
       if (payload.error || !payload.gtoAnalysis) {
-        setGtoState("error");
-        setGtoError(payload.error ?? "Analysis failed");
+        setGtoState('error');
+        setGtoError(payload.error ?? 'Analysis failed');
         return;
       }
       setGtoResult(payload.gtoAnalysis);
-      setGtoState("success");
+      setGtoState('success');
       // Persist to localStorage
       const localAnalysis = mapServerToLocal(payload.gtoAnalysis);
       onSaveAnalysis?.(hand.id, localAnalysis);
     };
-    socket.on("history_gto_result" as string, handler);
-    return () => { socket.off("history_gto_result" as string, handler); };
+    socket.on('history_gto_result' as string, handler);
+    return () => {
+      socket.off('history_gto_result' as string, handler);
+    };
   }, [socket, hand?.id, onSaveAnalysis]);
 
-  const requestAnalysis = useCallback((precision: "fast" | "deep") => {
-    if (!socket || !hand) return;
-    if (hand.heroCards.length < 2) return;
-    setGtoState("loading");
-    setGtoError(null);
-    setGtoResult(null);
-    socket.emit("history_gto_analyze" as string, {
-      handId: hand.id,
-      handRecord: {
-        heroCards: [hand.heroCards[0], hand.heroCards[1]],
-        board: hand.board,
-        heroSeat: hand.heroSeat ?? 0,
-        heroPosition: hand.position,
-        stakes: hand.stakes,
-        tableSize: hand.tableSize,
-        potSize: hand.potSize,
-        stackSize: hand.stackSize,
-        actions: hand.actions,
-        actionTimeline: hand.actionTimeline,
-        buttonSeat: hand.buttonSeat,
-        positionsBySeat: hand.positionsBySeat,
-        stacksBySeatAtStart: hand.stacksBySeatAtStart,
-        potLayers: hand.potLayers,
-        payoutLedger: hand.payoutLedger,
-        smallBlind: hand.smallBlind,
-        bigBlind: hand.bigBlind,
-        playerNames: hand.playerNames,
-      },
-      precision,
-    });
-  }, [socket, hand]);
+  const requestAnalysis = useCallback(
+    (precision: 'fast' | 'deep') => {
+      if (!socket || !hand) return;
+      if (hand.heroCards.length < 2) return;
+      setGtoState('loading');
+      setGtoError(null);
+      setGtoResult(null);
+      socket.emit('history_gto_analyze' as string, {
+        handId: hand.id,
+        handRecord: {
+          heroCards: [hand.heroCards[0], hand.heroCards[1]],
+          board: hand.board,
+          heroSeat: hand.heroSeat ?? 0,
+          heroPosition: hand.position,
+          stakes: hand.stakes,
+          tableSize: hand.tableSize,
+          potSize: hand.potSize,
+          stackSize: hand.stackSize,
+          actions: hand.actions,
+          actionTimeline: hand.actionTimeline,
+          buttonSeat: hand.buttonSeat,
+          positionsBySeat: hand.positionsBySeat,
+          stacksBySeatAtStart: hand.stacksBySeatAtStart,
+          potLayers: hand.potLayers,
+          payoutLedger: hand.payoutLedger,
+          smallBlind: hand.smallBlind,
+          bigBlind: hand.bigBlind,
+          playerNames: hand.playerNames,
+        },
+        precision,
+      });
+    },
+    [socket, hand],
+  );
 
   const groupedActions = useMemo(() => (hand ? streetGroups(hand.actions) : []), [hand]);
   const groupedActionsWithIndex = useMemo(() => {
@@ -218,11 +234,11 @@ export function HandDetail2({
   }, [gtoResult, hand?.gtoAnalysis]);
 
   const onSelectDecisionPoint = useCallback((point: DecisionPointView) => {
-    if (typeof point.actionTimelineIdx !== "number") return;
+    if (typeof point.actionTimelineIdx !== 'number') return;
     setSelectedActionIdx(point.actionTimelineIdx);
     const node = actionRefs.current[point.actionTimelineIdx];
     if (node) {
-      node.scrollIntoView({ behavior: "smooth", block: "center" });
+      node.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, []);
 
@@ -235,24 +251,25 @@ export function HandDetail2({
     );
   }
 
-  const runouts = hand.runoutBoards && hand.runoutBoards.length > 0
-    ? hand.runoutBoards
-    : hand.doubleBoardPayouts && hand.doubleBoardPayouts.length > 0
-      ? hand.doubleBoardPayouts.map((run) => run.board)
-      : [hand.board];
+  const runouts =
+    hand.runoutBoards && hand.runoutBoards.length > 0
+      ? hand.runoutBoards
+      : hand.doubleBoardPayouts && hand.doubleBoardPayouts.length > 0
+        ? hand.doubleBoardPayouts.map((run) => run.board)
+        : [hand.board];
   const result = hand.result ?? 0;
   const heroSeat = hand.heroSeat;
 
   const handleCopyHH = async () => {
     const text = formatHandAsPokerStars(hand);
     await onCopy(text);
-    setCopied("hh");
+    setCopied('hh');
     setTimeout(() => setCopied(null), 2000);
   };
 
   const handleCopyJSON = async () => {
     await onCopy(JSON.stringify(hand, null, 2));
-    setCopied("json");
+    setCopied('json');
     setTimeout(() => setCopied(null), 2000);
   };
 
@@ -269,11 +286,15 @@ export function HandDetail2({
                 </span>
               ) : null}
               {hand.handId && (
-                <span className="text-[10px] font-mono text-slate-500">#{hand.handId.slice(0, 12)}</span>
+                <span className="text-[10px] font-mono text-slate-500">
+                  #{hand.handId.slice(0, 12)}
+                </span>
               )}
             </div>
             <div className="flex items-center gap-2 text-[11px] text-slate-400">
-              <span className="font-medium text-white">{hand.gameType} {hand.stakes}</span>
+              <span className="font-medium text-white">
+                {hand.gameType} {hand.stakes}
+              </span>
               <span className="text-slate-600">·</span>
               <span>{hand.tableSize}-max</span>
               <span className="text-slate-600">·</span>
@@ -292,10 +313,13 @@ export function HandDetail2({
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
-            <div className={`text-xl font-bold tabular-nums ${
-              result > 0 ? "text-emerald-400" : result < 0 ? "text-red-400" : "text-slate-300"
-            }`}>
-              {result > 0 ? "+" : ""}{result.toLocaleString()}
+            <div
+              className={`text-xl font-bold tabular-nums ${
+                result > 0 ? 'text-emerald-400' : result < 0 ? 'text-red-400' : 'text-slate-300'
+              }`}
+            >
+              {result > 0 ? '+' : ''}
+              {result.toLocaleString()}
             </div>
             <div className="flex items-center gap-2 text-[11px] text-slate-400">
               <span>Pot {hand.potSize.toLocaleString()}</span>
@@ -309,22 +333,32 @@ export function HandDetail2({
       {/* GTO Analysis */}
       <div className="rounded-xl bg-slate-800/40 border border-white/[0.06] p-4">
         <div className="flex items-center justify-between mb-3">
-          <div className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">GTO Analysis</div>
+          <div className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+            GTO Analysis
+          </div>
           <div className="flex items-center gap-2">
-            {gtoState !== "loading" && (
+            {gtoState !== 'loading' && (
               <>
                 <button
-                  onClick={() => requestAnalysis("deep")}
+                  onClick={() => requestAnalysis('deep')}
                   disabled={!socket}
-                  title={!socket ? "Connect to the live game server to enable GTO analysis." : "Run deep server-side GTO analysis"}
+                  title={
+                    !socket
+                      ? 'Connect to the live game server to enable GTO analysis.'
+                      : 'Run deep server-side GTO analysis'
+                  }
                   className="text-[10px] px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-600/80 to-indigo-600/80 text-white font-semibold border border-purple-500/30 hover:from-purple-500/90 hover:to-indigo-500/90 transition-all disabled:opacity-45 disabled:cursor-not-allowed"
                 >
                   Analyze (Deep)
                 </button>
                 <button
-                  onClick={() => requestAnalysis("fast")}
+                  onClick={() => requestAnalysis('fast')}
                   disabled={!socket}
-                  title={!socket ? "Connect to the live game server to enable GTO analysis." : "Run fast server-side GTO analysis"}
+                  title={
+                    !socket
+                      ? 'Connect to the live game server to enable GTO analysis.'
+                      : 'Run fast server-side GTO analysis'
+                  }
                   className="text-[10px] px-3 py-1.5 rounded-lg bg-slate-700/50 text-slate-300 border border-white/[0.08] hover:bg-slate-700/70 transition-all disabled:opacity-45 disabled:cursor-not-allowed"
                 >
                   Fast
@@ -334,37 +368,41 @@ export function HandDetail2({
           </div>
         </div>
 
-        {gtoState === "loading" && (
+        {gtoState === 'loading' && (
           <div className="flex items-center gap-2 py-4">
             <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
             <span className="text-xs text-slate-400">Running deep analysis...</span>
           </div>
         )}
 
-        {gtoState === "error" && (
-          <div className="text-xs text-red-400 py-2">{gtoError ?? "Analysis failed"}</div>
+        {gtoState === 'error' && (
+          <div className="text-xs text-red-400 py-2">{gtoError ?? 'Analysis failed'}</div>
         )}
 
-        {gtoState === "success" && (gtoResult || hand.gtoAnalysis) && (
+        {gtoState === 'success' && (gtoResult || hand.gtoAnalysis) && (
           <GtoResultView result={gtoResult} localAnalysis={hand.gtoAnalysis} />
         )}
 
-        {gtoState === "idle" && !hand.gtoAnalysis && !socket && (
+        {gtoState === 'idle' && !hand.gtoAnalysis && !socket && (
           <div className="text-xs text-slate-500 py-2">Connect to server to run GTO analysis.</div>
         )}
-        {gtoState === "idle" && !hand.gtoAnalysis && socket && (
-          <div className="text-xs text-slate-500 py-2">Press Analyze to evaluate this hand against GTO strategy.</div>
+        {gtoState === 'idle' && !hand.gtoAnalysis && socket && (
+          <div className="text-xs text-slate-500 py-2">
+            Press Analyze to evaluate this hand against GTO strategy.
+          </div>
         )}
       </div>
 
       {/* Decision Points */}
       {decisionPoints.length > 0 && (
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-2">Decision Points</div>
+          <div className="text-[10px] uppercase tracking-wider text-slate-500 mb-2">
+            Decision Points
+          </div>
           <div className="space-y-1.5">
             {decisionPoints.map((point, idx) => {
               const badge = deviationBadge(point.deviationScore);
-              const isLinked = typeof point.actionTimelineIdx === "number";
+              const isLinked = typeof point.actionTimelineIdx === 'number';
               return (
                 <button
                   key={point.id}
@@ -372,31 +410,45 @@ export function HandDetail2({
                   disabled={!isLinked}
                   className={`w-full text-left rounded-lg border p-2.5 transition-all ${
                     isLinked
-                      ? "border-white/[0.08] bg-slate-800/30 hover:border-sky-500/40"
-                      : "border-white/[0.04] bg-slate-800/20 opacity-80"
+                      ? 'border-white/[0.08] bg-slate-800/30 hover:border-sky-500/40'
+                      : 'border-white/[0.04] bg-slate-800/20 opacity-80'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px] font-bold text-cyan-400 uppercase">{point.street}</span>
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${badge.cls}`}>{badge.label}</span>
+                    <span className="text-[10px] font-bold text-cyan-400 uppercase">
+                      {point.street}
+                    </span>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${badge.cls}`}>
+                      {badge.label}
+                    </span>
                     <span className="text-[10px] text-slate-600">#{idx + 1}</span>
                     <span className="ml-auto text-[10px] text-slate-500 tabular-nums">
                       pot {point.pot.toLocaleString()}
-                      {typeof point.toCall === "number" ? ` · toCall ${point.toCall.toLocaleString()}` : ""}
+                      {typeof point.toCall === 'number'
+                        ? ` · toCall ${point.toCall.toLocaleString()}`
+                        : ''}
                     </span>
                   </div>
                   <div className="text-[11px] text-slate-300">
                     <span className="text-slate-500">You: </span>
                     <span className="font-semibold uppercase">{point.heroAction}</span>
-                    {point.heroAmount > 0 && <span className="ml-1 tabular-nums">{point.heroAmount.toLocaleString()}</span>}
+                    {point.heroAmount > 0 && (
+                      <span className="ml-1 tabular-nums">{point.heroAmount.toLocaleString()}</span>
+                    )}
                     <span className="mx-2 text-slate-600">→</span>
                     <span className="text-slate-500">GTO: </span>
-                    <span className="font-semibold uppercase text-purple-300">{point.recommendedAction}</span>
-                    {typeof point.evLossBb === "number" && (
-                      <span className="ml-2 text-[10px] text-amber-300">~{point.evLossBb.toFixed(2)} bb loss</span>
+                    <span className="font-semibold uppercase text-purple-300">
+                      {point.recommendedAction}
+                    </span>
+                    {typeof point.evLossBb === 'number' && (
+                      <span className="ml-2 text-[10px] text-amber-300">
+                        ~{point.evLossBb.toFixed(2)} bb loss
+                      </span>
                     )}
                   </div>
-                  {point.note && <div className="text-[10px] text-slate-500 mt-1 truncate">{point.note}</div>}
+                  {point.note && (
+                    <div className="text-[10px] text-slate-500 mt-1 truncate">{point.note}</div>
+                  )}
                 </button>
               );
             })}
@@ -483,15 +535,17 @@ export function HandDetail2({
                   key={seatStr}
                   className={`flex items-center gap-3 rounded-lg px-3 py-2 border ${
                     isHero
-                      ? "border-sky-500/30 bg-sky-500/5"
-                      : "border-white/[0.06] bg-white/[0.02]"
+                      ? 'border-sky-500/30 bg-sky-500/5'
+                      : 'border-white/[0.06] bg-white/[0.02]'
                   }`}
                 >
-                  <span className={`text-xs font-medium min-w-[80px] ${isHero ? "text-sky-300" : "text-slate-300"}`}>
+                  <span
+                    className={`text-xs font-medium min-w-[80px] ${isHero ? 'text-sky-300' : 'text-slate-300'}`}
+                  >
                     {playerName}
                     {isHero && <span className="text-[9px] text-sky-500 ml-1">(Hero)</span>}
                   </span>
-                  {cards === "mucked" ? (
+                  {cards === 'mucked' ? (
                     <span className="text-[11px] text-slate-500 italic">Mucked</span>
                   ) : (
                     <div className="flex gap-0.5">
@@ -517,8 +571,8 @@ export function HandDetail2({
               onClick={() => onToggleTag(tag)}
               className={`text-[10px] px-2.5 py-1 rounded-full border transition-all ${
                 hand.tags.includes(tag)
-                  ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
-                  : "bg-slate-800/40 text-slate-400 border-white/[0.08] hover:border-white/[0.15]"
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                  : 'bg-slate-800/40 text-slate-400 border-white/[0.08] hover:border-white/[0.15]'
               }`}
             >
               {tag}
@@ -530,10 +584,10 @@ export function HandDetail2({
             placeholder="+ tag"
             onChange={(e) => setCustomTag(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
+              if (e.key === 'Enter') {
                 const tag = customTag.trim();
                 if (tag && !hand.tags.includes(tag)) onToggleTag(tag);
-                setCustomTag("");
+                setCustomTag('');
               }
             }}
           />
@@ -546,7 +600,10 @@ export function HandDetail2({
         <div className="space-y-2">
           {groupedActionsWithIndex.map((group) => {
             return (
-              <div key={group.street} className="rounded-lg border border-white/[0.06] overflow-hidden">
+              <div
+                key={group.street}
+                className="rounded-lg border border-white/[0.06] overflow-hidden"
+              >
                 <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-cyan-400 bg-slate-800/60 border-b border-white/[0.06]">
                   {group.street}
                 </div>
@@ -563,25 +620,34 @@ export function HandDetail2({
                       }}
                       className={`flex items-center gap-2 px-3 py-1.5 text-[11px] border-b border-white/[0.04] last:border-b-0 ${
                         isSelected
-                          ? "bg-amber-500/10 ring-1 ring-amber-500/40"
+                          ? 'bg-amber-500/10 ring-1 ring-amber-500/40'
                           : isHeroAction
-                            ? "bg-sky-500/[0.04]"
-                            : ""
+                            ? 'bg-sky-500/[0.04]'
+                            : ''
                       }`}
                     >
-                      <span className={`min-w-[80px] truncate ${isHeroAction ? "text-sky-300 font-medium" : "text-slate-400"}`}>
+                      <span
+                        className={`min-w-[80px] truncate ${isHeroAction ? 'text-sky-300 font-medium' : 'text-slate-400'}`}
+                      >
                         {playerName}
                       </span>
-                      <span className={`font-semibold uppercase ${
-                        a.type === "fold" ? "text-slate-500" :
-                        a.type === "raise" || a.type === "all_in" ? "text-amber-400" :
-                        a.type === "call" ? "text-emerald-400" :
-                        "text-slate-300"
-                      }`}>
+                      <span
+                        className={`font-semibold uppercase ${
+                          a.type === 'fold'
+                            ? 'text-slate-500'
+                            : a.type === 'raise' || a.type === 'all_in'
+                              ? 'text-amber-400'
+                              : a.type === 'call'
+                                ? 'text-emerald-400'
+                                : 'text-slate-300'
+                        }`}
+                      >
                         {a.type}
                       </span>
                       {a.amount > 0 && (
-                        <span className="text-slate-300 tabular-nums">{a.amount.toLocaleString()}</span>
+                        <span className="text-slate-300 tabular-nums">
+                          {a.amount.toLocaleString()}
+                        </span>
                       )}
                       <span className="ml-auto text-[10px] text-slate-600 tabular-nums">
                         pot {runningPot.toLocaleString()}
@@ -601,13 +667,13 @@ export function HandDetail2({
           onClick={handleCopyHH}
           className="text-[11px] px-3 py-2 rounded-lg bg-slate-700/50 text-slate-300 border border-white/[0.08] hover:bg-slate-700/70 transition-all"
         >
-          {copied === "hh" ? "✓ Copied!" : "📋 Copy HH"}
+          {copied === 'hh' ? '✓ Copied!' : '📋 Copy HH'}
         </button>
         <button
           onClick={handleCopyJSON}
           className="text-[11px] px-3 py-2 rounded-lg bg-slate-700/50 text-slate-300 border border-white/[0.08] hover:bg-slate-700/70 transition-all"
         >
-          {copied === "json" ? "✓ Copied!" : "📋 Copy JSON"}
+          {copied === 'json' ? '✓ Copied!' : '📋 Copy JSON'}
         </button>
         <button
           onClick={() => onDownload(hand)}
@@ -623,21 +689,23 @@ export function HandDetail2({
 // ── GTO Result View ──
 
 function scoreColor(score: number): string {
-  if (score >= 80) return "text-emerald-400";
-  if (score >= 50) return "text-amber-400";
-  return "text-red-400";
+  if (score >= 80) return 'text-emerald-400';
+  if (score >= 50) return 'text-amber-400';
+  return 'text-red-400';
 }
 
 function scoreBg(score: number): string {
-  if (score >= 80) return "bg-emerald-500";
-  if (score >= 50) return "bg-amber-500";
-  return "bg-red-500";
+  if (score >= 80) return 'bg-emerald-500';
+  if (score >= 50) return 'bg-amber-500';
+  return 'bg-red-500';
 }
 
 function deviationBadge(score: number): { label: string; cls: string } {
-  if (score <= 20) return { label: "Good", cls: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" };
-  if (score <= 50) return { label: "OK", cls: "bg-amber-500/20 text-amber-300 border-amber-500/30" };
-  return { label: "Miss", cls: "bg-red-500/20 text-red-300 border-red-500/30" };
+  if (score <= 20)
+    return { label: 'Good', cls: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' };
+  if (score <= 50)
+    return { label: 'OK', cls: 'bg-amber-500/20 text-amber-300 border-amber-500/30' };
+  return { label: 'Miss', cls: 'bg-red-500/20 text-red-300 border-red-500/30' };
 }
 
 function GtoResultView({
@@ -651,7 +719,7 @@ function GtoResultView({
   const overallScore = result?.overallScore ?? localAnalysis?.overallScore ?? 0;
   const streetScores = result?.streetScores ?? null;
   const spots = result?.spots ?? [];
-  const precision = result?.precision ?? "cached";
+  const precision = result?.precision ?? 'cached';
   const computedAt = result?.computedAt ?? localAnalysis?.analyzedAt ?? 0;
 
   return (
@@ -664,11 +732,14 @@ function GtoResultView({
         <div className="flex-1">
           <div className="text-[10px] text-slate-500 mb-1">Overall GTO Score</div>
           <div className="h-2 rounded-full bg-slate-700/60 overflow-hidden">
-            <div className={`h-full rounded-full ${scoreBg(overallScore)} transition-all`} style={{ width: `${overallScore}%` }} />
+            <div
+              className={`h-full rounded-full ${scoreBg(overallScore)} transition-all`}
+              style={{ width: `${overallScore}%` }}
+            />
           </div>
         </div>
         <div className="text-[9px] text-slate-600 text-right shrink-0">
-          {precision !== "cached" && <div>{precision} mode</div>}
+          {precision !== 'cached' && <div>{precision} mode</div>}
           {computedAt > 0 && <div>{new Date(computedAt).toLocaleTimeString()}</div>}
         </div>
       </div>
@@ -676,16 +747,21 @@ function GtoResultView({
       {/* Street breakdown */}
       {streetScores && (
         <div className="flex items-center gap-3">
-          {(["flop", "turn", "river"] as const).map((s) => {
+          {(['flop', 'turn', 'river'] as const).map((s) => {
             const val = streetScores[s];
             if (val === null) return null;
             return (
               <div key={s} className="flex-1 min-w-0">
                 <div className="text-[9px] text-slate-500 uppercase mb-1">{s}</div>
                 <div className="h-1.5 rounded-full bg-slate-700/60 overflow-hidden">
-                  <div className={`h-full rounded-full ${scoreBg(val)} transition-all`} style={{ width: `${val}%` }} />
+                  <div
+                    className={`h-full rounded-full ${scoreBg(val)} transition-all`}
+                    style={{ width: `${val}%` }}
+                  />
                 </div>
-                <div className={`text-[10px] font-bold tabular-nums mt-0.5 ${scoreColor(val)}`}>{Math.round(val)}</div>
+                <div className={`text-[10px] font-bold tabular-nums mt-0.5 ${scoreColor(val)}`}>
+                  {Math.round(val)}
+                </div>
               </div>
             );
           })}
@@ -698,21 +774,36 @@ function GtoResultView({
           {spots.map((spot, idx) => {
             const badge = deviationBadge(spot.deviationScore);
             return (
-              <div key={idx} className="rounded-lg border border-white/[0.06] bg-slate-800/30 p-2.5">
+              <div
+                key={idx}
+                className="rounded-lg border border-white/[0.06] bg-slate-800/30 p-2.5"
+              >
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-[10px] font-bold text-cyan-400 uppercase">{spot.street}</span>
-                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${badge.cls}`}>{badge.label}</span>
-                  <span className="ml-auto text-[10px] text-slate-500 tabular-nums">pot {spot.pot.toLocaleString()}</span>
+                  <span className="text-[10px] font-bold text-cyan-400 uppercase">
+                    {spot.street}
+                  </span>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${badge.cls}`}>
+                    {badge.label}
+                  </span>
+                  <span className="ml-auto text-[10px] text-slate-500 tabular-nums">
+                    pot {spot.pot.toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex items-center gap-3 text-[11px]">
                   <div>
                     <span className="text-slate-500">You: </span>
                     <span className="text-white font-semibold uppercase">{spot.heroAction}</span>
-                    {spot.heroAmount > 0 && <span className="text-slate-400 ml-1">{spot.heroAmount.toLocaleString()}</span>}
+                    {spot.heroAmount > 0 && (
+                      <span className="text-slate-400 ml-1">
+                        {spot.heroAmount.toLocaleString()}
+                      </span>
+                    )}
                   </div>
                   <div>
                     <span className="text-slate-500">GTO: </span>
-                    <span className="text-purple-300 font-semibold uppercase">{spot.recommended.action}</span>
+                    <span className="text-purple-300 font-semibold uppercase">
+                      {spot.recommended.action}
+                    </span>
                     <span className="text-slate-500 ml-1 text-[10px]">
                       (R{Math.round(spot.recommended.mix.raise * 100)}
                       /C{Math.round(spot.recommended.mix.call * 100)}
@@ -740,10 +831,15 @@ function GtoResultView({
           {localAnalysis.streets.map((s, idx) => {
             const badge = deviationBadge(s.evDiff);
             return (
-              <div key={idx} className="rounded-lg border border-white/[0.06] bg-slate-800/30 p-2.5">
+              <div
+                key={idx}
+                className="rounded-lg border border-white/[0.06] bg-slate-800/30 p-2.5"
+              >
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-cyan-400 uppercase">{s.street}</span>
-                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${badge.cls}`}>{badge.label}</span>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${badge.cls}`}>
+                    {badge.label}
+                  </span>
                 </div>
                 <div className="text-[11px] mt-1">
                   <span className="text-slate-500">You: </span>

@@ -63,7 +63,9 @@ const AGG_KEYS = new Set(['bet', 'raise', 'allin']);
 
 /** Blend action colors into a single background color (GTO Wizard style). */
 export function blendActionColors(probs: number[], labels: string[]): string {
-  let r = 0, g = 0, b = 0;
+  let r = 0,
+    g = 0,
+    b = 0;
   for (let i = 0; i < probs.length; i++) {
     const rgb = ACTION_RGB[extractKey(labels[i])] || [128, 128, 128];
     r += rgb[0] * probs[i];

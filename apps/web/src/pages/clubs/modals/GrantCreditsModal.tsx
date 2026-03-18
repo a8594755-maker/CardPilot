@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import type { ClubMember } from "@cardpilot/shared-types";
+import { useState, useEffect, useMemo } from 'react';
+import type { ClubMember } from '@cardpilot/shared-types';
 
 interface GrantCreditsModalProps {
   isOpen: boolean;
@@ -18,18 +18,18 @@ export function GrantCreditsModal({
   onSubmit,
   onClose,
 }: GrantCreditsModalProps) {
-  const [selectedUserId, setSelectedUserId] = useState("");
-  const [amount, setAmount] = useState<number | "">("");
-  const [note, setNote] = useState("");
-  const [searchFilter, setSearchFilter] = useState("");
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [amount, setAmount] = useState<number | ''>('');
+  const [note, setNote] = useState('');
+  const [searchFilter, setSearchFilter] = useState('');
 
   // Pre-fill selectedUserId when modal opens or preselectedUserId changes
   useEffect(() => {
     if (isOpen) {
-      setSelectedUserId(preselectedUserId ?? "");
-      setAmount("");
-      setNote("");
-      setSearchFilter("");
+      setSelectedUserId(preselectedUserId ?? '');
+      setAmount('');
+      setNote('');
+      setSearchFilter('');
     }
   }, [isOpen, preselectedUserId]);
 
@@ -38,7 +38,7 @@ export function GrantCreditsModal({
     const lower = searchFilter.toLowerCase();
     return members.filter(
       (m) =>
-        (m.displayName ?? "").toLowerCase().includes(lower) ||
+        (m.displayName ?? '').toLowerCase().includes(lower) ||
         m.userId.toLowerCase().includes(lower),
     );
   }, [members, searchFilter]);
@@ -46,10 +46,10 @@ export function GrantCreditsModal({
   const selectedDisplay =
     preselectedUserId === selectedUserId && preselectedDisplayName
       ? preselectedDisplayName
-      : members.find((m) => m.userId === selectedUserId)?.displayName ??
-        selectedUserId.slice(0, 8);
+      : (members.find((m) => m.userId === selectedUserId)?.displayName ??
+        selectedUserId.slice(0, 8));
 
-  const isValid = selectedUserId !== "" && typeof amount === "number" && amount > 0;
+  const isValid = selectedUserId !== '' && typeof amount === 'number' && amount > 0;
 
   if (!isOpen) return null;
 
@@ -83,9 +83,7 @@ export function GrantCreditsModal({
             ))}
           </select>
           {selectedUserId && (
-            <div className="text-[10px] text-slate-500 mt-1">
-              Selected: {selectedDisplay}
-            </div>
+            <div className="text-[10px] text-slate-500 mt-1">Selected: {selectedDisplay}</div>
           )}
         </div>
 
@@ -98,7 +96,7 @@ export function GrantCreditsModal({
             value={amount}
             onChange={(e) => {
               const v = e.target.value;
-              setAmount(v === "" ? "" : Number(v));
+              setAmount(v === '' ? '' : Number(v));
             }}
             min={1}
             className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"

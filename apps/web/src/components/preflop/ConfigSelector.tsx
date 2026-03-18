@@ -10,9 +10,19 @@ export interface PreflopConfig {
 }
 
 export const AVAILABLE_CONFIGS: PreflopConfig[] = [
-  { id: 'cash_6max_100bb', label: '100bb Cash', shortLabel: '100bb', description: '100bb deep, no ante' },
+  {
+    id: 'cash_6max_100bb',
+    label: '100bb Cash',
+    shortLabel: '100bb',
+    description: '100bb deep, no ante',
+  },
   { id: 'cash_6max_50bb', label: '50bb Cash', shortLabel: '50bb', description: '50bb short stack' },
-  { id: 'cash_6max_100bb_ante', label: '100bb + Ante', shortLabel: 'Ante', description: '100bb with 0.25bb ante' },
+  {
+    id: 'cash_6max_100bb_ante',
+    label: '100bb + Ante',
+    shortLabel: 'Ante',
+    description: '100bb with 0.25bb ante',
+  },
 ];
 
 interface ConfigSelectorProps {
@@ -28,7 +38,7 @@ export const ConfigSelector = memo(function ConfigSelector({
 }: ConfigSelectorProps) {
   return (
     <div className="flex gap-1">
-      {AVAILABLE_CONFIGS.map(cfg => {
+      {AVAILABLE_CONFIGS.map((cfg) => {
         const isAvailable = !availableConfigs || availableConfigs.includes(cfg.id);
         const isSelected = selectedConfig === cfg.id;
         return (

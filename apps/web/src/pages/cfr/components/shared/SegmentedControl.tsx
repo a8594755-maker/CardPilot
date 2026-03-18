@@ -9,16 +9,22 @@ interface SegmentedControlProps<T extends string> {
 }
 
 function SegmentedControlInner<T extends string>({
-  label, options, value, onChange, size = 'md',
+  label,
+  options,
+  value,
+  onChange,
+  size = 'md',
 }: SegmentedControlProps<T>) {
   const btnPad = size === 'sm' ? 'px-2.5 py-1 text-[11px]' : 'px-4 py-1.5 text-[13px]';
   return (
     <div>
       {label && (
-        <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">{label}</div>
+        <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+          {label}
+        </div>
       )}
       <div className="inline-flex gap-0.5 bg-white/5 rounded-lg p-0.5">
-        {options.map(opt => (
+        {options.map((opt) => (
           <button
             key={opt.value}
             onClick={() => onChange(opt.value)}

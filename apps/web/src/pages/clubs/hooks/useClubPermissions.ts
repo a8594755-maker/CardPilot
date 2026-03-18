@@ -1,6 +1,6 @@
-import { useMemo } from "react";
-import type { ClubRole } from "@cardpilot/shared-types";
-import { canPerformClubAction } from "@cardpilot/shared-types";
+import { useMemo } from 'react';
+import type { ClubRole } from '@cardpilot/shared-types';
+import { canPerformClubAction } from '@cardpilot/shared-types';
 
 export interface ClubPermissions {
   role: ClubRole;
@@ -19,20 +19,20 @@ export interface ClubPermissions {
 
 export function useClubPermissions(role: ClubRole | undefined): ClubPermissions {
   return useMemo(() => {
-    const r = role ?? "member";
+    const r = role ?? 'member';
     return {
       role: r,
-      isOwner: r === "owner",
-      isAdmin: r === "owner" || r === "admin",
-      canManageMembers: canPerformClubAction(r, "manage_members"),
-      canApproveJoins: canPerformClubAction(r, "approve_joins"),
-      canCreateTable: canPerformClubAction(r, "create_table"),
-      canManageRulesets: canPerformClubAction(r, "manage_rulesets"),
-      canCreateInvite: canPerformClubAction(r, "create_invite"),
-      canViewAudit: canPerformClubAction(r, "view_audit_log"),
-      canManageTables: canPerformClubAction(r, "manage_tables"),
-      canCloseTable: r === "owner",
-      canModerateChat: canPerformClubAction(r, "moderate_chat"),
+      isOwner: r === 'owner',
+      isAdmin: r === 'owner' || r === 'admin',
+      canManageMembers: canPerformClubAction(r, 'manage_members'),
+      canApproveJoins: canPerformClubAction(r, 'approve_joins'),
+      canCreateTable: canPerformClubAction(r, 'create_table'),
+      canManageRulesets: canPerformClubAction(r, 'manage_rulesets'),
+      canCreateInvite: canPerformClubAction(r, 'create_invite'),
+      canViewAudit: canPerformClubAction(r, 'view_audit_log'),
+      canManageTables: canPerformClubAction(r, 'manage_tables'),
+      canCloseTable: r === 'owner',
+      canModerateChat: canPerformClubAction(r, 'moderate_chat'),
     };
   }, [role]);
 }

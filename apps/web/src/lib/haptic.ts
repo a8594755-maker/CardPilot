@@ -1,6 +1,6 @@
 /** Haptic feedback via Vibration API. No-ops on desktop or unsupported browsers. */
 
-type HapticPattern = "tap" | "action" | "turn" | "win" | "error" | "bounty";
+type HapticPattern = 'tap' | 'action' | 'turn' | 'win' | 'error' | 'bounty';
 
 const PATTERNS: Record<HapticPattern, number | number[]> = {
   tap: 8,
@@ -12,8 +12,10 @@ const PATTERNS: Record<HapticPattern, number | number[]> = {
 };
 
 export function haptic(pattern: HapticPattern): void {
-  if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") return;
+  if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return;
   try {
     navigator.vibrate(PATTERNS[pattern]);
-  } catch { /* silently ignore */ }
+  } catch {
+    /* silently ignore */
+  }
 }

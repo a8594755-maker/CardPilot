@@ -1,6 +1,6 @@
-import React from "react";
-import type { ClubPermissions } from "../hooks/useClubPermissions";
-import type { ClubSocketActions } from "../hooks/useClubSocket";
+import React from 'react';
+import type { ClubPermissions } from '../hooks/useClubPermissions';
+import type { ClubSocketActions } from '../hooks/useClubSocket';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -37,10 +37,7 @@ export const CreditsTab = React.memo(function CreditsTab({
             {creditBalance.toLocaleString()}
           </div>
         </div>
-        <button
-          onClick={() => actions.refreshCredits()}
-          className="btn-secondary text-xs"
-        >
+        <button onClick={() => actions.refreshCredits()} className="btn-secondary text-xs">
           Refresh
         </button>
       </div>
@@ -62,9 +59,7 @@ export const CreditsTab = React.memo(function CreditsTab({
         </div>
         <div>
           <p className="text-xs uppercase tracking-wide text-slate-400">Club Credits</p>
-          <p className="text-sm text-slate-300">
-            Managed via club credit grant/deduct controls.
-          </p>
+          <p className="text-sm text-slate-300">Managed via club credit grant/deduct controls.</p>
         </div>
       </div>
 

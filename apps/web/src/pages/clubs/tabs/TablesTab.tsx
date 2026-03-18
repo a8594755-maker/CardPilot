@@ -1,12 +1,8 @@
-import React, { useState, useCallback } from "react";
-import type {
-  Club,
-  ClubTable,
-  ClubRuleset,
-} from "@cardpilot/shared-types";
-import { EmptyState } from "../shared";
-import type { ClubPermissions } from "../hooks/useClubPermissions";
-import type { ClubSocketActions } from "../hooks/useClubSocket";
+import React, { useState, useCallback } from 'react';
+import type { Club, ClubTable, ClubRuleset } from '@cardpilot/shared-types';
+import { EmptyState } from '../shared';
+import type { ClubPermissions } from '../hooks/useClubPermissions';
+import type { ClubSocketActions } from '../hooks/useClubSocket';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -27,7 +23,7 @@ export interface TablesTabProps {
 // ---------------------------------------------------------------------------
 
 export const TablesTab = React.memo(function TablesTab({
-  club,
+  club: _club,
   tables,
   rulesets,
   permissions,
@@ -36,15 +32,15 @@ export const TablesTab = React.memo(function TablesTab({
   onCloseTable,
 }: TablesTabProps) {
   const [showCreateTable, setShowCreateTable] = useState(false);
-  const [newTableName, setNewTableName] = useState("");
-  const [newTableRulesetId, setNewTableRulesetId] = useState("");
+  const [newTableName, setNewTableName] = useState('');
+  const [newTableRulesetId, setNewTableRulesetId] = useState('');
 
   const handleCreateTable = useCallback(() => {
     if (!newTableName.trim()) return;
     actions.createTable(newTableName.trim(), newTableRulesetId || undefined);
     setShowCreateTable(false);
-    setNewTableName("");
-    setNewTableRulesetId("");
+    setNewTableName('');
+    setNewTableRulesetId('');
   }, [actions, newTableName, newTableRulesetId]);
 
   return (
@@ -89,19 +85,13 @@ export const TablesTab = React.memo(function TablesTab({
                 >
                   Create
                 </button>
-                <button
-                  onClick={() => setShowCreateTable(false)}
-                  className="btn-ghost text-xs"
-                >
+                <button onClick={() => setShowCreateTable(false)} className="btn-ghost text-xs">
                   Cancel
                 </button>
               </div>
             </div>
           ) : (
-            <button
-              onClick={() => setShowCreateTable(true)}
-              className="btn-primary text-xs"
-            >
+            <button onClick={() => setShowCreateTable(true)} className="btn-primary text-xs">
               + New Table
             </button>
           )}
@@ -115,8 +105,8 @@ export const TablesTab = React.memo(function TablesTab({
           title="No tables yet"
           description={
             permissions.canCreateTable
-              ? "Create one to get started!"
-              : "No tables have been created in this club yet."
+              ? 'Create one to get started!'
+              : 'No tables have been created in this club yet.'
           }
         />
       ) : (
@@ -124,17 +114,17 @@ export const TablesTab = React.memo(function TablesTab({
           <div
             key={t.id}
             className={`flex flex-col gap-3 rounded-2xl border p-3 sm:flex-row sm:items-center sm:gap-4 ${
-              t.status === "open"
-                ? "bg-emerald-500/5 border-emerald-500/20"
-                : "bg-white/[0.02] border-white/5"
+              t.status === 'open'
+                ? 'bg-emerald-500/5 border-emerald-500/20'
+                : 'bg-white/[0.02] border-white/5'
             }`}
           >
             {/* Player count badge */}
             <div
               className={`flex h-12 w-12 items-center justify-center rounded-xl text-sm font-bold border ${
-                t.status === "open"
-                  ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-300"
-                  : "bg-white/5 border-white/10 text-slate-500"
+                t.status === 'open'
+                  ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300'
+                  : 'bg-white/5 border-white/10 text-slate-500'
               }`}
             >
               {t.playerCount ?? 0}
@@ -146,13 +136,12 @@ export const TablesTab = React.memo(function TablesTab({
                 <div>
                   <div className="text-sm font-semibold text-white">{t.name}</div>
                   <div className="text-[11px] text-slate-400">
-                    {t.stakes ?? "\u2014"} · {t.playerCount ?? 0}/{t.maxPlayers ?? "\u2014"} players
+                    {t.stakes ?? '\u2014'} · {t.playerCount ?? 0}/{t.maxPlayers ?? '\u2014'} players
                   </div>
                 </div>
                 <span className="text-[11px] font-medium uppercase text-amber-300">
-                  {t.status === "open" &&
-                  (t.playerCount ?? 0) < (t.minPlayersToStart ?? 2)
-                    ? "Waiting for players"
+                  {t.status === 'open' && (t.playerCount ?? 0) < (t.minPlayersToStart ?? 2)
+                    ? 'Waiting for players'
                     : t.status}
                 </span>
               </div>
@@ -160,7 +149,7 @@ export const TablesTab = React.memo(function TablesTab({
 
             {/* Action buttons */}
             <div className="flex flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
-              {t.status === "open" && (
+              {t.status === 'open' && (
                 <button
                   onClick={() => actions.joinTable(t.id)}
                   className="btn-success text-xs !py-1.5"
@@ -168,10 +157,10 @@ export const TablesTab = React.memo(function TablesTab({
                   Join Table
                 </button>
               )}
-              {permissions.canManageTables && t.status !== "closed" && (
+              {permissions.canManageTables && t.status !== 'closed' && (
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <span className="text-[10px] text-slate-400">
-                    {t.config?.smallBlind ?? 1}/{t.config?.bigBlind ?? 2} ·{" "}
+                    {t.config?.smallBlind ?? 1}/{t.config?.bigBlind ?? 2} ·{' '}
                     {t.config?.maxSeats ?? 6}-max
                   </span>
                   <div className="flex gap-2">

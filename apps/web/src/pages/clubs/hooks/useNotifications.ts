@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import type { Socket } from "socket.io-client";
+import { useState, useEffect, useCallback } from 'react';
+import type { Socket } from 'socket.io-client';
 import type {
   Notification,
   NotificationType,
@@ -9,7 +9,7 @@ import type {
   NotificationUnreadCountPayload,
   NotificationPrefsPayload,
   NotificationErrorPayload,
-} from "@cardpilot/shared-types";
+} from '@cardpilot/shared-types';
 
 export interface NotificationActions {
   loadNotifications: (opts?: { before?: string; unreadOnly?: boolean }) => void;
@@ -28,9 +28,10 @@ export interface NotificationState {
   loading: boolean;
 }
 
-export function useNotifications(
-  socket: Socket | null,
-): { actions: NotificationActions; state: NotificationState } {
+export function useNotifications(socket: Socket | null): {
+  actions: NotificationActions;
+  state: NotificationState;
+} {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [hasMore, setHasMore] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -68,31 +69,31 @@ export function useNotifications(
 
     const onError = (payload: NotificationErrorPayload) => {
       setLoading(false);
-      console.warn("[notifications] error:", payload.code, payload.message);
+      console.warn('[notifications] error:', payload.code, payload.message);
     };
 
-    socket.on("notification_new", onNew);
-    socket.on("notification_list_response", onList);
-    socket.on("notification_unread_count", onUnreadCount);
-    socket.on("notification_prefs", onPrefs);
-    socket.on("notification_error", onError);
+    socket.on('notification_new', onNew);
+    socket.on('notification_list_response', onList);
+    socket.on('notification_unread_count', onUnreadCount);
+    socket.on('notification_prefs', onPrefs);
+    socket.on('notification_error', onError);
 
     // Fetch initial unread count
-    socket.emit("notification_get_unread_count", {});
+    socket.emit('notification_get_unread_count', {});
 
     return () => {
-      socket.off("notification_new", onNew);
-      socket.off("notification_list_response", onList);
-      socket.off("notification_unread_count", onUnreadCount);
-      socket.off("notification_prefs", onPrefs);
-      socket.off("notification_error", onError);
+      socket.off('notification_new', onNew);
+      socket.off('notification_list_response', onList);
+      socket.off('notification_unread_count', onUnreadCount);
+      socket.off('notification_prefs', onPrefs);
+      socket.off('notification_error', onError);
     };
   }, [socket]);
 
   const loadNotifications = useCallback(
     (opts?: { before?: string; unreadOnly?: boolean }) => {
       setLoading(true);
-      socket?.emit("notification_list", {
+      socket?.emit('notification_list', {
         limit: 30,
         before: opts?.before,
         unreadOnly: opts?.unreadOnly,
@@ -103,10 +104,12 @@ export function useNotifications(
 
   const markRead = useCallback(
     (notificationIds: string[]) => {
-      socket?.emit("notification_mark_read", { notificationIds });
+      socket?.emit('notification_mark_read', { notificationIds });
       setNotifications((prev) =>
         prev.map((n) =>
-          notificationIds.includes(n.id) ? { ...n, isRead: true, readAt: new Date().toISOString() } : n,
+          notificationIds.includes(n.id)
+            ? { ...n, isRead: true, readAt: new Date().toISOString() }
+            : n,
         ),
       );
     },
@@ -115,7 +118,7 @@ export function useNotifications(
 
   const markAllRead = useCallback(
     (clubId?: string) => {
-      socket?.emit("notification_mark_all_read", { clubId });
+      socket?.emit('notification_mark_all_read', { clubId });
       setNotifications((prev) =>
         prev.map((n) => {
           if (clubId && n.clubId !== clubId) return n;
@@ -127,19 +130,19 @@ export function useNotifications(
   );
 
   const refreshUnreadCount = useCallback(() => {
-    socket?.emit("notification_get_unread_count", {});
+    socket?.emit('notification_get_unread_count', {});
   }, [socket]);
 
   const updatePreferences = useCallback(
     (prefs: Partial<Record<NotificationType, boolean>>) => {
-      socket?.emit("notification_update_prefs", { preferences: prefs });
+      socket?.emit('notification_update_prefs', { preferences: prefs });
     },
     [socket],
   );
 
   const deleteNotifications = useCallback(
     (notificationIds: string[]) => {
-      socket?.emit("notification_delete", { notificationIds });
+      socket?.emit('notification_delete', { notificationIds });
       setNotifications((prev) => prev.filter((n) => !notificationIds.includes(n.id)));
     },
     [socket],

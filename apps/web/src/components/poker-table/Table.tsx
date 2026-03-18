@@ -1,4 +1,4 @@
-import type { TableSnapshotPayload, CurrentHandInfo, SeatInfo } from '@cardpilot/shared-types';
+import type { TableSnapshotPayload, SeatInfo } from '@cardpilot/shared-types';
 import { Seat } from './Seat.js';
 import { CommunityCards } from './CommunityCards.js';
 
@@ -31,16 +31,13 @@ export function Table({ snapshot, mySeatIndex, holeCards, onSeatClick }: TablePr
           </p>
         </div>
         <div className="text-right">
-          <div className="text-2xl font-bold text-yellow-400">
-            {currentHand?.pot || 0}
-          </div>
+          <div className="text-2xl font-bold text-yellow-400">{currentHand?.pot || 0}</div>
           <div className="text-xs text-slate-400">Pot</div>
         </div>
       </div>
 
       {/* Table Surface */}
       <div className="relative aspect-[16/10] rounded-[50%] poker-table-surface">
-        
         {/* Community Cards - Center */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
           <CommunityCards cards={currentHand?.communityCards || []} />
@@ -55,7 +52,7 @@ export function Table({ snapshot, mySeatIndex, holeCards, onSeatClick }: TablePr
 
         {/* Seats */}
         {seats.map((seat, index) => (
-          <SeatPosition 
+          <SeatPosition
             key={seat.index}
             seat={seat}
             index={index}
@@ -70,9 +67,7 @@ export function Table({ snapshot, mySeatIndex, holeCards, onSeatClick }: TablePr
         {/* Current Bet */}
         {currentHand && currentHand.currentBet > 0 && (
           <div className="absolute bottom-[30%] left-1/2 -translate-x-1/2">
-            <div className="text-white/80 text-sm">
-              Bet: {currentHand.currentBet}
-            </div>
+            <div className="text-white/80 text-sm">Bet: {currentHand.currentBet}</div>
           </div>
         )}
       </div>
@@ -80,19 +75,13 @@ export function Table({ snapshot, mySeatIndex, holeCards, onSeatClick }: TablePr
       {/* Hand Info */}
       {currentHand && (
         <div className="mt-4 flex justify-center gap-4 text-sm">
-          <span className="text-slate-400">
-            Hand #{currentHand.handNumber}
-          </span>
+          <span className="text-slate-400">Hand #{currentHand.handNumber}</span>
           <span className="text-slate-400">|</span>
-          <span className="text-yellow-400 uppercase">
-            {currentHand.status}
-          </span>
+          <span className="text-yellow-400 uppercase">{currentHand.status}</span>
           {currentHand.actorSeat !== null && (
             <>
               <span className="text-slate-400">|</span>
-              <span className="text-cyan-400">
-                Action: Seat {currentHand.actorSeat + 1}
-              </span>
+              <span className="text-cyan-400">Action: Seat {currentHand.actorSeat + 1}</span>
             </>
           )}
         </div>
@@ -111,21 +100,21 @@ interface SeatPositionProps {
   onClick?: () => void;
 }
 
-function SeatPosition({ 
-  seat, 
-  index, 
-  totalSeats, 
-  isMySeat, 
+function SeatPosition({
+  seat,
+  index,
+  totalSeats,
+  isMySeat,
   holeCards,
   isActor,
-  onClick 
+  onClick,
 }: SeatPositionProps) {
   // Calculate position on the oval table
   // For 6max: positions at roughly 12, 2, 4, 6, 8, 10 o'clock
   const angle = (index / totalSeats) * 2 * Math.PI - Math.PI / 2;
   const radiusX = 42; // % from center (horizontal)
   const radiusY = 38; // % from center (vertical)
-  
+
   const left = 50 + radiusX * Math.cos(angle);
   const top = 50 + radiusY * Math.sin(angle);
 

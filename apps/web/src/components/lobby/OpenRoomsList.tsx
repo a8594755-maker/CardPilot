@@ -1,5 +1,5 @@
-import { memo, useCallback } from "react";
-import type { LobbyRoomSummary } from "@cardpilot/shared-types";
+import { memo } from 'react';
+import type { LobbyRoomSummary } from '@cardpilot/shared-types';
 
 export interface OpenRoomsListProps {
   rooms: LobbyRoomSummary[];
@@ -28,8 +28,8 @@ const RoomCard = memo(function RoomCard({
       <div
         className={`w-7 h-7 rounded-md flex items-center justify-center text-[9px] font-semibold shrink-0 border ${
           isFull
-            ? "bg-slate-700/20 border-slate-600/20 text-slate-500"
-            : "bg-emerald-500/8 border-emerald-500/20 text-emerald-400/80"
+            ? 'bg-slate-700/20 border-slate-600/20 text-slate-500'
+            : 'bg-emerald-500/8 border-emerald-500/20 text-emerald-400/80'
         }`}
       >
         <span className="cp-num">{room.playerCount}</span>
@@ -40,20 +40,25 @@ const RoomCard = memo(function RoomCard({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="font-medium text-white text-sm truncate">{room.roomName}</span>
-          {room.visibility === "private" && (
-            <span className="text-amber-400 text-xs" title="Private room">🔒</span>
+          {room.visibility === 'private' && (
+            <span className="text-amber-400 text-xs" title="Private room">
+              🔒
+            </span>
           )}
         </div>
         <div className="mt-0.5 space-y-0.5">
           <div className="text-[11px] text-slate-500 leading-tight cp-num">
-            Blinds <span className="text-slate-300">{room.smallBlind}/{room.bigBlind}</span>
+            Blinds{' '}
+            <span className="text-slate-300">
+              {room.smallBlind}/{room.bigBlind}
+            </span>
           </div>
           <div className="flex items-center gap-1.5 text-[11px] leading-tight">
             {isFull ? (
               <span className="text-red-400/70">Full</span>
             ) : (
               <span className="text-emerald-400/75">
-                {seatsAvailable} seat{seatsAvailable !== 1 ? "s" : ""} open
+                {seatsAvailable} seat{seatsAvailable !== 1 ? 's' : ''} open
               </span>
             )}
             {room.isClubTable && room.clubName && (
@@ -72,11 +77,11 @@ const RoomCard = memo(function RoomCard({
         onClick={() => onJoin(room.roomCode)}
         className={`cp-btn text-[10px] font-medium px-2.5 py-0.5 min-h-[24px] rounded shrink-0 mt-1.5 transition-opacity ${
           isFull
-            ? "cp-btn-ghost opacity-40 cursor-not-allowed"
-            : "cp-btn-primary opacity-70 group-hover:opacity-100"
+            ? 'cp-btn-ghost opacity-40 cursor-not-allowed'
+            : 'cp-btn-primary opacity-70 group-hover:opacity-100'
         }`}
       >
-        {isFull ? "Full" : "Join"}
+        {isFull ? 'Full' : 'Join'}
       </button>
     </div>
   );
@@ -86,11 +91,9 @@ const RoomCard = memo(function RoomCard({
 function EmptyState({
   disabled,
   onCreatePublic,
-  onFocusJoinCode,
 }: {
   disabled: boolean;
   onCreatePublic: () => void;
-  onFocusJoinCode?: () => void;
 }) {
   return (
     <div className="text-center py-10">
@@ -119,7 +122,7 @@ export const OpenRoomsList = memo(function OpenRoomsList({
   onRefresh,
   onCreatePublic,
 }: OpenRoomsListProps) {
-  const openRooms = rooms.filter((r) => r.status === "OPEN");
+  const openRooms = rooms.filter((r) => r.status === 'OPEN');
 
   return (
     <div className="cp-lobby-card">

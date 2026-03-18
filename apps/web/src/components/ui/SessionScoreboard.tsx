@@ -1,5 +1,5 @@
-import { memo, useEffect, useMemo } from "react";
-import { formatChips } from "../../lib/format-chips";
+import { memo, useEffect, useMemo } from 'react';
+import { formatChips } from '../../lib/format-chips';
 
 /* ═══════════════════════════════════════════════════════════════
    SessionScoreboard
@@ -43,17 +43,14 @@ export const SessionScoreboard = memo(function SessionScoreboard({
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === 'Escape') onClose();
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, [open, onClose]);
 
   // Sort by net descending — winners at top
-  const sorted = useMemo(
-    () => [...entries].sort((a, b) => b.net - a.net),
-    [entries],
-  );
+  const sorted = useMemo(() => [...entries].sort((a, b) => b.net - a.net), [entries]);
 
   // Summary stats
   const summary = useMemo(() => {
@@ -65,14 +62,14 @@ export const SessionScoreboard = memo(function SessionScoreboard({
 
   if (!open) return null;
 
-  const chipOpts = { mode: displayBB ? ("bb" as const) : ("chips" as const), bbSize: bigBlind };
+  const chipOpts = { mode: displayBB ? ('bb' as const) : ('chips' as const), bbSize: bigBlind };
 
   return (
     <>
       {/* Backdrop — click to close */}
       <div
         className="fixed inset-0 bg-black/40 animate-[cpFadeIn_0.15s_ease-out]"
-        style={{ zIndex: "var(--cp-z-drawer)" }}
+        style={{ zIndex: 'var(--cp-z-drawer)' }}
         onClick={onClose}
       />
 
@@ -80,10 +77,10 @@ export const SessionScoreboard = memo(function SessionScoreboard({
       <div
         className="fixed top-0 right-0 bottom-0 w-[360px] max-w-[92vw] bg-[var(--cp-bg-surface)] border-l border-[var(--cp-border-default)] shadow-[var(--cp-shadow-xl)] overflow-y-auto"
         style={{
-          zIndex: "calc(var(--cp-z-drawer) + 1)",
-          animation: "cpSlideInRight var(--cp-duration-sheet) var(--cp-ease-out)",
-          willChange: "transform",
-          contain: "paint",
+          zIndex: 'calc(var(--cp-z-drawer) + 1)',
+          animation: 'cpSlideInRight var(--cp-duration-sheet) var(--cp-ease-out)',
+          willChange: 'transform',
+          contain: 'paint',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -139,20 +136,20 @@ export const SessionScoreboard = memo(function SessionScoreboard({
                     return (
                       <tr
                         key={e.userId}
-                        className={`border-b border-white/5 last:border-0 ${isMe ? "bg-cyan-500/8" : ""}`}
+                        className={`border-b border-white/5 last:border-0 ${isMe ? 'bg-cyan-500/8' : ''}`}
                       >
                         <td className="py-2 text-slate-500 font-mono">{idx + 1}</td>
                         <td className="py-2">
                           <div className="flex items-center gap-1.5">
                             <span
-                              className={`w-1.5 h-1.5 rounded-full shrink-0 ${e.status === "seated" ? "bg-emerald-400" : "bg-slate-600"}`}
-                              title={e.status === "seated" ? "Seated" : "Away"}
+                              className={`w-1.5 h-1.5 rounded-full shrink-0 ${e.status === 'seated' ? 'bg-emerald-400' : 'bg-slate-600'}`}
+                              title={e.status === 'seated' ? 'Seated' : 'Away'}
                             />
                             <span
-                              className={`font-medium truncate max-w-[100px] ${isMe ? "text-cyan-300" : "text-slate-200"}`}
+                              className={`font-medium truncate max-w-[100px] ${isMe ? 'text-cyan-300' : 'text-slate-200'}`}
                             >
                               {e.name}
-                              {isMe ? " (You)" : ""}
+                              {isMe ? ' (You)' : ''}
                             </span>
                           </div>
                         </td>
@@ -163,9 +160,9 @@ export const SessionScoreboard = memo(function SessionScoreboard({
                           {formatChips(e.currentStack, chipOpts)}
                         </td>
                         <td
-                          className={`py-2 text-right font-mono font-semibold ${e.net > 0 ? "text-emerald-400" : e.net < 0 ? "text-red-400" : "text-slate-400"}`}
+                          className={`py-2 text-right font-mono font-semibold ${e.net > 0 ? 'text-emerald-400' : e.net < 0 ? 'text-red-400' : 'text-slate-400'}`}
                         >
-                          {e.net > 0 ? "+" : ""}
+                          {e.net > 0 ? '+' : ''}
                           {formatChips(e.net, chipOpts)}
                         </td>
                         <td className="py-2 text-right text-slate-500">{e.handsPlayed}</td>
@@ -182,9 +179,9 @@ export const SessionScoreboard = memo(function SessionScoreboard({
                     {summary.playerCount} players | {summary.totalHands} hands dealt
                   </span>
                   <span
-                    className={`font-mono font-semibold ${summary.totalNet > 0 ? "text-emerald-400" : summary.totalNet < 0 ? "text-red-400" : "text-slate-400"}`}
+                    className={`font-mono font-semibold ${summary.totalNet > 0 ? 'text-emerald-400' : summary.totalNet < 0 ? 'text-red-400' : 'text-slate-400'}`}
                   >
-                    Table net: {summary.totalNet > 0 ? "+" : ""}
+                    Table net: {summary.totalNet > 0 ? '+' : ''}
                     {formatChips(summary.totalNet, chipOpts)}
                   </span>
                 </div>

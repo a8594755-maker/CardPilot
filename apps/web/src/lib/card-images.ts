@@ -6,7 +6,7 @@ const CARD_FALLBACK_IMAGE = `${CARD_IMAGE_BASE}/red_joker.png`;
 
 // Rank mapping: A=ace, 2=2, ..., T=10, J=jack, Q=queen, K=king
 const RANK_MAP: Record<string, string> = {
-  'A': 'ace',
+  A: 'ace',
   '2': '2',
   '3': '3',
   '4': '4',
@@ -15,18 +15,18 @@ const RANK_MAP: Record<string, string> = {
   '7': '7',
   '8': '8',
   '9': '9',
-  'T': '10',
-  'J': 'jack',
-  'Q': 'queen',
-  'K': 'king',
+  T: '10',
+  J: 'jack',
+  Q: 'queen',
+  K: 'king',
 };
 
 // Suit mapping: s=spades, h=hearts, d=diamonds, c=clubs
 const SUIT_MAP: Record<string, string> = {
-  's': 'spades',
-  'h': 'hearts',
-  'd': 'diamonds',
-  'c': 'clubs',
+  s: 'spades',
+  h: 'hearts',
+  d: 'diamonds',
+  c: 'clubs',
 };
 
 /**
@@ -57,12 +57,12 @@ export function getCardImagePath(card: string): string {
  */
 export function getCardBackPath(color: string = 'blue'): string {
   const colorMap: Record<string, string> = {
-    'blue': 'black_joker.png',
-    'red': 'red_joker.png',
-    'black': 'black_joker.png',
-    'green': 'black_joker.png',
+    blue: 'black_joker.png',
+    red: 'red_joker.png',
+    black: 'black_joker.png',
+    green: 'black_joker.png',
   };
-  
+
   return `${CARD_IMAGE_BASE}/${colorMap[color] || 'black_joker.png'}`;
 }
 

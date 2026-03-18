@@ -3,7 +3,12 @@
 export const RANKS = '23456789TJQKA';
 export const RANK_ORDER = 'AKQJT98765432'; // descending for matrix display
 export const SUITS = 'cdhs';
-export const SUIT_SYMBOLS: Record<string, string> = { c: '\u2663', d: '\u2666', h: '\u2665', s: '\u2660' };
+export const SUIT_SYMBOLS: Record<string, string> = {
+  c: '\u2663',
+  d: '\u2666',
+  h: '\u2665',
+  s: '\u2660',
+};
 export const SUIT_COLORS: Record<string, string> = {
   c: 'text-green-400',
   d: 'text-blue-400',

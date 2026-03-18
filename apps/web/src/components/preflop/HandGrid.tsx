@@ -7,7 +7,6 @@ import {
   handClassAt,
   blendActionColors,
   dominantAction,
-  getActionColor,
   type SpotSolution,
 } from '../../data/preflop-loader';
 
@@ -17,15 +16,16 @@ interface HandGridProps {
   onSelectHand: (handClass: string | null) => void;
 }
 
-export const HandGrid = memo(function HandGrid({ solution, selectedHand, onSelectHand }: HandGridProps) {
+export const HandGrid = memo(function HandGrid({
+  solution,
+  selectedHand,
+  onSelectHand,
+}: HandGridProps) {
   const { grid } = solution;
 
   return (
     <div className="select-none">
-      <div
-        className="grid gap-[1px]"
-        style={{ gridTemplateColumns: `repeat(13, 1fr)` }}
-      >
+      <div className="grid gap-[1px]" style={{ gridTemplateColumns: `repeat(13, 1fr)` }}>
         {RANKS.map((_, row) =>
           RANKS.map((_, col) => {
             const hc = handClassAt(row, col);
@@ -36,12 +36,10 @@ export const HandGrid = memo(function HandGrid({ solution, selectedHand, onSelec
                 handClass={hc}
                 freqs={freqs}
                 isSelected={selectedHand === hc}
-                row={row}
-                col={col}
                 onClick={onSelectHand}
               />
             );
-          })
+          }),
         )}
       </div>
     </div>
@@ -52,12 +50,10 @@ interface HandCellProps {
   handClass: string;
   freqs: Record<string, number> | undefined;
   isSelected: boolean;
-  row: number;
-  col: number;
   onClick: (hc: string | null) => void;
 }
 
-const HandCell = memo(function HandCell({ handClass, freqs, isSelected, row, col, onClick }: HandCellProps) {
+const HandCell = memo(function HandCell({ handClass, freqs, isSelected, onClick }: HandCellProps) {
   const handleClick = useCallback(() => {
     onClick(isSelected ? null : handClass);
   }, [handClass, isSelected, onClick]);
@@ -71,18 +67,21 @@ const HandCell = memo(function HandCell({ handClass, freqs, isSelected, row, col
   }
 
   const bg = blendActionColors(freqs);
-  const { action: dom, freq: domFreq } = dominantAction(freqs);
+  const { freq: domFreq } = dominantAction(freqs);
   const foldFreq = freqs['fold'] ?? 0;
-  const opacity = foldFreq >= 0.99 ? 0.15 : foldFreq > 0.5 ? 0.3 + (1 - foldFreq) * 0.7 : 0.6 + (1 - foldFreq) * 0.4;
-
-  // Cell type indicator
-  const isPair = row === col;
-  const isSuited = row < col;
+  const opacity =
+    foldFreq >= 0.99
+      ? 0.15
+      : foldFreq > 0.5
+        ? 0.3 + (1 - foldFreq) * 0.7
+        : 0.6 + (1 - foldFreq) * 0.4;
 
   return (
     <div
       className={`aspect-square rounded-[2px] flex items-center justify-center cursor-pointer transition-all duration-150 relative ${
-        isSelected ? 'ring-2 ring-white ring-offset-1 ring-offset-slate-900 z-10 scale-110' : 'hover:brightness-125 hover:z-10'
+        isSelected
+          ? 'ring-2 ring-white ring-offset-1 ring-offset-slate-900 z-10 scale-110'
+          : 'hover:brightness-125 hover:z-10'
       }`}
       style={{ backgroundColor: bg, opacity }}
       onClick={handleClick}

@@ -1,6 +1,6 @@
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from 'react';
 
-export type EventBannerVariant = "success" | "warning";
+export type EventBannerVariant = 'success' | 'warning';
 
 export interface EventBannerProps {
   open: boolean;
@@ -15,18 +15,18 @@ const IN_MS = 180;
 const HOLD_MS = 1200;
 const OUT_MS = 180;
 
-type EventBannerPhase = "idle" | "enter" | "hold" | "exit";
+type EventBannerPhase = 'idle' | 'enter' | 'hold' | 'exit';
 
 export const EventBanner = memo(function EventBanner({
   open,
   label,
-  variant = "warning",
+  variant = 'warning',
   icon,
   eventKey = 0,
-  className = "",
+  className = '',
 }: EventBannerProps) {
   const [mounted, setMounted] = useState(false);
-  const [phase, setPhase] = useState<EventBannerPhase>("idle");
+  const [phase, setPhase] = useState<EventBannerPhase>('idle');
   const timersRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
   const seqRef = useRef(0);
 
@@ -45,34 +45,45 @@ export const EventBanner = memo(function EventBanner({
       const seq = seqRef.current;
       clearTimers();
       setMounted(true);
-      setPhase("enter");
+      setPhase('enter');
 
-      timersRef.current.push(setTimeout(() => {
-        if (seq !== seqRef.current) return;
-        setPhase("hold");
-      }, IN_MS));
+      timersRef.current.push(
+        setTimeout(() => {
+          if (seq !== seqRef.current) return;
+          setPhase('hold');
+        }, IN_MS),
+      );
 
-      timersRef.current.push(setTimeout(() => {
-        if (seq !== seqRef.current) return;
-        setPhase("exit");
-      }, IN_MS + HOLD_MS));
+      timersRef.current.push(
+        setTimeout(() => {
+          if (seq !== seqRef.current) return;
+          setPhase('exit');
+        }, IN_MS + HOLD_MS),
+      );
 
-      timersRef.current.push(setTimeout(() => {
-        if (seq !== seqRef.current) return;
-        setMounted(false);
-        setPhase("idle");
-      }, IN_MS + HOLD_MS + OUT_MS));
+      timersRef.current.push(
+        setTimeout(
+          () => {
+            if (seq !== seqRef.current) return;
+            setMounted(false);
+            setPhase('idle');
+          },
+          IN_MS + HOLD_MS + OUT_MS,
+        ),
+      );
       return;
     }
 
     if (!mounted) return;
     seqRef.current += 1;
     clearTimers();
-    setPhase("exit");
-    timersRef.current.push(setTimeout(() => {
-      setMounted(false);
-      setPhase("idle");
-    }, OUT_MS));
+    setPhase('exit');
+    timersRef.current.push(
+      setTimeout(() => {
+        setMounted(false);
+        setPhase('idle');
+      }, OUT_MS),
+    );
   }, [open, eventKey, mounted]);
 
   if (!mounted) return null;
@@ -86,9 +97,11 @@ export const EventBanner = memo(function EventBanner({
     >
       <span className="cp-event-banner__spark" aria-hidden="true" />
       <span className="cp-event-banner__icon-wrap" aria-hidden="true">
-        {icon
-          ? <img src={icon} alt="" className="cp-event-banner__icon" />
-          : <span className="cp-event-banner__icon-fallback">72</span>}
+        {icon ? (
+          <img src={icon} alt="" className="cp-event-banner__icon" />
+        ) : (
+          <span className="cp-event-banner__icon-fallback">72</span>
+        )}
       </span>
       <span className="cp-event-banner__label cp-num">{label}</span>
     </div>
@@ -96,5 +109,3 @@ export const EventBanner = memo(function EventBanner({
 });
 
 export default EventBanner;
-
-

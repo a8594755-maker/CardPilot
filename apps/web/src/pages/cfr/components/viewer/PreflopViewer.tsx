@@ -31,7 +31,8 @@ export const PreflopViewer = memo(function PreflopViewer({ state, actions }: Pre
             <div className="text-xs text-slate-400 mt-1">
               Playing {summary.rangeSize} / {summary.totalCombos} hands ({rangePct}%)
               {spotData.villainPosition && ` · vs ${spotData.villainPosition}`}
-              {' · '}{spotData.potSize} bb pot
+              {' · '}
+              {spotData.potSize} bb pot
             </div>
           </div>
           <div className="flex items-center gap-4 text-[10px] text-slate-500">
@@ -43,7 +44,7 @@ export const PreflopViewer = memo(function PreflopViewer({ state, actions }: Pre
         {/* Aggregate frequency bar */}
         <div className="mt-4">
           <div className="flex h-6 rounded-lg overflow-hidden">
-            {spotData.actions.map(action => {
+            {spotData.actions.map((action) => {
               const freq = summary.actionFrequencies[action] ?? 0;
               if (freq < 0.005) return null;
               return (
@@ -100,7 +101,7 @@ export const PreflopViewer = memo(function PreflopViewer({ state, actions }: Pre
 
           {/* Per-action breakdown */}
           <div className="space-y-1.5">
-            {spotData.actions.map(action => {
+            {spotData.actions.map((action) => {
               const freq = spotData.grid[selectedHand][action] ?? 0;
               if (freq < 0.001) return null;
               const pct = (freq * 100).toFixed(1);
@@ -135,7 +136,11 @@ export const PreflopViewer = memo(function PreflopViewer({ state, actions }: Pre
   );
 });
 
-function formatSpotTitle(solution: { scenario: string; villainPosition?: string; spot: string }): string {
+function formatSpotTitle(solution: {
+  scenario: string;
+  villainPosition?: string;
+  spot: string;
+}): string {
   if (solution.scenario === 'RFI') return 'Raise First In';
   if (solution.scenario === 'facing_open') return `Facing ${solution.villainPosition} Open`;
   if (solution.scenario === 'facing_3bet') return `Facing ${solution.villainPosition} 3-Bet`;
@@ -150,5 +155,5 @@ function handDescription(hc: string): string {
 }
 
 function isPureSpot(freqs: Record<string, number>): boolean {
-  return Object.values(freqs).some(f => f >= 0.9);
+  return Object.values(freqs).some((f) => f >= 0.9);
 }

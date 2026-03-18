@@ -1,5 +1,5 @@
-import { memo, useEffect } from "react";
-import type { AppView } from "./MobileBottomTabs";
+import { memo, useEffect } from 'react';
+import type { AppView } from './MobileBottomTabs';
 
 interface MoreMenuItem {
   id: AppView;
@@ -8,9 +8,11 @@ interface MoreMenuItem {
 }
 
 const MORE_ITEMS: MoreMenuItem[] = [
-  { id: "history",  label: "History",  icon: "📜" },
-  { id: "training", label: "Training", icon: "🎯" },
-  { id: "preflop",  label: "Preflop GTO", icon: "📊" },
+  { id: 'history', label: 'History', icon: '📜' },
+  { id: 'training', label: 'Training', icon: '🎯' },
+  { id: 'fast-battle', label: 'Fast Battle', icon: '⚡' },
+  { id: 'preflop', label: 'Preflop GTO', icon: '📊' },
+  { id: 'solver', label: 'GTO Solver', icon: '🧮' },
 ];
 
 interface MobileMoreMenuProps {
@@ -31,10 +33,10 @@ export const MobileMoreMenu = memo(function MobileMoreMenu({
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === 'Escape') onClose();
     };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
   }, [open, onClose]);
 
   if (!open) return null;
@@ -48,7 +50,7 @@ export const MobileMoreMenu = memo(function MobileMoreMenu({
           <button
             key={item.id}
             className="cp-mob-more-item"
-            data-active={activeView === item.id ? "true" : undefined}
+            data-active={activeView === item.id ? 'true' : undefined}
             onClick={() => {
               onNavigate(item.id);
               onClose();
@@ -63,7 +65,10 @@ export const MobileMoreMenu = memo(function MobileMoreMenu({
             <div className="mx-5 my-1 border-t border-white/5" />
             <button
               className="cp-mob-more-item"
-              onClick={() => { onSignOut(); onClose(); }}
+              onClick={() => {
+                onSignOut();
+                onClose();
+              }}
             >
               <span className="cp-mob-more-item-icon">🚪</span>
               <span className="text-red-400">Sign Out</span>

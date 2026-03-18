@@ -1,6 +1,8 @@
 // API client functions for CFR strategy viewer endpoints.
 
-const API_BASE = import.meta.env.DEV ? '/api/cfr' : `${import.meta.env.VITE_SERVER_URL || ''}/api/cfr`;
+const API_BASE = import.meta.env.DEV
+  ? '/api/cfr'
+  : `${import.meta.env.VITE_SERVER_URL || ''}/api/cfr`;
 
 export interface CfrConfig {
   name: string;
@@ -60,30 +62,42 @@ export async function fetchFlops(config: string): Promise<FlopEntry[]> {
   return data.flops ?? [];
 }
 
-export async function fetchBoardData(config: string, boardId: number): Promise<{
+export async function fetchBoardData(
+  config: string,
+  boardId: number,
+): Promise<{
   meta: BoardMeta;
   entries: BoardDataEntry[];
 }> {
-  const res = await fetch(`${API_BASE}/board-data?config=${encodeURIComponent(config)}&boardId=${boardId}`);
+  const res = await fetch(
+    `${API_BASE}/board-data?config=${encodeURIComponent(config)}&boardId=${boardId}`,
+  );
   const data = await res.json();
   if (!data.ok) throw new Error(data.error || 'Failed to load board data');
   return { meta: data.meta, entries: data.entries };
 }
 
 export async function fetchHandMap(config: string, boardId: number): Promise<HandMapData> {
-  const res = await fetch(`${API_BASE}/hand-map?config=${encodeURIComponent(config)}&boardId=${boardId}`);
+  const res = await fetch(
+    `${API_BASE}/hand-map?config=${encodeURIComponent(config)}&boardId=${boardId}`,
+  );
   const data = await res.json();
   if (!data.ok) throw new Error(data.error || 'Failed to load hand map');
   return { oop: data.oop, ip: data.ip };
 }
 
-export async function fetchNearestFlop(config: string, cards: string): Promise<{
+export async function fetchNearestFlop(
+  config: string,
+  cards: string,
+): Promise<{
   boardId: number;
   flopCards: number[];
   flopLabel: string;
   distance: number;
 }> {
-  const res = await fetch(`${API_BASE}/nearest-flop?config=${encodeURIComponent(config)}&cards=${encodeURIComponent(cards)}`);
+  const res = await fetch(
+    `${API_BASE}/nearest-flop?config=${encodeURIComponent(config)}&cards=${encodeURIComponent(cards)}`,
+  );
   const data = await res.json();
   if (!data.ok) throw new Error(data.error || 'Failed to find nearest flop');
   return data;

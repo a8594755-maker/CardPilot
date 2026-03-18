@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo } from "react";
+import React, { memo, useCallback, useMemo } from 'react';
 import type {
   PlayerAnalytics,
   ProfitDataPoint,
@@ -8,8 +8,8 @@ import type {
   PlayerSessionStat,
   AnalyticsTimeRange,
   ExportDataType,
-} from "@cardpilot/shared-types";
-import { EmptyState } from "../shared";
+} from '@cardpilot/shared-types';
+import { EmptyState } from '../shared';
 
 // ── Types ──
 
@@ -46,13 +46,13 @@ interface AnalyticsTabProps {
 // ── Constants ──
 
 const TIME_RANGES: { label: string; value: AnalyticsTimeRange }[] = [
-  { label: "7d", value: "7d" },
-  { label: "30d", value: "30d" },
-  { label: "90d", value: "90d" },
-  { label: "All", value: "all" },
+  { label: '7d', value: '7d' },
+  { label: '30d', value: '30d' },
+  { label: '90d', value: '90d' },
+  { label: 'All', value: 'all' },
 ];
 
-const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 // ── Helpers ──
 
@@ -61,43 +61,39 @@ function formatNumber(n: number): string {
 }
 
 function formatNet(n: number): string {
-  const prefix = n > 0 ? "+" : "";
+  const prefix = n > 0 ? '+' : '';
   return `${prefix}${n.toLocaleString()}`;
 }
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   });
 }
 
 function netColorClass(n: number): string {
-  if (n > 0) return "text-emerald-400";
-  if (n < 0) return "text-red-400";
-  return "text-slate-400";
+  if (n > 0) return 'text-emerald-400';
+  if (n < 0) return 'text-red-400';
+  return 'text-slate-400';
 }
 
 /** Map a value 0..max to a heatmap color class */
 function heatmapColor(hands: number, maxHands: number): string {
-  if (hands === 0 || maxHands === 0) return "bg-slate-800";
+  if (hands === 0 || maxHands === 0) return 'bg-slate-800';
   const ratio = hands / maxHands;
-  if (ratio < 0.25) return "bg-emerald-900/50";
-  if (ratio < 0.6) return "bg-emerald-600";
-  return "bg-emerald-400";
+  if (ratio < 0.25) return 'bg-emerald-900/50';
+  if (ratio < 0.6) return 'bg-emerald-600';
+  return 'bg-emerald-400';
 }
 
 // ── Skeleton Shimmer ──
 
-function Skeleton({ className = "" }: { className?: string }) {
-  return (
-    <div
-      className={`animate-pulse rounded-lg bg-slate-700/50 ${className}`}
-    />
-  );
+function Skeleton({ className = '' }: { className?: string }) {
+  return <div className={`animate-pulse rounded-lg bg-slate-700/50 ${className}`} />;
 }
 
 // ── Sub-components ──
@@ -118,8 +114,8 @@ function TimeRangeSelector({
           onClick={() => onChange(r.value)}
           className={`px-3 py-1.5 text-xs font-medium transition-colors ${
             current === r.value
-              ? "bg-amber-600 text-white"
-              : "bg-slate-800 text-slate-400 hover:text-slate-200"
+              ? 'bg-amber-600 text-white'
+              : 'bg-slate-800 text-slate-400 hover:text-slate-200'
           }`}
         >
           {r.label}
@@ -133,7 +129,7 @@ function TimeRangeSelector({
 function StatCard({
   label,
   value,
-  colorClass = "text-white",
+  colorClass = 'text-white',
 }: {
   label: string;
   value: string;
@@ -152,10 +148,7 @@ function StatsCardsSkeleton() {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div
-          key={i}
-          className="bg-white/5 rounded-xl p-4 border border-white/5 space-y-2"
-        >
+        <div key={i} className="bg-white/5 rounded-xl p-4 border border-white/5 space-y-2">
           <Skeleton className="h-3 w-16" />
           <Skeleton className="h-6 w-24" />
         </div>
@@ -175,14 +168,8 @@ function StatsCards({ analytics }: { analytics: PlayerAnalytics }) {
         value={formatNet(analytics.totalNet)}
         colorClass={netColorClass(analytics.totalNet)}
       />
-      <StatCard
-        label="VPIP%"
-        value={`${analytics.vpipPercent.toFixed(1)}%`}
-      />
-      <StatCard
-        label="PFR%"
-        value={`${analytics.pfrPercent.toFixed(1)}%`}
-      />
+      <StatCard label="VPIP%" value={`${analytics.vpipPercent.toFixed(1)}%`} />
+      <StatCard label="PFR%" value={`${analytics.pfrPercent.toFixed(1)}%`} />
       <StatCard
         label="Win Rate"
         value={`${formatNet(analytics.avgProfitPerSession)} avg/session`}
@@ -214,35 +201,29 @@ function ProfitChart({ data }: { data: ProfitDataPoint[] }) {
   const maxVal = Math.max(0, ...values);
   const range = maxVal - minVal || 1;
 
-  const scaleX = (i: number) =>
-    padX + (i / Math.max(data.length - 1, 1)) * (width - 2 * padX);
-  const scaleY = (v: number) =>
-    padY + (1 - (v - minVal) / range) * (height - 2 * padY);
+  const scaleX = (i: number) => padX + (i / Math.max(data.length - 1, 1)) * (width - 2 * padX);
+  const scaleY = (v: number) => padY + (1 - (v - minVal) / range) * (height - 2 * padY);
 
   const points = data.map((d, i) => `${scaleX(i)},${scaleY(d.cumulativeNet)}`);
-  const polyline = points.join(" ");
+  const polyline = points.join(' ');
 
   // Area fill path: line + close along the bottom
   const lastVal = values[values.length - 1];
   const isPositive = lastVal >= 0;
-  const strokeColor = isPositive ? "#34d399" : "#f87171"; // emerald-400 / red-400
-  const gradientId = isPositive ? "profitGradPos" : "profitGradNeg";
-  const gradStart = isPositive ? "#34d399" : "#f87171";
+  const strokeColor = isPositive ? '#34d399' : '#f87171'; // emerald-400 / red-400
+  const gradientId = isPositive ? 'profitGradPos' : 'profitGradNeg';
+  const gradStart = isPositive ? '#34d399' : '#f87171';
 
   // Build SVG path for area
   const areaPath = [
     `M ${scaleX(0)},${scaleY(0)}`,
     ...data.map((d, i) => `L ${scaleX(i)},${scaleY(d.cumulativeNet)}`),
     `L ${scaleX(data.length - 1)},${scaleY(0)}`,
-    "Z",
-  ].join(" ");
+    'Z',
+  ].join(' ');
 
   return (
-    <svg
-      viewBox={`0 0 ${width} ${height}`}
-      className="w-full h-auto"
-      preserveAspectRatio="none"
-    >
+    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto" preserveAspectRatio="none">
       <defs>
         <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={gradStart} stopOpacity="0.3" />
@@ -309,11 +290,8 @@ function HourlyHeatmap({ data }: { data: HourlyHeatmapCell[] }) {
         {/* Hour labels */}
         <div className="flex ml-10 mb-1 gap-px">
           {Array.from({ length: 24 }).map((_, h) => (
-            <div
-              key={h}
-              className="flex-1 text-center text-[10px] text-slate-500"
-            >
-              {h % 4 === 0 ? h : ""}
+            <div key={h} className="flex-1 text-center text-[10px] text-slate-500">
+              {h % 4 === 0 ? h : ''}
             </div>
           ))}
         </div>
@@ -378,12 +356,8 @@ function SessionHistory({
             {sessions.map((s) => (
               <tr key={s.id} className="hover:bg-slate-800/40 transition-colors">
                 <td className="px-3 py-2 text-slate-300">{s.tableName}</td>
-                <td className="px-3 py-2 text-slate-400">
-                  {formatDate(s.startedAt)}
-                </td>
-                <td className="px-3 py-2 text-slate-400">
-                  {formatNumber(s.hands)}
-                </td>
+                <td className="px-3 py-2 text-slate-400">{formatDate(s.startedAt)}</td>
+                <td className="px-3 py-2 text-slate-400">{formatNumber(s.hands)}</td>
                 <td className={`px-3 py-2 font-medium ${netColorClass(s.net)}`}>
                   {formatNet(s.net)}
                 </td>
@@ -410,13 +384,13 @@ function SessionHistory({
 /** Admin overview cards */
 function AdminOverview({ overview }: { overview: ClubOverviewAnalytics }) {
   const cards = [
-    { label: "Total Hands", value: formatNumber(overview.totalHands) },
-    { label: "Unique Players", value: formatNumber(overview.uniquePlayers) },
-    { label: "Total Buy-In", value: formatNumber(overview.totalBuyIn) },
-    { label: "Total Cash-Out", value: formatNumber(overview.totalCashOut) },
-    { label: "Total Rake", value: formatNumber(overview.totalRake) },
+    { label: 'Total Hands', value: formatNumber(overview.totalHands) },
+    { label: 'Unique Players', value: formatNumber(overview.uniquePlayers) },
+    { label: 'Total Buy-In', value: formatNumber(overview.totalBuyIn) },
+    { label: 'Total Cash-Out', value: formatNumber(overview.totalCashOut) },
+    { label: 'Total Rake', value: formatNumber(overview.totalRake) },
     {
-      label: "Avg Hands/Player",
+      label: 'Avg Hands/Player',
       value: formatNumber(Math.round(overview.avgHandsPerPlayer)),
     },
   ];
@@ -433,9 +407,7 @@ function AdminOverview({ overview }: { overview: ClubOverviewAnalytics }) {
 // ── Section Header ──
 
 function SectionHeader({ title }: { title: string }) {
-  return (
-    <h3 className="text-sm font-semibold text-slate-300">{title}</h3>
-  );
+  return <h3 className="text-sm font-semibold text-slate-300">{title}</h3>;
 }
 
 // ── Main Component ──
@@ -458,21 +430,18 @@ export const AnalyticsTab = memo(function AnalyticsTab({
   }, [analyticsActions, state.sessions.length]);
 
   const handleExportStats = useCallback(() => {
-    analyticsActions.exportData("stats", state.timeRange);
+    analyticsActions.exportData('stats', state.timeRange);
   }, [analyticsActions, state.timeRange]);
 
   const handleExportSessions = useCallback(() => {
-    analyticsActions.exportData("sessions", state.timeRange);
+    analyticsActions.exportData('sessions', state.timeRange);
   }, [analyticsActions, state.timeRange]);
 
   return (
     <div className="space-y-6">
       {/* ── Time Range Selector ── */}
       <section>
-        <TimeRangeSelector
-          current={state.timeRange}
-          onChange={handleTimeRangeChange}
-        />
+        <TimeRangeSelector current={state.timeRange} onChange={handleTimeRangeChange} />
       </section>
 
       {/* ── Stats Cards ── */}

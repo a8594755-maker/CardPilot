@@ -25,11 +25,11 @@ interface ScenarioSelectorProps {
 // Position layout around a table (approximate oval)
 const SEAT_POSITIONS: Record<Position, { x: number; y: number }> = {
   UTG: { x: 15, y: 25 },
-  HJ:  { x: 10, y: 60 },
-  CO:  { x: 25, y: 85 },
+  HJ: { x: 10, y: 60 },
+  CO: { x: 25, y: 85 },
   BTN: { x: 75, y: 85 },
-  SB:  { x: 90, y: 60 },
-  BB:  { x: 85, y: 25 },
+  SB: { x: 90, y: 60 },
+  BB: { x: 85, y: 25 },
 };
 
 export const ScenarioSelector = memo(function ScenarioSelector({
@@ -52,9 +52,10 @@ export const ScenarioSelector = memo(function ScenarioSelector({
   );
 
   const filteredSpots = useMemo(
-    () => selectedScenario
-      ? spotsForPosition.filter(s => s.scenario === selectedScenario)
-      : spotsForPosition,
+    () =>
+      selectedScenario
+        ? spotsForPosition.filter((s) => s.scenario === selectedScenario)
+        : spotsForPosition,
     [spotsForPosition, selectedScenario],
   );
 
@@ -65,14 +66,16 @@ export const ScenarioSelector = memo(function ScenarioSelector({
         {/* Table oval */}
         <div className="absolute inset-4 rounded-[50%] bg-emerald-900/30 border border-emerald-700/40" />
         <div className="absolute inset-0 top-[45%] left-[35%] w-[30%] text-center">
-          <span className="text-[10px] text-emerald-600/60 font-medium uppercase tracking-wider">6-Max</span>
+          <span className="text-[10px] text-emerald-600/60 font-medium uppercase tracking-wider">
+            6-Max
+          </span>
         </div>
 
         {/* Seat buttons */}
-        {POSITIONS.map(pos => {
+        {POSITIONS.map((pos) => {
           const { x, y } = SEAT_POSITIONS[pos];
           const isSelected = pos === selectedPosition;
-          const hasSpots = index.spots.some(s => s.heroPosition === pos);
+          const hasSpots = index.spots.some((s) => s.heroPosition === pos);
           return (
             <button
               key={pos}
@@ -95,7 +98,7 @@ export const ScenarioSelector = memo(function ScenarioSelector({
 
       {/* Scenario tabs */}
       <div className="flex flex-wrap gap-1">
-        {availableScenarios.map(scenario => (
+        {availableScenarios.map((scenario) => (
           <button
             key={scenario}
             className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${
@@ -113,7 +116,7 @@ export const ScenarioSelector = memo(function ScenarioSelector({
       {/* Spot list */}
       {filteredSpots.length > 1 && (
         <div className="flex flex-wrap gap-1">
-          {filteredSpots.map(spot => {
+          {filteredSpots.map((spot) => {
             const label = formatSpotLabel(spot.spot, selectedPosition);
             return (
               <button
@@ -142,7 +145,13 @@ function formatSpotLabel(spot: string, hero: Position): string {
   const vsMatch = spot.match(/vs_(\w+)/);
   if (vsMatch) {
     const villain = vsMatch[1];
-    const suffix = spot.includes('3bet') ? ' 3bet' : spot.includes('4bet') ? ' 4bet' : spot.includes('open') ? ' open' : '';
+    const suffix = spot.includes('3bet')
+      ? ' 3bet'
+      : spot.includes('4bet')
+        ? ' 4bet'
+        : spot.includes('open')
+          ? ' open'
+          : '';
     return `vs ${villain}${suffix}`;
   }
   return spot.replace(`${hero}_`, '');

@@ -1,13 +1,13 @@
-import { memo, useState, useCallback } from "react";
+import { memo, useState, useCallback } from 'react';
 
 /** Common blind presets */
 const BLIND_PRESETS = [
-  { label: "1/2", sb: 1, bb: 2 },
-  { label: "1/3", sb: 1, bb: 3 },
-  { label: "2/5", sb: 2, bb: 5 },
-  { label: "5/10", sb: 5, bb: 10 },
-  { label: "10/20", sb: 10, bb: 20 },
-  { label: "25/50", sb: 25, bb: 50 },
+  { label: '1/2', sb: 1, bb: 2 },
+  { label: '1/3', sb: 1, bb: 3 },
+  { label: '2/5', sb: 2, bb: 5 },
+  { label: '5/10', sb: 5, bb: 10 },
+  { label: '10/20', sb: 10, bb: 20 },
+  { label: '25/50', sb: 25, bb: 50 },
 ] as const;
 
 export interface CreateRoomSettings {
@@ -16,7 +16,7 @@ export interface CreateRoomSettings {
   buyInMin: number;
   buyInMax: number;
   maxPlayers: number;
-  visibility: "public" | "private";
+  visibility: 'public' | 'private';
 }
 
 export interface CreateRoomCardProps {
@@ -31,7 +31,14 @@ export interface CreateRoomCardProps {
 /* Small chevron SVG for the advanced toggle */
 function ChevronRight() {
   return (
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M6 4l4 4-4 4" />
     </svg>
   );
@@ -115,9 +122,9 @@ export const CreateRoomCard = memo(function CreateRoomCard({
 
   const validationError =
     bb <= sb
-      ? "Big blind must be greater than small blind"
+      ? 'Big blind must be greater than small blind'
       : buyInMax < buyInMin
-        ? "Max buy-in must be ≥ min buy-in"
+        ? 'Max buy-in must be ≥ min buy-in'
         : null;
 
   const handleCreate = useCallback(() => {
@@ -141,9 +148,7 @@ export const CreateRoomCard = memo(function CreateRoomCard({
                 key={p.label}
                 onClick={() => selectPreset(p)}
                 className={`cp-btn text-[11px] px-2.5 py-1 ${
-                  !customBlinds && p.sb === sb && p.bb === bb
-                    ? "cp-btn-primary"
-                    : "cp-btn-ghost"
+                  !customBlinds && p.sb === sb && p.bb === bb ? 'cp-btn-primary' : 'cp-btn-ghost'
                 }`}
                 style={{ minHeight: 28 }}
               >
@@ -153,7 +158,7 @@ export const CreateRoomCard = memo(function CreateRoomCard({
             <button
               onClick={() => setCustomBlinds(true)}
               className={`cp-btn text-[11px] px-2.5 py-1 ${
-                customBlinds ? "cp-btn-primary" : "cp-btn-ghost"
+                customBlinds ? 'cp-btn-primary' : 'cp-btn-ghost'
               }`}
               style={{ minHeight: 28 }}
             >
@@ -165,7 +170,12 @@ export const CreateRoomCard = memo(function CreateRoomCard({
             <div className="grid grid-cols-2 gap-3 mt-3">
               <div>
                 <label className="block text-xs text-slate-500 mb-1">Small Blind</label>
-                <Stepper value={sb} min={1} step={1} onChange={(v) => update({ sb: v, bb: Math.max(v + 1, bb) })} />
+                <Stepper
+                  value={sb}
+                  min={1}
+                  step={1}
+                  onChange={(v) => update({ sb: v, bb: Math.max(v + 1, bb) })}
+                />
               </div>
               <div>
                 <label className="block text-xs text-slate-500 mb-1">Big Blind</label>
@@ -185,17 +195,15 @@ export const CreateRoomCard = memo(function CreateRoomCard({
           </label>
           <div className="flex flex-wrap gap-1.5">
             {[
-              { label: "20×BB", min: bb * 20, max: bb * 100 },
-              { label: "40×BB", min: bb * 40, max: bb * 200 },
-              { label: "100×BB", min: bb * 100, max: bb * 300 },
+              { label: '20×BB', min: bb * 20, max: bb * 100 },
+              { label: '40×BB', min: bb * 40, max: bb * 200 },
+              { label: '100×BB', min: bb * 100, max: bb * 300 },
             ].map((p) => (
               <button
                 key={p.label}
                 onClick={() => update({ buyInMin: p.min, buyInMax: p.max })}
                 className={`cp-btn text-[11px] px-2.5 py-1 ${
-                  buyInMin === p.min && buyInMax === p.max
-                    ? "cp-btn-primary"
-                    : "cp-btn-ghost"
+                  buyInMin === p.min && buyInMax === p.max ? 'cp-btn-primary' : 'cp-btn-ghost'
                 }`}
                 style={{ minHeight: 28 }}
               >
@@ -214,16 +222,18 @@ export const CreateRoomCard = memo(function CreateRoomCard({
             Table Size
           </label>
           <div className="flex gap-2">
-            {([
-              { n: 2, label: "Heads-up" },
-              { n: 6, label: "6-max" },
-              { n: 9, label: "9-max" },
-            ] as const).map(({ n, label }) => (
+            {(
+              [
+                { n: 2, label: 'Heads-up' },
+                { n: 6, label: '6-max' },
+                { n: 9, label: '9-max' },
+              ] as const
+            ).map(({ n, label }) => (
               <button
                 key={n}
                 onClick={() => update({ maxPlayers: n })}
                 className={`cp-btn text-[11px] px-3 py-1 flex-1 ${
-                  maxPlayers === n ? "cp-btn-primary" : "cp-btn-ghost"
+                  maxPlayers === n ? 'cp-btn-primary' : 'cp-btn-ghost'
                 }`}
                 style={{ minHeight: 28 }}
               >
@@ -236,7 +246,7 @@ export const CreateRoomCard = memo(function CreateRoomCard({
         {/* ── Advanced section (collapsed) ── */}
         <button
           className="cp-advanced-toggle"
-          data-open={showAdvanced ? "true" : "false"}
+          data-open={showAdvanced ? 'true' : 'false'}
           onClick={() => setShowAdvanced(!showAdvanced)}
         >
           <ChevronRight />
@@ -275,18 +285,18 @@ export const CreateRoomCard = memo(function CreateRoomCard({
               <label className="block text-xs text-slate-500 mb-1">Room Visibility</label>
               <div className="flex gap-2">
                 <button
-                  onClick={() => update({ visibility: "public" })}
+                  onClick={() => update({ visibility: 'public' })}
                   className={`cp-btn text-[11px] px-3 py-1 flex-1 ${
-                    visibility === "public" ? "cp-btn-success" : "cp-btn-ghost"
+                    visibility === 'public' ? 'cp-btn-success' : 'cp-btn-ghost'
                   }`}
                   style={{ minHeight: 28 }}
                 >
                   Public
                 </button>
                 <button
-                  onClick={() => update({ visibility: "private" })}
+                  onClick={() => update({ visibility: 'private' })}
                   className={`cp-btn text-[11px] px-3 py-1 flex-1 ${
-                    visibility === "private" ? "cp-btn-primary" : "cp-btn-ghost"
+                    visibility === 'private' ? 'cp-btn-primary' : 'cp-btn-ghost'
                   }`}
                   style={{ minHeight: 28 }}
                 >
@@ -318,13 +328,21 @@ export const CreateRoomCard = memo(function CreateRoomCard({
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[13px] leading-tight">
             <span className="text-white whitespace-nowrap">{maxPlayers}-max</span>
             <span className="whitespace-nowrap">
-              Blinds <span className="text-white">{sb}/{bb}</span>
+              Blinds{' '}
+              <span className="text-white">
+                {sb}/{bb}
+              </span>
             </span>
             <span className="whitespace-nowrap">
-              Buy-in <span className="text-white">{buyInMin.toLocaleString()}–{buyInMax.toLocaleString()}</span>
+              Buy-in{' '}
+              <span className="text-white">
+                {buyInMin.toLocaleString()}–{buyInMax.toLocaleString()}
+              </span>
             </span>
-            <span className={`whitespace-nowrap ${visibility === "private" ? "text-amber-400" : "text-emerald-400"}`}>
-              {visibility === "private" ? "Private" : "Public"}
+            <span
+              className={`whitespace-nowrap ${visibility === 'private' ? 'text-amber-400' : 'text-emerald-400'}`}
+            >
+              {visibility === 'private' ? 'Private' : 'Public'}
             </span>
           </div>
         </div>

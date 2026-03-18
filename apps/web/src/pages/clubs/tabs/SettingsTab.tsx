@@ -1,7 +1,7 @@
-import React, { memo, useEffect, useState } from "react";
-import type { Club } from "@cardpilot/shared-types";
-import type { ClubPermissions } from "../hooks/useClubPermissions";
-import type { ClubSocketActions } from "../hooks/useClubSocket";
+import React, { memo, useEffect, useState } from 'react';
+import type { Club } from '@cardpilot/shared-types';
+import type { ClubPermissions } from '../hooks/useClubPermissions';
+import type { ClubSocketActions } from '../hooks/useClubSocket';
 
 // ── Props ──
 
@@ -15,14 +15,14 @@ interface SettingsTabProps {
 // ── Badge color palette ──
 
 const BADGE_COLORS = [
-  "#6366f1", // indigo
-  "#8b5cf6", // violet
-  "#ec4899", // pink
-  "#ef4444", // red
-  "#f97316", // orange
-  "#eab308", // yellow
-  "#22c55e", // green
-  "#06b6d4", // cyan
+  '#6366f1', // indigo
+  '#8b5cf6', // violet
+  '#ec4899', // pink
+  '#ef4444', // red
+  '#f97316', // orange
+  '#eab308', // yellow
+  '#22c55e', // green
+  '#06b6d4', // cyan
 ];
 
 // ── Component ──
@@ -60,7 +60,7 @@ export const SettingsTab = memo(function SettingsTab({
 
   function handleCopyCode() {
     navigator.clipboard.writeText(club.code).then(() => {
-      showToast("Club code copied!");
+      showToast('Club code copied!');
     });
   }
 
@@ -107,8 +107,8 @@ export const SettingsTab = memo(function SettingsTab({
                 disabled={!permissions.isOwner}
                 className={`h-8 w-8 rounded-lg border-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                   editColor === color
-                    ? "border-white scale-110 shadow-lg"
-                    : "border-transparent hover:border-slate-500"
+                    ? 'border-white scale-110 shadow-lg'
+                    : 'border-transparent hover:border-slate-500'
                 }`}
                 style={{ backgroundColor: color }}
                 aria-label={`Select color ${color}`}

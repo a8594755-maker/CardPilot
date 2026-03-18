@@ -1,15 +1,15 @@
 /**
  * Navigation & Control Flow regression tests
- * 
+ *
  * Tests the pure logic that was broken:
  * - room_joined/room_created navigation guards
  * - connect handler room rejoin guards
  * - leaveRoom cleanup completeness
- * 
+ *
  * Run with: npx vitest run apps/web/src/__tests__/navigation-controls.test.ts
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect } from 'vitest';
 
 /* ═══════════════════════════════════════════════════
    Pure helper: should the app navigate to table on room_joined?
@@ -18,82 +18,77 @@ import { describe, it, expect } from "vitest";
 
 function shouldNavigateToTable(currentPath: string): boolean {
   return (
-    currentPath === "/" ||
-    currentPath.startsWith("/lobby") ||
-    currentPath.startsWith("/table")
+    currentPath === '/' || currentPath.startsWith('/lobby') || currentPath.startsWith('/table')
   );
 }
 
 function shouldRejoinOnConnect(currentPath: string): boolean {
   return (
-    currentPath === "/" ||
-    currentPath.startsWith("/lobby") ||
-    currentPath.startsWith("/table")
+    currentPath === '/' || currentPath.startsWith('/lobby') || currentPath.startsWith('/table')
   );
 }
 
-describe("Navigation guard: shouldNavigateToTable", () => {
-  it("allows navigation from root /", () => {
-    expect(shouldNavigateToTable("/")).toBe(true);
+describe('Navigation guard: shouldNavigateToTable', () => {
+  it('allows navigation from root /', () => {
+    expect(shouldNavigateToTable('/')).toBe(true);
   });
 
-  it("allows navigation from /lobby", () => {
-    expect(shouldNavigateToTable("/lobby")).toBe(true);
+  it('allows navigation from /lobby', () => {
+    expect(shouldNavigateToTable('/lobby')).toBe(true);
   });
 
-  it("allows navigation from /table/xyz", () => {
-    expect(shouldNavigateToTable("/table/tbl_abc123")).toBe(true);
+  it('allows navigation from /table/xyz', () => {
+    expect(shouldNavigateToTable('/table/tbl_abc123')).toBe(true);
   });
 
-  it("allows navigation from bare /table", () => {
-    expect(shouldNavigateToTable("/table")).toBe(true);
+  it('allows navigation from bare /table', () => {
+    expect(shouldNavigateToTable('/table')).toBe(true);
   });
 
-  it("blocks navigation from /history", () => {
-    expect(shouldNavigateToTable("/history")).toBe(false);
+  it('blocks navigation from /history', () => {
+    expect(shouldNavigateToTable('/history')).toBe(false);
   });
 
-  it("blocks navigation from /history/hand-id", () => {
-    expect(shouldNavigateToTable("/history/h_12345")).toBe(false);
+  it('blocks navigation from /history/hand-id', () => {
+    expect(shouldNavigateToTable('/history/h_12345')).toBe(false);
   });
 
-  it("blocks navigation from /profile", () => {
-    expect(shouldNavigateToTable("/profile")).toBe(false);
+  it('blocks navigation from /profile', () => {
+    expect(shouldNavigateToTable('/profile')).toBe(false);
   });
 
-  it("blocks navigation from /training", () => {
-    expect(shouldNavigateToTable("/training")).toBe(false);
+  it('blocks navigation from /training', () => {
+    expect(shouldNavigateToTable('/training')).toBe(false);
   });
 
-  it("blocks navigation from /clubs", () => {
-    expect(shouldNavigateToTable("/clubs")).toBe(false);
+  it('blocks navigation from /clubs', () => {
+    expect(shouldNavigateToTable('/clubs')).toBe(false);
   });
-
 });
 
-describe("Connect handler guard: shouldRejoinOnConnect", () => {
-  it("allows rejoin from /lobby", () => {
-    expect(shouldRejoinOnConnect("/lobby")).toBe(true);
+describe('Connect handler guard: shouldRejoinOnConnect', () => {
+  it('allows rejoin from /lobby', () => {
+    expect(shouldRejoinOnConnect('/lobby')).toBe(true);
   });
 
-  it("allows rejoin from /table/xyz", () => {
-    expect(shouldRejoinOnConnect("/table/tbl_abc")).toBe(true);
+  it('allows rejoin from /table/xyz', () => {
+    expect(shouldRejoinOnConnect('/table/tbl_abc')).toBe(true);
   });
 
-  it("blocks rejoin from /history", () => {
-    expect(shouldRejoinOnConnect("/history")).toBe(false);
+  it('blocks rejoin from /history', () => {
+    expect(shouldRejoinOnConnect('/history')).toBe(false);
   });
 
-  it("blocks rejoin from /profile", () => {
-    expect(shouldRejoinOnConnect("/profile")).toBe(false);
+  it('blocks rejoin from /profile', () => {
+    expect(shouldRejoinOnConnect('/profile')).toBe(false);
   });
 
-  it("blocks rejoin from /training", () => {
-    expect(shouldRejoinOnConnect("/training")).toBe(false);
+  it('blocks rejoin from /training', () => {
+    expect(shouldRejoinOnConnect('/training')).toBe(false);
   });
 
-  it("blocks rejoin from /clubs", () => {
-    expect(shouldRejoinOnConnect("/clubs")).toBe(false);
+  it('blocks rejoin from /clubs', () => {
+    expect(shouldRejoinOnConnect('/clubs')).toBe(false);
   });
 });
 
@@ -120,9 +115,9 @@ interface RoomState {
 function simulateLeaveRoom(state: RoomState): RoomState {
   // This mirrors the cleanup in leaveRoom()
   return {
-    tableId: "",
-    currentRoomCode: "",
-    currentRoomName: "",
+    tableId: '',
+    currentRoomCode: '',
+    currentRoomName: '',
     roomState: null,
     snapshot: null,
     holeCards: [],
@@ -135,28 +130,28 @@ function simulateLeaveRoom(state: RoomState): RoomState {
   };
 }
 
-describe("leaveRoom cleanup", () => {
-  it("clears all room-specific state", () => {
+describe('leaveRoom cleanup', () => {
+  it('clears all room-specific state', () => {
     const dirtyState: RoomState = {
-      tableId: "tbl_abc123",
-      currentRoomCode: "ABC123",
-      currentRoomName: "Test Room",
-      roomState: { status: "OPEN", settings: {} },
-      snapshot: { handId: "h1", street: "flop" },
-      holeCards: ["Ah", "Kd"],
-      seatRequests: [{ orderId: "o1" }],
+      tableId: 'tbl_abc123',
+      currentRoomCode: 'ABC123',
+      currentRoomName: 'Test Room',
+      roomState: { status: 'OPEN', settings: {} },
+      snapshot: { handId: 'h1', street: 'flop' },
+      holeCards: ['Ah', 'Kd'],
+      seatRequests: [{ orderId: 'o1' }],
       winners: [{ seat: 1, amount: 100 }],
       settlement: { winnersByRun: [] },
       allInPrompt: { actorSeat: 1 },
-      advice: { recommended: "call" },
-      deviation: { deviation: 0.5, playerAction: "fold" },
+      advice: { recommended: 'call' },
+      deviation: { deviation: 0.5, playerAction: 'fold' },
     };
 
     const cleaned = simulateLeaveRoom(dirtyState);
 
-    expect(cleaned.tableId).toBe("");
-    expect(cleaned.currentRoomCode).toBe("");
-    expect(cleaned.currentRoomName).toBe("");
+    expect(cleaned.tableId).toBe('');
+    expect(cleaned.currentRoomCode).toBe('');
+    expect(cleaned.currentRoomName).toBe('');
     expect(cleaned.roomState).toBeNull();
     expect(cleaned.snapshot).toBeNull();
     expect(cleaned.holeCards).toEqual([]);
@@ -168,11 +163,11 @@ describe("leaveRoom cleanup", () => {
     expect(cleaned.deviation).toBeNull();
   });
 
-  it("is safe to call when already clean", () => {
+  it('is safe to call when already clean', () => {
     const cleanState: RoomState = {
-      tableId: "",
-      currentRoomCode: "",
-      currentRoomName: "",
+      tableId: '',
+      currentRoomCode: '',
+      currentRoomName: '',
       roomState: null,
       snapshot: null,
       holeCards: [],
@@ -185,7 +180,7 @@ describe("leaveRoom cleanup", () => {
     };
 
     const result = simulateLeaveRoom(cleanState);
-    expect(result.currentRoomCode).toBe("");
+    expect(result.currentRoomCode).toBe('');
     expect(result.roomState).toBeNull();
   });
 });
@@ -194,44 +189,44 @@ describe("leaveRoom cleanup", () => {
    View computation: verify pathname → view mapping
    ═══════════════════════════════════════════════════ */
 
-type AppView = "lobby" | "table" | "profile" | "history" | "clubs" | "training";
+type AppView = 'lobby' | 'table' | 'profile' | 'history' | 'clubs' | 'training';
 
 function computeView(pathname: string): AppView {
-  if (pathname === "/" || pathname.startsWith("/lobby")) return "lobby";
-  if (pathname.startsWith("/table")) return "table";
-  if (pathname.startsWith("/history")) return "history";
-  if (pathname.startsWith("/clubs")) return "clubs";
-  if (pathname.startsWith("/training")) return "training";
-  if (pathname.startsWith("/profile")) return "profile";
-  return "lobby";
+  if (pathname === '/' || pathname.startsWith('/lobby')) return 'lobby';
+  if (pathname.startsWith('/table')) return 'table';
+  if (pathname.startsWith('/history')) return 'history';
+  if (pathname.startsWith('/clubs')) return 'clubs';
+  if (pathname.startsWith('/training')) return 'training';
+  if (pathname.startsWith('/profile')) return 'profile';
+  return 'lobby';
 }
 
-describe("View computation from pathname", () => {
-  it("/ → lobby", () => expect(computeView("/")).toBe("lobby"));
-  it("/lobby → lobby", () => expect(computeView("/lobby")).toBe("lobby"));
-  it("/table → table", () => expect(computeView("/table")).toBe("table"));
-  it("/table/tbl_123 → table", () => expect(computeView("/table/tbl_123")).toBe("table"));
-  it("/history → history", () => expect(computeView("/history")).toBe("history"));
-  it("/history/h_abc → history", () => expect(computeView("/history/h_abc")).toBe("history"));
-  it("/profile → profile", () => expect(computeView("/profile")).toBe("profile"));
-  it("/training → training", () => expect(computeView("/training")).toBe("training"));
-  it("/clubs → clubs", () => expect(computeView("/clubs")).toBe("clubs"));
-  it("/unknown → lobby (fallback)", () => expect(computeView("/unknown")).toBe("lobby"));
+describe('View computation from pathname', () => {
+  it('/ → lobby', () => expect(computeView('/')).toBe('lobby'));
+  it('/lobby → lobby', () => expect(computeView('/lobby')).toBe('lobby'));
+  it('/table → table', () => expect(computeView('/table')).toBe('table'));
+  it('/table/tbl_123 → table', () => expect(computeView('/table/tbl_123')).toBe('table'));
+  it('/history → history', () => expect(computeView('/history')).toBe('history'));
+  it('/history/h_abc → history', () => expect(computeView('/history/h_abc')).toBe('history'));
+  it('/profile → profile', () => expect(computeView('/profile')).toBe('profile'));
+  it('/training → training', () => expect(computeView('/training')).toBe('training'));
+  it('/clubs → clubs', () => expect(computeView('/clubs')).toBe('clubs'));
+  it('/unknown → lobby (fallback)', () => expect(computeView('/unknown')).toBe('lobby'));
 });
 
 /* ═══════════════════════════════════════════════════
    Close Room: timeout fallback logic
    ═══════════════════════════════════════════════════ */
 
-describe("Close Room error handling", () => {
-  it("requires socket connection", () => {
+describe('Close Room error handling', () => {
+  it('requires socket connection', () => {
     const socket = null;
     const isConnected = false;
     const canClose = socket !== null && isConnected;
     expect(canClose).toBe(false);
   });
 
-  it("allows close when connected", () => {
+  it('allows close when connected', () => {
     const socket = {}; // mock
     const isConnected = true;
     const canClose = socket !== null && isConnected;
@@ -244,25 +239,30 @@ describe("Close Room error handling", () => {
    ═══════════════════════════════════════════════════ */
 
 function isPathSupported(pathname: string): boolean {
-  if (pathname === "/") return true;
-  if (pathname === "/table" || pathname.match(/^\/table\/[^/]+$/)) return true;
-  const supportedPaths = ["/lobby", "/history", "/profile", "/training"];
-  if (pathname.startsWith("/clubs") || pathname.startsWith("/history/") || supportedPaths.includes(pathname)) return true;
+  if (pathname === '/') return true;
+  if (pathname === '/table' || pathname.match(/^\/table\/[^/]+$/)) return true;
+  const supportedPaths = ['/lobby', '/history', '/profile', '/training'];
+  if (
+    pathname.startsWith('/clubs') ||
+    pathname.startsWith('/history/') ||
+    supportedPaths.includes(pathname)
+  )
+    return true;
   return false;
 }
 
-describe("Supported paths validation", () => {
-  it("/ is supported", () => expect(isPathSupported("/")).toBe(true));
-  it("/lobby is supported", () => expect(isPathSupported("/lobby")).toBe(true));
-  it("/table/tbl_x is supported", () => expect(isPathSupported("/table/tbl_x")).toBe(true));
-  it("/history is supported", () => expect(isPathSupported("/history")).toBe(true));
-  it("/history/h1 is supported", () => expect(isPathSupported("/history/h1")).toBe(true));
-  it("/profile is supported", () => expect(isPathSupported("/profile")).toBe(true));
-  it("/training is supported", () => expect(isPathSupported("/training")).toBe(true));
-  it("/clubs is supported", () => expect(isPathSupported("/clubs")).toBe(true));
-  it("/clubs/detail is supported", () => expect(isPathSupported("/clubs/detail")).toBe(true));
-  it("/random is NOT supported", () => expect(isPathSupported("/random")).toBe(false));
-  it("/admin is NOT supported", () => expect(isPathSupported("/admin")).toBe(false));
+describe('Supported paths validation', () => {
+  it('/ is supported', () => expect(isPathSupported('/')).toBe(true));
+  it('/lobby is supported', () => expect(isPathSupported('/lobby')).toBe(true));
+  it('/table/tbl_x is supported', () => expect(isPathSupported('/table/tbl_x')).toBe(true));
+  it('/history is supported', () => expect(isPathSupported('/history')).toBe(true));
+  it('/history/h1 is supported', () => expect(isPathSupported('/history/h1')).toBe(true));
+  it('/profile is supported', () => expect(isPathSupported('/profile')).toBe(true));
+  it('/training is supported', () => expect(isPathSupported('/training')).toBe(true));
+  it('/clubs is supported', () => expect(isPathSupported('/clubs')).toBe(true));
+  it('/clubs/detail is supported', () => expect(isPathSupported('/clubs/detail')).toBe(true));
+  it('/random is NOT supported', () => expect(isPathSupported('/random')).toBe(false));
+  it('/admin is NOT supported', () => expect(isPathSupported('/admin')).toBe(false));
 });
 
 /* ═══════════════════════════════════════════════════
@@ -272,25 +272,25 @@ describe("Supported paths validation", () => {
 type AuthState = { isGuest: boolean } | null;
 
 function shouldGateClubRoute(pathname: string, auth: AuthState): boolean {
-  if (!pathname.startsWith("/clubs")) return false;
+  if (!pathname.startsWith('/clubs')) return false;
   if (!auth) return true;
   return auth.isGuest;
 }
 
-describe("Club route auth gate", () => {
-  it("gates /clubs when user is unauthenticated", () => {
-    expect(shouldGateClubRoute("/clubs", null)).toBe(true);
+describe('Club route auth gate', () => {
+  it('gates /clubs when user is unauthenticated', () => {
+    expect(shouldGateClubRoute('/clubs', null)).toBe(true);
   });
 
-  it("gates /clubs when session is guest/anonymous", () => {
-    expect(shouldGateClubRoute("/clubs", { isGuest: true })).toBe(true);
+  it('gates /clubs when session is guest/anonymous', () => {
+    expect(shouldGateClubRoute('/clubs', { isGuest: true })).toBe(true);
   });
 
-  it("allows /clubs when session is authenticated", () => {
-    expect(shouldGateClubRoute("/clubs", { isGuest: false })).toBe(false);
+  it('allows /clubs when session is authenticated', () => {
+    expect(shouldGateClubRoute('/clubs', { isGuest: false })).toBe(false);
   });
 
-  it("does not gate non-club routes", () => {
-    expect(shouldGateClubRoute("/lobby", null)).toBe(false);
+  it('does not gate non-club routes', () => {
+    expect(shouldGateClubRoute('/lobby', null)).toBe(false);
   });
 });

@@ -1,7 +1,7 @@
-import React, { memo } from "react";
-import type { ClubInvite } from "@cardpilot/shared-types";
-import { EmptyState } from "../shared";
-import type { ClubSocketActions } from "../hooks/useClubSocket";
+import React, { memo } from 'react';
+import type { ClubInvite } from '@cardpilot/shared-types';
+import { EmptyState } from '../shared';
+import type { ClubSocketActions } from '../hooks/useClubSocket';
 
 // ── Props ──
 
@@ -20,7 +20,7 @@ export const InvitesTab = memo(function InvitesTab({
 }: InvitesTabProps) {
   function handleCopy(code: string) {
     navigator.clipboard.writeText(code).then(() => {
-      showToast("Invite code copied!");
+      showToast('Invite code copied!');
     });
   }
 
@@ -63,15 +63,15 @@ export const InvitesTab = memo(function InvitesTab({
                   {/* Meta */}
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-500">
                     <span>
-                      Used:{" "}
+                      Used:{' '}
                       <span className="text-slate-400">
                         {inv.usesCount}
-                        {inv.maxUses !== null ? ` / ${inv.maxUses}` : ""}
+                        {inv.maxUses !== null ? ` / ${inv.maxUses}` : ''}
                       </span>
                     </span>
                     {inv.expiresAt && (
                       <span>
-                        Expires:{" "}
+                        Expires:{' '}
                         <span className="text-slate-400">
                           {new Date(inv.expiresAt).toLocaleDateString()}
                         </span>

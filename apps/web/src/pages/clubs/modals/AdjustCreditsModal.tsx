@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import type { ClubMember } from "@cardpilot/shared-types";
+import { useState, useEffect, useMemo } from 'react';
+import type { ClubMember } from '@cardpilot/shared-types';
 
 interface AdjustCreditsModalProps {
   isOpen: boolean;
@@ -14,17 +14,17 @@ export function AdjustCreditsModal({
   onSubmit,
   onClose,
 }: AdjustCreditsModalProps) {
-  const [selectedUserId, setSelectedUserId] = useState("");
-  const [amount, setAmount] = useState<number | "">("");
-  const [note, setNote] = useState("");
-  const [searchFilter, setSearchFilter] = useState("");
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [amount, setAmount] = useState<number | ''>('');
+  const [note, setNote] = useState('');
+  const [searchFilter, setSearchFilter] = useState('');
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedUserId("");
-      setAmount("");
-      setNote("");
-      setSearchFilter("");
+      setSelectedUserId('');
+      setAmount('');
+      setNote('');
+      setSearchFilter('');
     }
   }, [isOpen]);
 
@@ -33,13 +33,12 @@ export function AdjustCreditsModal({
     const lower = searchFilter.toLowerCase();
     return members.filter(
       (m) =>
-        (m.displayName ?? "").toLowerCase().includes(lower) ||
+        (m.displayName ?? '').toLowerCase().includes(lower) ||
         m.userId.toLowerCase().includes(lower),
     );
   }, [members, searchFilter]);
 
-  const isValid =
-    selectedUserId !== "" && typeof amount === "number" && amount !== 0;
+  const isValid = selectedUserId !== '' && typeof amount === 'number' && amount !== 0;
 
   if (!isOpen) return null;
 
@@ -83,7 +82,7 @@ export function AdjustCreditsModal({
             value={amount}
             onChange={(e) => {
               const v = e.target.value;
-              setAmount(v === "" ? "" : Number(v));
+              setAmount(v === '' ? '' : Number(v));
             }}
             className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
           />

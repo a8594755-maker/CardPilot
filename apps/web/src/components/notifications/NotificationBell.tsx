@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo } from 'react';
 
 interface NotificationBellProps {
   unreadCount: number;
@@ -13,7 +13,7 @@ export const NotificationBell = memo(function NotificationBell({
     <button
       onClick={onClick}
       className="relative p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
-      aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
+      aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -31,7 +31,7 @@ export const NotificationBell = memo(function NotificationBell({
       </svg>
       {unreadCount > 0 && (
         <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
-          {unreadCount > 99 ? "99+" : unreadCount}
+          {unreadCount > 99 ? '99+' : unreadCount}
         </span>
       )}
     </button>

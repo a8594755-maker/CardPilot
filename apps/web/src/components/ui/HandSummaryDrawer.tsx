@@ -1,6 +1,6 @@
-import { memo, useEffect } from "react";
-import type { SettlementResult } from "@cardpilot/shared-types";
-import { PokerCard } from "../PokerCard";
+import { memo, useEffect } from 'react';
+import type { SettlementResult } from '@cardpilot/shared-types';
+import { PokerCard } from '../PokerCard';
 
 /* ═══════════════════════════════════════════════════════════════
    HandSummaryDrawer
@@ -30,10 +30,10 @@ export const HandSummaryDrawer = memo(function HandSummaryDrawer({
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === 'Escape') onClose();
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, [open, onClose]);
 
   if (!open || !settlement) return null;
@@ -45,7 +45,7 @@ export const HandSummaryDrawer = memo(function HandSummaryDrawer({
       {/* Backdrop — click to close */}
       <div
         className="fixed inset-0 bg-black/40 animate-[cpFadeIn_0.15s_ease-out]"
-        style={{ zIndex: "var(--cp-z-drawer)" }}
+        style={{ zIndex: 'var(--cp-z-drawer)' }}
         onClick={onClose}
       />
 
@@ -53,10 +53,10 @@ export const HandSummaryDrawer = memo(function HandSummaryDrawer({
       <div
         className="fixed top-0 right-0 bottom-0 w-[340px] max-w-[90vw] bg-[var(--cp-bg-surface)] border-l border-[var(--cp-border-default)] shadow-[var(--cp-shadow-xl)] overflow-y-auto"
         style={{
-          zIndex: "calc(var(--cp-z-drawer) + 1)",
-          animation: "cpSlideInRight var(--cp-duration-sheet) var(--cp-ease-out)",
-          willChange: "transform",
-          contain: "paint",
+          zIndex: 'calc(var(--cp-z-drawer) + 1)',
+          animation: 'cpSlideInRight var(--cp-duration-sheet) var(--cp-ease-out)',
+          willChange: 'transform',
+          contain: 'paint',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -64,7 +64,9 @@ export const HandSummaryDrawer = memo(function HandSummaryDrawer({
         <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 bg-[var(--cp-bg-surface)] border-b border-[var(--cp-border-subtle)]">
           <div>
             <h3 className="text-sm font-bold text-white">Hand Summary</h3>
-            <span className="text-[9px] text-slate-500 font-mono">{settlement.handId.slice(0, 8)}</span>
+            <span className="text-[9px] text-slate-500 font-mono">
+              {settlement.handId.slice(0, 8)}
+            </span>
           </div>
           <button
             onClick={onClose}
@@ -79,40 +81,55 @@ export const HandSummaryDrawer = memo(function HandSummaryDrawer({
           {/* Pot summary */}
           <div className="flex items-center justify-between text-[11px]">
             <span className="text-slate-400">
-              Pot <span className="text-amber-400 font-bold cp-num">{settlement.totalPot.toLocaleString()}</span>
+              Pot{' '}
+              <span className="text-amber-400 font-bold cp-num">
+                {settlement.totalPot.toLocaleString()}
+              </span>
             </span>
             <span className="text-slate-400">
-              Paid <span className="text-emerald-400 font-bold cp-num">{settlement.totalPaid.toLocaleString()}</span>
+              Paid{' '}
+              <span className="text-emerald-400 font-bold cp-num">
+                {settlement.totalPaid.toLocaleString()}
+              </span>
             </span>
           </div>
 
           {/* Winners */}
           <div className="space-y-1.5">
             <h4 className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
-              {allWinners.length > 1 ? "Winners" : "Winner"}
+              {allWinners.length > 1 ? 'Winners' : 'Winner'}
             </h4>
             {settlement.winnersByRun.map((run) => (
               <div key={run.run}>
                 {settlement.runCount > 1 && (
-                  <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full inline-block mb-1 ${
-                    run.run === 1
-                      ? "bg-cyan-500/20 text-cyan-400"
-                      : run.run === 2
-                        ? "bg-amber-500/20 text-amber-400"
-                        : "bg-emerald-500/20 text-emerald-400"
-                  }`}>
+                  <span
+                    className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-full inline-block mb-1 ${
+                      run.run === 1
+                        ? 'bg-cyan-500/20 text-cyan-400'
+                        : run.run === 2
+                          ? 'bg-amber-500/20 text-amber-400'
+                          : 'bg-emerald-500/20 text-emerald-400'
+                    }`}
+                  >
                     Run {run.run}
                   </span>
                 )}
                 {run.winners.map((w) => (
-                  <div key={`${run.run}-${w.seat}`} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/8 border border-amber-500/15 mb-1">
+                  <div
+                    key={`${run.run}-${w.seat}`}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/8 border border-amber-500/15 mb-1"
+                  >
                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[9px] font-extrabold text-slate-900 shrink-0">
-                      {playerName(w.seat)[0]?.toUpperCase() ?? "U"}
+                      {playerName(w.seat)[0]?.toUpperCase() ?? 'U'}
                     </div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-white font-semibold text-xs truncate">{playerName(w.seat)}</span>
+                      <span className="text-white font-semibold text-xs truncate">
+                        {playerName(w.seat)}
+                      </span>
                       {(w.handName || winnerHandNames?.[w.seat]) && (
-                        <span className="text-slate-400 text-[9px]">{w.handName || winnerHandNames?.[w.seat]}</span>
+                        <span className="text-slate-400 text-[9px]">
+                          {w.handName || winnerHandNames?.[w.seat]}
+                        </span>
                       )}
                     </div>
                     {revealedHoles?.[w.seat] && (
@@ -131,138 +148,173 @@ export const HandSummaryDrawer = memo(function HandSummaryDrawer({
           </div>
 
           {/* 7-2 Bounty */}
-          {settlement.sevenTwoBounty && settlement.sevenTwoBounty.totalBounty > 0 && (() => {
-            const b = settlement.sevenTwoBounty;
-            return (
-              <div className="space-y-1.5">
-                <h4 className="text-[10px] uppercase tracking-wider font-semibold">
-                  <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400">7-2 Bounty</span>
-                </h4>
-                <div className="px-3 py-2 rounded-lg bg-amber-500/8 border border-amber-500/20">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs text-white font-semibold">{playerName(b.winnerSeat)}</span>
-                    <div className="flex gap-0.5 shrink-0">
-                      <PokerCard card={b.winnerCards[0]} variant="mini" />
-                      <PokerCard card={b.winnerCards[1]} variant="mini" />
-                    </div>
-                    <span className="ml-auto text-amber-400 font-extrabold text-sm cp-num">+{b.totalBounty.toLocaleString()}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-x-3 gap-y-0.5">
-                    {b.payingSeats.map((s) => (
-                      <span key={s} className="text-[9px] text-slate-400">
-                        {playerName(s)} <span className="text-red-400/70 font-mono cp-num">{(b.bountyBySeat[s] ?? 0).toLocaleString()}</span>
+          {settlement.sevenTwoBounty &&
+            settlement.sevenTwoBounty.totalBounty > 0 &&
+            (() => {
+              const b = settlement.sevenTwoBounty;
+              return (
+                <div className="space-y-1.5">
+                  <h4 className="text-[10px] uppercase tracking-wider font-semibold">
+                    <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400">
+                      7-2 Bounty
+                    </span>
+                  </h4>
+                  <div className="px-3 py-2 rounded-lg bg-amber-500/8 border border-amber-500/20">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs text-white font-semibold">
+                        {playerName(b.winnerSeat)}
                       </span>
-                    ))}
+                      <div className="flex gap-0.5 shrink-0">
+                        <PokerCard card={b.winnerCards[0]} variant="mini" />
+                        <PokerCard card={b.winnerCards[1]} variant="mini" />
+                      </div>
+                      <span className="ml-auto text-amber-400 font-extrabold text-sm cp-num">
+                        +{b.totalBounty.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+                      {b.payingSeats.map((s) => (
+                        <span key={s} className="text-[9px] text-slate-400">
+                          {playerName(s)}{' '}
+                          <span className="text-red-400/70 font-mono cp-num">
+                            {(b.bountyBySeat[s] ?? 0).toLocaleString()}
+                          </span>
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })()}
+              );
+            })()}
 
           {/* Revealed non-winner hands */}
-          {revealedHoles && (() => {
-            const winnerSeats = new Set(allWinners.map((w) => w.seat));
-            const nonWinnerReveals = Object.entries(revealedHoles)
-              .filter(([s]) => !winnerSeats.has(Number(s)))
-              .map(([s, cards]) => ({ seat: Number(s), cards }));
-            if (nonWinnerReveals.length === 0) return null;
-            return (
-              <div className="space-y-1">
-                <h4 className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Shown Hands</h4>
-                {nonWinnerReveals.map(({ seat: s, cards }) => (
-                  <div key={s} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.02] border border-white/5">
-                    <span className="text-[10px] text-slate-400">{playerName(s)}</span>
-                    <div className="flex gap-0.5">
-                      <PokerCard card={cards[0]} variant="mini" />
-                      <PokerCard card={cards[1]} variant="mini" />
+          {revealedHoles &&
+            (() => {
+              const winnerSeats = new Set(allWinners.map((w) => w.seat));
+              const nonWinnerReveals = Object.entries(revealedHoles)
+                .filter(([s]) => !winnerSeats.has(Number(s)))
+                .map(([s, cards]) => ({ seat: Number(s), cards }));
+              if (nonWinnerReveals.length === 0) return null;
+              return (
+                <div className="space-y-1">
+                  <h4 className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
+                    Shown Hands
+                  </h4>
+                  {nonWinnerReveals.map(({ seat: s, cards }) => (
+                    <div
+                      key={s}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.02] border border-white/5"
+                    >
+                      <span className="text-[10px] text-slate-400">{playerName(s)}</span>
+                      <div className="flex gap-0.5">
+                        <PokerCard card={cards[0]} variant="mini" />
+                        <PokerCard card={cards[1]} variant="mini" />
+                      </div>
+                      {winnerHandNames?.[s] && (
+                        <span className="text-[9px] text-slate-500 ml-auto">
+                          {winnerHandNames[s]}
+                        </span>
+                      )}
                     </div>
-                    {winnerHandNames?.[s] && (
-                      <span className="text-[9px] text-slate-500 ml-auto">{winnerHandNames[s]}</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            );
-          })()}
+                  ))}
+                </div>
+              );
+            })()}
 
           {/* Boards */}
           <div>
             <h4 className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1.5">
-              Board{settlement.runCount > 1 ? "s" : ""}
+              Board{settlement.runCount > 1 ? 's' : ''}
             </h4>
-            {settlement.runCount > 1 && settlement.boards.length > 1 ? (() => {
-              // Compute common prefix
-              const boards = settlement.boards;
-              let commonLen = 0;
-              const minLen = Math.min(...boards.map((b) => b.length));
-              for (let i = 0; i < minLen; i++) {
-                if (boards.every((b) => b[i] === boards[0][i])) commonLen = i + 1;
-                else break;
-              }
-              const commonCards = boards[0].slice(0, commonLen);
-              const RUN_COLORS = ["text-cyan-400", "text-amber-400", "text-emerald-400"];
-              const RUN_BG = ["bg-cyan-500/10 border-cyan-500/20", "bg-amber-500/10 border-amber-500/20", "bg-emerald-500/10 border-emerald-500/20"];
-              return (
-                <div className="space-y-1.5">
-                  {/* Common cards */}
-                  {commonCards.length > 0 && (
-                    <div className="flex gap-0.5">
-                      {commonCards.map((c, i) => (
+            {settlement.runCount > 1 && settlement.boards.length > 1
+              ? (() => {
+                  // Compute common prefix
+                  const boards = settlement.boards;
+                  let commonLen = 0;
+                  const minLen = Math.min(...boards.map((b) => b.length));
+                  for (let i = 0; i < minLen; i++) {
+                    if (boards.every((b) => b[i] === boards[0][i])) commonLen = i + 1;
+                    else break;
+                  }
+                  const commonCards = boards[0].slice(0, commonLen);
+                  const RUN_COLORS = ['text-cyan-400', 'text-amber-400', 'text-emerald-400'];
+                  const RUN_BG = [
+                    'bg-cyan-500/10 border-cyan-500/20',
+                    'bg-amber-500/10 border-amber-500/20',
+                    'bg-emerald-500/10 border-emerald-500/20',
+                  ];
+                  return (
+                    <div className="space-y-1.5">
+                      {/* Common cards */}
+                      {commonCards.length > 0 && (
+                        <div className="flex gap-0.5">
+                          {commonCards.map((c, i) => (
+                            <PokerCard key={i} card={c} variant="mini" />
+                          ))}
+                        </div>
+                      )}
+                      {/* Per-run boards with winners */}
+                      {boards.map((board, idx) => {
+                        const unique = board.slice(commonLen);
+                        const displayCards = commonLen === 0 ? board : unique;
+                        const runWinners =
+                          settlement.winnersByRun.find((r) => r.run === idx + 1)?.winners ?? [];
+                        return (
+                          <div
+                            key={idx}
+                            className={`rounded-md border px-2 py-1.5 ${RUN_BG[idx] ?? RUN_BG[0]}`}
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className={`text-[9px] font-bold uppercase shrink-0 ${RUN_COLORS[idx] ?? RUN_COLORS[0]}`}
+                              >
+                                R{idx + 1}
+                              </span>
+                              <div className="flex gap-0.5">
+                                {displayCards.map((c, i) => (
+                                  <PokerCard key={i} card={c} variant="mini" />
+                                ))}
+                              </div>
+                            </div>
+                            {runWinners.length > 0 && (
+                              <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                                {runWinners.map((w, wi) => (
+                                  <span key={wi} className="text-[9px] flex items-center gap-1">
+                                    <span className="text-slate-300">{playerName(w.seat)}</span>
+                                    <span className="text-emerald-400 font-bold">
+                                      +{w.amount.toLocaleString()}
+                                    </span>
+                                    {(w.handName || winnerHandNames?.[w.seat]) && (
+                                      <span className="text-slate-500">
+                                        ({w.handName || winnerHandNames?.[w.seat]})
+                                      </span>
+                                    )}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()
+              : settlement.boards.map((board, idx) => (
+                  <div key={idx} className="flex items-center gap-1 mb-1">
+                    <div className="flex gap-1">
+                      {board.map((c, i) => (
                         <PokerCard key={i} card={c} variant="mini" />
                       ))}
                     </div>
-                  )}
-                  {/* Per-run boards with winners */}
-                  {boards.map((board, idx) => {
-                    const unique = board.slice(commonLen);
-                    const displayCards = commonLen === 0 ? board : unique;
-                    const runWinners = settlement.winnersByRun.find((r) => r.run === idx + 1)?.winners ?? [];
-                    return (
-                      <div key={idx} className={`rounded-md border px-2 py-1.5 ${RUN_BG[idx] ?? RUN_BG[0]}`}>
-                        <div className="flex items-center gap-1.5">
-                          <span className={`text-[9px] font-bold uppercase shrink-0 ${RUN_COLORS[idx] ?? RUN_COLORS[0]}`}>
-                            R{idx + 1}
-                          </span>
-                          <div className="flex gap-0.5">
-                            {displayCards.map((c, i) => (
-                              <PokerCard key={i} card={c} variant="mini" />
-                            ))}
-                          </div>
-                        </div>
-                        {runWinners.length > 0 && (
-                          <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
-                            {runWinners.map((w, wi) => (
-                              <span key={wi} className="text-[9px] flex items-center gap-1">
-                                <span className="text-slate-300">{playerName(w.seat)}</span>
-                                <span className="text-emerald-400 font-bold">+{w.amount.toLocaleString()}</span>
-                                {(w.handName || winnerHandNames?.[w.seat]) && (
-                                  <span className="text-slate-500">({w.handName || winnerHandNames?.[w.seat]})</span>
-                                )}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })() : (
-              settlement.boards.map((board, idx) => (
-                <div key={idx} className="flex items-center gap-1 mb-1">
-                  <div className="flex gap-1">
-                    {board.map((c, i) => (
-                      <PokerCard key={i} card={c} variant="mini" />
-                    ))}
                   </div>
-                </div>
-              ))
-            )}
+                ))}
           </div>
 
           {/* Payout Ledger */}
           <div>
-            <h4 className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1.5">Payout Ledger</h4>
+            <h4 className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1.5">
+              Payout Ledger
+            </h4>
             <div className="overflow-x-auto">
               <table className="w-full text-[10px]">
                 <thead>
@@ -281,15 +333,22 @@ export const HandSummaryDrawer = memo(function HandSummaryDrawer({
                         {entry.playerName}
                       </td>
                       <td className="py-1 text-right text-red-400/70 font-mono cp-num">
-                        {entry.invested > 0 ? `-${entry.invested.toLocaleString()}` : "0"}
+                        {entry.invested > 0 ? `-${entry.invested.toLocaleString()}` : '0'}
                       </td>
                       <td className="py-1 text-right text-emerald-400 font-mono cp-num">
-                        {entry.won > 0 ? `+${entry.won.toLocaleString()}` : "0"}
+                        {entry.won > 0 ? `+${entry.won.toLocaleString()}` : '0'}
                       </td>
-                      <td className={`py-1 text-right font-mono font-semibold cp-num ${
-                        entry.net > 0 ? "text-emerald-400" : entry.net < 0 ? "text-red-400" : "text-slate-400"
-                      }`}>
-                        {entry.net > 0 ? "+" : ""}{entry.net.toLocaleString()}
+                      <td
+                        className={`py-1 text-right font-mono font-semibold cp-num ${
+                          entry.net > 0
+                            ? 'text-emerald-400'
+                            : entry.net < 0
+                              ? 'text-red-400'
+                              : 'text-slate-400'
+                        }`}
+                      >
+                        {entry.net > 0 ? '+' : ''}
+                        {entry.net.toLocaleString()}
                       </td>
                     </tr>
                   ))}
@@ -301,7 +360,9 @@ export const HandSummaryDrawer = memo(function HandSummaryDrawer({
           {/* Pot Breakdown */}
           {settlement.potLayers.length > 1 && (
             <div>
-              <h4 className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1.5">Pot Breakdown</h4>
+              <h4 className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold mb-1.5">
+                Pot Breakdown
+              </h4>
               <table className="w-full text-[10px]">
                 <thead>
                   <tr className="text-slate-500 border-b border-white/5">
@@ -314,9 +375,11 @@ export const HandSummaryDrawer = memo(function HandSummaryDrawer({
                   {settlement.potLayers.map((layer, idx) => (
                     <tr key={idx} className="border-b border-white/5 last:border-0">
                       <td className="py-1 text-slate-300 font-medium">{layer.label}</td>
-                      <td className="py-1 text-right text-amber-400 font-mono cp-num">{layer.amount.toLocaleString()}</td>
+                      <td className="py-1 text-right text-amber-400 font-mono cp-num">
+                        {layer.amount.toLocaleString()}
+                      </td>
                       <td className="py-1 text-left pl-2 text-slate-400">
-                        {layer.eligibleSeats.map((s) => playerName(s)).join(", ")}
+                        {layer.eligibleSeats.map((s) => playerName(s)).join(', ')}
                       </td>
                     </tr>
                   ))}

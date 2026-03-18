@@ -6,7 +6,10 @@ interface WelcomeScreenProps {
   onSelectBoard: (boardId: number) => void;
 }
 
-export const WelcomeScreen = memo(function WelcomeScreen({ selectedConfig, onSelectBoard }: WelcomeScreenProps) {
+export const WelcomeScreen = memo(function WelcomeScreen({
+  selectedConfig,
+  onSelectBoard,
+}: WelcomeScreenProps) {
   const [searchInput, setSearchInput] = useState('');
   const [searchResult, setSearchResult] = useState('');
 
@@ -47,8 +50,8 @@ export const WelcomeScreen = memo(function WelcomeScreen({ selectedConfig, onSel
             <input
               type="text"
               value={searchInput}
-              onChange={e => setSearchInput(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSearch()}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               placeholder="e.g. As,Kh,7d"
               className="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50"
             />
@@ -59,19 +62,27 @@ export const WelcomeScreen = memo(function WelcomeScreen({ selectedConfig, onSel
               Find
             </button>
           </div>
-          {searchResult && (
-            <div className="mt-2 text-sm text-slate-400">{searchResult}</div>
-          )}
+          {searchResult && <div className="mt-2 text-sm text-slate-400">{searchResult}</div>}
         </div>
       )}
 
       <div className="mt-6 bg-[var(--cp-bg-surface)] border border-white/10 rounded-xl p-5 text-left max-w-[460px]">
         <div className="text-sm font-semibold text-white mb-2">Quick Guide</div>
         <ul className="text-[13px] text-slate-400 leading-7 pl-4 list-disc space-y-0.5">
-          <li><b className="text-slate-300">Position</b> — OOP = Big Blind (acts first); IP = Button (acts last)</li>
-          <li><b className="text-slate-300">Street</b> — Flop (3 cards), Turn (4th), River (5th)</li>
-          <li><b className="text-slate-300">Matrix</b> — Each cell shows GTO action mix for that hand</li>
-          <li><b className="text-slate-300">Colors</b> — Green = check, Yellow = bet, Purple = raise, Gray = fold</li>
+          <li>
+            <b className="text-slate-300">Position</b> — OOP = Big Blind (acts first); IP = Button
+            (acts last)
+          </li>
+          <li>
+            <b className="text-slate-300">Street</b> — Flop (3 cards), Turn (4th), River (5th)
+          </li>
+          <li>
+            <b className="text-slate-300">Matrix</b> — Each cell shows GTO action mix for that hand
+          </li>
+          <li>
+            <b className="text-slate-300">Colors</b> — Green = check, Yellow = bet, Purple = raise,
+            Gray = fold
+          </li>
         </ul>
       </div>
     </div>

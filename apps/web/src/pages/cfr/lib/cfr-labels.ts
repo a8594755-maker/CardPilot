@@ -6,11 +6,15 @@ export type Street = 'F' | 'T' | 'R';
 // Default bet sizes per street (overridden by meta.betSizes if available)
 let betSizesConfig = {
   flop: [0.33, 0.75],
-  turn: [0.50, 1.00],
-  river: [0.75, 1.50],
+  turn: [0.5, 1.0],
+  river: [0.75, 1.5],
 };
 
-export function setBetSizesConfig(sizes: { flop: number[]; turn: number[]; river: number[] }): void {
+export function setBetSizesConfig(sizes: {
+  flop: number[];
+  turn: number[];
+  river: number[];
+}): void {
   betSizesConfig = sizes;
 }
 
@@ -33,7 +37,11 @@ export function isFacing(historyKey: string): boolean {
 }
 
 /** Get human-readable labels for all actions at a node. */
-export function getActionLabels(historyKey: string, numActions: number, street: Street = 'F'): string[] {
+export function getActionLabels(
+  historyKey: string,
+  numActions: number,
+  street: Street = 'F',
+): string[] {
   const facing = isFacing(historyKey);
   const sizes = streetSizesArray(street);
 

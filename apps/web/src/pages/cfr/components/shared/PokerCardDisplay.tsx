@@ -13,20 +13,28 @@ interface PokerCardDisplayProps {
   size?: 'sm' | 'lg';
 }
 
-export const PokerCardDisplay = memo(function PokerCardDisplay({ cardIndex, size = 'lg' }: PokerCardDisplayProps) {
+export const PokerCardDisplay = memo(function PokerCardDisplay({
+  cardIndex,
+  size = 'lg',
+}: PokerCardDisplayProps) {
   const { rank, suit } = cardRankSuit(cardIndex);
   const colorClass = SUIT_CARD_COLORS[suit] || 'text-slate-800 border-slate-400';
 
   if (size === 'sm') {
     return (
-      <div className={`inline-flex items-center justify-center w-8 h-10 rounded bg-white shadow-sm text-[13px] font-bold border ${colorClass}`}>
-        {rank}{SUIT_SYMBOLS[suit]}
+      <div
+        className={`inline-flex items-center justify-center w-8 h-10 rounded bg-white shadow-sm text-[13px] font-bold border ${colorClass}`}
+      >
+        {rank}
+        {SUIT_SYMBOLS[suit]}
       </div>
     );
   }
 
   return (
-    <div className={`inline-flex flex-col items-center justify-center w-[54px] h-[74px] rounded-lg bg-white border-2 shadow-md font-bold ${colorClass}`}>
+    <div
+      className={`inline-flex flex-col items-center justify-center w-[54px] h-[74px] rounded-lg bg-white border-2 shadow-md font-bold ${colorClass}`}
+    >
       <span className="text-xl leading-none">{rank}</span>
       <span className="text-base leading-none">{SUIT_SYMBOLS[suit]}</span>
     </div>

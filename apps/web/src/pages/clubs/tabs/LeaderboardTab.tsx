@@ -1,11 +1,11 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from "react";
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import type {
   ClubLeaderboardEntry,
   ClubLeaderboardMetric,
   ClubLeaderboardRange,
-} from "@cardpilot/shared-types";
-import { EmptyState } from "../shared";
-import type { ClubSocketActions } from "../hooks/useClubSocket";
+} from '@cardpilot/shared-types';
+import { EmptyState } from '../shared';
+import type { ClubSocketActions } from '../hooks/useClubSocket';
 
 // ── Props ──
 
@@ -19,16 +19,16 @@ interface LeaderboardTabProps {
 // ── Constants ──
 
 const RANGES: { label: string; value: ClubLeaderboardRange }[] = [
-  { label: "Day", value: "day" },
-  { label: "Week", value: "week" },
-  { label: "All", value: "all" },
+  { label: 'Day', value: 'day' },
+  { label: 'Week', value: 'week' },
+  { label: 'All', value: 'all' },
 ];
 
 const METRICS: { label: string; value: ClubLeaderboardMetric }[] = [
-  { label: "Net", value: "net" },
-  { label: "Hands", value: "hands" },
-  { label: "Buy-in", value: "buyin" },
-  { label: "Deposits", value: "deposits" },
+  { label: 'Net', value: 'net' },
+  { label: 'Hands', value: 'hands' },
+  { label: 'Buy-in', value: 'buyin' },
+  { label: 'Deposits', value: 'deposits' },
 ];
 
 // ── Component ──
@@ -39,8 +39,8 @@ export const LeaderboardTab = memo(function LeaderboardTab({
   myRank,
   actions,
 }: LeaderboardTabProps) {
-  const [leaderboardRange, setLeaderboardRange] = useState<ClubLeaderboardRange>("week");
-  const [leaderboardMetric, setLeaderboardMetric] = useState<ClubLeaderboardMetric>("net");
+  const [leaderboardRange, setLeaderboardRange] = useState<ClubLeaderboardRange>('week');
+  const [leaderboardMetric, setLeaderboardMetric] = useState<ClubLeaderboardMetric>('net');
 
   // Debounced fetch to avoid rapid-fire requests when switching filters quickly
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
@@ -76,8 +76,8 @@ export const LeaderboardTab = memo(function LeaderboardTab({
               onClick={() => setLeaderboardRange(r.value)}
               className={`px-3 py-1.5 text-xs font-medium transition-colors ${
                 leaderboardRange === r.value
-                  ? "bg-amber-600 text-white"
-                  : "bg-slate-800 text-slate-400 hover:text-slate-200"
+                  ? 'bg-amber-600 text-white'
+                  : 'bg-slate-800 text-slate-400 hover:text-slate-200'
               }`}
             >
               {r.label}
@@ -110,7 +110,7 @@ export const LeaderboardTab = memo(function LeaderboardTab({
       {/* ── My Rank ── */}
       {myRank !== null && (
         <div className="rounded-lg border border-amber-800/40 bg-amber-900/20 px-4 py-2 text-sm">
-          <span className="text-slate-400">Your rank:</span>{" "}
+          <span className="text-slate-400">Your rank:</span>{' '}
           <span className="font-bold text-amber-400">#{myRank}</span>
         </div>
       )}
@@ -145,20 +145,18 @@ export const LeaderboardTab = memo(function LeaderboardTab({
                   <td className="px-3 py-2 font-mono text-cyan-400">
                     {row.metricValue.toLocaleString()}
                   </td>
-                  <td className="px-3 py-2 text-slate-400">
-                    {row.balance.toLocaleString()}
-                  </td>
+                  <td className="px-3 py-2 text-slate-400">{row.balance.toLocaleString()}</td>
                   <td className="px-3 py-2 text-slate-400">{row.hands.toLocaleString()}</td>
                   <td
                     className={`px-3 py-2 font-medium ${
                       row.net > 0
-                        ? "text-emerald-400"
+                        ? 'text-emerald-400'
                         : row.net < 0
-                        ? "text-red-400"
-                        : "text-slate-400"
+                          ? 'text-red-400'
+                          : 'text-slate-400'
                     }`}
                   >
-                    {row.net > 0 ? "+" : ""}
+                    {row.net > 0 ? '+' : ''}
                     {row.net.toLocaleString()}
                   </td>
                 </tr>

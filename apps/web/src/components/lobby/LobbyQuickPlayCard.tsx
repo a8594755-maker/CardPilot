@@ -1,4 +1,4 @@
-import { memo, useState, useCallback } from "react";
+import { memo, useState, useCallback } from 'react';
 
 export interface QuickPlayProps {
   disabled: boolean;
@@ -46,7 +46,7 @@ export const LobbyQuickPlayCard = memo(function LobbyQuickPlayCard({
             Start a table in one click.
             {openRoomCount > 0 && (
               <span className="ml-1 text-emerald-400/80">
-                {openRoomCount} open table{openRoomCount !== 1 ? "s" : ""} available
+                {openRoomCount} open table{openRoomCount !== 1 ? 's' : ''} available
               </span>
             )}
           </p>

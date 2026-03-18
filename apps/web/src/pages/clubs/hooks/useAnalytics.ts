@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import type { Socket } from "socket.io-client";
+import { useState, useEffect, useCallback, useRef } from 'react';
+import type { Socket } from 'socket.io-client';
 import type {
   PlayerAnalytics,
   ProfitDataPoint,
@@ -16,7 +16,7 @@ import type {
   ClubActivePlayersTrendResponsePayload,
   ClubSessionsListResponsePayload,
   ClubExportDataResponsePayload,
-} from "@cardpilot/shared-types";
+} from '@cardpilot/shared-types';
 
 export interface AnalyticsActions {
   loadAnalytics: (timeRange?: AnalyticsTimeRange) => void;
@@ -54,7 +54,7 @@ export function useAnalytics(
   const [activePlayersTrend, setActivePlayersTrend] = useState<ActivePlayersTrendPoint[]>([]);
   const [sessions, setSessions] = useState<PlayerSessionStat[]>([]);
   const [sessionsHasMore, setSessionsHasMore] = useState(false);
-  const [timeRange, setTimeRangeState] = useState<AnalyticsTimeRange>("30d");
+  const [timeRange, setTimeRangeState] = useState<AnalyticsTimeRange>('30d');
   const [loading, setLoading] = useState(false);
 
   // Track current clubId to reset on change
@@ -69,7 +69,7 @@ export function useAnalytics(
       setActivePlayersTrend([]);
       setSessions([]);
       setSessionsHasMore(false);
-      setTimeRangeState("30d");
+      setTimeRangeState('30d');
       setLoading(false);
     }
   }, [clubId]);
@@ -78,7 +78,7 @@ export function useAnalytics(
   const loadAnalytics = useCallback(
     (range?: AnalyticsTimeRange) => {
       setLoading(true);
-      socket?.emit("club_analytics_get", { clubId, userId, timeRange: range ?? timeRange });
+      socket?.emit('club_analytics_get', { clubId, userId, timeRange: range ?? timeRange });
     },
     [socket, clubId, userId, timeRange],
   );
@@ -86,20 +86,20 @@ export function useAnalytics(
   const loadProfitChart = useCallback(
     (range?: AnalyticsTimeRange) => {
       setLoading(true);
-      socket?.emit("club_profit_chart_get", { clubId, userId, timeRange: range ?? timeRange });
+      socket?.emit('club_profit_chart_get', { clubId, userId, timeRange: range ?? timeRange });
     },
     [socket, clubId, userId, timeRange],
   );
 
   const loadHeatmap = useCallback(() => {
     setLoading(true);
-    socket?.emit("club_hourly_heatmap_get", { clubId, userId });
+    socket?.emit('club_hourly_heatmap_get', { clubId, userId });
   }, [socket, clubId, userId]);
 
   const loadOverview = useCallback(
     (range?: AnalyticsTimeRange) => {
       setLoading(true);
-      socket?.emit("club_overview_analytics_get", { clubId, timeRange: range ?? timeRange });
+      socket?.emit('club_overview_analytics_get', { clubId, timeRange: range ?? timeRange });
     },
     [socket, clubId, timeRange],
   );
@@ -107,7 +107,7 @@ export function useAnalytics(
   const loadActivePlayersTrend = useCallback(
     (range?: AnalyticsTimeRange) => {
       setLoading(true);
-      socket?.emit("club_active_players_trend_get", { clubId, timeRange: range ?? timeRange });
+      socket?.emit('club_active_players_trend_get', { clubId, timeRange: range ?? timeRange });
     },
     [socket, clubId, timeRange],
   );
@@ -115,14 +115,14 @@ export function useAnalytics(
   const loadSessions = useCallback(
     (limit?: number, offset?: number) => {
       setLoading(true);
-      socket?.emit("club_sessions_list", { clubId, userId, limit, offset });
+      socket?.emit('club_sessions_list', { clubId, userId, limit, offset });
     },
     [socket, clubId, userId],
   );
 
   const exportData = useCallback(
     (exportType: ExportDataType, range?: AnalyticsTimeRange) => {
-      socket?.emit("club_export_data", { clubId, exportType, timeRange: range ?? timeRange });
+      socket?.emit('club_export_data', { clubId, exportType, timeRange: range ?? timeRange });
     },
     [socket, clubId, timeRange],
   );
@@ -189,9 +189,9 @@ export function useAnalytics(
 
     const onExportDataResponse = (payload: ClubExportDataResponsePayload) => {
       if (payload.clubId !== clubId) return;
-      const blob = new Blob([payload.csvData], { type: "text/csv;charset=utf-8;" });
+      const blob = new Blob([payload.csvData], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = url;
       link.download = payload.fileName;
       document.body.appendChild(link);
@@ -202,27 +202,27 @@ export function useAnalytics(
 
     const onError = (payload: { code: string; message: string }) => {
       setLoading(false);
-      console.warn("[analytics] error:", payload.code, payload.message);
+      console.warn('[analytics] error:', payload.code, payload.message);
     };
 
-    socket.on("club_analytics_response", onAnalyticsResponse);
-    socket.on("club_profit_chart_response", onProfitChartResponse);
-    socket.on("club_hourly_heatmap_response", onHeatmapResponse);
-    socket.on("club_overview_analytics_response", onOverviewResponse);
-    socket.on("club_active_players_trend_response", onActivePlayersTrendResponse);
-    socket.on("club_sessions_list_response", onSessionsListResponse);
-    socket.on("club_export_data_response", onExportDataResponse);
-    socket.on("club_analytics_error", onError);
+    socket.on('club_analytics_response', onAnalyticsResponse);
+    socket.on('club_profit_chart_response', onProfitChartResponse);
+    socket.on('club_hourly_heatmap_response', onHeatmapResponse);
+    socket.on('club_overview_analytics_response', onOverviewResponse);
+    socket.on('club_active_players_trend_response', onActivePlayersTrendResponse);
+    socket.on('club_sessions_list_response', onSessionsListResponse);
+    socket.on('club_export_data_response', onExportDataResponse);
+    socket.on('club_analytics_error', onError);
 
     return () => {
-      socket.off("club_analytics_response", onAnalyticsResponse);
-      socket.off("club_profit_chart_response", onProfitChartResponse);
-      socket.off("club_hourly_heatmap_response", onHeatmapResponse);
-      socket.off("club_overview_analytics_response", onOverviewResponse);
-      socket.off("club_active_players_trend_response", onActivePlayersTrendResponse);
-      socket.off("club_sessions_list_response", onSessionsListResponse);
-      socket.off("club_export_data_response", onExportDataResponse);
-      socket.off("club_analytics_error", onError);
+      socket.off('club_analytics_response', onAnalyticsResponse);
+      socket.off('club_profit_chart_response', onProfitChartResponse);
+      socket.off('club_hourly_heatmap_response', onHeatmapResponse);
+      socket.off('club_overview_analytics_response', onOverviewResponse);
+      socket.off('club_active_players_trend_response', onActivePlayersTrendResponse);
+      socket.off('club_sessions_list_response', onSessionsListResponse);
+      socket.off('club_export_data_response', onExportDataResponse);
+      socket.off('club_analytics_error', onError);
     };
   }, [socket, clubId]);
 
@@ -230,7 +230,7 @@ export function useAnalytics(
   useEffect(() => {
     if (!socket || !clubId) return;
     loadAll();
-  }, [socket, clubId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [socket, clubId]);
 
   return {
     actions: {

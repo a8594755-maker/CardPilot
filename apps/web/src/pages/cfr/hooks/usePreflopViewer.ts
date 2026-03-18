@@ -5,7 +5,6 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   loadIndex,
   loadSpot,
-  getAvailableScenarios,
   type SolutionIndex,
   type SpotSolution,
   type Position,
@@ -48,21 +47,21 @@ export function usePreflopViewer(): [PreflopViewerState, PreflopViewerActions] {
     setLoading(true);
     setError(null);
     loadIndex(config)
-      .then(idx => {
+      .then((idx) => {
         setIndex(idx);
         setLoading(false);
         // Auto-select first spot for current position
-        const firstSpot = idx.spots.find(s => s.heroPosition === selectedPosition);
+        const firstSpot = idx.spots.find((s) => s.heroPosition === selectedPosition);
         if (firstSpot) {
           setSelectedScenario(firstSpot.scenario as ScenarioType);
           setSelectedSpot(firstSpot.spot);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         setError(`Failed to load: ${err.message}`);
         setLoading(false);
       });
-  }, [config]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [config]);
 
   // Load spot data when selection changes
   useEffect(() => {
@@ -80,31 +79,37 @@ export function usePreflopViewer(): [PreflopViewerState, PreflopViewerActions] {
     setSelectedHand(null);
   }, []);
 
-  const setPosition = useCallback((pos: Position) => {
-    setSelectedPosition(pos);
-    setSelectedHand(null);
-    if (!index) return;
-    const spots = index.spots.filter(s => s.heroPosition === pos);
-    if (spots.length > 0) {
-      setSelectedScenario(spots[0].scenario as ScenarioType);
-      setSelectedSpot(spots[0].spot);
-    } else {
-      setSelectedScenario(null);
-      setSelectedSpot(null);
-    }
-  }, [index]);
+  const setPosition = useCallback(
+    (pos: Position) => {
+      setSelectedPosition(pos);
+      setSelectedHand(null);
+      if (!index) return;
+      const spots = index.spots.filter((s) => s.heroPosition === pos);
+      if (spots.length > 0) {
+        setSelectedScenario(spots[0].scenario as ScenarioType);
+        setSelectedSpot(spots[0].spot);
+      } else {
+        setSelectedScenario(null);
+        setSelectedSpot(null);
+      }
+    },
+    [index],
+  );
 
-  const setScenario = useCallback((scenario: ScenarioType) => {
-    setSelectedScenario(scenario);
-    setSelectedHand(null);
-    if (!index) return;
-    const spots = index.spots.filter(
-      s => s.heroPosition === selectedPosition && s.scenario === scenario,
-    );
-    if (spots.length > 0) {
-      setSelectedSpot(spots[0].spot);
-    }
-  }, [index, selectedPosition]);
+  const setScenario = useCallback(
+    (scenario: ScenarioType) => {
+      setSelectedScenario(scenario);
+      setSelectedHand(null);
+      if (!index) return;
+      const spots = index.spots.filter(
+        (s) => s.heroPosition === selectedPosition && s.scenario === scenario,
+      );
+      if (spots.length > 0) {
+        setSelectedSpot(spots[0].spot);
+      }
+    },
+    [index, selectedPosition],
+  );
 
   const setSpot = useCallback((spot: string) => {
     setSelectedSpot(spot);

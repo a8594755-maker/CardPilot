@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import type { Socket } from "socket.io-client";
+import { useState, useEffect, useCallback, useRef } from 'react';
+import type { Socket } from 'socket.io-client';
 import type {
   ChatMessage,
   ChatUnreadCount,
@@ -10,7 +10,7 @@ import type {
   ChatMuteUpdatePayload,
   ChatUnreadsPayload,
   ChatErrorPayload,
-} from "@cardpilot/shared-types";
+} from '@cardpilot/shared-types';
 
 export interface ChatActions {
   sendMessage: (content: string, mentions?: string[], tableId?: string) => void;
@@ -95,30 +95,30 @@ export function useChat(
 
     const onError = (payload: ChatErrorPayload) => {
       setLoading(false);
-      console.warn("[chat] error:", payload.code, payload.message);
+      console.warn('[chat] error:', payload.code, payload.message);
     };
 
-    socket.on("chat_message", onMessage);
-    socket.on("chat_history_response", onHistoryResponse);
-    socket.on("chat_message_deleted", onDeleted);
-    socket.on("chat_mute_update", onMuteUpdate);
-    socket.on("chat_unreads", onUnreads);
-    socket.on("chat_error", onError);
+    socket.on('chat_message', onMessage);
+    socket.on('chat_history_response', onHistoryResponse);
+    socket.on('chat_message_deleted', onDeleted);
+    socket.on('chat_mute_update', onMuteUpdate);
+    socket.on('chat_unreads', onUnreads);
+    socket.on('chat_error', onError);
 
     return () => {
-      socket.off("chat_message", onMessage);
-      socket.off("chat_history_response", onHistoryResponse);
-      socket.off("chat_message_deleted", onDeleted);
-      socket.off("chat_mute_update", onMuteUpdate);
-      socket.off("chat_unreads", onUnreads);
-      socket.off("chat_error", onError);
+      socket.off('chat_message', onMessage);
+      socket.off('chat_history_response', onHistoryResponse);
+      socket.off('chat_message_deleted', onDeleted);
+      socket.off('chat_mute_update', onMuteUpdate);
+      socket.off('chat_unreads', onUnreads);
+      socket.off('chat_error', onError);
     };
   }, [socket, clubId, userId]);
 
   // Actions
   const sendMessage = useCallback(
     (content: string, mentions?: string[], tableId?: string) => {
-      socket?.emit("chat_send", { clubId, content, mentions, tableId });
+      socket?.emit('chat_send', { clubId, content, mentions, tableId });
     },
     [socket, clubId],
   );
@@ -126,45 +126,53 @@ export function useChat(
   const loadHistory = useCallback(
     (tableId?: string, before?: string) => {
       setLoading(true);
-      socket?.emit("chat_history", { clubId, tableId, before, limit: 50 });
+      socket?.emit('chat_history', { clubId, tableId, before, limit: 50 });
     },
     [socket, clubId],
   );
 
   const deleteMessage = useCallback(
     (messageId: string) => {
-      socket?.emit("chat_delete", { clubId, messageId });
+      socket?.emit('chat_delete', { clubId, messageId });
     },
     [socket, clubId],
   );
 
   const muteUser = useCallback(
     (targetUserId: string, reason?: string, durationMinutes?: number) => {
-      socket?.emit("chat_mute", { clubId, userId: targetUserId, reason, durationMinutes });
+      socket?.emit('chat_mute', { clubId, userId: targetUserId, reason, durationMinutes });
     },
     [socket, clubId],
   );
 
   const unmuteUser = useCallback(
     (targetUserId: string) => {
-      socket?.emit("chat_unmute", { clubId, userId: targetUserId });
+      socket?.emit('chat_unmute', { clubId, userId: targetUserId });
     },
     [socket, clubId],
   );
 
   const markRead = useCallback(
     (lastReadMessageId: string, tableId?: string) => {
-      socket?.emit("chat_mark_read", { clubId, lastReadMessageId, tableId });
+      socket?.emit('chat_mark_read', { clubId, lastReadMessageId, tableId });
     },
     [socket, clubId],
   );
 
   const refreshUnreads = useCallback(() => {
-    socket?.emit("chat_get_unreads", { clubId });
+    socket?.emit('chat_get_unreads', { clubId });
   }, [socket, clubId]);
 
   return {
-    actions: { sendMessage, loadHistory, deleteMessage, muteUser, unmuteUser, markRead, refreshUnreads },
+    actions: {
+      sendMessage,
+      loadHistory,
+      deleteMessage,
+      muteUser,
+      unmuteUser,
+      markRead,
+      refreshUnreads,
+    },
     state: { messages, hasMore, unreads, myMute, loading },
   };
 }

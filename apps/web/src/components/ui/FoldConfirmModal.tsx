@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 /* ═══════════════════════════════════════════════════════════════
    FoldConfirmModal
    Confirmation modal for "unnecessary fold" — when user can
@@ -39,17 +37,10 @@ export function FoldConfirmModal({
 
           {/* Buttons */}
           <div className="flex items-center gap-3">
-            <button
-              onClick={onCancel}
-              className="cp-btn cp-btn-check flex-1"
-              autoFocus
-            >
+            <button onClick={onCancel} className="cp-btn cp-btn-check flex-1" autoFocus>
               Check instead
             </button>
-            <button
-              onClick={onConfirmFold}
-              className="cp-btn cp-btn-ghost flex-1"
-            >
+            <button onClick={onConfirmFold} className="cp-btn cp-btn-ghost flex-1">
               Fold anyway
             </button>
           </div>

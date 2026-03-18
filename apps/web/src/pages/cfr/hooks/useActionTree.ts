@@ -87,22 +87,30 @@ export function useActionTree(input: ActionTreeInput, treeActions: ActionTreeAct
 
       const nextPrefix = `${nextStreet}|${boardId}|${nextPlayer}|${nextHistory}|`;
       if (hasEntryWithPrefix(indexed, nextPrefix, bucketCount, isV2, prefixIndex)) {
-        children.push({ label: labels[i], historyKey: nextHistory, street: nextStreet, player: nextPlayer });
+        children.push({
+          label: labels[i],
+          historyKey: nextHistory,
+          street: nextStreet,
+          player: nextPlayer,
+        });
       }
     }
     return children;
   }, [meta, historyKey, numActions, street, player, indexed, prefixIndex, bucketCount, isV2]);
 
-  const navigateTo = useCallback((action: ChildAction) => {
-    treeActions.setHistoryKey(action.historyKey);
-    // Only set street/player if they changed (avoid unnecessary re-renders from setStreet clearing history)
-    if (action.street !== street) {
-      // Direct state updates without going through setStreet (which clears historyKey)
-      // We handle this by setting historyKey FIRST, then calling raw setters
-    }
-    // Use the raw setters from useStrategyViewer
-    (treeActions as any).setPlayer?.(action.player);
-  }, [treeActions, street]);
+  const navigateTo = useCallback(
+    (action: ChildAction) => {
+      treeActions.setHistoryKey(action.historyKey);
+      // Only set street/player if they changed (avoid unnecessary re-renders from setStreet clearing history)
+      if (action.street !== street) {
+        // Direct state updates without going through setStreet (which clears historyKey)
+        // We handle this by setting historyKey FIRST, then calling raw setters
+      }
+      // Use the raw setters from useStrategyViewer
+      (treeActions as any).setPlayer?.(action.player);
+    },
+    [treeActions, street],
+  );
 
   const goBack = useCallback(() => {
     if (!historyKey || !meta) return;

@@ -1,12 +1,12 @@
-import { useRef, useCallback, useState, useEffect } from "react";
-import type { TableState, SettlementResult, SevenTwoBountyInfo } from "@cardpilot/shared-types";
+import { useRef, useCallback, useState, useEffect } from 'react';
+import type { TableState, SettlementResult, SevenTwoBountyInfo } from '@cardpilot/shared-types';
 import {
   type ChipTransfer,
   type AnimationSpeed,
   getTiming,
   getAnchorCenter,
   nextTransferId,
-} from "../lib/chip-animation.js";
+} from '../lib/chip-animation.js';
 
 export interface ChipAnimationAnchors {
   container: HTMLElement | null;
@@ -50,7 +50,7 @@ export function useChipAnimationDriver(
   const onSnapshot = useCallback(
     (next: TableState) => {
       const spd = speedRef.current;
-      if (spd === "off") {
+      if (spd === 'off') {
         // Still track state so switching speed mid-hand works
         const committed: Record<number, number> = {};
         for (const p of next.players) committed[p.seat] = p.streetCommitted;
@@ -79,19 +79,18 @@ export function useChipAnimationDriver(
         // Bomb pot ante animation: ante uses countToStreet=false so streetCommitted
         // stays at 0 — detect from the actions array instead
         if (next.isBombPotHand && next.actions && next.actions.length > 0) {
-          const anteActions = next.actions.filter(
-            (a) => a.type === "ante" && a.amount > 0,
-          );
+          const anteActions = next.actions.filter((a) => a.type === 'ante' && a.amount > 0);
           if (anteActions.length > 0) {
             const potPos = getAnchorCenter(pot, container);
             if (potPos) {
-              const timing = getTiming(spd, "bombPotAnte");
+              const timing = getTiming(spd, 'bombPotAnte');
               const STAGGER_MS = 60;
               anteActions.forEach((action, idx) => {
                 const seatEl = seats[action.seat];
                 const fromPos = getAnchorCenter(seatEl, container);
                 if (!fromPos) return;
-                setTimeout(() => {
+                const tid = setTimeout(() => {
+                  pendingTimeouts.current.delete(tid);
                   setTransfers((prev) => [
                     ...prev,
                     {
@@ -99,13 +98,14 @@ export function useChipAnimationDriver(
                       from: fromPos,
                       to: potPos,
                       amount: action.amount,
-                      kind: "bombPotAnte" as const,
+                      kind: 'bombPotAnte' as const,
                       seat: action.seat,
                       createdAt: Date.now(),
                       timing,
                     },
                   ]);
                 }, idx * STAGGER_MS);
+                pendingTimeouts.current.add(tid);
               });
             }
           }
@@ -132,10 +132,10 @@ export function useChipAnimationDriver(
               from: fromPos,
               to: toPos,
               amount: delta,
-              kind: "toPot",
+              kind: 'toPot',
               seat: p.seat,
               createdAt: Date.now(),
-              timing: getTiming(spd, "toPot"),
+              timing: getTiming(spd, 'toPot'),
             });
           }
         }
@@ -155,7 +155,7 @@ export function useChipAnimationDriver(
   const onSettlement = useCallback(
     (settlement: SettlementResult) => {
       const spd = speedRef.current;
-      if (spd === "off") return;
+      if (spd === 'off') return;
 
       const { container, pot, seats } = anchorsRef.current;
       if (!container || !pot) return;
@@ -163,7 +163,7 @@ export function useChipAnimationDriver(
       const potPos = getAnchorCenter(pot, container);
       if (!potPos) return;
 
-      const timing = getTiming(spd, "toWinner");
+      const timing = getTiming(spd, 'toWinner');
 
       // Aggregate payouts by seat (handles split pot / run-it-twice)
       const payouts: Record<number, number> = { ...settlement.payoutsBySeat };
@@ -181,7 +181,8 @@ export function useChipAnimationDriver(
         const staggerDelay = idx * 150;
 
         // We add the transfer after a brief delay to stagger visually
-        setTimeout(() => {
+        const tid = setTimeout(() => {
+          pendingTimeouts.current.delete(tid);
           setTransfers((prev) => [
             ...prev,
             {
@@ -189,13 +190,14 @@ export function useChipAnimationDriver(
               from: potPos,
               to: toPos,
               amount: entry.amount,
-              kind: "toWinner",
+              kind: 'toWinner',
               seat: entry.seat,
               createdAt: Date.now(),
               timing,
             },
           ]);
         }, staggerDelay);
+        pendingTimeouts.current.add(tid);
       });
     },
     [], // stable — reads from refs
@@ -205,7 +207,7 @@ export function useChipAnimationDriver(
   const onBountyClaim = useCallback(
     (bounty: SevenTwoBountyInfo) => {
       const spd = speedRef.current;
-      if (spd === "off") return;
+      if (spd === 'off') return;
 
       const { container, seats } = anchorsRef.current;
       if (!container) return;
@@ -214,7 +216,7 @@ export function useChipAnimationDriver(
       const toPos = getAnchorCenter(winnerSeatEl, container);
       if (!toPos) return;
 
-      const timing = getTiming(spd, "bountyToWinner");
+      const timing = getTiming(spd, 'bountyToWinner');
 
       bounty.payingSeats.forEach((payerSeat, idx) => {
         const payerEl = seats[payerSeat];
@@ -224,7 +226,8 @@ export function useChipAnimationDriver(
         const amount = Math.abs(bounty.bountyBySeat[payerSeat] ?? bounty.bountyPerPlayer);
 
         // Stagger: each payer chip launches 200ms after the previous
-        setTimeout(() => {
+        const tid = setTimeout(() => {
+          pendingTimeouts.current.delete(tid);
           setTransfers((prev) => [
             ...prev,
             {
@@ -232,17 +235,21 @@ export function useChipAnimationDriver(
               from: fromPos,
               to: toPos,
               amount,
-              kind: "bountyToWinner" as const,
+              kind: 'bountyToWinner' as const,
               seat: payerSeat,
               createdAt: Date.now(),
               timing,
             },
           ]);
         }, idx * 200);
+        pendingTimeouts.current.add(tid);
       });
     },
     [], // stable — reads from refs
   );
+
+  // Track pending setTimeout IDs so we can clean them up on unmount
+  const pendingTimeouts = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
 
   // Clean up stale transfers (safety: remove any older than 8s)
   useEffect(() => {
@@ -250,7 +257,11 @@ export function useChipAnimationDriver(
       const now = Date.now();
       setTransfers((prev) => prev.filter((t) => now - t.createdAt < 8000));
     }, 3000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      for (const id of pendingTimeouts.current) clearTimeout(id);
+      pendingTimeouts.current.clear();
+    };
   }, []);
 
   return { transfers, removeTransfer, onSnapshot, onSettlement, onBountyClaim };

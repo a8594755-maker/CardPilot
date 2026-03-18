@@ -7,7 +7,7 @@
  * - Always uses tabular-number CSS class externally (cp-num)
  */
 
-export type ChipDisplayMode = "chips" | "bb";
+export type ChipDisplayMode = 'chips' | 'bb';
 
 export interface FormatChipsOptions {
   mode: ChipDisplayMode;
@@ -22,10 +22,10 @@ export interface FormatChipsOptions {
  * @returns       Formatted string, e.g. "7.5 BB" or "1,500"
  */
 export function formatChips(amount: number, opts: FormatChipsOptions): string {
-  if (opts.mode === "bb") {
+  if (opts.mode === 'bb') {
     const bb = opts.bbSize || 1;
     const bbValue = amount / bb;
-    if (bbValue === 0) return "0 BB";
+    if (bbValue === 0) return '0 BB';
     // <10 BB: always 1 decimal
     if (Math.abs(bbValue) < 10) {
       return `${bbValue.toFixed(1)} BB`;
@@ -54,7 +54,7 @@ export function formatDelta(amount: number, opts: FormatChipsOptions): string {
  */
 export function makeChipFormatter(displayBB: boolean, bigBlind: number) {
   const opts: FormatChipsOptions = {
-    mode: displayBB ? "bb" : "chips",
+    mode: displayBB ? 'bb' : 'chips',
     bbSize: bigBlind || 1,
   };
   return (amount: number) => formatChips(amount, opts);

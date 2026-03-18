@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
 interface RenameTableModalProps {
   isOpen: boolean;
@@ -19,7 +19,7 @@ export function RenameTableModal({
     setName(currentName);
   }, [currentName]);
 
-  const isValid = name.trim() !== "" && name.trim() !== currentName;
+  const isValid = name.trim() !== '' && name.trim() !== currentName;
 
   if (!isOpen) return null;
 

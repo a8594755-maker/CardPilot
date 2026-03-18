@@ -16,9 +16,10 @@ export function Seat({ seat, isMySeat, holeCards, isActor, onClick }: SeatProps)
     <div
       className={`
         relative p-3 rounded-xl transition-all duration-200
-        ${isEmpty 
-          ? 'bg-slate-800/80 border-2 border-dashed border-slate-600 cursor-pointer hover:border-slate-400' 
-          : 'bg-slate-900/90 border-2 border-slate-700'
+        ${
+          isEmpty
+            ? 'bg-slate-800/80 border-2 border-dashed border-slate-600 cursor-pointer hover:border-slate-400'
+            : 'bg-slate-900/90 border-2 border-slate-700'
         }
         ${isMySeat ? 'ring-2 ring-cyan-500' : ''}
         ${isActor ? 'ring-2 ring-yellow-400 animate-pulse' : ''}
@@ -55,14 +56,14 @@ export function Seat({ seat, isMySeat, holeCards, isActor, onClick }: SeatProps)
             <div className="text-white font-medium text-sm truncate">
               {seat.user?.nickname || `Player ${seat.index + 1}`}
             </div>
-            <div className="text-yellow-400 font-mono text-sm">
-              {seat.stack.toLocaleString()}
-            </div>
+            <div className="text-yellow-400 font-mono text-sm">{seat.stack.toLocaleString()}</div>
           </div>
 
           {/* Sit Out badge */}
           {seat.status === 'sitting_out' && (
-            <div className="text-center text-[10px] text-orange-400 font-bold uppercase mb-1">Sit Out</div>
+            <div className="text-center text-[10px] text-orange-400 font-bold uppercase mb-1">
+              Sit Out
+            </div>
           )}
 
           {/* Hole Cards */}
@@ -88,6 +89,5 @@ export function Seat({ seat, isMySeat, holeCards, isActor, onClick }: SeatProps)
     </div>
   );
 }
-
 
 export default Seat;

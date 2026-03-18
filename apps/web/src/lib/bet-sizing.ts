@@ -2,9 +2,9 @@
 
 export type BetPreset = { label: string; pctOfPot: number };
 
-export type BoardTexture = "dry" | "wet" | "neutral";
+export type BoardTexture = 'dry' | 'wet' | 'neutral';
 
-export type Street = "PREFLOP" | "FLOP" | "TURN" | "RIVER" | "SHOWDOWN";
+export type Street = 'PREFLOP' | 'FLOP' | 'TURN' | 'RIVER' | 'SHOWDOWN';
 
 /**
  * Compute Stack-to-Pot Ratio
@@ -19,7 +19,7 @@ export function computeSPR(stack: number, pot: number): number {
  * Cards are 2-char strings like "Ah", "Ks", "Td".
  */
 export function analyzeBoard(board: string[]): BoardTexture {
-  if (board.length < 3) return "neutral";
+  if (board.length < 3) return 'neutral';
 
   const suits = board.map((c) => c[1]);
   const ranks = board.map((c) => rankToNum(c[0]));
@@ -45,9 +45,9 @@ export function analyzeBoard(board: string[]): BoardTexture {
   }
   const hasStraightDraw = maxConnected >= 3;
 
-  if (hasFlush || (hasFlushDraw && hasStraightDraw)) return "wet";
-  if (!hasFlushDraw && !hasStraightDraw) return "dry";
-  return "neutral";
+  if (hasFlush || (hasFlushDraw && hasStraightDraw)) return 'wet';
+  if (!hasFlushDraw && !hasStraightDraw) return 'dry';
+  return 'neutral';
 }
 
 /**
@@ -66,85 +66,85 @@ export function getSuggestedPresets(params: {
   const multiway = numPlayers >= 3;
 
   // Low SPR: push toward all-in
-  if (spr < 2 && street !== "PREFLOP") {
+  if (spr < 2 && street !== 'PREFLOP') {
     return [
-      { label: "50%", pctOfPot: 50 },
-      { label: "Pot", pctOfPot: 100 },
-      { label: "All-In", pctOfPot: Math.round((heroStack / pot) * 100) },
+      { label: '50%', pctOfPot: 50 },
+      { label: 'Pot', pctOfPot: 100 },
+      { label: 'All-In', pctOfPot: Math.round((heroStack / pot) * 100) },
     ];
   }
 
-  if (street === "FLOP") {
+  if (street === 'FLOP') {
     if (multiway) {
       return [
-        { label: "25%", pctOfPot: 25 },
-        { label: "33%", pctOfPot: 33 },
-        { label: "50%", pctOfPot: 50 },
+        { label: '25%', pctOfPot: 25 },
+        { label: '33%', pctOfPot: 33 },
+        { label: '50%', pctOfPot: 50 },
       ];
     }
-    if (texture === "dry") {
+    if (texture === 'dry') {
       return [
-        { label: "25%", pctOfPot: 25 },
-        { label: "33%", pctOfPot: 33 },
-        { label: "75%", pctOfPot: 75 },
+        { label: '25%', pctOfPot: 25 },
+        { label: '33%', pctOfPot: 33 },
+        { label: '75%', pctOfPot: 75 },
       ];
     }
-    if (texture === "wet") {
+    if (texture === 'wet') {
       return [
-        { label: "50%", pctOfPot: 50 },
-        { label: "75%", pctOfPot: 75 },
-        { label: "Pot", pctOfPot: 100 },
+        { label: '50%', pctOfPot: 50 },
+        { label: '75%', pctOfPot: 75 },
+        { label: 'Pot', pctOfPot: 100 },
       ];
     }
     return [
-      { label: "33%", pctOfPot: 33 },
-      { label: "66%", pctOfPot: 66 },
-      { label: "Pot", pctOfPot: 100 },
+      { label: '33%', pctOfPot: 33 },
+      { label: '66%', pctOfPot: 66 },
+      { label: 'Pot', pctOfPot: 100 },
     ];
   }
 
-  if (street === "TURN") {
+  if (street === 'TURN') {
     if (multiway) {
       return [
-        { label: "33%", pctOfPot: 33 },
-        { label: "50%", pctOfPot: 50 },
-        { label: "75%", pctOfPot: 75 },
+        { label: '33%', pctOfPot: 33 },
+        { label: '50%', pctOfPot: 50 },
+        { label: '75%', pctOfPot: 75 },
       ];
     }
-    if (texture === "dry") {
+    if (texture === 'dry') {
       return [
-        { label: "33%", pctOfPot: 33 },
-        { label: "50%", pctOfPot: 50 },
-        { label: "75%", pctOfPot: 75 },
+        { label: '33%', pctOfPot: 33 },
+        { label: '50%', pctOfPot: 50 },
+        { label: '75%', pctOfPot: 75 },
       ];
     }
     return [
-      { label: "50%", pctOfPot: 50 },
-      { label: "75%", pctOfPot: 75 },
-      { label: "125%", pctOfPot: 125 },
+      { label: '50%', pctOfPot: 50 },
+      { label: '75%', pctOfPot: 75 },
+      { label: '125%', pctOfPot: 125 },
     ];
   }
 
-  if (street === "RIVER") {
+  if (street === 'RIVER') {
     if (spr < 3) {
       return [
-        { label: "50%", pctOfPot: 50 },
-        { label: "Pot", pctOfPot: 100 },
-        { label: "All-In", pctOfPot: Math.round((heroStack / pot) * 100) },
+        { label: '50%', pctOfPot: 50 },
+        { label: 'Pot', pctOfPot: 100 },
+        { label: 'All-In', pctOfPot: Math.round((heroStack / pot) * 100) },
       ];
     }
     return [
-      { label: "50%", pctOfPot: 50 },
-      { label: "75%", pctOfPot: 75 },
-      { label: "Pot", pctOfPot: 100 },
+      { label: '50%', pctOfPot: 50 },
+      { label: '75%', pctOfPot: 75 },
+      { label: 'Pot', pctOfPot: 100 },
     ];
   }
 
   // PREFLOP / SHOWDOWN fallback
   return [
-    { label: "1/3", pctOfPot: 33 },
-    { label: "1/2", pctOfPot: 50 },
-    { label: "Pot", pctOfPot: 100 },
+    { label: '1/3', pctOfPot: 33 },
+    { label: '1/2', pctOfPot: 50 },
+    { label: 'Pot', pctOfPot: 100 },
   ];
 }
 
@@ -157,8 +157,19 @@ export function userPresetsToButtons(presets: [number, number, number]): BetPres
 
 function rankToNum(r: string): number {
   const map: Record<string, number> = {
-    "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9,
-    "T": 10, "J": 11, "Q": 12, "K": 13, "A": 14,
+    '2': 2,
+    '3': 3,
+    '4': 4,
+    '5': 5,
+    '6': 6,
+    '7': 7,
+    '8': 8,
+    '9': 9,
+    T: 10,
+    J: 11,
+    Q: 12,
+    K: 13,
+    A: 14,
   };
   return map[r] ?? 0;
 }

@@ -10,14 +10,14 @@ interface AdvicePanelProps {
 export function AdvicePanel({ advice, onActionSelect, actualAction }: AdvicePanelProps) {
   const deviation = useMemo(() => {
     if (!advice || !actualAction) return null;
-    
+
     const actionMap: Record<string, keyof typeof advice.mix> = {
-      'fold': 'fold',
-      'call': 'call',
-      'raise': 'raise',
-      'all_in': 'raise',
+      fold: 'fold',
+      call: 'call',
+      raise: 'raise',
+      all_in: 'raise',
     };
-    
+
     const gtoProb = advice.mix[actionMap[actualAction]] || 0;
     return 1 - gtoProb;
   }, [advice, actualAction]);
@@ -44,21 +44,21 @@ export function AdvicePanel({ advice, onActionSelect, actualAction }: AdvicePane
 
       {/* Strategy Bars */}
       <div className="space-y-3 mb-4">
-        <StrategyBar 
-          action="raise" 
-          percentage={mix.raise} 
+        <StrategyBar
+          action="raise"
+          percentage={mix.raise}
           color="bg-red-500"
           onClick={() => onActionSelect?.('raise')}
         />
-        <StrategyBar 
-          action="call" 
-          percentage={mix.call} 
+        <StrategyBar
+          action="call"
+          percentage={mix.call}
           color="bg-blue-500"
           onClick={() => onActionSelect?.('call')}
         />
-        <StrategyBar 
-          action="fold" 
-          percentage={mix.fold} 
+        <StrategyBar
+          action="fold"
+          percentage={mix.fold}
           color="bg-gray-500"
           onClick={() => onActionSelect?.('fold')}
         />
@@ -69,18 +69,13 @@ export function AdvicePanel({ advice, onActionSelect, actualAction }: AdvicePane
         {tags && tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-2">
             {tags.map((tag: string) => (
-              <span 
-                key={tag} 
-                className="text-[10px] bg-blue-900 text-blue-200 px-2 py-0.5 rounded"
-              >
+              <span key={tag} className="text-[10px] bg-blue-900 text-blue-200 px-2 py-0.5 rounded">
                 {tag}
               </span>
             ))}
           </div>
         )}
-        <p className="text-sm leading-relaxed text-slate-200">
-          {explanation}
-        </p>
+        <p className="text-sm leading-relaxed text-slate-200">{explanation}</p>
       </div>
 
       {/* Deviation Warning */}
@@ -134,17 +129,12 @@ interface StrategyBarProps {
 
 function StrategyBar({ action, percentage, color, onClick }: StrategyBarProps) {
   const percentageRounded = Math.round(percentage * 100);
-  
+
   return (
-    <div 
-      className="flex items-center gap-2 cursor-pointer group"
-      onClick={onClick}
-    >
-      <span className="w-14 text-xs uppercase font-medium text-slate-300">
-        {action}
-      </span>
+    <div className="flex items-center gap-2 cursor-pointer group" onClick={onClick}>
+      <span className="w-14 text-xs uppercase font-medium text-slate-300">{action}</span>
       <div className="flex-1 bg-slate-700 h-6 rounded overflow-hidden relative">
-        <div 
+        <div
           className={`h-full ${color} transition-all duration-300 group-hover:opacity-80`}
           style={{ width: `${percentageRounded}%` }}
         />

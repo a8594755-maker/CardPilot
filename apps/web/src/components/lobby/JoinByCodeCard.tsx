@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useRef, useEffect } from "react";
+import { memo, useState, useCallback, useRef, useEffect } from 'react';
 
 export interface JoinByCodeProps {
   disabled: boolean;
@@ -11,11 +11,14 @@ export const JoinByCodeCard = memo(function JoinByCodeCard({
   onJoin,
   error,
 }: JoinByCodeProps) {
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   const sanitize = useCallback((raw: string) => {
-    return raw.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+    return raw
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, '')
+      .slice(0, 8);
   }, []);
 
   const handleChange = useCallback(
@@ -28,7 +31,7 @@ export const JoinByCodeCard = memo(function JoinByCodeCard({
   const handlePaste = useCallback(
     (e: React.ClipboardEvent<HTMLInputElement>) => {
       e.preventDefault();
-      const pasted = e.clipboardData.getData("text").trim();
+      const pasted = e.clipboardData.getData('text').trim();
       setCode(sanitize(pasted));
     },
     [sanitize],
@@ -43,7 +46,7 @@ export const JoinByCodeCard = memo(function JoinByCodeCard({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === "Enter") {
+      if (e.key === 'Enter') {
         e.preventDefault();
         submit();
       }
@@ -93,9 +96,7 @@ export const JoinByCodeCard = memo(function JoinByCodeCard({
         </button>
       </div>
 
-      {error && (
-        <p className="mt-2 text-sm text-red-400 font-medium">{error}</p>
-      )}
+      {error && <p className="mt-2 text-sm text-red-400 font-medium">{error}</p>}
     </div>
   );
 });

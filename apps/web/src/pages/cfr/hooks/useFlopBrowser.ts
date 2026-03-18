@@ -40,12 +40,16 @@ export function useFlopBrowser(flops: FlopEntry[]): [FlopBrowserState, FlopBrows
   }, []);
 
   const filteredFlops = useMemo(() => {
-    return flops.filter(f => {
+    return flops.filter((f) => {
       // Text search
       if (deferredQuery) {
         const q = deferredQuery.toLowerCase();
-        const cards = f.flopCards.map(c => cardLabel(c)).join(' ').toLowerCase();
-        const meta = `${f.texture || ''} ${f.pairing || ''} ${f.connectivity || ''} ${f.highCard || ''}`.toLowerCase();
+        const cards = f.flopCards
+          .map((c) => cardLabel(c))
+          .join(' ')
+          .toLowerCase();
+        const meta =
+          `${f.texture || ''} ${f.pairing || ''} ${f.connectivity || ''} ${f.highCard || ''}`.toLowerCase();
         if (!(cards + ' ' + meta).includes(q)) return false;
       }
       // Texture

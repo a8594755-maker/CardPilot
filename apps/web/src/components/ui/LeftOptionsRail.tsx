@@ -1,4 +1,4 @@
-import React, { useEffect, memo } from "react";
+import React, { useEffect, memo } from 'react';
 
 /* ═══════════════════════════════════════════════════════════════
    LeftOptionsRail + OptionsDrawer
@@ -23,14 +23,14 @@ interface LeftOptionsRailProps {
 }
 
 export function LeftOptionsRail({ actions, onOpenDrawer, drawerOpen }: LeftOptionsRailProps) {
-  const visibleActions = actions.filter(a => !a.hidden);
+  const visibleActions = actions.filter((a) => !a.hidden);
 
   return (
     <nav className="cp-rail" aria-label="Table options">
       {/* Options button (always first) */}
       <button
         className="cp-rail-btn"
-        data-active={drawerOpen ? "true" : undefined}
+        data-active={drawerOpen ? 'true' : undefined}
         onClick={onOpenDrawer}
         aria-label="Open options"
       >
@@ -46,7 +46,7 @@ export function LeftOptionsRail({ actions, onOpenDrawer, drawerOpen }: LeftOptio
         <button
           key={action.id}
           className="cp-rail-btn"
-          data-active={action.active ? "true" : undefined}
+          data-active={action.active ? 'true' : undefined}
           onClick={action.onClick}
           aria-label={action.label}
           style={action.danger ? { color: 'var(--cp-danger)' } : undefined}
@@ -102,10 +102,10 @@ export const OptionsDrawer = memo(function OptionsDrawer({
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === 'Escape') onClose();
     };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
   }, [open, onClose]);
 
   if (!open) return null;
@@ -113,11 +113,7 @@ export const OptionsDrawer = memo(function OptionsDrawer({
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="cp-drawer-backdrop"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      <div className="cp-drawer-backdrop" onClick={onClose} aria-hidden="true" />
 
       {/* Drawer */}
       <aside className="cp-drawer" role="dialog" aria-label="Options panel">
@@ -125,9 +121,7 @@ export const OptionsDrawer = memo(function OptionsDrawer({
         <div className="flex items-center justify-between p-4 border-b border-white/8">
           <div>
             <h2 className="text-base font-bold text-white">Options</h2>
-            {roomName && (
-              <p className="text-xs text-slate-400 mt-0.5">{roomName}</p>
-            )}
+            {roomName && <p className="text-xs text-slate-400 mt-0.5">{roomName}</p>}
           </div>
           <button
             onClick={onClose}
@@ -144,7 +138,9 @@ export const OptionsDrawer = memo(function OptionsDrawer({
             {roomCode && (
               <div className="flex items-center gap-2">
                 <span className="text-[10px] text-slate-500 uppercase tracking-wider">Code</span>
-                <span className="text-sm font-mono font-bold text-amber-400 tracking-wider">{roomCode}</span>
+                <span className="text-sm font-mono font-bold text-amber-400 tracking-wider">
+                  {roomCode}
+                </span>
                 {onCopyCode && (
                   <button
                     onClick={onCopyCode}
@@ -163,81 +159,89 @@ export const OptionsDrawer = memo(function OptionsDrawer({
               </div>
             )}
             {isHost && (
-              <span className="text-[10px] px-2 py-1 rounded-full bg-amber-500/15 text-amber-400 font-bold uppercase">Host</span>
+              <span className="text-[10px] px-2 py-1 rounded-full bg-amber-500/15 text-amber-400 font-bold uppercase">
+                Host
+              </span>
             )}
           </div>
         )}
 
         {/* Grouped navigation sections */}
         <div className="p-3" data-testid="options-drawer-sections">
-          {sections.reduce<{ lastGroup: string | undefined; elements: React.ReactNode[] }>(
-            (acc, section) => {
-              const isNewGroup = section.group && section.group !== acc.lastGroup;
-              if (isNewGroup) {
-                // Add divider between groups (not before the first)
-                if (acc.elements.length > 0) {
-                  acc.elements.push(
-                    <div key={`div-${section.group}`} className="h-px bg-white/8 my-2" />
-                  );
+          {
+            sections.reduce<{ lastGroup: string | undefined; elements: React.ReactNode[] }>(
+              (acc, section) => {
+                const isNewGroup = section.group && section.group !== acc.lastGroup;
+                if (isNewGroup) {
+                  // Add divider between groups (not before the first)
+                  if (acc.elements.length > 0) {
+                    acc.elements.push(
+                      <div key={`div-${section.group}`} className="h-px bg-white/8 my-2" />,
+                    );
+                  }
+                  // Add group label if it exists
+                  if (section.groupLabel) {
+                    acc.elements.push(
+                      <div key={`hdr-${section.group}`} className="px-3 pt-2 pb-1">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                          {section.groupLabel}
+                        </span>
+                      </div>,
+                    );
+                  }
                 }
-                // Add group label if it exists
-                if (section.groupLabel) {
-                  acc.elements.push(
-                    <div key={`hdr-${section.group}`} className="px-3 pt-2 pb-1">
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                        {section.groupLabel}
-                      </span>
-                    </div>
-                  );
-                }
-              }
-              acc.elements.push(
-                <button
-                  key={section.id}
-                  data-testid={`drawer-item-${section.id}`}
-                  onClick={section.disabled ? undefined : section.onClick}
-                  disabled={section.disabled}
-                  aria-disabled={section.disabled}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors group ${
-                    section.disabled
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:bg-white/5"
-                  }`}
-                >
-                  <span className={`text-lg transition-opacity ${
-                    section.disabled ? "opacity-40" : "opacity-70 group-hover:opacity-100"
-                  }`}>
-                    {section.icon}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <span className={`text-sm font-medium block transition-colors ${
-                      section.disabled
-                        ? "text-slate-500"
-                        : "text-slate-300 group-hover:text-white"
-                    }`}>
-                      {section.label}
+                acc.elements.push(
+                  <button
+                    key={section.id}
+                    data-testid={`drawer-item-${section.id}`}
+                    onClick={section.disabled ? undefined : section.onClick}
+                    disabled={section.disabled}
+                    aria-disabled={section.disabled}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors group ${
+                      section.disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/5'
+                    }`}
+                  >
+                    <span
+                      className={`text-lg transition-opacity ${
+                        section.disabled ? 'opacity-40' : 'opacity-70 group-hover:opacity-100'
+                      }`}
+                    >
+                      {section.icon}
                     </span>
-                    {section.disabledLabel && (
-                      <span className="text-[10px] text-slate-600 block mt-0.5">
-                        {section.disabledLabel}
+                    <div className="flex-1 min-w-0">
+                      <span
+                        className={`text-sm font-medium block transition-colors ${
+                          section.disabled
+                            ? 'text-slate-500'
+                            : 'text-slate-300 group-hover:text-white'
+                        }`}
+                      >
+                        {section.label}
+                      </span>
+                      {section.disabledLabel && (
+                        <span className="text-[10px] text-slate-600 block mt-0.5">
+                          {section.disabledLabel}
+                        </span>
+                      )}
+                    </div>
+                    {section.badge && (
+                      <span className="cp-badge bg-amber-500/15 text-amber-400 border border-amber-500/25">
+                        {section.badge}
                       </span>
                     )}
-                  </div>
-                  {section.badge && (
-                    <span className="cp-badge bg-amber-500/15 text-amber-400 border border-amber-500/25">
-                      {section.badge}
-                    </span>
-                  )}
-                  {!section.disabled && (
-                    <span className="text-slate-600 text-xs group-hover:text-slate-400 transition-colors">›</span>
-                  )}
-                </button>
-              );
-              acc.lastGroup = section.group;
-              return acc;
-            },
-            { lastGroup: undefined, elements: [] }
-          ).elements}
+                    {!section.disabled && (
+                      <span className="text-slate-600 text-xs group-hover:text-slate-400 transition-colors">
+                        ›
+                      </span>
+                    )}
+                  </button>,
+                );
+                acc.lastGroup = section.group;
+                return acc;
+              },
+              { lastGroup: undefined, elements: [] },
+            ).elements
+          }
         </div>
       </aside>
     </>

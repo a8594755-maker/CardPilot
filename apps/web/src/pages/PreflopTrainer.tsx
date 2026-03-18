@@ -2,7 +2,7 @@
 // Combines scenario selector, hand grid, frequency detail, and drill mode.
 // Fetches solution data from static JSON files.
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   loadIndex,
   loadSpot,
@@ -39,17 +39,17 @@ export function PreflopTrainer() {
     setLoading(true);
     setError(null);
     loadIndex(config)
-      .then(idx => {
+      .then((idx) => {
         setIndex(idx);
         setLoading(false);
         // Auto-select first spot for the current position
-        const firstSpot = idx.spots.find(s => s.heroPosition === selectedPosition);
+        const firstSpot = idx.spots.find((s) => s.heroPosition === selectedPosition);
         if (firstSpot) {
           setSelectedScenario(firstSpot.scenario as ScenarioType);
           setSelectedSpot(firstSpot.spot);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         setError(`Failed to load: ${err.message}`);
         setLoading(false);
       });
@@ -65,32 +65,38 @@ export function PreflopTrainer() {
   }, [selectedSpot, config]);
 
   // When position changes, auto-select first matching spot
-  const handlePositionChange = useCallback((pos: Position) => {
-    setSelectedPosition(pos);
-    setSelectedHand(null);
-    if (!index) return;
-    const spots = index.spots.filter(s => s.heroPosition === pos);
-    if (spots.length > 0) {
-      setSelectedScenario(spots[0].scenario as ScenarioType);
-      setSelectedSpot(spots[0].spot);
-    } else {
-      setSelectedScenario(null);
-      setSelectedSpot(null);
-    }
-  }, [index]);
+  const handlePositionChange = useCallback(
+    (pos: Position) => {
+      setSelectedPosition(pos);
+      setSelectedHand(null);
+      if (!index) return;
+      const spots = index.spots.filter((s) => s.heroPosition === pos);
+      if (spots.length > 0) {
+        setSelectedScenario(spots[0].scenario as ScenarioType);
+        setSelectedSpot(spots[0].spot);
+      } else {
+        setSelectedScenario(null);
+        setSelectedSpot(null);
+      }
+    },
+    [index],
+  );
 
   // When scenario changes, auto-select first matching spot
-  const handleScenarioChange = useCallback((scenario: ScenarioType) => {
-    setSelectedScenario(scenario);
-    setSelectedHand(null);
-    if (!index) return;
-    const spots = index.spots.filter(
-      s => s.heroPosition === selectedPosition && s.scenario === scenario,
-    );
-    if (spots.length > 0) {
-      setSelectedSpot(spots[0].spot);
-    }
-  }, [index, selectedPosition]);
+  const handleScenarioChange = useCallback(
+    (scenario: ScenarioType) => {
+      setSelectedScenario(scenario);
+      setSelectedHand(null);
+      if (!index) return;
+      const spots = index.spots.filter(
+        (s) => s.heroPosition === selectedPosition && s.scenario === scenario,
+      );
+      if (spots.length > 0) {
+        setSelectedSpot(spots[0].spot);
+      }
+    },
+    [index, selectedPosition],
+  );
 
   const handleSpotChange = useCallback((spot: string) => {
     setSelectedSpot(spot);
@@ -117,7 +123,8 @@ export function PreflopTrainer() {
             <h2 className="text-xl font-bold text-white mb-2">Preflop Trainer</h2>
             <p className="text-red-400 text-sm">{error || 'No solution data available.'}</p>
             <p className="text-slate-500 text-xs mt-2">
-              Run the preflop solver first: <code className="text-slate-400">npm run preflop:solve</code>
+              Run the preflop solver first:{' '}
+              <code className="text-slate-400">npm run preflop:solve</code>
             </p>
           </div>
         </div>
@@ -142,7 +149,9 @@ export function PreflopTrainer() {
             <div className="flex gap-1 bg-slate-800/60 rounded-lg p-0.5">
               <button
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
-                  tab === 'charts' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-slate-300'
+                  tab === 'charts'
+                    ? 'bg-slate-700 text-white'
+                    : 'text-slate-500 hover:text-slate-300'
                 }`}
                 onClick={() => setTab('charts')}
               >
@@ -150,7 +159,9 @@ export function PreflopTrainer() {
               </button>
               <button
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
-                  tab === 'drill' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-slate-300'
+                  tab === 'drill'
+                    ? 'bg-slate-700 text-white'
+                    : 'text-slate-500 hover:text-slate-300'
                 }`}
                 onClick={() => setTab('drill')}
               >
@@ -195,7 +206,13 @@ export function PreflopTrainer() {
                         {spotData.heroPosition} — {spotData.spot.replace(/_/g, ' ')}
                       </div>
                       <div className="text-[10px] text-slate-500">
-                        Playing {spotData.summary.rangeSize} / {spotData.summary.totalCombos} hands ({((spotData.summary.rangeSize / spotData.summary.totalCombos) * 100).toFixed(1)}%)
+                        Playing {spotData.summary.rangeSize} / {spotData.summary.totalCombos} hands
+                        (
+                        {(
+                          (spotData.summary.rangeSize / spotData.summary.totalCombos) *
+                          100
+                        ).toFixed(1)}
+                        %)
                       </div>
                     </div>
                     <ActionLegend actions={spotData.actions} />

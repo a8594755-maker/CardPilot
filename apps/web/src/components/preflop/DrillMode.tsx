@@ -1,7 +1,7 @@
 // Drill Mode — interactive quiz for preflop GTO training.
 // Random spot + hand → user picks action → instant feedback.
 
-import { memo, useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { memo, useState, useCallback, useEffect, useRef } from 'react';
 import type { SolutionIndex, SpotSolution } from '../../data/preflop-loader';
 import {
   loadSpot,
@@ -93,10 +93,14 @@ export const DrillMode = memo(function DrillMode({ index, config }: DrillModePro
     // Filter spots by settings
     let candidates = index.spots;
     if (settings.scenarios.length > 0) {
-      candidates = candidates.filter(s => settings.scenarios.includes(s.scenario as ScenarioType));
+      candidates = candidates.filter((s) =>
+        settings.scenarios.includes(s.scenario as ScenarioType),
+      );
     }
     if (settings.positions.length > 0) {
-      candidates = candidates.filter(s => settings.positions.includes(s.heroPosition as Position));
+      candidates = candidates.filter((s) =>
+        settings.positions.includes(s.heroPosition as Position),
+      );
     }
     if (candidates.length === 0) candidates = index.spots;
 
@@ -115,7 +119,7 @@ export const DrillMode = memo(function DrillMode({ index, config }: DrillModePro
     let validHands = handClasses;
 
     if (settings.difficulty !== 'all') {
-      validHands = handClasses.filter(hc => {
+      validHands = handClasses.filter((hc) => {
         const { freq } = dominantAction(spotData!.grid[hc]);
         if (settings.difficulty === 'easy') return freq >= 0.9;
         if (settings.difficulty === 'medium') return freq >= 0.6 && freq < 0.9;
@@ -146,42 +150,45 @@ export const DrillMode = memo(function DrillMode({ index, config }: DrillModePro
     }
   }, [question, loading, generateQuestion]);
 
-  const handleAnswer = useCallback((userAction: string) => {
-    if (!question || result) return;
+  const handleAnswer = useCallback(
+    (userAction: string) => {
+      if (!question || result) return;
 
-    const freqs = question.spot.grid[question.handClass];
-    const userFreq = freqs[userAction] ?? 0;
-    const isCorrect = userAction === question.correctAction;
-    const isMixedCorrect = userFreq > 0.1; // part of the mix (>10%)
+      const freqs = question.spot.grid[question.handClass];
+      const userFreq = freqs[userAction] ?? 0;
+      const isCorrect = userAction === question.correctAction;
+      const isMixedCorrect = userFreq > 0.1; // part of the mix (>10%)
 
-    const drillResult: DrillResult = {
-      question,
-      userAction,
-      isCorrect,
-      isMixedCorrect,
-    };
-    setResult(drillResult);
+      const drillResult: DrillResult = {
+        question,
+        userAction,
+        isCorrect,
+        isMixedCorrect,
+      };
+      setResult(drillResult);
 
-    // Update stats
-    setStats(prev => {
-      const next = { ...prev };
-      next.total++;
-      if (isCorrect) next.correct++;
-      if (isMixedCorrect) next.mixedCorrect++;
-      next.streak = isCorrect || isMixedCorrect ? prev.streak + 1 : 0;
-      next.bestStreak = Math.max(next.bestStreak, next.streak);
+      // Update stats
+      setStats((prev) => {
+        const next = { ...prev };
+        next.total++;
+        if (isCorrect) next.correct++;
+        if (isMixedCorrect) next.mixedCorrect++;
+        next.streak = isCorrect || isMixedCorrect ? prev.streak + 1 : 0;
+        next.bestStreak = Math.max(next.bestStreak, next.streak);
 
-      const scenario = question.spot.scenario;
-      if (!next.byScenario[scenario]) {
-        next.byScenario[scenario] = { total: 0, correct: 0 };
-      }
-      next.byScenario[scenario].total++;
-      if (isCorrect || isMixedCorrect) next.byScenario[scenario].correct++;
+        const scenario = question.spot.scenario;
+        if (!next.byScenario[scenario]) {
+          next.byScenario[scenario] = { total: 0, correct: 0 };
+        }
+        next.byScenario[scenario].total++;
+        if (isCorrect || isMixedCorrect) next.byScenario[scenario].correct++;
 
-      saveStats(next);
-      return next;
-    });
-  }, [question, result]);
+        saveStats(next);
+        return next;
+      });
+    },
+    [question, result],
+  );
 
   const handleNext = useCallback(() => {
     setQuestion(null);
@@ -190,7 +197,14 @@ export const DrillMode = memo(function DrillMode({ index, config }: DrillModePro
   }, [generateQuestion]);
 
   const handleResetStats = useCallback(() => {
-    const fresh: DrillSessionStats = { total: 0, correct: 0, mixedCorrect: 0, streak: 0, bestStreak: 0, byScenario: {} };
+    const fresh: DrillSessionStats = {
+      total: 0,
+      correct: 0,
+      mixedCorrect: 0,
+      streak: 0,
+      bestStreak: 0,
+      byScenario: {},
+    };
     setStats(fresh);
     saveStats(fresh);
   }, []);
@@ -251,9 +265,7 @@ export const DrillMode = memo(function DrillMode({ index, config }: DrillModePro
       </div>
 
       {/* Settings panel */}
-      {showSettings && (
-        <DrillSettingsPanel settings={settings} onChange={setSettings} />
-      )}
+      {showSettings && <DrillSettingsPanel settings={settings} onChange={setSettings} />}
 
       {/* Question */}
       {loading && (
@@ -270,16 +282,12 @@ export const DrillMode = memo(function DrillMode({ index, config }: DrillModePro
             <div className="text-sm font-semibold text-white">
               {question.spot.heroPosition} — {formatScenarioLabel(question.spot)}
             </div>
-            <div className="text-xs text-slate-400 mt-0.5">
-              Pot: {question.spot.potSize} bb
-            </div>
+            <div className="text-xs text-slate-400 mt-0.5">Pot: {question.spot.potSize} bb</div>
           </div>
 
           {/* Hand display */}
           <div className="text-center py-4">
-            <div className="text-3xl font-bold text-white tracking-wide">
-              {question.handClass}
-            </div>
+            <div className="text-3xl font-bold text-white tracking-wide">{question.handClass}</div>
             <div className="text-xs text-slate-500 mt-1">
               {handClassDescription(question.handClass)}
             </div>
@@ -311,35 +319,48 @@ export const DrillMode = memo(function DrillMode({ index, config }: DrillModePro
           {result && (
             <div className="space-y-3">
               {/* Feedback banner */}
-              <div className={`rounded-lg px-4 py-3 text-center ${
-                result.isCorrect
-                  ? 'bg-green-500/20 border border-green-500/40'
-                  : result.isMixedCorrect
-                    ? 'bg-amber-500/20 border border-amber-500/40'
-                    : 'bg-red-500/20 border border-red-500/40'
-              }`}>
-                <div className={`text-sm font-bold ${
-                  result.isCorrect ? 'text-green-400' : result.isMixedCorrect ? 'text-amber-400' : 'text-red-400'
-                }`}>
-                  {result.isCorrect ? 'Correct!' : result.isMixedCorrect ? 'Acceptable (Mixed Spot)' : 'Incorrect'}
+              <div
+                className={`rounded-lg px-4 py-3 text-center ${
+                  result.isCorrect
+                    ? 'bg-green-500/20 border border-green-500/40'
+                    : result.isMixedCorrect
+                      ? 'bg-amber-500/20 border border-amber-500/40'
+                      : 'bg-red-500/20 border border-red-500/40'
+                }`}
+              >
+                <div
+                  className={`text-sm font-bold ${
+                    result.isCorrect
+                      ? 'text-green-400'
+                      : result.isMixedCorrect
+                        ? 'text-amber-400'
+                        : 'text-red-400'
+                  }`}
+                >
+                  {result.isCorrect
+                    ? 'Correct!'
+                    : result.isMixedCorrect
+                      ? 'Acceptable (Mixed Spot)'
+                      : 'Incorrect'}
                 </div>
                 <div className="text-xs text-slate-400 mt-1">
-                  GTO: {getActionLabel(question.correctAction)} {(question.correctFreq * 100).toFixed(0)}%
-                  {question.isMixed && ' (mixed spot)'}
+                  GTO: {getActionLabel(question.correctAction)}{' '}
+                  {(question.correctFreq * 100).toFixed(0)}%{question.isMixed && ' (mixed spot)'}
                 </div>
               </div>
 
               {/* Full frequency breakdown */}
               <div className="space-y-1">
-                {question.spot.actions.map(action => {
+                {question.spot.actions.map((action) => {
                   const freq = question.spot.grid[question.handClass][action] ?? 0;
                   const isUserPick = action === result.userAction;
-                  const isGTO = action === question.correctAction;
                   return (
                     <div key={action} className="flex items-center gap-2">
-                      <span className={`w-14 text-[11px] font-medium text-right truncate ${
-                        isUserPick ? 'text-white' : 'text-slate-500'
-                      }`}>
+                      <span
+                        className={`w-14 text-[11px] font-medium text-right truncate ${
+                          isUserPick ? 'text-white' : 'text-slate-500'
+                        }`}
+                      >
                         {getActionLabel(action)}
                         {isUserPick && ' ←'}
                       </span>
@@ -362,10 +383,7 @@ export const DrillMode = memo(function DrillMode({ index, config }: DrillModePro
               </div>
 
               {/* Mini hand grid */}
-              <MiniHandGrid
-                spot={question.spot}
-                highlightHand={question.handClass}
-              />
+              <MiniHandGrid spot={question.spot} highlightHand={question.handClass} />
 
               {/* Next button */}
               <button
@@ -422,7 +440,7 @@ const DrillSettingsPanel = memo(function DrillSettingsPanel({
       <div>
         <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Difficulty</div>
         <div className="flex flex-wrap gap-1">
-          {difficulties.map(d => (
+          {difficulties.map((d) => (
             <button
               key={d.id}
               className={`px-2 py-0.5 rounded text-[10px] font-medium transition-all ${
@@ -440,9 +458,11 @@ const DrillSettingsPanel = memo(function DrillSettingsPanel({
 
       {/* Scenarios */}
       <div>
-        <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Scenarios (empty = all)</div>
+        <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">
+          Scenarios (empty = all)
+        </div>
         <div className="flex flex-wrap gap-1">
-          {scenarios.map(s => {
+          {scenarios.map((s) => {
             const active = settings.scenarios.includes(s.id);
             return (
               <button
@@ -454,7 +474,7 @@ const DrillSettingsPanel = memo(function DrillSettingsPanel({
                 }`}
                 onClick={() => {
                   const next = active
-                    ? settings.scenarios.filter(x => x !== s.id)
+                    ? settings.scenarios.filter((x) => x !== s.id)
                     : [...settings.scenarios, s.id];
                   onChange({ ...settings, scenarios: next });
                 }}
@@ -468,9 +488,11 @@ const DrillSettingsPanel = memo(function DrillSettingsPanel({
 
       {/* Positions */}
       <div>
-        <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Positions (empty = all)</div>
+        <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">
+          Positions (empty = all)
+        </div>
         <div className="flex flex-wrap gap-1">
-          {positions.map(p => {
+          {positions.map((p) => {
             const active = settings.positions.includes(p);
             return (
               <button
@@ -482,7 +504,7 @@ const DrillSettingsPanel = memo(function DrillSettingsPanel({
                 }`}
                 onClick={() => {
                   const next = active
-                    ? settings.positions.filter(x => x !== p)
+                    ? settings.positions.filter((x) => x !== p)
                     : [...settings.positions, p];
                   onChange({ ...settings, positions: next });
                 }}
@@ -507,15 +529,13 @@ const MiniHandGrid = memo(function MiniHandGrid({
   return (
     <div>
       <div className="text-[10px] text-slate-500 mb-1">Full Range</div>
-      <div
-        className="grid gap-[1px]"
-        style={{ gridTemplateColumns: 'repeat(13, 1fr)' }}
-      >
+      <div className="grid gap-[1px]" style={{ gridTemplateColumns: 'repeat(13, 1fr)' }}>
         {RANKS.map((_, row) =>
           RANKS.map((_, col) => {
             const hc = handClassAt(row, col);
             const freqs = spot.grid[hc];
-            if (!freqs) return <div key={hc} className="aspect-square bg-slate-800/30 rounded-[1px]" />;
+            if (!freqs)
+              return <div key={hc} className="aspect-square bg-slate-800/30 rounded-[1px]" />;
             const bg = blendActionColors(freqs);
             const foldFreq = freqs['fold'] ?? 0;
             const isHighlight = hc === highlightHand;
@@ -530,7 +550,7 @@ const MiniHandGrid = memo(function MiniHandGrid({
                 title={hc}
               />
             );
-          })
+          }),
         )}
       </div>
     </div>

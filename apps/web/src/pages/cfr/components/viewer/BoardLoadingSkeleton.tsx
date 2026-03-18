@@ -6,7 +6,7 @@ export const BoardLoadingSkeleton = memo(function BoardLoadingSkeleton() {
       {/* Top bar */}
       <div className="flex items-center gap-4 pb-3 border-b border-white/10 shrink-0">
         <div className="flex gap-1.5">
-          {[0, 1, 2].map(i => (
+          {[0, 1, 2].map((i) => (
             <div key={i} className="w-8 h-10 rounded bg-white/10" />
           ))}
         </div>
@@ -25,7 +25,7 @@ export const BoardLoadingSkeleton = memo(function BoardLoadingSkeleton() {
       <div className="flex items-center gap-2 py-2 border-b border-white/10 shrink-0">
         <div className="w-20 h-4 rounded bg-white/5" />
         <div className="ml-auto flex gap-1.5">
-          {[0, 1, 2].map(i => (
+          {[0, 1, 2].map((i) => (
             <div key={i} className="w-16 h-6 rounded-lg bg-white/5" />
           ))}
         </div>
@@ -34,8 +34,14 @@ export const BoardLoadingSkeleton = memo(function BoardLoadingSkeleton() {
       {/* Two-panel: matrix + detail */}
       <div className="flex gap-5 mt-3 flex-1 min-h-0">
         {/* Matrix skeleton */}
-        <div className="shrink-0 max-lg:w-full" style={{ width: 'clamp(400px, calc(100vh - 240px), 900px)' }}>
-          <div className="grid gap-0.5" style={{ gridTemplateColumns: 'repeat(13, minmax(0, 1fr))' }}>
+        <div
+          className="shrink-0 max-lg:w-full"
+          style={{ width: 'clamp(400px, calc(100vh - 240px), 900px)' }}
+        >
+          <div
+            className="grid gap-0.5"
+            style={{ gridTemplateColumns: 'repeat(13, minmax(0, 1fr))' }}
+          >
             {Array.from({ length: 169 }).map((_, i) => (
               <div key={i} className="aspect-square rounded-sm bg-white/[0.03]" />
             ))}
@@ -49,7 +55,7 @@ export const BoardLoadingSkeleton = memo(function BoardLoadingSkeleton() {
             <div className="w-28 h-3 rounded bg-white/5" />
             <div className="h-6 rounded-md bg-white/5" />
             <div className="space-y-2">
-              {[0, 1, 2].map(i => (
+              {[0, 1, 2].map((i) => (
                 <div key={i} className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded bg-white/5" />
                   <div className="w-16 h-3 rounded bg-white/5" />

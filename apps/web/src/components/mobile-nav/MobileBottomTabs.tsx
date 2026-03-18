@@ -1,22 +1,32 @@
-import { memo } from "react";
+import { memo } from 'react';
 
-type AppView = "lobby" | "table" | "profile" | "history" | "clubs" | "training" | "preflop";
+type AppView =
+  | 'lobby'
+  | 'table'
+  | 'profile'
+  | 'history'
+  | 'clubs'
+  | 'training'
+  | 'preflop'
+  | 'fast-battle'
+  | 'cfr'
+  | 'solver';
 
 interface TabDef {
-  id: AppView | "__more__";
+  id: AppView | '__more__';
   label: string;
   icon: string;
 }
 
 const PRIMARY_TABS: TabDef[] = [
-  { id: "lobby",   label: "Lobby",   icon: "🏠" },
-  { id: "table",   label: "Table",   icon: "🃏" },
-  { id: "clubs", label: "Clubs", icon: "🏆" },
-  { id: "profile", label: "Profile", icon: "👤" },
-  { id: "__more__", label: "More",   icon: "⋯" },
+  { id: 'lobby', label: 'Lobby', icon: '🏠' },
+  { id: 'table', label: 'Table', icon: '🃏' },
+  { id: 'clubs', label: 'Clubs', icon: '🏆' },
+  { id: 'profile', label: 'Profile', icon: '👤' },
+  { id: '__more__', label: 'More', icon: '⋯' },
 ];
 
-const SECONDARY_VIEWS: AppView[] = ["history", "training", "preflop"];
+const SECONDARY_VIEWS: AppView[] = ['history', 'training', 'preflop', 'fast-battle', 'solver'];
 
 interface MobileBottomTabsProps {
   activeView: string;
@@ -37,17 +47,15 @@ export const MobileBottomTabs = memo(function MobileBottomTabs({
     <>
       <nav className="cp-mob-bottomtabs" role="tablist" aria-label="Main navigation">
         {PRIMARY_TABS.map((tab) => {
-          const isMore = tab.id === "__more__";
-          const isActive = isMore
-            ? (moreOpen || isSecondaryActive)
-            : activeView === tab.id;
+          const isMore = tab.id === '__more__';
+          const isActive = isMore ? moreOpen || isSecondaryActive : activeView === tab.id;
 
           return (
             <button
               key={tab.id}
               role="tab"
               aria-selected={isActive}
-              data-active={isActive ? "true" : undefined}
+              data-active={isActive ? 'true' : undefined}
               className="cp-mob-tab"
               onClick={() => {
                 if (isMore) {

@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
 
-export type TableScaleLimiter = "width" | "height" | "none";
+export type TableScaleLimiter = 'width' | 'height' | 'none';
 
 interface UseTableScaleOptions {
   container: HTMLElement | null;
@@ -38,7 +38,7 @@ export function useTableScale({
     availableHeight: 0,
     scaledWidth: baseWidth,
     scaledHeight: baseHeight,
-    limiter: "none",
+    limiter: 'none',
   });
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export function useTableScale({
         availableHeight: 0,
         scaledWidth: baseWidth,
         scaledHeight: baseHeight,
-        limiter: "none",
+        limiter: 'none',
       });
       return;
     }
@@ -67,7 +67,7 @@ export function useTableScale({
       const heightScale = availableHeight / baseHeight;
       const rawScale = Math.min(widthScale, heightScale);
       const scale = clamp(rawScale, minScale, maxScale);
-      const limiter: TableScaleLimiter = widthScale <= heightScale ? "width" : "height";
+      const limiter: TableScaleLimiter = widthScale <= heightScale ? 'width' : 'height';
 
       setState((prev) => {
         const scaledWidth = baseWidth * scale;
@@ -95,10 +95,10 @@ export function useTableScale({
     // Only recompute on window/screen resize — NOT on container content changes.
     // A ResizeObserver on the container would fire when sibling elements
     // (cp-below-table-tray) change height, causing the table to jitter.
-    window.addEventListener("resize", compute);
+    window.addEventListener('resize', compute);
 
     return () => {
-      window.removeEventListener("resize", compute);
+      window.removeEventListener('resize', compute);
     };
   }, [container, baseWidth, baseHeight, minScale, maxScale, enabled]);
 

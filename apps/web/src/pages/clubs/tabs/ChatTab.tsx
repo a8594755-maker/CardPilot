@@ -1,8 +1,8 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from "react";
-import type { ChatMessage, ClubMember } from "@cardpilot/shared-types";
-import type { ChatActions, ChatState } from "../hooks/useChat";
-import type { ClubPermissions } from "../hooks/useClubPermissions";
-import { EmptyState } from "../shared";
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import type { ChatMessage, ClubMember } from '@cardpilot/shared-types';
+import type { ChatActions, ChatState } from '../hooks/useChat';
+import type { ClubPermissions } from '../hooks/useClubPermissions';
+import { EmptyState } from '../shared';
 
 interface ChatTabProps {
   chatActions: ChatActions;
@@ -19,9 +19,9 @@ export const ChatTab = memo(function ChatTab({
   permissions,
   members,
   currentUserId,
-  currentDisplayName,
+  currentDisplayName: _currentDisplayName,
 }: ChatTabProps) {
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [selectedMentions, setSelectedMentions] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -35,21 +35,21 @@ export const ChatTab = memo(function ChatTab({
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatState.messages.length]);
 
   const handleSend = useCallback(() => {
     const trimmed = input.trim();
     if (!trimmed) return;
     chatActions.sendMessage(trimmed, selectedMentions.length > 0 ? selectedMentions : undefined);
-    setInput("");
+    setInput('');
     setSelectedMentions([]);
     setMentionQuery(null);
   }, [input, selectedMentions, chatActions]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" && !e.shiftKey) {
+      if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         handleSend();
       }
@@ -57,33 +57,30 @@ export const ChatTab = memo(function ChatTab({
     [handleSend],
   );
 
-  const handleInputChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      setInput(value);
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInput(value);
 
-      // Detect @mention
-      const atIndex = value.lastIndexOf("@");
-      if (atIndex >= 0 && atIndex === value.length - 1) {
-        setMentionQuery("");
-      } else if (atIndex >= 0) {
-        const query = value.slice(atIndex + 1);
-        if (!query.includes(" ")) {
-          setMentionQuery(query);
-        } else {
-          setMentionQuery(null);
-        }
+    // Detect @mention
+    const atIndex = value.lastIndexOf('@');
+    if (atIndex >= 0 && atIndex === value.length - 1) {
+      setMentionQuery('');
+    } else if (atIndex >= 0) {
+      const query = value.slice(atIndex + 1);
+      if (!query.includes(' ')) {
+        setMentionQuery(query);
       } else {
         setMentionQuery(null);
       }
-    },
-    [],
-  );
+    } else {
+      setMentionQuery(null);
+    }
+  }, []);
 
   const handleMentionSelect = useCallback(
     (member: ClubMember) => {
       const name = member.displayName ?? member.userId.slice(0, 8);
-      const atIndex = input.lastIndexOf("@");
+      const atIndex = input.lastIndexOf('@');
       const before = input.slice(0, atIndex);
       setInput(`${before}@${name} `);
       setSelectedMentions((prev) => [...prev, member.userId]);
@@ -104,10 +101,10 @@ export const ChatTab = memo(function ChatTab({
   const mentionCandidates =
     mentionQuery !== null
       ? members
-          .filter((m) => m.userId !== currentUserId && m.status === "active")
+          .filter((m) => m.userId !== currentUserId && m.status === 'active')
           .filter((m) => {
-            const name = (m.displayName ?? "").toLowerCase();
-            return name.includes((mentionQuery ?? "").toLowerCase());
+            const name = (m.displayName ?? '').toLowerCase();
+            return name.includes((mentionQuery ?? '').toLowerCase());
           })
           .slice(0, 5)
       : [];
@@ -117,10 +114,7 @@ export const ChatTab = memo(function ChatTab({
   return (
     <div className="flex flex-col h-[500px]">
       {/* Messages area */}
-      <div
-        ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto space-y-1 px-2 py-2"
-      >
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto space-y-1 px-2 py-2">
         {/* Load more */}
         {chatState.hasMore && (
           <div className="text-center py-2">
@@ -129,17 +123,13 @@ export const ChatTab = memo(function ChatTab({
               disabled={chatState.loading}
               className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors disabled:opacity-50"
             >
-              {chatState.loading ? "Loading..." : "Load older messages"}
+              {chatState.loading ? 'Loading...' : 'Load older messages'}
             </button>
           </div>
         )}
 
         {chatState.messages.length === 0 && !chatState.loading && (
-          <EmptyState
-            icon="💬"
-            title="No messages yet"
-            description="Start the conversation!"
-          />
+          <EmptyState icon="💬" title="No messages yet" description="Start the conversation!" />
         )}
 
         {/* Messages (reversed since newest first from server) */}
@@ -220,7 +210,7 @@ const ChatBubble = memo(function ChatBubble({
   canDelete: boolean;
   onDelete: () => void;
 }) {
-  if (message.messageType === "system") {
+  if (message.messageType === 'system') {
     return (
       <div className="text-center py-1">
         <span className="text-[10px] text-slate-500 italic">{message.content}</span>
@@ -229,12 +219,12 @@ const ChatBubble = memo(function ChatBubble({
   }
 
   return (
-    <div className={`flex ${isOwn ? "justify-end" : "justify-start"} group`}>
+    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}>
       <div
         className={`max-w-[75%] rounded-xl px-3 py-1.5 ${
           isOwn
-            ? "bg-cyan-600/30 border border-cyan-500/20"
-            : "bg-slate-800 border border-slate-700"
+            ? 'bg-cyan-600/30 border border-cyan-500/20'
+            : 'bg-slate-800 border border-slate-700'
         }`}
       >
         {!isOwn && (
@@ -246,8 +236,8 @@ const ChatBubble = memo(function ChatBubble({
         <div className="flex items-center justify-between gap-2 mt-0.5">
           <span className="text-[9px] text-slate-500">
             {new Date(message.createdAt).toLocaleTimeString(undefined, {
-              hour: "2-digit",
-              minute: "2-digit",
+              hour: '2-digit',
+              minute: '2-digit',
             })}
           </span>
           {canDelete && (

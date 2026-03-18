@@ -1,14 +1,14 @@
-import React, { useMemo } from "react";
+import React, { useMemo } from 'react';
 import type {
   Club,
   ClubDetail,
   ClubMember,
   ClubTable,
   ClubAuditLogEntry,
-} from "@cardpilot/shared-types";
-import { RoleBadge, RulesSummary } from "../shared";
-import type { ClubPermissions } from "../hooks/useClubPermissions";
-import type { ClubSocketActions } from "../hooks/useClubSocket";
+} from '@cardpilot/shared-types';
+import { RoleBadge, RulesSummary } from '../shared';
+import type { ClubPermissions } from '../hooks/useClubPermissions';
+import type { ClubSocketActions } from '../hooks/useClubSocket';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -21,22 +21,36 @@ function isRecentlyOnline(lastSeenAt: string): boolean {
 }
 
 function formatAuditAction(actionType: string, payload: Record<string, unknown>): string {
-  const target = (payload.targetDisplayName ?? payload.targetUserId ?? "") as string;
+  const target = (payload.targetDisplayName ?? payload.targetUserId ?? '') as string;
   switch (actionType) {
-    case "member_joined": return `${target || "A member"} joined the club`;
-    case "member_left": return `${target || "A member"} left the club`;
-    case "member_kicked": return `${target || "A member"} was removed`;
-    case "member_banned": return `${target || "A member"} was banned`;
-    case "member_unbanned": return `${target || "A member"} was unbanned`;
-    case "role_changed": return `${target || "Member"} role \u2192 ${payload.newRole ?? "Unknown"}`;
-    case "table_created": return `Table "${payload.tableName ?? "Unknown"}" created`;
-    case "table_closed": return `Table "${payload.tableName ?? "Unknown"}" closed`;
-    case "invite_created": return `Invite code created`;
-    case "invite_revoked": return `Invite code revoked`;
-    case "club_updated": return `Club settings updated`;
-    case "ruleset_created": return `Ruleset "${payload.rulesetName ?? "Unknown"}" created`;
-    case "ruleset_updated": return `Ruleset "${payload.rulesetName ?? "Unknown"}" updated`;
-    default: return actionType.replace(/_/g, " ");
+    case 'member_joined':
+      return `${target || 'A member'} joined the club`;
+    case 'member_left':
+      return `${target || 'A member'} left the club`;
+    case 'member_kicked':
+      return `${target || 'A member'} was removed`;
+    case 'member_banned':
+      return `${target || 'A member'} was banned`;
+    case 'member_unbanned':
+      return `${target || 'A member'} was unbanned`;
+    case 'role_changed':
+      return `${target || 'Member'} role \u2192 ${payload.newRole ?? 'Unknown'}`;
+    case 'table_created':
+      return `Table "${payload.tableName ?? 'Unknown'}" created`;
+    case 'table_closed':
+      return `Table "${payload.tableName ?? 'Unknown'}" closed`;
+    case 'invite_created':
+      return `Invite code created`;
+    case 'invite_revoked':
+      return `Invite code revoked`;
+    case 'club_updated':
+      return `Club settings updated`;
+    case 'ruleset_created':
+      return `Ruleset "${payload.rulesetName ?? 'Unknown'}" created`;
+    case 'ruleset_updated':
+      return `Ruleset "${payload.rulesetName ?? 'Unknown'}" updated`;
+    default:
+      return actionType.replace(/_/g, ' ');
   }
 }
 
@@ -74,10 +88,7 @@ export const OverviewTab = React.memo(function OverviewTab({
     [members],
   );
 
-  const activeTables = useMemo(
-    () => tables.filter((t) => t.status === "open"),
-    [tables],
-  );
+  const activeTables = useMemo(() => tables.filter((t) => t.status === 'open'), [tables]);
 
   return (
     <div className="space-y-5">
@@ -161,7 +172,7 @@ export const OverviewTab = React.memo(function OverviewTab({
                 <div className="flex-1">
                   <div className="text-sm font-medium text-white">{t.name}</div>
                   <div className="text-[10px] text-slate-400">
-                    {t.stakes ?? "\u2014"} · {t.playerCount ?? 0}/{t.maxPlayers ?? "\u2014"} players
+                    {t.stakes ?? '\u2014'} · {t.playerCount ?? 0}/{t.maxPlayers ?? '\u2014'} players
                   </div>
                 </div>
                 <button
@@ -180,10 +191,7 @@ export const OverviewTab = React.memo(function OverviewTab({
       {activeTables.length === 0 && permissions.canCreateTable && (
         <div className="text-center py-4 rounded-xl border border-dashed border-white/10 bg-white/[0.02]">
           <p className="text-sm text-slate-400 mb-2">No active tables</p>
-          <button
-            onClick={() => onSwitchTab("tables")}
-            className="btn-primary text-xs"
-          >
+          <button onClick={() => onSwitchTab('tables')} className="btn-primary text-xs">
             + Create a Table
           </button>
         </div>
@@ -192,19 +200,19 @@ export const OverviewTab = React.memo(function OverviewTab({
       {/* Club info grid */}
       <div className="grid grid-cols-2 gap-4 text-sm">
         <div>
-          <span className="text-slate-500">Visibility:</span>{" "}
+          <span className="text-slate-500">Visibility:</span>{' '}
           <span className="text-slate-300">{club.visibility}</span>
         </div>
         <div>
-          <span className="text-slate-500">Approval required:</span>{" "}
-          <span className="text-slate-300">{club.requireApprovalToJoin ? "Yes" : "No"}</span>
+          <span className="text-slate-500">Approval required:</span>{' '}
+          <span className="text-slate-300">{club.requireApprovalToJoin ? 'Yes' : 'No'}</span>
         </div>
         <div>
-          <span className="text-slate-500">Default ruleset:</span>{" "}
-          <span className="text-slate-300">{detail.defaultRuleset?.name ?? "None"}</span>
+          <span className="text-slate-500">Default ruleset:</span>{' '}
+          <span className="text-slate-300">{detail.defaultRuleset?.name ?? 'None'}</span>
         </div>
         <div>
-          <span className="text-slate-500">Created:</span>{" "}
+          <span className="text-slate-500">Created:</span>{' '}
           <span className="text-slate-300">{new Date(club.createdAt).toLocaleDateString()}</span>
         </div>
       </div>
@@ -225,7 +233,7 @@ export const OverviewTab = React.memo(function OverviewTab({
               Recent Activity
             </h3>
             <button
-              onClick={() => onSwitchTab("audit")}
+              onClick={() => onSwitchTab('audit')}
               className="text-[10px] text-indigo-400 hover:text-indigo-300"
             >
               View all &rarr;

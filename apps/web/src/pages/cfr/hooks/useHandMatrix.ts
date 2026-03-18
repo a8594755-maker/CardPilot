@@ -28,11 +28,21 @@ interface HandMatrixInput {
 }
 
 export function useHandMatrix(input: HandMatrixInput): MatrixCellData[] {
-  const { indexed, prefixIndex, handMap, player, prefix, isV2, bucketCount, heatmapMode, actionLabels } = input;
+  const {
+    indexed,
+    prefixIndex,
+    handMap,
+    player,
+    prefix,
+    isV2,
+    bucketCount,
+    heatmapMode,
+    actionLabels,
+  } = input;
 
   return useMemo(() => {
     if (!handMap || indexed.size === 0) {
-      return ALL_HAND_CLASSES.map(hc => ({
+      return ALL_HAND_CLASSES.map((hc) => ({
         handClass: hc,
         bucket: undefined,
         probs: null,
@@ -43,11 +53,17 @@ export function useHandMatrix(input: HandMatrixInput): MatrixCellData[] {
 
     const playerMap = player === 0 ? handMap.oop : handMap.ip;
 
-    return ALL_HAND_CLASSES.map(hc => {
+    return ALL_HAND_CLASSES.map((hc) => {
       const bucket = playerMap[hc];
 
       if (bucket === undefined || actionLabels.length === 0) {
-        return { handClass: hc, bucket: undefined, probs: null, bgColor: '#1a2332', hasData: false };
+        return {
+          handClass: hc,
+          bucket: undefined,
+          probs: null,
+          bgColor: '#1a2332',
+          hasData: false,
+        };
       }
 
       const probs = getAggregatedProbs(indexed, prefix, bucket, isV2, prefixIndex);

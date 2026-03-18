@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
-import type { HandActionRecord, HandRecord } from "../../lib/hand-history.js";
-import { PokerCard } from "../../components/PokerCard.js";
+import { useEffect, useMemo, useState } from 'react';
+import type { HandActionRecord, HandRecord } from '../../lib/hand-history.js';
+import { PokerCard } from '../../components/PokerCard.js';
 
-const STREETS = ["PREFLOP", "FLOP", "TURN", "RIVER"];
+const STREETS = ['PREFLOP', 'FLOP', 'TURN', 'RIVER'];
 const STREET_CARD_COUNTS: Record<string, number> = { PREFLOP: 0, FLOP: 3, TURN: 4, RIVER: 5 };
 
 function buildTimeline(actions: HandActionRecord[]) {
@@ -40,19 +40,19 @@ export function HandReplay2({ hand }: { hand: HandRecord | null }) {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (!hand) return;
-      if (e.key === "ArrowRight" || e.key.toLowerCase() === "k") {
+      if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'k') {
         setIndex((v) => Math.min(timeline.length - 1, v + 1));
       }
-      if (e.key === "ArrowLeft" || e.key.toLowerCase() === "j") {
+      if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'j') {
         setIndex((v) => Math.max(0, v - 1));
       }
-      if (e.key === " ") {
+      if (e.key === ' ') {
         e.preventDefault();
         setPlaying((v) => !v);
       }
     };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
   }, [hand, timeline.length]);
 
   if (!hand) {
@@ -77,13 +77,12 @@ export function HandReplay2({ hand }: { hand: HandRecord | null }) {
   // Determine how many board cards to show based on current street
   const currentStreet = current.street.toUpperCase();
   const boardCardsToShow = STREET_CARD_COUNTS[currentStreet] ?? 0;
-  const visibleBoard = hand.board.slice(0, boardCardsToShow);
 
   // Compute running pot
   let runningPot = 0;
   for (let i = 0; i <= index; i++) {
     const a = timeline[i];
-    if (a.type !== "fold" && a.type !== "check") {
+    if (a.type !== 'fold' && a.type !== 'check') {
       runningPot += a.amount;
     }
   }
@@ -105,12 +104,12 @@ export function HandReplay2({ hand }: { hand: HandRecord | null }) {
           <button
             className={`text-[11px] px-3 py-1 rounded-md border transition-all font-semibold ${
               playing
-                ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
-                : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
             }`}
             onClick={() => setPlaying((v) => !v)}
           >
-            {playing ? "⏸ Pause" : "▶ Play"}
+            {playing ? '⏸ Pause' : '▶ Play'}
           </button>
           <button
             className="text-[11px] px-2.5 py-1 rounded-md bg-slate-700/50 text-slate-300 border border-white/[0.08] hover:bg-slate-700/70 transition-all disabled:opacity-30"
@@ -126,15 +125,17 @@ export function HandReplay2({ hand }: { hand: HandRecord | null }) {
           <div className="ml-auto flex items-center gap-1">
             <span className="text-[9px] text-slate-500 uppercase">Speed:</span>
             {[
-              [1200, "0.5x"],
-              [900, "1x"],
-              [500, "2x"],
+              [1200, '0.5x'],
+              [900, '1x'],
+              [500, '2x'],
             ].map(([ms, label]) => (
               <button
                 key={String(ms)}
                 onClick={() => setSpeed(Number(ms))}
                 className={`text-[8px] px-1 py-0.5 rounded-sm transition-all ${
-                  speed === Number(ms) ? "bg-sky-500/20 text-sky-300" : "text-slate-500 hover:text-slate-300"
+                  speed === Number(ms)
+                    ? 'bg-sky-500/20 text-sky-300'
+                    : 'text-slate-500 hover:text-slate-300'
                 }`}
               >
                 {String(label)}
@@ -170,7 +171,9 @@ export function HandReplay2({ hand }: { hand: HandRecord | null }) {
           </div>
           <div className="ml-4">
             <div className="text-[9px] text-slate-500 uppercase mb-1">Pot</div>
-            <div className="text-lg font-bold text-white tabular-nums">{runningPot.toLocaleString()}</div>
+            <div className="text-lg font-bold text-white tabular-nums">
+              {runningPot.toLocaleString()}
+            </div>
           </div>
           <div className="ml-auto text-right">
             <div className="text-[9px] text-slate-500 uppercase mb-1">Street</div>
@@ -186,7 +189,7 @@ export function HandReplay2({ hand }: { hand: HandRecord | null }) {
                 key={`${c}-${i}`}
                 card={c}
                 variant="seat"
-                className={`transition-all duration-300 ${i >= boardCardsToShow ? "opacity-30 scale-90" : "opacity-100 scale-100"}`}
+                className={`transition-all duration-300 ${i >= boardCardsToShow ? 'opacity-30 scale-90' : 'opacity-100 scale-100'}`}
               />
             ))
           ) : (
@@ -196,26 +199,36 @@ export function HandReplay2({ hand }: { hand: HandRecord | null }) {
       </div>
 
       {/* Current action highlight */}
-      <div className={`rounded-lg p-3 border ${
-        heroSeat != null && current.seat === heroSeat
-          ? "border-sky-500/30 bg-sky-500/[0.06]"
-          : "border-white/[0.06] bg-white/[0.02]"
-      }`}>
+      <div
+        className={`rounded-lg p-3 border ${
+          heroSeat != null && current.seat === heroSeat
+            ? 'border-sky-500/30 bg-sky-500/[0.06]'
+            : 'border-white/[0.06] bg-white/[0.02]'
+        }`}
+      >
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-400">
             {hand.playerNames?.[current.seat] || `Seat ${current.seat}`}
           </span>
-          <span className={`text-sm font-bold uppercase ${
-            current.type === "fold" ? "text-slate-500" :
-            current.type === "raise" || current.type === "all_in" ? "text-amber-400" :
-            current.type === "call" ? "text-emerald-400" :
-            current.type === "check" ? "text-slate-300" :
-            "text-white"
-          }`}>
+          <span
+            className={`text-sm font-bold uppercase ${
+              current.type === 'fold'
+                ? 'text-slate-500'
+                : current.type === 'raise' || current.type === 'all_in'
+                  ? 'text-amber-400'
+                  : current.type === 'call'
+                    ? 'text-emerald-400'
+                    : current.type === 'check'
+                      ? 'text-slate-300'
+                      : 'text-white'
+            }`}
+          >
             {current.type}
           </span>
           {current.amount > 0 && (
-            <span className="text-sm text-slate-200 tabular-nums">{current.amount.toLocaleString()}</span>
+            <span className="text-sm text-slate-200 tabular-nums">
+              {current.amount.toLocaleString()}
+            </span>
           )}
         </div>
       </div>
@@ -239,22 +252,31 @@ export function HandReplay2({ hand }: { hand: HandRecord | null }) {
                     <div
                       key={a.idx}
                       className={`flex items-center gap-2 px-3 py-1 text-[11px] border-b border-white/[0.04] last:border-b-0 ${
-                        isCurrent ? "bg-sky-500/10" : isHero ? "bg-sky-500/[0.03]" : ""
+                        isCurrent ? 'bg-sky-500/10' : isHero ? 'bg-sky-500/[0.03]' : ''
                       }`}
                     >
-                      <span className={`min-w-[70px] truncate ${isHero ? "text-sky-300" : "text-slate-400"}`}>
+                      <span
+                        className={`min-w-[70px] truncate ${isHero ? 'text-sky-300' : 'text-slate-400'}`}
+                      >
                         {hand.playerNames?.[a.seat] || `Seat ${a.seat}`}
                       </span>
-                      <span className={`font-semibold uppercase ${
-                        a.type === "fold" ? "text-slate-500" :
-                        a.type === "raise" || a.type === "all_in" ? "text-amber-400" :
-                        a.type === "call" ? "text-emerald-400" :
-                        "text-slate-300"
-                      }`}>
+                      <span
+                        className={`font-semibold uppercase ${
+                          a.type === 'fold'
+                            ? 'text-slate-500'
+                            : a.type === 'raise' || a.type === 'all_in'
+                              ? 'text-amber-400'
+                              : a.type === 'call'
+                                ? 'text-emerald-400'
+                                : 'text-slate-300'
+                        }`}
+                      >
                         {a.type}
                       </span>
                       {a.amount > 0 && (
-                        <span className="text-slate-300 tabular-nums">{a.amount.toLocaleString()}</span>
+                        <span className="text-slate-300 tabular-nums">
+                          {a.amount.toLocaleString()}
+                        </span>
                       )}
                     </div>
                   );

@@ -1,0 +1,328 @@
+/* ═══════ Solver (EZ-GTO) Design Tokens ═══════ */
+/* Namespaced CSS variables and component classes for the integrated solver UI */
+
+@layer base {
+  :root {
+    /* Solver semantic colors (HSL values from EZ-GTO) */
+    --solver-background: 222 47% 6%;
+    --solver-foreground: 210 40% 96%;
+    --solver-card: 222 47% 8%;
+    --solver-card-foreground: 210 40% 96%;
+    --solver-primary: 210 100% 52%;
+    --solver-primary-foreground: 210 40% 98%;
+    --solver-secondary: 217 33% 17%;
+    --solver-secondary-foreground: 210 40% 96%;
+    --solver-muted: 217 33% 17%;
+    --solver-muted-foreground: 215 20% 55%;
+    --solver-accent: 217 33% 17%;
+    --solver-accent-foreground: 210 40% 96%;
+    --solver-destructive: 0 63% 50%;
+    --solver-destructive-foreground: 210 40% 98%;
+    --solver-border: 217 33% 17%;
+    --solver-input: 217 33% 17%;
+    --solver-ring: 210 100% 52%;
+    --solver-radius: 0.5rem;
+  }
+}
+
+/* ═══════ Solver Utility Classes ═══════ */
+/* These map EZ-GTO's Tailwind v3 semantic classes to our CSS variables */
+
+@layer components {
+  .solver-page {
+    background: hsl(var(--solver-background));
+    color: hsl(var(--solver-foreground));
+  }
+
+  /* Poker card suit colors */
+  .solver-page .suit-spade {
+    color: #1a1a2e;
+  }
+  .solver-page .suit-heart {
+    color: #e74c3c;
+  }
+  .solver-page .suit-diamond {
+    color: #3498db;
+  }
+  .solver-page .suit-club {
+    color: #27ae60;
+  }
+
+  /* Range matrix cell transitions */
+  .solver-page .matrix-cell {
+    transition: all 150ms ease-in-out;
+  }
+  .solver-page .matrix-cell:hover {
+    z-index: 10;
+    transform: scale(1.1);
+    box-shadow: 0 0 0 2px hsl(var(--solver-primary) / 0.5);
+  }
+
+  /* ===== GTO+ Dialog System ===== */
+  .dialog-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(0, 0, 0, 0.5);
+    animation: solver-overlayShow 150ms ease-out;
+  }
+
+  .dialog-content {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    z-index: 50;
+    transform: translate(-50%, -50%);
+    background: #f0f0f0;
+    border: 1px solid #999;
+    border-radius: var(--solver-radius);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    width: 90vw;
+    max-width: 560px;
+    max-height: 85vh;
+    overflow-y: auto;
+    color: #333;
+    animation: solver-contentShow 150ms ease-out;
+  }
+
+  .dialog-title-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid #ccc;
+    background: #e8e8e8;
+  }
+
+  .dialog-title-bar h2 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a7a7a;
+    margin: 0;
+  }
+
+  .dialog-title-bar button {
+    color: #666;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 3px;
+  }
+  .dialog-title-bar button:hover {
+    color: #333;
+    background: #d0d0d0;
+  }
+
+  /* ===== GTO+ Tab Bar ===== */
+  .gto-tab-list {
+    display: flex;
+    gap: 0;
+    padding: 0;
+    margin: 0;
+    border-bottom: 1px solid #bbb;
+  }
+
+  .gto-tab-trigger {
+    flex: 1;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    border: none;
+    transition: all 0.15s ease;
+    color: #555;
+    background: linear-gradient(to bottom, #d8d8d8, #b8b8b8);
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 100%, 0 100%);
+  }
+
+  .gto-tab-trigger:last-child {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+
+  .gto-tab-trigger[data-state='active'] {
+    color: #fff;
+    background: linear-gradient(to bottom, #4aabdb, #2980b9);
+  }
+
+  .gto-tab-trigger:not([data-state='active']):hover {
+    background: linear-gradient(to bottom, #e0e0e0, #c8c8c8);
+  }
+
+  /* ===== GTO+ Dialog Inputs ===== */
+  .gto-input {
+    width: 100%;
+    padding: 4px 8px;
+    font-size: 13px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    border: 1px solid #aaa;
+    border-radius: 3px;
+    background: #fff;
+    color: #333;
+    outline: none;
+  }
+  .gto-input::-webkit-inner-spin-button,
+  .gto-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .gto-input[type='number'] {
+    -moz-appearance: textfield;
+  }
+  .gto-input:focus {
+    border-color: #2980b9;
+    box-shadow: 0 0 0 1px rgba(41, 128, 185, 0.3);
+  }
+
+  .gto-input-blue {
+    background: #dce8f5;
+  }
+  .gto-input-green {
+    background: #ddf5dd;
+  }
+
+  /* ===== GTO+ Radio Button ===== */
+  .gto-radio {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid #888;
+    background: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+  }
+  .gto-radio:hover {
+    border-color: #2980b9;
+  }
+  .gto-radio.active {
+    border-color: #2980b9;
+    background: #2980b9;
+  }
+  .gto-radio.active::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fff;
+  }
+
+  /* ===== GTO+ Dialog Footer ===== */
+  .gto-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-top: 1px solid #ccc;
+    background: #e8e8e8;
+    margin-top: 0;
+  }
+
+  .gto-btn {
+    padding: 6px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+  }
+
+  .gto-btn-primary {
+    background: linear-gradient(to bottom, #4aabdb, #2980b9);
+    color: #fff;
+    border-color: #2070a0;
+  }
+  .gto-btn-primary:hover {
+    background: linear-gradient(to bottom, #5ab8e5, #3498db);
+  }
+
+  .gto-btn-secondary {
+    background: linear-gradient(to bottom, #e0e0e0, #c8c8c8);
+    color: #333;
+    border-color: #aaa;
+  }
+  .gto-btn-secondary:hover {
+    background: linear-gradient(to bottom, #eaeaea, #d0d0d0);
+  }
+
+  /* ===== GTO+ Label ===== */
+  .gto-label {
+    font-size: 13px;
+    color: #333;
+    font-weight: 500;
+  }
+
+  .gto-label-muted {
+    font-size: 12px;
+    color: #666;
+  }
+
+  /* ===== GTO+ Player Table ===== */
+  .gto-player-table {
+    width: 100%;
+  }
+
+  .gto-player-table .player-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .gto-player-table .player-label {
+    width: 60px;
+    font-size: 13px;
+    color: #333;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  .gto-player-table .player-input {
+    flex: 1;
+  }
+
+  .gto-player-table .empty-row input {
+    background: #e8e8e8;
+    border-color: #ccc;
+  }
+
+  /* ===== GTO+ Summary Text ===== */
+  .gto-summary {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a7a7a;
+  }
+}
+
+/* Solver-specific animations */
+@keyframes solver-overlayShow {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes solver-contentShow {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}

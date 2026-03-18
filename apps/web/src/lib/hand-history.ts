@@ -4,7 +4,7 @@ export interface HandRecord {
   id: string;
   createdAt: number;
   expiresAt: number;
-  gameType: "NLH" | "PLO";
+  gameType: 'NLH' | 'PLO';
   stakes: string;
   tableSize: number;
   position: string;
@@ -12,7 +12,11 @@ export interface HandRecord {
   startingHandBucket?: string;
   board: string[];
   runoutBoards?: string[][];
-  doubleBoardPayouts?: Array<{ run: 1 | 2 | 3; board: string[]; winners: Array<{ seat: number; amount: number; handName?: string }> }>;
+  doubleBoardPayouts?: Array<{
+    run: 1 | 2 | 3;
+    board: string[];
+    winners: Array<{ seat: number; amount: number; handName?: string }>;
+  }>;
   actions: HandActionRecord[];
   potSize: number;
   stackSize: number;
@@ -35,7 +39,7 @@ export interface HandRecord {
   playersCount?: number;
   didWinAnyRun?: boolean;
   // Per-player showdown info (seat -> cards or "mucked")
-  showdownHands?: Record<number, [string, string] | "mucked">;
+  showdownHands?: Record<number, [string, string] | 'mucked'>;
   playerNames?: Record<number, string>;
   buttonSeat?: number;
   positionsBySeat?: Record<number, string>;
@@ -43,7 +47,7 @@ export interface HandRecord {
   actionTimeline?: HandActionTimelineRecord[];
   potLayers?: unknown;
   payoutLedger?: unknown;
-  source?: "local" | "cloud";
+  source?: 'local' | 'cloud';
 }
 
 export interface HandActionRecord {
@@ -55,9 +59,9 @@ export interface HandActionRecord {
 
 export interface HandActionTimelineRecord {
   idx: number;
-  street: "PREFLOP" | "FLOP" | "TURN" | "RIVER";
+  street: 'PREFLOP' | 'FLOP' | 'TURN' | 'RIVER';
   seat: number;
-  type: "fold" | "check" | "call" | "bet" | "raise" | "all_in";
+  type: 'fold' | 'check' | 'call' | 'bet' | 'raise' | 'all_in';
   amount: number;
   betTo?: number;
   raiseTo?: number;
@@ -78,7 +82,7 @@ export interface GTOAnalysis {
     turn: number | null;
     river: number | null;
   };
-  precision?: "fast" | "deep";
+  precision?: 'fast' | 'deep';
 }
 
 export interface LocalGTOSpot {
@@ -107,31 +111,34 @@ export interface StreetAnalysis {
   gtoAction: string;
   evDiff: number;
   errorType?: string;
-  accuracy: "good" | "ok" | "bad";
+  accuracy: 'good' | 'ok' | 'bad';
 }
 
-const STORAGE_KEY = "cardpilot_hand_history";
+const STORAGE_KEY = 'cardpilot_hand_history';
 const RETENTION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const MAX_RECORDS = 500;
 
-const RANK_ORDER: string[] = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"];
+const RANK_ORDER: string[] = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
 
 function rankValue(rank: string): number {
   const index = RANK_ORDER.indexOf(rank);
   return index === -1 ? -1 : index;
 }
 
-export function classifyStartingHandBucket(heroCards: string[], gameType: HandRecord["gameType"]): string {
-  if (!Array.isArray(heroCards) || heroCards.length < 2) return "unknown";
+export function classifyStartingHandBucket(
+  heroCards: string[],
+  gameType: HandRecord['gameType'],
+): string {
+  if (!Array.isArray(heroCards) || heroCards.length < 2) return 'unknown';
 
-  const cards = heroCards.filter((card) => typeof card === "string" && card.length >= 2);
-  if (cards.length < 2) return "unknown";
+  const cards = heroCards.filter((card) => typeof card === 'string' && card.length >= 2);
+  if (cards.length < 2) return 'unknown';
 
-  if (gameType === "PLO" || cards.length >= 4) {
+  if (gameType === 'PLO' || cards.length >= 4) {
     const ranks = cards.map((card) => card[0]).filter(Boolean);
     const suits = cards.map((card) => card[1]).filter(Boolean);
     const sortedRanks = [...ranks].sort((a, b) => rankValue(b) - rankValue(a));
-    const top = `${sortedRanks[0] ?? "X"}${sortedRanks[1] ?? "X"}`;
+    const top = `${sortedRanks[0] ?? 'X'}${sortedRanks[1] ?? 'X'}`;
     const suitCounts = new Map<string, number>();
     for (const suit of suits) {
       suitCounts.set(suit, (suitCounts.get(suit) ?? 0) + 1);
@@ -150,9 +157,9 @@ export function classifyStartingHandBucket(heroCards: string[], gameType: HandRe
   const low = highFirst ? rb : ra;
 
   if (high === low) return `${high}${low}`;
-  if (high === "A" && low === "K") return sa === sb ? "AKs" : "AKo";
-  if (high === "A") return sa === sb ? "Axs" : "Axo";
-  if (high === "K") return "Kx";
+  if (high === 'A' && low === 'K') return sa === sb ? 'AKs' : 'AKo';
+  if (high === 'A') return sa === sb ? 'Axs' : 'Axo';
+  if (high === 'K') return 'Kx';
   return sa === sb ? `${high}${low}s` : `${high}${low}o`;
 }
 
@@ -175,14 +182,14 @@ function readAll(): HandRecord[] {
 }
 
 function normalizeHandRecord(input: unknown): HandRecord | null {
-  if (!input || typeof input !== "object") return null;
+  if (!input || typeof input !== 'object') return null;
   const raw = input as Partial<HandRecord>;
 
-  if (typeof raw.id !== "string") return null;
+  if (typeof raw.id !== 'string') return null;
   if (!Array.isArray(raw.actions) || !Array.isArray(raw.heroCards)) return null;
 
   const heroCards = raw.heroCards.map(String).filter((card) => card.length >= 2);
-  const gameType = raw.gameType === "PLO" ? "PLO" : "NLH";
+  const gameType = raw.gameType === 'PLO' ? 'PLO' : 'NLH';
 
   const record: HandRecord = {
     ...raw,
@@ -190,31 +197,38 @@ function normalizeHandRecord(input: unknown): HandRecord | null {
     createdAt: Number(raw.createdAt ?? Date.now()),
     expiresAt: Number(raw.expiresAt ?? Date.now() + RETENTION_MS),
     gameType,
-    stakes: typeof raw.stakes === "string" ? raw.stakes : "0/0",
+    stakes: typeof raw.stakes === 'string' ? raw.stakes : '0/0',
     tableSize: Number(raw.tableSize ?? 0),
-    position: typeof raw.position === "string" ? raw.position : "Unknown",
+    position: typeof raw.position === 'string' ? raw.position : 'Unknown',
     heroCards,
-    startingHandBucket: typeof raw.startingHandBucket === "string"
-      ? raw.startingHandBucket
-      : classifyStartingHandBucket(heroCards, gameType),
+    startingHandBucket:
+      typeof raw.startingHandBucket === 'string'
+        ? raw.startingHandBucket
+        : classifyStartingHandBucket(heroCards, gameType),
     board: Array.isArray(raw.board) ? raw.board.map(String) : [],
     runoutBoards: Array.isArray(raw.runoutBoards)
-      ? raw.runoutBoards.map((run) => Array.isArray(run) ? run.map(String) : [])
+      ? raw.runoutBoards.map((run) => (Array.isArray(run) ? run.map(String) : []))
       : undefined,
     doubleBoardPayouts: Array.isArray(raw.doubleBoardPayouts)
-      ? raw.doubleBoardPayouts.reduce<Array<{ run: 1 | 2 | 3; board: string[]; winners: Array<{ seat: number; amount: number; handName?: string }> }>>((acc, run) => {
-          if (!run || typeof run !== "object") return acc;
+      ? raw.doubleBoardPayouts.reduce<
+          Array<{
+            run: 1 | 2 | 3;
+            board: string[];
+            winners: Array<{ seat: number; amount: number; handName?: string }>;
+          }>
+        >((acc, run) => {
+          if (!run || typeof run !== 'object') return acc;
           const row = run as { run?: number; board?: unknown; winners?: unknown };
           const board = Array.isArray(row.board) ? row.board.map(String) : [];
           const winners: Array<{ seat: number; amount: number; handName?: string }> = [];
           if (Array.isArray(row.winners)) {
             for (const winner of row.winners) {
-              if (!winner || typeof winner !== "object") continue;
+              if (!winner || typeof winner !== 'object') continue;
               const w = winner as { seat?: unknown; amount?: unknown; handName?: unknown };
               winners.push({
                 seat: Number(w.seat ?? 0),
                 amount: Number(w.amount ?? 0),
-                handName: typeof w.handName === "string" ? w.handName : undefined,
+                handName: typeof w.handName === 'string' ? w.handName : undefined,
               });
             }
           }
@@ -225,26 +239,30 @@ function normalizeHandRecord(input: unknown): HandRecord | null {
         }, [])
       : undefined,
     actions: raw.actions
-      .filter((a): a is HandActionRecord => Boolean(a && typeof a === "object"))
+      .filter((a): a is HandActionRecord => Boolean(a && typeof a === 'object'))
       .map((a) => ({
         seat: Number(a.seat ?? 0),
-        street: String(a.street ?? "PREFLOP"),
-        type: String(a.type ?? "check"),
+        street: String(a.street ?? 'PREFLOP'),
+        type: String(a.type ?? 'check'),
         amount: Number(a.amount ?? 0),
       })),
     potSize: Number(raw.potSize ?? 0),
     stackSize: Number(raw.stackSize ?? 0),
     tags: Array.isArray(raw.tags) ? raw.tags.map(String) : [],
     didWinAnyRun: Boolean(raw.didWinAnyRun),
-    netByPosition: raw.netByPosition && typeof raw.netByPosition === "object"
-      ? Object.fromEntries(
-          Object.entries(raw.netByPosition as Record<string, unknown>).map(([position, net]) => [position, Number(net ?? 0)])
-        )
-      : undefined,
+    netByPosition:
+      raw.netByPosition && typeof raw.netByPosition === 'object'
+        ? Object.fromEntries(
+            Object.entries(raw.netByPosition as Record<string, unknown>).map(([position, net]) => [
+              position,
+              Number(net ?? 0),
+            ]),
+          )
+        : undefined,
     isBombPotHand: Boolean(raw.isBombPotHand),
     isDoubleBoardHand: Boolean(raw.isDoubleBoardHand),
     actionTimeline: Array.isArray(raw.actionTimeline) ? raw.actionTimeline : undefined,
-    source: raw.source === "cloud" ? "cloud" : "local",
+    source: raw.source === 'cloud' ? 'cloud' : 'local',
   };
 
   if (!record.actionTimeline) {
@@ -272,10 +290,10 @@ function pruneExpired(records: HandRecord[]): HandRecord[] {
   return records.filter((r) => r.expiresAt > now);
 }
 
-export function saveHand(record: Omit<HandRecord, "id" | "createdAt" | "expiresAt">): HandRecord {
+export function saveHand(record: Omit<HandRecord, 'id' | 'createdAt' | 'expiresAt'>): HandRecord {
   const now = Date.now();
-  const startingHandBucket = record.startingHandBucket
-    ?? classifyStartingHandBucket(record.heroCards, record.gameType);
+  const startingHandBucket =
+    record.startingHandBucket ?? classifyStartingHandBucket(record.heroCards, record.gameType);
   const full: HandRecord = {
     ...record,
     startingHandBucket,
@@ -351,7 +369,10 @@ export interface LocalRoomSummary {
 }
 
 /** Group local hands by roomCode for room-based history */
-export function getHandsByRoom(): { rooms: LocalRoomSummary[]; handsByRoom: Record<string, HandRecord[]> } {
+export function getHandsByRoom(): {
+  rooms: LocalRoomSummary[];
+  handsByRoom: Record<string, HandRecord[]>;
+} {
   const all = pruneExpired(readAll())
     .map((hand) => ({
       ...hand,
@@ -361,7 +382,7 @@ export function getHandsByRoom(): { rooms: LocalRoomSummary[]; handsByRoom: Reco
   const byRoom: Record<string, HandRecord[]> = {};
 
   for (const h of all) {
-    const code = h.roomCode || "_local";
+    const code = h.roomCode || '_local';
     if (!byRoom[code]) byRoom[code] = [];
     byRoom[code].push(h);
   }
@@ -376,7 +397,7 @@ export function getHandsByRoom(): { rooms: LocalRoomSummary[]; handsByRoom: Reco
     }, 0);
     return {
       roomCode: code,
-      roomName: last.roomName || (code === "_local" ? "Local / Unknown" : code),
+      roomName: last.roomName || (code === '_local' ? 'Local / Unknown' : code),
       stakes: last.stakes,
       lastPlayedAt: last.createdAt,
       handsCount: hands.length,
@@ -394,10 +415,14 @@ export function getHandsByRoom(): { rooms: LocalRoomSummary[]; handsByRoom: Reco
 /** Generate PokerStars-style hand history text */
 export function formatHandAsPokerStars(hand: HandRecord): string {
   const lines: string[] = [];
-  const ts = hand.endedAt ? new Date(hand.endedAt).toLocaleString() : new Date(hand.createdAt).toLocaleString();
+  const ts = hand.endedAt
+    ? new Date(hand.endedAt).toLocaleString()
+    : new Date(hand.createdAt).toLocaleString();
   const hid = hand.handId || hand.id;
   lines.push(`PokerStars Hand #${hid}: Hold'em No Limit (${hand.stakes}) - ${ts}`);
-  lines.push(`Table '${hand.roomName || hand.roomCode || "CardPilot"}' ${hand.tableSize}-max Seat #${hand.heroSeat ?? "Unknown"} is the button`);
+  lines.push(
+    `Table '${hand.roomName || hand.roomCode || 'CardPilot'}' ${hand.tableSize}-max Seat #${hand.heroSeat ?? 'Unknown'} is the button`,
+  );
 
   // Player names if available
   if (hand.playerNames) {
@@ -407,43 +432,45 @@ export function formatHandAsPokerStars(hand: HandRecord): string {
   }
 
   lines.push(`*** HOLE CARDS ***`);
-  lines.push(`Dealt to ${hand.heroName || "Hero"} [${hand.heroCards.join(" ")}]`);
+  lines.push(`Dealt to ${hand.heroName || 'Hero'} [${hand.heroCards.join(' ')}]`);
 
-  const STREETS = ["PREFLOP", "FLOP", "TURN", "RIVER"];
+  const STREETS = ['PREFLOP', 'FLOP', 'TURN', 'RIVER'];
   for (const street of STREETS) {
     const acts = hand.actions.filter((a) => a.street.toUpperCase() === street);
     if (!acts.length) continue;
 
-    if (street === "FLOP" && hand.board.length >= 3) {
-      lines.push(`*** FLOP *** [${hand.board.slice(0, 3).join(" ")}]`);
-    } else if (street === "TURN" && hand.board.length >= 4) {
-      lines.push(`*** TURN *** [${hand.board.slice(0, 3).join(" ")}] [${hand.board[3]}]`);
-    } else if (street === "RIVER" && hand.board.length >= 5) {
-      lines.push(`*** RIVER *** [${hand.board.slice(0, 4).join(" ")}] [${hand.board[4]}]`);
+    if (street === 'FLOP' && hand.board.length >= 3) {
+      lines.push(`*** FLOP *** [${hand.board.slice(0, 3).join(' ')}]`);
+    } else if (street === 'TURN' && hand.board.length >= 4) {
+      lines.push(`*** TURN *** [${hand.board.slice(0, 3).join(' ')}] [${hand.board[3]}]`);
+    } else if (street === 'RIVER' && hand.board.length >= 5) {
+      lines.push(`*** RIVER *** [${hand.board.slice(0, 4).join(' ')}] [${hand.board[4]}]`);
     }
 
     for (const a of acts) {
       const name = hand.playerNames?.[a.seat] || `Seat ${a.seat}`;
-      const amt = a.amount > 0 ? ` ${a.amount}` : "";
+      const amt = a.amount > 0 ? ` ${a.amount}` : '';
       lines.push(`${name}: ${a.type}s${amt}`);
     }
   }
 
   if (hand.board.length > 0) {
     lines.push(`*** SUMMARY ***`);
-    lines.push(`Total pot ${hand.potSize} | Board [${hand.board.join(" ")}]`);
+    lines.push(`Total pot ${hand.potSize} | Board [${hand.board.join(' ')}]`);
   }
 
   if (hand.runoutBoards && hand.runoutBoards.length > 1) {
     hand.runoutBoards.forEach((b, i) => {
-      lines.push(`Run ${i + 1}: [${b.join(" ")}]`);
+      lines.push(`Run ${i + 1}: [${b.join(' ')}]`);
     });
   }
 
   const net = hand.result ?? 0;
-  lines.push(`${hand.heroName || "Hero"} ${net >= 0 ? "collected" : "lost"} ${Math.abs(net)} chips (net: ${net >= 0 ? "+" : ""}${net})`);
+  lines.push(
+    `${hand.heroName || 'Hero'} ${net >= 0 ? 'collected' : 'lost'} ${Math.abs(net)} chips (net: ${net >= 0 ? '+' : ''}${net})`,
+  );
 
-  return lines.join("\n");
+  return lines.join('\n');
 }
 
 /**
@@ -452,13 +479,13 @@ export function formatHandAsPokerStars(hand: HandRecord): string {
 export function autoTag(actions: HandActionRecord[]): string[] {
   const tags: string[] = [];
 
-  const preflopRaises = actions.filter((a) => a.street === "PREFLOP" && a.type === "raise");
-  if (preflopRaises.length >= 2) tags.push("3bet_pot");
-  if (preflopRaises.length >= 3) tags.push("4bet_pot");
-  if (preflopRaises.length <= 1) tags.push("SRP");
+  const preflopRaises = actions.filter((a) => a.street === 'PREFLOP' && a.type === 'raise');
+  if (preflopRaises.length >= 2) tags.push('3bet_pot');
+  if (preflopRaises.length >= 3) tags.push('4bet_pot');
+  if (preflopRaises.length <= 1) tags.push('SRP');
 
-  const allIns = actions.filter((a) => a.type === "all_in");
-  if (allIns.length > 0) tags.push("all_in");
+  const allIns = actions.filter((a) => a.type === 'all_in');
+  if (allIns.length > 0) tags.push('all_in');
 
   return tags;
 }
@@ -472,13 +499,13 @@ export function exportHands(): string {
 /** Import hands from a JSON string, deduplicating by handId (or id). Returns count of newly added hands. */
 export function importHands(json: string): number {
   const parsed = JSON.parse(json) as unknown;
-  if (!Array.isArray(parsed)) throw new Error("Invalid format: expected an array of hand records.");
+  if (!Array.isArray(parsed)) throw new Error('Invalid format: expected an array of hand records.');
 
   const incoming = parsed
     .map((entry) => normalizeHandRecord(entry))
     .filter((entry): entry is HandRecord => entry !== null);
 
-  if (incoming.length === 0) throw new Error("No valid hand records found in the imported file.");
+  if (incoming.length === 0) throw new Error('No valid hand records found in the imported file.');
 
   let existing = pruneExpired(readAll());
 

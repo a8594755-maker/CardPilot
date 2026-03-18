@@ -1,30 +1,30 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { HandRecord } from "../../lib/hand-history.js";
-import { PokerCard } from "../../components/PokerCard.js";
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { HandRecord } from '../../lib/hand-history.js';
+import { PokerCard } from '../../components/PokerCard.js';
 
 const ROW_HEIGHT = 132;
 const OVERSCAN = 6;
 
 function formatShortDate(ts: number) {
   return new Date(ts).toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
   });
 }
 
 function dayBucket(ts: number): string {
   const now = new Date();
   const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  if (ts >= start) return "Today";
-  if (ts >= start - 86400000) return "Yesterday";
-  if (ts >= start - 6 * 86400000) return "This Week";
-  return new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  if (ts >= start) return 'Today';
+  if (ts >= start - 86400000) return 'Yesterday';
+  if (ts >= start - 6 * 86400000) return 'This Week';
+  return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
 /** Sort options for the hand list */
-export type HandSort = "newest" | "oldest" | "biggest_pot" | "biggest_win" | "biggest_loss";
+export type HandSort = 'newest' | 'oldest' | 'biggest_pot' | 'biggest_win' | 'biggest_loss';
 
 export function HandList2({
   hands,
@@ -57,21 +57,32 @@ export function HandList2({
   const sortedHands = useMemo(() => {
     const copy = [...hands];
     switch (sort) {
-      case "oldest": return copy.sort((a, b) => a.createdAt - b.createdAt);
-      case "biggest_pot": return copy.sort((a, b) => b.potSize - a.potSize);
-      case "biggest_win": return copy.sort((a, b) => (b.result ?? 0) - (a.result ?? 0));
-      case "biggest_loss": return copy.sort((a, b) => (a.result ?? 0) - (b.result ?? 0));
-      default: return copy.sort((a, b) => b.createdAt - a.createdAt);
+      case 'oldest':
+        return copy.sort((a, b) => a.createdAt - b.createdAt);
+      case 'biggest_pot':
+        return copy.sort((a, b) => b.potSize - a.potSize);
+      case 'biggest_win':
+        return copy.sort((a, b) => (b.result ?? 0) - (a.result ?? 0));
+      case 'biggest_loss':
+        return copy.sort((a, b) => (a.result ?? 0) - (b.result ?? 0));
+      default:
+        return copy.sort((a, b) => b.createdAt - a.createdAt);
     }
   }, [hands, sort]);
 
   const visibleRange = useMemo(() => {
     const start = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN);
-    const end = Math.min(sortedHands.length, Math.ceil((scrollTop + height) / ROW_HEIGHT) + OVERSCAN);
+    const end = Math.min(
+      sortedHands.length,
+      Math.ceil((scrollTop + height) / ROW_HEIGHT) + OVERSCAN,
+    );
     return { start, end };
   }, [sortedHands.length, height, scrollTop]);
 
-  const visibleHands = useMemo(() => sortedHands.slice(visibleRange.start, visibleRange.end), [sortedHands, visibleRange]);
+  const visibleHands = useMemo(
+    () => sortedHands.slice(visibleRange.start, visibleRange.end),
+    [sortedHands, visibleRange],
+  );
 
   if (loading) {
     return (
@@ -98,20 +109,22 @@ export function HandList2({
       {/* Sort bar */}
       <div className="flex items-center gap-1 px-2.5 py-1.5 border-b border-white/[0.06]">
         <span className="text-[9px] text-slate-500 uppercase tracking-wider mr-0.5">Sort:</span>
-        {([
-          ["newest", "Newest"],
-          ["oldest", "Oldest"],
-          ["biggest_pot", "Pot ↓"],
-          ["biggest_win", "Win ↓"],
-          ["biggest_loss", "Loss ↓"],
-        ] as [HandSort, string][]).map(([key, label]) => (
+        {(
+          [
+            ['newest', 'Newest'],
+            ['oldest', 'Oldest'],
+            ['biggest_pot', 'Pot ↓'],
+            ['biggest_win', 'Win ↓'],
+            ['biggest_loss', 'Loss ↓'],
+          ] as [HandSort, string][]
+        ).map(([key, label]) => (
           <button
             key={key}
             onClick={() => onSortChange(key)}
             className={`text-[9px] px-1.5 py-0.5 rounded-md transition-all ${
               sort === key
-                ? "bg-sky-500/20 text-sky-300 border border-sky-500/40"
-                : "text-slate-500 hover:text-slate-300 border border-transparent"
+                ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
+                : 'text-slate-500 hover:text-slate-300 border border-transparent'
             }`}
           >
             {label}
@@ -124,13 +137,14 @@ export function HandList2({
         className="flex-1 overflow-auto min-h-0"
         onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
       >
-        <div style={{ height: sortedHands.length * ROW_HEIGHT, position: "relative" }}>
+        <div style={{ height: sortedHands.length * ROW_HEIGHT, position: 'relative' }}>
           {visibleHands.map((hand, idx) => {
             const absoluteIndex = visibleRange.start + idx;
             const top = absoluteIndex * ROW_HEIGHT;
             const result = hand.result ?? 0;
             const group = dayBucket(hand.createdAt);
-            const prev = absoluteIndex > 0 ? dayBucket(sortedHands[absoluteIndex - 1].createdAt) : "";
+            const prev =
+              absoluteIndex > 0 ? dayBucket(sortedHands[absoluteIndex - 1].createdAt) : '';
             const boardPreview = hand.board.slice(0, 3);
             return (
               <button
@@ -138,13 +152,13 @@ export function HandList2({
                 onClick={() => onSelect(hand.id)}
                 className={`absolute left-2 right-2 rounded-xl border p-2.5 text-left transition-all overflow-hidden ${
                   selectedId === hand.id
-                    ? "border-sky-500/60 bg-sky-500/10 shadow-lg shadow-sky-900/20"
-                    : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.12]"
+                    ? 'border-sky-500/60 bg-sky-500/10 shadow-lg shadow-sky-900/20'
+                    : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.12]'
                 }`}
                 style={{ top, height: ROW_HEIGHT - 8 }}
               >
                 {/* Day group pill */}
-                {sort === "newest" && group !== prev && (
+                {sort === 'newest' && group !== prev && (
                   <span className="history-group-pill mb-1">{group}</span>
                 )}
                 {/* Row 1: time + position + result */}
@@ -156,10 +170,17 @@ export function HandList2({
                     <span className="text-slate-600">·</span>
                     <span className="text-slate-500">{hand.stakes}</span>
                   </div>
-                  <span className={`text-sm font-bold tabular-nums ${
-                    result > 0 ? "text-emerald-400" : result < 0 ? "text-red-400" : "text-slate-400"
-                  }`}>
-                    {result > 0 ? "+" : ""}{result.toLocaleString()}
+                  <span
+                    className={`text-sm font-bold tabular-nums ${
+                      result > 0
+                        ? 'text-emerald-400'
+                        : result < 0
+                          ? 'text-red-400'
+                          : 'text-slate-400'
+                    }`}
+                  >
+                    {result > 0 ? '+' : ''}
+                    {result.toLocaleString()}
                   </span>
                 </div>
                 {/* Row 2: hero cards + board preview + pot */}
@@ -178,13 +199,18 @@ export function HandList2({
                       ))}
                     </div>
                   )}
-                  <span className="text-[10px] text-slate-500 ml-auto shrink-0">Pot {hand.potSize.toLocaleString()}</span>
+                  <span className="text-[10px] text-slate-500 ml-auto shrink-0">
+                    Pot {hand.potSize.toLocaleString()}
+                  </span>
                 </div>
                 {/* Row 3: tags — single line, no wrap, +N overflow pill */}
                 {hand.tags.length > 0 && (
                   <div className="flex items-center gap-1 mt-1.5 overflow-hidden flex-nowrap">
                     {hand.tags.slice(0, 3).map((t) => (
-                      <span key={t} className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-700/40 text-slate-400 border border-white/[0.06] whitespace-nowrap shrink-0">
+                      <span
+                        key={t}
+                        className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-700/40 text-slate-400 border border-white/[0.06] whitespace-nowrap shrink-0"
+                      >
                         {t}
                       </span>
                     ))}

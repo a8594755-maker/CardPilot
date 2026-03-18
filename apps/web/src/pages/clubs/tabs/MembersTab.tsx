@@ -1,12 +1,8 @@
-import React, { useMemo, useState } from "react";
-import type {
-  Club,
-  ClubMember,
-  ClubRole,
-} from "@cardpilot/shared-types";
-import { RoleBadge } from "../shared";
-import type { ClubPermissions } from "../hooks/useClubPermissions";
-import type { ClubSocketActions } from "../hooks/useClubSocket";
+import React, { useMemo, useState } from 'react';
+import type { Club, ClubMember, ClubRole } from '@cardpilot/shared-types';
+import { RoleBadge } from '../shared';
+import type { ClubPermissions } from '../hooks/useClubPermissions';
+import type { ClubSocketActions } from '../hooks/useClubSocket';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -40,7 +36,7 @@ export interface MembersTabProps {
 // ---------------------------------------------------------------------------
 
 export const MembersTab = React.memo(function MembersTab({
-  club,
+  club: _club,
   members,
   userId,
   permissions,
@@ -53,9 +49,9 @@ export const MembersTab = React.memo(function MembersTab({
   // Selection state
   // ---------------------------------------------------------------------------
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [searchTerm, setSearchTerm] = useState("");
-  const [roleFilter, setRoleFilter] = useState<string>("all");
-  const [bulkCreditsAmount, setBulkCreditsAmount] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [bulkCreditsAmount, setBulkCreditsAmount] = useState('');
   const [confirmingKick, setConfirmingKick] = useState(false);
 
   const toggleSelect = (uid: string) => {
@@ -76,13 +72,12 @@ export const MembersTab = React.memo(function MembersTab({
   );
 
   const sortedMembers = useMemo(
-    () =>
-      members.slice().sort((a, b) => (ROLE_RANK[b.role] ?? 0) - (ROLE_RANK[a.role] ?? 0)),
+    () => members.slice().sort((a, b) => (ROLE_RANK[b.role] ?? 0) - (ROLE_RANK[a.role] ?? 0)),
     [members],
   );
 
   const selectableMembers = useMemo(
-    () => sortedMembers.filter((m) => m.userId !== userId && m.role !== "owner"),
+    () => sortedMembers.filter((m) => m.userId !== userId && m.role !== 'owner'),
     [sortedMembers, userId],
   );
 
@@ -96,7 +91,7 @@ export const MembersTab = React.memo(function MembersTab({
 
   const filteredMembers = useMemo(() => {
     let result = sortedMembers;
-    if (roleFilter !== "all") {
+    if (roleFilter !== 'all') {
       result = result.filter((m) => m.role === roleFilter);
     }
     if (searchTerm.trim()) {
@@ -116,7 +111,7 @@ export const MembersTab = React.memo(function MembersTab({
     const amount = parseInt(bulkCreditsAmount, 10);
     if (!amount || amount <= 0) return;
     actions.bulkGrantCredits(Array.from(selected), amount);
-    setBulkCreditsAmount("");
+    setBulkCreditsAmount('');
     setSelected(new Set());
   };
 
@@ -138,7 +133,7 @@ export const MembersTab = React.memo(function MembersTab({
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
-  const ROLE_FILTERS = ["all", "owner", "admin", "member"] as const;
+  const ROLE_FILTERS = ['all', 'owner', 'admin', 'member'] as const;
 
   return (
     <div className="space-y-1">
@@ -152,7 +147,7 @@ export const MembersTab = React.memo(function MembersTab({
             onClick={selectAll}
             className="text-[10px] text-cyan-400 hover:text-cyan-300 transition-colors"
           >
-            {selected.size === selectableMembers.length ? "Deselect all" : "Select all"}
+            {selected.size === selectableMembers.length ? 'Deselect all' : 'Select all'}
           </button>
         )}
       </div>
@@ -176,11 +171,11 @@ export const MembersTab = React.memo(function MembersTab({
             onClick={() => setRoleFilter(role)}
             className={`text-[10px] px-2.5 py-1 rounded-full transition-colors capitalize ${
               roleFilter === role
-                ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30"
-                : "bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10"
+                ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                : 'bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10'
             }`}
           >
-            {role === "all" ? "All" : role.charAt(0).toUpperCase() + role.slice(1)}
+            {role === 'all' ? 'All' : role.charAt(0).toUpperCase() + role.slice(1)}
           </button>
         ))}
       </div>
@@ -190,13 +185,13 @@ export const MembersTab = React.memo(function MembersTab({
         const online = isRecentlyOnline(m.lastSeenAt);
         const displayName = m.displayName ?? m.nicknameInClub ?? m.userId.slice(0, 8);
         const isSelectable =
-          permissions.canManageMembers && m.userId !== userId && m.role !== "owner";
+          permissions.canManageMembers && m.userId !== userId && m.role !== 'owner';
 
         return (
           <div
             key={m.userId}
             className={`flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors ${
-              selected.has(m.userId) ? "bg-cyan-500/10 border border-cyan-500/20" : ""
+              selected.has(m.userId) ? 'bg-cyan-500/10 border border-cyan-500/20' : ''
             }`}
           >
             {/* Checkbox */}
@@ -212,7 +207,7 @@ export const MembersTab = React.memo(function MembersTab({
             {/* Avatar with online indicator */}
             <div className="relative">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-[10px] font-bold text-white uppercase">
-                {(displayName.trim().charAt(0) || "U").toUpperCase()}
+                {(displayName.trim().charAt(0) || 'U').toUpperCase()}
               </div>
               {online && (
                 <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-900" />
@@ -224,9 +219,7 @@ export const MembersTab = React.memo(function MembersTab({
               <div className="flex items-center gap-2">
                 <span className="text-sm text-white truncate">{displayName}</span>
                 <RoleBadge role={m.role} size="sm" />
-                {m.userId === userId && (
-                  <span className="text-[9px] text-cyan-400">(you)</span>
-                )}
+                {m.userId === userId && <span className="text-[9px] text-cyan-400">(you)</span>}
               </div>
               <div className="text-[10px] text-slate-500">
                 joined {new Date(m.createdAt).toLocaleDateString()}
@@ -249,14 +242,12 @@ export const MembersTab = React.memo(function MembersTab({
             </div>
 
             {/* Admin actions */}
-            {permissions.canManageMembers && m.role !== "owner" && (
+            {permissions.canManageMembers && m.role !== 'owner' && (
               <div className="flex gap-1 items-center shrink-0">
                 {m.userId !== userId && (
                   <select
                     value={m.role}
-                    onChange={(e) =>
-                      actions.changeRole(m.userId, e.target.value as ClubRole)
-                    }
+                    onChange={(e) => actions.changeRole(m.userId, e.target.value as ClubRole)}
                     className="text-[10px] bg-white/5 border border-white/10 rounded px-1.5 py-1 text-slate-300 cursor-pointer"
                   >
                     <option value="member">member</option>
@@ -335,7 +326,7 @@ export const MembersTab = React.memo(function MembersTab({
             defaultValue=""
             onChange={(e) => {
               if (e.target.value) handleBulkRoleChange(e.target.value as ClubRole);
-              e.target.value = "";
+              e.target.value = '';
             }}
             className="text-[10px] bg-white/5 border border-white/10 rounded px-1.5 py-1 text-slate-300 cursor-pointer"
           >
@@ -353,11 +344,11 @@ export const MembersTab = React.memo(function MembersTab({
             onClick={handleBulkKick}
             className={`text-[10px] px-2 py-1 rounded transition-colors whitespace-nowrap ${
               confirmingKick
-                ? "bg-red-500/20 text-red-300 border border-red-500/30"
-                : "text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                : 'text-red-400 hover:text-red-300 hover:bg-red-500/10'
             }`}
           >
-            {confirmingKick ? "Confirm Kick?" : "Kick"}
+            {confirmingKick ? 'Confirm Kick?' : 'Kick'}
           </button>
 
           <div className="w-px h-5 bg-white/10" />

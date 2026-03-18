@@ -1,11 +1,11 @@
-import { useMemo } from "react";
+import { useMemo } from 'react';
 
-const TAG_OPTIONS = ["SRP", "3bet_pot", "4bet_pot", "all_in"];
+const TAG_OPTIONS = ['SRP', '3bet_pot', '4bet_pot', 'all_in'];
 
 interface FiltersValue {
   tags: string[];
   position: string;
-  outcome: "ALL" | "WON" | "LOST";
+  outcome: 'ALL' | 'WON' | 'LOST';
   dateFrom: string;
   dateTo: string;
   query: string;
@@ -36,11 +36,11 @@ export function FiltersBar({
   const clearAll = () => {
     onChange({
       tags: [],
-      position: "ALL",
-      outcome: "ALL",
-      dateFrom: "",
-      dateTo: "",
-      query: "",
+      position: 'ALL',
+      outcome: 'ALL',
+      dateFrom: '',
+      dateTo: '',
+      query: '',
     });
   };
 
@@ -53,7 +53,11 @@ export function FiltersBar({
           className="input-field history-search"
           placeholder="Search AsKs, AhKd, board:As9s5h, 3bet_pot..."
         />
-        <select className="input-field" value={value.position} onChange={(e) => onChange({ position: e.target.value })}>
+        <select
+          className="input-field"
+          value={value.position}
+          onChange={(e) => onChange({ position: e.target.value })}
+        >
           <option value="ALL">All positions</option>
           {sortedPositions.map((p) => (
             <option key={p} value={p}>
@@ -61,15 +65,33 @@ export function FiltersBar({
             </option>
           ))}
         </select>
-        <select className="input-field" value={value.outcome} onChange={(e) => onChange({ outcome: e.target.value as FiltersValue["outcome"] })}>
+        <select
+          className="input-field"
+          value={value.outcome}
+          onChange={(e) => onChange({ outcome: e.target.value as FiltersValue['outcome'] })}
+        >
           <option value="ALL">W/L: All</option>
           <option value="WON">Won</option>
           <option value="LOST">Lost</option>
         </select>
-        <input type="date" className="input-field" value={value.dateFrom} onChange={(e) => onChange({ dateFrom: e.target.value })} />
-        <input type="date" className="input-field" value={value.dateTo} onChange={(e) => onChange({ dateTo: e.target.value })} />
-        <button className="btn-ghost text-xs !py-2 !px-3" onClick={onRefresh}>Refresh</button>
-        <button className="btn-ghost text-xs !py-2 !px-3" onClick={clearAll}>Clear</button>
+        <input
+          type="date"
+          className="input-field"
+          value={value.dateFrom}
+          onChange={(e) => onChange({ dateFrom: e.target.value })}
+        />
+        <input
+          type="date"
+          className="input-field"
+          value={value.dateTo}
+          onChange={(e) => onChange({ dateTo: e.target.value })}
+        />
+        <button className="btn-ghost text-xs !py-2 !px-3" onClick={onRefresh}>
+          Refresh
+        </button>
+        <button className="btn-ghost text-xs !py-2 !px-3" onClick={clearAll}>
+          Clear
+        </button>
       </div>
       <div className="history-filters-bottom">
         <div className="history-tag-row">
@@ -77,7 +99,7 @@ export function FiltersBar({
             <button
               key={tag}
               onClick={() => toggleTag(tag)}
-              className={`history-tag-chip ${value.tags.includes(tag) ? "history-tag-chip-active" : ""}`}
+              className={`history-tag-chip ${value.tags.includes(tag) ? 'history-tag-chip-active' : ''}`}
             >
               {tag}
             </button>

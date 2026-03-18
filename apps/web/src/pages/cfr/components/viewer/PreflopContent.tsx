@@ -18,7 +18,10 @@ interface PreflopContentProps {
   actions: PreflopViewerActions;
 }
 
-export const PreflopContent = memo(function PreflopContent({ state, actions }: PreflopContentProps) {
+export const PreflopContent = memo(function PreflopContent({
+  state,
+  actions,
+}: PreflopContentProps) {
   const [tab, setTab] = useState<Tab>('charts');
   const { config, index, spotData, selectedHand } = state;
 
@@ -83,7 +86,11 @@ export const PreflopContent = memo(function PreflopContent({ state, actions }: P
                       {spotData.heroPosition} — {spotData.spot.replace(/_/g, ' ')}
                     </div>
                     <div className="text-[10px] text-slate-500">
-                      Playing {spotData.summary.rangeSize} / {spotData.summary.totalCombos} hands ({((spotData.summary.rangeSize / spotData.summary.totalCombos) * 100).toFixed(1)}%)
+                      Playing {spotData.summary.rangeSize} / {spotData.summary.totalCombos} hands (
+                      {((spotData.summary.rangeSize / spotData.summary.totalCombos) * 100).toFixed(
+                        1,
+                      )}
+                      %)
                     </div>
                   </div>
                   <ActionLegend actions={spotData.actions} />

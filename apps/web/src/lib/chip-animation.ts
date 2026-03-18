@@ -1,13 +1,13 @@
 // ── Chip Animation Types & Settings ──
 
-export type AnimationSpeed = "off" | "normal" | "slow";
+export type AnimationSpeed = 'off' | 'normal' | 'slow';
 
 export interface ChipTransfer {
   id: string;
   from: { x: number; y: number };
   to: { x: number; y: number };
   amount: number;
-  kind: "toPot" | "toWinner" | "bountyToWinner" | "bombPotAnte";
+  kind: 'toPot' | 'toWinner' | 'bountyToWinner' | 'bombPotAnte';
   seat?: number;
   createdAt: number;
   /** Stage durations derived from speed setting */
@@ -58,10 +58,10 @@ const SPEED_MAP: Record<AnimationSpeed, SpeedPreset> = {
   },
 };
 
-export function getTiming(speed: AnimationSpeed, kind: ChipTransfer["kind"]): StageTiming {
+export function getTiming(speed: AnimationSpeed, kind: ChipTransfer['kind']): StageTiming {
   const preset = SPEED_MAP[speed];
-  if (kind === "bountyToWinner") return preset.bountyToWinner;
-  if (kind === "bombPotAnte") return preset.bombPotAnte;
+  if (kind === 'bountyToWinner') return preset.bountyToWinner;
+  if (kind === 'bombPotAnte') return preset.bombPotAnte;
   return preset[kind];
 }
 
@@ -71,30 +71,37 @@ export function getTotalDuration(timing: StageTiming): number {
 }
 
 // ── LocalStorage persistence ──
-const STORAGE_KEY = "cardpilot_chip_anim_speed";
+const STORAGE_KEY = 'cardpilot_chip_anim_speed';
 
 export function loadAnimationSpeed(): AnimationSpeed {
   try {
     const v = localStorage.getItem(STORAGE_KEY);
-    if (v === "off" || v === "normal" || v === "slow") return v;
-  } catch { /* SSR / privacy */ }
-  // Respect prefers-reduced-motion
-  if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    return "off";
+    if (v === 'off' || v === 'normal' || v === 'slow') return v;
+  } catch {
+    /* SSR / privacy */
   }
-  return "normal";
+  // Respect prefers-reduced-motion
+  if (
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ) {
+    return 'off';
+  }
+  return 'normal';
 }
 
 export function saveAnimationSpeed(speed: AnimationSpeed): void {
   try {
     localStorage.setItem(STORAGE_KEY, speed);
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 /** Check if user prefers reduced motion */
 export function prefersReducedMotion(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 // ── Anchor utilities ──

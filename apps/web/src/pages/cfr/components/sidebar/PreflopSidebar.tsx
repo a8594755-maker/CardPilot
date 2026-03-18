@@ -12,8 +12,21 @@ interface PreflopSidebarProps {
   actions: PreflopViewerActions;
 }
 
-export const PreflopSidebar = memo(function PreflopSidebar({ state, actions }: PreflopSidebarProps) {
-  const { config, index, loading, error, selectedPosition, selectedScenario, selectedSpot, spotData, selectedHand } = state;
+export const PreflopSidebar = memo(function PreflopSidebar({
+  state,
+  actions,
+}: PreflopSidebarProps) {
+  const {
+    config,
+    index,
+    loading,
+    error,
+    selectedPosition,
+    selectedScenario,
+    selectedSpot,
+    spotData,
+    selectedHand,
+  } = state;
 
   return (
     <aside className="w-[380px] min-w-[380px] bg-[var(--cp-bg-surface)] border-r border-white/10 flex flex-col h-screen sticky top-0 max-lg:w-full max-lg:min-w-0 max-lg:h-auto max-lg:max-h-[50vh] max-lg:relative">
@@ -27,9 +40,7 @@ export const PreflopSidebar = memo(function PreflopSidebar({ state, actions }: P
       {loading && (
         <div className="px-5 py-8 text-center text-slate-400 text-sm">Loading solutions...</div>
       )}
-      {error && (
-        <div className="px-5 py-4 text-center text-red-400 text-sm">{error}</div>
-      )}
+      {error && <div className="px-5 py-4 text-center text-red-400 text-sm">{error}</div>}
 
       {/* Position + Scenario selector */}
       {index && !loading && (

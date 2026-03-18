@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import type { RoomFullState } from "@cardpilot/shared-types";
+import { useMemo } from 'react';
+import type { RoomFullState } from '@cardpilot/shared-types';
 
 export interface UserRole {
   isHost: boolean;
@@ -19,7 +19,7 @@ export interface UserRole {
 export function useUserRole(
   roomState: RoomFullState | null | undefined,
   userId: string | null | undefined,
-  seatIndex: number | null | undefined
+  seatIndex: number | null | undefined,
 ): UserRole {
   return useMemo(() => {
     const isHost = !!(roomState && userId && roomState.ownership.ownerId === userId);

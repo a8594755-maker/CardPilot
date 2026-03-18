@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   getExistingSession,
   signOut,
@@ -6,7 +6,7 @@ import {
   normalizeClientUserId,
   resetInvalidRefreshGuard,
   type AuthSession,
-} from "../supabase";
+} from '../supabase';
 
 export interface UseAuthSessionReturn {
   authSession: AuthSession | null;
@@ -24,7 +24,7 @@ export function useAuthSession(showToast: (text: string) => void): UseAuthSessio
   const [authSession, setAuthSession] = useState<AuthSession | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [displayName, setDisplayName] = useState<string>("Guest");
+  const [displayName, setDisplayName] = useState<string>('Guest');
 
   const socketAuthTokenRef = useRef<string | undefined>(authSession?.accessToken);
   useEffect(() => {
@@ -40,8 +40,8 @@ export function useAuthSession(showToast: (text: string) => void): UseAuthSessio
         if (session) {
           setAuthSession(session);
           setUserEmail(session.email ?? null);
-          setDisplayName(session.displayName || session.email?.split("@")[0] || "Guest");
-          showToast("Signed in");
+          setDisplayName(session.displayName || session.email?.split('@')[0] || 'Guest');
+          showToast('Signed in');
         }
         setAuthLoading(false);
       })
@@ -49,8 +49,10 @@ export function useAuthSession(showToast: (text: string) => void): UseAuthSessio
         if (!alive) return;
         setAuthLoading(false);
       });
-    return () => { alive = false; };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => {
+      alive = false;
+    };
+  }, []); // intentionally empty deps - run once on mount
 
   // Listen for Supabase auth changes
   useEffect(() => {
@@ -59,8 +61,8 @@ export function useAuthSession(showToast: (text: string) => void): UseAuthSessio
       if (session) {
         const meta = session.user.user_metadata;
         const dn =
-          (typeof meta?.display_name === "string" && meta.display_name) ||
-          (typeof meta?.name === "string" && meta.name) ||
+          (typeof meta?.display_name === 'string' && meta.display_name) ||
+          (typeof meta?.name === 'string' && meta.name) ||
           null;
         const isGuest = Boolean((session.user as { is_anonymous?: boolean }).is_anonymous);
         const s: AuthSession = {
@@ -88,7 +90,7 @@ export function useAuthSession(showToast: (text: string) => void): UseAuthSessio
     await signOut();
     setAuthSession(null);
     setUserEmail(null);
-    setDisplayName("Guest");
+    setDisplayName('Guest');
   }, []);
 
   return {

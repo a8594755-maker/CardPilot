@@ -1,8 +1,6 @@
 import { memo, useState, useCallback, useMemo } from 'react';
 import type { HandMapData } from '../../lib/cfr-api';
-import { ALL_HAND_CLASSES } from '../../lib/cfr-constants';
 import { getActionLabels, type Street } from '../../lib/cfr-labels';
-import { getActionColor, getActionBgClass } from '../../lib/cfr-colors';
 import { findSampleEntry, getAggregatedProbs } from '../../lib/cfr-computations';
 import { PokerCardDisplay } from '../shared/PokerCardDisplay';
 import { ActionColorBar } from '../shared/ActionColorBar';
@@ -35,7 +33,14 @@ interface TrainingModeProps {
   onBack: () => void;
 }
 
-export const TrainingMode = memo(function TrainingMode({ indexed, prefixIndex, handMap, meta, isV2, onBack }: TrainingModeProps) {
+export const TrainingMode = memo(function TrainingMode({
+  indexed,
+  prefixIndex,
+  handMap,
+  meta,
+  isV2,
+  onBack,
+}: TrainingModeProps) {
   const [quizHistory, setQuizHistory] = useState<QuizResult[]>([]);
   const [currentQuiz, setCurrentQuiz] = useState<QuizQuestion | null>(null);
   const [chosenAction, setChosenAction] = useState<number | null>(null);
@@ -87,43 +92,64 @@ export const TrainingMode = memo(function TrainingMode({ indexed, prefixIndex, h
     if (!bestHand || !bestProbs) return;
 
     setCurrentQuiz({
-      boardId, flopCards: meta.flopCards,
-      handClass: bestHand, player, street, historyKey,
-      bucket: bestBucket, gtoProbs: bestProbs, actionLabels: labels,
+      boardId,
+      flopCards: meta.flopCards,
+      handClass: bestHand,
+      player,
+      street,
+      historyKey,
+      bucket: bestBucket,
+      gtoProbs: bestProbs,
+      actionLabels: labels,
     });
     setChosenAction(null);
     setShowFeedback(false);
   }, [meta, handMap, indexed, prefixIndex, bucketCount, isV2]);
 
-  const handleAnswer = useCallback((actionIdx: number) => {
-    if (!currentQuiz || showFeedback) return;
-    setChosenAction(actionIdx);
-    setShowFeedback(true);
+  const handleAnswer = useCallback(
+    (actionIdx: number) => {
+      if (!currentQuiz || showFeedback) return;
+      setChosenAction(actionIdx);
+      setShowFeedback(true);
 
-    const gtoFreq = currentQuiz.gtoProbs[actionIdx];
-    const maxFreq = Math.max(...currentQuiz.gtoProbs);
-    const isOptimal = gtoFreq === maxFreq;
-    const score = Math.round(gtoFreq * 100);
+      const gtoFreq = currentQuiz.gtoProbs[actionIdx];
+      const maxFreq = Math.max(...currentQuiz.gtoProbs);
+      const isOptimal = gtoFreq === maxFreq;
+      const score = Math.round(gtoFreq * 100);
 
-    setQuizHistory(prev => {
-      const next = [...prev, { question: currentQuiz, chosenAction: actionIdx, isOptimal, score }];
-      return next.length > 100 ? next.slice(-100) : next;
-    });
-  }, [currentQuiz, showFeedback]);
+      setQuizHistory((prev) => {
+        const next = [
+          ...prev,
+          { question: currentQuiz, chosenAction: actionIdx, isOptimal, score },
+        ];
+        return next.length > 100 ? next.slice(-100) : next;
+      });
+    },
+    [currentQuiz, showFeedback],
+  );
 
   // Stats
   const stats = useMemo(() => {
     const total = quizHistory.length;
-    const correct = quizHistory.filter(r => r.isOptimal).length;
-    const avgScore = total > 0 ? Math.round(quizHistory.reduce((s, r) => s + r.score, 0) / total) : 0;
-    return { total, correct, accuracy: total > 0 ? Math.round(correct / total * 100) : 0, avgScore };
+    const correct = quizHistory.filter((r) => r.isOptimal).length;
+    const avgScore =
+      total > 0 ? Math.round(quizHistory.reduce((s, r) => s + r.score, 0) / total) : 0;
+    return {
+      total,
+      correct,
+      accuracy: total > 0 ? Math.round((correct / total) * 100) : 0,
+      avgScore,
+    };
   }, [quizHistory]);
 
   if (!meta || !handMap) {
     return (
       <div className="text-center py-12">
         <p className="text-slate-400">Select a board first to start training.</p>
-        <button onClick={onBack} className="mt-3 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-slate-300 hover:text-white transition-colors">
+        <button
+          onClick={onBack}
+          className="mt-3 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-slate-300 hover:text-white transition-colors"
+        >
           Back to Viewer
         </button>
       </div>
@@ -183,7 +209,9 @@ export const TrainingMode = memo(function TrainingMode({ indexed, prefixIndex, h
                   >
                     {label}
                     {showFeedback && (
-                      <span className="block text-xs mt-0.5 opacity-75">{(gtoFreq * 100).toFixed(0)}%</span>
+                      <span className="block text-xs mt-0.5 opacity-75">
+                        {(gtoFreq * 100).toFixed(0)}%
+                      </span>
                     )}
                   </button>
                 );
@@ -193,16 +221,22 @@ export const TrainingMode = memo(function TrainingMode({ indexed, prefixIndex, h
             {/* Feedback */}
             {showFeedback && chosenAction !== null && (
               <div className="mt-4">
-                <div className={`text-lg font-bold mb-2 ${
-                  currentQuiz.gtoProbs[chosenAction] === Math.max(...currentQuiz.gtoProbs)
-                    ? 'text-emerald-400' : 'text-amber-400'
-                }`}>
+                <div
+                  className={`text-lg font-bold mb-2 ${
+                    currentQuiz.gtoProbs[chosenAction] === Math.max(...currentQuiz.gtoProbs)
+                      ? 'text-emerald-400'
+                      : 'text-amber-400'
+                  }`}
+                >
                   {currentQuiz.gtoProbs[chosenAction] === Math.max(...currentQuiz.gtoProbs)
                     ? 'Correct!'
-                    : `GTO frequency: ${(currentQuiz.gtoProbs[chosenAction] * 100).toFixed(0)}%`
-                  }
+                    : `GTO frequency: ${(currentQuiz.gtoProbs[chosenAction] * 100).toFixed(0)}%`}
                 </div>
-                <ActionColorBar labels={currentQuiz.actionLabels} probs={currentQuiz.gtoProbs} height={24} />
+                <ActionColorBar
+                  labels={currentQuiz.actionLabels}
+                  probs={currentQuiz.gtoProbs}
+                  height={24}
+                />
                 <button
                   onClick={generateQuiz}
                   className="mt-4 px-6 py-2.5 bg-blue-500 rounded-lg text-white font-semibold hover:bg-blue-600 transition-colors"
@@ -220,7 +254,9 @@ export const TrainingMode = memo(function TrainingMode({ indexed, prefixIndex, h
         <div className="bg-[var(--cp-bg-surface)] border border-white/10 rounded-xl p-4">
           <div className="flex justify-around text-center">
             <div>
-              <div className="text-xl font-bold text-white">{stats.correct}/{stats.total}</div>
+              <div className="text-xl font-bold text-white">
+                {stats.correct}/{stats.total}
+              </div>
               <div className="text-[11px] text-slate-500">Correct</div>
             </div>
             <div>

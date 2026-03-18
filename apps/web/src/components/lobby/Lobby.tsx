@@ -1,10 +1,10 @@
-import { memo, useCallback, useMemo, useRef } from "react";
-import type { LobbyRoomSummary } from "@cardpilot/shared-types";
-import { LobbyQuickPlayCard } from "./LobbyQuickPlayCard";
-import { JoinByCodeCard } from "./JoinByCodeCard";
-import { CreateRoomCard, type CreateRoomSettings } from "./CreateRoomCard";
-import { OpenRoomsList } from "./OpenRoomsList";
-import { CurrentRoomBanner } from "./CurrentRoomBanner";
+import { memo, useCallback, useMemo, useRef } from 'react';
+import type { LobbyRoomSummary } from '@cardpilot/shared-types';
+import { LobbyQuickPlayCard } from './LobbyQuickPlayCard';
+import { JoinByCodeCard } from './JoinByCodeCard';
+import { CreateRoomCard, type CreateRoomSettings } from './CreateRoomCard';
+import { OpenRoomsList } from './OpenRoomsList';
+import { CurrentRoomBanner } from './CurrentRoomBanner';
 
 export interface LobbyProps {
   /* Connection */
@@ -49,16 +49,16 @@ export const Lobby = memo(function Lobby({
   const createCardRef = useRef<HTMLDivElement>(null);
 
   const openRoomCount = useMemo(
-    () => lobbyRooms.filter((r) => r.status === "OPEN" && r.playerCount < r.maxPlayers).length,
+    () => lobbyRooms.filter((r) => r.status === 'OPEN' && r.playerCount < r.maxPlayers).length,
     [lobbyRooms],
   );
 
   const scrollToCreate = useCallback(() => {
-    createCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    createCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
   const handleCreatePublic = useCallback(() => {
-    onCreateSettingsChange({ ...createSettings, visibility: "public" });
+    onCreateSettingsChange({ ...createSettings, visibility: 'public' });
     scrollToCreate();
   }, [createSettings, onCreateSettingsChange, scrollToCreate]);
 
@@ -70,10 +70,10 @@ export const Lobby = memo(function Lobby({
           <h1 className="text-2xl font-extrabold text-white tracking-tight">Lobby</h1>
           <div className="flex items-center gap-2 mt-1">
             <div
-              className={`w-2 h-2 rounded-full ${connected ? "bg-emerald-500" : "bg-red-500"}`}
+              className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-500' : 'bg-red-500'}`}
             />
             <span className="text-xs text-slate-400">
-              {connected ? "Connected" : "Disconnected"}
+              {connected ? 'Connected' : 'Disconnected'}
             </span>
           </div>
         </header>

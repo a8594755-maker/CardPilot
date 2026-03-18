@@ -18,29 +18,41 @@ interface TooltipData {
   y: number;
 }
 
-export const HandMatrix = memo(function HandMatrix({ cells, actionLabels, selectedHand, onSelectHand, onHoverHand }: HandMatrixProps) {
+export const HandMatrix = memo(function HandMatrix({
+  cells,
+  actionLabels,
+  selectedHand,
+  onSelectHand,
+  onHoverHand,
+}: HandMatrixProps) {
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
 
-  const handleClick = useCallback((hc: string) => {
-    onSelectHand(selectedHand === hc ? null : hc);
-  }, [selectedHand, onSelectHand]);
+  const handleClick = useCallback(
+    (hc: string) => {
+      onSelectHand(selectedHand === hc ? null : hc);
+    },
+    [selectedHand, onSelectHand],
+  );
 
-  const handleHoverWithPos = useCallback((cell: MatrixCellData | null, x: number, y: number) => {
-    if (cell) {
-      // Edge clamping: keep tooltip within viewport
-      const clampedX = Math.min(x, window.innerWidth - 200);
-      const clampedY = Math.max(y, 120);
-      setTooltip({ cell, x: clampedX, y: clampedY });
-    } else {
-      setTooltip(null);
-    }
-    onHoverHand?.(cell?.handClass ?? null);
-  }, [onHoverHand]);
+  const handleHoverWithPos = useCallback(
+    (cell: MatrixCellData | null, x: number, y: number) => {
+      if (cell) {
+        // Edge clamping: keep tooltip within viewport
+        const clampedX = Math.min(x, window.innerWidth - 200);
+        const clampedY = Math.max(y, 120);
+        setTooltip({ cell, x: clampedX, y: clampedY });
+      } else {
+        setTooltip(null);
+      }
+      onHoverHand?.(cell?.handClass ?? null);
+    },
+    [onHoverHand],
+  );
 
   return (
     <div className="relative">
       <div className="grid gap-0.5" style={{ gridTemplateColumns: 'repeat(13, minmax(0, 1fr))' }}>
-        {cells.map(cell => (
+        {cells.map((cell) => (
           <HandMatrixCell
             key={cell.handClass}
             cell={cell}
@@ -68,7 +80,11 @@ export const HandMatrix = memo(function HandMatrix({ cells, actionLabels, select
               const pct = tooltip.cell.probs![i] * 100;
               if (pct < 0.5) return null;
               return (
-                <div key={label} style={{ width: `${pct}%`, background: getActionColor(label) }} className="h-full" />
+                <div
+                  key={label}
+                  style={{ width: `${pct}%`, background: getActionColor(label) }}
+                  className="h-full"
+                />
               );
             })}
           </div>
@@ -79,9 +95,14 @@ export const HandMatrix = memo(function HandMatrix({ cells, actionLabels, select
               if (pct < 0.5) return null;
               return (
                 <div key={label} className="flex items-center gap-1.5 text-[10px]">
-                  <div className="w-2 h-2 rounded-sm shrink-0" style={{ background: getActionColor(label) }} />
+                  <div
+                    className="w-2 h-2 rounded-sm shrink-0"
+                    style={{ background: getActionColor(label) }}
+                  />
                   <span className="text-slate-400">{label}</span>
-                  <span className="ml-auto text-white font-semibold tabular-nums">{pct.toFixed(1)}%</span>
+                  <span className="ml-auto text-white font-semibold tabular-nums">
+                    {pct.toFixed(1)}%
+                  </span>
                 </div>
               );
             })}
@@ -94,7 +115,10 @@ export const HandMatrix = memo(function HandMatrix({ cells, actionLabels, select
 
 // Individual cell (memoized for performance)
 const HandMatrixCell = memo(function HandMatrixCell({
-  cell, isSelected, onClick, onHoverWithPos,
+  cell,
+  isSelected,
+  onClick,
+  onHoverWithPos,
 }: {
   cell: MatrixCellData;
   isSelected: boolean;
@@ -114,7 +138,11 @@ const HandMatrixCell = memo(function HandMatrixCell({
       style={{ background: cell.bgColor }}
     >
       <span
-        className={cell.hasData ? 'text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]' : 'text-slate-500 font-medium'}
+        className={
+          cell.hasData
+            ? 'text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]'
+            : 'text-slate-500 font-medium'
+        }
         style={{ fontSize: '0.8125rem', letterSpacing: '0.02em' }}
       >
         {cell.handClass}

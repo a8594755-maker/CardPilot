@@ -78,20 +78,23 @@ export function useStrategyViewer(): [StrategyViewerState, StrategyViewerActions
   // Load configs on mount, auto-select first available
   useEffect(() => {
     fetchConfigs()
-      .then(cfgs => {
+      .then((cfgs) => {
         setConfigs(cfgs);
-        const first = cfgs.find(c => c.available);
+        const first = cfgs.find((c) => c.available);
         if (first) setSelectedConfig(first.name);
       })
-      .catch(e => setError(`Failed to load configs: ${e.message}`));
+      .catch((e) => setError(`Failed to load configs: ${e.message}`));
   }, []);
 
   // Load flops when config changes, auto-select first board
   useEffect(() => {
-    if (!selectedConfig) { setFlops([]); return; }
+    if (!selectedConfig) {
+      setFlops([]);
+      return;
+    }
     setLoading(true);
     fetchFlops(selectedConfig)
-      .then(f => {
+      .then((f) => {
         setFlops(f);
         setSelectedBoardId(null);
         setMeta(null);
@@ -103,54 +106,57 @@ export function useStrategyViewer(): [StrategyViewerState, StrategyViewerActions
           setTimeout(() => selectBoardRef.current(f[0].boardId), 0);
         }
       })
-      .catch(e => setError(e.message))
+      .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [selectedConfig]);
 
   // Load board data + hand map when board selected
-  const selectBoard = useCallback((boardId: number) => {
-    if (!selectedConfig) return;
-    setSelectedBoardId(boardId);
-    setLoadingBoard(true);
-    setPlayer(0);
-    setStreet('F');
-    setHistoryKey('');
-    setSelectedHand(null);
+  const selectBoard = useCallback(
+    (boardId: number) => {
+      if (!selectedConfig) return;
+      setSelectedBoardId(boardId);
+      setLoadingBoard(true);
+      setPlayer(0);
+      setStreet('F');
+      setHistoryKey('');
+      setSelectedHand(null);
 
-    Promise.all([
-      fetchBoardData(selectedConfig, boardId),
-      fetchHandMap(selectedConfig, boardId),
-    ])
-      .then(([boardData, hm]) => {
-        const idx = new Map<string, number[]>();
-        const pIdx = new Map<string, string[]>();
-        for (const e of boardData.entries) {
-          idx.set(e.key, e.probs);
-          const lastPipe = e.key.lastIndexOf('|');
-          if (lastPipe >= 0) {
-            const pfx = e.key.substring(0, lastPipe + 1);
-            let arr = pIdx.get(pfx);
-            if (!arr) { arr = []; pIdx.set(pfx, arr); }
-            arr.push(e.key);
+      Promise.all([fetchBoardData(selectedConfig, boardId), fetchHandMap(selectedConfig, boardId)])
+        .then(([boardData, hm]) => {
+          const idx = new Map<string, number[]>();
+          const pIdx = new Map<string, string[]>();
+          for (const e of boardData.entries) {
+            idx.set(e.key, e.probs);
+            const lastPipe = e.key.lastIndexOf('|');
+            if (lastPipe >= 0) {
+              const pfx = e.key.substring(0, lastPipe + 1);
+              let arr = pIdx.get(pfx);
+              if (!arr) {
+                arr = [];
+                pIdx.set(pfx, arr);
+              }
+              arr.push(e.key);
+            }
           }
-        }
-        setMeta(boardData.meta);
-        setIndexed(idx);
-        setPrefixIndex(pIdx);
-        setIsV2(detectKeyFormat(idx));
-        setBucketCount(boardData.meta.bucketCount || 50);
-        setHandMap(hm);
+          setMeta(boardData.meta);
+          setIndexed(idx);
+          setPrefixIndex(pIdx);
+          setIsV2(detectKeyFormat(idx));
+          setBucketCount(boardData.meta.bucketCount || 50);
+          setHandMap(hm);
 
-        // Set bet sizes from meta
-        if (boardData.meta.betSizes) {
-          setBetSizesConfig(boardData.meta.betSizes);
-        } else {
-          setBetSizesConfig({ flop: [0.33, 0.75], turn: [0.50, 1.00], river: [0.75, 1.50] });
-        }
-      })
-      .catch(e => setError(e.message))
-      .finally(() => setLoadingBoard(false));
-  }, [selectedConfig]);
+          // Set bet sizes from meta
+          if (boardData.meta.betSizes) {
+            setBetSizesConfig(boardData.meta.betSizes);
+          } else {
+            setBetSizesConfig({ flop: [0.33, 0.75], turn: [0.5, 1.0], river: [0.75, 1.5] });
+          }
+        })
+        .catch((e) => setError(e.message))
+        .finally(() => setLoadingBoard(false));
+    },
+    [selectedConfig],
+  );
 
   // Ref to allow effect to call latest selectBoard without dependency issues
   const selectBoardRef = useRef(selectBoard);
@@ -160,31 +166,68 @@ export function useStrategyViewer(): [StrategyViewerState, StrategyViewerActions
     setSelectedConfig(name);
   }, []);
 
-  const state: StrategyViewerState = useMemo(() => ({
-    configs, selectedConfig, flops, selectedBoardId,
-    meta, indexed, prefixIndex, handMap, isV2, bucketCount,
-    player, street, historyKey,
-    heatmapMode, selectedHand, mode,
-    loading, loadingBoard, error,
-  }), [
-    configs, selectedConfig, flops, selectedBoardId,
-    meta, indexed, prefixIndex, handMap, isV2, bucketCount,
-    player, street, historyKey,
-    heatmapMode, selectedHand, mode,
-    loading, loadingBoard, error,
-  ]);
+  const state: StrategyViewerState = useMemo(
+    () => ({
+      configs,
+      selectedConfig,
+      flops,
+      selectedBoardId,
+      meta,
+      indexed,
+      prefixIndex,
+      handMap,
+      isV2,
+      bucketCount,
+      player,
+      street,
+      historyKey,
+      heatmapMode,
+      selectedHand,
+      mode,
+      loading,
+      loadingBoard,
+      error,
+    }),
+    [
+      configs,
+      selectedConfig,
+      flops,
+      selectedBoardId,
+      meta,
+      indexed,
+      prefixIndex,
+      handMap,
+      isV2,
+      bucketCount,
+      player,
+      street,
+      historyKey,
+      heatmapMode,
+      selectedHand,
+      mode,
+      loading,
+      loadingBoard,
+      error,
+    ],
+  );
 
-  const actions: StrategyViewerActions = useMemo(() => ({
-    selectConfig,
-    selectBoard,
-    setPlayer,
-    setStreet: (s: Street) => { setStreet(s); setHistoryKey(''); },
-    setHistoryKey,
-    setHeatmapMode,
-    setSelectedHand,
-    setMode,
-    clearError: () => setError(null),
-  }), [selectConfig, selectBoard]);
+  const actions: StrategyViewerActions = useMemo(
+    () => ({
+      selectConfig,
+      selectBoard,
+      setPlayer,
+      setStreet: (s: Street) => {
+        setStreet(s);
+        setHistoryKey('');
+      },
+      setHistoryKey,
+      setHeatmapMode,
+      setSelectedHand,
+      setMode,
+      clearError: () => setError(null),
+    }),
+    [selectConfig, selectBoard],
+  );
 
   return [state, actions];
 }

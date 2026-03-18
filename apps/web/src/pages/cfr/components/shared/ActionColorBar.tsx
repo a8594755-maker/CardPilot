@@ -7,7 +7,11 @@ interface ActionColorBarProps {
   height?: number;
 }
 
-export const ActionColorBar = memo(function ActionColorBar({ labels, probs, height = 20 }: ActionColorBarProps) {
+export const ActionColorBar = memo(function ActionColorBar({
+  labels,
+  probs,
+  height = 20,
+}: ActionColorBarProps) {
   const total = probs.reduce((a, b) => a + b, 0);
   if (total < 0.001) return <div className="text-slate-500 text-xs">No data</div>;
 

@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from 'react';
 
 /**
  * Overlay priority levels (higher = more important).
@@ -7,22 +7,22 @@ import { useState, useCallback, useMemo } from "react";
  */
 export const OVERLAY_PRIORITY = {
   none: 0,
-  drawer: 10,       // Options drawer
-  panel: 20,        // GTO sidebar, session stats, room log
-  modal: 30,        // Buy-in, rebuy, fold confirm
+  drawer: 10, // Options drawer
+  panel: 20, // GTO sidebar, session stats, room log
+  modal: 30, // Buy-in, rebuy, fold confirm
   roomSettings: 40, // Room Settings (full-screen surface)
 } as const;
 
 export type OverlayId =
-  | "optionsDrawer"
-  | "roomSettings"
-  | "buyIn"
-  | "rebuy"
-  | "foldConfirm"
-  | "revealedZoom"
-  | "mobileGto"
-  | "handSummary"
-  | "allInPrompt";
+  | 'optionsDrawer'
+  | 'roomSettings'
+  | 'buyIn'
+  | 'rebuy'
+  | 'foldConfirm'
+  | 'revealedZoom'
+  | 'mobileGto'
+  | 'handSummary'
+  | 'allInPrompt';
 
 export interface OverlayEntry {
   id: OverlayId;
@@ -91,16 +91,13 @@ export function useOverlayManager(): OverlayManager {
 
   const isOpen = useCallback(
     (id: OverlayId) => overlayIsOpen(activeOverlays, id),
-    [activeOverlays]
+    [activeOverlays],
   );
 
-  const topOverlay = useMemo(
-    () => overlayTop(activeOverlays),
-    [activeOverlays]
-  );
+  const topOverlay = useMemo(() => overlayTop(activeOverlays), [activeOverlays]);
 
   return useMemo(
     () => ({ activeOverlays, isOpen, open, close, closeAll, topOverlay }),
-    [activeOverlays, isOpen, open, close, closeAll, topOverlay]
+    [activeOverlays, isOpen, open, close, closeAll, topOverlay],
   );
 }

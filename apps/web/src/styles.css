@@ -1,5 +1,6 @@
-@import "tailwindcss";
-@import "./design-tokens.css";
+@import 'tailwindcss';
+@import './design-tokens.css';
+@import './solver-tokens.css';
 
 @theme {
   --color-felt-900: #0a1f14;
@@ -11,7 +12,7 @@
   --color-chip-red: #dc2626;
   --color-chip-blue: #2563eb;
   --color-chip-green: #16a34a;
-  --font-sans: "Inter", "Noto Sans TC", system-ui, sans-serif;
+  --font-sans: 'Inter', 'Noto Sans TC', system-ui, sans-serif;
 }
 
 @layer base {
@@ -52,9 +53,10 @@
   }
 
   .glass-card-hover {
-    transition: border-color var(--cp-duration-normal) var(--cp-ease-out),
-                box-shadow var(--cp-duration-normal) var(--cp-ease-out),
-                transform var(--cp-duration-fast) var(--cp-ease-out);
+    transition:
+      border-color var(--cp-duration-normal) var(--cp-ease-out),
+      box-shadow var(--cp-duration-normal) var(--cp-ease-out),
+      transform var(--cp-duration-fast) var(--cp-ease-out);
   }
   .glass-card-hover:hover {
     border-color: var(--cp-border-strong);
@@ -80,10 +82,11 @@
     font-size: var(--cp-text-sm);
     font-weight: var(--cp-font-semibold);
     line-height: var(--cp-leading-tight);
-    transition: background var(--cp-duration-normal) var(--cp-ease-out),
-                box-shadow var(--cp-duration-normal) var(--cp-ease-out),
-                border-color var(--cp-duration-normal) var(--cp-ease-out),
-                transform var(--cp-duration-fast) var(--cp-ease-out);
+    transition:
+      background var(--cp-duration-normal) var(--cp-ease-out),
+      box-shadow var(--cp-duration-normal) var(--cp-ease-out),
+      border-color var(--cp-duration-normal) var(--cp-ease-out),
+      transform var(--cp-duration-fast) var(--cp-ease-out);
     user-select: none;
     -webkit-tap-highlight-color: transparent;
   }
@@ -189,9 +192,10 @@
     color: var(--cp-text-primary);
     font-size: var(--cp-text-base);
     font-family: var(--cp-font-family-body, var(--font-sans));
-    transition: border-color var(--cp-duration-normal) var(--cp-ease-out),
-                box-shadow var(--cp-duration-normal) var(--cp-ease-out),
-                background var(--cp-duration-normal) var(--cp-ease-out);
+    transition:
+      border-color var(--cp-duration-normal) var(--cp-ease-out),
+      box-shadow var(--cp-duration-normal) var(--cp-ease-out),
+      background var(--cp-duration-normal) var(--cp-ease-out);
     outline: none;
   }
   .input-field:focus-visible {
@@ -209,7 +213,7 @@
   .poker-table-surface {
     background:
       /* subtle felt noise via repeating conic gradient */
-      repeating-conic-gradient(rgba(255,255,255,0.012) 0% 25%, transparent 0% 50%) 0 0 / 4px 4px,
+      repeating-conic-gradient(rgba(255, 255, 255, 0.012) 0% 25%, transparent 0% 50%) 0 0 / 4px 4px,
       radial-gradient(ellipse at center, #1a6b3c 0%, #145a32 40%, #0d4526 70%, #0a3a1f 100%);
     border: 8px solid #5c3a1e;
     box-shadow:
@@ -222,7 +226,7 @@
 
   .poker-table-surface-blue {
     background:
-      repeating-conic-gradient(rgba(255,255,255,0.01) 0% 25%, transparent 0% 50%) 0 0 / 4px 4px,
+      repeating-conic-gradient(rgba(255, 255, 255, 0.01) 0% 25%, transparent 0% 50%) 0 0 / 4px 4px,
       radial-gradient(ellipse at center, #1a3a6b 0%, #14325a 40%, #0d2645 70%, #0a1f3a 100%);
     border: 8px solid #2a2a40;
     box-shadow:
@@ -270,12 +274,24 @@
 
 /* ── Toast notification ── */
 @keyframes toastIn {
-  from { opacity: 0; transform: translateY(8px) scale(0.95); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 @keyframes toastOut {
-  from { opacity: 1; transform: translateY(0) scale(1); }
-  to   { opacity: 0; transform: translateY(8px) scale(0.95); }
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+  }
 }
 
 @layer components {
@@ -308,8 +324,12 @@
 
   /* ── GTO Sidebar drawer overlay (mobile) ── */
   @keyframes drawerSlideIn {
-    from { transform: translateX(100%); }
-    to   { transform: translateX(0); }
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
   }
   .gto-drawer {
     animation: drawerSlideIn 0.25s ease-out;
@@ -317,8 +337,12 @@
 
   /* ── History bottom sheet (mobile) ── */
   @keyframes historySheetIn {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
   }
   .history-bottom-sheet {
     animation: historySheetIn 0.22s ease-out;
@@ -438,7 +462,9 @@
     background: linear-gradient(160deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.8));
     padding: 7px 10px;
     text-align: left;
-    transition: border-color 0.15s ease, transform 0.15s ease;
+    transition:
+      border-color 0.15s ease,
+      transform 0.15s ease;
   }
 
   .history-list-row:hover {
@@ -448,7 +474,9 @@
 
   .history-list-row-active {
     border-color: rgba(56, 189, 248, 0.75);
-    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3), 0 8px 28px rgba(2, 132, 199, 0.22);
+    box-shadow:
+      0 0 0 1px rgba(56, 189, 248, 0.3),
+      0 8px 28px rgba(2, 132, 199, 0.22);
   }
 
   .history-group-pill {
@@ -495,7 +523,12 @@
     border-radius: 10px;
     margin-bottom: 8px;
     border: 1px solid rgba(148, 163, 184, 0.12);
-    background: linear-gradient(100deg, rgba(30, 41, 59, 0.4), rgba(51, 65, 85, 0.28), rgba(30, 41, 59, 0.4));
+    background: linear-gradient(
+      100deg,
+      rgba(30, 41, 59, 0.4),
+      rgba(51, 65, 85, 0.28),
+      rgba(30, 41, 59, 0.4)
+    );
     background-size: 200% 100%;
     animation: pulseGradient 1.2s linear infinite;
   }
@@ -554,7 +587,9 @@
   }
 
   .history-hero-cards span {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+      monospace;
     font-size: 22px;
     font-weight: 700;
     color: #f8fafc;
@@ -605,7 +640,9 @@
 
   .history-board-streets strong {
     color: #f8fafc;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-family:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+      monospace;
     font-size: 13px;
   }
 
@@ -695,6 +732,10 @@
 }
 
 @keyframes pulseGradient {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 200% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
 }
