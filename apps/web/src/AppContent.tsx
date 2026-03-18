@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useCallback, useRef, lazy, Suspense } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { ClubListItem, ClubDetailPayload, SessionStatsEntry } from '@cardpilot/shared-types';
-import { type AnimationSpeed, loadAnimationSpeed, saveAnimationSpeed } from './lib/chip-animation';
+import { type AnimationSpeed, loadAnimationSpeed } from './lib/chip-animation';
 import { debugLog } from './lib/debug';
 
 // Hooks & Contexts
@@ -39,7 +39,6 @@ import { TableContainer } from './components/TableContainer';
 import { InGameHandHistory } from './components/ui/InGameHandHistory';
 import { SessionScoreboard } from './components/ui/SessionScoreboard';
 import { FoldConfirmModal } from './components/ui/FoldConfirmModal';
-import { HandSummaryDrawer } from './components/ui/HandSummaryDrawer';
 import { BombPotOverlay } from './components/BombPotOverlay';
 import { SevenTwoRevealOverlay } from './components/SevenTwoRevealOverlay';
 import { BottomActionBar } from './components/ui/BottomActionBar';
@@ -47,10 +46,10 @@ import type { PreActionType } from './lib/action-derivations';
 
 const SolverWorkspacePage = lazy(() => import('./pages/solver/SolverWorkspacePage'));
 
-const APP_VERSION = 'v0.4.1';
-const NETLIFY_COMMIT_REF = import.meta.env.VITE_NETLIFY_COMMIT_REF || '';
-const NETLIFY_DEPLOY_ID = import.meta.env.VITE_NETLIFY_DEPLOY_ID || '';
-const BUILD_TIME = new Date().toISOString().slice(0, 16).replace('T', ' ');
+const _APP_VERSION = 'v0.4.1';
+const _NETLIFY_COMMIT_REF = import.meta.env.VITE_NETLIFY_COMMIT_REF || '';
+const _NETLIFY_DEPLOY_ID = import.meta.env.VITE_NETLIFY_DEPLOY_ID || '';
+const _BUILD_TIME = new Date().toISOString().slice(0, 16).replace('T', ' ');
 const SOUND_PREF_KEY = 'cardpilot_sound_muted';
 const RECENT_NON_CLUB_TABLE_KEY = 'cardpilot_recent_non_club_table';
 
@@ -94,7 +93,7 @@ export function AppContent() {
     userEmail,
     setDisplayName,
     handleLogout: authLogout,
-    socketAuthUserId,
+    socketAuthUserId: _socketAuthUserId,
   } = useAuth();
   const { socket, connected: socketConnected, reconnecting: socketReconnecting } = useSocket();
   const { lobbyRooms, tableId, setTableId, currentRoomCode, currentRoomName } = useRoom();
@@ -102,30 +101,30 @@ export function AppContent() {
     snapshot,
     roomState,
     seat,
-    setSeat,
-    holeCards,
+    setSeat: _setSeat,
+    holeCards: _holeCards,
     advice,
-    deviation,
-    actionPending,
-    setActionPending,
-    winners,
-    settlement,
-    allInLock,
-    myRunPreference,
-    setMyRunPreference,
-    boardReveal,
-    lastActionBySeat,
-    postHandShowAvailable,
-    sevenTwoBountyPrompt,
-    sevenTwoBountyResult,
+    deviation: _deviation,
+    actionPending: _actionPending,
+    setActionPending: _setActionPending,
+    winners: _winners,
+    settlement: _settlement,
+    allInLock: _allInLock,
+    myRunPreference: _myRunPreference,
+    setMyRunPreference: _setMyRunPreference,
+    boardReveal: _boardReveal,
+    lastActionBySeat: _lastActionBySeat,
+    postHandShowAvailable: _postHandShowAvailable,
+    sevenTwoBountyPrompt: _sevenTwoBountyPrompt,
+    sevenTwoBountyResult: _sevenTwoBountyResult,
     sevenTwoRevealActive,
-    postHandRevealedCards,
+    postHandRevealedCards: _postHandRevealedCards,
     bombPotOverlayActive,
     preAction,
     setPreAction,
-    snapshotRef,
-    seatRef,
-    holeCardsRef,
+    snapshotRef: _snapshotRef,
+    seatRef: _seatRef,
+    holeCardsRef: _holeCardsRef,
   } = useGame();
   const { showToast, toast, toastExiting } = useToast();
 
@@ -133,10 +132,10 @@ export function AppContent() {
   const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   // Clubs State
-  const [clubList, setClubList] = useState<ClubListItem[]>([]);
-  const [clubDetail, setClubDetail] = useState<ClubDetailPayload | null>(null);
+  const [clubList, _setClubList] = useState<ClubListItem[]>([]);
+  const [clubDetail, _setClubDetail] = useState<ClubDetailPayload | null>(null);
   const [selectedClubId, setSelectedClubId] = useState<string>('');
-  const [clubsLoading, setClubsLoading] = useState(false);
+  const [clubsLoading, _setClubsLoading] = useState(false);
   const selectedClubIdRef = useRef(selectedClubId);
   useEffect(() => {
     selectedClubIdRef.current = selectedClubId;
@@ -151,46 +150,46 @@ export function AppContent() {
     maxPlayers: 6,
     visibility: 'public',
   });
-  const [settingsTab, setSettingsTab] = useState<SettingsTab>('game');
-  const [seatRequests, setSeatRequests] = useState<
+  const [_settingsTab, _setSettingsTab] = useState<SettingsTab>('game');
+  const [_seatRequests, _setSeatRequests] = useState<
     Array<{ orderId: string; userId: string; userName: string; seat: number; buyIn: number }>
   >([]);
-  const [showRoomLog, setShowRoomLog] = useState(false);
+  const [showRoomLog, _setShowRoomLog] = useState(false);
   const [showSessionStats, setShowSessionStats] = useState(false);
   const [showInGameHistory, setShowInGameHistory] = useState(false);
-  const [sessionStatsData, setSessionStatsData] = useState<SessionStatsEntry[]>([]);
-  const [showRebuyModal, setShowRebuyModal] = useState(false);
-  const [rebuyAmount, setRebuyAmount] = useState(0);
-  const [rebuyRequests, setRebuyRequests] = useState<
+  const [sessionStatsData, _setSessionStatsData] = useState<SessionStatsEntry[]>([]);
+  const [_showRebuyModal, _setShowRebuyModal] = useState(false);
+  const [_rebuyAmount, _setRebuyAmount] = useState(0);
+  const [_rebuyRequests, _setRebuyRequests] = useState<
     Array<{ orderId: string; userId: string; userName: string; seat: number; amount: number }>
   >([]);
-  const [rejoinStackInfo, setRejoinStackInfo] = useState<{
+  const [_rejoinStackInfo, _setRejoinStackInfo] = useState<{
     tableId: string;
     stack: number | null;
     loading: boolean;
   } | null>(null);
-  const [revealedZoom, setRevealedZoom] = useState<{
+  const [_revealedZoom, _setRevealedZoom] = useState<{
     seat: number;
     name: string;
     cards: [string, string];
     handName?: string;
   } | null>(null);
-  const [disconnectedSeats, setDisconnectedSeats] = useState<
+  const [_disconnectedSeats, _setDisconnectedSeats] = useState<
     Map<number, { userId: string; graceSeconds: number; disconnectedAt: number }>
   >(new Map());
-  const [supabaseEnabled, setSupabaseEnabled] = useState(true);
-  const [showGtoSidebar, setShowGtoSidebar] = useState(() => {
+  const [supabaseEnabled, _setSupabaseEnabled] = useState(true);
+  const [_showGtoSidebar, _setShowGtoSidebar] = useState(() => {
     try {
       return localStorage.getItem('cardpilot_show_gto') !== 'false';
     } catch {
       return true;
     }
   });
-  const [showMobileGto, setShowMobileGto] = useState(false);
+  const [_showMobileGto, _setShowMobileGto] = useState(false);
   const [displayBB, setDisplayBB] = useState(false);
   const [showBuyInModal, setShowBuyInModal] = useState(false);
-  const [pendingSitSeat, setPendingSitSeat] = useState(1);
-  const [buyInAmount, setBuyInAmount] = useState(10000);
+  const [pendingSitSeat, _setPendingSitSeat] = useState(1);
+  const [buyInAmount, _setBuyInAmount] = useState(10000);
   const [clubRoomHintCode, setClubRoomHintCode] = useState('');
 
   // UI Redesign State
@@ -198,17 +197,18 @@ export function AppContent() {
   const [suppressFoldConfirm, setSuppressFoldConfirm] = useState(false);
 
   // Linger State
-  const [lingerActive, setLingerActive] = useState(false);
-  const [lingerWinnerSeats, setLingerWinnerSeats] = useState<Set<number>>(new Set());
-  const [lingerSeatDeltas, setLingerSeatDeltas] = useState<Record<number, number>>({});
-  const [lingerIsAllIn, setLingerIsAllIn] = useState(false);
-  const [showHandSummaryDrawer, setShowHandSummaryDrawer] = useState(false);
-  const lingerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const resultRunTimersRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
-  const [winnerSeatPulse, setWinnerSeatPulse] = useState<number | null>(null);
-  const [resultRunFocus, setResultRunFocus] = useState<{ run: 1 | 2 | 3; seats: number[] } | null>(
-    null,
-  );
+  const [_lingerActive, _setLingerActive] = useState(false);
+  const [_lingerWinnerSeats, _setLingerWinnerSeats] = useState<Set<number>>(new Set());
+  const [_lingerSeatDeltas, _setLingerSeatDeltas] = useState<Record<number, number>>({});
+  const [_lingerIsAllIn, _setLingerIsAllIn] = useState(false);
+  const [_showHandSummaryDrawer, _setShowHandSummaryDrawer] = useState(false);
+  const _lingerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const _resultRunTimersRef = useRef<Array<ReturnType<typeof setTimeout>>>([]);
+  const [_winnerSeatPulse, _setWinnerSeatPulse] = useState<number | null>(null);
+  const [_resultRunFocus, _setResultRunFocus] = useState<{
+    run: 1 | 2 | 3;
+    seats: number[];
+  } | null>(null);
 
   // Theme & Sound
   const [tableTheme, setTableTheme] = useState<'green' | 'blue'>(() => {
@@ -218,14 +218,14 @@ export function AppContent() {
       return 'green';
     }
   });
-  const [soundMuted, setSoundMuted] = useState(() => {
+  const [_soundMuted, _setSoundMuted] = useState(() => {
     try {
       return localStorage.getItem(SOUND_PREF_KEY) === 'true';
     } catch {
       return false;
     }
   });
-  const [chipAnimSpeed, setChipAnimSpeed] = useState<AnimationSpeed>(loadAnimationSpeed);
+  const [_chipAnimSpeed, _setChipAnimSpeed] = useState<AnimationSpeed>(loadAnimationSpeed);
 
   // Refs
   const recentNonClubTableRef = useRef<{
@@ -257,8 +257,8 @@ export function AppContent() {
     (open: boolean) => (open ? overlays.open('optionsDrawer') : overlays.close('optionsDrawer')),
     [overlays],
   );
-  const showSettings = overlays.isOpen('roomSettings');
-  const setShowSettings = useCallback(
+  const _showSettings = overlays.isOpen('roomSettings');
+  const _setShowSettings = useCallback(
     (open: boolean) => (open ? overlays.open('roomSettings') : overlays.close('roomSettings')),
     [overlays],
   );
@@ -461,7 +461,7 @@ export function AppContent() {
     [roomState?.status, snapshot?.handId, snapshot?.actorSeat, snapshot?.showdownPhase],
   );
 
-  const dealDisabledReason = useMemo(() => {
+  const _dealDisabledReason = useMemo(() => {
     if (!isConnected) return 'Server disconnected';
     if (!userRole.isHostOrCoHost && seat == null) return 'Sit down to deal';
     if (roomState?.status === 'PAUSED') return 'Game is paused';
@@ -512,7 +512,7 @@ export function AppContent() {
   }
 
   const handleAuthSuccess = useCallback(
-    (s: any) => {
+    (_s: any) => {
       // AuthContext handles state, just show toast
       showToast('Signed in');
     },

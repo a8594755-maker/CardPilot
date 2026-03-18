@@ -79,7 +79,7 @@ describe('Club authentication contracts', () => {
     );
     assert.match(
       webSource,
-      /if \(view === 'clubs' && !canAccessClubs\) \{[\s\S]*<AuthScreen[\s\S]*disableGuest[\s\S]*gateMessage="Club access requires a logged-in account\."/,
+      /if \(view === 'clubs' && !canAccessClubs\) \{[\s\S]*<AuthScreen[\s\S]*disableGuest[\s\S]*gateMessage="Club access requires login\."/,
     );
   });
 });

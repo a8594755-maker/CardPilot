@@ -17,9 +17,9 @@ export function TableContainer() {
   const seatRefs = useRef<Record<number, HTMLElement | null>>({});
 
   // Chip animation speed state
-  const [chipAnimSpeed, setChipAnimSpeed] = useState<AnimationSpeed>(loadAnimationSpeed);
+  const [chipAnimSpeed, _setChipAnimSpeed] = useState<AnimationSpeed>(loadAnimationSpeed);
 
-  const isMobile = useIsMobile();
+  const _isMobile = useIsMobile();
   const [isMobilePortrait, setIsMobilePortrait] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.matchMedia('(max-width: 768px) and (orientation: portrait) and (pointer: coarse)')
