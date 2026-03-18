@@ -73,17 +73,20 @@
 ## Files Changed
 
 ### New Files
+
 - `apps/game-server/src/services/club-repo.ts` — Supabase persistence adapter (CRUD + bulk hydration)
 - `apps/game-server/src/services/club-service.ts` — Business logic + `requireActiveClubMember()` gate
 - `backend/sql/004_clubs_feature.sql` — V1 simplified club schema
 - `docs/CLUB_V2_QA.md` — This QA checklist
 
 ### Modified Files
+
 - `apps/game-server/src/club-manager.ts` — Added `setRepo()`, `hydrate()`, `persistCreateClub()`, write-through on all mutations, audit persistence
 - `apps/game-server/src/server.ts` — Wired `ClubRepo` import + instantiation + hydration at startup
 - `apps/game-server/src/__tests__/club-manager.test.ts` — Added 8 new tests (requireActiveClubMember gate + hydrate/persist interface)
 
 ### Pre-existing (no changes needed)
+
 - `packages/shared-types/src/club-types.ts` — Full club type definitions + permission helpers
 - `packages/shared-types/src/club-events.ts` — Socket event payloads + event maps
 - `packages/shared-types/src/index.ts` — Already re-exports club types/events + LobbyRoomSummary has clubId/clubName

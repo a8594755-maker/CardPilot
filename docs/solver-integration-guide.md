@@ -16,6 +16,7 @@ CardPilot now supports importing real GTO solver data and advanced strategy feat
 ### Supported Formats
 
 #### PioSolver CSV Export
+
 ```csv
 Hand,Raise,Call,Fold
 AA,1.0,0.0,0.0
@@ -24,6 +25,7 @@ AKo,0.85,0.0,0.15
 ```
 
 #### GTO+ JSON Export
+
 ```json
 {
   "solver": "gto+",
@@ -62,14 +64,14 @@ node data/import-solver-data.mjs custom_data.csv \
 
 ### Import Options
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--output, -o` | Output file path | `preflop_charts_solver.json` |
-| `--solver, -s` | Solver type (auto, piosolver, gto+) | `auto` |
-| `--format, -f` | Game format | `cash_6max_100bb` |
-| `--spot` | Spot identifier (required for CSV) | - |
-| `--sizing` | Bet sizing category | `open2.5x` |
-| `--merge, -m` | Merge with existing chart | `false` |
+| Option         | Description                         | Default                      |
+| -------------- | ----------------------------------- | ---------------------------- |
+| `--output, -o` | Output file path                    | `preflop_charts_solver.json` |
+| `--solver, -s` | Solver type (auto, piosolver, gto+) | `auto`                       |
+| `--format, -f` | Game format                         | `cash_6max_100bb`            |
+| `--spot`       | Spot identifier (required for CSV)  | -                            |
+| `--sizing`     | Bet sizing category                 | `open2.5x`                   |
+| `--merge, -m`  | Merge with existing chart           | `false`                      |
 
 ---
 
@@ -97,10 +99,10 @@ let range = estimator.buildPreflopRange('BTN', 'raise');
 // Narrow based on flop c-bet (75% pot)
 range = estimator.narrowRangePostflop(
   range,
-  'raise',           // action type
-  'FLOP',           // street
+  'raise', // action type
+  'FLOP', // street
   ['Ah', 'Kc', '7d'], // board
-  0.75              // bet size relative to pot
+  0.75, // bet size relative to pot
 );
 
 // Sample hands from range for equity calculation
@@ -110,6 +112,7 @@ const villainHands = estimator.sampleHandsFromRange(range, 50);
 ### Range Building Logic
 
 **Opening Ranges by Position**:
+
 - **UTG**: 14% (tight, premium hands)
 - **MP/HJ**: 18-22% (strong hands + suited connectors)
 - **CO**: 28% (wide value + some bluffs)
@@ -117,10 +120,12 @@ const villainHands = estimator.sampleHandsFromRange(range, 50);
 - **SB**: 38% (steal range)
 
 **3bet Ranges**:
+
 - Polarized: Top 8% value hands + bottom 15% bluffs
 - Linear adjustments based on opponent position
 
 **Postflop Narrowing**:
+
 - **Bet/Raise**: Favor strong hands + draws, reduce weak holdings
 - **Call**: Medium strength + draws + slowplays
 - **Check**: Weak hands + check-traps
@@ -133,6 +138,7 @@ const villainHands = estimator.sampleHandsFromRange(range, 50);
 When `numVillains > 1`, the system automatically:
 
 ### Equity Adjustments
+
 ```typescript
 // Reduce equity by 12% per additional opponent
 const adjustedEquity = equity * (1 - (numVillains - 1) * 0.12);
@@ -141,22 +147,25 @@ const adjustedEquity = equity * (1 - (numVillains - 1) * 0.12);
 ### Strategy Tightening
 
 **Defense (Facing Bet)**:
+
 - Nutted/Strong: 70% raise, 30% call
 - Medium (with odds): 10% raise, 70% call, 20% fold
 - Weak: 0% raise, 20% call, 80% fold
 
 **Aggression (First to Act)**:
+
 - Nutted/Strong: 85% bet, 15% check
 - Medium: 40% bet, 60% check
 - Weak: 5% bet (rare bluffs), 95% check
 
 ### Range Narrowing
+
 ```typescript
 // Multiway tightening factor
 const tighteningFactor = 1 - (numOpponents - 1) * 0.15;
 
 // Premium hands retain more weight
-const adjustedWeight = isPremium 
+const adjustedWeight = isPremium
   ? weight * max(0.8, tighteningFactor + 0.2)
   : weight * max(0.3, tighteningFactor);
 ```
@@ -167,15 +176,15 @@ const adjustedWeight = isPremium
 
 ### Supported Sizings
 
-| Sizing | Preflop | Postflop | Strategy Impact |
-|--------|---------|----------|----------------|
-| `open2.5x` | 2.5BB | - | Standard, balanced ranges |
-| `open3x` | 3BB | - | Slightly tighter, more linear |
-| `open4x` | 4BB | - | Tight and polarized |
-| `half_pot` | - | 0.5x pot | Small value bets, weak draws |
-| `pot` | - | 1x pot | Standard value/bluff ratio |
-| `2x_pot` | - | 2x pot | Polarized (nuts or air) |
-| `all_in` | - | All-in | Maximum polarization |
+| Sizing     | Preflop | Postflop | Strategy Impact               |
+| ---------- | ------- | -------- | ----------------------------- |
+| `open2.5x` | 2.5BB   | -        | Standard, balanced ranges     |
+| `open3x`   | 3BB     | -        | Slightly tighter, more linear |
+| `open4x`   | 4BB     | -        | Tight and polarized           |
+| `half_pot` | -       | 0.5x pot | Small value bets, weak draws  |
+| `pot`      | -       | 1x pot   | Standard value/bluff ratio    |
+| `2x_pot`   | -       | 2x pot   | Polarized (nuts or air)       |
+| `all_in`   | -       | All-in   | Maximum polarization          |
 
 ### Automatic Sizing Detection
 
@@ -184,17 +193,17 @@ import { detectBetSizing } from '@cardpilot/advice-engine';
 
 // Preflop sizing
 const sizing = detectBetSizing(
-  300,   // raise amount (chips)
-  100,   // big blind
-  150    // pot size
+  300, // raise amount (chips)
+  100, // big blind
+  150, // pot size
 );
 // Returns: 'open3x' (300 / 100 = 3x BB)
 
 // Postflop sizing
 const sizing = detectBetSizing(
-  750,   // bet amount
-  100,   // big blind
-  1000   // pot size
+  750, // bet amount
+  100, // big blind
+  1000, // pot size
 );
 // Returns: 'pot' (750 / 1000 = 0.75x pot)
 ```
@@ -202,6 +211,7 @@ const sizing = detectBetSizing(
 ### Sizing Impact on Ranges
 
 **Larger sizes → Tighter/Polarized**:
+
 ```javascript
 // Premium hands (AA-JJ, AKs): raise MORE with larger sizes
 raiseAdj = 1 + (multiplier - 1) * 0.5;
@@ -223,7 +233,7 @@ raiseAdj = 1 - (multiplier - 1) * 0.3;
 # Generate charts with 2.5x, 3x, 4x sizings
 node data/generate_charts.mjs
 
-# Output: 
+# Output:
 # 8 base spots × 3 sizings × 169 hands = 4,056 entries
 ```
 
@@ -267,7 +277,7 @@ const advice = getPreflopAdvice({
   // Auto-detect sizing from game state
   raiseAmount: 300,
   bigBlind: 100,
-  potSize: 150
+  potSize: 150,
 });
 // Will use 'open3x' spot automatically
 ```
@@ -293,8 +303,8 @@ const context: PostflopContext = {
   actionHistory: [
     { seat: 3, street: 'PREFLOP', type: 'raise', amount: 250, at: 1000 },
     { seat: 1, street: 'PREFLOP', type: 'call', amount: 250, at: 1100 },
-    { seat: 3, street: 'FLOP', type: 'raise', amount: 600, at: 2000 }
-  ]
+    { seat: 3, street: 'FLOP', type: 'raise', amount: 600, at: 2000 },
+  ],
 };
 
 const advice = getPostflopAdvice(context);
@@ -310,6 +320,7 @@ const advice = getPostflopAdvice(context);
 ### Upgrading from Hardcoded Charts
 
 1. **Backup existing charts**:
+
    ```bash
    cp data/preflop_charts.json data/preflop_charts.backup.json
    ```
@@ -317,12 +328,13 @@ const advice = getPostflopAdvice(context);
 2. **Export your solver data** (PioSolver/GTO+)
 
 3. **Import solver data**:
+
    ```bash
    # Import BTN opening range
    node data/import-solver-data.mjs btn_pio_export.csv \
      --spot BTN_unopened_open2.5x \
      --merge -o data/preflop_charts.json
-   
+
    # Import BB defense vs BTN
    node data/import-solver-data.mjs bb_vs_btn.csv \
      --spot BB_vs_BTN_facing_open2.5x \
@@ -330,6 +342,7 @@ const advice = getPostflopAdvice(context);
    ```
 
 4. **Verify data**:
+
    ```bash
    node -e "console.log(require('./data/preflop_charts.json').length)"
    # Should show increased entry count
@@ -347,12 +360,14 @@ const advice = getPostflopAdvice(context);
 ### Solver Data Quality
 
 ✅ **DO**:
+
 - Use recent solver outputs (2023+)
 - Verify rake/ante settings match your game
 - Import complete ranges (not just top hands)
 - Test edge cases (72o, A2s, etc.)
 
 ❌ **DON'T**:
+
 - Mix solvers with different assumptions
 - Use outdated charts (pre-2020)
 - Cherry-pick only premium hands
@@ -361,12 +376,14 @@ const advice = getPostflopAdvice(context);
 ### Range Estimation
 
 ✅ **DO**:
+
 - Track full action history
 - Update ranges per street
 - Consider multiway dynamics
 - Account for player tendencies (future feature)
 
 ❌ **DON'T**:
+
 - Assume static ranges
 - Ignore bet sizing signals
 - Treat all villains identically
@@ -388,13 +405,14 @@ const advice = getPostflopAdvice(context);
 **Cause**: Spot key mismatch or missing sizing
 
 **Solution**:
+
 ```typescript
 // Enable fallback candidates
 const candidates = buildSpotCandidates({
   heroPos: 'BTN',
   villainPos: 'BB',
   line: 'unopened',
-  size: 'open3x'  // Will fallback to 'open2.5x' if missing
+  size: 'open3x', // Will fallback to 'open2.5x' if missing
 });
 ```
 
@@ -403,6 +421,7 @@ const candidates = buildSpotCandidates({
 **Cause**: Solver assumptions differ from your game
 
 **Solution**:
+
 1. Check rake settings in solver
 2. Verify stack depths match
 3. Adjust `tightnessAdjustment` in RangeEstimator config
@@ -413,11 +432,12 @@ const candidates = buildSpotCandidates({
 **Cause**: Range not adjusted for multiple opponents
 
 **Solution**:
+
 ```typescript
 // Ensure numVillains is correctly passed
 const context = {
   ...otherFields,
-  numVillains: activePlayers.length - 1  // Exclude hero
+  numVillains: activePlayers.length - 1, // Exclude hero
 };
 ```
 
@@ -426,6 +446,7 @@ const context = {
 ## 10. Future Enhancements
 
 **Planned Features**:
+
 - [ ] ICM adjustments for tournaments
 - [ ] Player profiling (exploitative ranges)
 - [ ] Postflop solver import
@@ -433,6 +454,7 @@ const context = {
 - [ ] Hand history analysis
 
 **Contribute**:
+
 - Report issues: GitHub Issues
 - Submit solver data: Discord #solver-data
 - Request features: GitHub Discussions

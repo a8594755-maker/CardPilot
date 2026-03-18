@@ -14,6 +14,7 @@
 ## 步驟 2：設置環境變數（可選）
 
 在 Railway 專案設置中添加（如果需要 Supabase，三個要一起設）：
+
 ```
 SUPABASE_URL=your_supabase_url
 SUPABASE_ANON_KEY=your_anon_key
@@ -25,6 +26,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ## 步驟 3：獲取 Railway 後端網址
 
 部署完成後，Railway 會給你一個網址，例如：
+
 ```
 https://cardpilot-game-server-production.up.railway.app
 ```
@@ -34,6 +36,7 @@ https://cardpilot-game-server-production.up.railway.app
 ### 選項 A：使用環境變數（推薦）
 
 在 Netlify 專案設置中添加環境變數：
+
 ```
 VITE_SERVER_URL=https://your-railway-url.railway.app
 ```
@@ -43,8 +46,9 @@ VITE_SERVER_URL=https://your-railway-url.railway.app
 ### 選項 B：直接修改代碼
 
 在 `apps/web/src/App.tsx` 第 9 行修改：
+
 ```typescript
-const SERVER = "https://your-railway-url.railway.app";
+const SERVER = 'https://your-railway-url.railway.app';
 ```
 
 ## 步驟 5：重新部署前端
@@ -64,6 +68,7 @@ npm run build
 ## 🔧 故障排除
 
 **如果連接失敗**：
+
 1. 檢查 Railway 後端日誌
 2. 確認 CORS 設置正確
 3. 確認前端的 SERVER 網址正確

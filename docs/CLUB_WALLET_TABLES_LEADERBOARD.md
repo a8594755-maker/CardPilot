@@ -19,6 +19,7 @@ This document describes the club system invariants and runtime flow for wallet a
 - Write path: `club_wallet_append_tx(...)` (atomic ledger append + account update + stats side effects).
 
 Supported wallet transaction types:
+
 - `deposit`
 - `admin_grant`
 - `admin_deduct`
@@ -67,15 +68,18 @@ Supported wallet transaction types:
 ## Server Event Surface
 
 Wallet:
+
 - `club_wallet_balance_get`
 - `club_wallet_transactions_list`
 - `club_wallet_admin_deposit`
 - `club_wallet_admin_adjust`
 
 Leaderboard:
+
 - `club_leaderboard_get`
 
 Compatibility:
+
 - `club_grant_credits` and `club_deduct_credits` are mapped to ledger-backed transactions.
 
 ## Verification Commands

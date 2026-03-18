@@ -53,6 +53,7 @@ railway up
    - **Publish directory**: `apps/web/dist`
 
 4. 添加环境变量:
+
    ```
    VITE_SERVER_URL=https://你的后端地址
    ```
@@ -135,12 +136,12 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - '5432:5432'
 
   backend:
     build: ./apps/game-server
     ports:
-      - "4000:4000"
+      - '4000:4000'
     environment:
       - DATABASE_URL=postgresql://cardpilot:your_password@postgres:5432/cardpilot
       - PORT=4000
@@ -151,7 +152,7 @@ services:
   frontend:
     build: ./apps/web
     ports:
-      - "80:80"
+      - '80:80'
     environment:
       - VITE_SERVER_URL=http://localhost:4000
 
@@ -170,6 +171,7 @@ docker-compose up -d
 ## 📋 部署检查清单
 
 ### 后端检查
+
 - [ ] PostgreSQL 数据库已创建
 - [ ] 数据库连接字符串正确
 - [ ] Socket.IO CORS 配置允许前端域名
@@ -177,12 +179,14 @@ docker-compose up -d
 - [ ] 健康检查端点 `/health` 可访问
 
 ### 前端检查
+
 - [ ] VITE_SERVER_URL 指向正确后端
 - [ ] 构建成功无错误
 - [ ] 图片资源路径正确
 - [ ] WebSocket 连接正常
 
 ### 域名配置 (可选)
+
 - [ ] 购买域名
 - [ ] 配置 DNS 解析
 - [ ] 设置 SSL 证书
@@ -193,34 +197,38 @@ docker-compose up -d
 ## 🔧 常见问题
 
 ### 1. CORS 错误
+
 ```
 修改 apps/game-server/src/server.ts:
 ```
+
 ```typescript
 const io = new Server(httpServer, {
   cors: {
-    origin: ["https://你的前端域名.netlify.app", "http://localhost:5173"],
-    credentials: true
-  }
+    origin: ['https://你的前端域名.netlify.app', 'http://localhost:5173'],
+    credentials: true,
+  },
 });
 ```
 
 ### 2. WebSocket 连接失败
+
 确保使用 `wss://` 而不是 `ws://` (HTTPS 页面需要安全 WebSocket)
 
 ### 3. 数据库连接失败
+
 检查 Railway/Render 的数据库连接字符串格式
 
 ---
 
 ## 💡 推荐配置
 
-| 服务 | 平台 | 费用 | 特点 |
-|------|------|------|------|
-| 前端 | Netlify | 免费 | 自动部署，CDN 加速 |
-| 后端 | Railway | 免费 $5/月额度 | 自动扩展 |
-| 数据库 | Railway Postgres | 免费 | 自动备份 |
-| 备选 | Render | 免费 | 支持 WebSocket |
+| 服务   | 平台             | 费用           | 特点               |
+| ------ | ---------------- | -------------- | ------------------ |
+| 前端   | Netlify          | 免费           | 自动部署，CDN 加速 |
+| 后端   | Railway          | 免费 $5/月额度 | 自动扩展           |
+| 数据库 | Railway Postgres | 免费           | 自动备份           |
+| 备选   | Render           | 免费           | 支持 WebSocket     |
 
 ---
 

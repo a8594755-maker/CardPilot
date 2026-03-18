@@ -28,6 +28,7 @@ git push -u origin main
 ## 第二步：部署后端 (Railway)
 
 ### 2.1 创建 PostgreSQL 数据库
+
 1. 登录 [Railway Dashboard](https://railway.app/dashboard)
 2. 点击 **New Project** → **Provision PostgreSQL**
 3. 记下数据库连接信息 (后面需要)
@@ -76,17 +77,18 @@ railway domain
 ## 第三步：部署前端 (Netlify)
 
 ### 3.1 导入项目
+
 1. 登录 [Netlify Dashboard](https://app.netlify.com/)
 2. 点击 **Add new site** → **Import an existing project**
 3. 导入你的 GitHub 仓库
 
 ### 3.2 配置构建设置
 
-| 设置项 | 值 |
-|--------|-----|
-| **Base directory** | 留空（仓库根目录） |
-| **Build command** | `npm run build -w @cardpilot/web` |
-| **Publish directory** | `apps/web/dist` |
+| 设置项                | 值                                |
+| --------------------- | --------------------------------- |
+| **Base directory**    | 留空（仓库根目录）                |
+| **Build command**     | `npm run build -w @cardpilot/web` |
+| **Publish directory** | `apps/web/dist`                   |
 
 ### 3.3 添加环境变量
 
@@ -97,6 +99,7 @@ VITE_SERVER_URL=https://你的后端地址.railway.app
 ```
 
 ### 3.4 部署
+
 点击 **Deploy site**
 
 ---
@@ -104,15 +107,18 @@ VITE_SERVER_URL=https://你的后端地址.railway.app
 ## 第四步：验证部署
 
 ### 后端健康检查
+
 ```bash
 curl https://你的后端地址.railway.app/health
 # 应该返回: {"ok":true}
 ```
 
 ### 前端访问
+
 打开 Netlify 提供的域名，应该能看到游戏界面。
 
 ### 测试游戏
+
 1. 创建一个房间
 2. 复制房间码给朋友
 3. 朋友用房间码加入
@@ -123,11 +129,13 @@ curl https://你的后端地址.railway.app/health
 ## 🔧 自定义域名 (可选)
 
 ### 前端自定义域名
+
 1. Netlify 项目 → Domain management
 2. 添加你的域名
 3. 按提示配置 DNS
 
 ### 后端自定义域名
+
 1. Railway 项目 → Settings → Domains
 2. 添加自定义域名
 3. 更新前端环境变量为新的后端地址
@@ -137,11 +145,11 @@ curl https://你的后端地址.railway.app/health
 
 ## 💰 费用说明
 
-| 平台 | 免费额度 | 超出费用 |
-|------|----------|----------|
-| **Netlify** | 免费套餐可用 | Pro $19/月起 |
-| **Railway** | $5/月额度 | 按需付费 |
-| **PostgreSQL** | 包含在 $5 额度内 | 按存储计费 |
+| 平台           | 免费额度         | 超出费用     |
+| -------------- | ---------------- | ------------ |
+| **Netlify**    | 免费套餐可用     | Pro $19/月起 |
+| **Railway**    | $5/月额度        | 按需付费     |
+| **PostgreSQL** | 包含在 $5 额度内 | 按存储计费   |
 
 **小流量项目完全免费！**
 
@@ -150,24 +158,31 @@ curl https://你的后端地址.railway.app/health
 ## 🚨 常见问题
 
 ### 1. CORS 错误
+
 ```
 Access-Control-Allow-Origin
 ```
+
 **解决**: 在 Railway 环境变量中添加:
+
 ```
 CORS_ORIGIN=https://你的前端域名.netlify.app
 ```
 
 ### 2. WebSocket 连接失败
+
 **解决**: 确保使用 `wss://` 协议:
+
 ```
 VITE_SERVER_URL=wss://你的后端地址.railway.app
 ```
 
 ### 3. 数据库连接失败
+
 **解决**: 检查 Railway PostgreSQL 的 `DATABASE_URL` 是否正确设置
 
 ### 4. 图片不显示
+
 **解决**: 确保 `apps/web/public/cards/` 文件夹已提交到 Git
 
 ---
@@ -183,6 +198,7 @@ VITE_SERVER_URL=wss://你的后端地址.railway.app
 ## 🎉 部署成功后
 
 你可以分享这个链接给朋友：
+
 ```
 https://你的项目名.netlify.app
 ```

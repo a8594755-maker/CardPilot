@@ -1,6 +1,7 @@
 # CardPilot MVP Blueprint
 
 ## 1. Product Defaults (for immediate start)
+
 - Mode: Play-money training platform (no real money).
 - Table type: 6-max cash.
 - Advice timing: Real-time Coach Mode (only in training tables).
@@ -8,6 +9,7 @@
 - Tech stack: Next.js (frontend) + NestJS (backend) + Socket.IO + PostgreSQL + Prisma.
 
 ## 2. State Machine (Hand Lifecycle)
+
 - `WAITING_FOR_PLAYERS`
 - `POST_BLINDS`
 - `DEAL_HOLE`
@@ -23,6 +25,7 @@
 - `HAND_COMPLETE`
 
 ### Core hand state schema (server authoritative)
+
 ```json
 {
   "handId": "uuid",
@@ -37,7 +40,7 @@
   "lastAggressorSeat": 2,
   "minRaiseTo": 300,
   "currentBet": 200,
-  "pots": [{"amount": 450, "eligibleSeats": [1,2,5,6]}],
+  "pots": [{ "amount": 450, "eligibleSeats": [1, 2, 5, 6] }],
   "players": [
     {
       "seat": 1,
@@ -54,7 +57,9 @@
 ```
 
 ## 3. Socket Events
+
 ### Client -> Server
+
 - `join_table`: `{ tableId }`
 - `leave_table`: `{ tableId }`
 - `sit_down`: `{ tableId, seat, buyIn }`
@@ -63,6 +68,7 @@
 - `request_advice`: `{ tableId, handId }`
 
 ### Server -> Client
+
 - `table_snapshot`
 - `hand_started`
 - `hole_cards` (private per player)
@@ -74,6 +80,7 @@
 - `error_event`
 
 ### Payload examples
+
 ```json
 {
   "event": "action_applied",
@@ -98,7 +105,7 @@
     "seat": 6,
     "spotKey": "6max_cash_100bb_BTN_vs_BB_unopened_open2.5x",
     "heroHand": "A5s",
-    "mix": {"raise": 0.65, "call": 0.0, "fold": 0.35},
+    "mix": { "raise": 0.65, "call": 0.0, "fold": 0.35 },
     "tags": ["IP_ADVANTAGE", "A_BLOCKER", "WHEEL_PLAYABILITY"],
     "explanation": "Button has positional edge. A5s blocks strong Ax continues and keeps playable wheel potential."
   }
@@ -106,16 +113,19 @@
 ```
 
 ## 4. Preflop Advice Key Spec
+
 Use deterministic key format:
 
 `{format}_{players}_{stack}_{heroPos}_vs_{villainPos}_{line}_{size}`
 
 Examples:
+
 - `cash_6max_100bb_BTN_vs_BB_unopened_open2.5x`
 - `cash_6max_100bb_BB_vs_BTN_facing_open2.5x`
 - `cash_6max_100bb_BTN_vs_BB_facing_3bet9x`
 
 ### Columns to store
+
 - `format`: `cash`
 - `players`: `6max`
 - `effective_stack_bb`: `100`
@@ -128,6 +138,7 @@ Examples:
 - `reason_tags`: string array
 
 ## 5. Folder Structure (recommended)
+
 ```txt
 CardPilot/
   apps/
@@ -144,6 +155,7 @@ CardPilot/
 ```
 
 ## 6. Execution Plan (first 10 working sessions)
+
 1. Create monorepo scaffolding and shared event DTOs.
 2. Build room lifecycle: create/join/sit/stand + snapshot sync.
 3. Implement preflop-only game engine with rule validation.

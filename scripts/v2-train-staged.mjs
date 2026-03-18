@@ -167,13 +167,19 @@ async function main() {
 
     console.log(
       `[stage ${fmt(sampleCap)}] accepted: val_loss=${accepted.valLoss.toFixed(4)} ` +
-      `KL=${accepted.metrics.klDivergence.toFixed(4)} ` +
-      `Top1=${(accepted.metrics.top1Accuracy * 100).toFixed(2)}%`,
+        `KL=${accepted.metrics.klDivergence.toFixed(4)} ` +
+        `Top1=${(accepted.metrics.top1Accuracy * 100).toFixed(2)}%`,
     );
   }
 
   const finalAccepted = summary.accepted[summary.accepted.length - 1];
-  const finalModel = path.join(ROOT, 'packages', 'fast-model', 'models', 'model-v2.0-first-million.json');
+  const finalModel = path.join(
+    ROOT,
+    'packages',
+    'fast-model',
+    'models',
+    'model-v2.0-first-million.json',
+  );
   const finalMetrics = finalModel.replace('.json', '-metrics.json');
   fs.copyFileSync(finalAccepted.modelPath, finalModel);
   fs.copyFileSync(finalAccepted.metricsPath, finalMetrics);

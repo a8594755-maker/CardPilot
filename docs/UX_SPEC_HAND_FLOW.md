@@ -1,17 +1,18 @@
 # CardPilot In-Game UX Spec — PokerNow-Style Flow
 
 ## Core Rule
+
 **Only use a blocking modal when the user must explicitly confirm a risky action or make a required choice.**
 
 ### When to use each feedback pattern
 
-| Pattern | Use case | Examples |
-|---------|----------|---------|
-| **Blocking modal** | Risky/irreversible action requiring explicit confirmation | Unnecessary fold (check is free), Leave seat, Exit room |
-| **Toast** | Transient status info, action confirmations, errors | "You: Call 200", "Connected", "Error: …" |
-| **Seat highlight + delta tag** | Winner feedback at hand end | Gold glow on winner seat, "+4 BB" / "−2 BB" tags |
-| **Side drawer** | Detailed info the user can optionally inspect | Hand Summary, Room Log |
-| **Inline banner** | Contextual info within the table area | Showdown decision (Show/Muck), All-in prompt |
+| Pattern                        | Use case                                                  | Examples                                                |
+| ------------------------------ | --------------------------------------------------------- | ------------------------------------------------------- |
+| **Blocking modal**             | Risky/irreversible action requiring explicit confirmation | Unnecessary fold (check is free), Leave seat, Exit room |
+| **Toast**                      | Transient status info, action confirmations, errors       | "You: Call 200", "Connected", "Error: …"                |
+| **Seat highlight + delta tag** | Winner feedback at hand end                               | Gold glow on winner seat, "+4 BB" / "−2 BB" tags        |
+| **Side drawer**                | Detailed info the user can optionally inspect             | Hand Summary, Room Log                                  |
+| **Inline banner**              | Contextual info within the table area                     | Showdown decision (Show/Muck), All-in prompt            |
 
 ---
 
@@ -25,6 +26,7 @@
 - **ALL-IN** — small secondary button, requires confirm tap
 
 ### Pre-action (not your turn)
+
 - "Check/Fold", "Check", "Fold" toggle buttons
 - Active pre-action shown as small badge, easy to clear with ✕
 
@@ -44,6 +46,7 @@
 ## C) Hand End / Result UX
 
 ### Normal hands (no all-in showdown)
+
 1. **No blocking modal.** Settlement data is captured but NOT shown as overlay.
 2. Winner feedback:
    - Seat glow (gold ring) on winner(s) for ~1.5s
@@ -53,6 +56,7 @@
 4. **Skip**: Click anywhere on table, or press Space/Enter to advance immediately
 
 ### All-in hands (showdown with runout)
+
 1. **Still no blocking modal by default.**
 2. Winner feedback same as above but lingers **4s** (configurable 3–5s)
 3. Board + revealed hands shown directly on table (already works via revealedHoles)
@@ -60,6 +64,7 @@
 5. **Skip**: Same interactions — click/Space/Enter
 
 ### Hand Summary access
+
 - Small "📋 Hand Summary" button appears in toast or as a floating pill during the linger period
 - Clicking opens a **side drawer** (not modal) with full settlement details
 - Also accessible from Room Log / History
@@ -77,6 +82,7 @@
 ## E) Confirmation Modals (allowed cases only)
 
 ### 1. Unnecessary Fold
+
 - Trigger: User clicks FOLD when CHECK is available
 - Copy: "You can check for free. Fold anyway?"
 - Buttons: "Check instead" (primary) / "Fold anyway" (ghost)
@@ -84,6 +90,7 @@
 - **Already implemented** in FoldConfirmModal.tsx ✓
 
 ### 2. Leave Seat / Exit Room
+
 - Trigger: User clicks leave/exit
 - Copy: Clear consequence text
 - Buttons: Confirm / Cancel
@@ -102,15 +109,15 @@
 
 ## Component List
 
-| Component | File | Status |
-|-----------|------|--------|
-| BottomActionBar | `components/ui/BottomActionBar.tsx` | Exists — fix RAISE amount |
-| RaiseSheet | Inside BottomActionBar.tsx | Exists ✓ |
-| FoldConfirmModal | `components/ui/FoldConfirmModal.tsx` | Exists ✓ |
-| SeatChip (with win highlight + delta) | Inline in App.tsx | Modify |
-| Toast system | Inline in App.tsx | Upgrade |
-| HandSummaryDrawer | `components/ui/HandSummaryDrawer.tsx` | **New** |
-| SettlementOverlay | `components/SettlementOverlay.tsx` | Demote to drawer-only |
+| Component                             | File                                  | Status                    |
+| ------------------------------------- | ------------------------------------- | ------------------------- |
+| BottomActionBar                       | `components/ui/BottomActionBar.tsx`   | Exists — fix RAISE amount |
+| RaiseSheet                            | Inside BottomActionBar.tsx            | Exists ✓                  |
+| FoldConfirmModal                      | `components/ui/FoldConfirmModal.tsx`  | Exists ✓                  |
+| SeatChip (with win highlight + delta) | Inline in App.tsx                     | Modify                    |
+| Toast system                          | Inline in App.tsx                     | Upgrade                   |
+| HandSummaryDrawer                     | `components/ui/HandSummaryDrawer.tsx` | **New**                   |
+| SettlementOverlay                     | `components/SettlementOverlay.tsx`    | Demote to drawer-only     |
 
 ---
 

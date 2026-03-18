@@ -20,6 +20,7 @@
 ## Part 2 — Clubs UX Upgrade
 
 ### Club Home (Overview Tab)
+
 - [ ] Stats strip: Members, Online, Active Tables, Total Tables.
 - [ ] Announcements section shows club description.
 - [ ] Online members strip with role badges.
@@ -28,12 +29,14 @@
 - [ ] Club info grid (visibility, approval, default ruleset, created date).
 
 ### Tables Tab
+
 - [ ] List of tables with status badge (open/paused), player count, stakes, Join button.
 - [ ] "Create Table" form for host+ with name input and **ruleset selector dropdown**.
 - [ ] Close button for host+.
 - [ ] Club tables do NOT appear in public lobby (verified by contract test).
 
 ### Members Tab
+
 - [ ] Members sorted by role (owner → admin → host → mod → member).
 - [ ] Online indicator (green dot) for recently active members.
 - [ ] **Virtual credits balance** displayed per member (amber font).
@@ -41,22 +44,26 @@
 - [ ] Grant credits: Click "+$" → prompt for amount → credits added, toast confirms.
 
 ### Rulesets Tab
+
 - [ ] List existing rulesets with "DEFAULT" badge.
 - [ ] **"+ New Ruleset"** button opens creation form.
 - [ ] Form fields: name, SB, BB, seats, timer, buy-in min/max, time bank, run-it-twice, set-as-default.
 - [ ] "Set as default" button on non-default rulesets.
 
 ### Invites Tab
+
 - [ ] Create invite link (7-day expiry, 50 uses).
 - [ ] Copy invite code to clipboard.
 - [ ] Revoke invite.
 - [ ] Used/max display.
 
 ### Activity Tab (admin+)
+
 - [ ] Audit log with date, action type badge, description, actor.
 - [ ] Color-coded action badges (join=green, ban/kick=red, table=cyan, role=purple).
 
 ### Settings Tab (admin+)
+
 - [ ] Edit club name, description, badge color.
 - [ ] Toggle "Require approval to join".
 - [ ] Club code display with Copy button.
@@ -81,9 +88,11 @@
 ## Files Changed
 
 ### New Files
+
 - `apps/game-server/src/services/club-repo-json.ts` — JSON file fallback persistence for dev mode
 
 ### Modified Files
+
 - `packages/shared-types/src/club-types.ts` — Added `balance` field to `ClubMember`
 - `apps/game-server/src/club-manager.ts` — Added `grantCredits`, `deductCredits`, `getMemberBalance`; balance in member creation
 - `apps/game-server/src/services/club-repo.ts` — Added `balance` to `rowToMember`

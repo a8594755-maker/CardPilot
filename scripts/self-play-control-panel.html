@@ -1,399 +1,473 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Self-Play Control Panel</title>
-  <style>
-    :root {
-      --bg: #0d1117;
-      --panel: #161b22;
-      --panel-border: #30363d;
-      --text: #c9d1d9;
-      --text-dim: #8b949e;
-      --ok: #2ea043;
-      --warn: #d29922;
-      --bad: #f85149;
-      --accent: #58a6ff;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      padding: 18px;
-      background: var(--bg);
-      color: var(--text);
-      font: 14px/1.4 Consolas, Menlo, Monaco, "Courier New", monospace;
-    }
-    h1 { margin: 0 0 12px; font-size: 20px; }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 12px;
-    }
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--panel-border);
-      border-radius: 8px;
-      padding: 12px;
-    }
-    .panel h2 {
-      margin: 0 0 10px;
-      font-size: 14px;
-      color: var(--text-dim);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-    label {
-      display: block;
-      margin: 8px 0 4px;
-      color: var(--text-dim);
-      font-size: 12px;
-    }
-    input, select {
-      width: 100%;
-      background: #0b0f14;
-      color: var(--text);
-      border: 1px solid var(--panel-border);
-      border-radius: 6px;
-      padding: 8px;
-    }
-    .row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-    .buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 12px;
-    }
-    button {
-      border: none;
-      border-radius: 6px;
-      padding: 8px 12px;
-      color: #fff;
-      background: #444c56;
-      cursor: pointer;
-      font: inherit;
-    }
-    button.primary { background: var(--accent); color: #0d1117; font-weight: 700; }
-    button.warn { background: var(--warn); color: #0d1117; font-weight: 700; }
-    button.bad { background: var(--bad); font-weight: 700; }
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 8px;
-    }
-    .stat {
-      background: #0b0f14;
-      border: 1px solid var(--panel-border);
-      border-radius: 6px;
-      padding: 8px;
-    }
-    .stat .name { font-size: 11px; color: var(--text-dim); }
-    .stat .value { font-size: 18px; margin-top: 4px; }
-    .pill {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .pill.ok { background: rgba(46, 160, 67, 0.2); color: #3fb950; }
-    .pill.bad { background: rgba(248, 81, 73, 0.2); color: #ff7b72; }
-    #statusText { margin-bottom: 8px; }
-    #logBox {
-      white-space: pre-wrap;
-      background: #0b0f14;
-      border: 1px solid var(--panel-border);
-      border-radius: 6px;
-      padding: 10px;
-      height: 280px;
-      overflow: auto;
-      color: #9ecbff;
-    }
-    .inline {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 8px;
-    }
-    .inline input { width: auto; }
-    a { color: #79c0ff; text-decoration: none; }
-  </style>
-</head>
-<body>
-  <h1>Self-Play Control Panel</h1>
-  <div class="grid">
-    <div class="panel">
-      <h2>Parameters</h2>
-      <div class="row">
-        <div>
-          <label for="serverCount">Server Count</label>
-          <input id="serverCount" type="number" min="1" max="128">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Self-Play Control Panel</title>
+    <style>
+      :root {
+        --bg: #0d1117;
+        --panel: #161b22;
+        --panel-border: #30363d;
+        --text: #c9d1d9;
+        --text-dim: #8b949e;
+        --ok: #2ea043;
+        --warn: #d29922;
+        --bad: #f85149;
+        --accent: #58a6ff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 18px;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          14px/1.4 Consolas,
+          Menlo,
+          Monaco,
+          'Courier New',
+          monospace;
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 20px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 12px;
+      }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 8px;
+        padding: 12px;
+      }
+      .panel h2 {
+        margin: 0 0 10px;
+        font-size: 14px;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      label {
+        display: block;
+        margin: 8px 0 4px;
+        color: var(--text-dim);
+        font-size: 12px;
+      }
+      input,
+      select {
+        width: 100%;
+        background: #0b0f14;
+        color: var(--text);
+        border: 1px solid var(--panel-border);
+        border-radius: 6px;
+        padding: 8px;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      button {
+        border: none;
+        border-radius: 6px;
+        padding: 8px 12px;
+        color: #fff;
+        background: #444c56;
+        cursor: pointer;
+        font: inherit;
+      }
+      button.primary {
+        background: var(--accent);
+        color: #0d1117;
+        font-weight: 700;
+      }
+      button.warn {
+        background: var(--warn);
+        color: #0d1117;
+        font-weight: 700;
+      }
+      button.bad {
+        background: var(--bad);
+        font-weight: 700;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 8px;
+      }
+      .stat {
+        background: #0b0f14;
+        border: 1px solid var(--panel-border);
+        border-radius: 6px;
+        padding: 8px;
+      }
+      .stat .name {
+        font-size: 11px;
+        color: var(--text-dim);
+      }
+      .stat .value {
+        font-size: 18px;
+        margin-top: 4px;
+      }
+      .pill {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .pill.ok {
+        background: rgba(46, 160, 67, 0.2);
+        color: #3fb950;
+      }
+      .pill.bad {
+        background: rgba(248, 81, 73, 0.2);
+        color: #ff7b72;
+      }
+      #statusText {
+        margin-bottom: 8px;
+      }
+      #logBox {
+        white-space: pre-wrap;
+        background: #0b0f14;
+        border: 1px solid var(--panel-border);
+        border-radius: 6px;
+        padding: 10px;
+        height: 280px;
+        overflow: auto;
+        color: #9ecbff;
+      }
+      .inline {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .inline input {
+        width: auto;
+      }
+      a {
+        color: #79c0ff;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Self-Play Control Panel</h1>
+    <div class="grid">
+      <div class="panel">
+        <h2>Parameters</h2>
+        <div class="row">
+          <div>
+            <label for="serverCount">Server Count</label>
+            <input id="serverCount" type="number" min="1" max="128" />
+          </div>
+          <div>
+            <label for="startPort">Start Port</label>
+            <input id="startPort" type="number" min="1024" max="65500" />
+          </div>
         </div>
-        <div>
-          <label for="startPort">Start Port</label>
-          <input id="startPort" type="number" min="1024" max="65500">
+        <div class="row">
+          <div>
+            <label for="rooms">Rooms</label>
+            <input id="rooms" type="number" min="1" max="2000" />
+          </div>
+          <div>
+            <label for="maxRoomsPerServer">Max Rooms / Server</label>
+            <input id="maxRoomsPerServer" type="number" min="1" max="500" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="mode">Mode</label>
+            <select id="mode">
+              <option value="train">train</option>
+              <option value="play">play</option>
+            </select>
+          </div>
+          <div>
+            <label for="version">Version</label>
+            <select id="version">
+              <option value="v2">v2</option>
+              <option value="v1">v1</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="target">Target Samples</label>
+            <input id="target" type="number" min="1000" max="2000000000" />
+          </div>
+          <div>
+            <label for="trainEvery">Train Every</label>
+            <input id="trainEvery" type="number" min="1000" max="2000000000" />
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="dashboardPort">Dashboard Port</label>
+            <input id="dashboardPort" type="number" min="1024" max="65500" />
+          </div>
+          <div>
+            <label for="logLevel">Log Level</label>
+            <select id="logLevel">
+              <option value="warn">warn</option>
+              <option value="info">info</option>
+              <option value="error">error</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div>
+            <label for="showdownTimeoutSec">Showdown Timeout Sec</label>
+            <input id="showdownTimeoutSec" type="number" min="1" max="30" />
+          </div>
+          <div>
+            <label for="runCountTimeoutSec">Run Count Timeout Sec</label>
+            <input id="runCountTimeoutSec" type="number" min="1" max="30" />
+          </div>
+        </div>
+        <div class="inline">
+          <input id="disableSupabase" type="checkbox" />
+          <label for="disableSupabase" style="margin: 0">Disable Supabase</label>
+        </div>
+        <div class="buttons">
+          <button class="primary" id="startBtn">Start</button>
+          <button class="bad" id="stopBtn">Stop</button>
+          <button class="warn" id="restartBtn">Restart</button>
+          <button id="saveBtn">Save Config</button>
         </div>
       </div>
-      <div class="row">
-        <div>
-          <label for="rooms">Rooms</label>
-          <input id="rooms" type="number" min="1" max="2000">
+
+      <div class="panel">
+        <h2>Status</h2>
+        <div id="statusText">Loading...</div>
+        <div class="stats">
+          <div class="stat">
+            <div class="name">PID</div>
+            <div class="value" id="pid">-</div>
+          </div>
+          <div class="stat">
+            <div class="name">Uptime</div>
+            <div class="value" id="uptime">-</div>
+          </div>
+          <div class="stat">
+            <div class="name">CPU %</div>
+            <div class="value" id="cpu">-</div>
+          </div>
+          <div class="stat">
+            <div class="name">Mem Used GB</div>
+            <div class="value" id="memUsed">-</div>
+          </div>
+          <div class="stat">
+            <div class="name">Rooms</div>
+            <div class="value" id="roomsNow">-</div>
+          </div>
+          <div class="stat">
+            <div class="name">Servers</div>
+            <div class="value" id="serversNow">-</div>
+          </div>
+          <div class="stat">
+            <div class="name">Rate / hr</div>
+            <div class="value" id="rateNow">-</div>
+          </div>
+          <div class="stat">
+            <div class="name">Samples</div>
+            <div class="value" id="samplesNow">-</div>
+          </div>
         </div>
-        <div>
-          <label for="maxRoomsPerServer">Max Rooms / Server</label>
-          <input id="maxRoomsPerServer" type="number" min="1" max="500">
+        <div style="margin-top: 10px">
+          Dashboard:
+          <a id="dashboardLink" href="#" target="_blank">n/a</a>
         </div>
-      </div>
-      <div class="row">
-        <div>
-          <label for="mode">Mode</label>
-          <select id="mode">
-            <option value="train">train</option>
-            <option value="play">play</option>
-          </select>
-        </div>
-        <div>
-          <label for="version">Version</label>
-          <select id="version">
-            <option value="v2">v2</option>
-            <option value="v1">v1</option>
-          </select>
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label for="target">Target Samples</label>
-          <input id="target" type="number" min="1000" max="2000000000">
-        </div>
-        <div>
-          <label for="trainEvery">Train Every</label>
-          <input id="trainEvery" type="number" min="1000" max="2000000000">
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label for="dashboardPort">Dashboard Port</label>
-          <input id="dashboardPort" type="number" min="1024" max="65500">
-        </div>
-        <div>
-          <label for="logLevel">Log Level</label>
-          <select id="logLevel">
-            <option value="warn">warn</option>
-            <option value="info">info</option>
-            <option value="error">error</option>
-          </select>
-        </div>
-      </div>
-      <div class="row">
-        <div>
-          <label for="showdownTimeoutSec">Showdown Timeout Sec</label>
-          <input id="showdownTimeoutSec" type="number" min="1" max="30">
-        </div>
-        <div>
-          <label for="runCountTimeoutSec">Run Count Timeout Sec</label>
-          <input id="runCountTimeoutSec" type="number" min="1" max="30">
-        </div>
-      </div>
-      <div class="inline">
-        <input id="disableSupabase" type="checkbox">
-        <label for="disableSupabase" style="margin:0;">Disable Supabase</label>
-      </div>
-      <div class="buttons">
-        <button class="primary" id="startBtn">Start</button>
-        <button class="bad" id="stopBtn">Stop</button>
-        <button class="warn" id="restartBtn">Restart</button>
-        <button id="saveBtn">Save Config</button>
+        <div style="margin-top: 8px; color: var(--text-dim)" id="dashboardState">dashboard: -</div>
       </div>
     </div>
 
-    <div class="panel">
-      <h2>Status</h2>
-      <div id="statusText">Loading...</div>
-      <div class="stats">
-        <div class="stat"><div class="name">PID</div><div class="value" id="pid">-</div></div>
-        <div class="stat"><div class="name">Uptime</div><div class="value" id="uptime">-</div></div>
-        <div class="stat"><div class="name">CPU %</div><div class="value" id="cpu">-</div></div>
-        <div class="stat"><div class="name">Mem Used GB</div><div class="value" id="memUsed">-</div></div>
-        <div class="stat"><div class="name">Rooms</div><div class="value" id="roomsNow">-</div></div>
-        <div class="stat"><div class="name">Servers</div><div class="value" id="serversNow">-</div></div>
-        <div class="stat"><div class="name">Rate / hr</div><div class="value" id="rateNow">-</div></div>
-        <div class="stat"><div class="name">Samples</div><div class="value" id="samplesNow">-</div></div>
-      </div>
-      <div style="margin-top:10px;">
-        Dashboard:
-        <a id="dashboardLink" href="#" target="_blank">n/a</a>
-      </div>
-      <div style="margin-top:8px; color: var(--text-dim);" id="dashboardState">dashboard: -</div>
+    <div class="panel" style="margin-top: 12px">
+      <h2>Logs</h2>
+      <div id="logBox"></div>
     </div>
-  </div>
 
-  <div class="panel" style="margin-top:12px;">
-    <h2>Logs</h2>
-    <div id="logBox"></div>
-  </div>
+    <script>
+      const fields = [
+        'serverCount',
+        'startPort',
+        'rooms',
+        'maxRoomsPerServer',
+        'mode',
+        'version',
+        'target',
+        'trainEvery',
+        'dashboardPort',
+        'logLevel',
+        'showdownTimeoutSec',
+        'runCountTimeoutSec',
+      ];
+      const els = Object.fromEntries(fields.map((id) => [id, document.getElementById(id)]));
+      const disableSupabaseEl = document.getElementById('disableSupabase');
 
-  <script>
-    const fields = [
-      "serverCount", "startPort", "rooms", "maxRoomsPerServer",
-      "mode", "version", "target", "trainEvery", "dashboardPort",
-      "logLevel", "showdownTimeoutSec", "runCountTimeoutSec"
-    ];
-    const els = Object.fromEntries(fields.map((id) => [id, document.getElementById(id)]));
-    const disableSupabaseEl = document.getElementById("disableSupabase");
+      const statusTextEl = document.getElementById('statusText');
+      const pidEl = document.getElementById('pid');
+      const uptimeEl = document.getElementById('uptime');
+      const cpuEl = document.getElementById('cpu');
+      const memUsedEl = document.getElementById('memUsed');
+      const roomsNowEl = document.getElementById('roomsNow');
+      const serversNowEl = document.getElementById('serversNow');
+      const rateNowEl = document.getElementById('rateNow');
+      const samplesNowEl = document.getElementById('samplesNow');
+      const dashboardStateEl = document.getElementById('dashboardState');
+      const dashboardLinkEl = document.getElementById('dashboardLink');
+      const logBoxEl = document.getElementById('logBox');
 
-    const statusTextEl = document.getElementById("statusText");
-    const pidEl = document.getElementById("pid");
-    const uptimeEl = document.getElementById("uptime");
-    const cpuEl = document.getElementById("cpu");
-    const memUsedEl = document.getElementById("memUsed");
-    const roomsNowEl = document.getElementById("roomsNow");
-    const serversNowEl = document.getElementById("serversNow");
-    const rateNowEl = document.getElementById("rateNow");
-    const samplesNowEl = document.getElementById("samplesNow");
-    const dashboardStateEl = document.getElementById("dashboardState");
-    const dashboardLinkEl = document.getElementById("dashboardLink");
-    const logBoxEl = document.getElementById("logBox");
+      const startBtn = document.getElementById('startBtn');
+      const stopBtn = document.getElementById('stopBtn');
+      const restartBtn = document.getElementById('restartBtn');
+      const saveBtn = document.getElementById('saveBtn');
 
-    const startBtn = document.getElementById("startBtn");
-    const stopBtn = document.getElementById("stopBtn");
-    const restartBtn = document.getElementById("restartBtn");
-    const saveBtn = document.getElementById("saveBtn");
-
-    function fmtInt(v) {
-      return Number(v || 0).toLocaleString();
-    }
-
-    function fmtSec(total) {
-      const sec = Number(total || 0);
-      const h = Math.floor(sec / 3600);
-      const m = Math.floor((sec % 3600) / 60);
-      const s = sec % 60;
-      return `${h}h ${m}m ${s}s`;
-    }
-
-    async function api(path, method = "GET", payload = null) {
-      const init = { method, headers: { "Content-Type": "application/json" } };
-      if (payload != null) init.body = JSON.stringify(payload);
-      const res = await fetch(path, init);
-      const json = await res.json();
-      if (!res.ok || json.ok === false) throw new Error(json.error || `HTTP ${res.status}`);
-      return json;
-    }
-
-    function getConfigFromForm() {
-      const config = {};
-      for (const id of fields) {
-        const el = els[id];
-        if (!el) continue;
-        if (el.tagName === "SELECT") config[id] = el.value;
-        else config[id] = Number(el.value);
-      }
-      config.disableSupabase = disableSupabaseEl.checked;
-      return config;
-    }
-
-    function applyConfigToForm(config) {
-      for (const id of fields) {
-        if (els[id] && config[id] != null) els[id].value = String(config[id]);
-      }
-      disableSupabaseEl.checked = config.disableSupabase !== false;
-    }
-
-    function setBusy(busy) {
-      startBtn.disabled = busy;
-      stopBtn.disabled = busy;
-      restartBtn.disabled = busy;
-      saveBtn.disabled = busy;
-    }
-
-    async function loadConfig() {
-      const data = await api("/api/config");
-      applyConfigToForm(data.config);
-    }
-
-    async function refreshStatus() {
-      const [statusResult, logsResult] = await Promise.allSettled([
-        api("/api/status"),
-        api("/api/logs?lines=120"),
-      ]);
-      if (statusResult.status !== "fulfilled") {
-        throw statusResult.reason instanceof Error
-          ? statusResult.reason
-          : new Error(String(statusResult.reason || "status fetch failed"));
-      }
-      const data = statusResult.value;
-      const running = data.running;
-      statusTextEl.innerHTML = running
-        ? '<span class="pill ok">RUNNING</span>'
-        : '<span class="pill bad">STOPPED</span>';
-
-      pidEl.textContent = data.pid || "-";
-      uptimeEl.textContent = running ? fmtSec(data.uptimeSec) : "-";
-      cpuEl.textContent = data.system.cpuUsagePct == null ? "-" : String(data.system.cpuUsagePct);
-      memUsedEl.textContent = `${data.system.usedMemGb} / ${data.system.totalMemGb}`;
-
-      const dash = data.dashboard;
-      if (dash && dash.reachable) {
-        roomsNowEl.textContent = fmtInt(dash.rooms);
-        serversNowEl.textContent = fmtInt(dash.servers);
-        rateNowEl.textContent = fmtInt(dash.rate);
-        samplesNowEl.textContent = fmtInt(dash.samples);
-        dashboardStateEl.textContent = `watch=${dash.watch}, warn=${dash.warn}, freeRAM=${dash.freeRAM} GB`;
-        dashboardLinkEl.textContent = dash.dashboardUrl;
-        dashboardLinkEl.href = dash.dashboardUrl;
-      } else {
-        roomsNowEl.textContent = "-";
-        serversNowEl.textContent = "-";
-        rateNowEl.textContent = "-";
-        samplesNowEl.textContent = "-";
-        dashboardStateEl.textContent = `dashboard: ${dash?.error || "unreachable"}`;
+      function fmtInt(v) {
+        return Number(v || 0).toLocaleString();
       }
 
-      const logs = logsResult.status === "fulfilled"
-        ? (logsResult.value.logs || [])
-        : [];
-      logBoxEl.textContent = logs.join("\n");
-      logBoxEl.scrollTop = logBoxEl.scrollHeight;
-    }
-
-    async function withAction(action) {
-      try {
-        setBusy(true);
-        await action();
-      } catch (err) {
-        alert(err.message || String(err));
-      } finally {
-        setBusy(false);
+      function fmtSec(total) {
+        const sec = Number(total || 0);
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = sec % 60;
+        return `${h}h ${m}m ${s}s`;
       }
-      await refreshStatus();
-    }
 
-    saveBtn.addEventListener("click", () =>
-      withAction(() => api("/api/config", "POST", { config: getConfigFromForm() })));
-    startBtn.addEventListener("click", () =>
-      withAction(() => api("/api/start", "POST", { config: getConfigFromForm() })));
-    stopBtn.addEventListener("click", () =>
-      withAction(() => api("/api/stop", "POST")));
-    restartBtn.addEventListener("click", () =>
-      withAction(() => api("/api/restart", "POST", { config: getConfigFromForm() })));
+      async function api(path, method = 'GET', payload = null) {
+        const init = { method, headers: { 'Content-Type': 'application/json' } };
+        if (payload != null) init.body = JSON.stringify(payload);
+        const res = await fetch(path, init);
+        const json = await res.json();
+        if (!res.ok || json.ok === false) throw new Error(json.error || `HTTP ${res.status}`);
+        return json;
+      }
 
-    async function boot() {
-      try {
-        await loadConfig();
+      function getConfigFromForm() {
+        const config = {};
+        for (const id of fields) {
+          const el = els[id];
+          if (!el) continue;
+          if (el.tagName === 'SELECT') config[id] = el.value;
+          else config[id] = Number(el.value);
+        }
+        config.disableSupabase = disableSupabaseEl.checked;
+        return config;
+      }
+
+      function applyConfigToForm(config) {
+        for (const id of fields) {
+          if (els[id] && config[id] != null) els[id].value = String(config[id]);
+        }
+        disableSupabaseEl.checked = config.disableSupabase !== false;
+      }
+
+      function setBusy(busy) {
+        startBtn.disabled = busy;
+        stopBtn.disabled = busy;
+        restartBtn.disabled = busy;
+        saveBtn.disabled = busy;
+      }
+
+      async function loadConfig() {
+        const data = await api('/api/config');
+        applyConfigToForm(data.config);
+      }
+
+      async function refreshStatus() {
+        const [statusResult, logsResult] = await Promise.allSettled([
+          api('/api/status'),
+          api('/api/logs?lines=120'),
+        ]);
+        if (statusResult.status !== 'fulfilled') {
+          throw statusResult.reason instanceof Error
+            ? statusResult.reason
+            : new Error(String(statusResult.reason || 'status fetch failed'));
+        }
+        const data = statusResult.value;
+        const running = data.running;
+        statusTextEl.innerHTML = running
+          ? '<span class="pill ok">RUNNING</span>'
+          : '<span class="pill bad">STOPPED</span>';
+
+        pidEl.textContent = data.pid || '-';
+        uptimeEl.textContent = running ? fmtSec(data.uptimeSec) : '-';
+        cpuEl.textContent = data.system.cpuUsagePct == null ? '-' : String(data.system.cpuUsagePct);
+        memUsedEl.textContent = `${data.system.usedMemGb} / ${data.system.totalMemGb}`;
+
+        const dash = data.dashboard;
+        if (dash && dash.reachable) {
+          roomsNowEl.textContent = fmtInt(dash.rooms);
+          serversNowEl.textContent = fmtInt(dash.servers);
+          rateNowEl.textContent = fmtInt(dash.rate);
+          samplesNowEl.textContent = fmtInt(dash.samples);
+          dashboardStateEl.textContent = `watch=${dash.watch}, warn=${dash.warn}, freeRAM=${dash.freeRAM} GB`;
+          dashboardLinkEl.textContent = dash.dashboardUrl;
+          dashboardLinkEl.href = dash.dashboardUrl;
+        } else {
+          roomsNowEl.textContent = '-';
+          serversNowEl.textContent = '-';
+          rateNowEl.textContent = '-';
+          samplesNowEl.textContent = '-';
+          dashboardStateEl.textContent = `dashboard: ${dash?.error || 'unreachable'}`;
+        }
+
+        const logs = logsResult.status === 'fulfilled' ? logsResult.value.logs || [] : [];
+        logBoxEl.textContent = logs.join('\n');
+        logBoxEl.scrollTop = logBoxEl.scrollHeight;
+      }
+
+      async function withAction(action) {
+        try {
+          setBusy(true);
+          await action();
+        } catch (err) {
+          alert(err.message || String(err));
+        } finally {
+          setBusy(false);
+        }
         await refreshStatus();
-      } catch (err) {
-        alert(err.message || String(err));
       }
-      setInterval(() => {
-        refreshStatus().catch(() => {});
-      }, 3000);
-    }
 
-    boot();
-  </script>
-</body>
+      saveBtn.addEventListener('click', () =>
+        withAction(() => api('/api/config', 'POST', { config: getConfigFromForm() })),
+      );
+      startBtn.addEventListener('click', () =>
+        withAction(() => api('/api/start', 'POST', { config: getConfigFromForm() })),
+      );
+      stopBtn.addEventListener('click', () => withAction(() => api('/api/stop', 'POST')));
+      restartBtn.addEventListener('click', () =>
+        withAction(() => api('/api/restart', 'POST', { config: getConfigFromForm() })),
+      );
+
+      async function boot() {
+        try {
+          await loadConfig();
+          await refreshStatus();
+        } catch (err) {
+          alert(err.message || String(err));
+        }
+        setInterval(() => {
+          refreshStatus().catch(() => {});
+        }, 3000);
+      }
+
+      boot();
+    </script>
+  </body>
 </html>

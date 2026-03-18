@@ -3,6 +3,7 @@
 CardPilot is a multiplayer poker training product with a server-authoritative game loop, history review, and coaching overlays.
 
 ## Repository Structure
+
 - `apps/game-server`: Express + Socket.IO authoritative server
 - `apps/web`: React + Vite client
 - `packages/game-engine`: poker hand state machine and settlement engine
@@ -11,33 +12,45 @@ CardPilot is a multiplayer poker training product with a server-authoritative ga
 - `backend/sql`: schema and Supabase migrations
 
 ## Prerequisites
+
 - Node.js `>=20` (see `.nvmrc`)
 - npm (workspace mode)
 
 ## Quick Start
+
 1. Install dependencies:
+
 ```bash
 npm install
 ```
+
 2. Prepare environment:
+
 ```bash
 cp .env.example .env.local
 ```
+
 3. (Optional) Apply Supabase SQL migrations in order:
+
 ```sql
 -- backend/sql/001_init.sql
 -- backend/sql/002_supabase_multiplayer.sql
 -- backend/sql/003_lobby_room_code.sql
 -- backend/sql/004_hand_history_room_sessions.sql
 ```
+
 4. Start web + server:
+
 ```bash
 npm run dev
 ```
+
 5. Open:
+
 - `http://127.0.0.1:5173`
 
 ## Standard Commands
+
 ```bash
 npm run lint
 npm run typecheck
@@ -51,23 +64,28 @@ npm run data:download:v2
 ```
 
 Deployment health check example:
+
 ```bash
 npm run env:doctor -- --server-url https://your-railway-app.up.railway.app
 ```
 
 ## Large Training Data (IDrive E2, no Git LFS)
+
 - `data/v2/training-samples.jsonl` is intentionally kept out of Git and Git LFS.
 - A tracked manifest lives at `data/metadata/training-samples-v2.manifest.json`.
 - Upload/download use IDrive E2 via AWS CLI:
+
 ```bash
 npm run data:upload:v2
 npm run data:download:v2
 ```
+
 - Credentials are loaded from `packages/cfr-solver/scripts/cluster.env`:
   - `E2_PROFILE`
   - `E2_ENDPOINT`
   - `E2_BUCKET`
 - Re-download and overwrite local file:
+
 ```bash
 npm run data:download:v2 -- --force
 ```
@@ -101,9 +119,10 @@ To enable Google sign-in you need a Supabase project with the Google provider co
 
 When Supabase is not configured (env vars unset), the Google button is hidden and the app falls back to guest/local mode.
 If only part of the server Supabase env is set, startup behavior depends on environment:
+
 - `NODE_ENV=production`: fails fast by default.
 - non-production: falls back to guest/local mode with a warning.
-Set `SUPABASE_STRICT_ENV=false` only if you intentionally want fallback in production.
+  Set `SUPABASE_STRICT_ENV=false` only if you intentionally want fallback in production.
 
 ### Auth Regression Checklist (Refresh + Signup)
 
@@ -117,29 +136,35 @@ Set `SUPABASE_STRICT_ENV=false` only if you intentionally want fallback in produ
    - Expected: no burst of concurrent refresh failures.
 
 If signup fails with a message indicating signups are disabled, enable:
+
 - **Supabase Dashboard → Authentication → Providers → Email → Allow new users to sign up**
 
 ## Deployment Notes
+
 - Web deploy is compatible with Netlify (`netlify.toml` is included).
 - Server deploy can run on Railway/Node hosts (`PORT` respected).
 - Use `docs/OPERATIONS.md` for runtime config, health checks, and shutdown behavior.
 
 ## Trust & Safety
+
 - `/privacy` and `/terms` are available in the web app.
 - CardPilot is explicitly play-money only and not a real-money gambling platform.
 - Vulnerability reporting is documented in `SECURITY.md`.
 
 ## Credits
+
 - Credits are managed through room buy-in/rebuy flows and club credit grant/deduct controls.
 - Club credit data uses ledger-backed storage on the server.
 
 ## Governance & Maintenance
+
 - Contribution guide: `CONTRIBUTING.md`
 - Release discipline: `RELEASE.md`
 - Change log: `CHANGELOG.md`
 - Ownership: `.github/CODEOWNERS`
 
 ## Known Limitations
+
 - No rake is applied in current settlement flows.
 - Service reliability depends on Supabase availability when persistence is enabled.
 - Some production controls (rate limiting, deeper observability) are still lightweight by design.

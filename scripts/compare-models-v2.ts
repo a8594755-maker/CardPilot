@@ -7,7 +7,7 @@ import { FEATURE_COUNT_V2 } from '../packages/fast-model/src/feature-encoder.js'
 
 function loadSamples(dataDir: string, maxSamples: number): TrainingSample[] {
   if (!existsSync(dataDir)) throw new Error(`Data directory not found: ${dataDir}`);
-  const files = readdirSync(dataDir).filter(f => f.endsWith('.jsonl'));
+  const files = readdirSync(dataDir).filter((f) => f.endsWith('.jsonl'));
   const out: TrainingSample[] = [];
   for (const file of files) {
     const lines = readFileSync(join(dataDir, file), 'utf-8').split('\n');
@@ -30,7 +30,8 @@ function loadSamples(dataDir: string, maxSamples: number): TrainingSample[] {
 
 function printRow(name: string, model: ModelWeights, samples: TrainingSample[]): void {
   const m = evaluateModel(model, samples);
-  const sizing = m.sizingTop1Accuracy != null ? `${(m.sizingTop1Accuracy * 100).toFixed(3)}%` : 'n/a';
+  const sizing =
+    m.sizingTop1Accuracy != null ? `${(m.sizingTop1Accuracy * 100).toFixed(3)}%` : 'n/a';
   console.log(
     `${name}\tKL=${m.klDivergence.toFixed(6)}\tTop1=${(m.top1Accuracy * 100).toFixed(3)}%\tSizing=${sizing}\tN=${m.sampleCount}`,
   );
@@ -39,7 +40,9 @@ function printRow(name: string, model: ModelWeights, samples: TrainingSample[]):
 function main(): void {
   const argv = process.argv.slice(2);
   if (argv.length < 2) {
-    throw new Error('Usage: compare-models-v2.ts <modelA.json> <modelB.json> [--data data/v2] [--max-samples 200000]');
+    throw new Error(
+      'Usage: compare-models-v2.ts <modelA.json> <modelB.json> [--data data/v2] [--max-samples 200000]',
+    );
   }
 
   const modelAPath = argv[0];

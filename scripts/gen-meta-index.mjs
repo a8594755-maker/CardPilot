@@ -1,8 +1,10 @@
 import { readdirSync, readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import { join, dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 
-const BASE = 'c:/Users/a8594/CardPilot/data/cfr';
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const BASE = resolve(__dirname, '..', 'data', 'cfr');
 const CONFIGS = ['pipeline_hu_srp_50bb', 'pipeline_hu_3bet_50bb'];
 const S3_BASE = 's3://cardpilot-cfr-data/meta';
 const AWS_ARGS = '--profile idrive-e2 --endpoint-url https://s3.us-east-1.idrivee2.com';
@@ -13,7 +15,7 @@ for (const config of CONFIGS) {
 
   let files;
   try {
-    files = readdirSync(dir).filter(f => f.endsWith('.meta.json'));
+    files = readdirSync(dir).filter((f) => f.endsWith('.meta.json'));
   } catch (e) {
     console.error(`  ERROR: Could not read directory ${dir}: ${e.message}`);
     continue;
