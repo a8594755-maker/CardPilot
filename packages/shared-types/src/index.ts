@@ -562,7 +562,7 @@ export interface BotSeatConfig {
   seat: number; // 1–9
   profile: string; // 'gto_balanced' | 'limp_fish' | 'tag' | 'lag' | 'nit'
   displayName?: string; // custom name, e.g. "Bot-1"
-  modelVersion?: string; // 'v0' (heuristic) | 'v1' (trained) — default 'v1'
+  modelVersion?: string; // deprecated — all bots use GTO (cfr-combined-v3 + resolver pool)
 }
 
 export interface RoomSettings {

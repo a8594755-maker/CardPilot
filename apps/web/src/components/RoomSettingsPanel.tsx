@@ -740,7 +740,7 @@ export function RoomSettingsPanel({
         <div className="space-y-3">
           <SectionTitle>GTO Bot Seats</SectionTitle>
           <p className="text-[10px] text-slate-400">
-            Assign bots to empty seats. Choose a personality and model version per seat.
+            Assign GTO bots to empty seats. Choose a personality per seat.
           </p>
 
           <SettingRow label="Bot Buy-in">
@@ -785,7 +785,7 @@ export function RoomSettingsPanel({
                           prev.push({
                             seat,
                             profile: e.target.value,
-                            modelVersion: existing?.modelVersion ?? 'v2.1',
+                            modelVersion: 'v5',
                           });
                         }
                         updateField('botSeats', prev);
@@ -801,26 +801,9 @@ export function RoomSettingsPanel({
                       <option value="nit">Nit (very tight)</option>
                     </select>
                     {existing && (
-                      <select
-                        value={existing.modelVersion ?? 'v2.1'}
-                        onChange={(e) => {
-                          const updated = botSeats.map((b) =>
-                            b.seat === seat ? { ...b, modelVersion: e.target.value } : b,
-                          );
-                          updateField('botSeats', updated);
-                        }}
-                        className="input-field text-[10px] !py-1 w-16"
-                        disabled={readOnly}
-                      >
-                        <option value="v0">V0</option>
-                        <option value="v1">V1</option>
-                        <option value="v2">V2 (latest)</option>
-                        <option value="v2.1">V2.1 (300k)</option>
-                        <option value="v2.2">V2.2 (full)</option>
-                        <option value="v3">V3 (CFR)</option>
-                        <option value="v3.2">V3.2 (+ Preflop)</option>
-                        <option value="v4">V4 (Exact CFR)</option>
-                      </select>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono">
+                        GTO
+                      </span>
                     )}
                   </>
                 )}

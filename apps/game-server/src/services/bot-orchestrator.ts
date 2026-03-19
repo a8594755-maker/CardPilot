@@ -30,7 +30,6 @@ const BOT_NAMES = [
 interface ActiveBot {
   seat: number;
   profile: string;
-  modelVersion: string;
   bot: InProcessBot;
   userId: string;
   name: string;
@@ -94,12 +93,7 @@ export function syncBots(
 
   // Remove bots that are no longer desired or whose profile changed
   for (const [seat, activeBot] of current.entries()) {
-    const desired = botSeats.find(
-      (b) =>
-        b.seat === seat &&
-        b.profile === activeBot.profile &&
-        (b.modelVersion ?? 'v1') === activeBot.modelVersion,
-    );
+    const desired = botSeats.find((b) => b.seat === seat && b.profile === activeBot.profile);
     if (!desired) {
       logInfo({
         event: 'bot.removing',
@@ -124,13 +118,12 @@ export function syncBots(
         const bots = tableBots.get(tableId);
         if (!bots) return;
 
-        const mv = cfg.modelVersion ?? 'v1';
         const botName = pickBotName(tableId);
-        const userId = `bot-${cfg.profile}-${mv}-seat${cfg.seat}-${Date.now()}`;
+        const userId = `bot-${cfg.profile}-gto-seat${cfg.seat}-${Date.now()}`;
 
         logInfo({
           event: 'bot.spawning',
-          message: `Creating in-process bot seat=${cfg.seat} profile=${cfg.profile} model=${mv} name=${botName} for table=${tableId}`,
+          message: `Creating in-process bot seat=${cfg.seat} profile=${cfg.profile} name=${botName} for table=${tableId}`,
         });
 
         const bot = new InProcessBot({
@@ -142,13 +135,11 @@ export function syncBots(
           botName,
           userId,
           delay: 800,
-          modelVersion: mv,
         });
 
         const activeBot: ActiveBot = {
           seat: cfg.seat,
           profile: cfg.profile,
-          modelVersion: mv,
           bot,
           userId,
           name: botName,
@@ -208,15 +199,6 @@ export function getBotUserIds(tableId: string): Set<string> {
   const bots = tableBots.get(tableId);
   if (!bots) return new Set();
   return new Set([...bots.values()].map((b) => b.userId));
-}
-
-/**
- * Returns a map of bot userId → modelVersion for a given table.
- */
-export function getBotModelVersions(tableId: string): Map<string, string> {
-  const bots = tableBots.get(tableId);
-  if (!bots) return new Map();
-  return new Map([...bots.values()].map((b) => [b.userId, b.modelVersion]));
 }
 
 /**

@@ -141,11 +141,11 @@ const SHOWDOWN_SWITCH_DELAY_MS = 2000;
 const HUMAN_SEAT = 1;
 const REQUIRED_BOTS = 5; // wait for all 5 bots before assigning table
 const BOT_PROFILES: BotSeatConfig[] = [
-  { seat: 2, profile: 'gto_balanced', modelVersion: 'v4' },
-  { seat: 3, profile: 'tag', modelVersion: 'v4' },
-  { seat: 4, profile: 'lag', modelVersion: 'v4' },
-  { seat: 5, profile: 'nit', modelVersion: 'v4' },
-  { seat: 6, profile: 'gto_balanced', modelVersion: 'v4' },
+  { seat: 2, profile: 'gto_balanced' },
+  { seat: 3, profile: 'tag' },
+  { seat: 4, profile: 'lag' },
+  { seat: 5, profile: 'nit' },
+  { seat: 6, profile: 'gto_balanced' },
 ];
 const SYSTEM_USER_ID = 'fast-battle-system';
 

@@ -243,7 +243,7 @@ export const SeatChip = memo(function SeatChip({
         <span className={isDisconnected ? 'opacity-50' : ''}>{player.name}</span>
         {isBot && (
           <span className="text-[8px] px-1 py-0.5 rounded bg-purple-500/25 text-purple-300 font-bold uppercase tracking-wider flex-shrink-0">
-            {player.modelVersion ? player.modelVersion.toUpperCase() : 'BOT'}
+            GTO
           </span>
         )}
       </div>

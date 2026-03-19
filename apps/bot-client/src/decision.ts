@@ -13,7 +13,7 @@ import type { MoodState } from './mood.js';
 import type { OpponentAdjustment } from './opponent-model.js';
 import type { RaiseContext } from './raise-context.js';
 import type { BoardTexture } from './board-integration.js';
-import type { RealtimeResolver } from './realtime-resolver.js';
+import { selectScenario, type ResolverPool } from './realtime-resolver.js';
 import { encodeFeatures, encodeFeaturesV2, type MLP } from '@cardpilot/fast-model';
 import { applyPersona } from './persona.js';
 import { getMoodMultipliers } from './mood.js';
@@ -630,8 +630,8 @@ export interface DecisionContext {
   opponentAdj?: OpponentAdjustment;
   handNumber?: number;
   fastModel?: MLP | null;
-  /** Real-time CFR subgame resolver (Pluribus-style) */
-  resolver?: RealtimeResolver | null;
+  /** Real-time CFR resolver pool (Pluribus-style, scenario-based) */
+  resolverPool?: ResolverPool | null;
 }
 
 // ===== Main decision function (enhanced pipeline) =====
@@ -648,7 +648,7 @@ export function decide(ctx: DecisionContext): DecisionResult {
     opponentAdj,
     handNumber,
     fastModel,
-    resolver,
+    resolverPool,
   } = ctx;
 
   const la = state.legalActions;
@@ -713,20 +713,37 @@ export function decide(ctx: DecisionContext): DecisionResult {
         )
       : null;
 
-  // Tier 0.5: Real-time CFR resolver (postflop only, when available)
+  // Tier 0.5: Real-time CFR resolver (postflop only, scenario-based)
   const heroPos = state.positions[mySeat] ?? '';
   const heroIsIP = heroPos === 'BTN' || heroPos === 'CO';
-  const resolverMix =
-    resolver?.isReady && holeCards && state.street !== 'PREFLOP' && state.board.length >= 3
-      ? resolver.getStrategy(holeCards, state.board, heroIsIP)
-      : null;
+  let resolverMix: import('./realtime-resolver.js').ResolvedStrategy | null = null;
+  let resolverScenario: string | undefined;
+  if (resolverPool && holeCards && state.street !== 'PREFLOP' && state.board.length >= 3) {
+    const scenario = selectScenario(raiseContext.is3bet, raiseContext.effectiveStack);
+    const resolver = resolverPool.get(scenario);
+    if (resolver?.isReady) {
+      const villainSeat = state.players.find(
+        (p) => p.inHand && !p.folded && p.seat !== mySeat,
+      )?.seat;
+      resolverMix = resolver.getStrategy(
+        holeCards,
+        state.board,
+        heroIsIP,
+        state.actions,
+        mySeat,
+        villainSeat,
+        state.bigBlind,
+      );
+      resolverScenario = scenario;
+    }
+  }
 
   if (chartMix) {
     baseMix = chartMix;
     source = 'preflop-chart';
   } else if (resolverMix) {
     baseMix = { raise: resolverMix.raise, call: resolverMix.call, fold: resolverMix.fold };
-    source = `cfr-resolve(${resolverMix.street},${resolverMix.solveTimeMs}ms)`;
+    source = `cfr-resolve[${resolverScenario}](${resolverMix.street},${resolverMix.solveTimeMs}ms)`;
   } else if (advice) {
     baseMix = { raise: advice.raise, call: advice.call, fold: advice.fold };
     source = 'advice';

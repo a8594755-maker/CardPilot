@@ -417,7 +417,7 @@ async function spawnRoom(config: SelfPlayConfig, serverUrl: string): Promise<Liv
       profile,
       delay: 0,
       mode: config.mode,
-      version: config.version,
+      version: 'v3',
       name: `SP-${profile}-s${seat}`,
       userId: `sp-${profile}-${seat}-${Date.now()}`,
       sharedModel,
@@ -925,13 +925,7 @@ async function main(): Promise<void> {
   console.log('');
 
   // ── Load shared model once for all in-process bots ──
-  let modelPath: string;
-  if (config.version === 'v3') {
-    modelPath = join(ROOT, 'models', 'cfr-combined-v3.json');
-  } else {
-    const modelFileName = config.version === 'v2' ? 'model-v2-latest.json' : 'model-latest.json';
-    modelPath = join(ROOT, 'packages', 'fast-model', 'models', modelFileName);
-  }
+  const modelPath = join(ROOT, 'models', 'cfr-combined-v3.json');
   sharedModel = loadModel(modelPath);
   log(`Shared model: ${sharedModel ? 'loaded' : 'not found (heuristic fallback)'}`);
 

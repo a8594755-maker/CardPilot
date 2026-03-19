@@ -32,9 +32,18 @@ import {
   getWeightedRangeCombos,
   type WeightedCombo,
 } from '@cardpilot/cfr-solver/src/integration/preflop-ranges.js';
-import { PIPELINE_SRP_V2_CONFIG } from '@cardpilot/cfr-solver/src/tree/tree-config.js';
+import {
+  PIPELINE_SRP_V2_CONFIG,
+  PIPELINE_SRP_100BB_CONFIG,
+  PIPELINE_3BET_V2_CONFIG,
+  PIPELINE_3BET_100BB_CONFIG,
+} from '@cardpilot/cfr-solver/src/tree/tree-config.js';
+import type { FlatTree } from '@cardpilot/cfr-solver/src/vectorized/flat-tree.js';
+import type { HUSRPRangesOptions } from '@cardpilot/cfr-solver/src/integration/preflop-ranges.js';
 import type { TreeConfig } from '@cardpilot/cfr-solver/src/types.js';
+import type { HandAction } from './types.js';
 import { evaluateHandBoard } from '@cardpilot/poker-evaluator';
+import { join } from 'node:path';
 
 // ═══════════════════════════════════════════════════════════
 // Types
@@ -47,6 +56,8 @@ export interface ResolverConfig {
   modelPath?: string;
   /** Tree config for solving (default: PIPELINE_SRP_V2_CONFIG) */
   treeConfig?: TreeConfig;
+  /** Range loading options (spot names, action filters) */
+  rangeOptions?: HUSRPRangesOptions;
   /** Flop solve iterations (default: 1000) */
   flopIterations?: number;
   /** Turn resolve iterations (default: 500) */
@@ -57,6 +68,64 @@ export interface ResolverConfig {
   timeBudgetMs?: number;
   /** Whether to log progress (default: false) */
   verbose?: boolean;
+}
+
+// ═══════════════════════════════════════════════════════════
+// Scenario-Based Model Selection
+// ═══════════════════════════════════════════════════════════
+
+export type ScenarioKey = 'srp_50bb' | 'srp_100bb' | '3bet_50bb' | '3bet_100bb';
+
+interface ScenarioConfig {
+  treeConfig: TreeConfig;
+  modelPath: string;
+  rangeOptions: HUSRPRangesOptions;
+}
+
+const SRP_RANGE_OPTIONS: HUSRPRangesOptions = {
+  ipSpot: 'BTN_unopened_open2.5x',
+  ipAction: 'raise',
+  oopSpot: 'BB_vs_BTN_facing_open2.5x',
+  oopAction: 'call',
+};
+
+const THREEBET_RANGE_OPTIONS: HUSRPRangesOptions = {
+  ipSpot: 'BTN_unopened_open2.5x',
+  ipAction: 'raise',
+  oopSpot: 'BB_vs_BTN_facing_open2.5x',
+  oopAction: 'raise',
+  minFrequency: 0.4,
+};
+
+const SCENARIO_CONFIGS: Record<ScenarioKey, ScenarioConfig> = {
+  srp_50bb: {
+    treeConfig: PIPELINE_SRP_V2_CONFIG,
+    modelPath: 'models/vnet-v2-pipeline.json',
+    rangeOptions: SRP_RANGE_OPTIONS,
+  },
+  srp_100bb: {
+    treeConfig: PIPELINE_SRP_100BB_CONFIG,
+    modelPath: 'models/vnet-v3-srp-100bb.json',
+    rangeOptions: SRP_RANGE_OPTIONS,
+  },
+  '3bet_50bb': {
+    treeConfig: PIPELINE_3BET_V2_CONFIG,
+    modelPath: 'models/vnet-v5-3bet-50bb.json',
+    rangeOptions: THREEBET_RANGE_OPTIONS,
+  },
+  '3bet_100bb': {
+    treeConfig: PIPELINE_3BET_100BB_CONFIG,
+    modelPath: 'models/vnet-v4-3bet-100bb.json',
+    rangeOptions: THREEBET_RANGE_OPTIONS,
+  },
+};
+
+const STACK_THRESHOLD_BB = 75;
+
+export function selectScenario(is3bet: boolean, effectiveStackBB: number): ScenarioKey {
+  const deep = effectiveStackBB > STACK_THRESHOLD_BB;
+  if (is3bet) return deep ? '3bet_100bb' : '3bet_50bb';
+  return deep ? 'srp_100bb' : 'srp_50bb';
 }
 
 export interface ResolvedStrategy {
@@ -74,6 +143,158 @@ export interface ResolvedStrategy {
   street: string;
   /** Convergence info */
   iterations: number;
+}
+
+// ═══════════════════════════════════════════════════════════
+// Tree Navigation — walk solved tree following game actions
+// ═══════════════════════════════════════════════════════════
+
+interface NavigationResult {
+  /** Action node ID where hero acts (-1 if terminal/failed) */
+  nodeId: number;
+  /** Terminal index if walk ended at a terminal (-1 otherwise) */
+  terminalId: number;
+}
+
+/** Get a player's stack at a child node (action node or terminal). */
+function getChildStack(tree: FlatTree, childId: number, player: number): number {
+  if (childId >= 0) {
+    return tree.nodeStacks[childId * tree.numPlayers + player];
+  }
+  const termIdx = -(childId + 1);
+  return tree.terminalStacks[termIdx * tree.numPlayers + player];
+}
+
+/**
+ * Walk a solved FlatTree from root following a sequence of game actions.
+ *
+ * For fold/check/call: matches by action label.
+ * For raise/all_in: computes stack-difference (tree commit) for each candidate
+ *   edge and picks the closest match to the game action's commit (in BB).
+ *
+ * @returns Navigation result with nodeId (if we stopped at an action node)
+ *   or terminalId (if we reached a terminal), or null on failure.
+ */
+function navigateTree(
+  tree: FlatTree,
+  streetActions: HandAction[],
+  seatToPlayer: Map<number, number>,
+  bb: number,
+  log?: (msg: string) => void,
+): NavigationResult | null {
+  let nodeId = 0;
+
+  for (const action of streetActions) {
+    const treePlayer = seatToPlayer.get(action.seat);
+    if (treePlayer === undefined) {
+      log?.(`Nav: unknown seat ${action.seat}`);
+      return null;
+    }
+
+    // Verify acting player matches tree expectation
+    if (tree.nodePlayer[nodeId] !== treePlayer) {
+      log?.(
+        `Nav: player mismatch at node ${nodeId} — expected ${tree.nodePlayer[nodeId]}, got ${treePlayer}`,
+      );
+      return null;
+    }
+
+    const numActions = tree.nodeNumActions[nodeId];
+    const offset = tree.nodeActionOffset[nodeId];
+
+    let matchedEdge = -1;
+
+    if (action.type === 'fold') {
+      for (let a = 0; a < numActions; a++) {
+        if (tree.nodeActionLabels[offset + a] === 'fold') {
+          matchedEdge = a;
+          break;
+        }
+      }
+    } else if (action.type === 'check') {
+      for (let a = 0; a < numActions; a++) {
+        if (tree.nodeActionLabels[offset + a] === 'check') {
+          matchedEdge = a;
+          break;
+        }
+      }
+    } else if (action.type === 'call') {
+      for (let a = 0; a < numActions; a++) {
+        if (tree.nodeActionLabels[offset + a] === 'call') {
+          matchedEdge = a;
+          break;
+        }
+      }
+    } else if (action.type === 'all_in') {
+      // Prefer exact allin edge, fall back to nearest bet/raise by commit
+      for (let a = 0; a < numActions; a++) {
+        if (tree.nodeActionLabels[offset + a] === 'allin') {
+          matchedEdge = a;
+          break;
+        }
+      }
+      if (matchedEdge < 0) {
+        matchedEdge = matchBetByCommit(tree, nodeId, treePlayer, action.amount / bb);
+      }
+    } else if (action.type === 'raise') {
+      matchedEdge = matchBetByCommit(tree, nodeId, treePlayer, action.amount / bb);
+    }
+
+    if (matchedEdge < 0) {
+      log?.(`Nav: no matching edge at node ${nodeId} for ${action.type} amt=${action.amount}`);
+      return null;
+    }
+
+    const childId = tree.childNodeId[offset + matchedEdge];
+    log?.(
+      `Nav: node ${nodeId} → ${action.type}(${tree.nodeActionLabels[offset + matchedEdge]}) → child ${childId}`,
+    );
+
+    if (childId < 0) {
+      // Reached a terminal (street transition or fold/showdown)
+      return { nodeId: -1, terminalId: -(childId + 1) };
+    }
+
+    nodeId = childId;
+  }
+
+  return { nodeId, terminalId: -1 };
+}
+
+/**
+ * Match a bet/raise game action to the closest tree edge by commit amount.
+ * Returns the edge index, or -1 if no bet/raise/allin edges exist.
+ */
+function matchBetByCommit(
+  tree: FlatTree,
+  nodeId: number,
+  player: number,
+  commitBB: number,
+): number {
+  const numActions = tree.nodeNumActions[nodeId];
+  const offset = tree.nodeActionOffset[nodeId];
+  const currentStack = tree.nodeStacks[nodeId * tree.numPlayers + player];
+
+  let bestEdge = -1;
+  let bestDiff = Infinity;
+
+  for (let a = 0; a < numActions; a++) {
+    const label = tree.nodeActionLabels[offset + a];
+    if (label === 'fold' || label === 'check' || label === 'call') continue;
+
+    // bet_N, raise_N, allin — compute tree commit from stack difference
+    const childId = tree.childNodeId[offset + a];
+    const childStack = getChildStack(tree, childId, player);
+    const treeCommit = currentStack - childStack;
+    const diff = Math.abs(treeCommit - commitBB);
+
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      bestEdge = a;
+    }
+  }
+
+  return bestEdge;
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -102,6 +323,7 @@ export class RealtimeResolver {
       chartsPath: config.chartsPath ?? 'data/preflop_charts.json',
       modelPath: config.modelPath ?? 'models/vnet-v2-pipeline.json',
       treeConfig: config.treeConfig ?? PIPELINE_SRP_V2_CONFIG,
+      rangeOptions: config.rangeOptions ?? {},
       flopIterations: config.flopIterations ?? 1000,
       turnIterations: config.turnIterations ?? 500,
       riverIterations: config.riverIterations ?? 300,
@@ -127,7 +349,7 @@ export class RealtimeResolver {
 
     // Load preflop ranges
     try {
-      const ranges = loadHUSRPRanges(this.config.chartsPath);
+      const ranges = loadHUSRPRanges(this.config.chartsPath, this.config.rangeOptions);
       this.oopRange = getWeightedRangeCombos(ranges.oopRange);
       this.ipRange = getWeightedRangeCombos(ranges.ipRange);
       this.rangesLoaded = true;
@@ -165,24 +387,42 @@ export class RealtimeResolver {
    * @param heroCards - Hero's hole cards as strings, e.g. ["Ah", "Ks"]
    * @param board - Community cards as strings, e.g. ["2h", "7c", "5d"]
    * @param heroIsIP - Whether hero is in position (BTN/CO)
+   * @param actions - Full hand action history (used to navigate to correct tree node)
+   * @param heroSeat - Hero's seat number (for seat→player mapping)
+   * @param villainSeat - Villain's seat number
+   * @param bigBlind - Big blind in chips (for normalizing amounts to BB)
    * @returns Resolved strategy or null if solving fails
    */
   getStrategy(
     heroCards: [string, string],
     board: string[],
     heroIsIP: boolean,
+    actions?: HandAction[],
+    heroSeat?: number,
+    villainSeat?: number,
+    bigBlind?: number,
   ): ResolvedStrategy | null {
     if (!this.rangesLoaded) return null;
 
     const boardIndices = board.map(cardToIndex);
 
+    // Build seat→player mapping (player 0=OOP, 1=IP)
+    let seatToPlayer: Map<number, number> | undefined;
+    if (heroSeat != null && villainSeat != null) {
+      seatToPlayer = new Map();
+      seatToPlayer.set(heroSeat, heroIsIP ? 1 : 0);
+      seatToPlayer.set(villainSeat, heroIsIP ? 0 : 1);
+    }
+
+    const bb = bigBlind || 1;
+
     try {
       if (board.length === 3) {
-        return this.solveFlop(heroCards, boardIndices, heroIsIP);
+        return this.solveFlop(heroCards, boardIndices, heroIsIP, actions, seatToPlayer, bb);
       } else if (board.length === 4) {
-        return this.solveTurn(heroCards, boardIndices, heroIsIP);
+        return this.solveTurn(heroCards, boardIndices, heroIsIP, actions, seatToPlayer, bb);
       } else if (board.length === 5) {
-        return this.solveRiver(heroCards, boardIndices, heroIsIP);
+        return this.solveRiver(heroCards, boardIndices, heroIsIP, actions, seatToPlayer, bb);
       }
     } catch (e) {
       this.log(`Solve error: ${e}`);
@@ -197,6 +437,9 @@ export class RealtimeResolver {
     heroCards: [string, string],
     board: number[],
     heroIsIP: boolean,
+    actions?: HandAction[],
+    seatToPlayer?: Map<number, number>,
+    bb: number = 1,
   ): ResolvedStrategy | null {
     const startTime = Date.now();
     const cacheKey = board
@@ -239,7 +482,39 @@ export class RealtimeResolver {
     this.flopBoard = [...board];
     this.currentBoard = [...board];
 
-    return this.extractStrategy(result, heroCards, board, heroIsIP, 'FLOP', Date.now() - startTime);
+    // Navigate to the correct decision node using action history
+    let nodeId = 0;
+    if (actions && seatToPlayer) {
+      const flopActions = actions.filter((a) => a.street === 'FLOP');
+      if (flopActions.length > 0) {
+        const nav = navigateTree(
+          result.tree,
+          flopActions,
+          seatToPlayer,
+          bb,
+          this.config.verbose ? (msg) => this.log(msg) : undefined,
+        );
+        if (nav && nav.nodeId >= 0) {
+          nodeId = nav.nodeId;
+          this.log(`Flop nav: ${flopActions.length} actions → node ${nodeId}`);
+        } else if (nav && nav.terminalId >= 0) {
+          this.log(`Flop nav reached terminal ${nav.terminalId} — no decision needed`);
+          return null;
+        } else {
+          this.log(`Flop nav failed — falling back to root`);
+        }
+      }
+    }
+
+    return this.extractStrategy(
+      result,
+      heroCards,
+      board,
+      heroIsIP,
+      'FLOP',
+      Date.now() - startTime,
+      nodeId,
+    );
   }
 
   // ── Turn resolving ──
@@ -248,29 +523,57 @@ export class RealtimeResolver {
     heroCards: [string, string],
     board: number[],
     heroIsIP: boolean,
+    actions?: HandAction[],
+    seatToPlayer?: Map<number, number>,
+    bb: number = 1,
   ): ResolvedStrategy | null {
     const startTime = Date.now();
 
     // If we don't have a flop result, solve the flop first
     if (!this.flopResult) {
       const flopBoard = board.slice(0, 3);
-      this.solveFlop(heroCards, flopBoard, heroIsIP);
+      this.solveFlop(heroCards, flopBoard, heroIsIP, actions, seatToPlayer, bb);
       if (!this.flopResult) return null;
     }
 
     const turnCard = board[3];
     this.log(`Resolving turn: ${indexToCardStr(turnCard)}`);
 
-    // Find the right transition terminal (use first available)
+    // Find the correct transition terminal based on flop action history
+    let transitionTerminalId: number;
     const transitionIds = [...this.flopResult.boundaryData.keys()];
     if (transitionIds.length === 0) {
       this.log('No transition terminals in flop result');
       return null;
     }
 
+    if (actions && seatToPlayer && transitionIds.length > 1) {
+      const flopActions = actions.filter((a) => a.street === 'FLOP');
+      const nav = navigateTree(
+        this.flopResult.tree,
+        flopActions,
+        seatToPlayer,
+        bb,
+        this.config.verbose ? (msg) => this.log(msg) : undefined,
+      );
+      if (nav && nav.terminalId >= 0 && transitionIds.includes(nav.terminalId)) {
+        transitionTerminalId = nav.terminalId;
+        this.log(
+          `Turn: using flop transition terminal ${transitionTerminalId} (from ${flopActions.length} flop actions)`,
+        );
+      } else {
+        transitionTerminalId = transitionIds[0];
+        this.log(
+          `Turn: flop nav didn't reach a matching terminal — using first (${transitionTerminalId})`,
+        );
+      }
+    } else {
+      transitionTerminalId = transitionIds[0];
+    }
+
     const turnResolveResult = resolveSubgame({
       parentResult: this.flopResult,
-      transitionTerminalId: transitionIds[0],
+      transitionTerminalId,
       newCard: turnCard,
       treeConfig: this.config.treeConfig,
       oopRange: this.oopRange,
@@ -288,6 +591,30 @@ export class RealtimeResolver {
     this.turnResult = turnResolveResult;
     this.currentBoard = [...board];
 
+    // Navigate turn tree to the correct decision node
+    let nodeId = 0;
+    if (actions && seatToPlayer) {
+      const turnActions = actions.filter((a) => a.street === 'TURN');
+      if (turnActions.length > 0) {
+        const nav = navigateTree(
+          turnResolveResult.streetResult.tree,
+          turnActions,
+          seatToPlayer,
+          bb,
+          this.config.verbose ? (msg) => this.log(msg) : undefined,
+        );
+        if (nav && nav.nodeId >= 0) {
+          nodeId = nav.nodeId;
+          this.log(`Turn nav: ${turnActions.length} actions → node ${nodeId}`);
+        } else if (nav && nav.terminalId >= 0) {
+          this.log(`Turn nav reached terminal — no decision needed`);
+          return null;
+        } else {
+          this.log(`Turn nav failed — falling back to root`);
+        }
+      }
+    }
+
     return this.extractStrategy(
       turnResolveResult.streetResult,
       heroCards,
@@ -295,6 +622,7 @@ export class RealtimeResolver {
       heroIsIP,
       'TURN',
       Date.now() - startTime,
+      nodeId,
     );
   }
 
@@ -304,28 +632,52 @@ export class RealtimeResolver {
     heroCards: [string, string],
     board: number[],
     heroIsIP: boolean,
+    actions?: HandAction[],
+    seatToPlayer?: Map<number, number>,
+    bb: number = 1,
   ): ResolvedStrategy | null {
     const startTime = Date.now();
 
     // If we don't have a turn result, solve flop + turn first
     if (!this.turnResult) {
       const turnBoard = board.slice(0, 4);
-      this.solveTurn(heroCards, turnBoard, heroIsIP);
+      this.solveTurn(heroCards, turnBoard, heroIsIP, actions, seatToPlayer, bb);
       if (!this.turnResult) return null;
     }
 
     const riverCard = board[4];
     this.log(`Resolving river: ${indexToCardStr(riverCard)}`);
 
+    // Find the correct transition terminal based on turn action history
+    let transitionTerminalId: number;
     const transitionIds = [...this.turnResult.streetResult.boundaryData.keys()];
     if (transitionIds.length === 0) {
       this.log('No transition terminals in turn result');
       return null;
     }
 
+    if (actions && seatToPlayer && transitionIds.length > 1) {
+      const turnActions = actions.filter((a) => a.street === 'TURN');
+      const nav = navigateTree(
+        this.turnResult.streetResult.tree,
+        turnActions,
+        seatToPlayer,
+        bb,
+        this.config.verbose ? (msg) => this.log(msg) : undefined,
+      );
+      if (nav && nav.terminalId >= 0 && transitionIds.includes(nav.terminalId)) {
+        transitionTerminalId = nav.terminalId;
+        this.log(`River: using turn transition terminal ${transitionTerminalId}`);
+      } else {
+        transitionTerminalId = transitionIds[0];
+      }
+    } else {
+      transitionTerminalId = transitionIds[0];
+    }
+
     const riverResolveResult = resolveSubgame({
       parentResult: this.turnResult.streetResult,
-      transitionTerminalId: transitionIds[0],
+      transitionTerminalId,
       newCard: riverCard,
       treeConfig: this.config.treeConfig,
       oopRange: this.oopRange,
@@ -342,6 +694,30 @@ export class RealtimeResolver {
 
     this.currentBoard = [...board];
 
+    // Navigate river tree to the correct decision node
+    let nodeId = 0;
+    if (actions && seatToPlayer) {
+      const riverActions = actions.filter((a) => a.street === 'RIVER');
+      if (riverActions.length > 0) {
+        const nav = navigateTree(
+          riverResolveResult.streetResult.tree,
+          riverActions,
+          seatToPlayer,
+          bb,
+          this.config.verbose ? (msg) => this.log(msg) : undefined,
+        );
+        if (nav && nav.nodeId >= 0) {
+          nodeId = nav.nodeId;
+          this.log(`River nav: ${riverActions.length} actions → node ${nodeId}`);
+        } else if (nav && nav.terminalId >= 0) {
+          this.log(`River nav reached terminal — no decision needed`);
+          return null;
+        } else {
+          this.log(`River nav failed — falling back to root`);
+        }
+      }
+    }
+
     return this.extractStrategy(
       riverResolveResult.streetResult,
       heroCards,
@@ -349,13 +725,14 @@ export class RealtimeResolver {
       heroIsIP,
       'RIVER',
       Date.now() - startTime,
+      nodeId,
     );
   }
 
   // ── Strategy extraction ──
 
   /**
-   * Extract hero's action probabilities from a solved tree at the root node.
+   * Extract hero's action probabilities from a solved tree at the given node.
    */
   private extractStrategy(
     result: StreetSolveResult,
@@ -364,6 +741,7 @@ export class RealtimeResolver {
     heroIsIP: boolean,
     street: string,
     solveTimeMs: number,
+    nodeId: number = 0,
   ): ResolvedStrategy | null {
     const { store, tree, validCombos } = result;
     const nc = validCombos.numCombos;
@@ -381,15 +759,14 @@ export class RealtimeResolver {
       return null;
     }
 
-    // Get average strategy at root node (node 0)
-    const rootNode = 0;
-    const numActions = tree.nodeNumActions[rootNode];
+    // Get average strategy at the decision node
+    const numActions = tree.nodeNumActions[nodeId];
     const avgStrategy = new Float32Array(numActions * nc);
-    store.getAverageStrategy(rootNode, numActions, avgStrategy);
+    store.getAverageStrategy(nodeId, numActions, avgStrategy);
 
     // Extract per-action probabilities for hero's specific combo
     const actionProbs: number[] = [];
-    const actionOffset = tree.nodeActionOffset[rootNode];
+    const actionOffset = tree.nodeActionOffset[nodeId];
 
     for (let a = 0; a < numActions; a++) {
       actionProbs.push(avgStrategy[a * nc + heroLocalIdx]);
@@ -517,6 +894,91 @@ export class RealtimeResolver {
   private log(msg: string): void {
     if (this.config.verbose) {
       console.log(`[Resolver] ${msg}`);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// Resolver Pool — manages one RealtimeResolver per scenario
+// ═══════════════════════════════════════════════════════════
+
+export interface ResolverPoolConfig {
+  projectRoot: string;
+  chartsPath?: string;
+  flopIterations?: number;
+  turnIterations?: number;
+  riverIterations?: number;
+  verbose?: boolean;
+}
+
+export class ResolverPool {
+  private resolvers = new Map<ScenarioKey, RealtimeResolver>();
+  private config: ResolverPoolConfig;
+
+  constructor(config: ResolverPoolConfig) {
+    this.config = config;
+  }
+
+  /**
+   * Initialize all 4 scenario resolvers. Returns count of successfully loaded.
+   */
+  initialize(): number {
+    const scenarios = Object.entries(SCENARIO_CONFIGS) as [ScenarioKey, ScenarioConfig][];
+    let loaded = 0;
+
+    for (const [key, sc] of scenarios) {
+      const modelAbsPath = join(this.config.projectRoot, sc.modelPath);
+      const chartsAbsPath =
+        this.config.chartsPath ?? join(this.config.projectRoot, 'data', 'preflop_charts.json');
+
+      const resolver = new RealtimeResolver({
+        chartsPath: chartsAbsPath,
+        modelPath: modelAbsPath,
+        treeConfig: sc.treeConfig,
+        rangeOptions: sc.rangeOptions,
+        flopIterations: this.config.flopIterations,
+        turnIterations: this.config.turnIterations,
+        riverIterations: this.config.riverIterations,
+        verbose: this.config.verbose,
+      });
+
+      if (resolver.initialize()) {
+        this.resolvers.set(key, resolver);
+        loaded++;
+      } else {
+        this.log(`Scenario ${key} failed to initialize — skipped`);
+      }
+    }
+
+    this.log(`ResolverPool: ${loaded}/4 scenarios loaded`);
+    return loaded;
+  }
+
+  /**
+   * Get the resolver for a specific scenario.
+   * Returns null if that scenario was not loaded.
+   */
+  get(scenario: ScenarioKey): RealtimeResolver | null {
+    return this.resolvers.get(scenario) ?? null;
+  }
+
+  /**
+   * Reset per-hand state on all resolvers.
+   */
+  resetHand(): void {
+    for (const resolver of this.resolvers.values()) {
+      resolver.resetHand();
+    }
+  }
+
+  /** Number of successfully loaded scenarios */
+  get size(): number {
+    return this.resolvers.size;
+  }
+
+  private log(msg: string): void {
+    if (this.config.verbose) {
+      console.log(`[ResolverPool] ${msg}`);
     }
   }
 }

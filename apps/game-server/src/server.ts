@@ -76,7 +76,6 @@ import {
   removeAllBots,
   shutdownAllBots,
   getBotUserIds,
-  getBotModelVersions,
 } from './services/bot-orchestrator.js';
 import type {
   ClubCreatePayload,
@@ -1897,12 +1896,11 @@ function buildSnapshotForSync(tableId: string, source: 'hydrate' | 'broadcast'):
 
   let snapshot = table.getPublicState();
 
-  // Stamp isBot flag + modelVersion on bot players
+  // Stamp isBot flag on bot players
   const botIds = getBotUserIds(tableId);
-  const botVersions = getBotModelVersions(tableId);
   snapshot.players = snapshot.players.map((p) => {
     if (botIds.has(p.userId) || p.userId.startsWith('bot-')) {
-      return { ...p, isBot: true, modelVersion: botVersions.get(p.userId) ?? 'v1' };
+      return { ...p, isBot: true };
     }
     return p;
   });

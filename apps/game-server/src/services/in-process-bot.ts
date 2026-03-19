@@ -30,6 +30,7 @@ import { computeThinkingTime } from '../../../bot-client/src/thinking-time.js';
 import { analyzeRaiseContext } from '../../../bot-client/src/raise-context.js';
 import { getBoardTexture } from '../../../bot-client/src/board-integration.js';
 import { TraceLogger } from '../../../bot-client/src/trace-logger.js';
+import { ResolverPool } from '../../../bot-client/src/realtime-resolver.js';
 import { encodeFeatures, loadModel, type MLP } from '@cardpilot/fast-model';
 import type { TrainingSample } from '@cardpilot/fast-model';
 import type { TableState, AdvicePayload, StrategyMix } from '../../../bot-client/src/types.js';
@@ -49,46 +50,51 @@ export interface InProcessBotConfig {
   botName: string;
   userId: string;
   delay?: number; // action delay in ms (default 800)
-  modelVersion?: string; // 'v0' (heuristic, no model) | 'v1' (trained MLP) — default 'v1'
 }
 
 // ══════════════════════════════════════════════════════════════
-// Shared fast-model singleton (loaded once, shared across all bots)
+// Shared fast-model + ResolverPool singletons (loaded once, shared across all bots)
 // ══════════════════════════════════════════════════════════════
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const PROJECT_ROOT = resolve(__dirname, '../../../..');
 
-// Model cache: keyed by version string, loaded once per version
-const modelCache = new Map<string, MLP | null>();
+// Shared fast model (cfr-combined-v3 — fallback when resolver isn't ready)
+let sharedFastModel: MLP | null | undefined; // undefined = not yet loaded
 
-function getModelForVersion(version: string): MLP | null {
-  if (version === 'v0') return null; // V0 = heuristic, no ML model
-
-  if (modelCache.has(version)) return modelCache.get(version)!;
-
-  // V3 / V3.2 / V4 models live in project root models/ dir (CFR-trained)
-  if (version === 'v3' || version === 'v3.2' || version === 'v4') {
-    const fileMap: Record<string, string> = {
-      v3: 'cfr-combined-v3.json',
-      'v3.2': 'cfr-combined-v3-preflop.json',
-      v4: 'cfr-combined-v4.json',
-    };
-    const modelPath = resolve(__dirname, `../../../../models/${fileMap[version]}`);
-    const model = loadModel(modelPath);
-    modelCache.set(version, model);
-    return model;
+function getSharedFastModel(): MLP | null {
+  if (sharedFastModel !== undefined) return sharedFastModel;
+  const modelPath = resolve(PROJECT_ROOT, 'models/cfr-combined-v3.json');
+  sharedFastModel = loadModel(modelPath);
+  if (sharedFastModel) {
+    logInfo({ event: 'bot.model', message: `Shared fast model loaded: cfr-combined-v3.json` });
+  } else {
+    logWarn({ event: 'bot.model', message: `Fast model not found at ${modelPath}` });
   }
+  return sharedFastModel;
+}
 
-  const fileMap: Record<string, string> = {
-    v1: 'model-v1.json',
-    v2: 'model-v2-latest.json',
-    latest: 'model-latest.json',
-  };
-  const fileName = fileMap[version] ?? `model-${version}.json`;
-  const modelPath = resolve(__dirname, `../../../../packages/fast-model/models/${fileName}`);
-  const model = loadModel(modelPath);
-  modelCache.set(version, model);
-  return model;
+// Shared ResolverPool singleton (4 scenario-specific value networks)
+let sharedResolverPool: ResolverPool | null | undefined; // undefined = not yet initialized
+
+function getSharedResolverPool(): ResolverPool | null {
+  if (sharedResolverPool !== undefined) return sharedResolverPool;
+  const pool = new ResolverPool({
+    projectRoot: PROJECT_ROOT,
+    verbose: false,
+    flopIterations: 1000,
+    turnIterations: 500,
+    riverIterations: 300,
+  });
+  const loaded = pool.initialize();
+  if (loaded > 0) {
+    logInfo({ event: 'bot.resolver', message: `Shared ResolverPool: ${loaded}/4 scenarios ready` });
+    sharedResolverPool = pool;
+  } else {
+    logWarn({ event: 'bot.resolver', message: 'ResolverPool: no scenarios loaded — disabled' });
+    sharedResolverPool = null;
+  }
+  return sharedResolverPool;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -126,6 +132,7 @@ export class InProcessBot {
   private lastHandStack: number | null = null;
   private lastHandId: string | null = null;
   private fastModel: MLP | null = null;
+  private resolverPool: ResolverPool | null = null;
   private sampleCount = 0;
   private readonly MAX_SAMPLES_PER_FILE = 100_000;
 
@@ -165,13 +172,14 @@ export class InProcessBot {
     this.opponentTracker = new OpponentTracker();
     this.traceLogger = new TraceLogger();
 
-    // ── Load fast model (per-version, cached) ──
-    const mv = config.modelVersion ?? 'v1';
-    this.fastModel = getModelForVersion(mv);
+    // ── Load shared fast model (cfr-combined-v3) + ResolverPool ──
+    this.fastModel = getSharedFastModel();
+    this.resolverPool = getSharedResolverPool();
     if (this.fastModel) {
-      this.log(`Fast model loaded (${mv})`);
-    } else if (mv === 'v0') {
-      this.log('V0 mode: heuristic only (no ML model)');
+      this.log('Fast model loaded (cfr-combined-v3)');
+    }
+    if (this.resolverPool) {
+      this.log(`ResolverPool: ${this.resolverPool.size}/4 scenarios ready`);
     }
 
     // ── Ensure data directory exists ──
@@ -313,6 +321,7 @@ export class InProcessBot {
       this.handNumber++;
       this.lastProcessedActionCount = 0;
       this.lastHandStrength = null;
+      this.resolverPool?.resetHand();
 
       const me = this.latestState?.players.find((p) => p.seat === this.mySeat);
       this.lastHandStack = me?.stack ?? null;
@@ -642,6 +651,7 @@ export class InProcessBot {
       opponentAdj,
       handNumber: this.handNumber,
       fastModel: this.fastModel,
+      resolverPool: this.resolverPool,
     });
 
     this.log(
