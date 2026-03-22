@@ -192,6 +192,18 @@ export const supabase =
 /** Track whether Supabase is reachable. When unreachable, skip network calls to avoid blocking the UI. */
 let supabaseUnreachable = false;
 
+/** Track whether anonymous sign-ins are disabled (422 from Supabase). Skip future attempts to avoid console noise. */
+let anonSignInsDisabled = sessionStorage.getItem('anonSignInsDisabled') === '1';
+
+function markAnonDisabled() {
+  anonSignInsDisabled = true;
+  try {
+    sessionStorage.setItem('anonSignInsDisabled', '1');
+  } catch {
+    /* ignore */
+  }
+}
+
 /**
  * Fast connectivity probe — resolves to `true` when Supabase is unreachable.
  * All auth functions `await probePromise` before making network calls so the
@@ -538,13 +550,15 @@ export async function getExistingSession(): Promise<AuthSession | null> {
 
   // If Supabase is available and the cached session is a local guest (non-UUID),
   // try to upgrade to an anonymous Supabase session for history persistence.
-  if (supabase && !supabaseUnreachable && !isUuid(cached.userId)) {
+  if (supabase && !supabaseUnreachable && !anonSignInsDisabled && !isUuid(cached.userId)) {
     try {
       const { data, error } = await withAuthTimeout(
         supabase.auth.signInAnonymously(),
         'Guest sign-in',
       );
-      if (!error && data.session && data.user) {
+      if (error) {
+        if (isAnonDisabledError(error)) markAnonDisabled();
+      } else if (data.session && data.user) {
         clearGuestSession();
         return {
           accessToken: data.session.access_token,
@@ -554,7 +568,8 @@ export async function getExistingSession(): Promise<AuthSession | null> {
           isGuest: true,
         };
       }
-    } catch {
+    } catch (err) {
+      if (isAnonDisabledError(err)) markAnonDisabled();
       // Fall through to return the local guest session
     }
   }
@@ -577,7 +592,7 @@ export async function ensureGuestSession(displayName?: string): Promise<AuthSess
   }
 
   // Try Supabase anonymous sign-in (even if we have a local guest — upgrade it)
-  if (supabase && !supabaseUnreachable) {
+  if (supabase && !supabaseUnreachable && !anonSignInsDisabled) {
     checkRateLimit();
     try {
       const { data, error } = await withAuthTimeout(
@@ -595,7 +610,9 @@ export async function ensureGuestSession(displayName?: string): Promise<AuthSess
         isGuest: true,
       };
     } catch (err) {
-      if (!isAnonDisabledError(err)) {
+      if (isAnonDisabledError(err)) {
+        markAnonDisabled();
+      } else {
         // On network/timeout errors, fall through to local guest instead of blocking the user
         const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
         if (

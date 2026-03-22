@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
 import { io, type Socket } from 'socket.io-client';
-import { useAuth } from './AuthContext';
+import { useAuthSafe } from './AuthContext';
 import { debugLog } from '../lib/debug';
 import { useToast } from './ToastContext';
 
@@ -26,7 +26,8 @@ export function useSocket() {
 
 export function SocketProvider({ children }: { children: ReactNode }) {
   const { showToast } = useToast();
-  const { authSession } = useAuth();
+  const auth = useAuthSafe();
+  const authSession = auth?.authSession ?? null;
 
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState(false);
@@ -55,6 +56,9 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     });
 
     setSocket(s);
+
+    // Expose socket for e2e testing
+    if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__testSocket = s;
 
     s.on('connect', () => {
       setConnected(true);

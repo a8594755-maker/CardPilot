@@ -4,7 +4,7 @@ export function getSeatLayout(n: number): Record<number, { top: string; left: st
   const cx = 50; // ellipse center X (%)
   const cy = 46; // ellipse center Y (%) — slightly above visual center of table image
   const rx = 40; // horizontal radius (%) (pulled inward)
-  const ry = 33; // vertical radius (%) — reduced to prevent bottom seats from being clipped by elliptical overflow
+  const ry = 30; // vertical radius (%) — reduced so hero seat clears the hero-strip cards below
   const result: Record<number, { top: string; left: string }> = {};
   for (let i = 0; i < n; i++) {
     // π/2 = bottom in screen coords; subtract to go clockwise

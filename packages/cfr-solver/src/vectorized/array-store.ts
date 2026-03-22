@@ -25,6 +25,21 @@ export class ArrayStore {
   /** Contiguous strategy sum storage: totalActions * numCombos floats */
   strategySums: Float32Array;
 
+  /**
+   * Create an ArrayStore pre-populated with raw buffers from WASM output.
+   */
+  static fromRawBuffers(
+    tree: FlatTree,
+    numCombos: number,
+    strategySums: Float32Array,
+    regrets: Float32Array,
+  ): ArrayStore {
+    const store = new ArrayStore(tree, numCombos);
+    store.strategySums.set(strategySums.subarray(0, store.strategySums.length));
+    store.regrets.set(regrets.subarray(0, store.regrets.length));
+    return store;
+  }
+
   constructor(tree: FlatTree, numCombos: number) {
     this.numCombos = numCombos;
     this.totalActions = tree.totalActions;

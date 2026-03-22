@@ -15,6 +15,8 @@ export interface UseAuthSessionReturn {
   displayName: string;
   setDisplayName: (name: string) => void;
   handleLogout: () => Promise<void>;
+  /** Accept an external auth session (e.g. local guest from AuthScreen) */
+  acceptSession: (session: AuthSession) => void;
   /** Stable ref to the latest access token (for socket auth) */
   socketAuthTokenRef: React.RefObject<string | undefined>;
   socketAuthUserId: string | undefined;
@@ -93,6 +95,12 @@ export function useAuthSession(showToast: (text: string) => void): UseAuthSessio
     setDisplayName('Guest');
   }, []);
 
+  const acceptSession = useCallback((session: AuthSession) => {
+    setAuthSession(session);
+    setUserEmail(session.email ?? null);
+    setDisplayName(session.displayName || session.email?.split('@')[0] || 'Guest');
+  }, []);
+
   return {
     authSession,
     authLoading,
@@ -100,6 +108,7 @@ export function useAuthSession(showToast: (text: string) => void): UseAuthSessio
     displayName,
     setDisplayName,
     handleLogout,
+    acceptSession,
     socketAuthTokenRef,
     socketAuthUserId: authSession?.userId,
   };

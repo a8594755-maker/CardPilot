@@ -41,7 +41,10 @@
     "compare-gto": "node --import tsx src/cli/compare-gto.ts",
     "convergence": "node --import tsx src/cli/convergence-test.ts",
     "self-play": "node --import tsx src/cli/self-play.ts",
-    "test": "node --import tsx --test src/__tests__/*.test.ts"
+    "test": "node --import tsx --test src/__tests__/*.test.ts",
+    "wasm:build": "C:/emsdk/upstream/emscripten/emcmake.bat \"C:/Program Files/CMake/bin/cmake.exe\" -G Ninja -DCMAKE_MAKE_PROGRAM=\"C:/Users/a8594/AppData/Local/Microsoft/WinGet/Packages/Ninja-build.Ninja_Microsoft.Winget.Source_8wekyb3d8bbwe/ninja.exe\" -B build/cpp -S cpp && \"C:/Users/a8594/AppData/Local/Microsoft/WinGet/Packages/Ninja-build.Ninja_Microsoft.Winget.Source_8wekyb3d8bbwe/ninja.exe\" -C build/cpp && cp build/cpp/cfr_core.js build/cpp/cfr_core.cjs",
+    "wasm:test": "node --import tsx src/scripts/test-wasm.ts",
+    "wasm:bench": "node --import tsx src/scripts/bench-wasm.ts"
   },
   "dependencies": {
     "@cardpilot/poker-evaluator": "*",

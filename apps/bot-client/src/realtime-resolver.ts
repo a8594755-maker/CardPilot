@@ -20,9 +20,11 @@ import { loadModel, type MLP } from '@cardpilot/fast-model';
 import { cardToIndex, comboIndex } from '@cardpilot/cfr-solver/src/abstraction/card-index.js';
 import {
   solveStreet,
+  solveStreetSync,
   type StreetSolveResult,
   type TransitionEvalFn,
 } from '@cardpilot/cfr-solver/src/vectorized/street-solver.js';
+import { preloadWasmModule } from '@cardpilot/cfr-solver/src/vectorized/wasm-cfr-bridge.js';
 import {
   resolveSubgame,
   type ResolveResult,
@@ -347,6 +349,12 @@ export class RealtimeResolver {
       this.log(`No value network at ${this.config.modelPath} — using MC heuristic`);
     }
 
+    // Preload WASM module in background (non-blocking)
+    preloadWasmModule().then((ok) => {
+      if (ok) this.log('WASM StreetSolver loaded — CFR iterations will use C++ SIMD');
+      else this.log('WASM not available — using TS CFR fallback');
+    });
+
     // Load preflop ranges
     try {
       const ranges = loadHUSRPRanges(this.config.chartsPath, this.config.rangeOptions);
@@ -452,7 +460,7 @@ export class RealtimeResolver {
     if (!result) {
       this.log(`Solving flop: [${board.map(indexToCardStr).join(', ')}]`);
 
-      result = solveStreet({
+      result = solveStreetSync({
         treeConfig: this.config.treeConfig,
         board,
         street: 'FLOP',

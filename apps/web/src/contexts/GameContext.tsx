@@ -13,6 +13,7 @@ import type {
   AdvicePayload,
   SettlementResult,
   SevenTwoBountyInfo,
+  TimerState,
 } from '@cardpilot/shared-types';
 import { useSocket } from './SocketContext';
 import { useRoom } from './RoomContext';
@@ -55,6 +56,9 @@ export type GameContextType = {
   boardReveal: BoardRevealState | null;
   lastActionBySeat: Record<number, { action: string; amount: number }>;
   preAction: PreAction | null;
+
+  // Timer
+  actionTimer: TimerState | null;
 
   // Features / Side Games
   postHandShowAvailable: boolean;
@@ -110,7 +114,7 @@ export function useGame() {
 
 export function GameProvider({ children }: { children: ReactNode }) {
   const { socket } = useSocket();
-  const { tableId } = useRoom();
+  const { tableId, currentRoomCode, currentRoomName } = useRoom();
   const { showToast } = useToast();
   const { authSession } = useAuth();
 
@@ -140,6 +144,48 @@ export function GameProvider({ children }: { children: ReactNode }) {
   >({});
   const [preAction, setPreAction] = useState<PreAction | null>(null);
 
+  // ── Timer ──
+  const serverTimerRef = useRef<TimerState | null>(null);
+  const [actionTimer, setActionTimer] = useState<TimerState | null>(null);
+
+  // Local tick: compute remaining from startedAt every 250ms
+  useEffect(() => {
+    if (!serverTimerRef.current) return;
+    const tick = () => {
+      const st = serverTimerRef.current;
+      if (!st) {
+        setActionTimer(null);
+        return;
+      }
+      const elapsed = (Date.now() - st.startedAt) / 1000;
+      if (st.usingTimeBank) {
+        const tbRemaining = Math.max(0, st.timeBankRemaining - elapsed);
+        setActionTimer({ ...st, timeBankRemaining: tbRemaining });
+      } else {
+        const remaining = Math.max(0, st.remaining - elapsed);
+        setActionTimer({ ...st, remaining });
+      }
+    };
+    tick();
+    const id = setInterval(tick, 250);
+    return () => clearInterval(id);
+  }, [serverTimerRef.current]);
+
+  const handleTimerUpdate = (t: TimerState | null) => {
+    serverTimerRef.current = t;
+    if (!t) {
+      setActionTimer(null);
+    } else {
+      // Immediately compute from startedAt
+      const elapsed = (Date.now() - t.startedAt) / 1000;
+      if (t.usingTimeBank) {
+        setActionTimer({ ...t, timeBankRemaining: Math.max(0, t.timeBankRemaining - elapsed) });
+      } else {
+        setActionTimer({ ...t, remaining: Math.max(0, t.remaining - elapsed) });
+      }
+    }
+  };
+
   // ── Features ──
   const [postHandShowAvailable, setPostHandShowAvailable] = useState(false);
   const [sevenTwoBountyPrompt, setSevenTwoBountyPrompt] = useState<{
@@ -160,6 +206,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const seatRef = useRef(seat);
   const holeCardsRef = useRef(holeCards);
   const latestSnapshotVersionRef = useRef(-1);
+  const currentRoomCodeRef = useRef(currentRoomCode);
+  const currentRoomNameRef = useRef(currentRoomName);
 
   // Sync refs
   useEffect(() => {
@@ -171,6 +219,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     holeCardsRef.current = holeCards;
   }, [holeCards]);
+  useEffect(() => {
+    currentRoomCodeRef.current = currentRoomCode;
+  }, [currentRoomCode]);
+  useEffect(() => {
+    currentRoomNameRef.current = currentRoomName;
+  }, [currentRoomName]);
 
   // ── Socket Events ──
   // We pass all state setters to the hook
@@ -199,10 +253,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setPostHandRevealedCards,
     setBombPotOverlayActive,
     setPreAction,
+    onTimerUpdate: handleTimerUpdate,
     snapshotRef,
     seatRef,
     holeCardsRef,
     latestSnapshotVersionRef,
+    currentRoomCodeRef,
+    currentRoomNameRef,
   });
 
   return (
@@ -222,6 +279,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
         boardReveal,
         lastActionBySeat,
         preAction,
+        actionTimer,
         postHandShowAvailable,
         sevenTwoBountyPrompt,
         sevenTwoBountyResult,

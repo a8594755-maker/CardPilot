@@ -10,6 +10,7 @@ import type {
 import { playUiSfxTone } from '../lib/audio';
 import { haptic } from '../lib/haptic';
 import type { PreAction } from '../lib/action-derivations';
+import { saveHand, autoTag, type HandActionRecord } from '../lib/hand-history';
 
 // Define state types for complex objects to ensure safety
 type AllInLockState = {
@@ -62,12 +63,15 @@ export interface UseGameSocketEventsProps {
   setPostHandRevealedCards: Dispatch<SetStateAction<PostHandRevealedCardsState>>;
   setBombPotOverlayActive: Dispatch<SetStateAction<{ anteAmount: number } | null>>;
   setPreAction: Dispatch<SetStateAction<PreAction | null>>;
+  onTimerUpdate: (t: any) => void;
 
   // Refs
   snapshotRef: MutableRefObject<TableState | null>;
   seatRef: MutableRefObject<number>;
   holeCardsRef: MutableRefObject<string[]>;
   latestSnapshotVersionRef: MutableRefObject<number>;
+  currentRoomCodeRef: MutableRefObject<string>;
+  currentRoomNameRef: MutableRefObject<string>;
 }
 
 export function useGameSocketEvents({
@@ -95,10 +99,13 @@ export function useGameSocketEvents({
   setPostHandRevealedCards,
   setBombPotOverlayActive: _setBombPotOverlayActive,
   setPreAction,
+  onTimerUpdate,
   snapshotRef,
   seatRef,
   holeCardsRef,
   latestSnapshotVersionRef,
+  currentRoomCodeRef,
+  currentRoomNameRef,
 }: UseGameSocketEventsProps) {
   const playUiSfx = (kind: any) => {
     try {
@@ -167,6 +174,7 @@ export function useGameSocketEvents({
       setSevenTwoBountyPrompt(null);
       setSevenTwoBountyResult(null);
       setPostHandRevealedCards({});
+      onTimerUpdate(null);
     };
 
     const onBoardReveal = (d: {
@@ -311,7 +319,78 @@ export function useGameSocketEvents({
         setPostHandRevealedCards({});
       }
 
-      setTimeout(() => setHoleCards([]), 800);
+      // Save hand to localStorage for local hand history
+      try {
+        const heroCards = holeCardsRef.current;
+        const heroSeat = seatRef.current;
+        const fs = d.finalState;
+        if (fs && heroCards.length >= 2 && heroSeat > 0) {
+          const heroPlayer = fs.players.find((p) => p.seat === heroSeat);
+          const heroLedger = d.settlement?.ledger.find((e) => e.seat === heroSeat);
+          const position = fs.positions?.[heroSeat] ?? 'BTN';
+          const actions: HandActionRecord[] = (fs.actions ?? []).map((a) => ({
+            seat: a.seat,
+            street: a.street ?? 'PREFLOP',
+            type: a.type,
+            amount: a.amount ?? 0,
+          }));
+          const playerNames: Record<number, string> = {};
+          const showdownHands: Record<number, [string, string] | 'mucked'> = {};
+          for (const p of fs.players) {
+            playerNames[p.seat] = p.name;
+            const revealed = fs.revealedHoles?.[p.seat];
+            if (revealed && revealed.length >= 2) {
+              showdownHands[p.seat] = [revealed[0], revealed[1]];
+            }
+          }
+
+          saveHand({
+            gameType: fs.gameType === 'omaha' ? 'PLO' : 'NLH',
+            stakes: `${fs.smallBlind}/${fs.bigBlind}`,
+            tableSize: fs.players.length,
+            position,
+            heroCards: [...heroCards],
+            board: [...(fs.board ?? [])],
+            runoutBoards: fs.runoutBoards ? fs.runoutBoards.map((b) => [...b]) : undefined,
+            doubleBoardPayouts: d.settlement?.doubleBoardPayouts,
+            actions,
+            actionTimeline: undefined,
+            potSize: d.settlement?.totalPot ?? fs.pot ?? 0,
+            stackSize: heroPlayer?.stack ?? 0,
+            result: heroLedger?.net ?? 0,
+            tags: autoTag(actions),
+            roomCode: currentRoomCodeRef.current || undefined,
+            roomName: currentRoomNameRef.current || undefined,
+            tableId: tableId ?? undefined,
+            handId: fs.handId ?? undefined,
+            endedAt: new Date().toISOString(),
+            heroSeat,
+            heroName: heroPlayer?.name,
+            smallBlind: fs.smallBlind,
+            bigBlind: fs.bigBlind,
+            playersCount: fs.players.length,
+            didWinAnyRun: d.settlement?.winnersByRun?.some((r) =>
+              r.winners.some((w) => w.seat === heroSeat),
+            ),
+            showdownHands: Object.keys(showdownHands).length > 0 ? showdownHands : undefined,
+            playerNames,
+            buttonSeat: fs.buttonSeat,
+            isBombPotHand: fs.isBombPotHand,
+            isDoubleBoardHand: fs.isDoubleBoardHand,
+          });
+        }
+      } catch {
+        // Non-critical — don't break the hand-ended flow
+      }
+
+      // Delay clearing hole cards so the hand-end summary can still show them.
+      // Guard against clearing a newer hand's cards by snapshotting the current handId.
+      const endedHandId = d.handId;
+      setTimeout(() => {
+        if (snapshotRef.current?.handId === endedHandId || !snapshotRef.current?.handId) {
+          setHoleCards([]);
+        }
+      }, 800);
     };
 
     const onSevenTwoBountyClaimed = (d: {
@@ -354,11 +433,16 @@ export function useGameSocketEvents({
     socket.on('showdown_results', onShowdownResults);
     socket.on('bomb_pot_queued', onBombPotQueued);
 
+    socket.on('error_event', (d: { message: string }) => {
+      console.warn('[socket] error_event:', d.message);
+      showToast(d.message);
+    });
     socket.on('advice_payload', (d) => setAdvice(d));
     socket.on('advice_deviation', (d) =>
       setDeviation({ deviation: d.deviation ?? 0, playerAction: d.playerAction }),
     );
     socket.on('room_state_update', (d) => setRoomState(d));
+    socket.on('timer_update', (d) => onTimerUpdate(d));
     socket.on('table_snapshot', (d) => applyAuthoritativeSnapshot(d, 'table_snapshot'));
 
     socket.on(
@@ -402,9 +486,11 @@ export function useGameSocketEvents({
       socket.off('seven_two_bounty_claimed', onSevenTwoBountyClaimed);
       socket.off('showdown_results', onShowdownResults);
       socket.off('bomb_pot_queued', onBombPotQueued);
+      socket.off('error_event');
       socket.off('advice_payload');
       socket.off('advice_deviation');
       socket.off('room_state_update');
+      socket.off('timer_update');
       socket.off('table_snapshot');
       socket.off('reveal_hole_cards');
       socket.off('post_hand_reveal');

@@ -417,7 +417,7 @@ export function BottomActionBar({
                     key={a.type}
                     disabled={!canAct || actionPending || !a.enabled}
                     onClick={() => {
-                      confirmAndAct('call');
+                      confirmAndAct('call', amt);
                       setShowRaiseSheet(false);
                       setShowUtilityMenu(false);
                     }}

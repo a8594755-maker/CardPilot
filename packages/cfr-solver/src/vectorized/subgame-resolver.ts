@@ -12,7 +12,7 @@
 
 import type { TreeConfig, Street } from '../types.js';
 import type { WeightedCombo } from '../integration/preflop-ranges.js';
-import { solveStreet, type StreetSolveResult } from './street-solver.js';
+import { solveStreet, solveStreetSync, type StreetSolveResult } from './street-solver.js';
 import { enumerateValidCombos, type ValidCombos } from './combo-utils.js';
 
 export interface ResolveRequest {
@@ -103,8 +103,8 @@ export function resolveSubgame(request: ResolveRequest): ResolveResult {
     effectiveStack: boundary.stacks[0], // assume symmetric for now
   };
 
-  // Solve the sub-street
-  const streetResult = solveStreet({
+  // Solve the sub-street (WASM if pre-loaded, else TS fallback)
+  const streetResult = solveStreetSync({
     treeConfig: adjustedConfig,
     board: newBoard,
     street,
@@ -209,8 +209,8 @@ export function solveWithResolving(params: {
     onProgress,
   } = params;
 
-  // Solve Flop
-  const flopResult = solveStreet({
+  // Solve Flop (WASM if pre-loaded, else TS fallback)
+  const flopResult = solveStreetSync({
     treeConfig,
     board: [...flopCards],
     street: 'FLOP',

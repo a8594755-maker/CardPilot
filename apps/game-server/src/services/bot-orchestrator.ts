@@ -134,7 +134,7 @@ export function syncBots(
           profile: cfg.profile,
           botName,
           userId,
-          delay: 800,
+          delay: 100,
         });
 
         const activeBot: ActiveBot = {

@@ -59,43 +59,24 @@ export interface InProcessBotConfig {
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, '../../../..');
 
-// Shared fast model (cfr-combined-v3 — fallback when resolver isn't ready)
+// Shared fast model (cfr-combined-v3 — trained on all 4 pipeline datasets)
 let sharedFastModel: MLP | null | undefined; // undefined = not yet loaded
 
 function getSharedFastModel(): MLP | null {
   if (sharedFastModel !== undefined) return sharedFastModel;
-  const modelPath = resolve(PROJECT_ROOT, 'models/cfr-combined-v3.json');
+  const modelPath = resolve(PROJECT_ROOT, 'models/vnet-v7-gpu.json');
   sharedFastModel = loadModel(modelPath);
   if (sharedFastModel) {
-    logInfo({ event: 'bot.model', message: `Shared fast model loaded: cfr-combined-v3.json` });
+    logInfo({ event: 'bot.model', message: `Shared fast model loaded: vnet-v7-gpu.json` });
   } else {
     logWarn({ event: 'bot.model', message: `Fast model not found at ${modelPath}` });
   }
   return sharedFastModel;
 }
 
-// Shared ResolverPool singleton (4 scenario-specific value networks)
-let sharedResolverPool: ResolverPool | null | undefined; // undefined = not yet initialized
-
-function getSharedResolverPool(): ResolverPool | null {
-  if (sharedResolverPool !== undefined) return sharedResolverPool;
-  const pool = new ResolverPool({
-    projectRoot: PROJECT_ROOT,
-    verbose: false,
-    flopIterations: 1000,
-    turnIterations: 500,
-    riverIterations: 300,
-  });
-  const loaded = pool.initialize();
-  if (loaded > 0) {
-    logInfo({ event: 'bot.resolver', message: `Shared ResolverPool: ${loaded}/4 scenarios ready` });
-    sharedResolverPool = pool;
-  } else {
-    logWarn({ event: 'bot.resolver', message: 'ResolverPool: no scenarios loaded — disabled' });
-    sharedResolverPool = null;
-  }
-  return sharedResolverPool;
-}
+// NOTE: ResolverPool is intentionally NOT loaded for in-process bots.
+// solveStreet() is synchronous and blocks the game server's event loop
+// for 500-2000ms per decision. The fast model (vnet-v7-gpu) is used instead.
 
 // ══════════════════════════════════════════════════════════════
 // Data collection directory (shared)
@@ -172,14 +153,13 @@ export class InProcessBot {
     this.opponentTracker = new OpponentTracker();
     this.traceLogger = new TraceLogger();
 
-    // ── Load shared fast model (cfr-combined-v3) + ResolverPool ──
+    // ── Load shared fast model (cfr-combined-v3) ──
+    // NOTE: ResolverPool is intentionally disabled for in-process bots.
+    // solveStreet() is synchronous and blocks the game server's event loop
+    // for 500-2000ms per decision. The fast model produces good results in <1ms.
     this.fastModel = getSharedFastModel();
-    this.resolverPool = getSharedResolverPool();
     if (this.fastModel) {
       this.log('Fast model loaded (cfr-combined-v3)');
-    }
-    if (this.resolverPool) {
-      this.log(`ResolverPool: ${this.resolverPool.size}/4 scenarios ready`);
     }
 
     // ── Ensure data directory exists ──
@@ -527,30 +507,36 @@ export class InProcessBot {
       baseDelay: this.actDelay,
     });
 
-    // Wait for advice with polling, then act
-    const adviceDeadline = Date.now() + 3500;
+    // If bot has resolverPool or fastModel, act immediately after thinking time
+    // (resolver is tier 0.5 — higher priority than server advice tier 1)
+    const hasLocalSolver = !!(this.resolverPool || this.fastModel);
 
-    const checkAndAct = () => {
+    const actAfterDelay = () => {
       if (this.destroyed) return;
-      if (this.pendingAdvice) {
+      if (hasLocalSolver || this.pendingAdvice) {
         this.act(state);
         return;
       }
-      if (Date.now() < adviceDeadline) {
+      // No local solver — poll for server advice (max 1500ms)
+      const adviceDeadline = Date.now() + 1500;
+      const checkAndAct = () => {
+        if (this.destroyed) return;
+        if (this.pendingAdvice || Date.now() >= adviceDeadline) {
+          this.act(state);
+          return;
+        }
         this.schedule(checkAndAct, 200);
-        return;
-      }
-      this.log('Advice timeout, using fallback');
-      this.act(state);
+      };
+      checkAndAct();
     };
 
     // Two-stage thinking time
     if (thinkingTime.twoStage) {
       this.schedule(() => {
-        this.schedule(checkAndAct, thinkingTime.secondStageMs);
+        this.schedule(actAfterDelay, thinkingTime.secondStageMs);
       }, thinkingTime.firstStageMs);
     } else {
-      this.schedule(checkAndAct, thinkingTime.delayMs);
+      this.schedule(actAfterDelay, thinkingTime.delayMs);
     }
   }
 
@@ -616,70 +602,76 @@ export class InProcessBot {
     if (this.destroyed) return;
     if (!this.tableId || !state.handId || !state.legalActions) return;
 
-    const advice = this.pendingAdvice;
-    this.pendingAdvice = null;
+    try {
+      const advice = this.pendingAdvice;
+      this.pendingAdvice = null;
 
-    const adaptiveAdj = computeAdaptiveAdjustments(this.sessionStats);
+      const adaptiveAdj = computeAdaptiveAdjustments(this.sessionStats);
 
-    // Compute opponent adjustment for the raiser (if facing one)
-    const raiseContext = analyzeRaiseContext(state, this.mySeat);
-    let opponentAdj;
-    if (raiseContext.raiserSeat != null) {
-      const situation =
-        state.street === 'FLOP' && raiseContext.facingType === 'facing_open'
-          ? ('facing_cbet' as const)
-          : raiseContext.facingType !== 'unopened'
-            ? ('facing_raise' as const)
-            : ('general' as const);
-      opponentAdj = this.opponentTracker.computeAdjustment(raiseContext.raiserSeat, situation);
+      // Compute opponent adjustment for the raiser (if facing one)
+      const raiseContext = analyzeRaiseContext(state, this.mySeat);
+      let opponentAdj;
+      if (raiseContext.raiserSeat != null) {
+        const situation =
+          state.street === 'FLOP' && raiseContext.facingType === 'facing_open'
+            ? ('facing_cbet' as const)
+            : raiseContext.facingType !== 'unopened'
+              ? ('facing_raise' as const)
+              : ('general' as const);
+        opponentAdj = this.opponentTracker.computeAdjustment(raiseContext.raiserSeat, situation);
+      }
+
+      // Track hand strength for bad beat detection
+      if (this.myCards) {
+        this.lastHandStrength = quickHandStrength(this.myCards, state.board, state.street);
+      }
+
+      const result = decide({
+        state,
+        profile: this.profile,
+        advice,
+        holeCards: this.myCards,
+        mySeat: this.mySeat,
+        adaptiveAdj,
+        persona: this.persona,
+        moodState: this.moodState,
+        opponentAdj,
+        handNumber: this.handNumber,
+        fastModel: this.fastModel,
+        resolverPool: this.resolverPool,
+      });
+
+      this.log(
+        `Hand ${state.handId.slice(0, 8)} ${state.street} pot=${state.pot} → ${result.action}` +
+          `${result.amount != null ? ` ${result.amount}` : ''} (${result.reasoning})`,
+      );
+
+      if (result.trace) {
+        this.traceLogger.log(result.trace);
+      }
+
+      const facingRaise = (state.legalActions.callAmount ?? 0) > (state.bigBlind || 1);
+      recordAction(this.sessionStats, result.action, facingRaise);
+
+      this.emitAction(state, result.action, result.amount);
+    } catch (err) {
+      this.warn(`decide() threw: ${(err as Error).message}`);
+      // Fallback: check if possible, otherwise fold
+      const fallbackAction = state.legalActions!.canCheck ? 'check' : 'fold';
+      this.log(`Fallback action: ${fallbackAction}`);
+      this.emitAction(state, fallbackAction);
     }
+  }
 
-    // Track hand strength for bad beat detection
-    if (this.myCards) {
-      this.lastHandStrength = quickHandStrength(this.myCards, state.board, state.street);
-    }
-
-    const result = decide({
-      state,
-      profile: this.profile,
-      advice,
-      holeCards: this.myCards,
-      mySeat: this.mySeat,
-      adaptiveAdj,
-      persona: this.persona,
-      moodState: this.moodState,
-      opponentAdj,
-      handNumber: this.handNumber,
-      fastModel: this.fastModel,
-      resolverPool: this.resolverPool,
-    });
-
-    this.log(
-      `Hand ${state.handId.slice(0, 8)} ${state.street} pot=${state.pot} → ${result.action}` +
-        `${result.amount != null ? ` ${result.amount}` : ''} (${result.reasoning})`,
-    );
-
-    if (result.trace) {
-      this.traceLogger.log(result.trace);
-    }
-
-    const facingRaise = (state.legalActions.callAmount ?? 0) > (state.bigBlind || 1);
-    recordAction(this.sessionStats, result.action, facingRaise);
-
-    const payload: {
-      tableId: string;
-      handId: string;
-      action: string;
-      amount?: number;
-    } = {
-      tableId: this.tableId,
-      handId: state.handId,
-      action: result.action,
+  private emitAction(state: TableState, action: string, amount?: number): void {
+    const payload: { tableId: string; handId: string; action: string; amount?: number } = {
+      tableId: this.tableId!,
+      handId: state.handId!,
+      action,
     };
-    if (result.amount != null) {
-      payload.amount = result.amount;
+    if (amount != null) {
+      payload.amount = amount;
     }
-
     this.socket.emit('action_submit', payload);
   }
 }

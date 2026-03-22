@@ -1,23 +1,38 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
 import { useGame } from '../contexts/GameContext';
+
 import { useTableScale } from '../hooks/useTableScale';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useChipAnimationDriver, type ChipAnimationAnchors } from '../hooks/useChipAnimationDriver';
-import { Table } from './poker-table/Table';
+import { SeatChip } from './SeatChip';
+import { PokerCard } from './PokerCard';
 import { ChipAnimationLayer } from './ChipAnimationLayer';
 import { loadAnimationSpeed, type AnimationSpeed } from '../lib/chip-animation';
-import type { TableSnapshotPayload } from '@cardpilot/shared-types';
+import { formatChips } from '../lib/format-chips';
+import { getSeatLayout, mapSeatToVisualIndex } from '../lib/seat-layout';
 
-export function TableContainer() {
-  const { snapshot, roomState, seat, holeCards, settlement, sevenTwoRevealActive } = useGame();
+interface TableContainerProps {
+  onSeatClick?: (seatNum: number) => void;
+}
+
+export function TableContainer({ onSeatClick }: TableContainerProps) {
+  const {
+    snapshot,
+    roomState,
+    seat,
+    holeCards,
+    settlement,
+    sevenTwoRevealActive,
+    lastActionBySeat,
+    actionTimer,
+  } = useGame();
 
   const tableStageRef = useRef<HTMLDivElement>(null);
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const potRef = useRef<HTMLDivElement>(null);
   const seatRefs = useRef<Record<number, HTMLElement | null>>({});
 
-  // Chip animation speed state
-  const [chipAnimSpeed, _setChipAnimSpeed] = useState<AnimationSpeed>(loadAnimationSpeed);
+  const [chipAnimSpeed] = useState<AnimationSpeed>(loadAnimationSpeed);
 
   const _isMobile = useIsMobile();
   const [isMobilePortrait, setIsMobilePortrait] = useState(() => {
@@ -45,7 +60,6 @@ export function TableContainer() {
     enabled: true,
   });
 
-  // Re-create anchors object on each render so driver reads live DOM refs
   const chipAnchorsLive: ChipAnimationAnchors = {
     container: tableContainerRef.current,
     pot: potRef.current,
@@ -60,7 +74,6 @@ export function TableContainer() {
     onBountyClaim: chipOnBountyClaim,
   } = useChipAnimationDriver(chipAnchorsLive, chipAnimSpeed);
 
-  // Drive animations from GameContext state updates
   useEffect(() => {
     if (snapshot) chipOnSnapshot(snapshot);
   }, [snapshot, chipOnSnapshot]);
@@ -73,23 +86,73 @@ export function TableContainer() {
     if (sevenTwoRevealActive) chipOnBountyClaim(sevenTwoRevealActive);
   }, [sevenTwoRevealActive, chipOnBountyClaim]);
 
-  // Combine snapshot and roomState to match TableProps requirements
-  const tableSnapshot = useMemo<TableSnapshotPayload | null>(() => {
-    if (!snapshot) return null;
-    return {
-      ...snapshot,
-      // Map missing properties from RoomFullState or defaults
-      roomId: roomState?.tableId ?? snapshot.tableId,
-      roomCode: roomState?.roomCode ?? '???',
-      name: roomState?.roomName ?? 'Table',
-      status: roomState?.status ?? 'OPEN',
-      // Ensure we satisfy TableSnapshotPayload interface
-      maxPlayers: roomState?.settings?.maxPlayers ?? 9,
-      isPublic: roomState?.settings?.visibility === 'public',
-    } as unknown as TableSnapshotPayload;
-    // using unknown cast as safety hatch if types are slightly mismatched in strict check
-    // effectively we are polyfilling the display fields Table.tsx needs
-  }, [snapshot, roomState]);
+  // Seat layout
+  const maxPlayers = roomState?.settings?.maxPlayers ?? 6;
+  const seatPositions = useMemo(() => getSeatLayout(maxPlayers), [maxPlayers]);
+
+  const seatElements = useMemo(() => {
+    return Array.from({ length: maxPlayers }, (_, i) => i + 1).map((seatNum) => {
+      const visualSeatNum =
+        seat == null ? seatNum : mapSeatToVisualIndex(seatNum, seat, maxPlayers);
+      const pos = seatPositions[visualSeatNum];
+      const player = snapshot?.players.find((p) => p.seat === seatNum);
+      const isActor = snapshot?.actorSeat === seatNum;
+      const isMe = seatNum === seat;
+      const isOwner = player && roomState?.ownership.ownerId === player.userId;
+      const isCo = player && roomState?.ownership.coHostIds.includes(player.userId);
+      const posLabel = snapshot?.positions?.[seatNum] ?? '';
+      const isButton = snapshot?.buttonSeat === seatNum && !!snapshot?.handId;
+      const revealedCards = snapshot?.revealedHoles?.[seatNum] as [string, string] | undefined;
+      const isMucked = snapshot?.muckedSeats?.includes(seatNum) ?? false;
+      const winnerHandName = snapshot?.winners?.find(
+        (w: { seat: number; handName?: string }) => w.seat === seatNum,
+      )?.handName;
+
+      return (
+        <div
+          key={seatNum}
+          ref={(el) => {
+            seatRefs.current[seatNum] = el;
+          }}
+          className="absolute -translate-x-1/2 -translate-y-1/2"
+          style={{ top: pos?.top, left: pos?.left }}
+        >
+          <SeatChip
+            player={player}
+            seatNum={seatNum}
+            isActor={!!isActor}
+            isMe={isMe}
+            isOwner={!!isOwner}
+            isCoHost={!!isCo}
+            isBot={player?.isBot}
+            timer={actionTimer?.seat === seatNum && !player?.isBot ? actionTimer : null}
+            timerTotal={roomState?.settings.actionTimerSeconds ?? 15}
+            posLabel={posLabel}
+            isButton={isButton}
+            bigBlind={snapshot?.bigBlind ?? 3}
+            lastAction={lastActionBySeat?.[seatNum] ?? null}
+            revealedCards={revealedCards}
+            revealedHandName={winnerHandName}
+            isMucked={isMucked}
+            onClickEmpty={onSeatClick}
+          />
+        </div>
+      );
+    });
+  }, [
+    snapshot,
+    seat,
+    roomState,
+    maxPlayers,
+    seatPositions,
+    lastActionBySeat,
+    onSeatClick,
+    actionTimer,
+  ]);
+
+  const board = snapshot?.board ?? [];
+  const totalPot = snapshot?.pot ?? 0;
+  const bb = snapshot?.bigBlind ?? 3;
 
   return (
     <div
@@ -97,34 +160,64 @@ export function TableContainer() {
       className="flex-1 relative overflow-hidden bg-slate-950 flex items-center justify-center"
     >
       <div
-        ref={tableContainerRef}
-        style={{
-          width: isMobilePortrait ? 500 : 1600,
-          height: 900,
-          transform: `scale(${tableScale})`,
-          transformOrigin: 'center center',
-        }}
-        className="relative"
+        className="cp-table-scale-frame"
+        style={{ '--cp-table-scale': tableScale } as React.CSSProperties}
       >
-        <Table
-          snapshot={tableSnapshot}
-          mySeatIndex={seat}
-          holeCards={holeCards as [string, string]}
-          onSeatClick={(s) => console.log('Seat clicked', s)}
-        />
+        <div className="cp-table-scale-layer">
+          <div ref={tableContainerRef} className="cp-table-canvas">
+            <div className="cp-table-felt cp-table-felt--green" />
 
-        {/* Pot Ref Anchor (invisible or overlaid) */}
-        <div
-          ref={potRef}
-          className="absolute top-[35%] left-1/2 -translate-x-1/2 w-16 h-16 pointer-events-none"
-        />
+            {/* Community cards */}
+            <div className="cp-table-center">
+              <div className="cp-board-row cp-board-row--single">
+                {board.length > 0
+                  ? board.map((c: string, i: number) => (
+                      <div key={`${snapshot?.handId ?? 'h'}-${i}`}>
+                        <PokerCard card={c} variant="table" />
+                      </div>
+                    ))
+                  : Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="cp-board-slot" />
+                    ))}
+              </div>
+            </div>
 
-        <ChipAnimationLayer
-          transfers={chipTransfers}
-          onTransferDone={removeTransfer}
-          speed={chipAnimSpeed}
-        />
+            {/* Pot */}
+            <div ref={potRef} className="cp-pot-anchor">
+              {totalPot > 0 && (
+                <div className="cp-pot-pill">
+                  <div className="flex items-center justify-between gap-4 text-slate-300 uppercase tracking-wider text-base">
+                    <span className="font-semibold">Pot</span>
+                    <span className="text-amber-400 font-bold cp-num normal-case text-xl">
+                      {formatChips(totalPot, { mode: 'chips', bbSize: bb })}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Seats */}
+            <div className="cp-seat-ring">{seatElements}</div>
+
+            {/* Chip animations */}
+            <ChipAnimationLayer
+              transfers={chipTransfers}
+              onTransferDone={removeTransfer}
+              speed={chipAnimSpeed}
+            />
+          </div>
+        </div>
       </div>
+
+      {/* Hero cards */}
+      {holeCards.length > 0 && (
+        <div className="cp-hero-strip">
+          <span className="text-[9px] text-slate-500 uppercase tracking-wider mr-1">Your Hand</span>
+          {holeCards.map((c, i) => (
+            <PokerCard key={i} card={c} variant="table" />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

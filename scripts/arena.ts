@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 /**
  * arena.ts — Bot vs Bot (HU), with optional parallel tables via child_process
- * Usage: npx tsx scripts/arena.ts [--hands N] [--tables T] [--a v4] [--b v3]
+ * Usage: npx tsx scripts/arena.ts [--hands N] [--tables T] [--a v4] [--b v3] [--resolver a|b]
  *
  * Single table:  npx tsx scripts/arena.ts --hands 5000
  * 100 tables:    npx tsx scripts/arena.ts --tables 100 --hands 1000
@@ -46,14 +46,16 @@ async function runParallel(
   handsPerTable: number,
   nameA: string,
   nameB: string,
+  resolverFor: string | null,
 ): Promise<void> {
   const totalHands = numTables * handsPerTable;
   const sessionScript = resolve(__dirname, 'arena-session.ts');
   // Use node + inherited tsx execArgv so .ts files resolve correctly on all platforms
   const nodeArgs = [...process.execArgv, sessionScript];
+  const resolverArgs = resolverFor ? ['--resolver', resolverFor] : [];
 
   console.log(
-    `Spawning ${numTables} workers × ${handsPerTable} hands = ${totalHands.toLocaleString()} total\n`,
+    `Spawning ${numTables} workers × ${handsPerTable} hands = ${totalHands.toLocaleString()} total${resolverFor ? ` (resolver: ${resolverFor})` : ''}\n`,
   );
 
   const allResults: number[] = [];
@@ -64,7 +66,16 @@ async function runParallel(
     return new Promise<void>((resolve, reject) => {
       const child = spawn(
         process.execPath,
-        [...nodeArgs, '--hands', String(handsPerTable), '--a', nameA, '--b', nameB],
+        [
+          ...nodeArgs,
+          '--hands',
+          String(handsPerTable),
+          '--a',
+          nameA,
+          '--b',
+          nameB,
+          ...resolverArgs,
+        ],
         { stdio: ['ignore', 'pipe', 'pipe'] },
       );
 
@@ -110,12 +121,19 @@ async function runParallel(
   printResults(allResults, nameA, nameB, numTables);
 }
 
-function runSingle(numHands: number, handsPerTable: number, nameA: string, nameB: string): void {
+function runSingle(
+  numHands: number,
+  handsPerTable: number,
+  nameA: string,
+  nameB: string,
+  resolverFor: string | null,
+): void {
   const sessionScript = resolve(__dirname, 'arena-session.ts');
   const nodeArgs = [...process.execArgv, sessionScript];
+  const resolverArgs = resolverFor ? ['--resolver', resolverFor] : [];
   const child = spawn(
     process.execPath,
-    [...nodeArgs, '--hands', String(numHands), '--a', nameA, '--b', nameB],
+    [...nodeArgs, '--hands', String(numHands), '--a', nameA, '--b', nameB, ...resolverArgs],
     { stdio: ['ignore', 'pipe', 'inherit'] },
   );
   let stdout = '';
@@ -136,21 +154,26 @@ let numHands = 5000;
 let numTables = 1;
 let nameA = 'v4';
 let nameB = 'v3';
+let resolverFor: string | null = null;
 
 for (let i = 0; i < args.length; i++) {
   if (args[i] === '--hands' && args[i + 1]) numHands = parseInt(args[++i], 10);
   if (args[i] === '--tables' && args[i + 1]) numTables = parseInt(args[++i], 10);
   if (args[i] === '--a' && args[i + 1]) nameA = args[++i];
   if (args[i] === '--b' && args[i + 1]) nameB = args[++i];
+  if (args[i] === '--resolver' && args[i + 1]) resolverFor = args[++i];
 }
 
 const handsPerTable = numTables > 1 ? Math.ceil(numHands / numTables) : numHands;
-console.log(`Arena: ${nameA} vs ${nameB}  |  ${numTables} table(s) × ${handsPerTable} hands`);
+const resolverLabel = resolverFor ? `  resolver: ${resolverFor}` : '';
+console.log(
+  `Arena: ${nameA} vs ${nameB}  |  ${numTables} table(s) × ${handsPerTable} hands${resolverLabel}`,
+);
 
 if (numTables === 1) {
-  runSingle(numHands, handsPerTable, nameA, nameB);
+  runSingle(numHands, handsPerTable, nameA, nameB, resolverFor);
 } else {
-  runParallel(numTables, handsPerTable, nameA, nameB).catch((err) => {
+  runParallel(numTables, handsPerTable, nameA, nameB, resolverFor).catch((err) => {
     console.error(err);
     process.exit(1);
   });

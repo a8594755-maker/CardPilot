@@ -15,8 +15,11 @@ import type { FlatTree } from './flat-tree.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const _require = createRequire(import.meta.url);
 
-// Path to compiled WASM module
-const WASM_JS_PATH = join(__dirname, '..', '..', 'build', 'cpp', 'cfr_core.cjs');
+// Path to compiled WASM module (try .cjs first, fall back to .js)
+const WASM_CJS_PATH = join(__dirname, '..', '..', 'build', 'cpp', 'cfr_core.cjs');
+const WASM_JS_PATH = existsSync(WASM_CJS_PATH)
+  ? WASM_CJS_PATH
+  : join(__dirname, '..', '..', 'build', 'cpp', 'cfr_core.js');
 
 interface EmscriptenModule {
   _malloc(size: number): number;
@@ -27,6 +30,7 @@ interface EmscriptenModule {
   HEAP32: Int32Array;
   HEAP8: Int8Array;
   CfrSolver: new () => WasmCfrSolver;
+  StreetSolver: new () => WasmStreetSolver;
 }
 
 interface WasmCfrSolver {
@@ -405,6 +409,23 @@ export function isWasmAvailable(): boolean {
 }
 
 /**
+ * Preload the WASM module asynchronously.
+ * Call at startup so subsequent sync calls can use the cached module.
+ */
+export async function preloadWasmModule(): Promise<boolean> {
+  const mod = await loadWasmModule();
+  return mod !== null;
+}
+
+/**
+ * Get the already-loaded WASM module synchronously.
+ * Returns null if not yet loaded or loading failed.
+ */
+export function getLoadedWasmModule(): EmscriptenModule | null {
+  return _module;
+}
+
+/**
  * Params for river batch solving via WASM.
  */
 export interface RiverBatchParams {
@@ -661,6 +682,322 @@ export async function solveTurnRiversWasm(params: WasmMineParams): Promise<WasmM
     for (const ptr of ptrs) {
       module._free(ptr);
     }
+    solver.destroy();
+  }
+}
+
+// ═══════════════════════════════════════════════
+// Per-Street WASM API
+// ═══════════════════════════════════════════════
+
+interface WasmStreetSolver {
+  init(
+    nodePlayer: number,
+    nodeNumActions: number,
+    nodeActionOffset: number,
+    childNodeId: number,
+    terminalPot: number,
+    terminalStacks: number,
+    terminalIsShowdown: number,
+    terminalFolder: number,
+    numNodes: number,
+    numTerminals: number,
+    totalActions: number,
+    boardCards: number,
+    boardLen: number,
+    comboCards: number,
+    numCombos: number,
+    oopReach: number,
+    ipReach: number,
+  ): void;
+  solve(iterations: number): void;
+  enableTransitionCallback(cb: (...args: number[]) => void): void;
+  disableTransitionCallback(): void;
+  getStrategySumsPtr(): number;
+  getStrategySumsLen(): number;
+  getRegretsPtr(): number;
+  getRegretsLen(): number;
+  getNC(): number;
+  destroy(): void;
+}
+
+/**
+ * Callback type for street-transition terminals.
+ * Same signature as TransitionEvalFn from street-solver.ts.
+ */
+export type StreetTransitionCallbackFn = (
+  combos: Array<[number, number]>,
+  board: number[],
+  pot: number,
+  oopReach: Float32Array,
+  ipReach: Float32Array,
+  blockerMatrix: Uint8Array,
+  numCombos: number,
+  traverser: number,
+  stacks: number[],
+  outEV: Float32Array,
+) => void;
+
+export interface WasmStreetSolveParams {
+  tree: FlatTree;
+  board: number[];
+  comboCards: Int32Array; // [nc * 2]
+  combos: Array<[number, number]>; // for transition callback
+  numCombos: number;
+  oopReach: Float32Array;
+  ipReach: Float32Array;
+  iterations: number;
+  blockerMatrix?: Uint8Array; // needed for transition callback
+  transitionEvalFn?: StreetTransitionCallbackFn;
+}
+
+export interface WasmStreetSolveResult {
+  strategySums: Float32Array;
+  regrets: Float32Array;
+  nc: number;
+}
+
+/**
+ * Solve a single-street tree using the C++ WASM StreetSolver.
+ * Returns null if WASM is not available (caller should fall back to TS).
+ */
+export async function solveStreetWasm(
+  params: WasmStreetSolveParams,
+): Promise<WasmStreetSolveResult | null> {
+  const module = await loadWasmModule();
+  if (!module) return null;
+
+  // Check StreetSolver class exists (may be absent in older WASM builds)
+  if (!module.StreetSolver) return null;
+
+  const solver = new module.StreetSolver();
+  const ptrs: number[] = [];
+
+  try {
+    const tree = params.tree;
+
+    // Copy tree arrays to WASM heap
+    const pNodePlayer = copyToWasm(module, tree.nodePlayer);
+    ptrs.push(pNodePlayer);
+    const pNodeNumActions = copyToWasm(module, tree.nodeNumActions);
+    ptrs.push(pNodeNumActions);
+    const pNodeActionOffset = copyToWasm(module, tree.nodeActionOffset);
+    ptrs.push(pNodeActionOffset);
+    const pChildNodeId = copyToWasm(module, tree.childNodeId);
+    ptrs.push(pChildNodeId);
+    const pTerminalPot = copyToWasm(module, tree.terminalPot);
+    ptrs.push(pTerminalPot);
+    const pTerminalStacks = copyToWasm(module, tree.terminalStacks);
+    ptrs.push(pTerminalStacks);
+    const pTerminalIsShowdown = copyToWasm(module, tree.terminalIsShowdown);
+    ptrs.push(pTerminalIsShowdown);
+    const pTerminalFolder = copyToWasm(module, tree.terminalFolder);
+    ptrs.push(pTerminalFolder);
+
+    // Copy board
+    const boardArr = new Int32Array(params.board);
+    const pBoard = copyToWasm(module, boardArr);
+    ptrs.push(pBoard);
+
+    // Copy combo cards
+    const pComboCards = copyToWasm(module, params.comboCards);
+    ptrs.push(pComboCards);
+
+    // Copy reaches
+    const pOopReach = copyToWasm(module, params.oopReach);
+    ptrs.push(pOopReach);
+    const pIpReach = copyToWasm(module, params.ipReach);
+    ptrs.push(pIpReach);
+
+    // Init solver
+    solver.init(
+      pNodePlayer,
+      pNodeNumActions,
+      pNodeActionOffset,
+      pChildNodeId,
+      pTerminalPot,
+      pTerminalStacks,
+      pTerminalIsShowdown,
+      pTerminalFolder,
+      tree.numNodes,
+      tree.numTerminals,
+      tree.totalActions,
+      pBoard,
+      params.board.length,
+      pComboCards,
+      params.numCombos,
+      pOopReach,
+      pIpReach,
+    );
+
+    // Set up transition callback if provided
+    const useTransition = !!params.transitionEvalFn;
+    if (useTransition) {
+      const evalFn = params.transitionEvalFn!;
+      const combos = params.combos;
+      const board = params.board;
+      const blockerMatrix = params.blockerMatrix!;
+      const nc = params.numCombos;
+
+      solver.enableTransitionCallback(
+        (
+          _ti: number,
+          _nc: number,
+          pot: number,
+          s0: number,
+          s1: number,
+          oopPtr: number,
+          ipPtr: number,
+          trav: number,
+          outPtr: number,
+        ) => {
+          // Create views into WASM heap (note: these are views, not copies)
+          const oopReach = new Float32Array(module.HEAPF32.buffer, oopPtr, nc);
+          const ipReach = new Float32Array(module.HEAPF32.buffer, ipPtr, nc);
+          const outEV = new Float32Array(module.HEAPF32.buffer, outPtr, nc);
+          evalFn(combos, board, pot, oopReach, ipReach, blockerMatrix, nc, trav, [s0, s1], outEV);
+        },
+      );
+    }
+
+    // Solve
+    solver.solve(params.iterations);
+
+    // Disable callback before reading results
+    if (useTransition) {
+      solver.disableTransitionCallback();
+    }
+
+    // Read results from WASM heap (copy to TS-owned buffers)
+    const sumsPtr = solver.getStrategySumsPtr();
+    const sumsLen = solver.getStrategySumsLen();
+    const regretsPtr = solver.getRegretsPtr();
+    const regretsLen = solver.getRegretsLen();
+    const nc = solver.getNC();
+
+    const strategySums = new Float32Array(module.HEAPF32.buffer, sumsPtr, sumsLen).slice();
+    const regrets = new Float32Array(module.HEAPF32.buffer, regretsPtr, regretsLen).slice();
+
+    return { strategySums, regrets, nc };
+  } finally {
+    for (const ptr of ptrs) {
+      module._free(ptr);
+    }
+    solver.destroy();
+  }
+}
+
+/**
+ * Synchronous version of solveStreetWasm.
+ * Only works if the WASM module has been preloaded via preloadWasmModule().
+ * Returns null if WASM is not available.
+ */
+export function solveStreetWasmSync(params: WasmStreetSolveParams): WasmStreetSolveResult | null {
+  const module = _module;
+  if (!module) return null;
+  if (!module.StreetSolver) return null;
+
+  const solver = new module.StreetSolver();
+  const ptrs: number[] = [];
+
+  try {
+    const tree = params.tree;
+
+    const pNodePlayer = copyToWasm(module, tree.nodePlayer);
+    ptrs.push(pNodePlayer);
+    const pNodeNumActions = copyToWasm(module, tree.nodeNumActions);
+    ptrs.push(pNodeNumActions);
+    const pNodeActionOffset = copyToWasm(module, tree.nodeActionOffset);
+    ptrs.push(pNodeActionOffset);
+    const pChildNodeId = copyToWasm(module, tree.childNodeId);
+    ptrs.push(pChildNodeId);
+    const pTerminalPot = copyToWasm(module, tree.terminalPot);
+    ptrs.push(pTerminalPot);
+    const pTerminalStacks = copyToWasm(module, tree.terminalStacks);
+    ptrs.push(pTerminalStacks);
+    const pTerminalIsShowdown = copyToWasm(module, tree.terminalIsShowdown);
+    ptrs.push(pTerminalIsShowdown);
+    const pTerminalFolder = copyToWasm(module, tree.terminalFolder);
+    ptrs.push(pTerminalFolder);
+
+    const boardArr = new Int32Array(params.board);
+    const pBoard = copyToWasm(module, boardArr);
+    ptrs.push(pBoard);
+
+    const pComboCards = copyToWasm(module, params.comboCards);
+    ptrs.push(pComboCards);
+
+    const pOopReach = copyToWasm(module, params.oopReach);
+    ptrs.push(pOopReach);
+    const pIpReach = copyToWasm(module, params.ipReach);
+    ptrs.push(pIpReach);
+
+    solver.init(
+      pNodePlayer,
+      pNodeNumActions,
+      pNodeActionOffset,
+      pChildNodeId,
+      pTerminalPot,
+      pTerminalStacks,
+      pTerminalIsShowdown,
+      pTerminalFolder,
+      tree.numNodes,
+      tree.numTerminals,
+      tree.totalActions,
+      pBoard,
+      params.board.length,
+      pComboCards,
+      params.numCombos,
+      pOopReach,
+      pIpReach,
+    );
+
+    const useTransition = !!params.transitionEvalFn;
+    if (useTransition) {
+      const evalFn = params.transitionEvalFn!;
+      const combos = params.combos;
+      const board = params.board;
+      const blockerMatrix = params.blockerMatrix!;
+      const nc = params.numCombos;
+
+      solver.enableTransitionCallback(
+        (
+          _ti: number,
+          _nc: number,
+          pot: number,
+          s0: number,
+          s1: number,
+          oopPtr: number,
+          ipPtr: number,
+          trav: number,
+          outPtr: number,
+        ) => {
+          const oopReach = new Float32Array(module.HEAPF32.buffer, oopPtr, nc);
+          const ipReach = new Float32Array(module.HEAPF32.buffer, ipPtr, nc);
+          const outEV = new Float32Array(module.HEAPF32.buffer, outPtr, nc);
+          evalFn(combos, board, pot, oopReach, ipReach, blockerMatrix, nc, trav, [s0, s1], outEV);
+        },
+      );
+    }
+
+    solver.solve(params.iterations);
+
+    if (useTransition) {
+      solver.disableTransitionCallback();
+    }
+
+    const sumsPtr = solver.getStrategySumsPtr();
+    const sumsLen = solver.getStrategySumsLen();
+    const regretsPtr = solver.getRegretsPtr();
+    const regretsLen = solver.getRegretsLen();
+    const nc = solver.getNC();
+
+    const strategySums = new Float32Array(module.HEAPF32.buffer, sumsPtr, sumsLen).slice();
+    const regrets = new Float32Array(module.HEAPF32.buffer, regretsPtr, regretsLen).slice();
+
+    return { strategySums, regrets, nc };
+  } finally {
+    for (const ptr of ptrs) module._free(ptr);
     solver.destroy();
   }
 }

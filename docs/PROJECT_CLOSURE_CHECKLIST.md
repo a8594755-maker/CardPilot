@@ -1,5 +1,7 @@
 # Project Closure Checklist
 
+> Final release handoff: see `docs/RELEASE_HANDOFF.md`. This checklist remains as the source closure checklist.
+
 Last updated: 2026-03-18
 
 ## Current release state

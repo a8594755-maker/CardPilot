@@ -94,20 +94,35 @@ function resolveSpot(
     return openSpots[heroPosition] ?? null;
   }
 
-  // BB defense: hero is BB facing an open raise
-  if (facingType === 'facing_open' && heroPosition === 'BB' && raiserPosition) {
-    const defenseSpots: Record<string, string> = {
-      UTG: 'BB_vs_UTG_facing_open2.5x',
-      MP: 'BB_vs_UTG_facing_open2.5x', // MP → use UTG (tighter defense)
-      HJ: 'BB_vs_UTG_facing_open2.5x', // HJ → use UTG (closest available)
-      CO: 'BB_vs_CO_facing_open2.5x',
-      BTN: 'BB_vs_BTN_facing_open2.5x',
-      SB: 'BB_vs_BTN_facing_open2.5x', // SB → use BTN (widest defense)
-    };
-    return defenseSpots[raiserPosition] ?? null;
+  // Facing open raise: any position facing an open
+  if (facingType === 'facing_open' && raiserPosition) {
+    // Spot format: {hero}_vs_{raiser}_facing_open
+    // Fallback to old GTO Wizard spots for BB (more data points)
+    if (heroPosition === 'BB') {
+      const bbSpots: Record<string, string> = {
+        UTG: 'BB_vs_UTG_facing_open',
+        MP: 'BB_vs_UTG_facing_open',
+        HJ: 'BB_vs_HJ_facing_open',
+        CO: 'BB_vs_CO_facing_open',
+        BTN: 'BB_vs_BTN_facing_open',
+        SB: 'BB_vs_SB_facing_open',
+      };
+      return bbSpots[raiserPosition] ?? null;
+    }
+    return `${heroPosition}_vs_${raiserPosition}_facing_open`;
   }
 
-  // Uncovered spots: 3bet, facing 3bet, facing limp, SB vs open, etc.
+  // Facing 3bet: hero opened, villain 3bet
+  if (facingType === 'facing_3bet' && raiserPosition) {
+    return `${heroPosition}_vs_${raiserPosition}_facing_3bet`;
+  }
+
+  // Facing 4bet+: hero 3bet, villain 4bet
+  if ((facingType === 'facing_4bet' || facingType === 'facing_4bet_plus') && raiserPosition) {
+    return `${heroPosition}_vs_${raiserPosition}_facing_4bet`;
+  }
+
+  // Uncovered spots: facing limp, squeeze, etc.
   return null;
 }
 

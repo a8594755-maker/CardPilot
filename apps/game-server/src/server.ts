@@ -1493,6 +1493,11 @@ async function emitAdviceIfNeeded(
   const binding = bindingsByTable(tableId).find((entry) => entry.binding.seat === seat)?.binding;
   if (!binding) return;
 
+  // Skip advice for in-process bots — they have their own fast model and
+  // the advice engine's ensureEngine() does blocking readFileSync on first call,
+  // which stalls the event loop and delays bot setTimeout callbacks.
+  if (getBotUserIds(tableId).has(binding.userId)) return;
+
   // Increment and capture requestId for stale-guard
   const counterKey = `${tableId}:${seat}`;
   const requestId = (adviceRequestCounter.get(counterKey) ?? 0) + 1;
@@ -3082,7 +3087,13 @@ async function finalizeHandEndAsync(tableId: string, state: TableState): Promise
     fastBattlePool.onHandEnded(tableId, state, settlement);
   } else {
     const wasAllInHand = state.players.some((player) => player.allIn);
-    scheduleAutoDealIfNeeded(tableId, wasAllInHand ? 4_000 : 2_000);
+    // Use showdownSpeed setting; only override if it would be shorter than the requested delay
+    const room = roomManager.getRoom(tableId);
+    const showdownMs =
+      SHOWDOWN_SPEED_DELAYS_MS[room?.settings.showdownSpeed ?? 'normal'] ??
+      SHOWDOWN_SPEED_DELAYS_MS.normal;
+    const fallbackMs = wasAllInHand ? 4_000 : 2_000;
+    scheduleAutoDealIfNeeded(tableId, Math.min(showdownMs, fallbackMs));
   }
 }
 
@@ -4564,6 +4575,41 @@ io.on('connection', (socket) => {
     createTableIfNeeded(room);
     socket.join(payload.tableId);
 
+    // Re-bind socketSeat if user is already seated (e.g. after HMR / reconnect)
+    const table = tables.get(payload.tableId);
+    if (table) {
+      const state = table.getPublicState();
+      const seatedPlayer = state.players.find((p) => p.userId === identity.userId);
+      if (seatedPlayer) {
+        // Remove old binding for this user (stale socket.id)
+        for (const [sid, binding] of socketSeat.entries()) {
+          if (
+            binding.tableId === payload.tableId &&
+            binding.userId === identity.userId &&
+            sid !== socket.id
+          ) {
+            socketSeat.delete(sid);
+          }
+        }
+        socketSeat.set(socket.id, {
+          tableId: payload.tableId,
+          seat: seatedPlayer.seat,
+          userId: identity.userId,
+          name: seatedPlayer.name ?? identity.displayName,
+        });
+        // Re-send hole cards if hand is active
+        const cards =
+          table.getPrivateHoleCards(seatedPlayer.seat) ?? table.getHoleCards(seatedPlayer.seat);
+        if (cards && state.handId) {
+          io.to(socket.id).emit('hole_cards', {
+            handId: state.handId,
+            cards,
+            seat: seatedPlayer.seat,
+          });
+        }
+      }
+    }
+
     // Cancel empty timer if someone joins the room
     maybeCheckRoomEmpty(payload.tableId, currentPlayerCount(payload.tableId) + 1);
 
@@ -4737,6 +4783,17 @@ io.on('connection', (socket) => {
         console.log('[SIT_DOWN] Request from', identity.userId, 'payload:', payload);
         const room = await ensureRoomByTableId(payload.tableId);
         ensureManagedRoom(room, identity);
+        // Ensure socket is in the room so broadcastSnapshot reaches this client
+        socket.join(payload.tableId);
+        // Send room state so client has correct buy-in limits, settings, etc.
+        const fullState = roomManager.getFullState(payload.tableId);
+        if (fullState) {
+          socket.emit(
+            'room_state_update',
+            withClubRoomStateMetadata(fullState, payload.tableId, identity.userId),
+          );
+        }
+        emitHydratedSnapshot(socket.id, payload.tableId);
         const clubInfo = clubManager.getClubForTableById(payload.tableId);
         if (clubInfo && !requireClubAuth()) {
           return;

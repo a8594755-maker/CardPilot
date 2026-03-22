@@ -18,7 +18,9 @@ export function Table({ snapshot, mySeatIndex, holeCards, onSeatClick }: TablePr
     );
   }
 
-  const { seats, currentHand, smallBlind, bigBlind } = snapshot;
+  const { seats, currentHand, smallBlind, bigBlind } = snapshot as any;
+  // Guard: snapshot may be a TableState (has `players`, not `seats`)
+  const seatList: SeatInfo[] = seats ?? [];
 
   return (
     <div className="w-full max-w-4xl">
@@ -51,12 +53,12 @@ export function Table({ snapshot, mySeatIndex, holeCards, onSeatClick }: TablePr
         </div>
 
         {/* Seats */}
-        {seats.map((seat, index) => (
+        {seatList.map((seat, index) => (
           <SeatPosition
             key={seat.index}
             seat={seat}
             index={index}
-            totalSeats={seats.length}
+            totalSeats={seatList.length}
             isMySeat={seat.index === mySeatIndex}
             holeCards={seat.index === mySeatIndex ? holeCards : undefined}
             isActor={currentHand?.actorSeat === seat.index}

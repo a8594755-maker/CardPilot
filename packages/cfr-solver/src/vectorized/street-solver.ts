@@ -24,6 +24,7 @@ import {
 import { buildShowdownMatrix, computeShowdownEV, computeFoldEV } from './showdown-eval.js';
 import { estimateTransitionEVMonteCarlo } from './heuristic-ev.js';
 import { assignHistoryIds } from '../tree/tree-builder.js';
+import { solveStreetWasm, solveStreetWasmSync } from './wasm-cfr-bridge.js';
 
 /**
  * Synchronous callback for evaluating EV at street-transition terminals.
@@ -337,7 +338,7 @@ function streetCFRTraverse(
  * After solving, we can reconstruct the reach probabilities at each
  * transition point by playing the average strategy from the root.
  */
-function extractBoundaryData(
+export function extractBoundaryData(
   tree: FlatTree,
   store: ArrayStore,
   validCombos: ValidCombos,
@@ -402,4 +403,186 @@ function extractBoundaryData(
 
   walkForReach(0, oopInitReach, ipInitReach);
   return result;
+}
+
+/**
+ * Solve a single street, trying C++ WASM first, falling back to TS.
+ *
+ * The WASM path is ~5-10x faster for the CFR iterations. Tree building,
+ * boundary data extraction, and transition callbacks all run in TS.
+ */
+export async function solveStreetWithWasm(params: StreetSolveParams): Promise<StreetSolveResult> {
+  const {
+    treeConfig,
+    board,
+    street,
+    oopRange,
+    ipRange,
+    iterations,
+    transitionEvalFn,
+    initialReachOOP,
+    initialReachIP,
+    onProgress,
+  } = params;
+
+  const numPlayers = treeConfig.numPlayers ?? 2;
+
+  // 1. Build single-street tree (always in TS)
+  const actionTree = buildStreetTree(treeConfig, street, numPlayers);
+  assignHistoryIds(actionTree);
+  const tree = flattenTree(actionTree, numPlayers);
+
+  // 2. Setup combos and matrices
+  const validCombos = enumerateValidCombos(board);
+  const nc = validCombos.numCombos;
+  const blockerMatrix = buildBlockerMatrix(validCombos.combos);
+
+  // 3. Build initial reaches
+  const oopInitReach = initialReachOOP
+    ? new Float32Array(initialReachOOP)
+    : buildReachFromRange(oopRange, validCombos);
+  const ipInitReach = initialReachIP
+    ? new Float32Array(initialReachIP)
+    : buildReachFromRange(ipRange, validCombos);
+
+  // 4. Identify transition terminals
+  const transitionTerminals = new Set<number>();
+  for (let t = 0; t < tree.numTerminals; t++) {
+    if (!tree.terminalIsShowdown[t] && tree.terminalFolder[t] === -1) {
+      transitionTerminals.add(t);
+    }
+  }
+
+  // 5. Build combo cards array for WASM
+  const comboCards = new Int32Array(nc * 2);
+  for (let i = 0; i < nc; i++) {
+    comboCards[i * 2] = validCombos.combos[i][0];
+    comboCards[i * 2 + 1] = validCombos.combos[i][1];
+  }
+
+  // 6. Try WASM path
+  const wasmResult = await solveStreetWasm({
+    tree,
+    board,
+    comboCards,
+    combos: validCombos.combos,
+    numCombos: nc,
+    oopReach: oopInitReach,
+    ipReach: ipInitReach,
+    iterations,
+    blockerMatrix,
+    transitionEvalFn,
+  });
+
+  if (wasmResult) {
+    // Inject WASM results into TS ArrayStore
+    const store = ArrayStore.fromRawBuffers(tree, nc, wasmResult.strategySums, wasmResult.regrets);
+
+    // Extract boundary data (lightweight TS tree walk)
+    const boundaryData = extractBoundaryData(
+      tree,
+      store,
+      validCombos,
+      nc,
+      oopInitReach,
+      ipInitReach,
+      transitionTerminals,
+    );
+
+    return { store, tree, validCombos, boundaryData };
+  }
+
+  // 7. Fallback to TS solver
+  if (onProgress) {
+    onProgress(0, 0); // signal that TS fallback is being used
+  }
+  return solveStreet(params);
+}
+
+/**
+ * Synchronous version of solveStreetWithWasm.
+ * Requires WASM module to be pre-loaded via preloadWasmModule().
+ * Falls back to TS solveStreet() if WASM is not available.
+ */
+export function solveStreetSync(params: StreetSolveParams): StreetSolveResult {
+  const {
+    treeConfig,
+    board,
+    street,
+    oopRange,
+    ipRange,
+    iterations,
+    transitionEvalFn,
+    initialReachOOP,
+    initialReachIP,
+    onProgress,
+  } = params;
+
+  const numPlayers = treeConfig.numPlayers ?? 2;
+
+  // 1. Build single-street tree (always in TS)
+  const actionTree = buildStreetTree(treeConfig, street, numPlayers);
+  assignHistoryIds(actionTree);
+  const tree = flattenTree(actionTree, numPlayers);
+
+  // 2. Setup combos and matrices
+  const validCombos = enumerateValidCombos(board);
+  const nc = validCombos.numCombos;
+  const blockerMatrix = buildBlockerMatrix(validCombos.combos);
+
+  // 3. Build initial reaches
+  const oopInitReach = initialReachOOP
+    ? new Float32Array(initialReachOOP)
+    : buildReachFromRange(oopRange, validCombos);
+  const ipInitReach = initialReachIP
+    ? new Float32Array(initialReachIP)
+    : buildReachFromRange(ipRange, validCombos);
+
+  // 4. Identify transition terminals
+  const transitionTerminals = new Set<number>();
+  for (let t = 0; t < tree.numTerminals; t++) {
+    if (!tree.terminalIsShowdown[t] && tree.terminalFolder[t] === -1) {
+      transitionTerminals.add(t);
+    }
+  }
+
+  // 5. Build combo cards array for WASM
+  const comboCards = new Int32Array(nc * 2);
+  for (let i = 0; i < nc; i++) {
+    comboCards[i * 2] = validCombos.combos[i][0];
+    comboCards[i * 2 + 1] = validCombos.combos[i][1];
+  }
+
+  // 6. Try WASM path (sync — module must be pre-loaded)
+  const wasmResult = solveStreetWasmSync({
+    tree,
+    board,
+    comboCards,
+    combos: validCombos.combos,
+    numCombos: nc,
+    oopReach: oopInitReach,
+    ipReach: ipInitReach,
+    iterations,
+    blockerMatrix,
+    transitionEvalFn,
+  });
+
+  if (wasmResult) {
+    const store = ArrayStore.fromRawBuffers(tree, nc, wasmResult.strategySums, wasmResult.regrets);
+
+    const boundaryData = extractBoundaryData(
+      tree,
+      store,
+      validCombos,
+      nc,
+      oopInitReach,
+      ipInitReach,
+      transitionTerminals,
+    );
+
+    return { store, tree, validCombos, boundaryData };
+  }
+
+  // 7. Fallback to TS solver
+  return solveStreet(params);
 }

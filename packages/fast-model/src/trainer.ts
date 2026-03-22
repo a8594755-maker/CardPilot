@@ -1278,7 +1278,7 @@ function trainStreamingV2(
   for (let pass = 1; pass <= maxPasses; pass++) {
     if (pass > 1 && (pass - 1) % LR_DECAY_EVERY === 0) {
       lr *= LR_DECAY_FACTOR;
-      console.log(`  LR decay → ${lr.toExponential(2)}`);
+      logSync(`  LR decay → ${lr.toExponential(2)}`);
     }
 
     // Shuffle file order each pass and subsample
@@ -1343,7 +1343,7 @@ function trainStreamingV2(
     const valLoss = valSet.length > 0 ? evaluateV2Loss(model, valSet) : trainLoss;
 
     const indicator = valLoss < bestValLoss ? ' *' : '';
-    console.log(
+    logSync(
       `Pass ${String(pass).padStart(3)}/${maxPasses}  ` +
         `train_loss=${trainLoss.toFixed(4)}  val_loss=${valLoss.toFixed(4)}  ` +
         `samples=${passSamples.toLocaleString()}  lr=${lr.toExponential(2)}${indicator}`,
@@ -1357,7 +1357,7 @@ function trainStreamingV2(
     } else {
       patience++;
       if (patience >= EARLY_STOP_PATIENCE) {
-        console.log(`\nEarly stopping at pass ${pass} (patience=${EARLY_STOP_PATIENCE})`);
+        logSync(`\nEarly stopping at pass ${pass} (patience=${EARLY_STOP_PATIENCE})`);
         break;
       }
     }

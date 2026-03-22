@@ -104,7 +104,7 @@ export function computeThinkingTime(input: ThinkingTimeInput): ThinkingTimeResul
   // Final delay calculation
   const jitter = Math.random() * base * 0.3;
   let delay = base * complexity + jitter;
-  delay = clamp(delay, 300, 8000);
+  delay = clamp(delay, 200, 3000);
 
   // Two-stage pause for complex decisions
   const twoStage = complexity > 1.5 && Math.random() < 0.3;

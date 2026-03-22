@@ -622,10 +622,15 @@ export class RoomManager {
       clearTimeout(room.actionTimerHandle);
       room.actionTimerHandle = null;
     }
+    const hadTimer = room.timer != null;
     room.timer = null;
     room.activeTimerUserId = null;
     room.activeTimerSeat = null;
     room.activeTimerOnTimeout = null;
+    // Notify clients to clear their timer display
+    if (hadTimer) {
+      this.onEvent(tableId, 'timer_update', null);
+    }
   }
 
   /** Called when player acts in time — stop timer and save remaining time bank */

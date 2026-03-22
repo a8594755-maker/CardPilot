@@ -12,6 +12,11 @@ export function useAuth() {
   return context;
 }
 
+/** Non-throwing variant — returns null when AuthProvider is missing (e.g. during Vite HMR). */
+export function useAuthSafe(): UseAuthSessionReturn | null {
+  return useContext(AuthContext);
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { showToast } = useToast();
   const auth = useAuthSession(showToast);

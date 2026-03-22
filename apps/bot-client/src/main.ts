@@ -166,7 +166,7 @@ export class PokerBot {
       this.fastModel = args.sharedModel;
     } else {
       const __dirname = dirname(fileURLToPath(import.meta.url));
-      const modelPath = join(__dirname, '..', '..', '..', 'models', 'cfr-combined-v3.json');
+      const modelPath = join(__dirname, '..', '..', '..', 'models', 'vnet-v7-gpu.json');
       this.fastModel = loadModel(modelPath);
       if (this.fastModel) {
         this.log(`Fast model loaded (${this.version})`);
