@@ -125,39 +125,41 @@ class HUNLEncoder:
         return features
 
     @staticmethod
-    def encode_legal_mask(state: HUNLGameState, max_actions: int = 6) -> np.ndarray:
+    def encode_legal_mask(state: HUNLGameState, max_actions: int = 9) -> np.ndarray:
         """
         Encode legal actions as a binary mask of size max_actions.
         Canonical action slots:
-          0: fold, 1: check/call, 2: bet_small/raise_small, 3: bet_large/raise_large,
-          4: (reserved for additional sizes), 5: allin
+          0: fold, 1: check/call, 2..max_actions-2: bet sizes, max_actions-1: allin
         """
         mask = np.zeros(max_actions, dtype=np.float32)
         actions = state.legal_actions()
-        for action in actions:
-            slot = _action_to_slot(action)
+        for slot in actions_to_slots(actions, max_actions):
             if 0 <= slot < max_actions:
                 mask[slot] = 1.0
         return mask
 
 
-def _action_to_slot(action: Action) -> int:
+def _action_to_slot(action: Action, max_actions: int = 9) -> int:
     """Map an Action to a canonical slot index."""
     if action.type == ActionType.FOLD:
         return 0
     elif action.type in (ActionType.CHECK, ActionType.CALL):
         return 1
-    elif action.type == ActionType.BET:
-        return 2  # first bet size → slot 2, second → slot 3
-    elif action.type == ActionType.RAISE:
-        return 2  # first raise size → slot 2, second → slot 3
+    elif action.type in (ActionType.BET, ActionType.RAISE):
+        return 2  # first bet size → slot 2 (caller must use actions_to_slots for multi-size)
     elif action.type == ActionType.ALLIN:
-        return 5
+        return max_actions - 1  # last slot
     return -1
 
 
-def actions_to_slots(actions: list[Action]) -> list[int]:
-    """Map a list of legal actions to their canonical slot indices, handling duplicates."""
+def actions_to_slots(actions: list[Action], max_actions: int = 9) -> list[int]:
+    """Map a list of legal actions to their canonical slot indices, handling duplicates.
+
+    Slot layout (max_actions=9):
+      0: fold, 1: check/call, 2..max_actions-2: bet/raise sizes, max_actions-1: allin
+    """
+    allin_slot = max_actions - 1
+    max_bet_slot = max_actions - 2  # highest bet slot before allin
     slots = []
     bet_raise_count = 0
     for action in actions:
@@ -168,18 +170,18 @@ def actions_to_slots(actions: list[Action]) -> list[int]:
         elif action.type in (ActionType.BET, ActionType.RAISE):
             slot = 2 + bet_raise_count
             bet_raise_count += 1
-            slots.append(min(slot, 4))  # cap at slot 4
+            slots.append(min(slot, max_bet_slot))
         elif action.type == ActionType.ALLIN:
-            slots.append(5)
+            slots.append(allin_slot)
         else:
             slots.append(-1)
     return slots
 
 
-def encode_legal_mask_from_actions(actions: list[Action], max_actions: int = 6) -> np.ndarray:
+def encode_legal_mask_from_actions(actions: list[Action], max_actions: int = 9) -> np.ndarray:
     """Encode legal actions as a binary mask using proper slot assignment."""
     mask = np.zeros(max_actions, dtype=np.float32)
-    for slot in actions_to_slots(actions):
+    for slot in actions_to_slots(actions, max_actions):
         if 0 <= slot < max_actions:
             mask[slot] = 1.0
     return mask

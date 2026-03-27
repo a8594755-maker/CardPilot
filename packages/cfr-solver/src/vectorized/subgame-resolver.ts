@@ -12,7 +12,12 @@
 
 import type { TreeConfig, Street } from '../types.js';
 import type { WeightedCombo } from '../integration/preflop-ranges.js';
-import { solveStreet, solveStreetSync, type StreetSolveResult } from './street-solver.js';
+import {
+  solveStreet,
+  solveStreetSync,
+  type StreetSolveResult,
+  type TransitionEvalFn,
+} from './street-solver.js';
 import { enumerateValidCombos, type ValidCombos } from './combo-utils.js';
 
 export interface ResolveRequest {
@@ -31,6 +36,8 @@ export interface ResolveRequest {
   parentBoard: number[];
   /** Iterations for sub-street solving (default 500) */
   iterations?: number;
+  /** Custom transition EV evaluator for sub-street boundaries (turn→river) */
+  transitionEvalFn?: TransitionEvalFn;
   onProgress?: (iter: number, elapsed: number) => void;
 }
 
@@ -62,6 +69,7 @@ export function resolveSubgame(request: ResolveRequest): ResolveResult {
     ipRange,
     parentBoard,
     iterations = 500,
+    transitionEvalFn,
     onProgress,
   } = request;
 
@@ -113,6 +121,7 @@ export function resolveSubgame(request: ResolveRequest): ResolveResult {
     iterations,
     initialReachOOP: oopReachMapped,
     initialReachIP: ipReachMapped,
+    transitionEvalFn,
     onProgress,
   });
 

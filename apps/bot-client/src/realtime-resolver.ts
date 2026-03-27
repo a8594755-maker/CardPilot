@@ -35,10 +35,10 @@ import {
   type WeightedCombo,
 } from '@cardpilot/cfr-solver/src/integration/preflop-ranges.js';
 import {
-  PIPELINE_SRP_V2_CONFIG,
-  PIPELINE_SRP_100BB_CONFIG,
-  PIPELINE_3BET_V2_CONFIG,
-  PIPELINE_3BET_100BB_CONFIG,
+  REALTIME_SRP_50BB_CONFIG,
+  REALTIME_SRP_100BB_CONFIG,
+  REALTIME_3BET_50BB_CONFIG,
+  REALTIME_3BET_100BB_CONFIG,
 } from '@cardpilot/cfr-solver/src/tree/tree-config.js';
 import type { FlatTree } from '@cardpilot/cfr-solver/src/vectorized/flat-tree.js';
 import type { HUSRPRangesOptions } from '@cardpilot/cfr-solver/src/integration/preflop-ranges.js';
@@ -56,17 +56,19 @@ export interface ResolverConfig {
   chartsPath?: string;
   /** Path to value network model JSON */
   modelPath?: string;
-  /** Tree config for solving (default: PIPELINE_SRP_V2_CONFIG) */
+  /** Tree config for solving (default: REALTIME_SRP_50BB_CONFIG) */
   treeConfig?: TreeConfig;
   /** Range loading options (spot names, action filters) */
   rangeOptions?: HUSRPRangesOptions;
-  /** Flop solve iterations (default: 1000) */
+  /** Flop solve iterations (default: 2000) */
   flopIterations?: number;
-  /** Turn resolve iterations (default: 500) */
+  /** Turn resolve iterations (default: 1000) */
   turnIterations?: number;
-  /** River resolve iterations (default: 300) */
+  /** River resolve iterations (default: 500) */
   riverIterations?: number;
-  /** Max time budget in ms for any solve (default: 5000) */
+  /** MC runout samples for transition EV estimation (default: 50) */
+  transitionSamples?: number;
+  /** Max time budget in ms for any solve (default: 10000) */
   timeBudgetMs?: number;
   /** Whether to log progress (default: false) */
   verbose?: boolean;
@@ -101,22 +103,22 @@ const THREEBET_RANGE_OPTIONS: HUSRPRangesOptions = {
 
 const SCENARIO_CONFIGS: Record<ScenarioKey, ScenarioConfig> = {
   srp_50bb: {
-    treeConfig: PIPELINE_SRP_V2_CONFIG,
+    treeConfig: REALTIME_SRP_50BB_CONFIG,
     modelPath: 'models/vnet-v2-pipeline.json',
     rangeOptions: SRP_RANGE_OPTIONS,
   },
   srp_100bb: {
-    treeConfig: PIPELINE_SRP_100BB_CONFIG,
+    treeConfig: REALTIME_SRP_100BB_CONFIG,
     modelPath: 'models/vnet-v3-srp-100bb.json',
     rangeOptions: SRP_RANGE_OPTIONS,
   },
   '3bet_50bb': {
-    treeConfig: PIPELINE_3BET_V2_CONFIG,
+    treeConfig: REALTIME_3BET_50BB_CONFIG,
     modelPath: 'models/vnet-v5-3bet-50bb.json',
     rangeOptions: THREEBET_RANGE_OPTIONS,
   },
   '3bet_100bb': {
-    treeConfig: PIPELINE_3BET_100BB_CONFIG,
+    treeConfig: REALTIME_3BET_100BB_CONFIG,
     modelPath: 'models/vnet-v4-3bet-100bb.json',
     rangeOptions: THREEBET_RANGE_OPTIONS,
   },
@@ -324,12 +326,13 @@ export class RealtimeResolver {
     this.config = {
       chartsPath: config.chartsPath ?? 'data/preflop_charts.json',
       modelPath: config.modelPath ?? 'models/vnet-v2-pipeline.json',
-      treeConfig: config.treeConfig ?? PIPELINE_SRP_V2_CONFIG,
+      treeConfig: config.treeConfig ?? REALTIME_SRP_50BB_CONFIG,
       rangeOptions: config.rangeOptions ?? {},
-      flopIterations: config.flopIterations ?? 1000,
-      turnIterations: config.turnIterations ?? 500,
-      riverIterations: config.riverIterations ?? 300,
-      timeBudgetMs: config.timeBudgetMs ?? 5000,
+      flopIterations: config.flopIterations ?? 2000,
+      turnIterations: config.turnIterations ?? 1000,
+      riverIterations: config.riverIterations ?? 500,
+      transitionSamples: config.transitionSamples ?? 50,
+      timeBudgetMs: config.timeBudgetMs ?? 10000,
       verbose: config.verbose ?? false,
     };
   }
@@ -588,6 +591,7 @@ export class RealtimeResolver {
       ipRange: this.ipRange,
       parentBoard: this.flopBoard,
       iterations: this.config.turnIterations,
+      transitionEvalFn: this.createTransitionEvalFn(),
       onProgress: this.config.verbose
         ? (iter, elapsed) => {
             if (iter % 100 === 0)
@@ -822,11 +826,17 @@ export class RealtimeResolver {
   // ── Value Network Transition Evaluator ──
 
   /**
-   * Create a TransitionEvalFn that uses the value network for EV estimation
-   * at street boundaries. Falls back to Monte Carlo if no VN loaded.
+   * Create a TransitionEvalFn that estimates EV at street boundaries
+   * using Monte Carlo sampling of future runouts.
+   *
+   * For flop→turn transitions: samples turn+river cards and averages equity
+   * across runouts, giving much better EV estimates than current-board-only
+   * equity (which ignores card runout entirely on a 3-card board).
+   *
+   * Falls back to the default MC heuristic if no custom config needed.
    */
   private createTransitionEvalFn(): TransitionEvalFn | undefined {
-    if (!this.valueNetwork) return undefined; // use default MC heuristic
+    const numSamples = this.config.transitionSamples;
 
     return (
       combos: Array<[number, number]>,
@@ -840,61 +850,135 @@ export class RealtimeResolver {
       stacks: number[],
       outEV: Float32Array,
     ): void => {
-      // For each combo, use the value network to estimate EV
-      // The VN predicts action distribution (raise/call/fold + sizing),
-      // which we convert to an EV estimate using pot geometry.
-      //
-      // EV estimate: equity-weighted pot share
-      // We use the VN's action output as a proxy for hand strength:
-      //   high raise% → strong hand → high equity
-      //   high fold% → weak hand → low equity
-
-      const opponentReach = traverser === 0 ? ipReach : oopReach;
-
-      // Pre-evaluate all hand values for equity computation
-      const handValues = new Float64Array(numCombos);
-      for (let i = 0; i < numCombos; i++) {
-        handValues[i] = evaluateHandBoard(combos[i][0], combos[i][1], board);
+      const cardsNeeded = 5 - board.length; // flop→2, turn→1
+      if (cardsNeeded === 0) {
+        // Already at river — exact equity on current board
+        this.computeEquityEV(
+          combos,
+          board,
+          pot,
+          oopReach,
+          ipReach,
+          blockerMatrix,
+          numCombos,
+          traverser,
+          stacks,
+          outEV,
+        );
+        return;
       }
 
-      const totalChips = pot + stacks.reduce((a, b) => a + b, 0);
-      const startTotal = totalChips / stacks.length;
-      const traverserStack = stacks[traverser];
+      // Build deck of available cards (excluding board)
+      const dead = new Uint8Array(52);
+      for (const c of board) dead[c] = 1;
+      const available: number[] = [];
+      for (let c = 0; c < 52; c++) {
+        if (!dead[c]) available.push(c);
+      }
 
+      outEV.fill(0);
+      const tempEV = new Float32Array(numCombos);
+      const fullBoard = [...board, ...new Array(cardsNeeded).fill(0)];
+
+      // Deterministic RNG for reproducibility
+      let rng = 42;
+      for (let s = 0; s < numSamples; s++) {
+        // Fisher-Yates partial shuffle
+        const arr = [...available];
+        for (let i = 0; i < cardsNeeded && i < arr.length; i++) {
+          rng = (rng * 1103515245 + 12345) & 0x7fffffff;
+          const j = i + (rng % (arr.length - i));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        for (let k = 0; k < cardsNeeded; k++) {
+          fullBoard[board.length + k] = arr[k];
+        }
+
+        tempEV.fill(0);
+        this.computeEquityEV(
+          combos,
+          fullBoard,
+          pot,
+          oopReach,
+          ipReach,
+          blockerMatrix,
+          numCombos,
+          traverser,
+          stacks,
+          tempEV,
+        );
+
+        for (let i = 0; i < numCombos; i++) {
+          outEV[i] += tempEV[i];
+        }
+      }
+
+      // Average across samples
+      const invN = 1 / numSamples;
       for (let i = 0; i < numCombos; i++) {
-        // Compute equity vs opponent's reach-weighted range
-        let wins = 0;
-        let losses = 0;
-        let ties = 0;
-
-        for (let j = 0; j < numCombos; j++) {
-          if (blockerMatrix[i * numCombos + j]) continue;
-          const oppR = opponentReach[j];
-          if (oppR === 0) continue;
-
-          if (handValues[i] > handValues[j]) {
-            wins += oppR;
-          } else if (handValues[i] < handValues[j]) {
-            losses += oppR;
-          } else {
-            ties += oppR;
-          }
-        }
-
-        const total = wins + losses + ties;
-        if (total === 0) {
-          outEV[i] = 0;
-          continue;
-        }
-
-        // EV relative to starting total
-        const winPayoff = traverserStack + pot - startTotal;
-        const losePayoff = traverserStack - startTotal;
-        const tiePayoff = traverserStack + pot / 2 - startTotal;
-
-        outEV[i] = wins * winPayoff + losses * losePayoff + ties * tiePayoff;
+        outEV[i] *= invN;
       }
     };
+  }
+
+  /**
+   * Compute reach-weighted equity EV on a specific board.
+   * Used by the MC transition eval for each sampled runout.
+   */
+  private computeEquityEV(
+    combos: Array<[number, number]>,
+    board: number[],
+    pot: number,
+    oopReach: Float32Array,
+    ipReach: Float32Array,
+    blockerMatrix: Uint8Array,
+    numCombos: number,
+    traverser: number,
+    stacks: number[],
+    outEV: Float32Array,
+  ): void {
+    const opponentReach = traverser === 0 ? ipReach : oopReach;
+
+    const handValues = new Float64Array(numCombos);
+    for (let i = 0; i < numCombos; i++) {
+      handValues[i] = evaluateHandBoard(combos[i][0], combos[i][1], board);
+    }
+
+    const totalChips = pot + stacks.reduce((a, b) => a + b, 0);
+    const startTotal = totalChips / stacks.length;
+    const traverserStack = stacks[traverser];
+
+    for (let i = 0; i < numCombos; i++) {
+      let wins = 0;
+      let losses = 0;
+      let ties = 0;
+
+      for (let j = 0; j < numCombos; j++) {
+        if (blockerMatrix[i * numCombos + j]) continue;
+        const oppR = opponentReach[j];
+        if (oppR === 0) continue;
+
+        if (handValues[i] > handValues[j]) {
+          wins += oppR;
+        } else if (handValues[i] < handValues[j]) {
+          losses += oppR;
+        } else {
+          ties += oppR;
+        }
+      }
+
+      const total = wins + losses + ties;
+      if (total === 0) {
+        outEV[i] = 0;
+        continue;
+      }
+
+      const winPayoff = traverserStack + pot - startTotal;
+      const losePayoff = traverserStack - startTotal;
+      const tiePayoff = traverserStack + pot / 2 - startTotal;
+
+      outEV[i] = wins * winPayoff + losses * losePayoff + ties * tiePayoff;
+    }
   }
 
   // ── Utilities ──

@@ -166,7 +166,7 @@ export class PokerBot {
       this.fastModel = args.sharedModel;
     } else {
       const __dirname = dirname(fileURLToPath(import.meta.url));
-      const modelPath = join(__dirname, '..', '..', '..', 'models', 'vnet-v7-gpu.json');
+      const modelPath = join(__dirname, '..', '..', '..', 'models', 'vnet-v91-balanced.json');
       this.fastModel = loadModel(modelPath);
       if (this.fastModel) {
         this.log(`Fast model loaded (${this.version})`);
@@ -203,9 +203,9 @@ export class PokerBot {
       this.resolverPool = new ResolverPool({
         projectRoot,
         verbose: !this.quiet,
-        flopIterations: parseInt(process.env['RESOLVER_FLOP_ITERS'] ?? '1000', 10),
-        turnIterations: parseInt(process.env['RESOLVER_TURN_ITERS'] ?? '500', 10),
-        riverIterations: parseInt(process.env['RESOLVER_RIVER_ITERS'] ?? '300', 10),
+        flopIterations: parseInt(process.env['RESOLVER_FLOP_ITERS'] ?? '2000', 10),
+        turnIterations: parseInt(process.env['RESOLVER_TURN_ITERS'] ?? '1000', 10),
+        riverIterations: parseInt(process.env['RESOLVER_RIVER_ITERS'] ?? '500', 10),
       });
       const loaded = this.resolverPool.initialize();
       if (loaded > 0) {

@@ -117,6 +117,78 @@ export const PIPELINE_3BET_100BB_CONFIG: TreeConfig = {
 };
 
 // ═══════════════════════════════════════════════════════════
+// Pipeline V3: 4 bet sizes + raise cap 2 — higher resolution trees
+// Targets: ~20-50x more info sets than V2, much better strategy quality
+// ═══════════════════════════════════════════════════════════
+
+// V3: 3 sizes per street (adds mid-range vs V2's 2 sizes)
+// V8 Map limit: 4 sizes × cap 1 → 7.86M+ info sets → OOM. 3 sizes stays under limit.
+const PIPELINE_V3_BET_SIZES: BetSizeConfig = {
+  flop: [0.33, 0.67, 1.0], // probe + 2/3 pot + pot
+  turn: [0.5, 0.75, 1.25], // half pot + 3/4 pot + overbet
+  river: [0.5, 1.0, 1.5], // half pot + pot + overbet
+};
+
+// V3 SRP 50bb: 3 sizes, raise cap 1
+export const PIPELINE_SRP_V3_CONFIG: TreeConfig = {
+  startingPot: 5,
+  effectiveStack: 47.5,
+  betSizes: PIPELINE_V3_BET_SIZES,
+  raiseCapPerStreet: 1,
+};
+
+// V3 SRP 100bb: 3 sizes, raise cap 1
+export const PIPELINE_SRP_V3_100BB_CONFIG: TreeConfig = {
+  startingPot: 5,
+  effectiveStack: 97.5,
+  betSizes: PIPELINE_V3_BET_SIZES,
+  raiseCapPerStreet: 1,
+};
+
+// ═══════════════════════════════════════════════════════════
+// Realtime Resolver: 3 sizes per street for higher-quality blueprints
+// Superset of pipeline V2 sizes — adds a mid-range option each street
+// ═══════════════════════════════════════════════════════════
+
+const REALTIME_BET_SIZES: BetSizeConfig = {
+  flop: [0.33, 0.67, 1.0], // probe + 2/3 pot + pot
+  turn: [0.5, 0.75, 1.25], // half pot + 3/4 pot + overbet
+  river: [0.5, 1.0, 1.5], // half pot + pot + overbet
+};
+
+// Realtime SRP 50bb
+export const REALTIME_SRP_50BB_CONFIG: TreeConfig = {
+  startingPot: 5,
+  effectiveStack: 47.5,
+  betSizes: REALTIME_BET_SIZES,
+  raiseCapPerStreet: 1,
+};
+
+// Realtime SRP 100bb
+export const REALTIME_SRP_100BB_CONFIG: TreeConfig = {
+  startingPot: 5,
+  effectiveStack: 97.5,
+  betSizes: REALTIME_BET_SIZES,
+  raiseCapPerStreet: 1,
+};
+
+// Realtime 3-bet 50bb
+export const REALTIME_3BET_50BB_CONFIG: TreeConfig = {
+  startingPot: 17.5,
+  effectiveStack: 41.25,
+  betSizes: REALTIME_BET_SIZES,
+  raiseCapPerStreet: 1,
+};
+
+// Realtime 3-bet 100bb
+export const REALTIME_3BET_100BB_CONFIG: TreeConfig = {
+  startingPot: 17.5,
+  effectiveStack: 91.25,
+  betSizes: REALTIME_BET_SIZES,
+  raiseCapPerStreet: 1,
+};
+
+// ═══════════════════════════════════════════════════════════
 // Phase 2: HU Config Matrix — multiple positions, stacks, bet sizes
 // ═══════════════════════════════════════════════════════════
 
@@ -360,6 +432,9 @@ export type TreeConfigName =
   | 'pipeline_3bet_v2'
   | 'pipeline_srp_100bb'
   | 'pipeline_3bet_100bb'
+  // Pipeline V3 (4 sizes, raise cap 2, high resolution)
+  | 'pipeline_srp_v3'
+  | 'pipeline_srp_v3_100bb'
   // Phase 2: HU expanded configs
   | 'hu_btn_bb_srp_100bb'
   | 'hu_btn_bb_3bp_100bb'
@@ -472,6 +547,23 @@ const CONFIG_REGISTRY: Record<TreeConfigName, ConfigMeta> = {
     stackLabel: '100bb',
     iterations: 200000,
     buckets: 100,
+  },
+  // Pipeline V3 (4 sizes, raise cap 2)
+  pipeline_srp_v3: {
+    config: PIPELINE_SRP_V3_CONFIG,
+    label: 'Pipeline V3 SRP 50bb (3 sizes, cap 1)',
+    outputDir: 'pipeline_v3_hu_srp_50bb',
+    stackLabel: '50bb',
+    iterations: 200000,
+    buckets: 50, // 100 buckets hits V8 Map 16.7M limit on large flops
+  },
+  pipeline_srp_v3_100bb: {
+    config: PIPELINE_SRP_V3_100BB_CONFIG,
+    label: 'Pipeline V3 SRP 100bb (3 sizes, cap 1)',
+    outputDir: 'pipeline_v3_hu_srp_100bb',
+    stackLabel: '100bb',
+    iterations: 200000,
+    buckets: 50,
   },
   // Phase 2: HU expanded
   hu_btn_bb_srp_100bb: {

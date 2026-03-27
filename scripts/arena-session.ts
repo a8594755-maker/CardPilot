@@ -27,6 +27,7 @@ const FILE_MAP: Record<string, string> = {
   v4: 'cfr-combined-v4.json',
   v6: 'vnet-v6-unified.json',
   v7: 'vnet-v7-gpu.json',
+  v91: 'vnet-v91-balanced.json',
 };
 
 function loadBotModel(name: string): MLP {

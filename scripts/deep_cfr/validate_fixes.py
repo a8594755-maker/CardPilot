@@ -65,7 +65,6 @@ def validate(
         device_str=device,
         checkpoint_dir=checkpoint_dir,
         checkpoint_interval=25,
-        disable_tqdm=True,
     )
     total_time = time.time() - t0
 

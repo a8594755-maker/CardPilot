@@ -28,6 +28,7 @@ import { cpus } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 import { indexToCard } from '../abstraction/card-index.js';
+import { evaluateHandBoard, evaluateBestHand, HandRank } from '@cardpilot/poker-evaluator';
 import {
   loadHUSRPRanges,
   getWeightedRangeCombos,
@@ -471,6 +472,205 @@ export function encodeCfrFeatures(
   features.push(lastBetFrac);
   // [53] allInPressure
   features.push(histAgg.hasAllIn ? 1 : 0);
+
+  return features;
+}
+
+// ── V3 equity/draw/blocker helpers (card-index based) ──
+
+/**
+ * Compute hand strength (equity vs uniform random) on current board.
+ * Exhaustive enumeration of all valid opponent combos.
+ */
+function computeHandStrengthIdx(hero: [number, number], board: number[]): number {
+  if (board.length < 3) return 0.5;
+  const dead = new Set([hero[0], hero[1], ...board]);
+  const heroValue = evaluateHandBoard(hero[0], hero[1], board);
+
+  let wins = 0,
+    ties = 0,
+    total = 0;
+  for (let c1 = 0; c1 < 52; c1++) {
+    if (dead.has(c1)) continue;
+    for (let c2 = c1 + 1; c2 < 52; c2++) {
+      if (dead.has(c2)) continue;
+      const oppValue = evaluateHandBoard(c1, c2, board);
+      if (heroValue > oppValue) wins++;
+      else if (heroValue === oppValue) ties++;
+      total++;
+    }
+  }
+  return total > 0 ? (wins + ties * 0.5) / total : 0.5;
+}
+
+/** rank index 0=2..12=A from card index */
+function rankOf(cardIdx: number): number {
+  return cardIdx >> 2;
+}
+
+/** suit index 0=c,1=d,2=h,3=s from card index */
+function suitOf(cardIdx: number): number {
+  return cardIdx & 3;
+}
+
+/**
+ * Detect flush draw: hero + board has exactly 4 of same suit, hero contributes.
+ */
+function hasFlushDrawIdx(hero: [number, number], board: number[]): boolean {
+  const suitCounts = [0, 0, 0, 0];
+  for (const c of [hero[0], hero[1], ...board]) suitCounts[suitOf(c)]++;
+  for (let s = 0; s < 4; s++) {
+    if (suitCounts[s] === 4 && (suitOf(hero[0]) === s || suitOf(hero[1]) === s)) return true;
+  }
+  return false;
+}
+
+/**
+ * Detect straight draw type. Returns 0=none, 0.5=gutshot, 1.0=OESD.
+ */
+function detectStraightDrawIdx(hero: [number, number], board: number[]): number {
+  const rankSet = new Set<number>();
+  const heroRanks = new Set<number>();
+  for (const c of [hero[0], hero[1]]) {
+    const r = rankOf(c);
+    rankSet.add(r);
+    heroRanks.add(r);
+  }
+  for (const c of board) rankSet.add(rankOf(c));
+  // Ace-low
+  if (rankSet.has(12)) rankSet.add(-1);
+  if (heroRanks.has(12)) heroRanks.add(-1);
+
+  const ranks = [...rankSet].sort((a, b) => a - b);
+
+  // Check for made straight (5 consecutive)
+  for (let i = 0; i <= ranks.length - 5; i++) {
+    if (ranks[i + 4] - ranks[i] === 4) return 0;
+  }
+
+  let bestDraw = 0;
+  for (let low = -1; low <= 8; low++) {
+    const high = low + 4;
+    let count = 0;
+    let hasHero = false;
+    for (const r of ranks) {
+      if (r >= low && r <= high) {
+        count++;
+        if (heroRanks.has(r)) hasHero = true;
+      }
+    }
+    if (count === 4 && hasHero) {
+      const missing: number[] = [];
+      for (let r = low; r <= high; r++) {
+        if (!rankSet.has(r)) missing.push(r);
+      }
+      if (missing.length === 1) {
+        const m = missing[0];
+        bestDraw = Math.max(bestDraw, m === low || m === high ? 1.0 : 0.5);
+      }
+    }
+  }
+  return bestDraw;
+}
+
+/**
+ * V3 feature encoder for CFR training data.
+ * Extends encodeCfrFeatures with 11 equity/draw/blocker features.
+ * Returns a 65-dimensional vector.
+ */
+export function encodeCfrFeaturesV3(
+  holeCards: [number, number],
+  boardCards: number[],
+  gameState: GameState,
+  player: 0 | 1,
+  historyKey: string,
+): number[] {
+  const features = encodeCfrFeatures(holeCards, boardCards, gameState, player, historyKey);
+
+  // ── V3 features (indices 54-64) ──
+
+  // [54] handStrength — equity vs random
+  features.push(boardCards.length >= 3 ? computeHandStrengthIdx(holeCards, boardCards) : 0.5);
+
+  // [55] flushDraw — 4 to flush, not yet made
+  features.push(boardCards.length >= 3 && hasFlushDrawIdx(holeCards, boardCards) ? 1 : 0);
+
+  // [56] straightDraw — 0=none, 0.5=gutshot, 1.0=OESD
+  features.push(boardCards.length >= 3 ? detectStraightDrawIdx(holeCards, boardCards) : 0);
+
+  // [57] overcards — hero ranks above all board ranks / 2
+  let maxBoardRank = 0;
+  for (const c of boardCards) maxBoardRank = Math.max(maxBoardRank, rankOf(c));
+  let overCount = 0;
+  if (boardCards.length > 0) {
+    if (rankOf(holeCards[0]) > maxBoardRank) overCount++;
+    if (rankOf(holeCards[1]) > maxBoardRank) overCount++;
+  }
+  features.push(overCount / 2);
+
+  // [58] nutFlushBlocker — holds ace of dominant board suit
+  const boardSuitCounts = [0, 0, 0, 0];
+  for (const c of boardCards) boardSuitCounts[suitOf(c)]++;
+  let bestBoardSuit = 0;
+  let bestBoardSuitCount = 0;
+  for (let s = 0; s < 4; s++) {
+    if (boardSuitCounts[s] > bestBoardSuitCount) {
+      bestBoardSuitCount = boardSuitCounts[s];
+      bestBoardSuit = s;
+    }
+  }
+  const hasNutBlock =
+    bestBoardSuitCount >= 2 &&
+    ((rankOf(holeCards[0]) === 12 && suitOf(holeCards[0]) === bestBoardSuit) ||
+      (rankOf(holeCards[1]) === 12 && suitOf(holeCards[1]) === bestBoardSuit));
+  features.push(hasNutBlock ? 1 : 0);
+
+  // [59] pairBlocker — holds card matching highest board rank
+  const hasPairBlock =
+    boardCards.length > 0 &&
+    (rankOf(holeCards[0]) === maxBoardRank || rankOf(holeCards[1]) === maxBoardRank);
+  features.push(hasPairBlock ? 1 : 0);
+
+  // [60] boardPaired — board has repeated rank
+  const boardRanks = new Set(boardCards.map(rankOf));
+  features.push(boardRanks.size < boardCards.length ? 1 : 0);
+
+  // [61] boardFlushDraw — 3+ board cards same suit
+  features.push(boardSuitCounts.some((n) => n >= 3) ? 1 : 0);
+
+  // [62] boardConnected — 3+ board ranks within span of 5
+  let boardConn = false;
+  if (boardRanks.size >= 3) {
+    const sorted = [...boardRanks].sort((a, b) => a - b);
+    for (let i = 0; i <= sorted.length - 3; i++) {
+      if (sorted[i + 2] - sorted[i] <= 4) {
+        boardConn = true;
+        break;
+      }
+    }
+  }
+  features.push(boardConn ? 1 : 0);
+
+  // [63] handRank — made hand category / 10
+  if (boardCards.length >= 3) {
+    try {
+      const RANK_CHARS = '23456789TJQKA';
+      const SUIT_CHARS = 'cdhs';
+      const toCard = (idx: number): string => RANK_CHARS[idx >> 2] + SUIT_CHARS[idx & 3];
+      const allCards = [toCard(holeCards[0]), toCard(holeCards[1]), ...boardCards.map(toCard)];
+      const eval_ = evaluateBestHand(allCards);
+      features.push(eval_.rank / 10);
+    } catch {
+      features.push(0);
+    }
+  } else {
+    features.push(0);
+  }
+
+  // [64] comboDrawPotential — flush draw AND straight draw
+  const fd = features[55];
+  const sd = features[56];
+  features.push(fd > 0 && sd > 0 ? 1 : 0);
 
   return features;
 }

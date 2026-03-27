@@ -60,9 +60,12 @@ class BetSizeConfig:
     flop: list[float] = field(default_factory=lambda: [0.33, 0.75])
     turn: list[float] = field(default_factory=lambda: [0.50, 1.00])
     river: list[float] = field(default_factory=lambda: [0.75, 1.50])
+    preflop: list[float] = field(default_factory=list)  # empty = no preflop bets
 
     def for_street(self, street: Street) -> list[float]:
-        if street == Street.FLOP:
+        if street == Street.PREFLOP:
+            return self.preflop
+        elif street == Street.FLOP:
             return self.flop
         elif street == Street.TURN:
             return self.turn
@@ -72,6 +75,22 @@ class BetSizeConfig:
 
 
 DEFAULT_BET_SIZES = BetSizeConfig()
+
+# Expanded bet fractions: 6 universal sizes for continuous action space (9-slot network)
+EXPANDED_BET_FRACTIONS = [0.33, 0.50, 0.67, 0.75, 1.00, 1.50]
+
+EXPANDED_BET_SIZES = BetSizeConfig(
+    flop=EXPANDED_BET_FRACTIONS,
+    turn=EXPANDED_BET_FRACTIONS,
+    river=EXPANDED_BET_FRACTIONS,
+)
+
+EXPANDED_BET_SIZES_WITH_PREFLOP = BetSizeConfig(
+    preflop=[0.50, 1.00, 1.50],
+    flop=EXPANDED_BET_FRACTIONS,
+    turn=EXPANDED_BET_FRACTIONS,
+    river=EXPANDED_BET_FRACTIONS,
+)
 
 
 # ---------- Game config ----------
@@ -83,6 +102,7 @@ class GameConfig:
     effective_stack: float = 47.5   # remaining stack per player (in BB)
     bet_sizes: BetSizeConfig = field(default_factory=BetSizeConfig)
     raise_cap_per_street: int = 1   # max raises per street (0 = no raising after bet)
+    raise_cap_preflop: int = 4      # preflop raise cap (open/3bet/4bet/5bet)
     include_preflop: bool = False   # if False, start from flop
 
     @staticmethod
@@ -100,6 +120,40 @@ class GameConfig:
     @staticmethod
     def bet3_100bb() -> 'GameConfig':
         return GameConfig(starting_pot=17.5, effective_stack=91.25)
+
+    @staticmethod
+    def full_50bb() -> 'GameConfig':
+        """Full game (preflop→river), 50bb stacks."""
+        return GameConfig(
+            starting_pot=1.5,       # SB(0.5) + BB(1.0)
+            effective_stack=50.0,   # total starting stack per player
+            bet_sizes=EXPANDED_BET_SIZES_WITH_PREFLOP,
+            raise_cap_per_street=1,
+            raise_cap_preflop=4,
+            include_preflop=True,
+        )
+
+    @staticmethod
+    def full_100bb() -> 'GameConfig':
+        """Full game (preflop→river), 100bb stacks."""
+        return GameConfig(
+            starting_pot=1.5,
+            effective_stack=100.0,
+            bet_sizes=EXPANDED_BET_SIZES_WITH_PREFLOP,
+            raise_cap_per_street=1,
+            raise_cap_preflop=4,
+            include_preflop=True,
+        )
+
+    @staticmethod
+    def expanded_srp_50bb() -> 'GameConfig':
+        """SRP 50bb with expanded 6-size bet grid (for 9-slot network)."""
+        return GameConfig(
+            starting_pot=5.0,
+            effective_stack=47.5,
+            bet_sizes=EXPANDED_BET_SIZES,
+            raise_cap_per_street=1,
+        )
 
 
 # ---------- Game state ----------
@@ -122,17 +176,29 @@ class HUNLGameState:
         self.deck: list[int] = list(range(52))
         self.hole_cards: list[tuple[int, int] | None] = [None, None]
         self.board: list[int] = []
-        self.pot: float = self.config.starting_pot
-        self.stacks: list[float] = [self.config.effective_stack, self.config.effective_stack]
-        self.street: Street = Street.FLOP if not self.config.include_preflop else Street.PREFLOP
-        self.street_committed: list[float] = [0.0, 0.0]  # chips committed this street
-        self.current_player: int = 0  # OOP acts first postflop
-        self.actions_history: list[tuple[int, Action]] = []
-        self.raise_count: int = 0
-        self.last_bet_size: float = 0.0  # the current outstanding bet on this street
         self.is_done: bool = False
         self.folded_player: int = -1
+        self.actions_history: list[tuple[int, Action]] = []
+        self.raise_count: int = 0
+        self.last_bet_size: float = 0.0
         self.num_actions_this_street: int = 0
+
+        if self.config.include_preflop:
+            # Preflop: P0=BB posts 1.0, P1=SB posts 0.5, SB acts first
+            self.pot: float = self.config.starting_pot  # 1.5
+            self.stacks: list[float] = [
+                self.config.effective_stack - 1.0,   # BB (P0)
+                self.config.effective_stack - 0.5,   # SB (P1)
+            ]
+            self.street: Street = Street.PREFLOP
+            self.street_committed: list[float] = [1.0, 0.5]  # BB, SB
+            self.current_player: int = 1  # SB acts first preflop
+        else:
+            self.pot: float = self.config.starting_pot
+            self.stacks: list[float] = [self.config.effective_stack, self.config.effective_stack]
+            self.street: Street = Street.FLOP
+            self.street_committed: list[float] = [0.0, 0.0]
+            self.current_player: int = 0  # OOP acts first postflop
 
     def clone(self) -> 'HUNLGameState':
         """Deep copy for branching."""
@@ -254,8 +320,11 @@ class HUNLGameState:
             actions.append(Action(ActionType.CALL))
 
         # Can we raise/bet?
-        can_raise = self.raise_count < self.config.raise_cap_per_street
-        if to_call > 0 and self.raise_count >= self.config.raise_cap_per_street:
+        raise_cap = (self.config.raise_cap_preflop
+                     if self.street == Street.PREFLOP
+                     else self.config.raise_cap_per_street)
+        can_raise = self.raise_count < raise_cap
+        if to_call > 0 and self.raise_count >= raise_cap:
             can_raise = False
 
         if can_raise and stack > to_call:

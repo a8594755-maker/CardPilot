@@ -17,7 +17,9 @@ LR = 0.001
 nets = [LeducAdvantageNetwork(max_actions=max_actions).to(device) for _ in range(2)]
 strategy_buffers = [StrategyBuffer(), StrategyBuffer()]
 
-print(f'Fresh-buffer SD-CFR: {ITERS} iters, {TRAVERSALS} trav, {TRAIN_STEPS} steps, batch {BATCH}')
+import sys
+# Force unbuffered output
+print(f'Fresh-buffer SD-CFR: {ITERS} iters, {TRAVERSALS} trav, {TRAIN_STEPS} steps, batch {BATCH}', flush=True)
 
 for t in range(ITERS):
     for p in range(2):
@@ -42,6 +44,6 @@ for t in range(ITERS):
         a0 = SDCFRAgent(sb0, LeducAdvantageNetwork(max_actions=4), torch.device('cpu'), mode='ensemble')
         a1 = SDCFRAgent(sb1, LeducAdvantageNetwork(max_actions=4), torch.device('cpu'), mode='ensemble')
         exploit = compute_exploitability_leduc([a0, a1])
-        print(f'  Iter {t+1}: exploit={exploit:.1f} mbb/g, loss={loss:.4f}, buf={len(buf)}')
+        print(f'  Iter {t+1}: exploit={exploit:.1f} mbb/g, loss={loss:.4f}, buf={len(buf)}', flush=True)
 
 print('Done!')

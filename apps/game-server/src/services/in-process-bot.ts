@@ -64,10 +64,10 @@ let sharedFastModel: MLP | null | undefined; // undefined = not yet loaded
 
 function getSharedFastModel(): MLP | null {
   if (sharedFastModel !== undefined) return sharedFastModel;
-  const modelPath = resolve(PROJECT_ROOT, 'models/vnet-v7-gpu.json');
+  const modelPath = resolve(PROJECT_ROOT, 'models/vnet-v91-balanced.json');
   sharedFastModel = loadModel(modelPath);
   if (sharedFastModel) {
-    logInfo({ event: 'bot.model', message: `Shared fast model loaded: vnet-v7-gpu.json` });
+    logInfo({ event: 'bot.model', message: `Shared fast model loaded: vnet-v91-balanced.json` });
   } else {
     logWarn({ event: 'bot.model', message: `Fast model not found at ${modelPath}` });
   }

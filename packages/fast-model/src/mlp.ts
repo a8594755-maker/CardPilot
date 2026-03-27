@@ -6,7 +6,13 @@
  *   - Model loading from JSON weights
  */
 
-import type { ModelWeights, StrategyMix, PredictResult, LayerWeights } from './types.js';
+import type {
+  ModelWeights,
+  StrategyMix,
+  PredictResult,
+  LayerWeights,
+  LayerWithNorm,
+} from './types.js';
 
 /**
  * ReLU activation: max(0, x)
@@ -60,6 +66,61 @@ function isV2Model(weights: ModelWeights): boolean {
   return !!(weights.actionHead && weights.sizingHead);
 }
 
+/** Check if model is V3 (has embedding layers) */
+function isV3Model(weights: ModelWeights): boolean {
+  return weights.version === 'v3' && !!weights.handEmbedding;
+}
+
+/**
+ * LayerNorm forward pass: x → (x - mean) / sqrt(var + eps) * scale + bias
+ */
+function layerNormForward(x: number[], scale: number[], bias: number[]): number[] {
+  const n = x.length;
+  let mean = 0;
+  for (let i = 0; i < n; i++) mean += x[i];
+  mean /= n;
+  let variance = 0;
+  for (let i = 0; i < n; i++) variance += (x[i] - mean) ** 2;
+  variance /= n;
+  const invStd = 1 / Math.sqrt(variance + 1e-5);
+  const out = new Array<number>(n);
+  for (let i = 0; i < n; i++) out[i] = scale[i] * (x[i] - mean) * invStd + bias[i];
+  return out;
+}
+
+/**
+ * Compute hand category index (0-168) from rank values.
+ * 0-12: pairs (22=0, 33=1, ..., AA=12)
+ * 13-90: suited hands
+ * 91-168: offsuit hands
+ */
+function handCategoryIndex(rank1Norm: number, rank2Norm: number, suited: number): number {
+  const r1 = Math.round(rank1Norm * 14); // 2..14
+  const r2 = Math.round(rank2Norm * 14);
+  const hi = Math.max(r1, r2) - 2; // 0=2, ..., 12=A
+  const lo = Math.min(r1, r2) - 2;
+  if (hi === lo) return hi; // pair
+  const nonpairIdx = (hi * (hi - 1)) / 2 + lo;
+  return suited > 0.5 ? 13 + nonpairIdx : 91 + nonpairIdx;
+}
+
+/**
+ * Extract board card index (0-51, 52=padding) from 5 feature values at given offset.
+ */
+function boardCardIndex(features: number[], base: number): number {
+  if (features[base] < 0.01) return 52; // empty slot
+  const rank = Math.round(features[base] * 14); // 2..14
+  let suit = 0;
+  let maxVal = features[base + 1];
+  for (let s = 1; s < 4; s++) {
+    if (features[base + 1 + s] > maxVal) {
+      maxVal = features[base + 1 + s];
+      suit = s;
+    }
+  }
+  return (rank - 2) * 4 + suit;
+}
+
 export class MLP {
   private weights: ModelWeights;
 
@@ -77,10 +138,13 @@ export class MLP {
   }
 
   /**
-   * V2 full prediction: features → action mix + sizing mix.
+   * V2/V3 full prediction: features → action mix + sizing mix.
    * For V1 models, sizing is undefined.
    */
   predictFull(features: number[]): PredictResult {
+    if (isV3Model(this.weights)) {
+      return this.forwardV3(features);
+    }
     if (isV2Model(this.weights)) {
       return this.forwardV2(features);
     }
@@ -129,6 +193,94 @@ export class MLP {
         call: actionProbs[1],
         fold: actionProbs[2],
       },
+      sizing: {
+        third: sizingProbs[0],
+        half: sizingProbs[1],
+        twoThirds: sizingProbs[2],
+        pot: sizingProbs[3],
+        allIn: sizingProbs[4],
+      },
+    };
+  }
+
+  /**
+   * V3 embedding forward pass:
+   * Extract card indices from 54-float features → embedding lookup → trunk → heads
+   */
+  private forwardV3(features: number[]): PredictResult {
+    const w = this.weights;
+    const handEmbed = w.handEmbedding!;
+    const cardEmbed = w.cardEmbedding!;
+
+    // ── Extract card indices from 54-float features ──
+    const handCat = handCategoryIndex(features[0], features[1], features[2]);
+    const boardIndices: number[] = [];
+    for (let i = 0; i < 5; i++) boardIndices.push(boardCardIndex(features, 5 + i * 5));
+
+    // ── Hand embedding + raw hole features → hole encoder ──
+    const handVec = handEmbed[handCat]; // [embedDim]
+    const holeRaw = features.slice(0, 5); // rank1, rank2, suited, paired, gap
+    const holeInput = handVec.concat(holeRaw); // [embedDim + 5]
+    const holeRepr = denseForward(holeInput, w.holeEncoder!.weights, w.holeEncoder!.biases, relu);
+
+    // ── Board card embeddings → sum pool → board encoder ──
+    const embedDim = cardEmbed[0].length;
+    const boardSum = new Array<number>(embedDim).fill(0);
+    let boardCount = 0;
+    for (const idx of boardIndices) {
+      if (idx < 52) {
+        const vec = cardEmbed[idx];
+        for (let d = 0; d < embedDim; d++) boardSum[d] += vec[d];
+        boardCount++;
+      }
+    }
+    // Mean pool (fallback to zeros if no board cards)
+    if (boardCount > 0) {
+      for (let d = 0; d < embedDim; d++) boardSum[d] /= boardCount;
+    }
+    const boardRepr = denseForward(boardSum, w.boardEncoder!.weights, w.boardEncoder!.biases, relu);
+
+    // ── Context float features → context encoder ──
+    const contextFeats = features.slice(30, 54); // 24D
+    const contextRepr = denseForward(
+      contextFeats,
+      w.contextEncoder!.weights,
+      w.contextEncoder!.biases,
+      relu,
+    );
+
+    // ── Fusion: concat all three streams ──
+    let current = holeRepr.concat(boardRepr, contextRepr);
+
+    // ── Trunk with LayerNorm ──
+    for (const layer of w.trunk!) {
+      current = denseForward(current, layer.weights, layer.biases, null);
+      current = layerNormForward(current, layer.lnScale, layer.lnBias);
+      current = current.map(relu);
+    }
+
+    // ── Action head (multi-layer) ──
+    let actionH = current;
+    const actionLayers = w.actionHeadV3!.layers;
+    for (let i = 0; i < actionLayers.length - 1; i++) {
+      actionH = denseForward(actionH, actionLayers[i].weights, actionLayers[i].biases, relu);
+    }
+    const actionLast = actionLayers[actionLayers.length - 1];
+    const actionLogits = denseForward(actionH, actionLast.weights, actionLast.biases, null);
+    const actionProbs = softmax(actionLogits);
+
+    // ── Sizing head (multi-layer) ──
+    let sizingH = current;
+    const sizingLayers = w.sizingHeadV3!.layers;
+    for (let i = 0; i < sizingLayers.length - 1; i++) {
+      sizingH = denseForward(sizingH, sizingLayers[i].weights, sizingLayers[i].biases, relu);
+    }
+    const sizingLast = sizingLayers[sizingLayers.length - 1];
+    const sizingLogits = denseForward(sizingH, sizingLast.weights, sizingLast.biases, null);
+    const sizingProbs = softmax(sizingLogits);
+
+    return {
+      action: { raise: actionProbs[0], call: actionProbs[1], fold: actionProbs[2] },
       sizing: {
         third: sizingProbs[0],
         half: sizingProbs[1],

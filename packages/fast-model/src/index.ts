@@ -4,18 +4,22 @@
  * Public API:
  *   - encodeFeatures()    — V1: convert game state to 48-feature vector
  *   - encodeFeaturesV2()  — V2: convert game state to 54-feature vector
+ *   - encodeFeaturesV3()  — V3: convert game state to 65-feature vector (equity/draws/blockers)
  *   - MLP                 — forward-pass inference (V1 single-head + V2 multi-head)
  *   - loadModel()         — load trained model from disk
  *   - evaluateModel()     — offline evaluation metrics
  *   - FEATURE_COUNT       — V1 feature vector length (48)
  *   - FEATURE_COUNT_V2    — V2 feature vector length (54)
+ *   - FEATURE_COUNT_V3    — V3 feature vector length (65)
  */
 
 export {
   encodeFeatures,
   encodeFeaturesV2,
+  encodeFeaturesV3,
   FEATURE_COUNT,
   FEATURE_COUNT_V2,
+  FEATURE_COUNT_V3,
 } from './feature-encoder.js';
 export type { ActionRecord, PlayerRecord } from './feature-encoder.js';
 export { MLP, createRandomModel, createRandomModelV2 } from './mlp.js';
@@ -28,6 +32,9 @@ export type {
   SizingMix,
   PredictResult,
   LayerWeights,
+  LayerWithNorm,
+  HeadWeights,
+  V3Architecture,
 } from './types.js';
 
 import { readFileSync, existsSync } from 'node:fs';

@@ -30,7 +30,7 @@ class AdvantageNetwork(nn.Module):
     Output: advantage values for each action slot (max_actions=6)
     """
 
-    def __init__(self, max_actions: int = 6, combo_embed_dim: int = 64,
+    def __init__(self, max_actions: int = 9, combo_embed_dim: int = 64,
                  card_embed_dim: int = 16, hidden_dims: tuple[int, ...] = (256, 256)):
         super().__init__()
         self.max_actions = max_actions
@@ -54,6 +54,7 @@ class AdvantageNetwork(nn.Module):
             in_dim = h_dim
         layers.append(nn.LayerNorm(in_dim))
         self.trunk = nn.Sequential(*layers)
+        self._trunk_dim = in_dim
 
         # Dueling heads
         self.adv_head = nn.Sequential(
@@ -67,13 +68,24 @@ class AdvantageNetwork(nn.Module):
             nn.Linear(128, 1),
         )
 
-    def forward(self, raw_features: torch.Tensor, legal_mask: torch.Tensor) -> torch.Tensor:
+        # Sizing regression head: outputs [0, 1] representing pot fraction
+        self.sizing_head = nn.Sequential(
+            nn.Linear(in_dim, 64),
+            nn.ReLU(),
+            nn.Linear(64, 1),
+            nn.Sigmoid(),
+        )
+
+    def forward(self, raw_features: torch.Tensor, legal_mask: torch.Tensor,
+                return_sizing: bool = False) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
         """
         Args:
             raw_features: (batch, 56) — raw encoded state
             legal_mask: (batch, max_actions) — 1.0 for legal actions
+            return_sizing: if True, also return sizing prediction
         Returns:
             advantages: (batch, max_actions) — masked advantages
+            OR (advantages, sizing): sizing is (batch, 1) in [0, 1]
         """
         # Extract indices
         combo_idx = raw_features[:, 0].long().clamp(0, 1326)  # -1 → 1326 (padding)
@@ -99,6 +111,10 @@ class AdvantageNetwork(nn.Module):
 
         # Q = V + A, masked to legal actions only
         q = (val + adv) * legal_mask
+
+        if return_sizing:
+            sizing = self.sizing_head(h)  # (batch, 1)
+            return q, sizing
         return q
 
 
@@ -163,7 +179,7 @@ class StrategyBuffer:
 
         for key in self.networks[0][0]:
             avg_dict[key] = sum(
-                sd[key].float() * (w / total_weight)
+                sd[key].cpu().float() * (w / total_weight)
                 for sd, w in self.networks
             )
 
@@ -217,7 +233,7 @@ class PolicyNetwork(nn.Module):
     Same embedding architecture as AdvantageNetwork but outputs action probs directly.
     """
 
-    def __init__(self, max_actions: int = 6, combo_embed_dim: int = 64,
+    def __init__(self, max_actions: int = 9, combo_embed_dim: int = 64,
                  card_embed_dim: int = 16, hidden_dims: tuple[int, ...] = (256, 256)):
         super().__init__()
         self.max_actions = max_actions

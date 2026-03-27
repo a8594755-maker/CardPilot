@@ -4,6 +4,32 @@ export interface LayerWeights {
   biases: number[];
 }
 
+/** Dense layer with LayerNorm: weights + biases + LN scale/bias */
+export interface LayerWithNorm {
+  weights: number[][];
+  biases: number[];
+  lnScale: number[];
+  lnBias: number[];
+}
+
+/** V3 multi-layer head: hidden + output layers */
+export interface HeadWeights {
+  layers: LayerWeights[];
+}
+
+/** V3 architecture config stored in model JSON */
+export interface V3Architecture {
+  cardEmbedDim: number;
+  handCategories: number;
+  numCards: number;
+  contextDim: number;
+  encoderDim: number;
+  trunkSizes: number[];
+  headHidden: number;
+  useLayerNorm: boolean;
+  dropout?: number;
+}
+
 /** Full model: ordered list of layers (input→hidden→…→output) */
 export interface ModelWeights {
   layers: LayerWeights[];
@@ -13,8 +39,8 @@ export interface ModelWeights {
   sizingHead?: LayerWeights;
   /** Feature vector length the model expects */
   inputSize: number;
-  /** Model version: 'v1' (single-head 48 features) or 'v2' (multi-head 54 features) */
-  version?: 'v1' | 'v2';
+  /** Model version */
+  version?: 'v1' | 'v2' | 'v3';
   /** ISO timestamp of when the model was trained */
   trainedAt: string;
   /** Number of training samples used */
@@ -23,8 +49,27 @@ export interface ModelWeights {
   valLoss: number;
   /** Architecture metadata for reproducibility */
   architecture?: {
-    hiddenSizes: number[];
-  };
+    hiddenSizes?: number[];
+  } & Partial<V3Architecture>;
+
+  // ── V3 embedding model fields ──
+  /** V3: hand category embedding table [169][embedDim] */
+  handEmbedding?: number[][];
+  /** V3: card embedding table [53][embedDim] */
+  cardEmbedding?: number[][];
+  /** V3: hole card encoder (embedDim+5 → encoderDim) */
+  holeEncoder?: LayerWeights;
+  /** V3: board card encoder (embedDim → encoderDim) */
+  boardEncoder?: LayerWeights;
+  /** V3: context float encoder (24 → encoderDim) */
+  contextEncoder?: LayerWeights;
+  /** V3: trunk layers with LayerNorm */
+  trunk?: LayerWithNorm[];
+  /** V3: action head (multi-layer) */
+  actionHeadV3?: HeadWeights;
+  /** V3: sizing head (multi-layer) */
+  sizingHeadV3?: HeadWeights;
+
   /** Data manifest: what CFR data was used for training */
   dataManifest?: {
     configName: string;
