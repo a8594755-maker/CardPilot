@@ -117,25 +117,34 @@ export function TableContainer({ onSeatClick }: TableContainerProps) {
           className="absolute -translate-x-1/2 -translate-y-1/2"
           style={{ top: pos?.top, left: pos?.left }}
         >
-          <SeatChip
-            player={player}
-            seatNum={seatNum}
-            isActor={!!isActor}
-            isMe={isMe}
-            isOwner={!!isOwner}
-            isCoHost={!!isCo}
-            isBot={player?.isBot}
-            timer={actionTimer?.seat === seatNum && !player?.isBot ? actionTimer : null}
-            timerTotal={roomState?.settings.actionTimerSeconds ?? 15}
-            posLabel={posLabel}
-            isButton={isButton}
-            bigBlind={snapshot?.bigBlind ?? 3}
-            lastAction={lastActionBySeat?.[seatNum] ?? null}
-            revealedCards={revealedCards}
-            revealedHandName={winnerHandName}
-            isMucked={isMucked}
-            onClickEmpty={onSeatClick}
-          />
+          <div className="relative">
+            <SeatChip
+              player={player}
+              seatNum={seatNum}
+              isActor={!!isActor}
+              isMe={isMe}
+              isOwner={!!isOwner}
+              isCoHost={!!isCo}
+              isBot={player?.isBot}
+              timer={actionTimer?.seat === seatNum && !player?.isBot ? actionTimer : null}
+              timerTotal={roomState?.settings.actionTimerSeconds ?? 15}
+              posLabel={posLabel}
+              isButton={isButton}
+              bigBlind={snapshot?.bigBlind ?? 3}
+              lastAction={lastActionBySeat?.[seatNum] ?? null}
+              revealedCards={revealedCards}
+              revealedHandName={winnerHandName}
+              isMucked={isMucked}
+              onClickEmpty={onSeatClick}
+            />
+            {isMe && holeCards.length > 0 && !revealedCards && (
+              <div className="cp-hero-cards-beside">
+                {holeCards.map((c, i) => (
+                  <PokerCard key={i} card={c} variant="table" />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       );
     });
@@ -153,12 +162,16 @@ export function TableContainer({ onSeatClick }: TableContainerProps) {
   const board = snapshot?.board ?? [];
   const totalPot = snapshot?.pot ?? 0;
   const bb = snapshot?.bigBlind ?? 3;
+  const handActive = !!snapshot?.handId;
 
   return (
     <div
       ref={tableStageRef}
-      className="flex-1 relative overflow-hidden bg-slate-950 flex items-center justify-center"
+      className="flex-1 relative overflow-hidden cp-table-stage-bg flex items-center justify-center"
     >
+      {/* Ambient glow behind table when hand is active */}
+      {handActive && <div className="cp-table-ambient-glow" />}
+
       <div
         className="cp-table-scale-frame"
         style={{ '--cp-table-scale': tableScale } as React.CSSProperties}
@@ -172,7 +185,7 @@ export function TableContainer({ onSeatClick }: TableContainerProps) {
               <div className="cp-board-row cp-board-row--single">
                 {board.length > 0
                   ? board.map((c: string, i: number) => (
-                      <div key={`${snapshot?.handId ?? 'h'}-${i}`}>
+                      <div key={`${snapshot?.handId ?? 'h'}-${i}`} className="cp-board-card-wrap">
                         <PokerCard card={c} variant="table" />
                       </div>
                     ))
@@ -186,9 +199,9 @@ export function TableContainer({ onSeatClick }: TableContainerProps) {
             <div ref={potRef} className="cp-pot-anchor">
               {totalPot > 0 && (
                 <div className="cp-pot-pill">
-                  <div className="flex items-center justify-between gap-4 text-slate-300 uppercase tracking-wider text-base">
-                    <span className="font-semibold">Pot</span>
-                    <span className="text-amber-400 font-bold cp-num normal-case text-xl">
+                  <div className="cp-pot-inner">
+                    <span className="cp-pot-label">Pot</span>
+                    <span className="cp-pot-amount">
                       {formatChips(totalPot, { mode: 'chips', bbSize: bb })}
                     </span>
                   </div>
@@ -208,16 +221,6 @@ export function TableContainer({ onSeatClick }: TableContainerProps) {
           </div>
         </div>
       </div>
-
-      {/* Hero cards */}
-      {holeCards.length > 0 && (
-        <div className="cp-hero-strip">
-          <span className="text-[9px] text-slate-500 uppercase tracking-wider mr-1">Your Hand</span>
-          {holeCards.map((c, i) => (
-            <PokerCard key={i} card={c} variant="table" />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

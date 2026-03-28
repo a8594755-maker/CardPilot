@@ -36,6 +36,7 @@ import { CfrPage } from './pages/cfr/CfrPage';
 import { ClubsPage } from './pages/clubs/ClubsPage';
 import { Lobby, type CreateRoomSettings } from './components/lobby';
 import { TableContainer } from './components/TableContainer';
+import { PokerCard } from './components/PokerCard';
 import { RoomSettingsPanel } from './components/RoomSettingsPanel';
 import { InGameHandHistory } from './components/ui/InGameHandHistory';
 import { SessionScoreboard } from './components/ui/SessionScoreboard';
@@ -109,7 +110,7 @@ export function AppContent() {
     roomState,
     seat,
     setSeat: _setSeat,
-    holeCards: _holeCards,
+    holeCards,
     advice,
     deviation: _deviation,
     actionPending: _actionPending,
@@ -658,7 +659,7 @@ export function AppContent() {
                 'history',
                 'training',
                 'fast-battle',
-                'cfr',
+                // 'cfr', // hidden for now
                 'profile',
               ] as const
             ).map((v) => (
@@ -700,54 +701,108 @@ export function AppContent() {
       ) : !isMobilePortrait && !isFastBattlePlaying ? (
         /* Table Top Bar */
         <header className="cp-table-topbar">
-          <div className="flex items-center gap-2">
-            <button onClick={leaveRoom} className="cp-table-exit-btn" title="Exit to Lobby">
-              ← Lobby
+          <div className="flex items-center gap-2.5 min-w-0">
+            <button onClick={leaveRoom} className="cp-topbar-btn group" title="Exit to Lobby">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-slate-400 group-hover:text-white transition-colors"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+              <span className="text-[11px] text-slate-400 group-hover:text-slate-200 transition-colors font-medium">
+                Lobby
+              </span>
             </button>
-            <div className="w-px h-5 bg-white/10" />
+            <div className="w-px h-5 bg-white/[0.08]" />
             {currentRoomName && (
-              <span className="text-xs font-semibold text-white truncate max-w-[180px]">
+              <span className="text-[12px] font-semibold text-white truncate max-w-[200px]">
                 {currentRoomName}
               </span>
             )}
             {currentRoomCode && (
               <button
                 onClick={copyCode}
-                className="text-[10px] font-mono text-amber-400 tracking-wider hover:text-amber-300 transition-colors"
-                title="Copy"
+                className="cp-topbar-code-btn text-[10px] font-mono text-amber-400/80 tracking-wider hover:text-amber-300 transition-all px-2 py-0.5 rounded-md hover:bg-amber-500/10 border border-transparent hover:border-amber-500/20"
+                title="Copy room code"
               >
-                {currentRoomCode} 📋
+                {currentRoomCode}
+                <svg
+                  width="10"
+                  height="10"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="inline ml-1 opacity-50"
+                >
+                  <rect x="9" y="9" width="13" height="13" rx="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
               </button>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {roomState && (
-              <span className="text-[10px] text-slate-500">
-                {roomState.settings.smallBlind}/{roomState.settings.bigBlind} ·{' '}
+              <span className="text-[10px] text-slate-500 font-medium tabular-nums mr-1">
+                {roomState.settings.smallBlind}/{roomState.settings.bigBlind}
+                <span className="text-slate-600 mx-1">/</span>
                 {roomState.settings.maxPlayers}-max
               </span>
             )}
-            <span
-              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-medium ${isConnected ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}
+            <div
+              className={`cp-topbar-status inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-medium ${isConnected ? 'bg-emerald-500/[0.08] text-emerald-400/80 border border-emerald-500/15' : 'bg-red-500/[0.08] text-red-400/80 border border-red-500/15'}`}
             >
               <span
-                className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-red-400'}`}
-              />{' '}
+                className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-emerald-400' : 'bg-red-400 animate-pulse'}`}
+              />
               {connectionLabel}
-            </span>
+            </div>
             <button
               onClick={() => setShowInGameHistory(true)}
-              className="text-sm text-slate-400 hover:text-white px-1.5 py-1 rounded-lg hover:bg-white/5"
-              title="History"
+              className="cp-topbar-icon-btn"
+              title="Hand History"
             >
-              📜
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M12 8v4l3 3" />
+                <circle cx="12" cy="12" r="10" />
+              </svg>
             </button>
             <button
               onClick={() => setShowOptionsDrawer(!showOptionsDrawer)}
-              className="text-sm text-slate-400 hover:text-white px-1.5 py-1 rounded-lg hover:bg-white/5"
+              className="cp-topbar-icon-btn"
               title="Options"
             >
-              ☰
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
             </button>
           </div>
         </header>
@@ -1275,49 +1330,51 @@ export function AppContent() {
                   </div>
                 )}
 
-                {/* Bottom Bar */}
+                {/* Bottom Bar — floats over table */}
                 {!isMobilePortrait && !isFastBattlePlaying && (
-                  <BottomActionBar
-                    canAct={snapshot?.actorSeat === seat}
-                    legal={snapshot?.legalActions ?? null}
-                    pot={snapshot?.pot ?? 0}
-                    bigBlind={roomState?.settings.bigBlind ?? 100}
-                    currentBet={snapshot?.currentBet ?? 0}
-                    raiseTo={raiseTo}
-                    setRaiseTo={setRaiseTo}
-                    onAction={(action, amount) => {
-                      if (!snapshot?.handId) return;
-                      socket?.emit('action_submit', {
-                        tableId,
-                        handId: snapshot.handId,
-                        action,
-                        amount,
-                      });
-                    }}
-                    street={snapshot?.street ?? 'PREFLOP'}
-                    board={snapshot?.board ?? []}
-                    heroStack={myPlayer?.stack ?? 0}
-                    numPlayers={snapshot?.players.length ?? 0}
-                    advice={advice}
-                    preAction={preAction}
-                    onSetPreAction={handleSetPreAction}
-                    derivedActionBar={derivedActionBarValue}
-                    derivedPreActionUI={derivedPreActionUIValue}
-                    isMyTurn={snapshot?.actorSeat === seat}
-                    onFoldAttempt={() => {
-                      if (
-                        shouldConfirmUnnecessaryFold(snapshot?.legalActions, suppressFoldConfirm)
-                      ) {
-                        setShowFoldConfirm(true);
-                      } else {
+                  <div className="cp-action-float">
+                    <BottomActionBar
+                      canAct={snapshot?.actorSeat === seat}
+                      legal={snapshot?.legalActions ?? null}
+                      pot={snapshot?.pot ?? 0}
+                      bigBlind={roomState?.settings.bigBlind ?? 100}
+                      currentBet={snapshot?.currentBet ?? 0}
+                      raiseTo={raiseTo}
+                      setRaiseTo={setRaiseTo}
+                      onAction={(action, amount) => {
+                        if (!snapshot?.handId) return;
                         socket?.emit('action_submit', {
                           tableId,
-                          handId: snapshot?.handId,
-                          action: 'fold',
+                          handId: snapshot.handId,
+                          action,
+                          amount,
                         });
-                      }
-                    }}
-                  />
+                      }}
+                      street={snapshot?.street ?? 'PREFLOP'}
+                      board={snapshot?.board ?? []}
+                      heroStack={myPlayer?.stack ?? 0}
+                      numPlayers={snapshot?.players.length ?? 0}
+                      advice={advice}
+                      preAction={preAction}
+                      onSetPreAction={handleSetPreAction}
+                      derivedActionBar={derivedActionBarValue}
+                      derivedPreActionUI={derivedPreActionUIValue}
+                      isMyTurn={snapshot?.actorSeat === seat}
+                      onFoldAttempt={() => {
+                        if (
+                          shouldConfirmUnnecessaryFold(snapshot?.legalActions, suppressFoldConfirm)
+                        ) {
+                          setShowFoldConfirm(true);
+                        } else {
+                          socket?.emit('action_submit', {
+                            tableId,
+                            handId: snapshot?.handId,
+                            action: 'fold',
+                          });
+                        }
+                      }}
+                    />
+                  </div>
                 )}
               </main>
             </>

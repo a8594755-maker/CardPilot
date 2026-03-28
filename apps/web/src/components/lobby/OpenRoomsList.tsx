@@ -41,8 +41,20 @@ const RoomCard = memo(function RoomCard({
         <div className="flex items-center gap-2">
           <span className="font-medium text-white text-sm truncate">{room.roomName}</span>
           {room.visibility === 'private' && (
-            <span className="text-amber-400 text-xs" title="Private room">
-              🔒
+            <span title="Private room" className="shrink-0 inline-flex">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#f59e0b"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
             </span>
           )}
         </div>
@@ -98,15 +110,28 @@ function EmptyState({
   return (
     <div className="text-center py-10">
       <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/5 mb-4">
-        <span className="text-2xl opacity-30">♠</span>
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-slate-600"
+        >
+          <rect x="2" y="4" width="20" height="16" rx="3" />
+          <ellipse cx="12" cy="12" rx="6" ry="4" />
+        </svg>
       </div>
-      <p className="text-slate-400 text-sm font-medium">No public rooms right now.</p>
+      <p className="text-slate-400 text-sm font-semibold">No public rooms right now.</p>
       <p className="text-slate-500 text-xs mt-1 mb-4">Create one or join with a code.</p>
       <div className="flex items-center justify-center gap-3">
         <button
           disabled={disabled}
           onClick={onCreatePublic}
-          className="cp-btn cp-btn-primary text-xs px-4"
+          className="cp-btn cp-btn-gold text-xs px-4"
         >
           Create a public room
         </button>

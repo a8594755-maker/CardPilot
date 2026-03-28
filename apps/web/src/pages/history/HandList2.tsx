@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { HandRecord } from '../../lib/hand-history.js';
 import { PokerCard } from '../../components/PokerCard.js';
 
-const ROW_HEIGHT = 132;
+const ROW_HEIGHT = 118;
 const OVERSCAN = 6;
 
 function formatShortDate(ts: number) {
@@ -25,6 +25,24 @@ function dayBucket(ts: number): string {
 
 /** Sort options for the hand list */
 export type HandSort = 'newest' | 'oldest' | 'biggest_pot' | 'biggest_win' | 'biggest_loss';
+
+const SORT_OPTIONS: [HandSort, string][] = [
+  ['newest', 'New'],
+  ['oldest', 'Old'],
+  ['biggest_pot', 'Pot'],
+  ['biggest_win', 'Win'],
+  ['biggest_loss', 'Loss'],
+];
+
+/** Result indicator bar on left edge */
+function ResultStripe({ result }: { result: number }) {
+  const color = result > 0 ? 'bg-emerald-400' : result < 0 ? 'bg-red-400' : 'bg-slate-600';
+  return (
+    <div
+      className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full ${color} transition-all`}
+    />
+  );
+}
 
 export function HandList2({
   hands,
@@ -86,9 +104,9 @@ export function HandList2({
 
   if (loading) {
     return (
-      <div className="flex-1 p-2 space-y-2">
+      <div className="flex-1 p-2 space-y-1.5">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="history-row-skeleton h-[124px]" />
+          <div key={i} className="cp-history-skeleton h-[110px] rounded-xl" />
         ))}
       </div>
     );
@@ -96,10 +114,27 @@ export function HandList2({
 
   if (hands.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-        <div className="text-3xl mb-3 opacity-40">📋</div>
-        <p className="text-slate-400 text-sm font-medium">No hands in this room</p>
-        <p className="text-slate-500 text-xs mt-1">Select a different room or play some hands.</p>
+      <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+        <div className="w-12 h-12 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mb-3">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-slate-500"
+          >
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+          </svg>
+        </div>
+        <p className="text-slate-400 text-sm font-medium">No hands yet</p>
+        <p className="text-slate-600 text-xs mt-1">Select a room or play some hands.</p>
       </div>
     );
   }
@@ -107,24 +142,18 @@ export function HandList2({
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Sort bar */}
-      <div className="flex items-center gap-1 px-2.5 py-1.5 border-b border-white/[0.06]">
-        <span className="text-[9px] text-slate-500 uppercase tracking-wider mr-0.5">Sort:</span>
-        {(
-          [
-            ['newest', 'Newest'],
-            ['oldest', 'Oldest'],
-            ['biggest_pot', 'Pot ↓'],
-            ['biggest_win', 'Win ↓'],
-            ['biggest_loss', 'Loss ↓'],
-          ] as [HandSort, string][]
-        ).map(([key, label]) => (
+      <div className="flex items-center gap-1 px-3 py-1.5 border-b border-white/[0.06]">
+        <span className="text-[9px] text-slate-600 uppercase tracking-wider mr-1 font-medium">
+          Sort
+        </span>
+        {SORT_OPTIONS.map(([key, label]) => (
           <button
             key={key}
             onClick={() => onSortChange(key)}
-            className={`text-[9px] px-1.5 py-0.5 rounded-md transition-all ${
+            className={`text-[10px] px-2 py-0.5 rounded-md transition-all font-medium ${
               sort === key
-                ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
-                : 'text-slate-500 hover:text-slate-300 border border-transparent'
+                ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30'
+                : 'text-slate-500 hover:text-slate-300 border border-transparent hover:bg-white/[0.03]'
             }`}
           >
             {label}
@@ -134,7 +163,7 @@ export function HandList2({
       {/* Virtualized list */}
       <div
         ref={containerRef}
-        className="flex-1 overflow-auto min-h-0"
+        className="flex-1 overflow-auto min-h-0 cp-history-scroll"
         onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
       >
         <div style={{ height: sortedHands.length * ROW_HEIGHT, position: 'relative' }}>
@@ -146,81 +175,92 @@ export function HandList2({
             const prev =
               absoluteIndex > 0 ? dayBucket(sortedHands[absoluteIndex - 1].createdAt) : '';
             const boardPreview = hand.board.slice(0, 3);
+            const isSelected = selectedId === hand.id;
             return (
               <button
                 key={hand.id}
                 onClick={() => onSelect(hand.id)}
-                className={`absolute left-2 right-2 rounded-xl border p-2.5 text-left transition-all overflow-hidden ${
-                  selectedId === hand.id
-                    ? 'border-sky-500/60 bg-sky-500/10 shadow-lg shadow-sky-900/20'
-                    : 'border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.12]'
+                className={`absolute left-2 right-2 rounded-xl border text-left transition-all overflow-hidden ${
+                  isSelected
+                    ? 'border-sky-500/40 bg-sky-500/[0.08] shadow-lg shadow-sky-500/10'
+                    : 'border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/[0.10]'
                 }`}
-                style={{ top, height: ROW_HEIGHT - 8 }}
+                style={{ top, height: ROW_HEIGHT - 6 }}
               >
-                {/* Day group pill */}
-                {sort === 'newest' && group !== prev && (
-                  <span className="history-group-pill mb-1">{group}</span>
-                )}
-                {/* Row 1: time + position + result */}
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 text-[11px] min-w-0">
-                    <span className="text-slate-500">{formatShortDate(hand.createdAt)}</span>
-                    <span className="text-slate-600">·</span>
-                    <span className="text-cyan-400/80 font-medium">{hand.position}</span>
-                    <span className="text-slate-600">·</span>
-                    <span className="text-slate-500">{hand.stakes}</span>
+                {/* Left edge result stripe */}
+                <ResultStripe result={result} />
+
+                <div className="pl-3.5 pr-3 py-2.5">
+                  {/* Day group pill */}
+                  {sort === 'newest' && group !== prev && (
+                    <span className="inline-flex text-[9px] font-semibold uppercase tracking-wider text-blue-300/80 bg-blue-500/10 border border-blue-400/20 rounded-md px-2 py-0.5 mb-1.5">
+                      {group}
+                    </span>
+                  )}
+
+                  {/* Row 1: time + position + result */}
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <div className="flex items-center gap-1.5 text-[10px] min-w-0">
+                      <span className="text-slate-500">{formatShortDate(hand.createdAt)}</span>
+                      <span className="text-slate-700">/</span>
+                      <span className="text-cyan-400/80 font-semibold">{hand.position}</span>
+                      <span className="text-slate-700">/</span>
+                      <span className="text-slate-500">{hand.stakes}</span>
+                    </div>
+                    <span
+                      className={`text-[13px] font-bold tabular-nums leading-none ${
+                        result > 0
+                          ? 'text-emerald-400'
+                          : result < 0
+                            ? 'text-red-400'
+                            : 'text-slate-500'
+                      }`}
+                    >
+                      {result > 0 ? '+' : ''}
+                      {result.toLocaleString()}
+                    </span>
                   </div>
-                  <span
-                    className={`text-sm font-bold tabular-nums ${
-                      result > 0
-                        ? 'text-emerald-400'
-                        : result < 0
-                          ? 'text-red-400'
-                          : 'text-slate-400'
-                    }`}
-                  >
-                    {result > 0 ? '+' : ''}
-                    {result.toLocaleString()}
-                  </span>
-                </div>
-                {/* Row 2: hero cards + board preview + pot */}
-                <div className="flex items-center gap-2 mt-1.5">
-                  {/* Hero cards */}
-                  <div className="flex gap-0.5">
-                    {hand.heroCards.map((c) => (
-                      <PokerCard key={c} card={c} variant="mini" />
-                    ))}
-                  </div>
-                  {/* Board preview (first 3 cards) */}
-                  {boardPreview.length > 0 && (
-                    <div className="flex gap-0.5 ml-1 opacity-60">
-                      {boardPreview.map((c, i) => (
-                        <PokerCard key={`${c}-${i}`} card={c} variant="mini" />
+
+                  {/* Row 2: hero cards + board preview + pot */}
+                  <div className="flex items-center gap-2">
+                    {/* Hero cards */}
+                    <div className="flex gap-[2px]">
+                      {hand.heroCards.map((c) => (
+                        <PokerCard key={c} card={c} variant="mini" />
                       ))}
                     </div>
-                  )}
-                  <span className="text-[10px] text-slate-500 ml-auto shrink-0">
-                    Pot {hand.potSize.toLocaleString()}
-                  </span>
-                </div>
-                {/* Row 3: tags — single line, no wrap, +N overflow pill */}
-                {hand.tags.length > 0 && (
-                  <div className="flex items-center gap-1 mt-1.5 overflow-hidden flex-nowrap">
-                    {hand.tags.slice(0, 3).map((t) => (
-                      <span
-                        key={t}
-                        className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-700/40 text-slate-400 border border-white/[0.06] whitespace-nowrap shrink-0"
-                      >
-                        {t}
-                      </span>
-                    ))}
-                    {hand.tags.length > 3 && (
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-700/40 text-slate-400 border border-white/[0.06] whitespace-nowrap shrink-0">
-                        +{hand.tags.length - 3}
-                      </span>
+                    {/* Board preview (flop) */}
+                    {boardPreview.length > 0 && (
+                      <div className="flex gap-[2px] opacity-50">
+                        {boardPreview.map((c, i) => (
+                          <PokerCard key={`${c}-${i}`} card={c} variant="mini" />
+                        ))}
+                      </div>
                     )}
+                    <span className="text-[10px] text-slate-600 ml-auto shrink-0 tabular-nums">
+                      Pot {hand.potSize.toLocaleString()}
+                    </span>
                   </div>
-                )}
+
+                  {/* Row 3: tags */}
+                  {hand.tags.length > 0 && (
+                    <div className="flex items-center gap-1 mt-1.5 overflow-hidden flex-nowrap">
+                      {hand.tags.slice(0, 3).map((t) => (
+                        <span
+                          key={t}
+                          className="text-[9px] px-1.5 py-[2px] rounded-md bg-white/[0.04] text-slate-500 border border-white/[0.06] whitespace-nowrap shrink-0"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                      {hand.tags.length > 3 && (
+                        <span className="text-[9px] text-slate-600 shrink-0">
+                          +{hand.tags.length - 3}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
               </button>
             );
           })}

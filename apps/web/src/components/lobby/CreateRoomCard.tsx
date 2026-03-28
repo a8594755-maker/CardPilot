@@ -340,9 +340,29 @@ export const CreateRoomCard = memo(function CreateRoomCard({
               </span>
             </span>
             <span
-              className={`whitespace-nowrap ${visibility === 'private' ? 'text-amber-400' : 'text-emerald-400'}`}
+              className={`whitespace-nowrap font-bold ${visibility === 'private' ? 'text-amber-500' : 'text-emerald-400'}`}
             >
-              {visibility === 'private' ? 'Private' : 'Public'}
+              {visibility === 'private' ? (
+                <>
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="inline -mt-0.5 mr-0.5"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                  Private
+                </>
+              ) : (
+                'Public'
+              )}
             </span>
           </div>
         </div>
@@ -356,8 +376,23 @@ export const CreateRoomCard = memo(function CreateRoomCard({
         <button
           disabled={disabled || !!validationError}
           onClick={handleCreate}
-          className="cp-btn cp-btn-primary w-full text-base font-bold py-3"
+          className="cp-btn cp-btn-gold w-full text-base font-bold py-3"
+          style={{ letterSpacing: '0.04em' }}
         >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="shrink-0"
+          >
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
           Create Room
         </button>
       </div>

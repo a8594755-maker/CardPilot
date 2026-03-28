@@ -143,13 +143,21 @@ export function AuthScreen({
       <div className="cp-auth-shell w-full max-w-md my-auto">
         {/* Logo */}
         <div className="cp-auth-brand text-center mb-8">
-          <div className="cp-auth-logo w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-3xl font-extrabold text-slate-900 shadow-xl mx-auto mb-4">
+          <div
+            className="cp-auth-logo w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-3xl font-extrabold text-slate-900 shadow-xl mx-auto mb-4"
+            style={{ boxShadow: '0 8px 32px rgba(217, 119, 6, 0.3)' }}
+          >
             C
           </div>
-          <h1 className="cp-auth-title text-3xl font-bold text-white">
-            Card<span className="text-amber-400">Pilot</span>
+          <h1 className="cp-auth-title text-3xl font-extrabold text-white tracking-tight">
+            Card<span className="text-amber-500">Pilot</span>
           </h1>
-          <p className="cp-auth-subtitle text-slate-500 text-sm mt-2">GTO-powered poker training</p>
+          <p
+            className="cp-auth-subtitle text-slate-500 text-sm mt-2 font-medium tracking-wide uppercase"
+            style={{ fontSize: '11px', letterSpacing: '0.12em' }}
+          >
+            GTO-Powered Poker Training
+          </p>
         </div>
 
         {/* Card */}
@@ -199,7 +207,7 @@ export function AuthScreen({
                   <div className="w-full border-t border-white/10" />
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="bg-[#0f1724] px-3 text-xs text-slate-500">
+                  <span className="bg-[#0f1724]/95 px-3 text-xs text-slate-500">
                     or continue with email
                   </span>
                 </div>
@@ -326,7 +334,7 @@ export function AuthScreen({
               <div className="w-full border-t border-white/10" />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-[#0f1724] px-3 text-xs text-slate-500">or</span>
+              <span className="bg-[#0f1724]/95 px-3 text-xs text-slate-500">or</span>
             </div>
           </div>
 

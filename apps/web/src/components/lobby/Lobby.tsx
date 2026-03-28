@@ -66,15 +66,25 @@ export const Lobby = memo(function Lobby({
     <main className="flex-1 overflow-y-auto cp-lobby-bg">
       <div className="relative z-[1] max-w-2xl mx-auto px-4 sm:px-6 py-8 space-y-5">
         {/* Header */}
-        <header className="mb-2">
-          <h1 className="text-2xl font-extrabold text-white tracking-tight">Lobby</h1>
-          <div className="flex items-center gap-2 mt-1">
-            <div
-              className={`w-2 h-2 rounded-full ${connected ? 'bg-emerald-500' : 'bg-red-500'}`}
-            />
-            <span className="text-xs text-slate-400">
-              {connected ? 'Connected' : 'Disconnected'}
-            </span>
+        <header className="mb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-sm font-extrabold text-slate-900 shadow-md">
+              C
+            </div>
+            <div>
+              <h1 className="text-2xl font-extrabold text-white tracking-tight leading-tight">
+                Lobby
+              </h1>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span
+                  className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-emerald-400' : 'bg-red-400 animate-pulse'}`}
+                  aria-hidden="true"
+                />
+                <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+                  {connected ? 'Online' : 'Offline'}
+                </span>
+              </div>
+            </div>
           </div>
         </header>
 

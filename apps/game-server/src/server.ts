@@ -556,6 +556,8 @@ io.use(async (socket, next) => {
         ...verifiedIdentity,
         userId: normalizedClientUserId,
         isAuthenticated: false,
+        // Preserve the verified Supabase UUID for hand history persistence
+        supabaseUserId: verifiedIdentity.userId,
       };
     }
 
@@ -3472,6 +3474,33 @@ function initiateRunoutFlow(tableId: string, table: GameTable): void {
     return;
   }
 
+  // When run-it-twice is disabled, skip the run-count decision prompt entirely
+  // and deal the board immediately to avoid a long wait.
+  if (!state.runItTwiceEnabled) {
+    table.setAllInRunCount(1);
+    // Still reveal hole cards for all-in showdown
+    const equities = calculateAllPlayersEquity(table, [...state.board] as Card[]);
+    const fakeEligible = eligiblePlayers.map((p) => ({ ...p }));
+    const preferencesBySeat: Record<number, RunCountPreference | null> = {};
+    for (const player of fakeEligible) {
+      preferencesBySeat[player.seat] = 1;
+    }
+    const pending: PendingRunCountDecisionState = {
+      handId: state.handId,
+      eligiblePlayers: fakeEligible,
+      underdogSeat: fakeEligible[0].seat,
+      preferencesBySeat,
+      targetRunCount: 1,
+      equities,
+    };
+    revealLockedHoleCards(tableId, table, pending);
+    emitAllInLocked(tableId, pending);
+    touchLocalRoom(tableId);
+    broadcastSnapshot(tableId);
+    void handleSequentialRunout(tableId, table);
+    return;
+  }
+
   const preferencesBySeat: Record<number, RunCountPreference | null> = {};
   for (const player of eligiblePlayers) {
     preferencesBySeat[player.seat] = null;
@@ -3894,9 +3923,20 @@ async function persistHandHistory(
   };
 
   const viewerBotIds = getBotUserIds(tableId);
+  // Collect Supabase UUIDs from socket identities for anonymous users whose
+  // userId was overridden to guest-xxx but who still have a valid Supabase UUID.
+  const supabaseUuidsByPlayer: string[] = [];
+  for (const player of state.players) {
+    for (const [, ident] of socketIdentity.entries()) {
+      if (ident.userId === player.userId && ident.supabaseUserId) {
+        supabaseUuidsByPlayer.push(ident.supabaseUserId);
+      }
+    }
+  }
   const viewerUserIds = [
     ...new Set([
       ...state.players.map((player) => player.userId),
+      ...supabaseUuidsByPlayer,
       managed?.ownership.ownerId ?? '',
       ...(managed?.ownership.coHostIds ?? []),
     ]),
@@ -4297,7 +4337,9 @@ io.on('connection', (socket) => {
         });
         return;
       }
-      const rooms = await supabase.listHistoryRooms(identity.userId, payload?.limit ?? 50);
+      // Use Supabase UUID if available (anonymous users have guest-xxx userId but valid UUID)
+      const historyUserId = identity.supabaseUserId || identity.userId;
+      const rooms = await supabase.listHistoryRooms(historyUserId, payload?.limit ?? 50);
       recordEgress(rooms.length * 200);
       socket.emit('history_rooms', { rooms });
     } catch (error) {
@@ -4308,8 +4350,9 @@ io.on('connection', (socket) => {
   socket.on('request_history_sessions', async (payload: { roomId: string; limit?: number }) => {
     try {
       if (!payload?.roomId) throw new Error('roomId is required');
+      const historyUserId = identity.supabaseUserId || identity.userId;
       const sessions = await supabase.listHistorySessions(
-        identity.userId,
+        historyUserId,
         payload.roomId,
         payload.limit ?? 100,
       );
@@ -4325,8 +4368,9 @@ io.on('connection', (socket) => {
     async (payload: { roomSessionId: string; limit?: number; beforeEndedAt?: string }) => {
       try {
         if (!payload?.roomSessionId) throw new Error('roomSessionId is required');
+        const historyUserId = identity.supabaseUserId || identity.userId;
         const { hands, hasMore, nextCursor } = await supabase.listHistoryHands(
-          identity.userId,
+          historyUserId,
           payload.roomSessionId,
           {
             limit: payload.limit ?? 50,
@@ -4361,7 +4405,8 @@ io.on('connection', (socket) => {
   socket.on('request_history_hand_detail', async (payload: { handHistoryId: string }) => {
     try {
       if (!payload?.handHistoryId) throw new Error('handHistoryId is required');
-      const hand = await supabase.getHistoryHandDetail(identity.userId, payload.handHistoryId);
+      const historyUserId = identity.supabaseUserId || identity.userId;
+      const hand = await supabase.getHistoryHandDetail(historyUserId, payload.handHistoryId);
       recordEgress(hand ? 30_000 : 200); // hand detail ~30KB
       socket.emit('history_hand_detail', { handHistoryId: payload.handHistoryId, hand });
     } catch (error) {

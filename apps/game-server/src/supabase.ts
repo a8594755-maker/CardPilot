@@ -21,6 +21,8 @@ export type VerifiedIdentity = {
   userId: string;
   displayName: string;
   isAuthenticated: boolean;
+  /** The Supabase UUID, preserved even when userId is overridden by a guest-xxx id. */
+  supabaseUserId?: string;
 };
 
 export type SeatPersistenceRecord = {
