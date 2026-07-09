@@ -1,0 +1,82 @@
+# V5 Next Action Queue
+
+- Checked at: `2026-07-09T21:43:53.960960+00:00`
+- Overall: **WAITING_FOR_NEXT_TRIGGER**
+- Recommendation: Wait for `gate_24500`.
+- Training health: `PASS`
+- Live/checkpoint iteration: `24424` / `24400`
+- Live/checkpoint hands: `401228414` / `400833409`
+- Recent h/s: `4307.920`
+- Mean seconds/iteration: `9.230`
+
+Queue:
+
+- WAITING: `gate_24500`; ETA `11m`; blocks strength claim
+  - Trigger: iteration >= 24500 and checkpoint >= 24500
+  - Action: Let gate watcher validate lineage, env/action-space, health, and checkpoint freshness.
+  - Owner: `v5_gate_sequence_watch.py`
+  - Reason: live iter 24424 < target 24500; remaining 76 iterations.
+- WAITING: `internal_probe_24500`; ETA `11m`
+  - Trigger: checkpoint iteration >= 24500
+  - Action: Run/allow internal strength probe and compare against fixed opponent pool.
+  - Owner: `v5_internal_strength_watch.py`
+  - Reason: checkpoint 24400 < target 24500.
+- WATCH: `internal_mixed_review_24400`
+  - Trigger: latest internal probe verdict changes or repeats regression risk
+  - Action: Review internal fixed-opponent direction together with preflop probes and Slumbot hand-loss evidence before any training intervention.
+  - Owner: `v5_l6_status_brief.py / v5_post_gate_review.py`
+  - Reason: latest internal probe verdict=MIXED_INTERNAL; delta mean/lower bb100=233.298 / 736.650. Use as local direction evidence only.
+- WATCH: `preflop_guardrail_review_24400`
+  - Trigger: latest preflop probe warning/failure or checkpoint-delta regression
+  - Action: Review fold/call/raise shape with internal probe and Slumbot hand-loss evidence before any cutover, promotion, or training intervention.
+  - Owner: `v5_preflop_policy_probe.py / v5_checkpoint_delta.py`
+  - Reason: preflop probe=WARN; warning_count=6; checkpoint_delta=LOCAL_GUARDRAILS_REGRESSED; warning_delta=2.000; mean_call_delta=0.000; mean_fold_delta=0.253; mean_raise_delta=-0.253. Warning count increased from 4 to 6.
+- WAITING: `post_gate_review_24500`; ETA `11m`; blocks strength claim
+  - Trigger: gate and internal probe evidence available for iteration 24500
+  - Action: Review consolidated post-gate evidence before restart, cutover, checkpoint promotion, or strength claims.
+  - Owner: `v5_post_gate_review.py / v5_dashboard_watch.py`
+  - Reason: Wait for gate_24500 and internal_probe_24500; no restart or strength claim.
+- PASS: `health_warning_diagnosis`
+  - Trigger: rolling health window detects sustained warning or collapse risk
+  - Action: Carry sustained warnings into the current intervention review; do not restart before the current gate unless collapse risk appears.
+  - Owner: `v5_health_warning_diagnosis.py`
+  - Reason: health diagnosis=PASS.
+- WAITING: `slumbot_promotion20k_500000000`; ETA `6h 22m`; blocks strength claim
+  - Trigger: checkpoint hands >= 500000000
+  - Action: Launch official greedy-direct promotion20k through the duplicate-safe cadence pipeline; audit the full bundle and launch formal100k only if promotion_20k_strong=true.
+  - Owner: `v5_eval_cadence_watch.py / v5_slumbot_benchmark_watch.py`
+  - Reason: checkpoint hands 400833409 < 500000000; live hands 401228414.
+- WATCH: `slumbot_hand_review_latest`
+  - Trigger: latest official Slumbot CI updates or required hand-review artifacts are missing
+  - Action: Read the latest official Slumbot hand review and loss report before any training adjustment; never tune from bb/100 alone.
+  - Owner: `v5_trend_ledger.py / v5_slumbot_hand_review.py`
+  - Reason: latest official Slumbot: hands=20400, bb100=-140.151, lower=-178.386; hand_review=PASS, evidence_class=promotion_scale, training_adjustment=PROMOTION_SCALE_REVIEW_IF_LEAK_REPEATS; artifact_audit=PASS. Use this hand review/loss report as required evidence before tuning; quick screens remain noisy.
+- WATCH: `slumbot_loss_trend_latest`
+  - Trigger: latest official Slumbot CI updates or official loss-trend evidence is missing/stale
+  - Action: Compare latest official Slumbot loss trend against previous official results before any training adjustment.
+  - Owner: `v5_trend_ledger.py / v5_slumbot_loss_report.py`
+  - Reason: official loss-trend rows=4; latest bb100=-140.151, delta_vs_previous=-39.903; SB/BB=-155.142/-125.160; hero_fold/showdown=-227.354/-3434.452; top preflop loss buckets=sb_open_raise_lt2.5bb, bb_vs_open_lt2.5bb_f, sb_open_c. Use this cross-benchmark loss trend before interpreting whether Slumbot performance is improving.
+- WAITING: `exp003_native_anchor_mirror_408064575`; ETA `1h 7m`
+  - Trigger: checkpoint hands >= 408064575
+  - Action: At the first PASS checkpoint >= target, freeze that checkpoint and run the registered 25,000-pair three-role causal bundle with seed 20260709: gate21800 vs native75M, candidate vs native75M, and candidate directly vs gate21800. Require identical protocol and OOD <= 0.15; then write a separate ADOPT/ROLLBACK judgment artifact.
+  - Owner: `v5_mirror_eval.py / operator`
+  - Reason: checkpoint_hands=400833409 < target 408064575; remaining_checkpoint_hands=7231166; no EXP-003 causal mirror-bundle artifacts found.
+- BLOCKED: `slumbot_formal100k_250000000`; ETA `0m`; blocks strength claim
+  - Trigger: promotion20k strong gate PASS and checkpoint hands >= 250000000
+  - Action: Run formal100k Slumbot benchmark, require complete hand logs/loss report/artifact audit/hand review, then apply the 100k+ CI rule; only this tier can prove L5/L6.
+  - Owner: `slumbot_formal100k_launch watcher`
+  - Reason: state=DUE; checkpoint_hands=400833409; promotion20k_prerequisite=BLOCKED: latest promotion20k gate is not strong: candidate=False, strong=False, path=models\bench_v55_v5_v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709_250M_promotion20k_cadence_promotion_gate.json.
+- BLOCKED: `throughput_optimization`
+  - Trigger: after the current method experiment closes and a separate speed window is registered
+  - Action: Do not execute a throughput sweep until EXP-003 has an explicit completed judgment.
+  - Owner: `v5_throughput_sweep_plan.py`
+  - Reason: EXP-003 is the sole open behavior window and has no completed ADOPT/ROLLBACK judgment; the sweep plan is planning-only and must not be executed.
+- BLOCKED: `strength_claim_gate`; blocks strength claim
+  - Trigger: 100k+ Slumbot hands, bb/100 > 0, CI lower > 0; L6 near +11.1 bb/100
+  - Action: Do not claim stronger-than-V4/L5/L6 until formal Slumbot evidence satisfies the rule.
+  - Owner: `v5_evidence_watchdog.py / v5_baseline_gap.py`
+  - Reason: latest Slumbot: hands=20400, bb100=-140.151, lower=-178.386; formal rule not met.
+
+Claim rule:
+
+- Only formal Slumbot CI can prove strength: 100k+ hands, bb/100 > 0, CI lower > 0; L6 also needs near +11.1 bb/100.

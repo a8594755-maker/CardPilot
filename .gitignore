@@ -96,3 +96,14 @@ EZ-GTO/
 
 # Playwright test results
 test-results/
+
+# Large local artifacts — keep out of git snapshots (AI-harness `git add -A`/`git status`
+# was hashing ~23GB repeatedly, stealing CPU from the trainer main loop; 2026-07-07)
+data/phase2/
+tmp/
+*.zip
+# Model checkpoints & caches accidentally under scripts/ (never commit weights)
+scripts/alpha_holdem/models/
+__pycache__/
+# Bulky historical eval dumps (summaries at eval_logs/ root are kept)
+eval_logs/path_b/

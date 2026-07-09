@@ -1,0 +1,76 @@
+{
+  "checked_at": "2026-07-09T17:19:00-04:00",
+  "supersedes": "reports/v5_alpha_holdem_takeover_handoff_20260706_1224.md",
+  "goal_path": "docs/V5_CURRENT_GOAL.md",
+  "run_id": "v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709",
+  "trainer": {
+    "pid": 48476,
+    "health": "PASS",
+    "stderr_empty": true,
+    "checkpoint_iteration": 24200,
+    "checkpoint_hands": 397542929,
+    "live_iteration": 24270,
+    "live_hands": 398694646,
+    "collect_hps_mean": 4064.4,
+    "effective_hps_mean": 1605.8,
+    "ppo_share": 0.595
+  },
+  "watchers": {
+    "canonical_rearm_survival_pass": true,
+    "gate_internal_max_iteration": 24900,
+    "ops_log_watch_enabled": true,
+    "count": 7
+  },
+  "experiments": {
+    "EXP-002": "ADOPTED_RETAINED",
+    "EXP-003": "RUNNING_JUDGMENT_PENDING",
+    "EXP-004": "ROLLED_BACK_TO_STABLE_FLOOR_PRE001_POST002_ZERO_BLOCKED"
+  },
+  "exp003": {
+    "cutover_checkpoint_hands": 358064575,
+    "judgment_target_hands": 408064575,
+    "judgment_protocol": "reports/v5_exp003_judgment_protocol_20260709.md",
+    "required_pairs_per_role": 25000,
+    "seed": 20260709,
+    "roles": [
+      "pre_vs_native",
+      "post_vs_native",
+      "post_vs_pre_direct"
+    ],
+    "ood_max": 0.15,
+    "single_valid_measurement_is_success": false
+  },
+  "latest_evidence": {
+    "v4_current_harness": {
+      "hands": 20400,
+      "bb_per_100": -71.383,
+      "ci_lower": -92.222,
+      "ci_upper": -50.543
+    },
+    "v5_promotion20k": {
+      "hands": 20400,
+      "bb_per_100": -140.151,
+      "ci_lower": -178.386,
+      "ci_upper": -101.916,
+      "bundle": "PASS",
+      "strong": false
+    },
+    "v5_formal100k": {
+      "hands": 100000,
+      "bb_per_100": -100.248,
+      "ci_lower": -112.407,
+      "ci_upper": -88.088,
+      "bundle": "PASS",
+      "level": "L0"
+    }
+  },
+  "next_action": "Keep trainer unchanged to first PASS checkpoint >=408064575, then run the fixed three-role causal mirror bundle and write explicit ADOPT/ROLLBACK judgment.",
+  "forbidden_before_exp003_closes": [
+    "trainer restart for inspection",
+    "prior decay",
+    "throughput sweep",
+    "EXP-005/006/007 cutover",
+    "manual Slumbot launch",
+    "checkpoint cherry-picking"
+  ]
+}
