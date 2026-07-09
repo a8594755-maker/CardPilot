@@ -1,0 +1,428 @@
+#!/usr/bin/env python3
+"""Vectorized AlphaHoldem trainer — N parallel games in single process, batched inference.
+
+Replaces train_mp3.py's 28-worker multiprocessing architecture. The point is to
+keep inference batches large (batch=N instead of inf_bs ~5) by stepping all
+parallel games in lockstep.
+
+Single-process, single-GPU. Loop structure:
+  1. For all alive games: encode obs (N samples)
+  2. Batched inference for all N (one GPU forward pass)
+  3. Apply actions to all N games (vectorized step)
+  4. Collect terminal payoffs, reset finished games
+  5. PPO update when iter_hands >= hands_per_iter
+
+NOTE: encoding currently uses a Python loop calling the existing per-game
+encode_cards / encode_action_history / etc. This is simple but suboptimal —
+will optimize after end-to-end speedup confirmed.
+"""
+from __future__ import annotations
+
+import argparse
+import os
+import sys
+import time
+import math
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.distributions import Categorical
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, os.path.dirname(__file__))
+
+from alpha_holdem.network import AlphaHoldemNet, count_parameters
+from alpha_holdem.environment import NUM_ACTIONS  # 9
+
+from vec_game_state import (
+    VecHUNLState, MAX_HIST, RAISE_FRACTIONS, PREFLOP_RAISE_FRACTIONS,
+    S_PRE, S_FLOP, S_TURN, S_RIVER,
+    A_FOLD, A_CHECK, A_CALL, A_BET, A_RAISE, A_ALLIN,
+)
+
+
+# ─── Batched observation encoding (cards / action history / extra) ──────────
+NUM_SUITS = 4
+NUM_RANKS = 13
+NUM_CARD_CHANNELS = 6
+MAX_ACTIONS_PER_STREET = 6
+NUM_STREETS = 4
+ACTION_HISTORY_CHANNELS = MAX_ACTIONS_PER_STREET * NUM_STREETS + 1  # = 25
+
+
+def encode_obs_batched(state: VecHUNLState) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Encode all N parallel game observations from the current player's perspective.
+
+    Returns:
+      card_t   (N, 6, 4, 13) float32
+      action_t (N, 25, 4, 5) float32
+      extra_t  (N, 2)        float32
+      mask_t   (N, 9)        float32 (legal action mask)
+    """
+    N = state.N
+    cp = state.current_player.astype(np.int64)
+
+    # ── Cards (N, 6, 4, 13) ────────────────────────────────────────────────
+    card_t = np.zeros((N, NUM_CARD_CHANNELS, NUM_SUITS, NUM_RANKS), dtype=np.float32)
+    # Use vectorized fancy indexing. For each game, hole=state.holes[i, cp[i], :]
+    rows = np.arange(N)
+    hole = state.holes[rows, cp]  # (N, 2) card indices, possibly -1 if not dealt
+    # Set hero hole channel 0
+    for k in range(2):
+        c = hole[:, k]
+        valid = c >= 0
+        if valid.any():
+            r = c[valid] // 4
+            s = c[valid] % 4
+            card_t[valid, 0, s, r] = 1.0
+            card_t[valid, 5, s, r] = 1.0  # also channel 5 (all visible)
+
+    # Board channels: 1=flop, 2=turn, 3=river, 4=all public, 5=all visible
+    for j in range(5):
+        c = state.board[:, j]
+        valid = c >= 0
+        if not valid.any():
+            continue
+        rr = c[valid] // 4
+        ss = c[valid] % 4
+        if j < 3:
+            card_t[valid, 1, ss, rr] = 1.0
+        elif j == 3:
+            card_t[valid, 2, ss, rr] = 1.0
+        else:
+            card_t[valid, 3, ss, rr] = 1.0
+        card_t[valid, 4, ss, rr] = 1.0
+        card_t[valid, 5, ss, rr] = 1.0
+
+    # ── Action history (N, 25, 4, 5) ───────────────────────────────────────
+    # Match the Python encoder exactly: action amounts are normalized by the
+    # CURRENT (post-action-history) state.pot, not by per-action pot snapshots.
+    action_t = np.zeros((N, ACTION_HISTORY_CHANNELS, NUM_STREETS, 5), dtype=np.float32)
+    pot_now = state.pot
+    for i in range(N):
+        L = int(state.hist_len[i])
+        cur_pot = max(float(pot_now[i]), 1e-6)
+        if L > 0:
+            slot_count_per_street = [0, 0, 0, 0]
+            cur_street = 0
+            for j in range(L):
+                who = int(state.action_hist[i, j, 0])
+                atype = int(state.action_hist[i, j, 1])
+                amount = float(state.action_hist[i, j, 2]) / 100.0
+                if cur_street >= NUM_STREETS:
+                    break
+                slot = slot_count_per_street[cur_street]
+                if slot >= MAX_ACTIONS_PER_STREET:
+                    continue
+                channel = cur_street * MAX_ACTIONS_PER_STREET + slot
+                action_t[i, channel, 0, 0] = 1.0 if who == cp[i] else 0.0
+                action_t[i, channel, 1, min(atype, 4)] = 1.0
+                if amount > 0:
+                    action_t[i, channel, 2, 0] = min(amount / cur_pot, 2.0) / 2.0
+                action_t[i, channel, 3, 0] = 1.0
+                slot_count_per_street[cur_street] += 1
+                # Mirror Python's street-advance heuristic
+                if atype in (A_CHECK, A_CALL) and slot_count_per_street[cur_street] >= 2:
+                    cur_street += 1
+        # Current player indicator (channel 24)
+        action_t[i, 24, 0, 0] = 1.0 if state.current_player[i] == cp[i] else 0.0
+
+    # ── Extra (N, 2): normalized stacks ────────────────────────────────────
+    extra_t = np.zeros((N, 2), dtype=np.float32)
+    extra_t[:, 0] = state.stacks[rows, cp] / state.eff_stack
+    extra_t[:, 1] = state.stacks[rows, 1 - cp] / state.eff_stack
+
+    # ── Legal mask (N, 9) ──────────────────────────────────────────────────
+    mask_t = state.legal_mask().astype(np.float32)
+
+    return card_t, action_t, extra_t, mask_t
+
+
+# ─── PPO + GAE ──────────────────────────────────────────────────────────────
+def compute_gae(rewards, values, dones, gamma=0.999, lam=0.95):
+    advantages = np.zeros_like(rewards)
+    last_gae = 0.0
+    n = len(rewards)
+    for t in reversed(range(n)):
+        next_value = 0.0 if t == n - 1 else values[t + 1]
+        delta = rewards[t] + gamma * next_value * (1 - dones[t]) - values[t]
+        advantages[t] = last_gae = delta + gamma * lam * (1 - dones[t]) * last_gae
+    returns = advantages + values
+    return advantages, returns
+
+
+def trinal_clip_ppo_update(model, optimizer, transitions, device,
+                            epochs=4, mini_batch_size=2048,
+                            eps=0.2, delta1=3.0, value_coef=0.5,
+                            entropy_coef=0.05, entropy_floor=0.3,
+                            max_grad_norm=0.5, gamma=0.999) -> dict:
+    model.train()
+    n = len(transitions)
+    if n == 0:
+        return {'policy_loss': 0, 'value_loss': 0, 'entropy': 0}
+
+    card_arr = np.stack([t[0] for t in transitions])
+    action_arr = np.stack([t[1] for t in transitions])
+    extra_arr = np.stack([t[2] for t in transitions])
+    mask_arr = np.stack([t[3] for t in transitions])
+    act_arr = np.array([t[4] for t in transitions], dtype=np.int64)
+    lp_arr = np.array([t[5] for t in transitions], dtype=np.float32)
+    rew_arr = np.array([t[6] for t in transitions], dtype=np.float32)
+    val_arr = np.array([t[7] for t in transitions], dtype=np.float32)
+    done_arr = np.array([t[8] for t in transitions], dtype=np.float32)
+    hero_chips = np.array([t[9] for t in transitions], dtype=np.float32)
+    villain_chips = np.array([t[10] for t in transitions], dtype=np.float32)
+
+    advantages, returns = compute_gae(rew_arr, val_arr, done_arr, gamma=gamma)
+
+    cards_t = torch.tensor(card_arr, device=device)
+    actions_t = torch.tensor(action_arr, device=device)
+    extras_t = torch.tensor(extra_arr, device=device)
+    masks_t = torch.tensor(mask_arr, device=device)
+    acts_t = torch.tensor(act_arr, device=device)
+    old_lp_t = torch.tensor(lp_arr, device=device)
+    adv_t = torch.tensor(advantages, device=device)
+    ret_t = torch.tensor(returns, device=device)
+    d2_t = torch.tensor(hero_chips, device=device)
+    d3_t = torch.tensor(villain_chips, device=device)
+
+    if n > 1:
+        adv_t = (adv_t - adv_t.mean()) / (adv_t.std() + 1e-8)
+
+    tp = tv = te = 0.0
+    nu = 0
+    for _ in range(epochs):
+        idx = torch.randperm(n, device=device)
+        for start in range(0, n, mini_batch_size):
+            mb = idx[start:start + mini_batch_size]
+            logits, values = model(cards_t[mb], actions_t[mb], extras_t[mb], masks_t[mb])
+            probs = F.softmax(logits, dim=-1)
+            dist = Categorical(probs)
+            new_lp = dist.log_prob(acts_t[mb])
+            entropy = dist.entropy().mean()
+
+            ratio = torch.exp(new_lp - old_lp_t[mb])
+            adv_b = adv_t[mb]
+            ratio_c = torch.clamp(ratio, 1 - eps, 1 + eps)
+            ratio_cc = torch.clamp(ratio_c, max=delta1)
+            surr1 = ratio * adv_b
+            surr2 = ratio_cc * adv_b
+            ploss = -torch.min(surr1, surr2).mean()
+
+            ret_b = ret_t[mb]
+            d2_b = d2_t[mb]
+            d3_b = d3_t[mb]
+            ret_clipped = torch.max(torch.min(ret_b, d3_b), -d2_b)
+            vloss = F.mse_loss(values.squeeze(-1), ret_clipped)
+
+            ec = entropy_coef * 5.0 if entropy.item() < entropy_floor else entropy_coef
+            loss = ploss + value_coef * vloss - ec * entropy
+
+            optimizer.zero_grad()
+            loss.backward()
+            nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
+            optimizer.step()
+
+            tp += ploss.item(); tv += vloss.item(); te += entropy.item(); nu += 1
+    return {'policy_loss': tp / max(nu, 1), 'value_loss': tv / max(nu, 1), 'entropy': te / max(nu, 1)}
+
+
+# ─── Main training loop ─────────────────────────────────────────────────────
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--device', default='cuda' if torch.cuda.is_available() else 'cpu')
+    parser.add_argument('--parallel-games', type=int, default=1024, help='N parallel games')
+    parser.add_argument('--hands-per-iter', type=int, default=16384)
+    parser.add_argument('--total-hands', type=int, default=1_000_000_000)
+    parser.add_argument('--starting-stack', type=float, default=200.0)
+    parser.add_argument('--lr', type=float, default=3e-4)
+    parser.add_argument('--epsilon', type=float, default=0.05)
+    parser.add_argument('--mini-batch-size', type=int, default=4096)
+    parser.add_argument('--ppo-epochs', type=int, default=4)
+    parser.add_argument('--gamma', type=float, default=0.999)
+    parser.add_argument('--delta1', type=float, default=3.0)
+    parser.add_argument('--entropy-coef', type=float, default=0.02)
+    parser.add_argument('--entropy-floor', type=float, default=0.3)
+    parser.add_argument('--save-interval', type=int, default=25)
+    parser.add_argument('--out', default='models/alpha_holdem_vec.pt')
+    parser.add_argument('--resume', default=None)
+    parser.add_argument('--max-iters', type=int, default=100, help='Hard cap on iterations (for benchmark)')
+    args = parser.parse_args()
+
+    device = args.device
+    print(f'Device: {device}')
+    if device == 'cuda':
+        print(f'GPU: {torch.cuda.get_device_name(0)}')
+    print(f'Parallel games (N): {args.parallel_games}')
+
+    model = AlphaHoldemNet(num_actions=NUM_ACTIONS).to(device)
+    dc = torch.zeros(1, 6, 4, 13, device=device)
+    da = torch.zeros(1, 25, 4, 5, device=device)
+    de = torch.zeros(1, 2, device=device)
+    model(dc, da, de)
+    print(f'Parameters: {count_parameters(model):,}')
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    total_hands = 0
+    iteration = 0
+    if args.resume and os.path.exists(args.resume):
+        ckpt = torch.load(args.resume, map_location=device, weights_only=False)
+        model.load_state_dict(ckpt['model'])
+        if 'optimizer' in ckpt:
+            try:
+                optimizer.load_state_dict(ckpt['optimizer'])
+            except Exception as e:
+                print(f'Optimizer state mismatch ({e}); resetting Adam.')
+        total_hands = ckpt.get('total_hands', 0)
+        iteration = ckpt.get('iteration', 0)
+        print(f'Resumed from {args.resume}: hands={total_hands:,}, iter={iteration}')
+
+    # Initialize N parallel games
+    N = args.parallel_games
+    state = VecHUNLState(N=N, effective_stack=args.starting_stack, seed=42)
+    state.reset_all()
+
+    # Hero buffer (per-game): we collect transitions only when current player is hero.
+    # When a hand terminates, we finalize the transitions with the final reward.
+    per_game_buffer: list[list] = [[] for _ in range(N)]
+    iter_transitions: list = []
+    iter_hands = 0
+    iter_reward_sum = 0.0
+    reward_window: list[float] = []
+
+    log_path = args.out.replace('.pt', '.log')
+    t0 = time.time()
+    bench_t0 = time.time()
+    bench_hands_start = total_hands
+    iters_this_run = 0
+
+    while total_hands < args.total_hands and iters_this_run < args.max_iters:
+        # 1. Encode observations from current player's perspective
+        card_np, action_np, extra_np, mask_np = encode_obs_batched(state)
+
+        # 2. Batched inference
+        with torch.no_grad():
+            cards_t = torch.from_numpy(card_np).to(device, non_blocking=True)
+            actions_t = torch.from_numpy(action_np).to(device, non_blocking=True)
+            extras_t = torch.from_numpy(extra_np).to(device, non_blocking=True)
+            masks_t = torch.from_numpy(mask_np).to(device, non_blocking=True)
+            logits, values = model(cards_t, actions_t, extras_t, masks_t)
+            probs = F.softmax(logits, dim=-1)
+            dist = Categorical(probs)
+            sampled = dist.sample()
+            log_probs = dist.log_prob(sampled)
+        action_np_out = sampled.cpu().numpy()
+        log_probs_np = log_probs.cpu().numpy()
+        values_np = values.squeeze(-1).cpu().numpy()
+
+        # Epsilon-explore for hero only
+        cp_np = state.current_player.astype(np.int64)
+        is_hero_now = (cp_np == state.hero_player.astype(np.int64))
+        if args.epsilon > 0:
+            explore = (np.random.random(N) < args.epsilon) & is_hero_now
+            if explore.any():
+                # For exploring rows, choose a random legal action
+                for i in np.where(explore)[0]:
+                    legal = np.where(mask_np[i] > 0)[0]
+                    if len(legal) > 0:
+                        action_np_out[i] = np.random.choice(legal)
+
+        # 3. Stash hero transitions BEFORE step (so per_game_buffer has the pre-step obs)
+        for i in np.where(is_hero_now & ~state.is_done)[0]:
+            per_game_buffer[i].append((
+                card_np[i].copy(), action_np[i].copy(), extra_np[i].copy(), mask_np[i].copy(),
+                int(action_np_out[i]), float(log_probs_np[i]), float(values_np[i]),
+            ))
+
+        # 4. Step all games
+        state.step(action_np_out)
+
+        # 5. Finalize hands that terminated
+        if state.is_done.any():
+            rewards = state.terminal_rewards()
+            for i in np.where(state.is_done)[0]:
+                buf = per_game_buffer[i]
+                if not buf:
+                    # No hero actions this hand (e.g., opponent folded first action). Skip.
+                    pass
+                else:
+                    hand_reward = float(rewards[i])
+                    invested = state.eff_stack - state.stacks[i]
+                    hero = int(state.hero_player[i])
+                    hero_invested = float(invested[hero])
+                    villain_invested = float(invested[1 - hero])
+                    for j, (ci, ai, ei, lm, act, lp, val) in enumerate(buf):
+                        last = (j == len(buf) - 1)
+                        iter_transitions.append((
+                            ci, ai, ei, lm, act, lp,
+                            hand_reward if last else 0.0,
+                            val,
+                            1.0 if last else 0.0,
+                            hero_invested,
+                            villain_invested,
+                        ))
+                    iter_reward_sum += hand_reward
+                    iter_hands += 1
+                per_game_buffer[i] = []
+
+            state.reset_done()
+
+        # 6. PPO update when enough hero hands
+        if iter_hands >= args.hands_per_iter:
+            iteration += 1
+            iters_this_run += 1
+            t_collect = time.time() - bench_t0
+            t_train_0 = time.time()
+            stats = trinal_clip_ppo_update(
+                model, optimizer, iter_transitions, device,
+                epochs=args.ppo_epochs, mini_batch_size=args.mini_batch_size,
+                delta1=args.delta1, gamma=args.gamma,
+                entropy_coef=args.entropy_coef, entropy_floor=args.entropy_floor,
+            )
+            t_train = time.time() - t_train_0
+            total_hands += iter_hands
+
+            avg_rew = iter_reward_sum / max(iter_hands, 1)
+            reward_window.append(avg_rew)
+            if len(reward_window) > 100:
+                reward_window.pop(0)
+            rew100 = np.mean(reward_window)
+
+            elapsed_iter = time.time() - bench_t0
+            h_per_s = iter_hands / elapsed_iter
+            log_line = (
+                f"[{iteration:5d}] hands={total_hands:,} N={N} "
+                f"rew={avg_rew:+.3f} rew100={rew100:+.3f} "
+                f"ploss={stats['policy_loss']:.4f} vloss={stats['value_loss']:.4f} "
+                f"ent={stats['entropy']:.4f} eps={args.epsilon:.3f} "
+                f"trans={len(iter_transitions)} h/s={h_per_s:.0f} "
+                f"collect={t_collect:.1f}s ppo={t_train:.1f}s"
+            )
+            print(log_line)
+            with open(log_path, 'a') as f:
+                f.write(log_line + '\n')
+
+            iter_transitions = []
+            iter_hands = 0
+            iter_reward_sum = 0.0
+            bench_t0 = time.time()
+
+            # Save checkpoint
+            if iteration % args.save_interval == 0:
+                os.makedirs(os.path.dirname(args.out) or '.', exist_ok=True)
+                torch.save({
+                    'model': model.state_dict(),
+                    'optimizer': optimizer.state_dict(),
+                    'total_hands': total_hands,
+                    'iteration': iteration,
+                }, args.out)
+                print(f'  [Save] {args.out} ({total_hands:,} hands)')
+
+    elapsed = max(time.time() - t0, 1e-6)
+    overall_hands = total_hands - bench_hands_start
+    print(f'\nDONE. {overall_hands:,} hands in {elapsed:.1f}s = {overall_hands/elapsed:.0f} h/s overall')
+
+
+if __name__ == '__main__':
+    main()

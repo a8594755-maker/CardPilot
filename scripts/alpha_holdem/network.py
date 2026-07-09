@@ -1,0 +1,183 @@
+"""
+AlphaHoldem network — PyTorch reimplementation.
+
+Pseudo-Siamese architecture:
+  - Card branch: CNN on (6, 4, 13) card tensor
+  - Action branch: CNN on (25, 4, 5) action history tensor
+  - Fusion: concat(card_flat, action_flat, extra_fc) → shared trunk → policy + value heads
+
+Based on: Zhao et al., "AlphaHoldem: High-Performance AI for HUNL Poker
+via End-to-End RL", AAAI 2022.
+
+V2: Scaled to ~8.6M params to match paper.
+"""
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+
+def _make_norm(kind: str, num_features: int) -> nn.Module:
+    """Build a 2D normalization layer. kind ∈ {'bn', 'gn', 'ln'}.
+
+    bn = BatchNorm2d (running stats; mode-dependent)
+    gn = GroupNorm  (no running stats; mode-independent — recommended for long self-play)
+    ln = GroupNorm(num_groups=1) (channel-wise LayerNorm equivalent for Conv2d)
+    """
+    if kind == 'bn':
+        return nn.BatchNorm2d(num_features)
+    if kind == 'gn':
+        groups = 8
+        while num_features % groups != 0 and groups > 1:
+            groups -= 1
+        return nn.GroupNorm(groups, num_features)
+    if kind == 'ln':
+        return nn.GroupNorm(1, num_features)
+    raise ValueError(f'Unknown norm_layer: {kind!r} (expected bn/gn/ln)')
+
+
+class ResBlock(nn.Module):
+    """Residual block with optional stride for downsampling."""
+
+    def __init__(self, in_channels: int, out_channels: int, stride: int = 1, norm_layer: str = 'bn'):
+        super().__init__()
+        self.conv1 = nn.Conv2d(in_channels, out_channels, 3, stride=stride, padding=1, bias=False)
+        self.bn1 = _make_norm(norm_layer, out_channels)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, 3, stride=1, padding=1, bias=False)
+        self.bn2 = _make_norm(norm_layer, out_channels)
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_channels != out_channels:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, 1, stride=stride, bias=False),
+                _make_norm(norm_layer, out_channels),
+            )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out = out + self.shortcut(x)
+        return F.relu(out)
+
+
+class CNNBranch(nn.Module):
+    """CNN encoder branch — scaled up to match paper's 1.8M conv params."""
+
+    def __init__(self, in_channels: int, norm_layer: str = 'bn'):
+        super().__init__()
+        # Scaled: 48→96→192 with 2 res blocks each
+        self.conv1 = nn.Conv2d(in_channels, 48, 3, stride=1, padding=1, bias=False)
+        self.bn1 = _make_norm(norm_layer, 48)
+        self.res1a = ResBlock(48, 96, stride=2, norm_layer=norm_layer)
+        self.res1b = ResBlock(96, 96, norm_layer=norm_layer)
+        self.res2a = ResBlock(96, 192, stride=2, norm_layer=norm_layer)
+        self.res2b = ResBlock(192, 192, norm_layer=norm_layer)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.res1b(self.res1a(out))
+        out = self.res2b(self.res2a(out))
+        return out.flatten(start_dim=1)
+
+
+class AlphaHoldemNet(nn.Module):
+    """
+    AlphaHoldem pseudo-Siamese network (scaled).
+
+    Inputs:
+      card_info:   (B, 6, 4, 13)
+      action_info: (B, 25, 4, 5)
+      extra_info:  (B, 2)
+
+    Outputs:
+      policy_logits: (B, num_actions)
+      value:         (B, 1)
+    """
+
+    def __init__(self, num_actions: int = 9, norm_layer: str = 'bn'):
+        super().__init__()
+        self.num_actions = num_actions
+        self.norm_layer = norm_layer
+
+        self.card_cnn = CNNBranch(in_channels=6, norm_layer=norm_layer)
+        self.action_cnn = CNNBranch(in_channels=25, norm_layer=norm_layer)
+
+        self.extra_fc = nn.Sequential(
+            nn.Linear(2, 32),
+            nn.ReLU(),
+        )
+
+        # Trunk (lazy init)
+        self.trunk = None
+        self.policy_head = None
+        self.value_head = None
+
+    def _init_trunk(self, card_flat: int, action_flat: int):
+        """Initialize trunk after first forward pass determines flat sizes."""
+        fusion_dim = card_flat + action_flat + 32  # 32 from extra_fc
+        # Paper: 6.8M FC params → need large trunk
+        self.trunk = nn.Sequential(
+            nn.Linear(fusion_dim, 2048),
+            nn.ReLU(),
+            nn.Linear(2048, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 512),
+            nn.ReLU(),
+            nn.Linear(512, 256),
+            nn.ReLU(),
+        )
+        self.policy_head = nn.Linear(256, self.num_actions)
+        self.value_head = nn.Linear(256, 1)
+
+    def forward(
+        self,
+        card_info: torch.Tensor,
+        action_info: torch.Tensor,
+        extra_info: torch.Tensor,
+        legal_mask: torch.Tensor | None = None,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        card_flat = self.card_cnn(card_info)
+        action_flat = self.action_cnn(action_info)
+        extra_flat = self.extra_fc(extra_info)
+
+        if self.trunk is None:
+            self._init_trunk(card_flat.shape[1], action_flat.shape[1])
+            device = card_info.device
+            self.trunk = self.trunk.to(device)
+            self.policy_head = self.policy_head.to(device)
+            self.value_head = self.value_head.to(device)
+
+        fused = torch.cat([card_flat, action_flat, extra_flat], dim=1)
+        h = self.trunk(fused)
+
+        policy_logits = self.policy_head(h)
+        value = self.value_head(h)
+
+        if legal_mask is not None:
+            policy_logits = policy_logits + (1 - legal_mask) * (-1e9)
+
+        return policy_logits, value
+
+
+def count_parameters(model: nn.Module) -> int:
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+
+if __name__ == '__main__':
+    net = AlphaHoldemNet(num_actions=9)
+    B = 4
+    card = torch.randn(B, 6, 4, 13)
+    action = torch.randn(B, 25, 4, 5)
+    extra = torch.randn(B, 2)
+    mask = torch.ones(B, 9)
+
+    logits, val = net(card, action, extra, mask)
+    print(f'Policy logits: {logits.shape}')
+    print(f'Value: {val.shape}')
+    print(f'Parameters: {count_parameters(net):,}')
+
+    # Breakdown
+    conv_params = sum(p.numel() for n, p in net.named_parameters() if 'cnn' in n)
+    fc_params = sum(p.numel() for n, p in net.named_parameters() if 'trunk' in n or 'head' in n or 'extra' in n)
+    print(f'Conv params: {conv_params:,}')
+    print(f'FC params:   {fc_params:,}')
