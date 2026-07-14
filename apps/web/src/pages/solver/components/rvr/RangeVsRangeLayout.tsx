@@ -57,7 +57,7 @@ export function RangeVsRangeLayout() {
           selected={store.range1}
           onToggle={(h) => store.toggleRange1Hand(h)}
           label="Range 1 (OOP)"
-          color="#3b82f6"
+          color="#e3c27e"
           otherRange={store.range2}
         />
       </div>
@@ -66,7 +66,7 @@ export function RangeVsRangeLayout() {
           selected={store.range2}
           onToggle={(h) => store.toggleRange2Hand(h)}
           label="Range 2 (IP)"
-          color="#ef4444"
+          color="#c25a50"
           otherRange={store.range1}
         />
       </div>

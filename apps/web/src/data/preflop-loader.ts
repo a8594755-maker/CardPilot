@@ -123,15 +123,15 @@ export function getAvailableScenarios(index: SolutionIndex, pos: Position): Scen
 
 // Action color mapping
 export const ACTION_COLORS: Record<string, string> = {
-  fold: '#6b7280',     // gray
-  check: '#6b7280',
-  call: '#22c55e',     // green
-  'open_2.5': '#ef4444', // red
-  'open_2': '#ef4444',
-  '3bet': '#f59e0b',   // amber
-  '4bet': '#f97316',   // orange
-  '5bet': '#ec4899',   // pink
-  allin: '#ec4899',
+  fold: '#877a69',     // gray
+  check: '#877a69',
+  call: '#4ba48a',     // green
+  'open_2.5': '#c25a50', // red
+  'open_2': '#c25a50',
+  '3bet': '#d9a441',   // amber
+  '4bet': '#ce7245',   // orange
+  '5bet': '#c25a6e',   // pink
+  allin: '#c25a6e',
 };
 
 export function getActionColor(action: string): string {
@@ -143,7 +143,7 @@ export function getActionColor(action: string): string {
   if (action.includes('4bet') || action.startsWith('4bet')) return ACTION_COLORS['4bet'];
   if (action.includes('5bet') || action.includes('allin')) return ACTION_COLORS.allin;
   // Default: raise-like = red
-  return '#ef4444';
+  return '#c25a50';
 }
 
 export function getActionLabel(action: string): string {

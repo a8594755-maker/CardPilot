@@ -8,12 +8,12 @@ function extractKey(label: string): string {
 }
 
 const COLOR_MAP: Record<string, string> = {
-  fold: 'var(--cp-fold-color, #64748b)',
-  check: 'var(--cp-check-color, #22c55e)',
-  call: 'var(--cp-call-color, #38bdf8)',
-  allin: 'var(--cp-allin-color, #f97316)',
-  bet: 'var(--cp-bet-0-color, #fbbf24)',
-  raise: 'var(--cp-raise-0-color, #e879f9)',
+  fold: 'var(--cp-fold-color, #877a69)',
+  check: 'var(--cp-check-color, #4ba48a)',
+  call: 'var(--cp-call-color, #7fb4d9)',
+  allin: 'var(--cp-allin-color, #ce7245)',
+  bet: 'var(--cp-bet-0-color, #e3c27e)',
+  raise: 'var(--cp-raise-0-color, #c795d6)',
 };
 
 const BTN_CLASS_MAP: Record<string, string> = {

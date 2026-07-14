@@ -67,7 +67,7 @@ export function RangeEditorModal() {
                   width: 12,
                   height: 12,
                   borderRadius: '50%',
-                  background: '#ef4444',
+                  background: '#c25a50',
                   flexShrink: 0,
                 }}
               />
@@ -79,11 +79,11 @@ export function RangeEditorModal() {
                 value={parseFloat(pct)}
                 onChange={handleSliderChange}
                 className="flex-1"
-                style={{ accentColor: '#2980b9' }}
+                style={{ accentColor: '#4a7a9c' }}
               />
               <span
                 className="gto-label"
-                style={{ fontSize: 11, color: '#2980b9', minWidth: 36, textAlign: 'right' }}
+                style={{ fontSize: 11, color: '#4a7a9c', minWidth: 36, textAlign: 'right' }}
               >
                 {pct}%
               </span>

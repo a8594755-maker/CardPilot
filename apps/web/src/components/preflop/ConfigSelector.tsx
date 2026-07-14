@@ -16,12 +16,17 @@ export const AVAILABLE_CONFIGS: PreflopConfig[] = [
     shortLabel: '100bb',
     description: '100bb deep, no ante',
   },
-  { id: 'cash_6max_50bb', label: '50bb Cash', shortLabel: '50bb', description: '50bb short stack' },
+  {
+    id: 'cash_6max_50bb',
+    label: '50bb Cash',
+    shortLabel: '50bb',
+    description: '50bb short stack (charts being re-verified)',
+  },
   {
     id: 'cash_6max_100bb_ante',
     label: '100bb + Ante',
     shortLabel: 'Ante',
-    description: '100bb with 0.25bb ante',
+    description: '100bb with 0.25bb ante (charts being re-verified)',
   },
 ];
 

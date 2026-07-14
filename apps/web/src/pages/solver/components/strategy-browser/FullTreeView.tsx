@@ -113,15 +113,15 @@ export function FullTreeView({ actions, onNavigateTo, currentPath }: FullTreeVie
                   width={NODE_WIDTH}
                   height={NODE_HEIGHT}
                   rx={4}
-                  fill={isCurrent ? '#3b82f6' : isHovered ? '#1e293b' : '#0f172a'}
-                  stroke={isCurrent ? '#60a5fa' : isHovered ? '#475569' : '#334155'}
+                  fill={isCurrent ? '#e3c27e' : isHovered ? '#272119' : '#0f172a'}
+                  stroke={isCurrent ? '#ebd096' : isHovered ? '#4a4136' : '#3a3128'}
                   strokeWidth={isCurrent ? 2 : 1}
                 />
                 <text
                   x={node.x + NODE_WIDTH / 2}
                   y={node.y + NODE_HEIGHT / 2}
                   fontSize={9}
-                  fill={isCurrent ? 'white' : '#94a3b8'}
+                  fill={isCurrent ? 'white' : '#a6988a'}
                   textAnchor="middle"
                   dominantBaseline="middle"
                   fontFamily="monospace"

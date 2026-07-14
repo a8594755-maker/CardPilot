@@ -64,10 +64,10 @@ let sharedFastModel: MLP | null | undefined; // undefined = not yet loaded
 
 function getSharedFastModel(): MLP | null {
   if (sharedFastModel !== undefined) return sharedFastModel;
-  const modelPath = resolve(PROJECT_ROOT, 'models/vnet-v91-balanced.json');
+  const modelPath = resolve(PROJECT_ROOT, 'models/vnet-v10-v3data.json');
   sharedFastModel = loadModel(modelPath);
   if (sharedFastModel) {
-    logInfo({ event: 'bot.model', message: `Shared fast model loaded: vnet-v91-balanced.json` });
+    logInfo({ event: 'bot.model', message: `Shared fast model loaded: vnet-v10-v3data.json` });
   } else {
     logWarn({ event: 'bot.model', message: `Fast model not found at ${modelPath}` });
   }

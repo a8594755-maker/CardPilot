@@ -31,7 +31,11 @@ export const PreflopContent = memo(function PreflopContent({
     <>
       {/* Config + tab controls */}
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <ConfigSelector selectedConfig={config} onSelectConfig={actions.setConfig} />
+        <ConfigSelector
+          selectedConfig={config}
+          availableConfigs={['cash_6max_100bb']}
+          onSelectConfig={actions.setConfig}
+        />
         <div className="flex gap-1 bg-slate-800/60 rounded-lg p-0.5">
           <button
             className={`px-3 py-1 rounded-md text-xs font-medium transition-all ${
@@ -101,7 +105,7 @@ export const PreflopContent = memo(function PreflopContent({
                   onSelectHand={actions.setSelectedHand}
                 />
                 <div className="flex justify-between text-[10px] text-slate-600">
-                  <span>Suited (\u2197) | Pairs (\u2198) | Offsuit (\u2199)</span>
+                  <span>{'Suited (\u2197) | Pairs (\u2198) | Offsuit (\u2199)'}</span>
                   <span>{spotData.metadata.solver}</span>
                 </div>
               </div>
@@ -123,7 +127,8 @@ export const PreflopContent = memo(function PreflopContent({
 
       {/* Footer */}
       <div className="text-center text-[10px] text-slate-700 pb-4">
-        CardPilot Preflop CFR Solver — {index.spots.length} scenarios, 169 hand classes each
+        Curated from published GTO solver ranges — {index.spots.length} scenarios, 169 hand classes
+        each
       </div>
     </>
   );

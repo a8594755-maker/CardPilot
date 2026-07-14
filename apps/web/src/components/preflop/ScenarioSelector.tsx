@@ -64,9 +64,9 @@ export const ScenarioSelector = memo(function ScenarioSelector({
       {/* Position selector — table visual */}
       <div className="relative w-full" style={{ paddingTop: '55%' }}>
         {/* Table oval */}
-        <div className="absolute inset-4 rounded-[50%] bg-emerald-900/30 border border-emerald-700/40" />
+        <div className="absolute inset-4 rounded-[50%] bg-amber-950/40 border border-amber-800/30" />
         <div className="absolute inset-0 top-[45%] left-[35%] w-[30%] text-center">
-          <span className="text-[10px] text-emerald-600/60 font-medium uppercase tracking-wider">
+          <span className="text-[10px] text-amber-700/70 font-medium uppercase tracking-wider">
             6-Max
           </span>
         </div>

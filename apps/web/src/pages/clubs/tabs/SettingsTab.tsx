@@ -15,14 +15,14 @@ interface SettingsTabProps {
 // ── Badge color palette ──
 
 const BADGE_COLORS = [
-  '#6366f1', // indigo
-  '#8b5cf6', // violet
-  '#ec4899', // pink
-  '#ef4444', // red
-  '#f97316', // orange
-  '#eab308', // yellow
-  '#22c55e', // green
-  '#06b6d4', // cyan
+  '#9e6d98', // indigo
+  '#9e6d98', // violet
+  '#c25a6e', // pink
+  '#c25a50', // red
+  '#ce7245', // orange
+  '#d9a441', // yellow
+  '#4ba48a', // green
+  '#5e93b8', // cyan
 ];
 
 // ── Component ──

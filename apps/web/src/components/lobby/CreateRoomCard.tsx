@@ -1,4 +1,5 @@
 import { memo, useState, useCallback } from 'react';
+import { useI18n } from '../../i18n';
 
 /** Common blind presets */
 const BLIND_PRESETS = [
@@ -93,6 +94,7 @@ export const CreateRoomCard = memo(function CreateRoomCard({
   onCreate,
   initialExpanded = false,
 }: CreateRoomCardProps) {
+  const { t } = useI18n();
   const [showAdvanced, setShowAdvanced] = useState(initialExpanded);
   const [customBlinds, setCustomBlinds] = useState(false);
 
@@ -122,9 +124,9 @@ export const CreateRoomCard = memo(function CreateRoomCard({
 
   const validationError =
     bb <= sb
-      ? 'Big blind must be greater than small blind'
+      ? t('Big blind must be greater than small blind')
       : buyInMax < buyInMin
-        ? 'Max buy-in must be ≥ min buy-in'
+        ? t('Max buy-in must be ≥ min buy-in')
         : null;
 
   const handleCreate = useCallback(() => {
@@ -133,14 +135,15 @@ export const CreateRoomCard = memo(function CreateRoomCard({
 
   return (
     <div className="cp-lobby-card">
-      <h2 className="cp-lobby-title">Create a Room</h2>
-      <p className="cp-lobby-subtitle mt-1">Set up your own table with custom stakes.</p>
+      <div className="cp-lobby-eyebrow">Create</div>
+      <h2 className="cp-lobby-title">{t('Create a Room')}</h2>
+      <p className="cp-lobby-subtitle mt-1">{t('Set up your own table with custom stakes.')}</p>
 
       <div className="mt-5 space-y-4">
         {/* ── Blinds ── */}
         <div>
           <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">
-            Blinds
+            {t('Blinds')}
           </label>
           <div className="flex flex-wrap gap-1.5">
             {BLIND_PRESETS.map((p) => (
@@ -162,14 +165,14 @@ export const CreateRoomCard = memo(function CreateRoomCard({
               }`}
               style={{ minHeight: 28 }}
             >
-              Custom
+              {t('Custom')}
             </button>
           </div>
 
           {customBlinds && (
             <div className="grid grid-cols-2 gap-3 mt-3">
               <div>
-                <label className="block text-xs text-slate-500 mb-1">Small Blind</label>
+                <label className="block text-xs text-slate-500 mb-1">{t('Small Blind')}</label>
                 <Stepper
                   value={sb}
                   min={1}
@@ -178,7 +181,7 @@ export const CreateRoomCard = memo(function CreateRoomCard({
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-500 mb-1">Big Blind</label>
+                <label className="block text-xs text-slate-500 mb-1">{t('Big Blind')}</label>
                 <Stepper value={bb} min={sb + 1} step={1} onChange={(v) => update({ bb: v })} />
               </div>
             </div>
@@ -188,9 +191,9 @@ export const CreateRoomCard = memo(function CreateRoomCard({
         {/* ── Buy-in (presets in basic, steppers in advanced) ── */}
         <div>
           <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">
-            Buy-in Range
+            {t('Buy-in Range')}
             <span className="ml-2 font-normal normal-case text-slate-500">
-              ({buyInMin.toLocaleString()} – {buyInMax.toLocaleString()} chips)
+              ({buyInMin.toLocaleString()} – {buyInMax.toLocaleString()} {t('chips')})
             </span>
           </label>
           <div className="flex flex-wrap gap-1.5">
@@ -219,14 +222,14 @@ export const CreateRoomCard = memo(function CreateRoomCard({
         {/* ── Max Players ── */}
         <div>
           <label className="block text-xs font-medium text-slate-400 uppercase tracking-wider mb-2">
-            Table Size
+            {t('Table Size')}
           </label>
           <div className="flex gap-2">
             {(
               [
-                { n: 2, label: 'Heads-up' },
-                { n: 6, label: '6-max' },
-                { n: 9, label: '9-max' },
+                { n: 2, label: t('Heads-up') },
+                { n: 6, label: t('{n}-max', { n: 6 }) },
+                { n: 9, label: t('{n}-max', { n: 9 }) },
               ] as const
             ).map(({ n, label }) => (
               <button
@@ -250,7 +253,7 @@ export const CreateRoomCard = memo(function CreateRoomCard({
           onClick={() => setShowAdvanced(!showAdvanced)}
         >
           <ChevronRight />
-          Advanced settings
+          {t('Advanced settings')}
         </button>
 
         {showAdvanced && (
@@ -258,7 +261,7 @@ export const CreateRoomCard = memo(function CreateRoomCard({
             {/* Min/Max buy-in steppers (shown when advanced is open) */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-slate-500 mb-1">Min Buy-in</label>
+                <label className="block text-xs text-slate-500 mb-1">{t('Min Buy-in')}</label>
                 <Stepper
                   value={buyInMin}
                   min={1}
@@ -269,7 +272,7 @@ export const CreateRoomCard = memo(function CreateRoomCard({
                 />
               </div>
               <div>
-                <label className="block text-xs text-slate-500 mb-1">Max Buy-in</label>
+                <label className="block text-xs text-slate-500 mb-1">{t('Max Buy-in')}</label>
                 <Stepper
                   value={buyInMax}
                   min={buyInMin}
@@ -282,7 +285,7 @@ export const CreateRoomCard = memo(function CreateRoomCard({
 
             {/* Visibility */}
             <div>
-              <label className="block text-xs text-slate-500 mb-1">Room Visibility</label>
+              <label className="block text-xs text-slate-500 mb-1">{t('Room Visibility')}</label>
               <div className="flex gap-2">
                 <button
                   onClick={() => update({ visibility: 'public' })}
@@ -291,7 +294,7 @@ export const CreateRoomCard = memo(function CreateRoomCard({
                   }`}
                   style={{ minHeight: 28 }}
                 >
-                  Public
+                  {t('Public')}
                 </button>
                 <button
                   onClick={() => update({ visibility: 'private' })}
@@ -300,14 +303,14 @@ export const CreateRoomCard = memo(function CreateRoomCard({
                   }`}
                   style={{ minHeight: 28 }}
                 >
-                  Private
+                  {t('Private')}
                 </button>
               </div>
             </div>
 
             {/* Full player count selector */}
             <div>
-              <label className="block text-xs text-slate-500 mb-1">Max Players</label>
+              <label className="block text-xs text-slate-500 mb-1">{t('Max Players')}</label>
               <select
                 value={maxPlayers}
                 onChange={(e) => update({ maxPlayers: Number(e.target.value) })}
@@ -315,7 +318,7 @@ export const CreateRoomCard = memo(function CreateRoomCard({
               >
                 {[2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
                   <option key={n} value={n}>
-                    {n} players
+                    {t('{n} players', { n })}
                   </option>
                 ))}
               </select>
@@ -326,15 +329,15 @@ export const CreateRoomCard = memo(function CreateRoomCard({
         {/* ── Live summary line ── */}
         <div className="cp-summary-line cp-num text-left">
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[13px] leading-tight">
-            <span className="text-white whitespace-nowrap">{maxPlayers}-max</span>
+            <span className="text-white whitespace-nowrap">{t('{n}-max', { n: maxPlayers })}</span>
             <span className="whitespace-nowrap">
-              Blinds{' '}
+              {t('Blinds')}{' '}
               <span className="text-white">
                 {sb}/{bb}
               </span>
             </span>
             <span className="whitespace-nowrap">
-              Buy-in{' '}
+              {t('Buy-in')}{' '}
               <span className="text-white">
                 {buyInMin.toLocaleString()}–{buyInMax.toLocaleString()}
               </span>
@@ -342,7 +345,7 @@ export const CreateRoomCard = memo(function CreateRoomCard({
             <span
               className={`whitespace-nowrap ${visibility === 'private' ? 'text-amber-400' : 'text-emerald-400'}`}
             >
-              {visibility === 'private' ? 'Private' : 'Public'}
+              {visibility === 'private' ? t('Private') : t('Public')}
             </span>
           </div>
         </div>
@@ -358,7 +361,7 @@ export const CreateRoomCard = memo(function CreateRoomCard({
           onClick={handleCreate}
           className="cp-btn cp-btn-primary w-full text-base font-bold py-3"
         >
-          Create Room
+          {t('Create Room')}
         </button>
       </div>
     </div>

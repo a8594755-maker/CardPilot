@@ -84,14 +84,14 @@ function getActionRGB(action: string): [number, number, number] {
 
 function computeCellColor(frequencies: Record<string, number>): string {
   const keys = Object.keys(frequencies);
-  if (keys.length === 0) return '#1e293b';
+  if (keys.length === 0) return '#272119';
 
   // Sum all frequencies
   let totalFreq = 0;
   for (const v of Object.values(frequencies)) {
     totalFreq += v;
   }
-  if (totalFreq <= 0) return '#1e293b';
+  if (totalFreq <= 0) return '#272119';
 
   // Weighted blend of action RGB values
   let r = 0,

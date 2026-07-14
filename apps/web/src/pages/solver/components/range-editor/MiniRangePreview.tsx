@@ -13,10 +13,10 @@ function getHandType(row: number, col: number): 'pair' | 'suited' | 'offsuit' {
 }
 
 const COLORS = {
-  pair: '#ef4444',
-  suited: '#3b82f6',
-  offsuit: '#22c55e',
-  empty: '#1a1a2e',
+  pair: '#c25a50',
+  suited: '#e3c27e',
+  offsuit: '#4ba48a',
+  empty: '#1d1915',
 };
 
 interface MiniRangePreviewProps {

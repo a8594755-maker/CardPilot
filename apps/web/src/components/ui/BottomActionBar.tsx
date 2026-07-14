@@ -8,6 +8,7 @@ import type {
   PreActionType,
 } from '../../lib/action-derivations';
 import { formatChips } from '../../lib/format-chips';
+import { useI18n } from '../../i18n';
 import { haptic } from '../../lib/haptic';
 
 interface BottomActionBarProps {
@@ -129,6 +130,7 @@ export function BottomActionBar({
   onOpenGto,
   isMobilePortrait,
 }: BottomActionBarProps) {
+  const { t } = useI18n();
   const [showRaiseSheet, setShowRaiseSheet] = useState(false);
   const [allInConfirm, setAllInConfirm] = useState(false);
   const [showUtilityMenu, setShowUtilityMenu] = useState(false);
@@ -358,7 +360,7 @@ export function BottomActionBar({
           <div className="cp-action-row">
             {derivedActionBar.visibleActions.map((a) => {
               if (a.type === 'fold') {
-                const foldLabel = safeButtonLabel(a.label, 'FOLD', 'action:fold');
+                const foldLabel = t(safeButtonLabel(a.label, 'FOLD', 'action:fold'));
                 const foldHotkey = getActionHotkey('fold');
                 return (
                   <button
@@ -383,7 +385,7 @@ export function BottomActionBar({
               }
 
               if (a.type === 'check') {
-                const checkLabel = safeButtonLabel(a.label, 'CHECK', 'action:check');
+                const checkLabel = t(safeButtonLabel(a.label, 'CHECK', 'action:check'));
                 const checkHotkey = getActionHotkey('check');
                 return (
                   <button
@@ -409,7 +411,7 @@ export function BottomActionBar({
 
               if (a.type === 'call') {
                 const amt = typeof a.amount === 'number' ? a.amount : callAmt;
-                const callLabel = safeButtonLabel(a.label, 'CALL', 'action:call');
+                const callLabel = t(safeButtonLabel(a.label, 'CALL', 'action:call'));
                 const callAmountLabel = formatActionAmount(amt);
                 const callHotkey = getActionHotkey('call');
                 return (
@@ -437,7 +439,7 @@ export function BottomActionBar({
 
               if (a.type === 'raise') {
                 if (showRaiseSheet) return null;
-                const raiseLabel = safeButtonLabel(a.label, 'RAISE', 'action:raise');
+                const raiseLabel = t(safeButtonLabel(a.label, 'RAISE', 'action:raise'));
                 const raiseHotkey = getActionHotkey('raise');
                 return (
                   <button
@@ -462,7 +464,7 @@ export function BottomActionBar({
 
               if (a.type === 'all_in') {
                 if (showRaiseSheet) return null;
-                const allInLabel = safeButtonLabel(a.label, 'ALL-IN', 'action:all_in');
+                const allInLabel = t(safeButtonLabel(a.label, 'ALL-IN', 'action:all_in'));
                 const allInHotkey = getActionHotkey('all_in');
                 if (!allInConfirm) {
                   return (

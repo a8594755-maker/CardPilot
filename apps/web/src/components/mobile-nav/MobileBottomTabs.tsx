@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useI18n } from '../../i18n';
 
 type AppView =
   | 'lobby'
@@ -21,12 +22,12 @@ interface TabDef {
 const PRIMARY_TABS: TabDef[] = [
   { id: 'lobby', label: 'Lobby', icon: '🏠' },
   { id: 'table', label: 'Table', icon: '🃏' },
-  { id: 'clubs', label: 'Clubs', icon: '🏆' },
-  { id: 'profile', label: 'Profile', icon: '👤' },
+  { id: 'training', label: 'Training', icon: '🎯' },
+  { id: 'history', label: 'History', icon: '📜' },
   { id: '__more__', label: 'More', icon: '⋯' },
 ];
 
-const SECONDARY_VIEWS: AppView[] = ['history', 'training', 'preflop', 'fast-battle', 'solver'];
+const SECONDARY_VIEWS: AppView[] = ['clubs', 'profile', 'preflop', 'fast-battle', 'solver', 'cfr'];
 
 interface MobileBottomTabsProps {
   activeView: string;
@@ -41,6 +42,7 @@ export const MobileBottomTabs = memo(function MobileBottomTabs({
   onMoreOpen,
   moreOpen,
 }: MobileBottomTabsProps) {
+  const { t } = useI18n();
   const isSecondaryActive = SECONDARY_VIEWS.includes(activeView as AppView);
 
   return (
@@ -66,7 +68,7 @@ export const MobileBottomTabs = memo(function MobileBottomTabs({
               }}
             >
               <span className="cp-mob-tab-icon">{tab.icon}</span>
-              <span>{tab.label}</span>
+              <span>{t(tab.label)}</span>
             </button>
           );
         })}

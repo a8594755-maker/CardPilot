@@ -1,4 +1,5 @@
 import { memo, useState, useCallback, useRef, useEffect } from 'react';
+import { useI18n } from '../../i18n';
 
 export interface JoinByCodeProps {
   disabled: boolean;
@@ -11,6 +12,7 @@ export const JoinByCodeCard = memo(function JoinByCodeCard({
   onJoin,
   error,
 }: JoinByCodeProps) {
+  const { t } = useI18n();
   const [code, setCode] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -67,9 +69,10 @@ export const JoinByCodeCard = memo(function JoinByCodeCard({
   const canSubmit = !disabled && code.trim().length >= 4;
 
   return (
-    <div className="cp-lobby-card">
-      <h2 className="cp-lobby-title">Join with Code</h2>
-      <p className="cp-lobby-subtitle mt-1">Got a room code? Paste it below.</p>
+    <div className="cp-lobby-card flex flex-col justify-center">
+      <div className="cp-lobby-eyebrow">Join</div>
+      <h2 className="cp-lobby-title">{t('Join with Code')}</h2>
+      <p className="cp-lobby-subtitle mt-1">{t('Got a room code? Paste it below.')}</p>
 
       <div className="flex items-center gap-2 mt-4">
         <input
@@ -78,21 +81,20 @@ export const JoinByCodeCard = memo(function JoinByCodeCard({
           onChange={handleChange}
           onPaste={handlePaste}
           onKeyDown={handleKeyDown}
-          placeholder="ROOM CODE"
+          placeholder={t('ROOM CODE')}
           maxLength={8}
           disabled={disabled}
           autoComplete="off"
           autoCorrect="off"
           spellCheck={false}
           className="cp-lobby-input flex-1 font-mono text-center tracking-[0.22em] text-base uppercase"
-          style={{ maxWidth: 220 }}
         />
         <button
           disabled={!canSubmit}
           onClick={submit}
           className="cp-btn cp-btn-primary shrink-0 text-[12px] px-3.5 py-1.5 min-h-[30px] rounded-md"
         >
-          Join
+          {t('Join')}
         </button>
       </div>
 

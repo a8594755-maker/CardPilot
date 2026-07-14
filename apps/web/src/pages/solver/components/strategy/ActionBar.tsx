@@ -6,18 +6,18 @@ interface ActionBarProps {
 }
 
 const ACTION_COLORS: Record<string, string> = {
-  fold: '#ef4444',
-  call: '#22c55e',
-  check: '#a3a3a3',
-  allin: '#8b5cf6',
+  fold: '#c25a50',
+  call: '#4ba48a',
+  check: '#aba091',
+  allin: '#9e6d98',
 };
 
 function getColor(action: string): string {
   if (ACTION_COLORS[action]) return ACTION_COLORS[action];
   if (action.startsWith('raise') || action.startsWith('3bet') || action.startsWith('4bet'))
-    return '#3b82f6';
-  if (action.startsWith('bet')) return '#f59e0b';
-  return '#3b82f6';
+    return '#e3c27e';
+  if (action.startsWith('bet')) return '#d9a441';
+  return '#e3c27e';
 }
 
 function formatAction(action: string): string {

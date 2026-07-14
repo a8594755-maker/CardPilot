@@ -1,13 +1,13 @@
 export function getActionColor(action: string): string {
   const lower = action.toLowerCase();
-  if (lower === 'fold') return '#ef4444';
-  if (lower === 'call') return '#22c55e';
+  if (lower === 'fold') return '#c25a50';
+  if (lower === 'call') return '#4ba48a';
   if (lower === 'check') return '#9ca3af';
-  if (lower === 'allin' || lower === 'jam') return '#8b5cf6';
+  if (lower === 'allin' || lower === 'jam') return '#9e6d98';
   if (lower.startsWith('raise') || lower.startsWith('3bet') || lower.startsWith('4bet'))
-    return '#3b82f6';
-  if (lower.startsWith('bet')) return '#f59e0b';
-  return '#06b6d4';
+    return '#e3c27e';
+  if (lower.startsWith('bet')) return '#d9a441';
+  return '#5e93b8';
 }
 
 const ACTION_LABELS_ZH: Record<string, string> = {

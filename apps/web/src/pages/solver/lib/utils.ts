@@ -37,10 +37,10 @@ export const SUIT_SYMBOLS: Record<string, string> = {
 };
 
 export const SUIT_COLORS: Record<string, string> = {
-  s: '#1a1a2e',
-  h: '#e74c3c',
-  d: '#3498db',
-  c: '#27ae60',
+  s: '#1d1915',
+  h: '#c25a50',
+  d: '#5e93b8',
+  c: '#4ba48a',
 };
 
 /** Generate 13x13 hand matrix labels */
@@ -83,12 +83,12 @@ export function getActionColor(actions: Record<string, number>): string {
 
 /** Get action type color */
 export const ACTION_COLORS: Record<string, string> = {
-  fold: '#ef4444',
-  call: '#22c55e',
-  check: '#a3a3a3',
-  raise: '#3b82f6',
-  bet: '#f59e0b',
-  allin: '#8b5cf6',
+  fold: '#c25a50',
+  call: '#4ba48a',
+  check: '#aba091',
+  raise: '#e3c27e',
+  bet: '#d9a441',
+  allin: '#9e6d98',
 };
 
 export function getActionTypeColor(action: string): string {

@@ -144,14 +144,14 @@ function HandDetail({
 }
 
 function getActionColor(action: string): string {
-  if (action === 'fold') return '#ef4444';
-  if (action === 'call') return '#22c55e';
-  if (action === 'check') return '#a3a3a3';
+  if (action === 'fold') return '#c25a50';
+  if (action === 'call') return '#4ba48a';
+  if (action === 'check') return '#aba091';
   if (action.startsWith('raise') || action.startsWith('3bet') || action.startsWith('4bet'))
-    return '#3b82f6';
-  if (action.startsWith('bet')) return '#f59e0b';
-  if (action === 'allin') return '#8b5cf6';
-  return '#3b82f6'; // default for unknown raise/bet actions
+    return '#e3c27e';
+  if (action.startsWith('bet')) return '#d9a441';
+  if (action === 'allin') return '#9e6d98';
+  return '#e3c27e'; // default for unknown raise/bet actions
 }
 
 function formatAction(action: string): string {

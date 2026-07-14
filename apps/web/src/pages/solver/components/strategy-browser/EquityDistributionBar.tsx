@@ -3,11 +3,11 @@ interface EquityDistributionBarProps {
 }
 
 const BUCKET_COLORS = [
-  '#ef4444', // 0-20% - red
-  '#f97316', // 20-40% - orange
-  '#eab308', // 40-60% - yellow
+  '#c25a50', // 0-20% - red
+  '#ce7245', // 20-40% - orange
+  '#d9a441', // 40-60% - yellow
   '#84cc16', // 60-80% - lime
-  '#22c55e', // 80-100% - green
+  '#4ba48a', // 80-100% - green
 ];
 
 const BUCKET_LABELS = ['0-20%', '20-40%', '40-60%', '60-80%', '80-100%'];

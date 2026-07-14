@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { useI18n } from '../../i18n';
 
 export interface CurrentRoomBannerProps {
   roomCode: string;
@@ -17,6 +18,7 @@ export const CurrentRoomBanner = memo(function CurrentRoomBanner({
   onGoToTable,
   onLeave,
 }: CurrentRoomBannerProps) {
+  const { t } = useI18n();
   return (
     <div className="cp-lobby-card" style={{ borderColor: 'rgba(251, 191, 36, 0.2)' }}>
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -27,7 +29,7 @@ export const CurrentRoomBanner = memo(function CurrentRoomBanner({
           </div>
           <div className="min-w-0">
             <div className="text-xs text-slate-400 uppercase tracking-wider font-medium">
-              {isOwner ? 'Your Room' : 'Current Room'}
+              {isOwner ? t('Your Room') : t('Current Room')}
             </div>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="font-mono font-bold text-amber-400 text-lg tracking-[0.15em] cp-num">
@@ -47,21 +49,21 @@ export const CurrentRoomBanner = memo(function CurrentRoomBanner({
             className="cp-btn cp-btn-ghost text-xs px-3"
             style={{ minHeight: 36 }}
           >
-            Copy Code
+            {t('Copy Code')}
           </button>
           <button
             onClick={onGoToTable}
             className="cp-btn cp-btn-success text-xs px-4 font-semibold"
             style={{ minHeight: 36 }}
           >
-            Go to Table
+            {t('Go to Table')}
           </button>
           <button
             onClick={onLeave}
             className="cp-btn cp-btn-ghost text-xs px-3"
-            style={{ minHeight: 36, borderColor: 'rgba(239, 68, 68, 0.2)', color: '#f87171' }}
+            style={{ minHeight: 36, borderColor: 'rgba(239, 68, 68, 0.2)', color: '#d3766c' }}
           >
-            Leave
+            {t('Leave')}
           </button>
         </div>
       </div>

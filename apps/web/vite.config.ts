@@ -10,7 +10,7 @@ export default defineConfig({
   envDir: '../../',
   server: {
     host: '127.0.0.1',
-    port: 5173,
+    port: Number(process.env.PORT) || 5173,
     strictPort: false,
     proxy: {
       '/socket.io': {

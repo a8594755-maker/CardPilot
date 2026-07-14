@@ -1,5 +1,6 @@
 import { memo, useEffect } from 'react';
 import type { AppView } from './MobileBottomTabs';
+import { useI18n, LanguageToggle } from '../../i18n';
 
 interface MoreMenuItem {
   id: AppView;
@@ -8,11 +9,12 @@ interface MoreMenuItem {
 }
 
 const MORE_ITEMS: MoreMenuItem[] = [
-  { id: 'history', label: 'History', icon: '📜' },
-  { id: 'training', label: 'Training', icon: '🎯' },
+  { id: 'clubs', label: 'Clubs', icon: '🏆' },
   { id: 'fast-battle', label: 'Fast Battle', icon: '⚡' },
-  { id: 'preflop', label: 'Preflop GTO', icon: '📊' },
+  { id: 'cfr', label: 'GTO Strategy', icon: '📊' },
+  { id: 'preflop', label: 'Preflop GTO', icon: '🎴' },
   { id: 'solver', label: 'GTO Solver', icon: '🧮' },
+  { id: 'profile', label: 'Profile', icon: '👤' },
 ];
 
 interface MobileMoreMenuProps {
@@ -30,6 +32,7 @@ export const MobileMoreMenu = memo(function MobileMoreMenu({
   onNavigate,
   onSignOut,
 }: MobileMoreMenuProps) {
+  const { t } = useI18n();
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => {
@@ -57,9 +60,12 @@ export const MobileMoreMenu = memo(function MobileMoreMenu({
             }}
           >
             <span className="cp-mob-more-item-icon">{item.icon}</span>
-            <span>{item.label}</span>
+            <span>{t(item.label)}</span>
           </button>
         ))}
+        <div className="flex justify-center py-2">
+          <LanguageToggle />
+        </div>
         {onSignOut && (
           <>
             <div className="mx-5 my-1 border-t border-white/5" />
@@ -71,7 +77,7 @@ export const MobileMoreMenu = memo(function MobileMoreMenu({
               }}
             >
               <span className="cp-mob-more-item-icon">🚪</span>
-              <span className="text-red-400">Sign Out</span>
+              <span className="text-red-400">{t('Sign Out')}</span>
             </button>
           </>
         )}

@@ -322,13 +322,13 @@ function MiniActionBar({
 function getSuitColor(suit: string): string {
   switch (suit) {
     case 'h':
-      return '#ef4444';
+      return '#c25a50';
     case 'd':
-      return '#3b82f6';
+      return '#e3c27e';
     case 'c':
-      return '#22c55e';
+      return '#4ba48a';
     case 's':
-      return '#94a3b8';
+      return '#a6988a';
     default:
       return 'inherit';
   }

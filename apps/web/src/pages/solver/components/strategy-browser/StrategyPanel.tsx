@@ -104,15 +104,15 @@ export function StrategyPanel({ oopCategories, ipCategories }: StrategyPanelProp
       {hasIp && (
         <div className="flex items-center gap-3 pt-2 border-t border-border mt-2 text-[10px] text-muted-foreground">
           <div className="flex items-center gap-1">
-            <div className="w-3 h-2 rounded-sm bg-[#3b82f6]" />
+            <div className="w-3 h-2 rounded-sm bg-[#e3c27e]" />
             <span>OOP</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-2 rounded-sm bg-[#22c55e]" />
+            <div className="w-3 h-2 rounded-sm bg-[#4ba48a]" />
             <span>IP</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-2 rounded-sm bg-[#6b7280]/40" />
+            <div className="w-3 h-2 rounded-sm bg-[#877a69]/40" />
             <span>Diff OOP/IP</span>
           </div>
         </div>
@@ -173,7 +173,7 @@ function DualCategoryRow({
               <div className="flex-1 h-3 bg-secondary/30 rounded-sm overflow-hidden">
                 <div
                   className="h-full rounded-sm"
-                  style={{ width: `${oopWidth}%`, backgroundColor: '#3b82f6' }}
+                  style={{ width: `${oopWidth}%`, backgroundColor: '#e3c27e' }}
                 />
               </div>
             </div>
@@ -185,7 +185,7 @@ function DualCategoryRow({
               <div className="flex-1 h-3 bg-secondary/30 rounded-sm overflow-hidden">
                 <div
                   className="h-full rounded-sm"
-                  style={{ width: `${ipWidth}%`, backgroundColor: '#22c55e' }}
+                  style={{ width: `${ipWidth}%`, backgroundColor: '#4ba48a' }}
                 />
               </div>
             </div>
@@ -195,7 +195,7 @@ function DualCategoryRow({
             <div className="flex-1 h-4 bg-secondary/30 rounded-sm overflow-hidden">
               <div
                 className="h-full rounded-sm"
-                style={{ width: `${oopWidth}%`, backgroundColor: '#3b82f6' }}
+                style={{ width: `${oopWidth}%`, backgroundColor: '#e3c27e' }}
               />
             </div>
             <div className="w-[40px] text-right font-mono text-[10px] flex-shrink-0">

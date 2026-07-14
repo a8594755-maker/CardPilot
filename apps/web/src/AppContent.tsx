@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback, useRef, lazy, Suspense } from 'react';
+import { Fragment, useEffect, useMemo, useState, useCallback, useRef, lazy, Suspense } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import type { ClubListItem, ClubDetailPayload, SessionStatsEntry } from '@cardpilot/shared-types';
 import { type AnimationSpeed, loadAnimationSpeed, saveAnimationSpeed } from './lib/chip-animation';
@@ -6,6 +6,7 @@ import { debugLog } from './lib/debug';
 
 // Hooks & Contexts
 import { useAuth } from './contexts/AuthContext';
+import { useI18n, LanguageToggle } from './i18n';
 import { useSocket } from './contexts/SocketContext';
 import { useRoom } from './contexts/RoomContext';
 import { useGame } from './contexts/GameContext';
@@ -71,7 +72,12 @@ type AppView =
   | 'fast-battle'
   | 'solver';
 
+/* Grouped desktop nav: play | train | review. Table is a contextual LIVE
+   pill (only when in a room); Profile lives in the avatar menu. */
+const NAV_GROUPS = [['lobby'], ['training', 'fast-battle', 'cfr'], ['history', 'clubs']] as const;
+
 export function AppContent() {
+  const { t } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
@@ -584,6 +590,7 @@ export function AppContent() {
       return true;
     }
   });
+  const [showUserMenu, setShowUserMenu] = useState(false);
   function completeOnboarding() {
     try {
       localStorage.setItem('cardpilot_onboarded', '1');
@@ -627,54 +634,68 @@ export function AppContent() {
     cfr: 'GTO Strategy',
     'fast-battle': 'Fast Battle',
   };
-  const mobilePageTitle = PAGE_TITLES[view] ?? 'CardPilot';
+  const mobilePageTitle = t(PAGE_TITLES[view] ?? 'CardPilot');
   const connectionLabel = isConnected
-    ? 'Online'
+    ? t('Online')
     : socketReconnecting
-      ? 'Reconnecting...'
-      : 'Offline';
+      ? t('Reconnecting...')
+      : t('Offline');
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
       {showOnboarding && authSession && <OnboardingModal onComplete={completeOnboarding} />}
 
-      {/* Desktop Nav */}
+      {/* Desktop Nav — grouped: play | train | review, gold underline indicator */}
       {view !== 'table' ? (
-        <header className="flex items-center justify-between px-4 py-1.5 border-b border-white/5 shrink-0 cp-desktop-only">
+        <header className="flex items-stretch justify-between px-4 border-b border-white/5 shrink-0 cp-desktop-only h-12">
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-sm font-extrabold text-slate-900 shadow-lg">
               C
             </div>
-            <h1 className="text-base font-bold tracking-tight text-white">
+            <h1 className="text-base font-bold tracking-tight text-white font-display">
               Card<span className="text-amber-400">Pilot</span>
             </h1>
           </div>
-          <nav className="flex items-center gap-1 bg-white/5 rounded-xl p-1">
-            {(
-              [
-                'lobby',
-                'clubs',
-                'table',
-                'history',
-                'training',
-                'fast-battle',
-                'cfr',
-                'profile',
-              ] as const
-            ).map((v) => (
-              <button
-                key={v}
-                onClick={() => {
-                  setView(v);
-                  if (v === 'clubs' && socket && canAccessClubs) socket.emit('club_list_my_clubs');
-                }}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${view === v ? 'bg-white/10 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
-              >
-                {PAGE_TITLES[v] ?? v}
-              </button>
+          <nav className="flex items-stretch">
+            {NAV_GROUPS.map((group, gi) => (
+              <Fragment key={gi}>
+                {gi > 0 && <div className="w-px self-center h-4 bg-white/10 mx-2" />}
+                {group.map((v) => {
+                  const active = view === v;
+                  return (
+                    <button
+                      key={v}
+                      onClick={() => {
+                        setView(v);
+                        if (v === 'clubs' && socket && canAccessClubs)
+                          socket.emit('club_list_my_clubs');
+                      }}
+                      className={`relative px-3 text-[13px] font-medium transition-colors ${
+                        active ? 'text-amber-300' : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      {t(PAGE_TITLES[v] ?? v)}
+                      {active && (
+                        <span className="absolute left-2.5 right-2.5 bottom-0 h-[2px] rounded-full bg-amber-400" />
+                      )}
+                    </button>
+                  );
+                })}
+              </Fragment>
             ))}
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            {currentRoomCode && (
+              <button
+                onClick={() => setView('table')}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 hover:bg-emerald-500/20 text-[11px] font-semibold transition-colors"
+                title={t('Go to Table')}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                {t('Table')}
+                <span className="font-mono text-[10px] opacity-70 cp-num">{currentRoomCode}</span>
+              </button>
+            )}
             <span
               className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-medium ${isConnected ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}
             >
@@ -683,26 +704,64 @@ export function AppContent() {
               />{' '}
               {connectionLabel}
             </span>
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-[11px] font-bold text-white uppercase">
-              {displayName[0]}
+            <LanguageToggle />
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu((v) => !v)}
+                className="flex items-center gap-1 group"
+                aria-haspopup="menu"
+                aria-expanded={showUserMenu}
+              >
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-[11px] font-bold text-slate-900 uppercase">
+                  {displayName[0]}
+                </div>
+                <span className="text-[9px] text-slate-500 group-hover:text-slate-300 transition-colors">
+                  ▾
+                </span>
+              </button>
+              {showUserMenu && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowUserMenu(false)} />
+                  <div
+                    role="menu"
+                    className="absolute right-0 top-full mt-2 z-50 w-44 rounded-lg border border-white/10 bg-[#1d1915] shadow-xl py-1"
+                  >
+                    <div className="px-3 py-2 text-xs text-slate-400 border-b border-white/5 truncate">
+                      {t('Hi, ')}
+                      {displayName}
+                    </div>
+                    <button
+                      role="menuitem"
+                      onClick={() => {
+                        setView('profile');
+                        setShowUserMenu(false);
+                      }}
+                      className="w-full text-left px-3 py-2 text-[13px] text-slate-200 hover:bg-white/5 transition-colors"
+                    >
+                      {t('Profile')}
+                    </button>
+                    <button
+                      role="menuitem"
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        handleLogout();
+                      }}
+                      className="w-full text-left px-3 py-2 text-[13px] text-red-400 hover:bg-white/5 transition-colors"
+                    >
+                      {t('Sign Out')}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
-            <span className="text-xs text-slate-200 font-medium max-w-[140px] truncate">
-              Hi, {displayName}
-            </span>
-            <button
-              onClick={handleLogout}
-              className="text-xs text-slate-500 hover:text-red-400 transition-colors px-2 py-1 rounded-lg hover:bg-white/5"
-            >
-              Sign Out
-            </button>
           </div>
         </header>
       ) : !isMobilePortrait && !isFastBattlePlaying ? (
         /* Table Top Bar */
         <header className="cp-table-topbar">
           <div className="flex items-center gap-2">
-            <button onClick={leaveRoom} className="cp-table-exit-btn" title="Exit to Lobby">
-              ← Lobby
+            <button onClick={leaveRoom} className="cp-table-exit-btn" title={t('Back to Lobby')}>
+              ← {t('Lobby')}
             </button>
             <div className="w-px h-5 bg-white/10" />
             {currentRoomName && (
@@ -735,10 +794,11 @@ export function AppContent() {
               />{' '}
               {connectionLabel}
             </span>
+            <LanguageToggle />
             <button
               onClick={() => setShowInGameHistory(true)}
               className="text-sm text-slate-400 hover:text-white px-1.5 py-1 rounded-lg hover:bg-white/5"
-              title="History"
+              title={t('History')}
             >
               📜
             </button>
@@ -909,7 +969,7 @@ export function AppContent() {
                           {
                             id: 'away',
                             icon: '💤',
-                            label: 'Away',
+                            label: t('Away'),
                             onClick: () =>
                               socket?.emit(
                                 myPlayer.status === 'sitting_out' ? 'sit_in' : 'sit_out',
@@ -922,9 +982,9 @@ export function AppContent() {
                     {
                       id: 'leave',
                       icon: '🚪',
-                      label: 'Leave',
+                      label: t('Leave'),
                       onClick: () => {
-                        if (handInProgress && !confirm('Hand in progress. Leave?')) return;
+                        if (handInProgress && !confirm(t('Hand in progress. Leave?'))) return;
                         leaveRoom();
                       },
                       danger: true,
@@ -933,7 +993,7 @@ export function AppContent() {
                     {
                       id: 'theme',
                       icon: tableTheme === 'green' ? '🟢' : '🔵',
-                      label: 'Theme',
+                      label: t('Theme'),
                       onClick: () => {
                         const next = tableTheme === 'green' ? 'blue' : 'green';
                         setTableTheme(next);
@@ -943,7 +1003,7 @@ export function AppContent() {
                     {
                       id: 'bb',
                       icon: displayBB ? 'BB' : '$',
-                      label: displayBB ? 'Chips' : 'BB',
+                      label: displayBB ? t('Chips') : 'BB',
                       onClick: () => setDisplayBB(!displayBB),
                     },
                   ]}
@@ -970,14 +1030,14 @@ export function AppContent() {
                     return {
                       id: item.id,
                       icon: item.icon,
-                      label: item.label,
+                      label: t(item.label),
                       group: item.group,
-                      groupLabel: GROUP_LABELS[item.group],
+                      groupLabel: t(GROUP_LABELS[item.group]),
                       disabled: isDisabled,
                       disabledLabel: isHostOnly
-                        ? 'Host only'
+                        ? t('Host only')
                         : isSeatedOnly
-                          ? 'Sit down first'
+                          ? t('Sit down first')
                           : undefined,
                       onClick: () => {
                         if (item.settingsTab) {
@@ -1140,14 +1200,14 @@ export function AppContent() {
                       className="glass-card p-6 w-80 space-y-4"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <h3 className="text-sm font-bold text-white text-center">Buy In</h3>
+                      <h3 className="text-sm font-bold text-white text-center">{t('Buy In')}</h3>
 
                       {/* Amount display */}
                       <div className="text-center">
                         <span className="text-3xl font-bold text-amber-400 cp-num">
                           {buyInAmount.toLocaleString()}
                         </span>
-                        <span className="text-xs text-slate-500 ml-1">chips</span>
+                        <span className="text-xs text-slate-500 ml-1">{t('chips')}</span>
                       </div>
 
                       {/* Slider */}
@@ -1204,7 +1264,7 @@ export function AppContent() {
                         }}
                         className="w-full btn-primary py-3"
                       >
-                        Sit Down
+                        {t('Sit Down')}
                       </button>
                     </div>
                   </div>

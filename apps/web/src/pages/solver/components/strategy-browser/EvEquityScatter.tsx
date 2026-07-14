@@ -174,7 +174,7 @@ export function EvEquityScatter({ combos, ipCombos }: EvEquityScatterProps) {
             cx={scaleX(c.equity)}
             cy={scaleY(c.evTotal)}
             r="2"
-            fill="#22c55e"
+            fill="#4ba48a"
             opacity="0.5"
             onMouseEnter={() => {
               setHoverCombo(c);
@@ -190,7 +190,7 @@ export function EvEquityScatter({ combos, ipCombos }: EvEquityScatterProps) {
             cx={scaleX(c.equity)}
             cy={scaleY(c.evTotal)}
             r="2"
-            fill="#3b82f6"
+            fill="#e3c27e"
             opacity="0.65"
             onMouseEnter={() => {
               setHoverCombo(c);
@@ -202,12 +202,12 @@ export function EvEquityScatter({ combos, ipCombos }: EvEquityScatterProps) {
         {/* Player legend */}
         {hasIp && (
           <>
-            <circle cx={PAD.left + PLOT_W - 50} cy={PAD.top + 6} r="3" fill="#3b82f6" />
-            <text x={PAD.left + PLOT_W - 44} y={PAD.top + 9} fill="#3b82f6" fontSize="7">
+            <circle cx={PAD.left + PLOT_W - 50} cy={PAD.top + 6} r="3" fill="#e3c27e" />
+            <text x={PAD.left + PLOT_W - 44} y={PAD.top + 9} fill="#e3c27e" fontSize="7">
               OOP
             </text>
-            <circle cx={PAD.left + PLOT_W - 20} cy={PAD.top + 6} r="3" fill="#22c55e" />
-            <text x={PAD.left + PLOT_W - 14} y={PAD.top + 9} fill="#22c55e" fontSize="7">
+            <circle cx={PAD.left + PLOT_W - 20} cy={PAD.top + 6} r="3" fill="#4ba48a" />
+            <text x={PAD.left + PLOT_W - 14} y={PAD.top + 9} fill="#4ba48a" fontSize="7">
               IP
             </text>
           </>
@@ -217,7 +217,7 @@ export function EvEquityScatter({ combos, ipCombos }: EvEquityScatterProps) {
       {/* Tooltip */}
       {hoverCombo && (
         <div className="absolute top-0 right-0 bg-card border border-border rounded px-2 py-1 text-[10px] font-mono shadow-md z-10">
-          <span style={{ color: hoverPlayer === 'ip' ? '#22c55e' : '#3b82f6' }}>
+          <span style={{ color: hoverPlayer === 'ip' ? '#4ba48a' : '#e3c27e' }}>
             {hoverPlayer === 'ip' ? 'IP' : 'OOP'}
           </span>
           <span className="ml-1.5">{hoverCombo.hand}</span>

@@ -16,7 +16,7 @@ function ToggleRow({
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        style={{ width: 16, height: 16, accentColor: '#2980b9' }}
+        style={{ width: 16, height: 16, accentColor: '#4a7a9c' }}
       />
       <span className="gto-label" style={{ fontSize: 12 }}>
         {label}
@@ -86,7 +86,7 @@ function PlayerSection({
             type="checkbox"
             checked={config.allInThresholdEnabled}
             onChange={(e) => onChange({ allInThresholdEnabled: e.target.checked })}
-            style={{ width: 16, height: 16, accentColor: '#2980b9' }}
+            style={{ width: 16, height: 16, accentColor: '#4a7a9c' }}
           />
           <span className="gto-label" style={{ fontSize: 12 }}>
             If eff. stack &lt;
@@ -110,7 +110,7 @@ function PlayerSection({
             type="checkbox"
             checked={config.remainingBetAllIn}
             onChange={(e) => onChange({ remainingBetAllIn: e.target.checked })}
-            style={{ width: 16, height: 16, accentColor: '#2980b9' }}
+            style={{ width: 16, height: 16, accentColor: '#4a7a9c' }}
           />
           <span className="gto-label" style={{ fontSize: 12 }}>
             If remaining bet &lt;

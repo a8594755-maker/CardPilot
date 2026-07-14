@@ -16,6 +16,9 @@ export interface RailAction {
   hidden?: boolean;
 }
 
+// i18n
+import { useI18n } from '../../i18n';
+
 interface LeftOptionsRailProps {
   actions: RailAction[];
   onOpenDrawer: () => void;
@@ -23,6 +26,7 @@ interface LeftOptionsRailProps {
 }
 
 export function LeftOptionsRail({ actions, onOpenDrawer, drawerOpen }: LeftOptionsRailProps) {
+  const { t } = useI18n();
   const visibleActions = actions.filter((a) => !a.hidden);
 
   return (
@@ -35,7 +39,7 @@ export function LeftOptionsRail({ actions, onOpenDrawer, drawerOpen }: LeftOptio
         aria-label="Open options"
       >
         <span className="cp-rail-icon">☰</span>
-        <span>Options</span>
+        <span>{t('Options')}</span>
       </button>
 
       {/* Divider */}
@@ -98,6 +102,7 @@ export const OptionsDrawer = memo(function OptionsDrawer({
   isHost,
   onCopyCode,
 }: OptionsDrawerProps) {
+  const { t } = useI18n();
   // Close on Escape
   useEffect(() => {
     if (!open) return;
@@ -120,7 +125,7 @@ export const OptionsDrawer = memo(function OptionsDrawer({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/8">
           <div>
-            <h2 className="text-base font-bold text-white">Options</h2>
+            <h2 className="text-base font-bold text-white">{t('Options')}</h2>
             {roomName && <p className="text-xs text-slate-400 mt-0.5">{roomName}</p>}
           </div>
           <button
@@ -137,7 +142,9 @@ export const OptionsDrawer = memo(function OptionsDrawer({
           <div className="px-4 py-3 border-b border-white/5 flex items-center gap-3">
             {roomCode && (
               <div className="flex items-center gap-2">
-                <span className="text-[10px] text-slate-500 uppercase tracking-wider">Code</span>
+                <span className="text-[10px] text-slate-500 uppercase tracking-wider">
+                  {t('Code')}
+                </span>
                 <span className="text-sm font-mono font-bold text-amber-400 tracking-wider">
                   {roomCode}
                 </span>
@@ -154,13 +161,15 @@ export const OptionsDrawer = memo(function OptionsDrawer({
             )}
             {blinds && (
               <div className="flex items-center gap-2">
-                <span className="text-[10px] text-slate-500 uppercase tracking-wider">Blinds</span>
+                <span className="text-[10px] text-slate-500 uppercase tracking-wider">
+                  {t('Blinds')}
+                </span>
                 <span className="text-sm font-semibold text-slate-300">{blinds}</span>
               </div>
             )}
             {isHost && (
               <span className="text-[10px] px-2 py-1 rounded-full bg-amber-500/15 text-amber-400 font-bold uppercase">
-                Host
+                {t('Host')}
               </span>
             )}
           </div>
