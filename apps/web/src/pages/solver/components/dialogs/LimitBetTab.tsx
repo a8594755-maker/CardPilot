@@ -10,7 +10,7 @@ export function LimitBetTab() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <span
             className="gto-label"
-            style={{ width: 80, textAlign: 'right', color: '#1a7a7a', fontWeight: 600 }}
+            style={{ width: 80, textAlign: 'right', color: '#33705e', fontWeight: 600 }}
           >
             Flop bet
           </span>
@@ -24,7 +24,7 @@ export function LimitBetTab() {
           />
           <span
             className="gto-label"
-            style={{ width: 30, textAlign: 'right', color: '#1a7a7a', fontWeight: 600 }}
+            style={{ width: 30, textAlign: 'right', color: '#33705e', fontWeight: 600 }}
           >
             Cap
           </span>
@@ -42,7 +42,7 @@ export function LimitBetTab() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <span
             className="gto-label"
-            style={{ width: 80, textAlign: 'right', color: '#1a7a7a', fontWeight: 600 }}
+            style={{ width: 80, textAlign: 'right', color: '#33705e', fontWeight: 600 }}
           >
             Turn bet
           </span>
@@ -56,7 +56,7 @@ export function LimitBetTab() {
           />
           <span
             className="gto-label"
-            style={{ width: 30, textAlign: 'right', color: '#1a7a7a', fontWeight: 600 }}
+            style={{ width: 30, textAlign: 'right', color: '#33705e', fontWeight: 600 }}
           >
             Cap
           </span>
@@ -74,7 +74,7 @@ export function LimitBetTab() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <span
             className="gto-label"
-            style={{ width: 80, textAlign: 'right', color: '#1a7a7a', fontWeight: 600 }}
+            style={{ width: 80, textAlign: 'right', color: '#33705e', fontWeight: 600 }}
           >
             River bet
           </span>
@@ -88,7 +88,7 @@ export function LimitBetTab() {
           />
           <span
             className="gto-label"
-            style={{ width: 30, textAlign: 'right', color: '#1a7a7a', fontWeight: 600 }}
+            style={{ width: 30, textAlign: 'right', color: '#33705e', fontWeight: 600 }}
           >
             Cap
           </span>

@@ -6,17 +6,17 @@ const SUIT_SYMBOLS: Record<string, string> = {
 };
 
 const SUIT_COLORS: Record<string, string> = {
-  s: '#1a1a2e',
-  h: '#e74c3c',
-  d: '#3498db',
-  c: '#27ae60',
+  s: '#1d1915',
+  h: '#c25a50',
+  d: '#5e93b8',
+  c: '#4ba48a',
 };
 
 const SUIT_BG: Record<string, string> = {
-  s: '#e2e8f0',
-  h: '#fce4ec',
-  d: '#e3f2fd',
-  c: '#e8f5e9',
+  s: '#e3d9c4',
+  h: '#f5e0dd',
+  d: '#e0ebf2',
+  c: '#ddede6',
 };
 
 interface CardComponentProps {

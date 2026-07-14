@@ -80,18 +80,18 @@ function getDefaultCategories(): RangeCategory[] {
     {
       name: 'my ranges',
       ranges: [
-        { name: 'Premium', hands: ['AA', 'KK', 'QQ', 'AKs', 'AKo'], color: '#3b82f6' },
-        { name: 'Small pocket pair', hands: ['22', '33', '44', '55'], color: '#d946ef' },
-        { name: 'Mid pocket pair', hands: ['66', '77', '88', '99'], color: '#d946ef' },
+        { name: 'Premium', hands: ['AA', 'KK', 'QQ', 'AKs', 'AKo'], color: '#e3c27e' },
+        { name: 'Small pocket pair', hands: ['22', '33', '44', '55'], color: '#c795d6' },
+        { name: 'Mid pocket pair', hands: ['66', '77', '88', '99'], color: '#c795d6' },
       ],
     },
     {
       name: 'Grouped range (example)',
       ranges: [
-        { name: 'Premium', hands: ['AA', 'KK', 'QQ', 'JJ', 'AKs', 'AKo'], color: '#3b82f6' },
-        { name: 'Medium', hands: ['TT', '99', 'AQs', 'AQo', 'AJs', 'KQs'], color: '#22c55e' },
-        { name: 'Weak', hands: ['88', '77', 'ATs', 'A9s', 'KJs', 'QJs', 'JTs'], color: '#ef4444' },
-        { name: 'Small pocket', hands: ['66', '55', '44', '33', '22'], color: '#d946ef' },
+        { name: 'Premium', hands: ['AA', 'KK', 'QQ', 'JJ', 'AKs', 'AKo'], color: '#e3c27e' },
+        { name: 'Medium', hands: ['TT', '99', 'AQs', 'AQo', 'AJs', 'KQs'], color: '#4ba48a' },
+        { name: 'Weak', hands: ['88', '77', 'ATs', 'A9s', 'KJs', 'QJs', 'JTs'], color: '#c25a50' },
+        { name: 'Small pocket', hands: ['66', '55', '44', '33', '22'], color: '#c795d6' },
       ],
     },
   ];

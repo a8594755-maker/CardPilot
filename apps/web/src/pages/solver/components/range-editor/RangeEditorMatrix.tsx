@@ -74,17 +74,17 @@ export function RangeEditorMatrix() {
           if (isSelected) {
             switch (type) {
               case 'pair':
-                bgColor = '#ef4444'; // red
+                bgColor = '#c25a50'; // red
                 break;
               case 'suited':
-                bgColor = '#3b82f6'; // blue
+                bgColor = '#e3c27e'; // blue
                 break;
               case 'offsuit':
-                bgColor = '#22c55e'; // green
+                bgColor = '#4ba48a'; // green
                 break;
             }
           } else {
-            bgColor = '#1a1a2e';
+            bgColor = '#1d1915';
           }
 
           return (

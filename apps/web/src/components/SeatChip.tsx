@@ -2,6 +2,7 @@ import { memo } from 'react';
 import type { TablePlayer, TimerState } from '@cardpilot/shared-types';
 import { PokerCard } from './PokerCard';
 import { formatChips, formatDelta } from '../lib/format-chips';
+import { useI18n } from '../i18n';
 
 export function Field({
   label,
@@ -62,7 +63,7 @@ function TimerRing({
   const r = 18;
   const circ = 2 * Math.PI * r;
   const offset = circ * (1 - pct);
-  const color = urgent ? '#ef4444' : usingTimeBank ? '#f59e0b' : '#22c55e';
+  const color = urgent ? '#c25a50' : usingTimeBank ? '#d9a441' : '#4ba48a';
   return (
     <svg className="cp-timer-ring" width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
       <circle cx="22" cy="22" r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="3" />
@@ -140,6 +141,7 @@ export const SeatChip = memo(function SeatChip({
   netDelta?: number;
   isDisconnected?: boolean;
 }) {
+  const { t } = useI18n();
   const bb = bigBlind || 1;
   const fmt = (v: number) => formatChips(v, { mode: displayBB ? 'bb' : 'chips', bbSize: bb });
 
@@ -151,7 +153,7 @@ export const SeatChip = memo(function SeatChip({
         className="cp-seat-empty w-20 h-20 md:w-24 md:h-24 rounded-full bg-black/50 border border-dashed border-white/15 flex items-center justify-center cursor-pointer hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-colors group"
       >
         <span className="cp-seat-empty-label text-sm text-slate-500 group-hover:text-emerald-400">
-          +Sit
+          {t('+Sit')}
         </span>
       </div>
     );

@@ -43,7 +43,7 @@ const NODE_HEIGHT = 30;
 const LEVEL_HEIGHT = 90;
 const MIN_SIBLING_GAP = 20;
 
-const PLAYER_COLORS = ['#3b82f6', '#ef4444', '#22c55e'];
+const PLAYER_COLORS = ['#e3c27e', '#c25a50', '#4ba48a'];
 
 function layoutTree(node: TreeEditorNode, depth: number = 0): LayoutNode {
   const childLayouts = node.actions
@@ -158,7 +158,7 @@ export function TreeEditor({ root, onModify }: TreeEditorProps) {
           width={NODE_WIDTH}
           height={NODE_HEIGHT}
           rx={4}
-          fill={isSelected ? playerColor : '#1a1a2e'}
+          fill={isSelected ? playerColor : '#1d1915'}
           stroke={playerColor}
           strokeWidth={isSelected ? 2 : 1}
           className="cursor-pointer"

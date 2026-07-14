@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import type { LobbyRoomSummary } from '@cardpilot/shared-types';
+import { useI18n } from '../../i18n';
 
 export interface OpenRoomsListProps {
   rooms: LobbyRoomSummary[];
@@ -19,6 +20,7 @@ const RoomCard = memo(function RoomCard({
   disabled: boolean;
   onJoin: (code: string) => void;
 }) {
+  const { t } = useI18n();
   const seatsAvailable = room.maxPlayers - room.playerCount;
   const isFull = seatsAvailable <= 0;
 
@@ -41,36 +43,24 @@ const RoomCard = memo(function RoomCard({
         <div className="flex items-center gap-2">
           <span className="font-medium text-white text-sm truncate">{room.roomName}</span>
           {room.visibility === 'private' && (
-            <span title="Private room" className="shrink-0 inline-flex">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#f59e0b"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-              </svg>
+            <span className="text-amber-400 text-xs" title={t('Private room')}>
+              🔒
             </span>
           )}
         </div>
         <div className="mt-0.5 space-y-0.5">
           <div className="text-[11px] text-slate-500 leading-tight cp-num">
-            Blinds{' '}
+            {t('Blinds')}{' '}
             <span className="text-slate-300">
               {room.smallBlind}/{room.bigBlind}
             </span>
           </div>
           <div className="flex items-center gap-1.5 text-[11px] leading-tight">
             {isFull ? (
-              <span className="text-red-400/70">Full</span>
+              <span className="text-red-400/70">{t('Full')}</span>
             ) : (
               <span className="text-emerald-400/75">
-                {seatsAvailable} seat{seatsAvailable !== 1 ? 's' : ''} open
+                {t('{n} seats open', { n: seatsAvailable })}
               </span>
             )}
             {room.isClubTable && room.clubName && (
@@ -93,7 +83,7 @@ const RoomCard = memo(function RoomCard({
             : 'cp-btn-primary opacity-70 group-hover:opacity-100'
         }`}
       >
-        {isFull ? 'Full' : 'Join'}
+        {isFull ? t('Full') : t('Join')}
       </button>
     </div>
   );
@@ -107,33 +97,21 @@ function EmptyState({
   disabled: boolean;
   onCreatePublic: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="text-center py-10">
       <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/5 mb-4">
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-slate-600"
-        >
-          <rect x="2" y="4" width="20" height="16" rx="3" />
-          <ellipse cx="12" cy="12" rx="6" ry="4" />
-        </svg>
+        <span className="text-2xl opacity-30">♠</span>
       </div>
-      <p className="text-slate-400 text-sm font-semibold">No public rooms right now.</p>
-      <p className="text-slate-500 text-xs mt-1 mb-4">Create one or join with a code.</p>
+      <p className="text-slate-400 text-sm font-medium">{t('No public rooms right now.')}</p>
+      <p className="text-slate-500 text-xs mt-1 mb-4">{t('Create one or join with a code.')}</p>
       <div className="flex items-center justify-center gap-3">
         <button
           disabled={disabled}
           onClick={onCreatePublic}
-          className="cp-btn cp-btn-gold text-xs px-4"
+          className="cp-btn cp-btn-primary text-xs px-4"
         >
-          Create a public room
+          {t('Create a public room')}
         </button>
       </div>
     </div>
@@ -147,26 +125,40 @@ export const OpenRoomsList = memo(function OpenRoomsList({
   onRefresh,
   onCreatePublic,
 }: OpenRoomsListProps) {
+  const { t } = useI18n();
   const openRooms = rooms.filter((r) => r.status === 'OPEN');
 
   return (
     <div className="cp-lobby-card">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="cp-lobby-title">Open Rooms</h2>
+        <div>
+          <div className="cp-lobby-eyebrow flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/80 animate-pulse" />
+            Live Tables
+          </div>
+          <h2 className="cp-lobby-title">
+            {t('Open Rooms')}
+            {openRooms.length > 0 && (
+              <span className="ml-2 text-[11px] font-mono font-medium text-emerald-400/80 align-middle">
+                {openRooms.length}
+              </span>
+            )}
+          </h2>
+        </div>
         <button
           onClick={onRefresh}
           disabled={disabled}
           className="cp-btn cp-btn-ghost text-xs px-3"
           style={{ minHeight: 32 }}
         >
-          Refresh
+          {t('Refresh')}
         </button>
       </div>
 
       {openRooms.length === 0 ? (
         <EmptyState disabled={disabled} onCreatePublic={onCreatePublic} />
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
           {openRooms.map((r) => (
             <RoomCard key={r.tableId} room={r} disabled={disabled} onJoin={onJoinRoom} />
           ))}

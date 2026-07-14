@@ -92,8 +92,8 @@ export function EquityCurveChart({ combos, ipCombos }: EquityCurveChartProps) {
       >
         <defs>
           <linearGradient id="oopFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.02" />
+            <stop offset="0%" stopColor="#e3c27e" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#e3c27e" stopOpacity="0.02" />
           </linearGradient>
         </defs>
 
@@ -179,14 +179,14 @@ export function EquityCurveChart({ combos, ipCombos }: EquityCurveChartProps) {
           <polyline
             points={ipPoints}
             fill="none"
-            stroke="#22c55e"
+            stroke="#4ba48a"
             strokeWidth="1.5"
             opacity="0.8"
           />
         )}
 
         {/* OOP curve */}
-        <polyline points={oopPoints} fill="none" stroke="#3b82f6" strokeWidth="2" />
+        <polyline points={oopPoints} fill="none" stroke="#e3c27e" strokeWidth="2" />
 
         {/* 50% reference line */}
         <line
@@ -215,7 +215,7 @@ export function EquityCurveChart({ combos, ipCombos }: EquityCurveChartProps) {
               cx={PAD.left + (hoverIdx / (oopSorted.length - 1)) * PLOT_W}
               cy={PAD.top + (1 - oopSorted[hoverIdx].equity / 100) * PLOT_H}
               r="3"
-              fill="#3b82f6"
+              fill="#e3c27e"
               stroke="white"
               strokeWidth="1"
             />
@@ -225,12 +225,12 @@ export function EquityCurveChart({ combos, ipCombos }: EquityCurveChartProps) {
         {/* Player legend */}
         {hasIp && (
           <>
-            <circle cx={PAD.left + PLOT_W - 50} cy={PAD.top + 6} r="3" fill="#3b82f6" />
-            <text x={PAD.left + PLOT_W - 44} y={PAD.top + 9} fill="#3b82f6" fontSize="7">
+            <circle cx={PAD.left + PLOT_W - 50} cy={PAD.top + 6} r="3" fill="#e3c27e" />
+            <text x={PAD.left + PLOT_W - 44} y={PAD.top + 9} fill="#e3c27e" fontSize="7">
               OOP
             </text>
-            <circle cx={PAD.left + PLOT_W - 20} cy={PAD.top + 6} r="3" fill="#22c55e" />
-            <text x={PAD.left + PLOT_W - 14} y={PAD.top + 9} fill="#22c55e" fontSize="7">
+            <circle cx={PAD.left + PLOT_W - 20} cy={PAD.top + 6} r="3" fill="#4ba48a" />
+            <text x={PAD.left + PLOT_W - 14} y={PAD.top + 9} fill="#4ba48a" fontSize="7">
               IP
             </text>
           </>
@@ -274,13 +274,13 @@ function HandDisplay({ hand }: { hand: string }) {
 function getSuitColor(suit: string): string {
   switch (suit) {
     case 'h':
-      return '#ef4444';
+      return '#c25a50';
     case 'd':
-      return '#3b82f6';
+      return '#e3c27e';
     case 'c':
-      return '#22c55e';
+      return '#4ba48a';
     case 's':
-      return '#94a3b8';
+      return '#a6988a';
     default:
       return 'inherit';
   }

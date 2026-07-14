@@ -17,8 +17,8 @@ import {
 // ── Colors (GTO+ style: edges cyan, purple on hover) ──
 // P1(OOP) = cyan outlined, P2(IP) = green filled
 
-const EDGE_COLOR = '#00bcd4';
-const HOVER_COLOR = '#9c27b0';
+const EDGE_COLOR = '#5e93b8';
+const HOVER_COLOR = '#85567f';
 
 const NODE_RADIUS = 18;
 const TERMINAL_SIZE = 12;
@@ -366,8 +366,8 @@ function TreeNodeEl({
           y={node.y - TERMINAL_SIZE / 2}
           width={TERMINAL_SIZE}
           height={TERMINAL_SIZE}
-          fill="#1a237e"
-          stroke={selected ? '#ab47bc' : '#283593'}
+          fill="#432b40"
+          stroke={selected ? '#b78bb1' : '#283593'}
           strokeWidth={selected ? 2 : 1}
           rx={2}
         />
@@ -384,7 +384,7 @@ function TreeNodeEl({
           width={12}
           height={16}
           fill="#263238"
-          stroke={selected ? '#ab47bc' : '#546e7a'}
+          stroke={selected ? '#b78bb1' : '#6b5f51'}
           strokeWidth={1}
           rx={2}
         />
@@ -393,8 +393,8 @@ function TreeNodeEl({
           y={node.y - 6}
           width={12}
           height={16}
-          fill="#37474f"
-          stroke={selected ? '#ab47bc' : '#546e7a'}
+          fill="#4a4136"
+          stroke={selected ? '#b78bb1' : '#6b5f51'}
           strokeWidth={1}
           rx={2}
         />
@@ -402,7 +402,7 @@ function TreeNodeEl({
           x={node.x + 2}
           y={node.y + 5}
           textAnchor="middle"
-          fill="#e74c3c"
+          fill="#c25a50"
           fontSize="8"
           fontWeight="bold"
         >
@@ -421,7 +421,7 @@ function TreeNodeEl({
           width={12}
           height={16}
           fill="hsl(222, 47%, 11%)"
-          stroke={selected ? '#ab47bc' : '#e74c3c'}
+          stroke={selected ? '#b78bb1' : '#c25a50'}
           strokeWidth={selected ? 2 : 1}
           rx={2}
         />
@@ -429,7 +429,7 @@ function TreeNodeEl({
           x={node.x}
           y={node.y + 4}
           textAnchor="middle"
-          fill="#e74c3c"
+          fill="#c25a50"
           fontSize="10"
           fontWeight="bold"
         >
@@ -441,7 +441,7 @@ function TreeNodeEl({
 
   // GTO+: P1=cyan outlined, P2=green outlined, both same fill
   const playerNum = node.player + 1;
-  const pColor = node.player === 0 ? '#00bcd4' : '#4caf50';
+  const pColor = node.player === 0 ? '#5e93b8' : '#4ba48a';
   return (
     <g className="tree-node" onClick={onClick} style={{ cursor: 'pointer' }}>
       <circle
@@ -449,7 +449,7 @@ function TreeNodeEl({
         cy={node.y}
         r={NODE_RADIUS}
         fill="hsl(222, 47%, 11%)"
-        stroke={selected ? '#ab47bc' : pColor}
+        stroke={selected ? '#b78bb1' : pColor}
         strokeWidth={selected ? 3 : 2}
       />
       <text

@@ -135,7 +135,7 @@ export function PlayerTable({
             onClick={onAdd}
             style={{
               fontSize: 12,
-              color: '#2980b9',
+              color: '#4a7a9c',
               cursor: 'pointer',
               background: 'none',
               border: 'none',
@@ -149,7 +149,7 @@ export function PlayerTable({
             onClick={() => onRemove(rows.length - 1)}
             style={{
               fontSize: 12,
-              color: '#c0392b',
+              color: '#a8443b',
               cursor: 'pointer',
               background: 'none',
               border: 'none',

@@ -12,10 +12,10 @@ const SUIT_SYMBOLS: Record<string, string> = {
 };
 
 const SUIT_COLORS: Record<string, string> = {
-  s: '#1a1a2e',
-  h: '#e74c3c',
-  d: '#3498db',
-  c: '#27ae60',
+  s: '#1d1915',
+  h: '#c25a50',
+  d: '#5e93b8',
+  c: '#4ba48a',
 };
 
 interface CardPickerProps {

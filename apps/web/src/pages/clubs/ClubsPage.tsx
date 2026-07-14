@@ -32,7 +32,7 @@ export function ClubsPage({
   const [createName, setCreateName] = useState('');
   const [createDesc, setCreateDesc] = useState('');
   const [createRequireApproval, setCreateRequireApproval] = useState(true);
-  const [createColor, setCreateColor] = useState('#6366f1');
+  const [createColor, setCreateColor] = useState('#9e6d98');
   const [joinCode, setJoinCode] = useState('');
   const [inviteCode, setInviteCode] = useState('');
 
@@ -166,7 +166,7 @@ export function ClubsPage({
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <div
                     className="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold text-white shadow-lg"
-                    style={{ backgroundColor: club.badgeColor ?? '#6366f1' }}
+                    style={{ backgroundColor: club.badgeColor ?? '#9e6d98' }}
                   >
                     {club.name[0]?.toUpperCase()}
                   </div>
@@ -228,7 +228,7 @@ export function ClubsPage({
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Badge Color</label>
                 <div className="flex gap-2">
-                  {['#6366f1', '#ef4444', '#22c55e', '#f59e0b', '#06b6d4', '#ec4899'].map((c) => (
+                  {['#9e6d98', '#c25a50', '#4ba48a', '#d9a441', '#5e93b8', '#c25a6e'].map((c) => (
                     <button
                       key={c}
                       onClick={() => setCreateColor(c)}

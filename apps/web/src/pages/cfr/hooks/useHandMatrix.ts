@@ -46,7 +46,7 @@ export function useHandMatrix(input: HandMatrixInput): MatrixCellData[] {
         handClass: hc,
         bucket: undefined,
         probs: null,
-        bgColor: '#1a2332',
+        bgColor: '#1d1915',
         hasData: false,
       }));
     }
@@ -61,14 +61,14 @@ export function useHandMatrix(input: HandMatrixInput): MatrixCellData[] {
           handClass: hc,
           bucket: undefined,
           probs: null,
-          bgColor: '#1a2332',
+          bgColor: '#1d1915',
           hasData: false,
         };
       }
 
       const probs = getAggregatedProbs(indexed, prefix, bucket, isV2, prefixIndex);
       if (!probs) {
-        return { handClass: hc, bucket, probs: null, bgColor: '#1a2332', hasData: false };
+        return { handClass: hc, bucket, probs: null, bgColor: '#1d1915', hasData: false };
       }
 
       let bgColor: string;

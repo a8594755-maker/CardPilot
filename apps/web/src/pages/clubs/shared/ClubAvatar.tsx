@@ -15,7 +15,7 @@ export function ClubAvatar({
   return (
     <div
       className={`flex items-center justify-center font-bold text-white shadow-lg shadow-black/40 ${sizes[size]}`}
-      style={{ backgroundColor: color ?? '#6366f1' }}
+      style={{ backgroundColor: color ?? '#9e6d98' }}
     >
       {name[0]?.toUpperCase()}
     </div>

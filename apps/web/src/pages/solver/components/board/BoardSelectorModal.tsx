@@ -5,14 +5,14 @@ const RANKS = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'] 
 const SUITS = ['h', 'c', 'd', 's'] as const;
 
 const SUIT_BG: Record<string, string> = {
-  h: '#fce4ec', // hearts - pink
-  c: '#e8f5e9', // clubs - green
-  d: '#e3f2fd', // diamonds - blue
-  s: '#e2e8f0', // spades - gray
+  h: '#f5e0dd', // hearts - pink
+  c: '#ddede6', // clubs - green
+  d: '#e0ebf2', // diamonds - blue
+  s: '#e3d9c4', // spades - gray
 };
 
 const SUIT_BG_SELECTED: Record<string, string> = {
-  h: '#ef5350', // hearts - strong red
+  h: '#c25a50', // hearts - strong red
   c: '#66bb6a', // clubs - strong green
   d: '#42a5f5', // diamonds - strong blue
   s: '#78909c', // spades - strong gray
@@ -20,9 +20,9 @@ const SUIT_BG_SELECTED: Record<string, string> = {
 
 const SUIT_TEXT: Record<string, string> = {
   h: '#c62828',
-  c: '#2e7d32',
+  c: '#33705e',
   d: '#1565c0',
-  s: '#37474f',
+  s: '#4a4136',
 };
 
 export function BoardSelectorModal() {

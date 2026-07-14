@@ -2,8 +2,8 @@ import { useMemo, useState, useRef, useCallback } from 'react';
 import type { VizTree, VizNode, VizEdge } from '../strategy/game-tree-layout';
 
 // ── Colors matching GTO+ ────────────────────────────────────
-const EDGE_COLOR = '#00bcd4';
-const HOVER_COLOR = '#9c27b0';
+const EDGE_COLOR = '#5e93b8';
+const HOVER_COLOR = '#85567f';
 
 const NODE_RADIUS = 16;
 const TERMINAL_SIZE = 9;
@@ -11,9 +11,9 @@ const TERMINAL_SIZE = 9;
 const RANKS = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
 const SUITS = ['h', 'c', 'd', 's'];
 const SUIT_COLORS: Record<string, string> = {
-  h: '#e74c3c',
-  c: '#27ae60',
-  d: '#3498db',
+  h: '#c25a50',
+  c: '#4ba48a',
+  d: '#5e93b8',
   s: '#2c3e50',
 };
 const SUIT_SYMBOLS: Record<string, string> = { h: '\u2665', c: '\u2663', d: '\u2666', s: '\u2660' };
@@ -93,7 +93,7 @@ export function NavigationTreeView({
     <div
       ref={containerRef}
       className="relative w-full bg-white rounded-lg"
-      style={{ border: '1px solid #e5e7eb' }}
+      style={{ border: '1px solid #e3d9c4' }}
     >
       <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} style={{ width: '100%', height: 'auto' }}>
         <defs>
@@ -322,8 +322,8 @@ function GtoNode({
           y={node.y - TERMINAL_SIZE / 2}
           width={TERMINAL_SIZE}
           height={TERMINAL_SIZE}
-          fill="#1a237e"
-          stroke={selected ? '#e91e63' : '#0d1450'}
+          fill="#432b40"
+          stroke={selected ? '#c25a6e' : '#0d1450'}
           strokeWidth={selected ? 2 : 1}
           rx={1}
         />
@@ -337,8 +337,8 @@ function GtoNode({
       <g className="tree-node" onClick={onClick} style={{ cursor: 'pointer' }}>
         <polygon
           points={`${node.x - s * 0.4} ${node.y - s * 0.7}, ${node.x + s * 0.7} ${node.y}, ${node.x - s * 0.4} ${node.y + s * 0.7}`}
-          fill="#4caf50"
-          stroke={selected ? '#e91e63' : '#2e7d32'}
+          fill="#4ba48a"
+          stroke={selected ? '#c25a6e' : '#33705e'}
           strokeWidth={selected ? 1.5 : 0.5}
         />
       </g>
@@ -355,7 +355,7 @@ function GtoNode({
           width={12}
           height={16}
           fill="#fff"
-          stroke={selected ? '#e91e63' : '#e74c3c'}
+          stroke={selected ? '#c25a6e' : '#c25a50'}
           strokeWidth={selected ? 2 : 1}
           rx={2}
         />
@@ -363,7 +363,7 @@ function GtoNode({
           x={node.x}
           y={node.y + 4}
           textAnchor="middle"
-          fill="#e74c3c"
+          fill="#c25a50"
           fontSize="10"
           fontWeight="bold"
         >
@@ -375,7 +375,7 @@ function GtoNode({
 
   // Action node
   const playerNum = node.player + 1;
-  const pColor = node.player === 0 ? '#00bcd4' : '#4caf50';
+  const pColor = node.player === 0 ? '#5e93b8' : '#4ba48a';
   return (
     <g className="tree-node" onClick={onClick} style={{ cursor: 'pointer' }}>
       <circle
@@ -383,7 +383,7 @@ function GtoNode({
         cy={node.y}
         r={NODE_RADIUS}
         fill="#ffffff"
-        stroke={selected ? '#e91e63' : pColor}
+        stroke={selected ? '#c25a6e' : pColor}
         strokeWidth={selected ? 3 : 2}
       />
       <text

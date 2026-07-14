@@ -67,7 +67,7 @@ export function AppLegalFooter() {
   return (
     <footer
       ref={footerRef}
-      className="shrink-0 border-t border-white/5 px-4 py-2 bg-[#0a0f1a]/80 backdrop-blur-sm"
+      className="shrink-0 border-t border-white/5 px-4 py-2 bg-[#151210]/80 backdrop-blur-sm"
       style={{ paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}
     >
       <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">

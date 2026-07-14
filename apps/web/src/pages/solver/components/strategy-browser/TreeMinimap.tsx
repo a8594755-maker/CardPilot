@@ -175,14 +175,14 @@ export function TreeMinimap() {
             cy={parentY}
             r={NODE_R}
             fill="#ffffff"
-            stroke={isCurrentP1 ? '#00bcd4' : '#4caf50'}
+            stroke={isCurrentP1 ? '#5e93b8' : '#4ba48a'}
             strokeWidth={2}
           />
           <text
             x={parentX}
             y={parentY + 4}
             textAnchor="middle"
-            fill={isCurrentP1 ? '#00bcd4' : '#4caf50'}
+            fill={isCurrentP1 ? '#5e93b8' : '#4ba48a'}
             fontSize="11"
             fontWeight="bold"
             fontFamily="Arial, sans-serif"
@@ -205,14 +205,14 @@ export function TreeMinimap() {
               cy={y}
               r={NODE_R - 2}
               fill="#ffffff"
-              stroke={isNextP1 ? '#00bcd4' : '#4caf50'}
+              stroke={isNextP1 ? '#5e93b8' : '#4ba48a'}
               strokeWidth={1.5}
             />
             <text
               x={x}
               y={y + 3.5}
               textAnchor="middle"
-              fill={isNextP1 ? '#00bcd4' : '#4caf50'}
+              fill={isNextP1 ? '#5e93b8' : '#4ba48a'}
               fontSize="9"
               fontWeight="bold"
               fontFamily="Arial, sans-serif"

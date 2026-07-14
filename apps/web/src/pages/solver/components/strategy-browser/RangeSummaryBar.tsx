@@ -43,20 +43,20 @@ function getHandStrengthColor(
   const strength = (26 - row - col) / 26;
 
   if (isPair) {
-    if (row <= 4) return '#ef4444'; // Premium pairs
-    if (row <= 8) return '#22c55e'; // Medium pairs
-    return '#3b82f6'; // Small pairs
+    if (row <= 4) return '#c25a50'; // Premium pairs
+    if (row <= 8) return '#4ba48a'; // Medium pairs
+    return '#e3c27e'; // Small pairs
   }
 
   if (isSuited) {
-    if (strength > 0.75) return '#ef4444';
-    if (strength > 0.5) return '#22c55e';
-    return '#3b82f6';
+    if (strength > 0.75) return '#c25a50';
+    if (strength > 0.5) return '#4ba48a';
+    return '#e3c27e';
   }
 
   // Offsuit
-  if (strength > 0.8) return '#ef4444';
-  if (strength > 0.6) return '#22c55e';
-  if (strength > 0.4) return '#3b82f6';
+  if (strength > 0.8) return '#c25a50';
+  if (strength > 0.6) return '#4ba48a';
+  if (strength > 0.4) return '#e3c27e';
   return 'transparent';
 }

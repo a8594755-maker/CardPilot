@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { App } from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { LegalStandalonePage, getLegalRoute } from './legal-pages';
+import { I18nProvider } from './i18n';
 import './styles.css';
 
 const queryClient = new QueryClient({
@@ -21,20 +22,22 @@ const legalRoute = typeof window !== 'undefined' ? getLegalRoute(window.location
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        {legalRoute ? (
-          <LegalStandalonePage route={legalRoute} />
-        ) : (
-          <BrowserRouter
-            future={{
-              v7_startTransition: true,
-              v7_relativeSplatPath: true,
-            }}
-          >
-            <App />
-          </BrowserRouter>
-        )}
-      </QueryClientProvider>
+      <I18nProvider>
+        <QueryClientProvider client={queryClient}>
+          {legalRoute ? (
+            <LegalStandalonePage route={legalRoute} />
+          ) : (
+            <BrowserRouter
+              future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true,
+              }}
+            >
+              <App />
+            </BrowserRouter>
+          )}
+        </QueryClientProvider>
+      </I18nProvider>
     </ErrorBoundary>
   </React.StrictMode>,
 );

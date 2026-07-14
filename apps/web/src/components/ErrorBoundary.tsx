@@ -33,8 +33,8 @@ export class ErrorBoundary extends Component<Props, State> {
           alignItems: 'center',
           justifyContent: 'center',
           height: '100vh',
-          backgroundColor: 'var(--cp-bg-base, #0b1120)',
-          color: 'var(--cp-text-primary, #f1f5f9)',
+          backgroundColor: 'var(--cp-bg-base, #151210)',
+          color: 'var(--cp-text-primary, #f2ead9)',
           fontFamily: 'system-ui, sans-serif',
           padding: '2rem',
           textAlign: 'center',
@@ -43,7 +43,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <h1 style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>Something went wrong</h1>
         <p
           style={{
-            color: 'var(--cp-text-secondary, #94a3b8)',
+            color: 'var(--cp-text-secondary, #a6988a)',
             marginBottom: '1.5rem',
             maxWidth: '24rem',
           }}
@@ -54,7 +54,7 @@ export class ErrorBoundary extends Component<Props, State> {
           onClick={() => window.location.reload()}
           style={{
             padding: '0.625rem 1.5rem',
-            backgroundColor: 'var(--cp-accent, #3b82f6)',
+            backgroundColor: 'var(--cp-accent, #e3c27e)',
             color: '#fff',
             border: 'none',
             borderRadius: '0.5rem',

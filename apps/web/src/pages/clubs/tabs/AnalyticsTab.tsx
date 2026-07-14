@@ -210,9 +210,9 @@ function ProfitChart({ data }: { data: ProfitDataPoint[] }) {
   // Area fill path: line + close along the bottom
   const lastVal = values[values.length - 1];
   const isPositive = lastVal >= 0;
-  const strokeColor = isPositive ? '#34d399' : '#f87171'; // emerald-400 / red-400
+  const strokeColor = isPositive ? '#6fb89e' : '#d3766c'; // emerald-400 / red-400
   const gradientId = isPositive ? 'profitGradPos' : 'profitGradNeg';
-  const gradStart = isPositive ? '#34d399' : '#f87171';
+  const gradStart = isPositive ? '#6fb89e' : '#d3766c';
 
   // Build SVG path for area
   const areaPath = [
@@ -237,7 +237,7 @@ function ProfitChart({ data }: { data: ProfitDataPoint[] }) {
         y1={scaleY(0)}
         x2={width - padX}
         y2={scaleY(0)}
-        stroke="#475569"
+        stroke="#4a4136"
         strokeWidth="0.5"
         strokeDasharray="4 2"
       />

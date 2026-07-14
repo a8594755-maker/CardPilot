@@ -104,22 +104,22 @@ const THREEBET_RANGE_OPTIONS: HUSRPRangesOptions = {
 const SCENARIO_CONFIGS: Record<ScenarioKey, ScenarioConfig> = {
   srp_50bb: {
     treeConfig: REALTIME_SRP_50BB_CONFIG,
-    modelPath: 'models/vnet-v2-pipeline.json',
+    modelPath: 'models/vnet-v10-v3data.json',
     rangeOptions: SRP_RANGE_OPTIONS,
   },
   srp_100bb: {
     treeConfig: REALTIME_SRP_100BB_CONFIG,
-    modelPath: 'models/vnet-v3-srp-100bb.json',
+    modelPath: 'models/vnet-v10-v3data.json',
     rangeOptions: SRP_RANGE_OPTIONS,
   },
   '3bet_50bb': {
     treeConfig: REALTIME_3BET_50BB_CONFIG,
-    modelPath: 'models/vnet-v5-3bet-50bb.json',
+    modelPath: 'models/vnet-v10-v3data.json',
     rangeOptions: THREEBET_RANGE_OPTIONS,
   },
   '3bet_100bb': {
     treeConfig: REALTIME_3BET_100BB_CONFIG,
-    modelPath: 'models/vnet-v4-3bet-100bb.json',
+    modelPath: 'models/vnet-v10-v3data.json',
     rangeOptions: THREEBET_RANGE_OPTIONS,
   },
 };
@@ -328,11 +328,11 @@ export class RealtimeResolver {
       modelPath: config.modelPath ?? 'models/vnet-v2-pipeline.json',
       treeConfig: config.treeConfig ?? REALTIME_SRP_50BB_CONFIG,
       rangeOptions: config.rangeOptions ?? {},
-      flopIterations: config.flopIterations ?? 2000,
-      turnIterations: config.turnIterations ?? 1000,
-      riverIterations: config.riverIterations ?? 500,
-      transitionSamples: config.transitionSamples ?? 50,
-      timeBudgetMs: config.timeBudgetMs ?? 10000,
+      flopIterations: config.flopIterations ?? 5000,
+      turnIterations: config.turnIterations ?? 3000,
+      riverIterations: config.riverIterations ?? 1500,
+      transitionSamples: config.transitionSamples ?? 150,
+      timeBudgetMs: config.timeBudgetMs ?? 30000,
       verbose: config.verbose ?? false,
     };
   }
@@ -471,6 +471,8 @@ export class RealtimeResolver {
         ipRange: this.ipRange,
         iterations: this.config.flopIterations,
         transitionEvalFn: this.createTransitionEvalFn(),
+        vnetModel: this.valueNetwork ?? undefined,
+        vnetWeight: 10,
         onProgress: this.config.verbose
           ? (iter, elapsed) => {
               if (iter % 200 === 0)
@@ -592,6 +594,8 @@ export class RealtimeResolver {
       parentBoard: this.flopBoard,
       iterations: this.config.turnIterations,
       transitionEvalFn: this.createTransitionEvalFn(),
+      vnetModel: this.valueNetwork ?? undefined,
+      vnetWeight: 10,
       onProgress: this.config.verbose
         ? (iter, elapsed) => {
             if (iter % 100 === 0)
@@ -696,6 +700,8 @@ export class RealtimeResolver {
       ipRange: this.ipRange,
       parentBoard: this.turnResult.board,
       iterations: this.config.riverIterations,
+      vnetModel: this.valueNetwork ?? undefined,
+      vnetWeight: 10,
       onProgress: this.config.verbose
         ? (iter, elapsed) => {
             if (iter % 100 === 0)

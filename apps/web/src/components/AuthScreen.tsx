@@ -12,6 +12,7 @@ import {
   getRateLimitSecondsLeft,
   type AuthSession,
 } from '../supabase';
+import { useI18n, LanguageToggle } from '../i18n';
 
 export function AuthScreen({
   onAuth,
@@ -22,6 +23,7 @@ export function AuthScreen({
   disableGuest?: boolean;
   gateMessage?: string;
 }) {
+  const { t } = useI18n();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -53,11 +55,11 @@ export function AuthScreen({
   const emailHint = email ? validateEmail(email) : null;
   const pwHint = password ? validatePassword(password) : null;
   const confirmHint =
-    mode === 'signup' && confirmPw && confirmPw !== password ? 'Passwords do not match.' : null;
+    mode === 'signup' && confirmPw && confirmPw !== password ? t('Passwords do not match.') : null;
 
   const nameHint =
     mode === 'signup' && authDisplayName.length > 0 && authDisplayName.trim().length < 2
-      ? 'Name must be at least 2 characters.'
+      ? t('Name must be at least 2 characters.')
       : null;
 
   const formValid =
@@ -75,7 +77,7 @@ export function AuthScreen({
     setSuccessMsg('');
 
     if (!formValid) {
-      setError(emailHint || pwHint || confirmHint || 'Please fill in all fields correctly.');
+      setError(emailHint || pwHint || confirmHint || t('Please fill in all fields correctly.'));
       return;
     }
 
@@ -109,7 +111,7 @@ export function AuthScreen({
     setLoading(true);
     try {
       await signInWithGoogle();
-      setSuccessMsg('Redirecting to Google...');
+      setSuccessMsg(t('Redirecting to Google...'));
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -119,7 +121,7 @@ export function AuthScreen({
 
   async function handleGuest() {
     if (disableGuest) {
-      setError('Club access requires a logged-in account.');
+      setError(t('Club access requires a logged-in account.'));
       return;
     }
     setError('');
@@ -143,33 +145,30 @@ export function AuthScreen({
       <div className="cp-auth-shell w-full max-w-md my-auto">
         {/* Logo */}
         <div className="cp-auth-brand text-center mb-8">
-          <div
-            className="cp-auth-logo w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-3xl font-extrabold text-slate-900 shadow-xl mx-auto mb-4"
-            style={{ boxShadow: '0 8px 32px rgba(217, 119, 6, 0.3)' }}
-          >
+          <div className="cp-auth-logo w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-3xl font-extrabold text-slate-900 shadow-xl mx-auto mb-4">
             C
           </div>
-          <h1 className="cp-auth-title text-3xl font-extrabold text-white tracking-tight">
-            Card<span className="text-amber-500">Pilot</span>
+          <h1 className="cp-auth-title text-3xl font-bold text-white">
+            Card<span className="text-amber-400">Pilot</span>
           </h1>
-          <p
-            className="cp-auth-subtitle text-slate-500 text-sm mt-2 font-medium tracking-wide uppercase"
-            style={{ fontSize: '11px', letterSpacing: '0.12em' }}
-          >
-            GTO-Powered Poker Training
+          <p className="cp-auth-subtitle text-slate-500 text-sm mt-2">
+            {t('GTO-powered poker training')}
           </p>
+          <div className="flex justify-center mt-3">
+            <LanguageToggle />
+          </div>
         </div>
 
         {/* Card */}
         <div className="cp-auth-card glass-card p-8">
           {gateMessage && (
             <div className="cp-auth-gate mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-sm text-amber-300">
-              {gateMessage}
+              {t(gateMessage)}
             </div>
           )}
           {sbDown && (
             <div className="mb-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-sm text-amber-300">
-              Auth service is temporarily unavailable. You can continue as Guest.
+              {t('Auth service is temporarily unavailable. You can continue as Guest.')}
             </div>
           )}
           {/* Google OAuth — prominent, above email form */}
@@ -199,7 +198,7 @@ export function AuthScreen({
                     d="M12 5.8c1.5 0 2.8.5 3.9 1.5l2.9-2.9C16.9 2.7 14.7 1.8 12 1.8 8.1 1.8 4.7 4 3.1 7.5l3.3 2.5c.8-2.4 3-4.2 5.6-4.2z"
                   />
                 </svg>
-                Continue with Google
+                {t('Continue with Google')}
               </button>
 
               <div className="relative my-6">
@@ -207,8 +206,8 @@ export function AuthScreen({
                   <div className="w-full border-t border-white/10" />
                 </div>
                 <div className="relative flex justify-center">
-                  <span className="bg-[#0f1724]/95 px-3 text-xs text-slate-500">
-                    or continue with email
+                  <span className="bg-[#151210] px-3 text-xs text-slate-500">
+                    {t('or continue with email')}
                   </span>
                 </div>
               </div>
@@ -228,7 +227,7 @@ export function AuthScreen({
                 }}
                 className={`cp-auth-tab-btn flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${mode === m ? 'bg-white/10 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}
               >
-                {m === 'login' ? 'Log In' : 'Sign Up'}
+                {m === 'login' ? t('Log In') : t('Sign Up')}
               </button>
             ))}
           </div>
@@ -237,12 +236,12 @@ export function AuthScreen({
             {mode === 'signup' && (
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  Display Name
+                  {t('Display Name')}
                 </label>
                 <input
                   value={authDisplayName}
                   onChange={(e) => setAuthDisplayName(e.target.value)}
-                  placeholder="How others see you"
+                  placeholder={t('How others see you')}
                   maxLength={32}
                   className="input-field w-full"
                 />
@@ -251,7 +250,7 @@ export function AuthScreen({
             )}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-                Email
+                {t('Email')}
               </label>
               <input
                 type="email"
@@ -265,14 +264,14 @@ export function AuthScreen({
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-                Password
+                {t('Password')}
               </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                placeholder="Min 6 characters"
+                placeholder={t('Min 6 characters')}
                 minLength={6}
                 className="input-field w-full"
               />
@@ -282,14 +281,14 @@ export function AuthScreen({
             {mode === 'signup' && (
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  Confirm Password
+                  {t('Confirm Password')}
                 </label>
                 <input
                   type="password"
                   value={confirmPw}
                   onChange={(e) => setConfirmPw(e.target.value)}
                   required
-                  placeholder="Re-enter password"
+                  placeholder={t('Re-enter password')}
                   minLength={6}
                   className="input-field w-full"
                 />
@@ -310,7 +309,7 @@ export function AuthScreen({
 
             {cooldown > 0 && (
               <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-sm text-amber-400 text-center">
-                Rate limited — please wait {cooldown}s
+                {t('Rate limited — please wait {n}s', { n: cooldown })}
               </div>
             )}
 
@@ -322,10 +321,10 @@ export function AuthScreen({
               {loading
                 ? '...'
                 : cooldown > 0
-                  ? `Wait ${cooldown}s`
+                  ? t('Wait {n}s', { n: cooldown })
                   : mode === 'login'
-                    ? 'Log In'
-                    : 'Create Account'}
+                    ? t('Log In')
+                    : t('Create Account')}
             </button>
           </form>
 
@@ -334,7 +333,7 @@ export function AuthScreen({
               <div className="w-full border-t border-white/10" />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-[#0f1724]/95 px-3 text-xs text-slate-500">or</span>
+              <span className="bg-[#151210] px-3 text-xs text-slate-500">{t('or')}</span>
             </div>
           </div>
 
@@ -342,7 +341,7 @@ export function AuthScreen({
             <input
               value={authDisplayName}
               onChange={(e) => setAuthDisplayName(e.target.value)}
-              placeholder="Enter your name (optional)"
+              placeholder={t('Enter your name (optional)')}
               maxLength={32}
               className="input-field w-full text-center text-sm"
             />
@@ -351,13 +350,13 @@ export function AuthScreen({
               disabled={isDisabled || disableGuest}
               className="cp-auth-guest-btn btn-ghost w-full !py-3 text-sm"
             >
-              {disableGuest ? 'Guest Access Disabled for Clubs' : 'Continue as Guest'}
+              {disableGuest ? t('Guest Access Disabled for Clubs') : t('Continue as Guest')}
             </button>
           </div>
         </div>
 
         <p className="cp-auth-legal text-center text-xs text-slate-600 mt-4">
-          By continuing, you agree to our Terms of Service
+          {t('By continuing, you agree to our Terms of Service')}
         </p>
       </div>
     </div>

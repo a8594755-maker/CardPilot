@@ -72,7 +72,7 @@ export function AggregateReport({ report }: AggregateReportProps) {
                       className="h-full rounded"
                       style={{
                         width: `${eq}%`,
-                        backgroundColor: eq > 55 ? '#22c55e' : eq < 45 ? '#ef4444' : '#eab308',
+                        backgroundColor: eq > 55 ? '#4ba48a' : eq < 45 ? '#c25a50' : '#d9a441',
                       }}
                     />
                     <div className="absolute top-0 left-1/2 w-px h-full bg-muted-foreground/50" />

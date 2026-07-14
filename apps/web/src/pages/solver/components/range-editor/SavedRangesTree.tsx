@@ -30,7 +30,7 @@ export function SavedRangesTree() {
             <span style={{ fontSize: 10 }}>
               {expandedCategories.has(catIdx) ? '\u229F' : '\u229E'}
             </span>
-            <span style={{ color: '#1a7a7a', fontWeight: 600 }}>{category.name}</span>
+            <span style={{ color: '#33705e', fontWeight: 600 }}>{category.name}</span>
           </button>
 
           {/* Ranges */}

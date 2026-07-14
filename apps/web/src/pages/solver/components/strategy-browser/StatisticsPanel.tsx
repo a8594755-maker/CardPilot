@@ -153,11 +153,11 @@ export function StatisticsPanel({
       {hasIp && (
         <div className="flex items-center gap-3 pt-1 text-[10px] text-muted-foreground">
           <div className="flex items-center gap-1">
-            <div className="w-3 h-2 rounded-sm bg-[#3b82f6]" />
+            <div className="w-3 h-2 rounded-sm bg-[#e3c27e]" />
             <span>OOP</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-3 h-2 rounded-sm bg-[#22c55e]" />
+            <div className="w-3 h-2 rounded-sm bg-[#4ba48a]" />
             <span>IP</span>
           </div>
         </div>
