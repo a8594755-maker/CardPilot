@@ -1,0 +1,51 @@
+{
+  "schema_version": "v5.hybrid.h3.path1_snapshot_state_gap_audit.v1",
+  "checked_at": "2026-07-13T07:21:00+00:00",
+  "overall": "PASS_EVIDENCE_BUNDLE_V2_REPLAY_STATE_NOT_SOURCE_EXACT",
+  "source": {
+    "v2_terminal_failure_artifact_sha256": "2efe8fa27e0f43b81ac550c39d87dc4c9e6b77821eafc28b312330a0b7ae07c5",
+    "board_id": 6,
+    "source_board_sha256": "bd77b1fbf21bab8bfbfc89040865358e61304aefe9c7a7be40991b4e0028bdb0",
+    "source_row_ordinal": 297,
+    "info_set_key": "R|6|1|x13c/2c/2|26-19-6",
+    "history_key": "x13c/2c/2"
+  },
+  "path1_exact_tree_replay": {
+    "pot": 132.74,
+    "stacks": [101.27000000000001, 165.99],
+    "facing_bet": 66.37,
+    "current_player": 1,
+    "street": "RIVER",
+    "raise_count": 0,
+    "source_actions": ["fold", "call", "raise_0", "allin"],
+    "raise_0_additional_amount": 165.93,
+    "raise_0_pot_fraction": 1.250037667620913
+  },
+  "python_apply_replay_used_by_v2": {
+    "pot": 124.52,
+    "stacks": [106.61000000000001, 168.86999999999998],
+    "street_committed": [62.26, 0.0],
+    "current_player": 1,
+    "actual_v55_mask": [1, 1, 0, 0, 0, 0, 1, 0, 1],
+    "legal_slot_6_action_amount": 123.8974,
+    "legal_slot_6_action_pot_fraction": 0.9950000000000001,
+    "legal_slot_8_allin_amount": 168.86999999999998,
+    "nominal_slot_7_legal": false
+  },
+  "absolute_gap": {
+    "pot": 8.22,
+    "stack_0": 5.34,
+    "stack_1": 2.88
+  },
+  "cause": "Path-1's tree replay updates pot/stacks/facingBet using its own additional-chip semantics; applying equivalent history characters through HUNLGameState is not an identity-preserving reconstruction at deep raise/call paths",
+  "conclusion": [
+    "v2's nominal closest-slot result cannot be repaired by moving unsupported mass on the mismatched replay state",
+    "a valid successor must export the exact Path-1 state snapshot and exact per-action amounts from the same source-tree replay used by the solved strategy",
+    "the adapter must construct a synthetic snapshot state directly, use the actual v5.5 legal action table on that snapshot, and map each sized source action to the nearest legal non-all-in action amount without dropping or renormalizing mass",
+    "all nominal-to-legal projections and amount errors must be retained for the full-corpus domain-risk gate"
+  ],
+  "h3_preregistration_authorized": false,
+  "dataset_materialization_authorized": false,
+  "behavior_launch_authorized": false,
+  "official_hands_authorized": 0
+}

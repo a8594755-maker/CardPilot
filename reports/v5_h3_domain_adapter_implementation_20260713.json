@@ -1,0 +1,43 @@
+{
+  "schema_version": "v5.hybrid.h3.domain_adapter.implementation.v1",
+  "checked_at": "2026-07-13T06:10:00+00:00",
+  "overall": "IMPLEMENTED_AWAITING_FIRST_CORRECTED_QA_BOARD",
+  "design_id": "H3-DOMAIN-ADAPTER-001",
+  "design_lock_sha256": "3b1a9e117e4bd48151c317f9ce868708a3c074a907eecf99e5d8cdd2424d2fa9",
+  "design_lock_audit_sha256": "4dc96580b016ebdf8001cf1a1ccb53191b7678cd2bb93ec4a3bbdab37e9d0fb8",
+  "implementation": {
+    "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_h3_domain_adapter.py",
+    "sha256": "553ad1548f30156d663f1fff2b6f2d1fa6ef0f01fe2ad95e518a6ef7c8d3272e",
+    "input_schema": "path1.v55_bridge_source.v1",
+    "output_schema": "v5.hybrid.h3.domain_adapter.actor_row.v1",
+    "output_format": "atomic sharded compressed NPZ plus identity-bound provenance JSONL and manifest",
+    "fail_closed_on": [
+      "source schema/ordinal/strategy-file SHA identity",
+      "non-corrected or QA-fail asset classification",
+      "missing synthetic OOD provenance",
+      "card conflict or malformed board",
+      "CFR action identity/order mismatch",
+      "invalid or non-unit probability mass",
+      "target mass outside actual v5.5 legal mask",
+      "empty input"
+    ],
+    "actor_only": true,
+    "critic_target_present": false
+  },
+  "tests": {
+    "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_h3_domain_adapter_test.py",
+    "sha256": "bf4982efb373ddd5632261c9a4cf50d45680037909adf920ad5292d9d92f223a",
+    "result": "PASS_22_OF_22",
+    "covers": "tensor shapes, exact probability mass, actual-mask support, OOD provenance, critic absence, atomic two-shard output, provenance output, tamper and mass fail-closed"
+  },
+  "python_compile": "PASS",
+  "asset_validation": {
+    "corrected_successor_complete_boards": 0,
+    "first_board_smoke": "PENDING",
+    "required_for_h3_preregistration": 600
+  },
+  "h3_preregistration_authorized": false,
+  "behavior_launch_authorized": false,
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

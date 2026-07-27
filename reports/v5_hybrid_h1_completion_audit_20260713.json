@@ -1,0 +1,204 @@
+{
+    "schema_version":  "v5.hybrid.h1.completion_audit.v1",
+    "checked_at":  "2026-07-13T03:58:30.3739084+00:00",
+    "overall":  "PASS_COMPLETE_H1_TERMINAL_FAIL",
+    "experiment_verdict":  "FAIL",
+    "adoption":  {
+                     "critic_v2":  "REJECTED",
+                     "selected_critic":  "critic_v1",
+                     "rollback_rule":  "exact H1 source gate31400",
+                     "h2_source_path":  "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_from_zero\\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\\v5_exp005_cutover_gate31400_checkpoint.pt",
+                     "h2_source_sha256":  "bcbb46bd01d62fcdea602269b7047323315d4e9bbcf447ea0323e289fde11a8e"
+                 },
+    "result":  {
+                   "control_normalized_mse":  0.009185177284895844,
+                   "treatment_normalized_mse":  0.00938711533892754,
+                   "relative_reduction":  -0.021985210276100453,
+                   "ci95_lower":  -0.064167464730605681,
+                   "ci95_upper":  0.017948477703295031,
+                   "first60_ratio":  1.0540113020028878,
+                   "full_ratio":  0.82665236208781889,
+                   "control_entropy":  1.3092045182580343,
+                   "treatment_entropy":  1.2655023320754517
+               },
+    "incident":  {
+                     "classification":  "CONTROL_PLANE_DELAYED_REARM_CENSURE_METHOD_VERDICT_UNCHANGED",
+                     "launch_preflight":  "PASS before execute",
+                     "cause":  "platform approval/parent launch command remained attached while exact treatment completed; canonical watcher rearm and online first60 check were delayed",
+                     "first60_counterfactual":  "PASS ratio1.054011302; no registered first60 abort would have fired",
+                     "full_window":  "valid fixed sample; throughput ratio0.826652362 and value gate both FAIL",
+                     "repair":  "H1-only manifest identity ordering repair in canonical rearm; generic range logic unchanged; tests16/16 and H1 orchestration13/13 PASS",
+                     "terminal_health":  "finished-run exact health recomputed with staleness N/A; every substantive check PASS and stderr empty",
+                     "endpoint":  "frozen by unchanged v3 endpoint watcher with exact identity and provenance PASS"
+                 },
+    "checks":  [
+                   {
+                       "requirement":  "failed_attempt1_preserved_terminal",
+                       "status":  "PASS",
+                       "evidence":  "reports/h1_cal_001_20260712 remains read-only FAIL_CLOSED_MISSING_HAND_LEVEL_COVERAGE"
+                   },
+                   {
+                       "requirement":  "corrected_holdout_immutable_forbidden_training",
+                       "status":  "FAIL",
+                       "evidence":  null
+                   },
+                   {
+                       "requirement":  "exact_sequential_same_start_endpoints",
+                       "status":  "PASS",
+                       "evidence":  "control=32617/536004082; treatment=32617/535996488"
+                   },
+                   {
+                       "requirement":  "critic_v2_migration_identity",
+                       "status":  "PASS",
+                       "evidence":  "source=bcbb46bd01d62fcdea602269b7047323315d4e9bbcf447ea0323e289fde11a8e; actor_tensors=144; new_critic_optimizer_state=0"
+                   },
+                   {
+                       "requirement":  "mse_point_ge_0_15",
+                       "status":  "FAIL",
+                       "evidence":  -0.021985210276100453
+                   },
+                   {
+                       "requirement":  "bootstrap_ci_lower_ge_0_10",
+                       "status":  "FAIL",
+                       "evidence":  -0.064167464730605681
+                   },
+                   {
+                       "requirement":  "first60_hps_ratio_ge_0_85",
+                       "status":  "PASS",
+                       "evidence":  1.0540113020028878
+                   },
+                   {
+                       "requirement":  "full_hps_ratio_ge_0_85",
+                       "status":  "FAIL",
+                       "evidence":  0.82665236208781889
+                   },
+                   {
+                       "requirement":  "entropy_floor_and_noninferiority",
+                       "status":  "PASS",
+                       "evidence":  "control=1.3092045182580345; treatment=1.2655023320754517"
+                   },
+                   {
+                       "requirement":  "no_extension_second_seed_or_later_endpoint",
+                       "status":  "PASS",
+                       "evidence":  "fixed endpoints and bootstrap seed2026071112 only"
+                   },
+                   {
+                       "requirement":  "official_slumbot_hands_zero",
+                       "status":  "PASS",
+                       "evidence":  0
+                   },
+                   {
+                       "requirement":  "terminal_verdict_exact_registered_rule",
+                       "status":  "PASS",
+                       "evidence":  "FAIL"
+                   }
+               ],
+    "artifacts":  {
+                      "preregistration":  {
+                                              "path":  "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h1_preregistration_20260711.json",
+                                              "sha256":  "bb998b84adb2cee4fa6c8f88861b612c556356c8b91fdae9d9c883b1c7b733ab",
+                                              "bytes":  18053
+                                          },
+                      "design_lock_v3":  {
+                                             "path":  "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h1_design_lock_v3_20260712.json",
+                                             "sha256":  "dd99f3ecb09ffeae589b14d69d9040ab5a640272add6c3408b730592f9bccadb",
+                                             "bytes":  10391
+                                         },
+                      "holdout_manifest":  {
+                                               "path":  "C:\\Users\\a8594\\CardPilot\\reports\\h1_cal_001_attempt2_20260712\\manifest.json",
+                                               "sha256":  "0ce91c7199cd885d7f29e75f5c75810b11a8410ca1eac57ab15ca2cc63db3342",
+                                               "bytes":  2192045
+                                           },
+                      "holdout_hands":  {
+                                            "path":  "C:\\Users\\a8594\\CardPilot\\reports\\h1_cal_001_attempt2_20260712\\hands.jsonl",
+                                            "sha256":  "ed2323785b1f14f628c22c79723febb84762badcf7a2e96801e9ded45f3b332a",
+                                            "bytes":  8536226
+                                        },
+                      "holdout_decisions":  {
+                                                "path":  "C:\\Users\\a8594\\CardPilot\\reports\\h1_cal_001_attempt2_20260712\\decisions.jsonl",
+                                                "sha256":  "4eec2dc6b7f1063b7f0e5f5d00bc02a46c14342f35f004b431c5f2cf60d5c150",
+                                                "bytes":  35865418
+                                            },
+                      "holdout_audit":  {
+                                            "path":  "C:\\Users\\a8594\\CardPilot\\reports\\h1_cal_001_attempt2_20260712\\audit.json",
+                                            "sha256":  "1cba9b8741f5caa6b1f2bb500e5e998bf6b7681219bc8d911bafbd7792538f4a",
+                                            "bytes":  705
+                                        },
+                      "control_endpoint_status":  {
+                                                      "path":  "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h1_control_criticv1_same31400_20m_r1_20260711\\h1_control_endpoint_status.json",
+                                                      "sha256":  "7188ea65d97df5e66463558f1046088e6491267c37ab508d0a2fed70a4927c1c",
+                                                      "bytes":  637
+                                                  },
+                      "control_endpoint_checkpoint":  {
+                                                          "path":  "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h1_control_criticv1_same31400_20m_r1_20260711\\h1_control_endpoint.pt",
+                                                          "sha256":  "f3bc22de78caa4cc10493fdf6d8c4b09a4c3f6ec67c2e20ceba276ff76bba6b8",
+                                                          "bytes":  261408334
+                                                      },
+                      "control_metrics":  {
+                                              "path":  "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h1_control_criticv1_same31400_20m_r1_20260711\\h1_training_metrics.jsonl",
+                                              "sha256":  "90f8b9fd720cf1c3461575f16ab99b8ca7c70e45e7f84c6a966aaf48a7050ad9",
+                                              "bytes":  407403
+                                          },
+                      "control_manifest":  {
+                                               "path":  "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h1_control_criticv1_same31400_20m_r1_20260711\\run_manifest.json",
+                                               "sha256":  "8d57c0793a26288866b3ec985b69062b8c42a2687d0d4ba561ae9150527283b5",
+                                               "bytes":  8205
+                                           },
+                      "treatment_migration":  {
+                                                  "path":  "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h1_treatment_criticv2_same31400_20m_r1_20260711\\h1_critic_migration.json",
+                                                  "sha256":  "fb8f21af5b595e1114f41afcf9376b67dfb421385ac078db269738cb7f66aac1",
+                                                  "bytes":  688
+                                              },
+                      "treatment_endpoint_status":  {
+                                                        "path":  "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h1_treatment_criticv2_same31400_20m_r1_20260711\\h1_treatment_endpoint_status.json",
+                                                        "sha256":  "f1d1a4694973461a7556581107a8b4bd73e495dbf4f931c1aa182fe00dd6dd4b",
+                                                        "bytes":  645
+                                                    },
+                      "treatment_endpoint_checkpoint":  {
+                                                            "path":  "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h1_treatment_criticv2_same31400_20m_r1_20260711\\h1_treatment_endpoint.pt",
+                                                            "sha256":  "4c021cbf9f25aeefa81b29c823bd7ec0b94bd87668cc7a4e1320d3c662588274",
+                                                            "bytes":  262595950
+                                                        },
+                      "treatment_metrics":  {
+                                                "path":  "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h1_treatment_criticv2_same31400_20m_r1_20260711\\h1_training_metrics.jsonl",
+                                                "sha256":  "331a3bc26f2b344db18ab0314ec07df647280c9dd79e5c3c0fb6aa260a85dff2",
+                                                "bytes":  409913
+                                            },
+                      "treatment_manifest":  {
+                                                 "path":  "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h1_treatment_criticv2_same31400_20m_r1_20260711\\run_manifest.json",
+                                                 "sha256":  "c2acbdb51792702b0298c9403b712a9b92ca7433d96e7ad92229fe25ba6e5a4c",
+                                                 "bytes":  8364
+                                             },
+                      "treatment_provenance_audit":  {
+                                                         "path":  "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h1_treatment_criticv2_same31400_20m_r1_20260711\\h1_treatment_assignment_provenance_audit.json",
+                                                         "sha256":  "5526bd32af157281292e60ff2c11037c5b6537fd87a1272112033815f091dc73",
+                                                         "bytes":  529
+                                                     },
+                      "judgment":  {
+                                       "path":  "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h1_judgment_20260713.json",
+                                       "sha256":  "0934c09b4702398b2c2ab7555a0ba60d73ea5ba8ac0cc9becaee0a734cb47c66",
+                                       "bytes":  883
+                                   },
+                      "calibration_comparison":  {
+                                                     "path":  "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h1_judgment_20260713_calibration.json",
+                                                     "sha256":  "aba538e3aaa1a7878c1610efcd79ae8461fc7bd9d27e64bbda14537c3b330966",
+                                                     "bytes":  486
+                                                 },
+                      "rearm_script":  {
+                                           "path":  "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_rearm_watchers.ps1",
+                                           "sha256":  "bc911b9604ef98adf9d4247dc6a996bcd1e21b61fb70cd34a78c63a4bde454f0",
+                                           "bytes":  61920
+                                       }
+                  },
+    "official":  {
+                     "hands":  0,
+                     "strength_claim":  "FORBIDDEN",
+                     "latest_level":  "L0",
+                     "latest_hands":  20400,
+                     "latest_bb100":  -153.2999,
+                     "latest_ci95":  [
+                                         -187.6945,
+                                         -118.9052
+                                     ]
+                 }
+}

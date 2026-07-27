@@ -1,0 +1,112 @@
+{
+  "schema_version": "v5.pcv016.result.v1",
+  "design_id": "PCV016",
+  "judged_at": "2026-07-20T03:07:00Z",
+  "verdict": "INCONCLUSIVE",
+  "classification": "PCV016_INCONCLUSIVE_EXACT_V55_TEACHER_INTERFACE_OR_RESOURCE_EVIDENCE_INSUFFICIENT",
+  "authoritative_preregistration": {
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_pcv016_preregistration_v2_20260719.json",
+    "sha256": "b7a06d4e791d376b3aa7c1956ff6c2e70a9112bd3fef8fea18dafe7904b228f9",
+    "audit_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_pcv016_preregistration_v2_audit_20260719.json",
+    "audit_sha256": "6aa65d2b8552bdd535dd4cbd18626073458fa85f3df2f57a3da43f77cbe18be1",
+    "audit_checks": "44/44"
+  },
+  "superseded_v1": {
+    "preregistration_sha256": "a847bd33917e96fc8a1dfe778f85ce2375b6620a178c527e84bf9a099a3b1dd9",
+    "audit_sha256": "d16145b910341590be452df14e1d834f8e59b53ba0229acd2158ffed6f8cee15",
+    "censure_sha256": "6e8cb3b43e8f6dd676ec8792b17186eb97dc559d2d9536d89d1a825af95146a6",
+    "execution_or_result_authority": "NONE"
+  },
+  "input_identity": {
+    "frozen_paths": 21,
+    "hash_matches": 21,
+    "hash_mismatches": [],
+    "route_review027_result_sha256": "4f7129e8e7cd3378c7740495e55ad687046da5431338afb2e5801df065b396b6",
+    "route_review027_audit_sha256": "7c8cd2ffa58fbe7e10c821ad81a021c0910ca30de8e05789fe7bd80804c31e74"
+  },
+  "static_evidence": {
+    "exact_v55_owner": {
+      "transition_and_payoff": "scripts/deep_cfr/game_state.py:HUNLGameState",
+      "observation_and_step": "scripts/alpha_holdem/environment_v55.py:HUNLEnvironmentV55",
+      "executable_9slot_table": "scripts/alpha_holdem/environment_v55.py:build_action_table_and_last_action_table",
+      "full_200bb_state_config_exists": true,
+      "deployment_postflop_raise_cap": 999,
+      "interpretation": "THE_EXACT_DEPLOYED_SEMANTIC_OWNER_EXISTS_AND_DOES_NOT_REQUIRE_A_V6_OBSERVATION_OR_ARCHITECTURE_CHANGE"
+    },
+    "typescript_path1": {
+      "state_owner": "packages/cfr-solver/src/tree/tree-builder.ts",
+      "coverage": "POSTFLOP_SRP_STARTING_POT5_EFFECTIVE_STACK197_5_THREE_SIZES_RAISE_CAP1_SELECTED_FLOPS",
+      "action_export": "MAPS_SOURCE_SIZED_ACTIONS_TO_CLOSEST_V55_SLOT_AND_THE_DOMAIN_ADAPTER_MAY_PROJECT_TO_A_DIFFERENT_EXECUTABLE_SLOT",
+      "terminal_evidence": "H3_V3_FAIL_CLOSED_ACTION_SPACE_INCOMPATIBLE_AT_REGISTERED_ERROR_GATE",
+      "usable_as_exact_teacher": false,
+      "reason": "SEPARATE_STATE_AND_ACTION_SEMANTICS_REQUIRE_FORBIDDEN_POSTHOC_PROJECTION"
+    },
+    "python_deep_cfr_candidate": {
+      "same_hunl_game_state_transition_owner": true,
+      "uses_exact_v55_observation": false,
+      "observed_encoder": "HUNLEncoder_RAW_DIM56_WITH_ITS_OWN_HISTORY_AND_GEOMETRY_CONTRACT",
+      "uses_exact_v55_build_action_table": false,
+      "observed_action_mapping": "state.legal_actions_PLUS_actions_to_slots_BY_BET_RAISE_ORDINAL_WITH_DUPLICATE_CAPPING",
+      "registered_full_200bb_config": false,
+      "observed_train_registry": "SRP50_3BET50_SRP100_3BET100_FULL50_FULL100_EXPANDED_SRP50",
+      "observed_run_wrapper": "SRP50_WITH_DEVICE_CUDA",
+      "exact_teacher_row_exporter": false,
+      "cpu_only_exact_full200_resource_bound": false,
+      "interpretation": "THIS_IS_A_REUSABLE_ALGORITHMIC_CANDIDATE_BUT_NOT_AN_EXISTING_EXACT_V55_TEACHER_INTERFACE;MAKING_IT_ONE_REQUIRES_NEW_IMPLEMENTATION_AND_RESOURCE_MEASUREMENT"
+    }
+  },
+  "resource_evidence": {
+    "current_path1_scope": "NONTRANSFERABLE_POSTFLOP_SRP_TYPESCRIPT_50BUCKET_SAMPLE",
+    "boards": 599,
+    "iterations_per_board": 80000,
+    "workers": 6,
+    "heap_mb_per_worker": 18432,
+    "elapsed_ms": {"min":2648585,"median":5623833,"p95":6919901,"max":8689694},
+    "peak_memory_mb": {"min":1373,"median":15045,"p95":17548,"max":18284},
+    "compressed_bytes": {"total":117726832154,"median":198490813,"p95":228006564,"max":237698926},
+    "exact_full200_v55_cpu_upper_bound": null,
+    "transferability_gate": "UNSUPPORTED_WITHOUT_NEW_IMPLEMENTATION_AND_MEASUREMENT"
+  },
+  "gate_results": {
+    "G1_frozen_inputs_hash_exact": "PASS_21_OF_21",
+    "G2_exact_v55_state_transition_owner_identified": "PASS",
+    "G3_exact_v55_observation_owner_identified": "PASS",
+    "G4_exact_executable_9slot_action_owner_identified": "PASS",
+    "G5_existing_solver_or_static_interface_can_use_one_semantic_owner_without_projection": "INCONCLUSIVE_REQUIRES_NEW_IMPLEMENTATION",
+    "G6_200bb_full_hunl_coverage_statically_specified_without_v6": "PARTIAL_STATE_CONFIG_EXISTS_BUT_NO_EXACT_SOLVER_WIRING",
+    "G7_teacher_output_identity_without_projection_drop_or_renormalization": "INCONCLUSIVE_SCHEMA_SPECIFIABLE_BUT_NO_EXISTING_EXPORTER",
+    "G8_cpu_memory_runtime_and_storage_envelope_bounded_for_exact_design": "INCONCLUSIVE_NO_TRANSFERABLE_BOUND",
+    "G9_integration_and_independent_qa_seams_identified": "PASS",
+    "G10_no_prohibited_action_occurred": "PASS"
+  },
+  "classification_reason": "PASS_IS_FORBIDDEN_BECAUSE_G5_G6_G7_AND_G8_ARE_NOT_SUPPORTED_BY_EXISTING_STATIC_CODE_AND_IMMUTABLE_EVIDENCE.FAIL_CLOSED_ROUTE_INFEASIBLE_IS_NOT_SUPPORTED_BECAUSE_THE_EXACT_V55_TRANSITION_OBSERVATION_AND_EXECUTABLE_ACTION_OWNERS_EXIST_AND_THE_PYTHON_DEEP_CFR_PATH_REUSES_THE_SAME_HUNLGAMESTATE;THE_MISSING_INTERFACE_AND_RESOURCE GATES_REQUIRE_NEW_IMPLEMENTATION_AND_MEASUREMENT,WHICH_MATCHES_THE_FROZEN_INCONCLUSIVE_RULE",
+  "mandatory_seams_if_a_future_route_review_selects_a_new_asset_design": [
+    "USE_HUNLEnvironmentV55_OR_AN_IDENTITY_AUDITED_EQUIVALENT_AS_THE_SINGLE_STATE_OBSERVATION_AND_ACTION_OWNER",
+    "ENUMERATE_ONLY_NON_NULL_BUILD_ACTION_TABLE_ENTRIES_AND_EXECUTE_THE_BOUND_ACTION_OBJECT",
+    "ADD_EXACT_FULL_200BB_PREFLOP_THROUGH_RIVER_SOLVER_WIRING_WITH_NO_V6_CHANGE",
+    "EXPORT_EXACT_STATE_OBSERVATION_MASK_ORDERED_ACTION_AND_NINE_SLOT_PROBABILITY_HASHES",
+    "FAIL_ON_ANY_PROJECTION_DROP_RENORMALIZATION_COLLISION_OR_ILLEGAL_POSITIVE_MASS",
+    "PREREGISTER_A_BOUNDED_CPU_ONLY_SMOKE_TO_ESTABLISH_MEMORY_RUNTIME_STORAGE_AND_CONVERGENCE_BEFORE_ASSET_GENERATION",
+    "INDEPENDENTLY_REPLAY_STATE_TRANSITION_OBSERVATION_ACTION_PAYOFF_AND_OUTPUT_IDENTITY"
+  ],
+  "authority": {
+    "feasibility_pass": false,
+    "asset_design_or_generation": "NONE",
+    "path1_action": "NONE",
+    "behavior_launch": "NONE",
+    "h19_or_later_launch": "NONE",
+    "next": "SEPARATELY_REGISTERED_ROUTE_REVIEW028",
+    "timing_method_behavior_or_strength_inference": "FORBIDDEN"
+  },
+  "prohibited_action_evidence": {
+    "code_changed_or_compiled": false,
+    "project_or_gpu_workload_launched": false,
+    "benchmark_executed": false,
+    "asset_generated": false,
+    "path1_written_signaled_restarted_repaired_replaced_or_expanded": false,
+    "trainer_evaluator_mirror_or_slumbot_launched": false,
+    "checkpoint_written": false,
+    "official_hands": 0
+  },
+  "strength_claim": "FORBIDDEN"
+}

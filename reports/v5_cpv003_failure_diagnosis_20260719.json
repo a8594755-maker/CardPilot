@@ -1,0 +1,58 @@
+{
+  "schema_version": "v5.cpv003.failure_diagnosis.v1",
+  "checked_at": "2026-07-19T15:23:00Z",
+  "design_id": "CPV003_TRAINERLESS_LIFECYCLE_STRESS_GATE",
+  "authoritative_verdict": "FAIL_CLOSED",
+  "authoritative_classification": "CPV003_FAIL_REGISTERED_GATE",
+  "result_sha256": "573ba096333e6166f3e7f7344353c1dab120ea4aea3b16072ac846fccd9d120d",
+  "result_audit_sha256": "429276e4761d25c1314c85032cc57a2c409b2bae8496fa2345d3040b6b895421",
+  "registered_gate_failure": {
+    "gate": "cleanup_zero_tagged_survivors",
+    "cycles_failed": 20,
+    "cycles_passed": 0,
+    "verdict_reclassification": "FORBIDDEN"
+  },
+  "observed_facts": {
+    "final_tagged_survivors_each_cycle": 0,
+    "maximum_full_cleanup_elapsed_seconds": 0.375,
+    "registered_cleanup_deadline_seconds": 15.0,
+    "all_five_roles_exact_pass": true,
+    "all_four_adversarial_tokens_pass": true,
+    "all_normal_supervisor_exit_zero": true,
+    "all_supervisor_shutdown_classifications_pass": true,
+    "all_pid_reuse_classifications_pass": true,
+    "injected_readiness_failure_pass": true,
+    "trainer_launched": false,
+    "gpu_used": false,
+    "official_hands": 0
+  },
+  "failure_mechanism": {
+    "type": "PROSPECTIVE_TEST_PREDICATE_FALSE_NEGATIVE",
+    "description": "The cycle cleanup predicate required every per-child cleanup snapshot to contain zero token-matching processes. During sequential cleanup, each early snapshot correctly contained siblings that had not yet reached their cleanup turn. The final cycle-level tagged-survivor scan was empty in all20 cycles, but the frozen implementation still marked cleanup false.",
+    "control_plane_inference": "The final full-tree cleanup behavior is supported; CPV003 itself nevertheless remains terminal FAIL because its executed registered predicate failed.",
+    "method_or_strength_inference": "NONE"
+  },
+  "prospective_correction": {
+    "eligible_only_after": "ROUTE_REVIEW_012_PASS",
+    "candidate": "CPV004_TRAINERLESS_LIFECYCLE_STRESS_GATE",
+    "single_engineering_change": "Judge zero tagged survivors only once after the complete registered child cleanup sequence; retain per-child snapshots as diagnostic evidence rather than individual terminal gates.",
+    "unchanged": [
+      "20 cycles",
+      "seed 2026071903",
+      "five roles",
+      "INITIAL_READY within10 seconds and before process scan",
+      "eight-field identity",
+      "four adversarial tokens",
+      "supervisor exit and PID-reuse classification",
+      "cleanup deadline15 seconds",
+      "injected readiness failure",
+      "no trainer",
+      "no GPU",
+      "no evaluator or Slumbot",
+      "official hands0"
+    ],
+    "automatic_rerun": "FORBIDDEN"
+  },
+  "terminal_effect": "REQUIRES_ROUTE_REVIEW_012_NO_BEHAVIOR_LAUNCH",
+  "strength_claim": "FORBIDDEN"
+}

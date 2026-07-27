@@ -1,0 +1,30 @@
+{
+  "schema_version": "v5.hybrid.h3.bridge_probability_rounding_audit.v1",
+  "checked_at": "2026-07-13T06:25:00+00:00",
+  "overall": "FAIL_CLOSED_ADAPTER_INPUT_MASS_CONTRACT_MISMATCH",
+  "purpose": "pre-use audit of the three-decimal Path-1 strategy export against the H3 domain-adapter 1e-9 probability-mass contract",
+  "source": {
+    "path": "C:\\Users\\a8594\\CardPilot\\data\\cfr\\pipeline_v3_hu_srp_200bb\\flop_002.jsonl.gz",
+    "sha256": "407e63bd577a918456c34a7f773d26661b1c6abc0688cad83478f55e4ab1c4b5",
+    "classification": "QUARANTINED_ORIGINAL_USED_FOR_SERIALIZATION_FORMAT_AUDIT_ONLY",
+    "rows_scanned_from_file_start": 500000
+  },
+  "result": {
+    "rows_with_abs_sum_error_gt_1e_9": 81304,
+    "fraction_with_abs_sum_error_gt_1e_9": 0.162608,
+    "maximum_abs_sum_error": 0.002000000000000113,
+    "sum_error_histogram": {
+      "0.000": 418696,
+      "0.001": 73835,
+      "0.002": 7469
+    }
+  },
+  "cause": "solver strategy probabilities are serialized to three decimals; the v1 adapter correctly rejects non-unit mass but no upstream deterministic residual-restoration contract existed",
+  "impact": "without correction, the first corrected-board smoke would fail on valid rounded rows and full-corpus behavior use would be impossible",
+  "behavior_or_official_use_occurred": false,
+  "required_correction": "freeze a bounded deterministic rounding-residual rule and explicit smoke/full scope before any corrected board is adapted",
+  "h3_preregistration_authorized": false,
+  "behavior_launch_authorized": false,
+  "official_hands_authorized": 0
+}
+

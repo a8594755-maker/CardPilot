@@ -1,0 +1,84 @@
+{
+  "schema_version": "v5.pcv008.preregistration.v1",
+  "design_id": "PCV008",
+  "registered_at": "2026-07-19T18:53:00Z",
+  "status": "REGISTERED_REPORTING_ONLY_NO_TRAINER",
+  "route_review": {
+    "result_sha256": "2581f9a6566a366b99884a9a49373e02e725efe30ab5b36ddc486dced0ba7855",
+    "audit_sha256": "6c7d7fc4dadd505391d16a51b4f85d589001138db7cd2e344ff770a78eed0e19",
+    "selected_next": "PCV008_REPORTING_ONLY_ORDER_BALANCED_GPU_TIMING_JITTER_ATTRIBUTION"
+  },
+  "source": {
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_endpoint.pt",
+    "sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "iteration": 35051,
+    "hands": 576021901
+  },
+  "workload": {
+    "rows": 4096,
+    "mini_batch_size": 1024,
+    "ppo_epochs": 4,
+    "target_kl": 1e-12,
+    "old_log_prob_offset": 10.0,
+    "transition_seed": 2026071984,
+    "update_seed": 2026971984,
+    "timer": "torch.cuda.Event_with_synchronize",
+    "blocks": 8,
+    "warmup_updates_per_mode_per_block": 2,
+    "timed_updates_per_mode_per_block": 12,
+    "order_sequence": [
+      "MSE_FIRST", "SMOOTH_L1_FIRST", "SMOOTH_L1_FIRST", "MSE_FIRST",
+      "SMOOTH_L1_FIRST", "MSE_FIRST", "MSE_FIRST", "SMOOTH_L1_FIRST"
+    ],
+    "same_seed_within_block_and_update_index": true
+  },
+  "device_telemetry": {
+    "sampler": "nvidia-smi",
+    "moments": ["BEFORE_EACH_BLOCK", "AFTER_EACH_BLOCK"],
+    "required_fields": [
+      "uuid", "pstate", "temperature_gpu_c", "clocks_sm_mhz", "clocks_mem_mhz",
+      "power_draw_w", "utilization_gpu_pct", "memory_used_mib"
+    ],
+    "snapshots_required": 16
+  },
+  "registered_summaries": {
+    "block_median_per_mode": true,
+    "aggregate_mse_stability_min_over_max": true,
+    "order_stratified_mode_medians": true,
+    "mse_order_effect_ratio_second_over_first": true,
+    "smooth_l1_order_effect_ratio_second_over_first": true,
+    "aggregate_mse_over_smooth_l1_ratio": true,
+    "telemetry_ranges": true
+  },
+  "attribution_rule": {
+    "order_associated_threshold": "ABS_LOG_ORDER_EFFECT_GE_LOG_1P01_FOR_EITHER_MODE",
+    "device_excursion_threshold": "TEMPERATURE_RANGE_GE_5C_OR_SM_CLOCK_RANGE_GE_100MHZ_OR_POWER_RANGE_GE_30W",
+    "otherwise": "TIMING_JITTER_UNRESOLVED_WITHIN_FROZEN_SENSITIVITY",
+    "interpretation": "DESCRIPTIVE_CONTROL_PLANE_ASSOCIATION_ONLY_NOT_CAUSAL_METHOD_EVIDENCE"
+  },
+  "completion_gates": {
+    "source_identity": true,
+    "exact_dimensions_and_order": true,
+    "all_updates_forced_shape": true,
+    "all_timing_finite_positive": true,
+    "all_telemetry_snapshots_complete": true,
+    "path1_unchanged": true,
+    "trainer_started": false,
+    "checkpoint_written": false,
+    "official_hands": 0
+  },
+  "interpretation": {
+    "pass": "MEASUREMENT_COMPLETE_ROUTE_REVIEW020_ONLY",
+    "fail": "FAIL_CLOSED_ROUTE_REVIEW020_ONLY",
+    "h18_rerun_or_reclassification": "FORBIDDEN",
+    "behavior_method_or_strength_inference": "FORBIDDEN",
+    "automatic_h19_launch": false
+  },
+  "resource_policy": {
+    "path1": "EXISTING_EXACT_JOB_UNTOUCHED",
+    "gpu": "SHORT_REPORTING_ONLY_SAFE_NO_TRAINER_BOUNDARY",
+    "trainer_evaluator_mirror_slumbot": "FORBIDDEN"
+  },
+  "official_hands": 0,
+  "behavior_launch_authority": "NONE"
+}

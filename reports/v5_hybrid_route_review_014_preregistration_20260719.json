@@ -1,0 +1,61 @@
+{
+  "schema_version": "v5.hybrid.route_review.preregistration.v14.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-014",
+  "registered_at": "2026-07-19T16:39:30Z",
+  "status": "REGISTERED_REPORTING_ONLY",
+  "trigger": {
+    "h16_verdict": "FAIL",
+    "h16_classification": "H16_FAIL_PREARM_REPRESENTATIVE_PERF_CAL_EXECUTION_NO_LAUNCH",
+    "h16_judgment_sha256": "96e0a4bea8c119c991ad1cd2710e7897d7938a161451e7cf7fec65400a8c86d0",
+    "h16_terminal_audit_sha256": "3076c88f1e136cec92a15455cda19ff7241d882f62f65cf9b504c2c369b13ec9",
+    "trainer_started": false,
+    "valid_timing_sample": false,
+    "method_evidence": "NONE_NO_ARM_LAUNCHED"
+  },
+  "causal_localization": {
+    "supported": "THE_REGISTERED_SYNTHETIC OLD_LOG_PROB OFFSET_DID_NOT GUARANTEE THE REQUIRED EPOCH1 KL STOP FOR EVERY SHUFFLED FULL_PPO_UPDATE",
+    "not_supported": [
+      "SMOOTHL1_FULL_UPDATE_THROUGHPUT_BELOW_0.85",
+      "SMOOTHL1_IMPROVES_OR_HARMS_CRITIC_CALIBRATION",
+      "SMOOTHL1_IMPROVES_OR_HARMS_POLICY_STRENGTH"
+    ],
+    "h16_same_window_repair": "FORBIDDEN"
+  },
+  "candidate_order": [
+    {
+      "rank": 1,
+      "candidate": "PCV005_NUMERICALLY_EQUIVALENT_SMOOTHL1_KERNEL_ENGINEERING_GATE",
+      "scope": "TRAINERLESS_ENGINEERING_ONLY",
+      "required": "DETERMINISTIC_FORCED_KL_TRIGGER_PROOF;EXACT_FORWARD_GRADIENT_OPTIMIZER_EQUIVALENCE;REPRESENTATIVE_FULL_UPDATE_THROUGHPUT_RATIO_AT_LEAST_0.85;MSE_STABILITY_AT_LEAST_0.95",
+      "pass_next": "SEPARATELY_PREREGISTER_H17_SAME_SCIENCE_USING_THE_AUDITED_KERNEL_AND_TRIGGER_CONSTRUCTION"
+    },
+    {
+      "rank": 2,
+      "candidate": "ROUTE_REVIEW_015",
+      "condition": "PCV005_FAIL_OR_INCONCLUSIVE"
+    },
+    {
+      "rank": 3,
+      "candidate": "ROUTE_EXHAUSTION",
+      "condition": "ONLY_IF_NO_CAUSALLY_SUPPORTED_HYBRID_WINDOW_OR_ENGINEERING_PREREQUISITE_REMAINS"
+    }
+  ],
+  "decision_rule": "SELECT_PCV005_BECAUSE_H16_REGISTRATION_EXPLICITLY_FROZE_IT_AS_THE_FALLBACK_FOR_ANY_REPRESENTATIVE_PREARM_FAILURE_AND_NO_METHOD_OR_TIMING_EVIDENCE_EXISTS",
+  "frozen_truth": {
+    "h16": "TERMINAL_FAIL_PREARM_NO_LAUNCH_NO_RERUN",
+    "clean_source": "H11_CONTROL_ITER35051_HANDS576021901_SHA96A007",
+    "latest_official_level": "L0",
+    "official_hands_this_review": 0,
+    "external_debt_hands": 0,
+    "path1": "EXISTING_EXACT_SIX_BELOWNORMAL_CPU_WORKERS_UNTOUCHED"
+  },
+  "constraints": {
+    "behavior_change": false,
+    "trainer_launch": false,
+    "h16_rerun_resume_extend_reclassify": "FORBIDDEN",
+    "official_hands": 0,
+    "ledger_append_only": true,
+    "strength_claim": "FORBIDDEN"
+  },
+  "authority": "REPORTING_ONLY_NO_BEHAVIOR_LAUNCH"
+}

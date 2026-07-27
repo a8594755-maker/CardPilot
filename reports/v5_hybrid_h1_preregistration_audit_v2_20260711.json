@@ -1,0 +1,119 @@
+{
+  "checked_at": "2026-07-12T02:45:38.230820+00:00",
+  "checks": [
+    {
+      "detail": "v5.hybrid.h1.preregistration.v1",
+      "name": "schema",
+      "pass": true
+    },
+    {
+      "detail": "H1/HYBRID",
+      "name": "identity",
+      "pass": true
+    },
+    {
+      "detail": "REGISTERED_NO_LAUNCH",
+      "name": "immutable_registered_no_launch",
+      "pass": true
+    },
+    {
+      "detail": "v5-user-route-escalation-hybrid-goal-20260711",
+      "name": "user_escalation",
+      "pass": true
+    },
+    {
+      "detail": "{'checkpoint_path': 'models/alpha_holdem_v5_from_zero/v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709/v5_exp005_cutover_gate31400_checkpoint.pt', 'checkpoint_sha256': 'bcbb46bd01d62fcdea602269b7047323315d4e9bbcf447ea0323e289fde11a8e', 'iteration': 31400, 'hands': 515989661, 'env_version': 'v55', 'obs_version': 'v55', 'action_space_version': '9slot_v5', 'starting_stack_bb': 200, 'pool_strategy': 'loss-kbest', 'source_run_id': 'v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709', 'route_identity_after_cutover': 'HYBRID_NOT_FROM_ZERO_CLAIM'}",
+      "name": "source_identity",
+      "pass": true
+    },
+    {
+      "detail": "7b691750e19716289956036c0d9cf84901941453e6120fa7d6b620bfd942b156",
+      "name": "goal_identity",
+      "pass": true
+    },
+    {
+      "detail": "{'exp005c': 'EXP005C_FAIL_PROTOCOL_ABORT_DO_NOT_REOPEN', 'exp_w1': 'EXP_W1_FAIL_WARMUP_GATE_DO_NOT_REOPEN_OR_REUSE_ENDPOINTS', 'exp003': 'TERMINAL_INCONCLUSIVE_DO_NOT_REOPEN'}",
+      "name": "terminal_experiments_closed",
+      "pass": true
+    },
+    {
+      "detail": "{'name': 'critic_contract', 'control': 'critic_v1', 'treatment': 'critic_v2', 'atomic_package': True, 'reason': 'The user-authorized H1 window treats magnitude units, critic isolation/depth, and value coefficient as one integrated subsystem contract.', 'all_actor_rollout_pool_prior_and_target_semantics_unchanged': True}",
+      "name": "single_atomic_contract",
+      "pass": true
+    },
+    {
+      "detail": "200",
+      "name": "fixed_scaling_no_popart",
+      "pass": true
+    },
+    {
+      "detail": "Sequential Linear(256,256),ReLU,Linear(256,128),ReLU,Linear(128,1)",
+      "name": "critic_isolation_depth",
+      "pass": true
+    },
+    {
+      "detail": "0.5->1",
+      "name": "value_coefficient",
+      "pass": true
+    },
+    {
+      "detail": "{'pretraining_policy_logits_max_abs_delta': 0, 'legal_mask_policy_mode_identical': True, 'source_actor_weights_bitwise_identical': True, 'actor_optimizer_state_bitwise_identical': True, 'pool_snapshot_state_hashes_identical': True, 'reward_semantics': 'LINEAR_UNIT_CONVERSION_ONLY_EXPECTATION_UNCHANGED', 'one_behavior_window': 'critic_v1_to_critic_v2_integrated_package_only'}",
+      "name": "actor_identity_gate",
+      "pass": true
+    },
+    {
+      "detail": "20000000",
+      "name": "same_start_fixed_window",
+      "pass": true
+    },
+    {
+      "detail": "{'id': 'H1-CAL-001', 'status_required_before_launch': 'IMMUTABLE_BUNDLE_AUDIT_PASS', 'source_policy': 'exact gate31400 greedy', 'opponent_panel': 'exact gate31400 active loss-kbest pool ids in deterministic round-robin', 'deal_seed': 2026071111, 'common_deal_pairs': 10000, 'hands': 20000, 'seat_order': [0, 1], 'starting_stack_bb': 200, 'env_version': 'v55', 'action_space_version': '9slot_v5', 'target': 'discounted terminal hero net return / 200 at every evaluated hero decision', 'gamma': 0.999, 'split': 'whole-deal cluster only', 'training_use': 'FORBIDDEN_HOLDOUT_ONLY', 'policy_mode': 'greedy_argmax_both_sides', 'max_ood_rate': 0.15, 'required_artifacts': ['manifest with deal hashes', 'per-decision JSONL', 'source and opponent identities', 'bundle audit JSON/MD']}",
+      "name": "holdout_contract",
+      "pass": true
+    },
+    {
+      "detail": "{'normalized_mse': 'mean squared error in effective-stack-fraction units', 'paired_relative_reduction': '1 - MSE_treatment/MSE_control', 'cluster_bootstrap_repetitions': 10000, 'bootstrap_seed': 2026071112, 'ci': 0.95, 'minimum_meaningful_relative_reduction': 0.1, 'pass_point_relative_reduction': 0.15, 'pass_ci_lower_relative_reduction': 0.1, 'no_adaptive_extension': True, 'no_second_seed': True, 'no_later_endpoint': True, 'no_posthoc_slices': True}",
+      "name": "primary_gate",
+      "pass": true
+    },
+    {
+      "detail": "{'throughput': {'first_rows': 60, 'abort_if_treatment_over_control_effective_hps_below': 0.85, 'full_window_noninferiority_ratio': 0.85, 'metric': 'actual hands / wall-clock from first to last accepted row; exclude neither stalls nor setup after row1'}, 'entropy': {'window_rows': 200, 'treatment_median_min': 0.3, 'noninferior_to_control_median_delta': -0.1, 'sustained_abort': 'entropy < 0.3 for 20 consecutive training rows'}, 'health': ['no nonfinite losses/gradients', 'stderr empty except registered graceful stop', 'checkpoint identity PASS', 'assignment provenance complete', 'all required rows present'], 'diagnostics_not_gates': ['normalized train vloss ratio', 'calibration slope/intercept', 'explained variance', 'policy KL/clipfrac', 'gradient norms by actor/critic']}",
+      "name": "throughput_entropy_guards",
+      "pass": true
+    },
+    {
+      "detail": "{'protocol_abort': ['identity or source hash mismatch', 'H1-CAL-001 audit not PASS', 'pretraining policy logits delta != 0', 'nonfinite metric or gradient', 'first60 throughput ratio < 0.85', 'entropy < 0.3 for 20 consecutive rows', 'missing provenance or endpoint artifact'], 'pass': 'primary point reduction >=0.15 AND bootstrap CI lower >=0.10 AND full-window hps ratio >=0.85 AND entropy median >=0.3 AND treatment-control entropy delta >=-0.10 AND all health checks PASS', 'fail': 'complete valid window but primary bootstrap CI upper <0.10, OR treatment normalized MSE is >10% worse with bootstrap CI lower above zero, OR a full-window throughput/entropy guard fails after the first60 protocol gate', 'inconclusive': 'complete valid fixed sample that is neither PASS nor FAIL', 'no_extension': True, 'no_reclassification': True}",
+      "name": "terminal_rules_frozen",
+      "pass": true
+    },
+    {
+      "detail": "{'on_pass': 'adopt critic_v2 for H2 preregistration preparation only', 'official_slumbot': 'FORBIDDEN', 'internal_mirror': 'NOT_A_H1_GATE', 'v4_claim': 'FORBIDDEN', 'l5_l6_claim': 'FORBIDDEN', 'h2_launch': 'REQUIRES_SEPARATE_PREREGISTRATION'}",
+      "name": "no_official_or_strength",
+      "pass": true
+    },
+    {
+      "detail": "NONE_UNTIL_SEPARATE_DESIGN_LOCK_AND_PREFLIGHT_PASS",
+      "name": "launch_still_blocked",
+      "pass": true
+    },
+    {
+      "detail": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_from_zero\\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\\v5_exp005_cutover_gate31400_checkpoint.pt",
+      "name": "source_file_hash",
+      "pass": true
+    },
+    {
+      "detail": "current_alias=False; ledger_event=True",
+      "name": "goal_authority_chain",
+      "pass": true
+    }
+  ],
+  "failed": 0,
+  "failed_checks": [],
+  "launch_authority": "NONE",
+  "official_hands_authorized": 0,
+  "passed": 21,
+  "preregistration_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h1_preregistration_20260711.json",
+  "preregistration_sha256": "bb998b84adb2cee4fa6c8f88861b612c556356c8b91fdae9d9c883b1c7b733ab",
+  "schema_version": "v5.hybrid.h1.preregistration_audit.v1",
+  "status": "PASS_REGISTERED_NO_LAUNCH"
+}

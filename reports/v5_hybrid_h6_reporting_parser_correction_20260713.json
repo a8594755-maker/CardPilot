@@ -1,0 +1,31 @@
+{
+  "schema_version": "v5.hybrid.h6.reporting_parser_correction.v1",
+  "checked_at": "2026-07-13T09:32:30+00:00",
+  "classification": "CENSURE_CORRECTED_REPORTING_ONLY",
+  "incident": "The H6 trainer intentionally added ep=N/4 and klstop=0|1 tokens between kl and clipfrac. The legacy health and KL-readiness parsers required those fields to be adjacent, so valid immutable raw rows initially parsed as zero rows.",
+  "impact": {
+    "trainer_behavior": "UNCHANGED",
+    "checkpoint_weights": "UNCHANGED",
+    "raw_training_log": "PRESERVED_APPEND_ONLY",
+    "registered_thresholds": "UNCHANGED",
+    "official_hands": 0,
+    "initial_health_effect": "Transient WARN_NO_PARSED_ROWS; corrected health is PASS."
+  },
+  "root_cause": "The H6 design lock bound the judge but omitted its reporting-only transitive parse_rows dependency, and the existing health parser was not updated during the logging-format change.",
+  "correction": "Both reporting parsers now optionally consume ep and klstop tokens while preserving backward compatibility with historical rows.",
+  "artifacts": {
+    "h6_design_lock_sha256": "d74b5018476f65cba17fde2c0434d7b616d41ed22b5b5bbf1d8e72c281ed2854",
+    "v5_monitor_sha256": "fb7ed628e2a2d246d5094fb1882465c42ac11768ed6a0bcec2ebab05ebd034a4",
+    "v5_h6_ppo_stability_readiness_sha256": "392b50e65afe3ad74f026ea64a0a829b34f3d0396fd9f3509b3b5ecc3ae4c2c4",
+    "corrected_health_status_sha256_at_audit": "950717526e84a8bd94a2249e846b1b19a84ed42a147bf2169340c1ecd95ab55c"
+  },
+  "validation": {
+    "h6_parser_tests": "2/2 PASS",
+    "h6_live_rows_parsed_at_audit": 6,
+    "health_overall": "PASS",
+    "health_live_iteration_at_audit": 31405,
+    "stderr": "EMPTY"
+  },
+  "future_lock_rule": "Bind all reporting transitive dependencies used by a terminal judge, or inline and hash the parser in the locked judge.",
+  "strength_claim": "FORBIDDEN"
+}

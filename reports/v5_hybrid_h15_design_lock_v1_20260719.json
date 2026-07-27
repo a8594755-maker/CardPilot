@@ -1,0 +1,437 @@
+{
+  "arm_budget": {
+    "actual_hands_each": 20000000,
+    "maximum_overshoot_hands": 50000,
+    "minimum_endpoint_hands": 596021901,
+    "order": [
+      "control",
+      "treatment"
+    ]
+  },
+  "arms": {
+    "control": {
+      "catchup_smooth_l1_beta": 1.0,
+      "catchup_value_loss": "mse",
+      "metrics_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h15_control_catchmse_same35051_20m_r1_20260719\\h1_training_metrics.jsonl",
+      "ppo_target_kl": 0.03,
+      "provenance_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h15_control_catchmse_same35051_20m_r1_20260719\\opponent_assignment_provenance.jsonl",
+      "run_dir": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h15_control_catchmse_same35051_20m_r1_20260719",
+      "run_id": "v5_hybrid_h15_control_catchmse_same35051_20m_r1_20260719",
+      "train_log_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h15_control_catchmse_same35051_20m_r1_20260719\\latest_train.log",
+      "value_head_catchup": true
+    },
+    "treatment": {
+      "catchup_smooth_l1_beta": 1.0,
+      "catchup_value_loss": "smooth_l1",
+      "metrics_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h15_treatment_catchsmoothl1b1_same35051_20m_r1_20260719\\h1_training_metrics.jsonl",
+      "ppo_target_kl": 0.03,
+      "provenance_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h15_treatment_catchsmoothl1b1_same35051_20m_r1_20260719\\opponent_assignment_provenance.jsonl",
+      "run_dir": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h15_treatment_catchsmoothl1b1_same35051_20m_r1_20260719",
+      "run_id": "v5_hybrid_h15_treatment_catchsmoothl1b1_same35051_20m_r1_20260719",
+      "train_log_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h15_treatment_catchsmoothl1b1_same35051_20m_r1_20260719\\latest_train.log",
+      "value_head_catchup": true
+    }
+  },
+  "common_config": {
+    "allin_runout_ev": true,
+    "allin_runout_ev_max_runouts": 200,
+    "critic_contract": "critic_v1",
+    "device": "cuda",
+    "entropy_coef": 0.05,
+    "entropy_floor": 0.3,
+    "fixed_training_deal_stream": true,
+    "gamma": 0.999,
+    "hands_per_iter": 16384,
+    "inference_batch_deadline_us": 1000.0,
+    "inference_min_batch_slots": 256,
+    "k_best": 5,
+    "lr": 0.0003,
+    "mini_batch_size": 1024,
+    "mirror_self_play_deals": true,
+    "opponent_assignment": "per-iteration",
+    "opponent_groups": 5,
+    "pool_strategy": "loss-kbest",
+    "postflop_action_prior_coef": 0.02,
+    "ppo_epochs": 4,
+    "preflop_action_prior_coef": 0.01,
+    "preflop_bb_vs_open_action_prior_coef": 0.0,
+    "preflop_sb_open_action_prior_coef": 0.0,
+    "reset_optimizer": false,
+    "rollout_envs_per_worker": 16,
+    "rollout_mode": "multi",
+    "save_interval": 1,
+    "seed": 20260703,
+    "self_play_fraction": 0.2,
+    "showdown_ev_value_targets": false,
+    "snapshot_every": 200,
+    "value_coef": 0.5,
+    "worker_seed_base": 73000,
+    "workers": 22
+  },
+  "control_plane": {
+    "allowed_child_binding": "EXACT_PID_PARENT_CREATION_TIME_EXECUTABLE_SCRIPT_DESIGN_LOCK_ROLE_AND_COMMAND_LINE_SHA256",
+    "allowed_child_roles": [
+      "health",
+      "protocol",
+      "endpoint",
+      "treatment_launch",
+      "completion"
+    ],
+    "broad_process_class_allowlist": "FORBIDDEN",
+    "canonical_rearm_survival_failure": "STATUS_FALSE_AND_EXIT_NONZERO",
+    "canonical_rearm_validate_only": "MUST_PASS_BEFORE_LAUNCH",
+    "cleanup": "FULL_REGISTERED_SEQUENCE_THEN_ONE_FINAL_TAGGED_SURVIVOR_GATE_WITHIN_15_SECONDS",
+    "control_safe_boundary": "TREATMENT_LAUNCH_READY_SAFE_NO_TRAINER_BOUNDARY",
+    "control_stage_order": [
+      [
+        "health",
+        "protocol"
+      ],
+      [
+        "endpoint"
+      ],
+      [
+        "treatment_launch",
+        "completion"
+      ]
+    ],
+    "exact_lifecycle_child_registry": {
+      "binding": [
+        "pid",
+        "parent_pid",
+        "creation_time",
+        "executable",
+        "command_line_sha256",
+        "script_sha256",
+        "design_lock_sha256",
+        "role"
+      ],
+      "roles": [
+        "health",
+        "protocol",
+        "endpoint",
+        "treatment_launch",
+        "completion"
+      ]
+    },
+    "h15_specific_tool_hashes": "MUST_BE_FROZEN_BY_DESIGN_LOCK",
+    "launcher_rearm_success": "PROCESS_EXIT_ZERO_AND_STATUS_SURVIVAL_PASS_TRUE",
+    "ordered_rearm_stages": {
+      "control": [
+        [
+          "health",
+          "protocol"
+        ],
+        [
+          "endpoint"
+        ],
+        [
+          "treatment_launch",
+          "completion"
+        ]
+      ],
+      "treatment": [
+        [
+          "health",
+          "protocol"
+        ],
+        [
+          "endpoint"
+        ],
+        [
+          "completion"
+        ]
+      ]
+    },
+    "per_child_survivor_snapshots": "DIAGNOSTIC_ONLY_NOT_GATE",
+    "shared_guard_module": "scripts/alpha_holdem/v5_lifecycle_guard_v2.py",
+    "startup_readiness": "INITIAL_READY_BEFORE_PROCESS_SCAN_WITHIN_10_SECONDS",
+    "supervisor_exit_or_pid_reuse": "LIFECYCLE_SHUTDOWN_NOT_RESOURCE_VIOLATION_AFTER_CREATION_IDENTITY_CHECK",
+    "treatment_stage_order": [
+      [
+        "health",
+        "protocol"
+      ],
+      [
+        "endpoint"
+      ],
+      [
+        "completion"
+      ]
+    ],
+    "unexpected_watcher_exit": "FAIL_CLOSED_AND_TERMINATE_ACTIVE_H15_TRAINER",
+    "unregistered_sibling_or_identity_mismatch": "FAIL_CLOSED_FULL_PROVENANCE_AND_TERMINATE_ACTIVE_H15_TRAINER"
+  },
+  "control_plane_integration_audit": {
+    "checks": "27/27 PASS",
+    "overall": "PASS",
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_h15_control_plane_integration_audit_v3_20260719.json",
+    "sha256": "5d66708303592957b26d5adfa55497a387a632df41ddd0d0b11a666aa32f178e"
+  },
+  "design_id": "H15",
+  "engineering_prerequisite": {
+    "audit": {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_cpv004_result_audit_20260719.json",
+      "sha256": "b4b03759131ddfc71e04842459fafc3ea46ee684cd6de430a1c6f610cdee38cf"
+    },
+    "checks": "20/20 PASS; audit 33/33 PASS",
+    "classification": "CPV004_PASS_CORRECTED_FINAL_CLEANUP_OBSERVATION",
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_cpv004_result_20260719.json",
+    "sha256": "69cdeedc406d5322a407cf3abd54d5f10d13d50ade87c84448b2a49dca132449"
+  },
+  "forbidden_source_labels": [
+    "H9 partial control",
+    "H10 partial control",
+    "H11 partial treatment",
+    "H12 attempted control directory or any H12 artifact",
+    "H13 attempted control directory or any H13 artifact",
+    "H14 partial control or any H14 artifact",
+    "CPV003 or CPV004 dummy-process artifacts as training input",
+    "CAL-EXT-001 or CAL-EXT-002 benchmark checkpoint copies",
+    "any later checkpoint or optimizer reset"
+  ],
+  "frozen_files": [
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h15_preregistration_20260719.json",
+      "sha256": "5631c27c29f1379ea16c5b246dccc312e830a2e50d5335dfac531798c882582c"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h15_preregistration_audit_v2_20260719.json",
+      "sha256": "ae8a3563313f97b3098faf199ee752a8d65b41d5f95addf8a81e839c006cb6a3"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h15_implementation_audit_20260719.json",
+      "sha256": "fe2407ee1fae7edf7c5d8bf980035984a1ec84fbe7a2ae80c26af17df5ea4ec3"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_h15_control_plane_integration_audit_v3_20260719.json",
+      "sha256": "5d66708303592957b26d5adfa55497a387a632df41ddd0d0b11a666aa32f178e"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_route_review_012_result_20260719.json",
+      "sha256": "c2efbdfb9c5090c0434413d45adb8c2a4a9030270ea0c0b17bdbddbcb97165dd"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_route_review_012_audit_20260719.json",
+      "sha256": "83361d82fc4e0c613d5045ac2d4d54467852259c6ad8fc38fb072ab2282f2e57"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_cpv004_result_20260719.json",
+      "sha256": "69cdeedc406d5322a407cf3abd54d5f10d13d50ade87c84448b2a49dca132449"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_cpv004_result_audit_20260719.json",
+      "sha256": "b4b03759131ddfc71e04842459fafc3ea46ee684cd6de430a1c6f610cdee38cf"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h11_judgment_20260715.json",
+      "sha256": "88f86867183a36abbf34fedc6eb7556b2fd81e33c1fd47f79e44031ae41fa316"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h11_terminal_audit_20260716.json",
+      "sha256": "fb6217793ea703eb7521dcc6b7d9bdf2d4980c5895c578867e5208aa117c0122"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_cal_ext_002_completion_20260716.json",
+      "sha256": "89baf334e35cf699b75f0845a3c1dea70335ddbe4ee81e219a15048dc4e9b9d7"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_cal_ext_002_completion_audit_20260716.json",
+      "sha256": "e5dc2487ce8c0e4d0712a79c3b1bde6f41d488ed857ad1504068a5cd0aafaba3"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\h15_mirror_001_v3_20260719\\manifest.json",
+      "sha256": "7cd1c6794a15a9c94960839213122c79abf22da85f305608fe0f6530175d6fec"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\h15_mirror_001_v3_20260719\\measurement_lock.json",
+      "sha256": "68d5d8d78f26bd0736059f921b9602024caedd4d5bd7c3dc09f2aa42be543478"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\h1_cal_001_attempt2_20260712\\manifest.json",
+      "sha256": "0ce91c7199cd885d7f29e75f5c75810b11a8410ca1eac57ab15ca2cc63db3342"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\h1_cal_001_attempt2_20260712\\audit.json",
+      "sha256": "1cba9b8741f5caa6b1f2bb500e5e998bf6b7681219bc8d911bafbd7792538f4a"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\h1_cal_001_attempt2_20260712\\decisions.jsonl",
+      "sha256": "4eec2dc6b7f1063b7f0e5f5d00bc02a46c14342f35f004b431c5f2cf60d5c150"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\h1_cal_001_attempt2_20260712\\hands.jsonl",
+      "sha256": "ed2323785b1f14f628c22c79723febb84762badcf7a2e96801e9ded45f3b332a"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_endpoint_status.json",
+      "sha256": "076d081988758fe9740dec0962c5746ba96886af05fa14a1f9609e196e25e1ac"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_protocol_status.json",
+      "sha256": "5c7f7d8a663710ea1744d8d6c3761445791598da8d4f7fda054e10fa634ff3e6"
+    },
+    {
+      "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\run_manifest.json",
+      "sha256": "3c9d55b2ae907661c5ae28f11e76ab6e2bd5bfd8d5f8612b639f8a7c85c7862e"
+    }
+  ],
+  "gates": {
+    "early_stop_trigger_fraction_min": 0.05,
+    "endpoint_mse_primary_ci95_lower_min": 0.0,
+    "endpoint_mse_primary_reduction_point_min": 0.075,
+    "entropy_median_last200_min": 0.3,
+    "entropy_treatment_minus_control_min": -0.1,
+    "first60_hps_ratio_min": 0.85,
+    "full_hps_ratio_min": 0.85,
+    "kl_fraction_above_0_03_max": 0.06044407894736842,
+    "kl_p95_max": 0.03,
+    "mirror_pairs": 40000,
+    "mirror_treatment_control_ci95_lower_min_bb100": -20.0,
+    "mirror_treatment_source_ci95_lower_min_bb100": -20.0,
+    "source_anchor_degradation_ci95_upper_max": 0.1,
+    "source_anchor_degradation_point_max": 0.05
+  },
+  "implementation_audit": {
+    "checks": "23/23 PASS",
+    "overall": "PASS_H15_IMPLEMENTATION",
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h15_implementation_audit_20260719.json",
+    "sha256": "fe2407ee1fae7edf7c5d8bf980035984a1ec84fbe7a2ae80c26af17df5ea4ec3"
+  },
+  "locked_at": "2026-07-19T15:57:48.264030+00:00",
+  "measurement": {
+    "holdout_dir": "C:\\Users\\a8594\\CardPilot\\reports\\h1_cal_001_attempt2_20260712",
+    "mirror_bootstrap_seed": 2026071906,
+    "mirror_dir": "C:\\Users\\a8594\\CardPilot\\reports\\h15_mirror_001_v3_20260719",
+    "mirror_lock_sha256": "68d5d8d78f26bd0736059f921b9602024caedd4d5bd7c3dc09f2aa42be543478",
+    "mirror_manifest_sha256": "7cd1c6794a15a9c94960839213122c79abf22da85f305608fe0f6530175d6fec",
+    "mirror_pairs": 40000,
+    "mirror_seed": 2026071905,
+    "mse_bootstrap_repetitions": 10000,
+    "mse_bootstrap_seed": 2026071907,
+    "source_anchor_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_endpoint.pt",
+    "source_anchor_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "start_condition": "BOTH_H15_ENDPOINTS_FROZEN_PASS_AND_NO_TRAINER_ACTIVE"
+  },
+  "official_hands": 0,
+  "performance_calibration": {
+    "batch_size": 1024,
+    "control_seed": 2026071905,
+    "device": "cuda",
+    "failure_action": "FAIL_CLOSED_NO_ARM_LAUNCH",
+    "implementation_path": "scripts/alpha_holdem/v5_hybrid_h15_perf_cal.py",
+    "independent_audit_path": "scripts/alpha_holdem/v5_hybrid_h15_perf_cal_audit.py",
+    "loss_throughput_ratio_min": 0.95,
+    "order": "alternating_mse_smoothl1",
+    "repeats": 3,
+    "required_immediately_before_each_arm": true,
+    "source_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "timed_steps": 40,
+    "tool_hashes": "MUST_BE_FROZEN_BY_H15_DESIGN_LOCK_AFTER_IMPLEMENTATION_AUDIT",
+    "treatment_common_mse_control_baseline_ratio_min": 0.95,
+    "treatment_seed": 2026071906,
+    "warmup_steps": 10,
+    "work": "value_head_only_forward_backward_optimizer"
+  },
+  "preregistration": {
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h15_preregistration_20260719.json",
+    "sha256": "5631c27c29f1379ea16c5b246dccc312e830a2e50d5335dfac531798c882582c",
+    "status": "REGISTERED_NO_LAUNCH"
+  },
+  "preregistration_audit": {
+    "checks": "47/47 PASS",
+    "overall": "PASS",
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h15_preregistration_audit_v2_20260719.json",
+    "sha256": "ae8a3563313f97b3098faf199ee752a8d65b41d5f95addf8a81e839c006cb6a3"
+  },
+  "preregistration_source": {
+    "checkpoint_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_endpoint.pt",
+    "checkpoint_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13"
+  },
+  "resource_isolation": {
+    "abort_terminalization": "MUST_SUPPORT_CONTROL_OR_TREATMENT_PROTOCOL_ABORT",
+    "active_window_sentinel": "C:\\Users\\a8594\\CardPilot\\reports\\v5_active_window.json",
+    "additional_cpu_or_gpu_jobs": "FORBIDDEN_DURING_ARMS_EXCEPT_EXISTING_PATH1",
+    "allowed_project_processes": "EXACT_LOCKED_H15_LIFECYCLE_PLUS_EXISTING_EXACT_PATH1_ONLY",
+    "evaluation_during_arm": "FORBIDDEN",
+    "evaluation_start": "AFTER_BOTH_ENDPOINTS_FROZEN_PASS_AND_NO_TRAINER_ACTIVE",
+    "full_trigger_provenance": [
+      "pid",
+      "parent_pid",
+      "creation_time",
+      "executable",
+      "command_line",
+      "command_line_sha256"
+    ],
+    "generic_planner_command_emission": "FAIL_CLOSED_WHILE_ACTIVE",
+    "parent_or_delegated_observer_commands": "FORBIDDEN_WHILE_EITHER_ARM_ACTIVE_INCLUDING_FILE_READ_HASH_PROCESS_LIST",
+    "path1_existing_job": "MAY_CONTINUE_EXISTING_EXACT_LOCKED_SIX_BELOWNORMAL_CPU_WORKERS_NO_RESTART_EXPANSION_OR_NEW_WORKERS",
+    "slumbot_during_arm": "FORBIDDEN",
+    "violation_classification": "H15_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION"
+  },
+  "route_review": {
+    "audit": {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_route_review_012_audit_20260719.json",
+      "sha256": "83361d82fc4e0c613d5045ac2d4d54467852259c6ad8fc38fb072ab2282f2e57"
+    },
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_route_review_012_result_20260719.json",
+    "route_exhausted": false,
+    "selected_next": "CPV004_CORRECTED_FINAL_CLEANUP_OBSERVATION_GATE",
+    "sha256": "c2efbdfb9c5090c0434413d45adb8c2a4a9030270ea0c0b17bdbddbcb97165dd"
+  },
+  "schema_version": "v5.hybrid.h15.design_lock.v1",
+  "single_variable": {
+    "common_ppo_target_kl": 0.03,
+    "common_value_head_catchup": true,
+    "control": "mse",
+    "name": "catchup_value_loss",
+    "treatment": "smooth_l1_beta_1.0"
+  },
+  "source": {
+    "hands": 576021901,
+    "iteration": 35051,
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_endpoint.pt",
+    "role": "CONTROLLED_TRAINING_SOURCE_NOT_EXTERNAL_MODEL_CANDIDATE",
+    "run_id": "v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715",
+    "sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13"
+  },
+  "source_anchor": {
+    "hands": 576021901,
+    "iteration": 35051,
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_endpoint.pt",
+    "role": "CONTROLLED_TRAINING_SOURCE_NOT_EXTERNAL_MODEL_CANDIDATE",
+    "run_id": "v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715",
+    "sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13"
+  },
+  "status": "LOCKED",
+  "strength_claim": "FORBIDDEN",
+  "tools": {
+    "scripts/alpha_holdem/environment_v55.py": "3ab591176a8119d21ac11e043bdfef72bd30b8842e34a9fea45cdd36b945f9de",
+    "scripts/alpha_holdem/train_mp3_hybrid_h1.py": "a5c8229993c24a1871f57c7f46f173feeffbb11716987462b90369bbebb7e906",
+    "scripts/alpha_holdem/train_v5.py": "c646f7554cdd855915cc551904da86468e48a4e4fa3587008348f5f60f36e523",
+    "scripts/alpha_holdem/v5_assignment_provenance_audit.py": "b061a13766b2af3c373918f731edfd77d5cdb4a9e7dfb97bb2fe0a2f8f6ebf6a",
+    "scripts/alpha_holdem/v5_h15_control_plane_integration_audit.py": "a2ed317afd4765d3c82c1c047493e26bb9176cdc69bdfaf027256a622ef164fc",
+    "scripts/alpha_holdem/v5_h1_calibration.py": "1bf848cf210faee8c45b657e43039298c2cfb05e8bb584bce07e5250922b98c5",
+    "scripts/alpha_holdem/v5_hybrid_h15_active_window.py": "7dd43d8712daec602256ae6de81396ef7ffbdc8df71f4d3be28fd12c506495ee",
+    "scripts/alpha_holdem/v5_hybrid_h15_completion_watch.py": "56612fd48c2064f3ee6ab5fa86a1866103a9ba572cff9d87f1d67852e6bf46f2",
+    "scripts/alpha_holdem/v5_hybrid_h15_design_lock_audit.py": "8f665431f00d7c56ae9a0a64d7ac7c5a868459067ed45e9b90144c073dcd23d7",
+    "scripts/alpha_holdem/v5_hybrid_h15_design_lock_build.py": "eb343d2727dbbbe15bdd82bf6ba1bad18dcc90ef69f7268b7a9f23bfc958b4e7",
+    "scripts/alpha_holdem/v5_hybrid_h15_endpoint_watch.py": "476b4e598919385f9737c2dfb9e435a9fb186c0b27aceed4b737fbdc52d1ae74",
+    "scripts/alpha_holdem/v5_hybrid_h15_health_watch.py": "13b4e26f56e0d222814130f0b62fd61de5f96025bd00c2e92313ceab13deb043",
+    "scripts/alpha_holdem/v5_hybrid_h15_implementation_audit.py": "03f2e949c7dbb44de582cc600653c7996dfbace7a37ab654a059816a14ee1be4",
+    "scripts/alpha_holdem/v5_hybrid_h15_judge.py": "94c55bc52389d73329894fa00323a11ea1c37d88ada08b1c91857456793034a5",
+    "scripts/alpha_holdem/v5_hybrid_h15_launch_control.ps1": "9aea26a8e94544accfa9322fc700e20fff1c28c72d0952182f023794985171b0",
+    "scripts/alpha_holdem/v5_hybrid_h15_launch_treatment.ps1": "83dd58bbf24f42e5ee10443c8f0c0bdbaeb69b5cbd0b7f94a74c229e4b737aa1",
+    "scripts/alpha_holdem/v5_hybrid_h15_mirror.py": "09ca1b4d8f4793f8640348e822ca279edfa8ee1d8cc8cb304db71899c1977b99",
+    "scripts/alpha_holdem/v5_hybrid_h15_ordered_rearm.py": "942a34e5b14306d1813bba108582cd55bdd8431ccbd4c3bd74efc356228c1535",
+    "scripts/alpha_holdem/v5_hybrid_h15_perf_cal.py": "5bd9abe49af005d0163583be44d089e3dea8115e89c5a8cd3c42915d39bba571",
+    "scripts/alpha_holdem/v5_hybrid_h15_perf_cal_audit.py": "6772fa4c4b1b7523a443cff5e8490ece192892521ac3a1c1ea730655178a8461",
+    "scripts/alpha_holdem/v5_hybrid_h15_preflight.py": "f9771364600f35a6a1e30b5f9d12e2d5f8d0c0972ee93ab4aa16b5001609867d",
+    "scripts/alpha_holdem/v5_hybrid_h15_protocol_watch.py": "02c3e53c101ffd729dffa46355e1e294ab5da47ccee459aab70750932ca6f0f9",
+    "scripts/alpha_holdem/v5_hybrid_h15_treatment_launch_watch.py": "782165f7f93ec1aaacd96f9b944aef87631fd1b04ec0c59e1872f2b351edf406",
+    "scripts/alpha_holdem/v5_lifecycle_guard_v2.py": "a0c9c23ffc5ee1d62e321f87ab4c6058a5bcee20564f5e6733f7862f66b99637",
+    "scripts/alpha_holdem/v5_mirror_eval.py": "2f9e81eae19e0da37da0d9be05dafbf820e812ac8366604cd2ad13f6aa7f0013",
+    "scripts/alpha_holdem/v5_monitor.py": "fb7ed628e2a2d246d5094fb1882465c42ac11768ed6a0bcec2ebab05ebd034a4",
+    "scripts/alpha_holdem/v5_rearm_watchers.ps1": "2f3e70a63abf3fee1b57c811c3cdbe3105f464061efb3f80affee51f6f9d0dea"
+  }
+}

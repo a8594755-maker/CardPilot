@@ -1,0 +1,77 @@
+{
+  "schema_version": "v5.hybrid.h13.resource_isolation_incident.v1",
+  "checked_at": "2026-07-17T16:09:06.8648534Z",
+  "design_id": "H13",
+  "overall": "H13_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+  "preregistration_sha256": "0b13e2a424d498f736d257097acaa412baba1449437f99c9ddbba9cf3cf5e341",
+  "design_lock_sha256": "c65f998f32d10ee8f0b105abe684723dfcacedaa9de39b149c1efcfbde5ec1c4",
+  "arm": "control",
+  "run_id": "v5_hybrid_h13_control_catchmse_same35051_20m_r1_20260716",
+  "trainer": {
+    "pid": 23528,
+    "alive_at_recovery_check": false,
+    "stop_action": "TERMINATED_BY_LOCKED_PROTOCOL_WATCHER",
+    "manifest_status": "initialized",
+    "iteration": 35051,
+    "hands": 576021901,
+    "source_iteration": 35051,
+    "source_hands": 576021901,
+    "training_progress_hands": 0,
+    "endpoint_frozen": false
+  },
+  "registered_classification_rule": "resource-isolation/provenance incident is INCONCLUSIVE; no extension allowed",
+  "trigger": {
+    "pid": 50384,
+    "parent_pid": 6276,
+    "token": "unregistered_cardpilot_project_process",
+    "actual_role": "LOCKED_H13_HEALTH_WATCHER_CHILD_OF_ORDERED_REARM",
+    "command_line_sha256": "d0e91a948fe46eb3d24cc95f72097426f911c5cc30af309c3ff4e083eab06b77",
+    "provenance_complete": true,
+    "classification": "FALSE_POSITIVE_REGISTERED_LIFECYCLE_PROCESS"
+  },
+  "control_plane_failures": [
+    {
+      "component": "v5_hybrid_h13_protocol_watch.py",
+      "failure": "the exact health watcher launched by the locked ordered-rearm supervisor was classified as an unregistered CardPilot project process",
+      "required_behavior": "prospectively permit only lock-bound lifecycle child identities with exact role and provenance",
+      "status": "H13_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION"
+    },
+    {
+      "component": "v5_hybrid_h13_health_watch.py",
+      "failure": "latest_train.log remained absent for 180 seconds after the protocol watcher terminated the trainer",
+      "required_behavior": "fail closed when trainer startup never produces the locked health log",
+      "status": "FAIL_CLOSED"
+    },
+    {
+      "component": "Windows multiprocessing startup",
+      "failure": "orphaned spawn children recorded PermissionError WinError 5 DuplicateHandle after parent termination",
+      "required_behavior": "terminate only identity-verified dead-parent spawn children and preserve console evidence",
+      "status": "RECOVERED_OUTSIDE_H13_WINDOW"
+    }
+  ],
+  "artifacts": {
+    "run_manifest_sha256": "9e2df785cfb554730a3132c632878527b0bc2cc40804a465eeed1ec6888c80fd",
+    "console_stderr_sha256": "271d7dc0c143d2b4695b2fed19c99c39288e78fcf9928ef5137c28687d5c3330",
+    "watcher_rearm_status_sha256": "4533a0cd17812896fed651d26ba68218a97b794e4f9e46c0b2fda884f5ccc91b",
+    "health_status_sha256": "4a8f3f1b78c97c2f7275ef99d07e5b5993683ccd9efddfb17a4819dea7aa0278",
+    "protocol_status_sha256": "da8bbca35128bf18dbbaf796ac8409e5f77a4278b194f0455b4db960fcb65e88",
+    "ordered_rearm_status_sha256": "ddde3d9c8683a712eec0976f9c38a58ec6fe0b20af2817d5bf1cd8aa0d7f8e7b",
+    "control_perf_cal_sha256": "badc8ed9f182e5aacd74884bdadf4c75ab0f48b8373346c0e0ed631b5c9b20c0",
+    "control_perf_cal_audit_sha256": "3d9d5b737fcf6a65d95ad63d8d3bd48816b40a566cbf94a335239a22abcfb5a0",
+    "judgment_sha256": "b0cc56f55f985819d748989ca1c0574ae8b176495dfcab064aae659de60b8ce6",
+    "terminal_sentinel_sha256": "ea4bfe070e48e46966382d00a64d451916089616a94fac352e3150743a8382af"
+  },
+  "treatment_launched": false,
+  "mirror_launched": false,
+  "official_hands": 0,
+  "method_effect_evidence": "NONE",
+  "strength_claim": "FORBIDDEN",
+  "disposition": {
+    "h13_terminal": true,
+    "verdict": "INCONCLUSIVE",
+    "resume_extend_reclassify": "FORBIDDEN",
+    "partial_control_use": "FORBIDDEN_FOR_METHOD_MODEL_OR_STRENGTH",
+    "repair_same_window": "FORBIDDEN",
+    "next": "ROUTE_REVIEW_010_AFTER_PROSPECTIVE_CONTROL_PLANE_DIAGNOSIS"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schema_version": "v5.hybrid.h3.first_board_smoke.child_env_correction.v1",
+  "checked_at": "2026-07-13T07:16:10+00:00",
+  "classification": "REPORTING_ASSET_SUPERVISOR_CHILD_ENV_CENSURE_CORRECTED_NO_DATA_VERDICT",
+  "failed_retry": {
+    "pid": 6520,
+    "terminal_at": "2026-07-13T07:15:19.027648+00:00",
+    "preserved_root": "C:\\Users\\a8594\\CardPilot\\reports\\h3_first_board_smoke_20260713.interrupted-1783926962",
+    "bridge_jsonl_sha256": "e4e0c83927a7fb4a5d816346f8e3e7be29d62489573da19deaec020476ffe2dd",
+    "bridge_manifest_sha256": "1514ec9cf08c11b3244adba597d8885c3a8dfd840d3b3f75a485f67da24885c2",
+    "adapter_stderr_sha256": "9d3fa6550f07879f3d542a7e9bcc3e3337f73d76931d6e21d0755b43bc3f019f",
+    "error": "ModuleNotFoundError: No module named 'alpha_holdem'",
+    "adapter_manifest_written": false,
+    "adapter_rows_written": 0
+  },
+  "root_cause": "the supervisor inherited PYTHONPATH from its launcher; retry PID6520 was launched without scripts/ on PYTHONPATH, so the adapter child exited during import before reading any bridge row",
+  "correction": {
+    "policy": "the supervisor now constructs every child environment itself, prepending the absolute project scripts directory to PYTHONPATH and forcing CUDA_VISIBLE_DEVICES empty",
+    "watcher_sha256": "86dc868c0e63ed6808a6ca9d6eb68b203ab8aff0f480906ca3d42c01e640c5d7",
+    "watcher_tests": "PASS_17_OF_17",
+    "python_compile": "PASS",
+    "retry_pid": 32456,
+    "priority": "BelowNormal",
+    "device": "CPU_ONLY",
+    "state": "EXECUTING_LOCKED_SMOKE"
+  },
+  "failed_bundle_training_eligible": false,
+  "h3_preregistration_authorized": false,
+  "behavior_launch_authorized": false,
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

@@ -1,0 +1,140 @@
+{
+  "schema_version": "v5.pcv013.preregistration.v1",
+  "design_id": "PCV013",
+  "registered_at": "2026-07-19T23:52:00Z",
+  "status": "REGISTERED_REPORTING_ONLY_NO_TRAINER",
+  "route_review": {
+    "result_sha256": "d9c6f1c60a7fd10ffb3971c55e183befd680291f94f12f8aaa4bfd23ff68eec8",
+    "audit_sha256": "fa3f24e3ffb1bcb8a3a1e91815b8156efc2c7cb197dfd1602d97e3a7af377b76",
+    "selected_next": "PCV013_NEW_REPORTING_ONLY_ABSOLUTE_CROSS_BLOCK_DEVICE_STATE_ALIGNED_TIMING"
+  },
+  "source": {
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_endpoint.pt",
+    "sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "iteration": 35051,
+    "hands": 576021901
+  },
+  "novel_identity": {
+    "transition_seed": 2026071989,
+    "update_seed": 2026971989,
+    "conditioning_seed_base": 2027971989,
+    "output": "reports/v5_pcv013_result_20260719.json",
+    "prior_measurement_input": "FORBIDDEN"
+  },
+  "preserved_measurement": {
+    "rows": 4096,
+    "mini_batch_size": 1024,
+    "ppo_epochs": 4,
+    "target_kl": 1e-12,
+    "old_log_prob_offset": 10.0,
+    "timer": "torch.cuda.Event_with_synchronize",
+    "blocks": 8,
+    "warmup_updates_per_mode_per_block": 2,
+    "timed_updates_per_mode_per_block": 12,
+    "order_sequence": [
+      "MSE_FIRST", "SMOOTH_L1_FIRST", "SMOOTH_L1_FIRST", "MSE_FIRST",
+      "SMOOTH_L1_FIRST", "MSE_FIRST", "MSE_FIRST", "SMOOTH_L1_FIRST"
+    ],
+    "device_telemetry_before_after_each_block": true,
+    "order_associated_threshold": "ABS_LOG_ORDER_EFFECT_GE_LOG_1P01_FOR_EITHER_MODE",
+    "device_excursion_threshold": "TEMPERATURE_RANGE_GE_5C_OR_SM_CLOCK_RANGE_GE_100MHZ_OR_POWER_RANGE_GE_30W",
+    "mse_stability_target": 0.95
+  },
+  "preserved_conditioning_and_local_gate": {
+    "initial_minimum_seconds": 60,
+    "initial_maximum_seconds": 180,
+    "local_minimum_seconds_per_block": 20,
+    "local_maximum_seconds_per_block": 60,
+    "telemetry_interval_seconds": 5,
+    "steady_samples": 4,
+    "steady_envelope": {
+      "temperature_range_c_max": 3.0,
+      "sm_clock_range_mhz_max": 100.0,
+      "memory_clock_range_mhz_max": 100.0,
+      "power_range_w_max": 30.0,
+      "single_pstate": true,
+      "single_gpu_uuid": true
+    }
+  },
+  "sole_control_plane_correction": {
+    "name": "ABSOLUTE_CROSS_BLOCK_START_STATE_ANCHOR",
+    "target_derivation_from_new_initial_terminal_window": {
+      "temperature_target_c": "MAX_OF_FINAL_FOUR_SAMPLES_PLUS_2C",
+      "sm_clock_target_mhz": "MEDIAN_OF_FINAL_FOUR_SAMPLES",
+      "memory_clock_target_mhz": "MEDIAN_OF_FINAL_FOUR_SAMPLES",
+      "pstate_target": "UNIQUE_FINAL_WINDOW_PSTATE",
+      "gpu_uuid_target": "UNIQUE_FINAL_WINDOW_UUID"
+    },
+    "absolute_tolerances": {
+      "temperature_c": 1.0,
+      "sm_clock_mhz": 100.0,
+      "memory_clock_mhz": 100.0,
+      "pstate_exact": true,
+      "gpu_uuid_exact": true
+    },
+    "admission_before_every_block": {
+      "minimum_seconds": 6,
+      "maximum_seconds": 120,
+      "telemetry_cadence_seconds": 2,
+      "consecutive_samples": 4,
+      "heat_action": "ONE_BALANCED_MSE_SMOOTH_L1_FULL_PPO_PAIR_WHEN_TEMPERATURE_BELOW_TARGET",
+      "idle_action": "TWO_SECONDS_WHEN_TEMPERATURE_AT_OR_ABOVE_TARGET",
+      "admission_rule": "FOUR_CONSECUTIVE_SAMPLES_INSIDE_ABSOLUTE_TOLERANCES_AND_LOCAL_STEADY_ENVELOPE",
+      "failure_rule": "TERMINAL_FAIL_CLOSED_AT_120_SECONDS_WITH_NO_LATER_BLOCKS"
+    },
+    "gpu_clock_override": false,
+    "measurement_semantics_changed": false
+  },
+  "resource_contract": {
+    "phase_aware_snapshot_before_and_after_initial_conditioning": true,
+    "phase_aware_snapshot_before_and_after_each_local_gate": true,
+    "phase_aware_snapshot_after_each_absolute_admission": true,
+    "absolute_after_snapshot_is_timed_block_before_snapshot": true,
+    "phase_aware_snapshot_after_each_timed_block": true,
+    "expected_snapshots_if_complete": 34,
+    "coordinator_pid": 23720,
+    "coordinator_create_time": 1784302339.7041352,
+    "coordinator_command_sha256": "efaf227352c6620b4f12dd5f06ac67d98d834feb11384b167170618dc1cf9e99",
+    "configured_logical_loops": 6,
+    "allowed_roles": ["SOLVE_WORKER", "QA_200BB_BOARD", "CONHOST_IGNORED"],
+    "active_work_min": 1,
+    "active_work_max": 6,
+    "node_priority": "BelowNormal",
+    "descendant_gpu_pid_matches": 0
+  },
+  "completion_gates": {
+    "source_identity": true,
+    "new_seed_and_output_identity": true,
+    "initial_conditioning_envelope_pass": true,
+    "absolute_anchor_derived_exactly": true,
+    "all_eight_local_envelopes_pass": true,
+    "all_eight_absolute_admissions_pass": true,
+    "exact_measurement_shape": true,
+    "all_updates_forced_shape": true,
+    "all_timing_finite_positive": true,
+    "all_device_telemetry_complete": true,
+    "all_phase_aware_resource_snapshots_pass": true,
+    "path1_mutation": false,
+    "gpu_clock_override": false,
+    "trainer_started": false,
+    "checkpoint_written": false,
+    "official_hands": 0
+  },
+  "interpretation": {
+    "pass": "MEASUREMENT_COMPLETE_ROUTE_REVIEW025_ONLY",
+    "initial_or_local_fail": "PCV013_FAIL_CLOSED_CONDITIONING_OR_LOCAL_GATE_NO_LATER_BLOCKS",
+    "absolute_admission_fail": "PCV013_FAIL_CLOSED_ABSOLUTE_ADMISSION_NO_LATER_BLOCKS",
+    "supported": "ABSOLUTE_ALIGNMENT_ASSOCIATION_SUPPORTED_IFF_ALL_ADMISSIONS_PASS_MEASUREMENT_EXCURSION_IS_FALSE_ORDER_ASSOCIATION_IS_FALSE_AND_MSE_STABILITY_GE_0_95",
+    "not_supported": "ABSOLUTE_ALIGNMENT_DID_NOT_REMOVE_ORDER_ASSOCIATION_IFF_ALL_ADMISSIONS_PASS_AND_ORDER_ASSOCIATION_REMAINS",
+    "unresolved": "ABSOLUTE_ALIGNMENT_MEASUREMENT_EXCURSION_PERSISTS_IFF_ALL_ADMISSIONS_PASS_BUT_DEVICE_EXCURSION_THRESHOLD_IS_CROSSED",
+    "causal_method_behavior_or_strength_inference": "FORBIDDEN",
+    "automatic_h19_launch": false
+  },
+  "resource_policy": {
+    "path1": "READ_ONLY_NO_SIGNAL_NO_RESTART_NO_REPAIR_NO_EXPANSION",
+    "gpu": "REPORTING_ONLY_SAFE_NO_TRAINER_BOUNDARY_NO_CLOCK_OVERRIDE",
+    "trainer_evaluator_mirror_slumbot": "FORBIDDEN"
+  },
+  "official_hands": 0,
+  "behavior_launch_authority": "NONE"
+}

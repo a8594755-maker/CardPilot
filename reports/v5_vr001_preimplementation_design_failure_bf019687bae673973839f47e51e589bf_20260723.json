@@ -1,0 +1,45 @@
+{
+  "schema_version": "v5.vr001.preimplementation_design_failure.v1",
+  "recorded_at": "2026-07-23T10:27:48-04:00",
+  "design_id": "VR001_FROZEN_H11_FAITHFUL_QBOOST_CORE_ADAPTATION",
+  "identity_sha256": "bf019687bae673973839f47e51e589bfcc7aadea41197dffa15525cdc406bac4",
+  "preregistration_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_vr001_faithful_qboost_preregistration_bf019687bae673973839f47e51e589bf_20260723.json",
+  "preregistration_sha256": "643d33a68688a2aac09e8b2a63c51ea5b6b0d786ce687014c0a9ffb281d2a660",
+  "status": "VR001_PREIMPLEMENTATION_STRUCTURAL_DESIGN_FAILURE_NO_IMPLEMENTATION",
+  "independent_review": {
+    "reviewers": [
+      "vr001_state_contract",
+      "vr001_prereg_redteam",
+      "vr001_impl_map2"
+    ],
+    "finding_1": "The registered CENTRAL895 conditioning contains active-seat and focal-seat identity plus assignment identity, but does not identify which absolute seat is controlled by the trainable hero policy. The same registered central tensor can therefore represent different joint policies and different Q_i values.",
+    "finding_2": "The registered chronological trace assigns raw env.state.payoff terminal rewards while the frozen LG003C1 launcher enables deterministic all-in runout-EV replacement. That silently changes the reward estimator in addition to Q-boosting and contradicts the registered claim that the all-in reward rule is unchanged.",
+    "finding_3": "The registration does not require actor-generation-pure hands. Existing asynchronous workers may carry an in-flight hand across an actor update, violating the on-policy joint-reference-policy premise unless generation is captured and mixed-generation hands are excluded."
+  },
+  "classification": "STRUCTURAL_SCIENTIFIC_DESIGN_CONTRADICTION_BEFORE_IMPLEMENTATION",
+  "scientific_output": {
+    "code_created": false,
+    "probe_executed": false,
+    "training_hands": 0,
+    "model_or_optimizer_loads": 0,
+    "checkpoint_created": false,
+    "network_or_slumbot": false,
+    "official_hands": 0
+  },
+  "immutability": {
+    "never_mutate_repair_or_reuse_vr001_identity": true,
+    "preserve_preregistration_and_failure_record": true
+  },
+  "same_turn_rerank": {
+    "next_candidate": "VR002_CORRECTED_FAITHFUL_QBOOST_CORE",
+    "permitted_changes": [
+      "Replace redundant target_is_active conditioning with hero_absolute_is_p1 while retaining CENTRAL895.",
+      "Use the exact inherited deterministic all-in-EV-adjusted terminal reward vector for Q traces and paired legacy GAE.",
+      "Capture exact per-hand assignment, hero seat, request model, actor generation, and exclude mixed-generation hands from all training and mechanism rows."
+    ],
+    "scientific_hypothesis_unchanged": true,
+    "family": "CRITIC_TARGET_DESIGN"
+  },
+  "route_exhausted": false,
+  "goal": "ACTIVE"
+}

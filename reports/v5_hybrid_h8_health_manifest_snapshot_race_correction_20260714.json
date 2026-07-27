@@ -1,0 +1,87 @@
+{
+  "schema_version": "v5.hybrid.h8.reporting_correction.v1",
+  "recorded_at": "2026-07-14T12:22:48Z",
+  "classification": "CENSURE_H8_HEALTH_MANIFEST_SNAPSHOT_RACE_CORRECTED",
+  "scope": "reporting_and_control_plane_only",
+  "incident": {
+    "observed_at": "2026-07-14T12:19:29.079614Z",
+    "health_overall": "WARN",
+    "cause": "The H8 health adapter parsed one valid source manifest and then separately copied the live file while the trainer was rewriting it, yielding a partial shadow JSON snapshot.",
+    "manifest_error": "JSONDecodeError at line 205 column 9",
+    "training_log": "PASS_662_ITERATIONS",
+    "entropy": "PASS_1.3557",
+    "throughput": "PASS_5244_HPS",
+    "action_mix": "PASS",
+    "stderr": "PASS_EMPTY",
+    "protocol": "ARM_RUNNING_GUARDS_PASS",
+    "resource_isolation_violations": 0,
+    "trainer_stopped_or_restarted": false,
+    "official_hands": 0
+  },
+  "honest_recovery_before_code_change": {
+    "observed_at": "2026-07-14T12:20:34.1358532Z",
+    "health_overall": "PASS",
+    "manifest_check": "PASS",
+    "environment_check": "PASS",
+    "run_id": "v5_hybrid_h8_control_kles003_nocatch_same32617_20m_r1_20260714",
+    "health_iteration": 33287,
+    "trainer_alive": true,
+    "stderr_bytes": 0
+  },
+  "correction": {
+    "path": "scripts/alpha_holdem/v5_health_watch.py",
+    "sha256": "66c12fbb93f2123ed8f52a7e0ca2f16f40b33b0f6f1ad58fd23b4d94b5fa24c5",
+    "operation": "Retry until one source manifest read parses as an object, then atomically write that exact already-parsed text to the H8 shadow instead of rereading/copying the live producer file.",
+    "manifest_retry_attempts": 5,
+    "retry_delay_seconds": 0.02,
+    "provenance_fields_added": ["manifest_snapshot_sha256", "manifest_read_attempts"],
+    "source_manifest_mutated": false,
+    "trainer_or_method_changed": false
+  },
+  "test": {
+    "path": "scripts/alpha_holdem/test_v5_health_watch_h8_compat.py",
+    "sha256": "8065f7365b99806aeaeb20258e419462d65bc77873cb0387966b22fcb54d9fe3",
+    "suite": "H8 health compatibility + canonical rearm + H8 preflight + H8 implementation",
+    "passed": 26,
+    "failed": 0,
+    "partial_then_valid_manifest_case": "PASS"
+  },
+  "frozen_monitor": {
+    "path": "scripts/alpha_holdem/v5_monitor.py",
+    "sha256": "fb7ed628e2a2d246d5094fb1882465c42ac11768ed6a0bcec2ebab05ebd034a4",
+    "changed": false
+  },
+  "post_correction": {
+    "observed_at": "2026-07-14T12:22:40.0385764Z",
+    "control_iteration": 33305,
+    "control_hands": 547311089,
+    "health": "PASS",
+    "health_iteration": 33301,
+    "manifest_read_attempts": 1,
+    "manifest_snapshot_sha256": "0dfa900eeb2cd86d30807116b41ad1cd545b7a5995dbd6fc81f0bfad396ab699",
+    "endpoint": "ARM_RUNNING",
+    "protocol": "ARM_RUNNING_GUARDS_PASS",
+    "treatment_launch": "WAITING_FOR_CONTROL_ENDPOINT",
+    "trainer_pid": 45144,
+    "trainer_alive": true,
+    "stderr_bytes": 0
+  },
+  "canonical_rearm": {
+    "survival_pass": true,
+    "permitted_watchers_alive": 8,
+    "terminally_blocked_paths": 8,
+    "failed_watchers": 0,
+    "trainer_untouched": true
+  },
+  "lock_reaudit": {
+    "design_lock_sha256": "298daa368585af79586f3ba24b7fde1ae862de41a8221cdf46c0825d041957c6",
+    "audit_path": "reports/v5_hybrid_h8_design_lock_v5_post_manifest_snapshot_audit_20260714.json",
+    "audit_sha256": "9892a871260169081e38cf3ee07f03e4974c400c94ad0c2a186774dddf625e52",
+    "overall": "PASS_IMMUTABLE_H8_DESIGN_LOCK"
+  },
+  "authority": {
+    "h8_method_judgment": "UNCHANGED_PENDING_REGISTERED_ENDPOINTS_AND_MIRROR",
+    "strength_claim": "NONE",
+    "official_slumbot_launch": "TERMINALLY_BLOCKED_DURING_H8"
+  }
+}

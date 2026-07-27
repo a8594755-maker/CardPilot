@@ -1,0 +1,92 @@
+{
+  "schema_version": "v5.hybrid.h2.design_lock.v1",
+  "design_id": "H2",
+  "status": "LOCKED",
+  "locked_at": "2026-07-13T05:10:00+00:00",
+  "preregistration": {
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h2_preregistration_v2_20260713.json",
+    "sha256": "aaf8bf30db6e757e15c1b9ae1bdd0b5e3eed379ec1dadbd23b2d8a70b1f2fa2f",
+    "audit_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h2_preregistration_audit_20260713.json",
+    "audit_sha256": "a6288d721743519f6c5b6f0d659e7d9f7c0c0a175babdaab1e0c9003409673eb"
+  },
+  "source": {
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_from_zero\\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\\v5_exp005_cutover_gate31400_checkpoint.pt",
+    "sha256": "bcbb46bd01d62fcdea602269b7047323315d4e9bbcf447ea0323e289fde11a8e",
+    "iteration": 31400,
+    "hands": 515989661
+  },
+  "arm_budget": {
+    "actual_hands_each": 20000000,
+    "minimum_endpoint_hands": 535989661,
+    "maximum_overshoot_hands": 50000,
+    "order": ["control", "treatment"]
+  },
+  "common_config": {
+    "resume": "EXACT_SOURCE_PATH",
+    "allow_resume": true,
+    "reset_optimizer": true,
+    "device": "cuda",
+    "total_hands": 535989661,
+    "workers": 22,
+    "hands_per_iter": 16384,
+    "rollout_mode": "multi",
+    "rollout_envs_per_worker": 16,
+    "inference_min_batch_slots": 256,
+    "inference_batch_deadline_us": 1000,
+    "ppo_epochs": 4,
+    "mini_batch_size": 1024,
+    "lr": 0.0003,
+    "gamma": 0.999,
+    "entropy_coef": 0.05,
+    "entropy_floor": 0.3,
+    "seed": 20260703,
+    "worker_seed_base": 73000,
+    "fixed_training_deal_stream": true,
+    "opponent_assignment": "per-iteration",
+    "pool_strategy": "loss-kbest",
+    "k_best": 5,
+    "mirror_self_play_deals": true,
+    "allin_runout_ev": true,
+    "allin_runout_ev_max_runouts": 200,
+    "preflop_action_prior_coef": 0.01,
+    "postflop_action_prior_coef": 0.02,
+    "critic_contract": "critic_v1",
+    "value_coef": 0.5,
+    "save_interval": 1,
+    "snapshot_every": 200,
+    "h2_preregistration": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h2_preregistration_v2_20260713.json",
+    "h2_preregistration_sha256": "aaf8bf30db6e757e15c1b9ae1bdd0b5e3eed379ec1dadbd23b2d8a70b1f2fa2f"
+  },
+  "arms": {
+    "control": {
+      "run_id": "v5_hybrid_h2_control_allinonly_same31400_20m_r1_20260713",
+      "run_dir": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h2_control_allinonly_same31400_20m_r1_20260713",
+      "h2_window_arm": "control",
+      "showdown_ev_value_targets": false,
+      "provenance_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h2_control_allinonly_same31400_20m_r1_20260713\\opponent_assignment_provenance.jsonl"
+    },
+    "treatment": {
+      "run_id": "v5_hybrid_h2_treatment_showdownk200_same31400_20m_r1_20260713",
+      "run_dir": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h2_treatment_showdownk200_same31400_20m_r1_20260713",
+      "h2_window_arm": "treatment",
+      "showdown_ev_value_targets": true,
+      "showdown_ev_value_target_max_runouts": 200,
+      "showdown_ev_value_target_seed": 2026071401,
+      "provenance_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h2_treatment_showdownk200_same31400_20m_r1_20260713\\opponent_assignment_provenance.jsonl"
+    }
+  },
+  "tools": {
+    "scripts/alpha_holdem/train_v5.py": "95b845db9babef5288d363da424f0d882da4010f5a37f6d35e8cf37de9a06504",
+    "scripts/alpha_holdem/train_mp3_hybrid_h1.py": "92c69588819389e2382c8aa113c52cee48a4cc22a259b48b76405856a5606b10",
+    "scripts/alpha_holdem/v5_hybrid_h2_targets.py": "2a99fc3ebc90afcdcb4501d7c6c067c2c112a34c0e023204bd75274a88b70d50"
+  },
+  "measurement": {
+    "h2_var_audit_sha256": "39f3fdc13d80d4565399066479906e08a3bd6ed9ef3dde587da19c132944a2fa",
+    "implementation_audit_sha256": "5ca695ba213d2a81ba8584ed5589718ede47cf87ef687d3318469335eac596d7",
+    "internal_mirror_pairs": 40000,
+    "internal_mirror_seed": 2026071403,
+    "official_hands": 0
+  },
+  "launch_order": "CONTROL_ONLY_AFTER_PREFLIGHT_AND_CANONICAL_REARM_PASS; TREATMENT_ONLY_AFTER_CONTROL_ENDPOINT_FREEZE_AUDIT_PASS",
+  "strength_claim": "FORBIDDEN"
+}

@@ -1,0 +1,145 @@
+{
+  "schema_version": "v5.hybrid.h7.preregistration.v1",
+  "experiment_id": "H7",
+  "title": "Fresh contemporaneous A/B for PPO epoch-mean KL early-stop with evaluation isolation",
+  "status": "REGISTERED_NO_LAUNCH",
+  "immutable": true,
+  "registered_at": "2026-07-13T09:52:00+00:00",
+  "question": "Under identical current code and no concurrent evaluation workload, does PPO epoch-mean KL early-stop at0.03 reduce KL excursions without critic,mirror,entropy,throughput or health regression?",
+  "route_selection": {
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_route_review_003_result_20260713.json",
+    "sha256": "cdf17d3cdaba749cc881e7c48fd37a9a6dbcf3b3aac82cee46473415678d9f99",
+    "h6_status": "TERMINAL_FAIL_PROTOCOL_ABORT_NO_METHOD_JUDGMENT"
+  },
+  "single_variable": {
+    "name": "ppo_epoch_mean_kl_early_stop_threshold",
+    "control": "ppo_target_kl=0.0",
+    "treatment": "ppo_target_kl=0.03",
+    "one_behavior_change": true
+  },
+  "source": {
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_from_zero\\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\\v5_exp005_cutover_gate31400_checkpoint.pt",
+    "sha256": "bcbb46bd01d62fcdea602269b7047323315d4e9bbcf447ea0323e289fde11a8e",
+    "iteration": 31400,
+    "hands": 515989661
+  },
+  "arms": {
+    "control": {
+      "run_id": "v5_hybrid_h7_control_kl0_same31400_20m_r1_20260713",
+      "actual_hands": 20000000,
+      "target_endpoint_hands": 535989661,
+      "maximum_overshoot_hands": 50000,
+      "ppo_target_kl": 0.0
+    },
+    "treatment": {
+      "run_id": "v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713",
+      "actual_hands": 20000000,
+      "target_endpoint_hands": 535989661,
+      "maximum_overshoot_hands": 50000,
+      "ppo_target_kl": 0.03
+    }
+  },
+  "common_config": {
+    "device": "cuda",
+    "workers": 22,
+    "hands_per_iter": 16384,
+    "rollout_mode": "multi",
+    "rollout_envs_per_worker": 16,
+    "inference_min_batch_slots": 256,
+    "inference_batch_deadline_us": 1000,
+    "ppo_epochs": 4,
+    "mini_batch_size": 1024,
+    "lr": 0.0003,
+    "gamma": 0.999,
+    "entropy_coef": 0.05,
+    "entropy_floor": 0.3,
+    "seed": 20260703,
+    "worker_seed_base": 73000,
+    "fixed_training_deal_stream": true,
+    "opponent_assignment": "per-iteration",
+    "pool_strategy": "loss-kbest",
+    "k_best": 5,
+    "self_play_fraction": 0.2,
+    "mirror_self_play_deals": true,
+    "allin_runout_ev": true,
+    "allin_runout_ev_max_runouts": 200,
+    "preflop_action_prior_coef": 0.01,
+    "postflop_action_prior_coef": 0.02,
+    "critic_contract": "critic_v1",
+    "value_coef": 0.5,
+    "reset_optimizer": true,
+    "save_interval": 1,
+    "snapshot_every": 200,
+    "showdown_ev_value_targets": false
+  },
+  "resource_isolation_contract": {
+    "arm_order": ["control", "treatment"],
+    "contemporaneous_fresh_arms_required": true,
+    "mirror_or_holdout_evaluation_while_any_arm_trainer_active": "FORBIDDEN",
+    "official_or_diagnostic_slumbot_while_any_arm_trainer_active": "FORBIDDEN",
+    "endpoint_evaluations_start": "ONLY_AFTER_BOTH_ENDPOINTS_FROZEN_PASS",
+    "path1_existing_job": "May remain as pre-existing BelowNormal CPU background work; no expansion/restart/new asset worker during either arm.",
+    "additional_cpu_or_gpu_jobs": "FORBIDDEN_DURING_ARMS",
+    "resource_contract_violation": "INCONCLUSIVE_FAIL_CLOSED_NO_METHOD_JUDGMENT"
+  },
+  "implementation_contract": {
+    "control": "Run all four PPO epochs exactly as current code.",
+    "treatment": "After each completed PPO epoch, compute epoch mean approx_kl; if strictly>0.03 retain completed updates and skip remaining epochs.",
+    "threshold_comparison": "strict greater-than",
+    "logging_required": ["ppo_epochs_completed", "kl_early_stop_triggered", "kl_early_stop_epoch", "ppo_target_kl"],
+    "forbidden_bundles": ["entropy schedule", "value-target rescale", "architecture/observation change", "optimizer/lr/max-epoch change", "opponent pool/prior/target change"]
+  },
+  "registered_measurements": {
+    "kl_stability": {
+      "threshold": 0.03,
+      "control_baseline": "fresh H7 control rows only",
+      "treatment_p95_max": 0.03,
+      "treatment_fraction_above_threshold_max": "min(0.5*H7_control_fraction,0.06044407894736842)",
+      "early_stop_trigger_fraction_min": 0.05
+    },
+    "endpoint_critic_mse": {
+      "holdout": "reports/h1_cal_001_attempt2_20260712 FORBIDDEN_HOLDOUT_ONLY",
+      "bootstrap_repetitions": 10000,
+      "bootstrap_seed": 2026071702,
+      "relative_degradation_point_max": 0.05,
+      "relative_degradation_ci95_upper_max": 0.10
+    },
+    "internal_mirror": {
+      "common_deal_pairs": 40000,
+      "seed": 2026071701,
+      "bootstrap_repetitions": 10000,
+      "bootstrap_seed": 2026071701,
+      "noninferiority_ci95_lower_bb100": -20.0,
+      "adaptive_extension_allowed": false
+    },
+    "throughput": {
+      "first60_ratio_min": 0.85,
+      "full_window_ratio_min": 0.85,
+      "warmup_rows_excluded": 1,
+      "baseline": "fresh H7 control only"
+    },
+    "entropy": {"median_last200_min": 0.3, "treatment_minus_control_min": -0.1}
+  },
+  "abort": [
+    "identity/config/source/provenance mismatch",
+    "resource isolation contract violation",
+    "nonfinite loss or gradient",
+    "treatment/control first60 effective h/s ratio<0.85",
+    "entropy<0.3 for20 consecutive accepted rows"
+  ],
+  "judgment": {
+    "pass": "Every identity,resource,KL,endpoint-MSE,mirror,throughput,entropy and health gate passes.",
+    "fail": "A valid protocol abort or any complete-window mandatory gate fails.",
+    "inconclusive": "Evidence is valid but a fixed-sample statistical gate is neither PASS nor FAIL, or resource isolation is violated; no extension allowed.",
+    "route_review_after_fail_or_inconclusive": true
+  },
+  "no_adaptive_changes": {"sample_extension": false, "second_seed": false, "later_endpoint": false, "posthoc_threshold_change": false},
+  "authority": {
+    "implementation_and_control_plane": "AUTHORIZED_AUTONOMOUSLY",
+    "launch": "BLOCKED_UNTIL_AUDIT_DESIGN_LOCK_PREFLIGHT_AND_CANONICAL_REARM_PASS",
+    "official_hands": 0,
+    "strength_claim": "FORBIDDEN"
+  },
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

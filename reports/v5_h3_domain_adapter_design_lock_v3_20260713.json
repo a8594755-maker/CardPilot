@@ -1,0 +1,115 @@
+{
+  "schema_version": "v5.hybrid.h3.domain_adapter.design_lock.v3",
+  "design_id": "H3-DOMAIN-ADAPTER-001-V3-SNAPSHOT",
+  "status": "LOCKED_OFFLINE_IMPLEMENTATION_PENDING",
+  "locked_at": "2026-07-13T07:22:00+00:00",
+  "authority": "standing DRIVE_TO_L5 campaign authorization; H3 asset engineering only",
+  "supersedes_terminal_v2_without_reclassification": {
+    "v2_design_lock_sha256": "cab56df24be190a8486b4036a73ce4a028062e186e01764083f5c9f2f4f4088a",
+    "v2_terminal_failure_artifact_sha256": "2efe8fa27e0f43b81ac550c39d87dc4c9e6b77821eafc28b312330a0b7ae07c5",
+    "v2_bundle_remains_forbidden": true,
+    "v2_verdict_remains": "FAIL_CLOSED_UNSUPPORTED_V55_TARGET_MASS"
+  },
+  "frozen_new_evidence": {
+    "snapshot_state_gap_audit_sha256": "225e29cd94126c8900a7a5b1d0eef0edad40e819731aadcbae2fab8827e9c699",
+    "finding": "deep Path-1 source state is not identity-preserved by replaying the same history through HUNLGameState.apply"
+  },
+  "preserved_v2_contract": {
+    "only_corrected_legal_allin_qa_pass_assets": true,
+    "only_asset_root": "C:\\Users\\a8594\\CardPilot\\data\\cfr\\pipeline_v3_hu_srp_200bb_legalallin_v2",
+    "metadata": {"config":"pipeline_srp_v3_200bb","stack":"200bb","iterations":80000,"bucket_count":50},
+    "selection_seed": 20260712,
+    "synthetic_entry_ood_label": "SYNTHETIC_PATH1_SRP_ENTRY_OOD_NOT_DEPLOYMENT_REACHABLE",
+    "bounded_probability_residual_rule": "v2 first-maximum correction with abs residual <=0.0050000001",
+    "actual_v55_legal_mask_required": true,
+    "unsupported_target_mass_tolerance": 0.0,
+    "actor_only": true,
+    "critic_supervision_forbidden": true,
+    "smoke_training_eligible": false,
+    "required_complete_boards_for_h3_preregistration": 600
+  },
+  "new_source_snapshot_contract": {
+    "source_of_truth": "the same TypeScript pipeline_srp_v3_200bb replayHistory/calcBetAmount/calcRaiseAmount implementation used to infer each solved node's exact action set",
+    "required_per_row_state": [
+      "pot",
+      "stacks[2]",
+      "facing_bet",
+      "current_player",
+      "street",
+      "raise_count",
+      "is_first_action"
+    ],
+    "required_per_action": [
+      "source_action_name",
+      "exact_additional_amount_or_null",
+      "exact_amount_over_source_pot_or_null",
+      "nominal_v55_slot"
+    ],
+    "required_history_events": "ordered postflop events with street, player, semantic action type and exact source amount; synthetic preflop BTN-open2.5/BB-call stays explicitly labeled",
+    "source_snapshot_must_replay_to_current_info_set_key": true,
+    "source_snapshot_fields_are_identity_bound_to_source_gzip_sha256": true
+  },
+  "synthetic_v55_snapshot_construction": {
+    "method": "direct state construction from the exported Path-1 snapshot; HUNLGameState.apply replay is forbidden",
+    "deployment_config": "v5.5 six raise fractions, raise cap unlimited, effective stack200",
+    "state_assignments": {
+      "pot": "exact source pot",
+      "stacks": "exact source stacks",
+      "street": "exact source street",
+      "current_player": "exact source current_player",
+      "raise_count": "exact source raise_count",
+      "street_committed": "[0,0] when facing_bet=0; otherwise current player=0 and opponent=facing_bet",
+      "last_bet_size": "source facing_bet",
+      "num_actions_this_street": "exact count derived from source history events",
+      "actions_history": "explicit synthetic preflop provenance plus exact exported postflop semantic events for v5.5 encoding only",
+      "cards": "deterministic representative hole/visible-board cards under selection seed20260712"
+    },
+    "required_exact_roundtrip_fields": ["pot","stacks","street","current_player","raise_count","facing_bet"],
+    "deployment_reachable": false
+  },
+  "legality_aware_action_mapping": {
+    "fold": 0,
+    "check_or_call": 1,
+    "source_allin": 8,
+    "sized_bet_or_raise": "among actual legal non-all-in v5.5 slots2..7, choose the action whose amount is closest to the exact source additional amount; tie-break lower slot",
+    "nominal_slot": "record closest nominal v5.5 fraction slot before legality filtering",
+    "sized_action_to_allin": "FORBIDDEN",
+    "no_legal_sized_candidate": "FAIL_CLOSED",
+    "fixed_semantic_slot_illegal": "FAIL_CLOSED",
+    "mass_handling": "coalesce only after final legal-slot selection; drop, renormalization and probability-dependent filtering are forbidden",
+    "record_per_sized_action": ["source_amount","source_pot_fraction","nominal_slot","actual_legal_slot","actual_action_amount","absolute_amount_error_over_source_pot","probability_mass","projected"],
+    "maximum_absolute_amount_error_over_source_pot_per_action": 0.5
+  },
+  "first_corrected_board_smoke_gate": {
+    "board_selection": "chronologically first corrected QA_PASS board, fixed board6",
+    "rows": 1000,
+    "runs": 2,
+    "require_exact_bridge_jsonl": true,
+    "require_exact_provenance_bytes": true,
+    "require_exact_array_content": true,
+    "source_snapshot_roundtrip_mismatches": 0,
+    "unsupported_target_mass": 0.0,
+    "sized_actions_mapped_to_allin": 0,
+    "per_action_error_limit": 0.5,
+    "critic_rows": 0,
+    "training_eligible": false
+  },
+  "full_selected_corpus_domain_risk_gate": {
+    "qa_pass_boards": 600,
+    "source_snapshot_roundtrip_mismatches": 0,
+    "unsupported_target_mass": 0.0,
+    "sized_actions_mapped_to_allin": 0,
+    "maximum_projection_mass_fraction": 0.25,
+    "maximum_probability_weighted_p95_amount_error_over_source_pot": 0.25,
+    "maximum_per_action_amount_error_over_source_pot": 0.5,
+    "street_player_action_texture_projection_report_required": true,
+    "domain_transfer_risk_report_required": true,
+    "no_adaptive_threshold_change": true
+  },
+  "dataset_selection_relation": "H3-DATASET-SAMPLE-001 exact quotas remain separate and pending a successful corrected-board profile/smoke; this lock does not select or materialize training rows",
+  "h3_preregistration_authorized": false,
+  "dataset_materialization_authorized": false,
+  "behavior_launch_authorized": false,
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

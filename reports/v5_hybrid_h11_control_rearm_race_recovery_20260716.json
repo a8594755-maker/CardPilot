@@ -1,0 +1,47 @@
+{
+  "schema_version": "v5.hybrid.h11.control_rearm_race_recovery.v1",
+  "recorded_at": "2026-07-16T15:20:00Z",
+  "classification": "CENSURE_REPORTING_ONLY_SIMULTANEOUS_REARM_STALE_STATUS_RACE",
+  "design_id": "H11",
+  "design_lock_sha256": "d6c5019439ff6ee1543dc6a9a61b7214f4d0a283b2847096ed6074c2366616d8",
+  "control": {
+    "run_id": "v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715",
+    "iteration": 35051,
+    "hands": 576021901,
+    "endpoint_state": "ARM_ENDPOINT_FROZEN",
+    "endpoint_sha256": "076d081988758fe9740dec0962c5746ba96886af05fa14a1f9609e196e25e1ac",
+    "protocol_state": "ARM_FINISHED_GUARDS_PASS",
+    "protocol_sha256": "5c7f7d8a663710ea1744d8d6c3761445791598da8d4f7fda054e10fa634ff3e6"
+  },
+  "race": {
+    "diagnosis": "Canonical rearm launched endpoint, treatment-launch, and completion watchers concurrently. The downstream watchers read the preserved pre-recovery ENDPOINT_AUDIT_TIMEOUT approximately two seconds before the unchanged endpoint watcher published ARM_ENDPOINT_FROZEN PASS, then exited terminally. No treatment, mirror, judgment, or official hands were launched.",
+    "treatment_launch_status_sha256": "532b0952fb6d981b51ad2eeeda19783d3f351733a5a64426738bcf64b1a75308",
+    "completion_status_sha256": "170ddcbcd5765dd119139b67ddf116e68666dfeafe0b478b7d6d50de6465791a",
+    "rearm_status_sha256": "b6f1ffd95c6f4d0284f5fbacb318a19b64a74d150a146f8a5b767e3d9db042d9",
+    "preserved_dir": "reports/v5_hybrid_h11_control_rearm_race_preserved_20260716"
+  },
+  "prior_health_recovery": {
+    "artifact_sha256": "58f169f8a620e588f86e55ad35c6090c2ef31390f841d6babf2d5af5084c4c32",
+    "audit_sha256": "cfb3a8a204e788ec03b3a69910a1a0ef625ebcd9ee685eee4618badd46daf4dd"
+  },
+  "exact_launcher_validate_only": {
+    "ready": true,
+    "endpoint": "ARM_ENDPOINT_FROZEN",
+    "protocol": "ARM_FINISHED_GUARDS_PASS",
+    "control_process_alive": false,
+    "run_dir_absent": true,
+    "path1_alive": true,
+    "unexpected_mirror_outputs": 0
+  },
+  "authorized_recovery_transition": "Invoke the immutable exact H11 treatment launcher directly. It revalidates every locked prerequisite, atomically activates the treatment sentinel, launches only the registered treatment, and invokes canonical rearm itself.",
+  "locked_tools": {
+    "treatment_launcher_sha256": "7dfc7f6764a6309b11b93044d63c81cb923c588b86e8d7c9ea155c3df7329c29",
+    "treatment_launch_watch_sha256": "db87042a2bb3e1d575fc67e1e02ce5bfd4bf0d7ba30a967c03d1a67c5e85ee59"
+  },
+  "behavior_change": false,
+  "checkpoint_changed": false,
+  "gate_changed": false,
+  "verdict_forced": false,
+  "official_hands": 0,
+  "strength_claim": "FORBIDDEN"
+}

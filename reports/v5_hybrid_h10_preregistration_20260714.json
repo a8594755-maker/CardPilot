@@ -1,0 +1,131 @@
+{
+  "schema_version": "v5.hybrid.h10.preregistration.v1",
+  "experiment_id": "H10",
+  "status": "REGISTERED_NO_LAUNCH",
+  "registered_at": "2026-07-14T20:38:00Z",
+  "route_review": {
+    "result_path": "reports/v5_hybrid_route_review_006_result_20260714.json",
+    "result_sha256": "f9aa625c8209c78662d1ac687f595d94e37a57c755f597923c2a9b1eb2467a4b",
+    "audit_sha256": "b46e471f694a6b5a682af6795be3ba1bfcf7502ee0b2f3b578c782550a86590c",
+    "selected_next": "H10_CLEAN_RERUN_H9_ROBUST_VALUE_HEAD_CATCHUP_LOSS",
+    "route_exhausted": false
+  },
+  "hypothesis": "The H8 catch-up calibration failure may be caused by quadratic leverage from extreme clipped-return residuals. Replacing only catch-up MSE with canonical SmoothL1 beta1.0 will improve frozen-holdout calibration while preserving actor/trunk isolation, KL stopping and internal mirror performance. H9 supplied no method evidence because it was externally protocol-aborted before a valid control endpoint.",
+  "single_variable": {
+    "name": "catchup_value_loss",
+    "control": "MSE",
+    "treatment": "SmoothL1",
+    "treatment_beta_raw_bb": 1.0,
+    "standard_ppo_critic_loss_both_arms": "MSE",
+    "beta_selection": "unchanged from H9 canonical SmoothL1 default; no holdout or H9 partial-outcome search"
+  },
+  "source": {
+    "run_id": "v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714",
+    "checkpoint_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714\\h8_treatment_endpoint.pt",
+    "checkpoint_sha256": "7c388ec68114d497f775157def3c0b3abc82db7ee25baf7e7cb7e9e916f66438",
+    "iteration": 33834,
+    "hands": 556011085,
+    "optimizer_preserved": true,
+    "strength_status": "DIAGNOSTIC_SOURCE_NOT_ADOPTED_STRENGTH"
+  },
+  "forbidden_sources": [
+    {
+      "path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h9_control_catchmse_same33834_20m_r1_20260714/latest.pt",
+      "sha256": "ea4620ed0c9b73c5f4f6e9dc4429dd97af74ae5a4ee4e1df772cbd80a3aea80b",
+      "reason": "partial H9 control checkpoint after terminal protocol abort"
+    }
+  ],
+  "arms": {
+    "order": ["control", "treatment"],
+    "actual_hands_each": 20000000,
+    "minimum_endpoint_hands": 576011085,
+    "maximum_overshoot_hands": 50000,
+    "control_run_id": "v5_hybrid_h10_control_catchmse_same33834_20m_r1_20260714",
+    "treatment_run_id": "v5_hybrid_h10_treatment_catchsmoothl1b1_same33834_20m_r1_20260714",
+    "fresh_same_start": true,
+    "adaptive_extension": false,
+    "second_seed": false,
+    "later_endpoint": false,
+    "h9_outcome_reuse": false
+  },
+  "frozen_common_config": {
+    "target_kl": 0.03,
+    "value_head_catchup_after_kl_stop": true,
+    "critic_contract": "critic_v1",
+    "value_coef": 0.5,
+    "ppo_epochs": 4,
+    "mini_batch_size": 1024,
+    "lr": 0.0003,
+    "gamma": 0.999,
+    "entropy_coef": 0.05,
+    "entropy_floor": 0.3,
+    "workers": 22,
+    "rollout_mode": "multi",
+    "rollout_envs_per_worker": 16,
+    "fixed_training_deal_stream": true,
+    "worker_seed_base": 73000,
+    "opponent_assignment": "per-iteration",
+    "pool_strategy": "loss-kbest",
+    "k_best": 5,
+    "self_play_fraction": 0.2,
+    "preflop_action_prior_coef": 0.01,
+    "postflop_action_prior_coef": 0.02,
+    "optimizer_reset": false
+  },
+  "resource_isolation": {
+    "evaluation_during_arm": "FORBIDDEN",
+    "slumbot_during_arm": "FORBIDDEN",
+    "path1_existing_job": "MAY_CONTINUE_EXISTING_BELOWNORMAL_NO_RESTART_EXPANSION_OR_NEW_WORKERS",
+    "evaluation_start": "AFTER_BOTH_ENDPOINTS_FROZEN_PASS_AND_NO_TRAINER_ACTIVE",
+    "workspace_active_window_sentinel": "REQUIRED_BEFORE_CONTROL_LAUNCH_UNTIL_TERMINAL_WINDOW",
+    "delegated_or_parallel_cardpilot_tasks": "FORBIDDEN_WHILE_EITHER_ARM_ACTIVE",
+    "planner_behavior": "MUST_FAIL_CLOSED_ON_ACTIVE_WINDOW_SENTINEL_AND_PRINT_NO_LAUNCH_COMMAND",
+    "protocol_match_scope": "EXACT_EVALUATOR_OR_MATCH_PROCESS;A_SENTINEL_BLOCKED_PLANNER_IS_NOT_AN_EVALUATOR",
+    "forbidden_evaluator_processes": [
+      "v5_hybrid_h10_mirror.py",
+      "v5_h1_calibration.py compare",
+      "v5_slumbot_benchmark_watch.py",
+      "bench_v55_slumbot.ps1",
+      "play_slumbot.py",
+      "slumbot_match"
+    ]
+  },
+  "offline_requirements": [
+    "H10 control MSE mode is bitwise equivalent to the already validated H9/H8 catch-up implementation.",
+    "Forced-trigger SmoothL1 mode changes only value-head parameters and value-head optimizer state; actor/trunk parameters,buffers and non-value optimizer state remain bitwise unchanged.",
+    "SmoothL1 beta is exactly1.0 in raw critic-v1 bb units and applies only to catch-up minibatches.",
+    "Remaining-epoch accounting, deterministic minibatch order and global RNG isolation remain exact.",
+    "H10 CLI and checkpoint identity are distinct from terminal H9 and reject the H9 partial checkpoint.",
+    "Active-window sentinel tests prove planner fail-closed behavior and exact evaluator detection without relaxing no-evaluation rules.",
+    "Independent implementation audit, immutable design lock, preflight and canonical watcher rearm all pass before control launch."
+  ],
+  "gates": {
+    "endpoint_mse_primary_reduction_point_min": 0.075,
+    "endpoint_mse_primary_ci95_lower_min": 0.0,
+    "source_anchor_degradation_point_max": 0.05,
+    "source_anchor_degradation_ci95_upper_max": 0.10,
+    "kl_p95_max": 0.03,
+    "kl_fraction_above_0_03_max": 0.06044407894736842,
+    "early_stop_trigger_fraction_min": 0.05,
+    "first60_hps_ratio_min": 0.85,
+    "full_hps_ratio_min": 0.85,
+    "entropy_median_last200_min": 0.3,
+    "entropy_treatment_minus_control_min": -0.1,
+    "mirror_pairs": 40000,
+    "mirror_treatment_control_ci95_lower_min_bb100": -20.0,
+    "mirror_treatment_source_ci95_lower_min_bb100": -20.0
+  },
+  "judgment": {
+    "pass": "Every identity,isolation,robust-loss accounting,critic-MSE point+CI,source-anchor guard,KL,mirror,throughput,entropy and health gate passes.",
+    "fail": "A valid protocol abort,a clearly adverse fixed-sample result,or any complete-window deterministic mandatory gate fails.",
+    "inconclusive": "Evidence is valid but a fixed-sample statistical gate does not satisfy PASS and is not clearly adverse; no extension allowed.",
+    "route_review_after_fail_or_inconclusive": true
+  },
+  "holdout": "reports/h1_cal_001_attempt2_20260712 FORBIDDEN_HOLDOUT_ONLY; never training or beta selection",
+  "authority": {
+    "implementation_and_control_plane": "AUTHORIZED_AUTONOMOUSLY",
+    "launch": "BLOCKED_UNTIL_IMPLEMENTATION_AUDIT_DESIGN_LOCK_PREFLIGHT_AND_CANONICAL_REARM_PASS",
+    "official_hands": 0,
+    "strength_claim": "FORBIDDEN"
+  }
+}

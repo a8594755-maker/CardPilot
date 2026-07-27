@@ -163,6 +163,28 @@ pipeline (see AGENTS.md §Slumbot Hand-Log Review). Its output feeds DIAGNOSIS �
 localize which street/position/bucket leaks — but intervention requires the §2 lifecycle
 plus a Tier-1/2 roadmap justification. Hand review localizes; it does not license tuning.
 
+### 5.6 Poker-research inference gate
+
+Apply `docs/V5_POKER_RESEARCHER_DECISION_CONTRACT.md` before registering the next
+behavior change.
+
+1. Run `v5_loss_inference_audit.py` on the complete official dump bundle. Its
+   session-cluster CIs, opportunity rates, and multiplicity-adjusted comparisons are
+   descriptive/associational only. A hero-fold bucket, losing line, or hole family does
+   not identify counterfactual action value or regret.
+2. If the diagnosis claims self-play cycling, require a complete frozen common-deal
+   snapshot payoff matrix and a PASS audit from `v5_crossplay_cycle_audit.py`. Action
+   rates, KL, and 200-hand probes nominate the hypothesis but cannot prove the cycle.
+3. Run `v5_poker_research_review.py` over the loss, action-regret, cross-play, value,
+   asset, method, and official artifacts. Missing artifacts remain MISSING. The reviewer
+   never authorizes a launch; it defines which claims and registrations are supportable.
+4. A same-start one-seed PASS may select that one candidate model but must be labeled
+   `CONDITIONAL_SINGLE_SEED_METHOD_EFFECT`. A general method claim needs at least two
+   preregistered independent paired seeds.
+5. Action-specific tuning requires a validated `v5.action_regret.audit.v1` artifact or
+   a separately registered same-state controlled experiment. Do not invent a
+   counterfactual from realized Slumbot terminal winnings.
+
 ## 6. Incident response (health FAIL or crash)
 
 1. Trainer died: inspect console.err.log; if clean OOM/transient → relaunch continuation

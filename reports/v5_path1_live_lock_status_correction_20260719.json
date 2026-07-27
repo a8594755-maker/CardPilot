@@ -1,0 +1,42 @@
+{
+  "schema_version": "v5.path1.live_lock_status_correction.v1",
+  "recorded_at": "2026-07-19T15:10:00Z",
+  "overall": "PASS_REPORTING_CORRECTION_LIVE_JOB_UNTOUCHED",
+  "classification": "CENSURE_PATH1_DRY_RUN_OVERWROTE_LIVE_STATUS_AFTER_LOCK_REJECTION",
+  "cause": "The authorized no-overwrite preflight invoked solve-v3-parallel.ts --dry-run while exact coordinator PID23720 was already alive. acquire() correctly rejected the live lock,but main().catch() then overwrote path1-solver-status.json with FAIL_CLOSED_PREFLIGHT even though it did not alter the live solver.",
+  "failed_status": {
+    "sha256": "4972be1378a17b93be052e16f29200e1012adf049299d5f647f2056df340c92a",
+    "payload_status": "FAIL_CLOSED_PREFLIGHT",
+    "payload_pid": 11228,
+    "error": "live lock",
+    "preservation": "PRESERVED_IN_PLACE_UNTIL_LIVE_SOLVER_WRITES_TERMINAL_STATUS"
+  },
+  "live_identity": {
+    "coordinator_pid": 23720,
+    "coordinator_started_at": "2026-07-17T15:32:19.7041352Z",
+    "priority": "BelowNormal",
+    "command_contract": "pipeline_srp_v3_200bb iterations80000 target600 seed20260712 samples1 workers6 heap18432 absolute output and QA paths",
+    "worker_count": 6,
+    "worker_pids": [19664, 23704, 28964, 37176, 37200, 45744],
+    "workers_priority": "BelowNormal",
+    "gpu": false,
+    "restart_performed": false,
+    "process_touched": false
+  },
+  "authoritative_progress": {
+    "artifact": "reports/v5_path1_legalallin_v2_progress_553_20260719.json",
+    "sha256": "d153cf5684cef59bb2aca0b62ffdb37d7a74cbf36bd54efa1f4aa111922aa2ed",
+    "overall": "PASS",
+    "complete_pairs": 553,
+    "qa_pass_zero_illegal_latest_unique": 553,
+    "target": 600,
+    "code_identity_match": true,
+    "no_overwrite": true
+  },
+  "operational_classification": "STALE_OPERATIONAL_STATE_NO_RESTART_EXACT_JOB_ALREADY_RUNNING",
+  "canonical_status_policy": "Do not rewrite the live status file;the unchanged solver owns its next terminal write. Until then,the immutable progress audit is authoritative over the overwritten status payload.",
+  "asset_behavior_change": false,
+  "training_ingestion": "FORBIDDEN",
+  "official_hands": 0,
+  "strength_claim": "FORBIDDEN"
+}

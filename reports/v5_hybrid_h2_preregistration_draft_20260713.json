@@ -1,0 +1,216 @@
+{
+    "schema_version":  "v5.hybrid.h2.preregistration.draft.v1",
+    "experiment_id":  "H2",
+    "title":  "Bounded-K showdown value targets generalized beyond all-in-only terminals",
+    "drafted_at":  "2026-07-13T03:59:49.2226461+00:00",
+    "status":  "DRAFT_NO_LAUNCH",
+    "immutable":  false,
+    "authority":  {
+                      "implementation":  "NONE_UNTIL_REVIEWED_IMMUTABLE_PREREGISTRATION",
+                      "control_launch":  "NONE",
+                      "treatment_launch":  "NONE",
+                      "internal_mirror_launch":  "NONE",
+                      "official_slumbot_hands":  0,
+                      "official_slumbot":  "FORBIDDEN_IN_H2",
+                      "strength_claim":  "FORBIDDEN"
+                  },
+    "terminal_exclusions":  {
+                                "exp005c":  "TERMINAL_DO_NOT_REOPEN",
+                                "exp_w1":  "TERMINAL_DO_NOT_REOPEN",
+                                "exp003":  "TERMINAL_INCONCLUSIVE_DO_NOT_REOPEN",
+                                "h1":  "TERMINAL_FAIL_DO_NOT_EXTEND_OR_RECLASSIFY"
+                            },
+    "h1_branch":  {
+                      "verdict":  "FAIL",
+                      "completion_audit_path":  "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h1_completion_audit_v2_20260713.json",
+                      "completion_audit_sha256":  "d00c482b63817e251707a20947d44901754b90b3831e8e8c9584119278560f8b",
+                      "critic_v2_adopted":  false,
+                      "selected_critic_contract":  "critic_v1",
+                      "selected_value_coef":  0.5,
+                      "source_rule":  "H1 FAIL/INCONCLUSIVE selects exact preregistered rollback source gate31400; only H1 PASS could select treatment endpoint"
+                  },
+    "source":  {
+                   "checkpoint_path":  "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_from_zero\\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\\v5_exp005_cutover_gate31400_checkpoint.pt",
+                   "checkpoint_sha256":  "bcbb46bd01d62fcdea602269b7047323315d4e9bbcf447ea0323e289fde11a8e",
+                   "iteration":  31400,
+                   "hands":  515989661,
+                   "env_version":  "v55",
+                   "obs_version":  "v55",
+                   "action_space_version":  "9slot_v5",
+                   "starting_stack_bb":  200,
+                   "source_run_id":  "v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709",
+                   "route":  "HYBRID"
+               },
+    "baseline_code":  {
+                          "train_v5.py":  {
+                                              "path":  "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\train_v5.py",
+                                              "sha256":  "d64e5e907a9066357980fa59dd0029dc4b7436e4e9ca63ce537a81775595f9d1"
+                                          },
+                          "train_mp3.py":  {
+                                               "path":  "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\train_mp3.py",
+                                               "sha256":  "8cd15d992bb7c4e43b5c730b61459afa1ecbd7c5c69503ae07213cfbc0cfd1d3"
+                                           },
+                          "network.py":  {
+                                             "path":  "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\network.py",
+                                             "sha256":  "86cc9e2ca36925f36ce33d7a8917ff13a6d69aecf9b768b52d55b09d87a98da2"
+                                         }
+                      },
+    "question":  "Does extending deterministic bounded-K runout averaging to critic targets for every non-fold showdown line materially reduce target variance without biased means, internal mirrored-play regression, throughput regression, or entropy collapse?",
+    "single_window_variable":  {
+                                   "name":  "showdown_ev_value_target_scope",
+                                   "control":  "CURRENT_ALLIN_BEFORE_RIVER_REWARD_EV_ONLY",
+                                   "treatment":  "ADD_ALL_SHOWDOWN_DECISION_CRITIC_TARGET_EV_K200",
+                                   "one_behavior_change":  true,
+                                   "all_actor_rewards_policy_advantages_pool_priors_deal_stream_and_architecture_unchanged":  true
+                               },
+    "treatment_semantics":  {
+                                "eligible_hand":  "terminal non-fold hand with both hole cards revealed",
+                                "eligible_rows":  "each trainable decision row on an eligible hand whose board snapshot has fewer than five cards",
+                                "target":  "expected terminal net profit in existing BB units, conditional on revealed hole cards, row board snapshot, and terminal committed-chip vector",
+                                "runouts":  "exact enumeration when \u003c=200 unique completions, otherwise 200 deterministic unique completions",
+                                "deterministic_seed":  "SHA256(H2 seed2026071401, fixed deal identity, seat, row index, board snapshot)",
+                                "application":  "critic return/target only",
+                                "explicitly_unchanged":  [
+                                                             "sampled environment reward",
+                                                             "GAE advantages used by actor",
+                                                             "policy loss",
+                                                             "legal masks",
+                                                             "raw chip/hand accounting",
+                                                             "all-in EV behavior already present",
+                                                             "critic_v1 architecture/value_coef0.5",
+                                                             "EXP-002 multi-env",
+                                                             "EXP-004 priors0.01/0.02"
+                                                         ],
+                                "known_estimand_limit":  "conditional line-value target holding terminal committed chips fixed; it is not counterfactual action EV and cannot justify action-specific tuning"
+                            },
+    "arms":  {
+                 "common":  {
+                                "same_start_checkpoint":  "EXACT_SOURCE_ABOVE",
+                                "actual_hands_per_arm":  20000000,
+                                "target_endpoint_hands":  535989661,
+                                "maximum_overshoot_hands":  50000,
+                                "order":  [
+                                              "control",
+                                              "treatment"
+                                          ],
+                                "seed":  20260703,
+                                "worker_seed_base":  73000,
+                                "fixed_training_deal_stream":  true,
+                                "opponent_assignment":  "per-iteration",
+                                "rollout_mode":  "multi",
+                                "rollout_envs_per_worker":  16,
+                                "workers":  22,
+                                "hands_per_iteration":  16384,
+                                "ppo_epochs":  4,
+                                "mini_batch_size":  1024,
+                                "lr":  0.0003,
+                                "gamma":  0.999,
+                                "entropy_coef":  0.05,
+                                "preflop_prior":  0.01,
+                                "postflop_prior":  0.02,
+                                "critic_contract":  "critic_v1",
+                                "value_coef":  0.5
+                            },
+                 "control":  {
+                                 "run_id":  "v5_hybrid_h2_control_allinonly_same31400_20m_r1",
+                                 "showdown_ev_value_targets":  false
+                             },
+                 "treatment":  {
+                                   "run_id":  "v5_hybrid_h2_treatment_showdownk200_same31400_20m_r1",
+                                   "showdown_ev_value_targets":  true,
+                                   "max_runouts":  200,
+                                   "target_seed":  2026071401
+                               }
+             },
+    "offline_variance_panel":  {
+                                   "id":  "H2-VAR-001",
+                                   "status":  "MUST_BE_FROZEN_AND_AUDIT_PASS_BEFORE_ANY_LAUNCH",
+                                   "source_policy":  "exact gate31400 greedy",
+                                   "common_deal_pairs":  10000,
+                                   "seats":  [
+                                                 0,
+                                                 1
+                                             ],
+                                   "replicate_target_seeds":  32,
+                                   "cluster":  "whole deal_id with both seat swaps and every eligible decision",
+                                   "training_use":  "FORBIDDEN_HOLDOUT_ONLY",
+                                   "primary_estimand":  "1 - pooled within-cluster variance(treatment K200 target replicates) / pooled within-cluster variance(control one-runout target replicates)",
+                                   "mean_bias_estimand":  "absolute paired mean treatment-control target difference in effective-stack fractions",
+                                   "bootstrap_repetitions":  10000,
+                                   "bootstrap_seed":  2026071402
+                               },
+    "gates":  {
+                  "variance_reduction_point_min":  0.3,
+                  "variance_reduction_ci95_lower_min":  0.2,
+                  "mean_bias_abs_point_max":  0.01,
+                  "mean_bias_abs_ci95_upper_max":  0.02,
+                  "endpoint_critic_mse_relative_degradation_point_max":  0.05,
+                  "endpoint_critic_mse_relative_degradation_ci95_upper_max":  0.1,
+                  "internal_mirror":  {
+                                          "common_deal_pairs":  20000,
+                                          "fixed_panel":  "gate31400 active loss-kbest K5 round-robin",
+                                          "policy_mode":  "greedy",
+                                          "cluster_bootstrap_repetitions":  10000,
+                                          "bootstrap_seed":  2026071403,
+                                          "metric":  "treatment-control bb/100",
+                                          "noninferiority_ci95_lower":  -20
+                                      },
+                  "throughput":  {
+                                     "first_rows":  60,
+                                     "first60_ratio_min":  0.85,
+                                     "full_window_ratio_min":  0.85,
+                                     "metric":  "actual hands divided by full wall-clock between accepted metric rows"
+                                 },
+                  "entropy":  {
+                                  "median_last200_min":  0.3,
+                                  "noninferiority_delta":  -0.1,
+                                  "sustained_abort":  "below0.3 for20 consecutive rows"
+                              },
+                  "health":  [
+                                 "finite losses and gradients",
+                                 "exact endpoint identities",
+                                 "complete per-iteration assignment provenance",
+                                 "stderr empty",
+                                 "all registered rows and bundles present"
+                             ]
+              },
+    "terminal_rule":  {
+                          "protocol_abort":  [
+                                                 "identity/source/config mismatch",
+                                                 "H2-VAR-001 audit not PASS",
+                                                 "pretraining actor logits delta nonzero",
+                                                 "nonfinite loss/gradient",
+                                                 "first60 throughput ratio below0.85",
+                                                 "entropy below0.3 for20 consecutive rows",
+                                                 "missing provenance"
+                                             ],
+                          "pass":  "all variance, mean-bias, endpoint-MSE, internal-mirror, throughput, entropy, health and identity gates PASS",
+                          "fail":  "complete fixed sample with variance CI upper below0.20, mean-bias guard failure, internal mirror CI upper below -20 bb/100, endpoint-MSE guard failure, or full-window throughput/entropy failure",
+                          "inconclusive":  "complete valid fixed sample that is neither PASS nor FAIL",
+                          "no_extension":  true,
+                          "no_second_seed":  true,
+                          "no_later_endpoint":  true
+                      },
+    "rollback":  {
+                     "checkpoint_path":  "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_from_zero\\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\\v5_exp005_cutover_gate31400_checkpoint.pt",
+                     "checkpoint_sha256":  "bcbb46bd01d62fcdea602269b7047323315d4e9bbcf447ea0323e289fde11a8e",
+                     "on_fail_or_inconclusive":  "do not adopt showdown target scope; restore control code/config",
+                     "route_stop_rule":  "H1 is already one FAIL/no-progress window; a terminal H2 FAIL/no-progress is the second consecutive and forces route-pivot review"
+                 },
+    "downstream":  {
+                       "on_pass":  "eligible for separate H3 preregistration preparation only",
+                       "h2_launch":  "REQUIRES immutable preregistration audit, implementation fixtures, design lock, exact preflight and watcher rearm",
+                       "official_slumbot":  "FORBIDDEN",
+                       "strength_claim":  "FORBIDDEN"
+                   },
+    "open_before_registration":  [
+                                     "implement and unit-test decision-row board snapshots and target-only wiring",
+                                     "validate target mean preservation against exhaustive small-runout fixtures",
+                                     "generate/audit H2-VAR-001 immutable panel",
+                                     "review whether -20 bb/100 mirror margin is adequately powered at fixed 20k pairs",
+                                     "publish immutable final preregistration and independent audit",
+                                     "publish exact design lock and duplicate-safe arm commands"
+                                 ],
+    "corrected_at":  "2026-07-13T04:06:15.0277867+00:00",
+    "correction":  "H1 completion audit reference advanced from preserved v1 to authoritative v2 field-name correction; H2 design is unchanged."
+}

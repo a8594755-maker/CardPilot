@@ -1,0 +1,123 @@
+{
+  "schema_version": "v5.phase_fa.design_revision003.preimplementation_failure.v1",
+  "judged_at": "2026-07-22T15:46:24.723Z",
+  "classification": "PHASE_FA_DESIGN_REVISION003_FAIL_CLOSED_PREIMPLEMENTATION_UNREACHABLE_POSITION_CELL_CONTRACT_NO_CODE_NO_PROBES",
+  "entry_design": {
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_phase_fa_design_revision003_preregistration_20260722.json",
+    "sha256": "b8040e360e13bd1da0a64589688dadb188df437b4a44ba25b57f39cf3ae6cc56"
+  },
+  "entry_design_audit": {
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_phase_fa_design_revision003_preregistration_audit_20260722.json",
+    "sha256": "ecef168e126f1eee7e25cc50d601719251ef1edbe24a88b72c0e0bb29f02e409",
+    "preserved_result": "PASS_320_OF_320",
+    "execution_authority": "CENSURED_FOR_MISSING_STRUCTURAL_POSITION_REACHABILITY_PROOF"
+  },
+  "frozen_sources": [
+    {"role": "FULL_HUNL_TURN_AND_STREET_TRANSITIONS", "path": "C:\\Users\\a8594\\CardPilot\\scripts\\deep_cfr\\game_state.py", "sha256": "1500278c6a0fd2909c3bb7aa741aad1842651478b84a676e0783031aa27a6a8a"},
+    {"role": "EXACT_V55_ACTION_TABLE", "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\environment_v55.py", "sha256": "3ab591176a8119d21ac11e043bdfef72bd30b8842e34a9fea45cdd36b945f9de"},
+    {"role": "FROZEN_LINE_BUCKET_PREDICATE_REFERENCE", "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_phase_fa_teacher_qualification.py", "sha256": "741e13fe6fcffef9b6a2ea681c46945834615afd7feee9163bf7a6cf03d6fc5b"},
+    {"role": "FROZEN_PYTHON_RUNTIME", "path": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe", "sha256": "4d6f5f81a4bca11191c4c7c6b43632694d0a4ce74e068619d8fdc161d469859a"}
+  ],
+  "registered_requirements": {
+    "position_balance_per_depth_street_line": {"player0_fraction": 0.5, "player1_fraction": 0.5},
+    "quota_cells": 192,
+    "reachability_cells": 192,
+    "reachability_unique_states_per_cell": 256,
+    "reachability_shortfall_cells": 0,
+    "quality_states_per_cell": 32,
+    "same_seed_repeat_states_per_cell": 4,
+    "adaptive_quota_or_cross_cell_fill": false
+  },
+  "source_line_evidence": {
+    "design_line_bucket_definitions": [99, 100],
+    "design_position_balance_line": 103,
+    "design_quota_cells_line": 104,
+    "design_reachability_lines": [174, 175, 177],
+    "line_bucket_function_start": 234,
+    "checked_predicate_line": 249,
+    "open_predicate_line": 251,
+    "preflop_initial_state_lines": [198, 205, 206, 207],
+    "postflop_initial_player_line": 213,
+    "first_check_switches_player_lines": [389, 390, 392, 393, 395],
+    "call_advances_street_lines": [398, 413],
+    "street_advance_resets_lines": [469, 472]
+  },
+  "structural_proof": {
+    "open_predicate": "TO_CALL_ZERO_AND_NUM_ACTIONS_THIS_STREET_EQ0",
+    "checked_predicate": "TO_CALL_ZERO_AND_NUM_ACTIONS_THIS_STREET_GE1_AFTER_HIGHER_PRECEDENCE_BUCKETS",
+    "preflop_initial": "PLAYER1_ACTS_WITH_COMMITMENTS_P0_1_0_P1_0_5_SO_TO_CALL_0_5_AND_NEITHER_OPEN_NOR_CHECKED",
+    "preflop_call": "CALL_IMMEDIATELY_ADVANCES_TO_FLOP_BEFORE_ANOTHER_PREFLOP_DECISION",
+    "preflop_bet_or_raise": "CREATES_POSITIVE_TO_CALL_AND_CANNOT_CREATE_OPEN_OR_CHECKED",
+    "postflop_street_start": "ADVANCE_STREET_RESETS_COMMITMENTS_AND_ACTION_COUNT_AND_ALWAYS_SETS_CURRENT_PLAYER0_SO_OPEN_CAN_ONLY_BE_PLAYER0",
+    "postflop_first_check": "INCREMENTS_ACTION_COUNT_TO1_AND_SWITCHES_TO_PLAYER1_SO_CHECKED_CAN_ONLY_BE_PLAYER1",
+    "postflop_second_check": "IMMEDIATELY_ADVANCES_STREET_BEFORE_A_PLAYER0_CHECKED_DECISION_CAN_EXIST",
+    "legal_transition_exhaustion": "BET_RAISE_OR_ALLIN_CREATES_POSITIVE_TO_CALL_FOLD_TERMINATES_CALL_OR_SECOND_CHECK_ADVANCES_STREET_NO_OTHER_HUNLGAMESTATE_ACTION_TYPE_CAN_CREATE_THE_FORBIDDEN_CELLS"
+  },
+  "minimum_unreachable_cells": {
+    "preflop_open_both_positions": 6,
+    "preflop_checked_both_positions": 6,
+    "flop_turn_river_open_player1": 9,
+    "flop_turn_river_checked_player0": 9,
+    "total": 30,
+    "formula": "THREE_DEPTHS_TIMES_OPEN_PF_TWO_PLUS_CHECKED_PF_TWO_PLUS_THREE_POSTFLOP_OPEN_P1_PLUS_THREE_POSTFLOP_CHECKED_P0"
+  },
+  "minimum_unreachable_row_quota": {
+    "preflop_open_and_checked": 1750000,
+    "postflop_open_player1": 1500000,
+    "postflop_checked_player0": 1125000,
+    "total": 4375000,
+    "fraction_of_20m": 0.21875
+  },
+  "qualification_contradiction": {
+    "minimum_missing_reachability_states": 7680,
+    "minimum_missing_quality_states": 960,
+    "minimum_missing_same_seed_repeat_states": 120,
+    "required_shortfall_cells": 0,
+    "actual_minimum_shortfall_cells": 30,
+    "pass_possible": false
+  },
+  "executable_read_only_witness": {
+    "runtime": "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+    "exit_code": 0,
+    "files_written": 0,
+    "depths": [200, 100, 50],
+    "observed_each_depth": {
+      "preflop_initial": {"player": 1, "to_call": 0.5, "bucket": null},
+      "postflop_street_start": {"player": 0, "num_actions": 0, "bucket": "OPEN_ACTION_NO_BET"},
+      "postflop_after_first_check": {"player": 1, "num_actions": 1, "bucket": "CHECKED_TO_NO_BET"}
+    },
+    "postflop_streets_observed": ["FLOP", "TURN", "RIVER"],
+    "interpretation": "WITNESS_CONFIRMS_THE_STATIC_TRANSITION_PROOF_THE_IMPOSSIBILITY_CLAIM_IS_BOUND_BY_SOURCE_CONTROL_FLOW_NOT_BY_ABSENCE_IN_A_FINITE_SAMPLE"
+  },
+  "implementation_state": {
+    "launcher_exists": false,
+    "runner_exists": false,
+    "auditor_exists": false,
+    "implementation_audit_exists": false,
+    "contract_probes_run": 0,
+    "qualification_attempts": 0,
+    "qualification_output_root_exists": false,
+    "asset_root_exists": false,
+    "files_written_by_witness": 0
+  },
+  "judgment": {
+    "verdict": "FAIL_CLOSED",
+    "design_audit_artifact_mutation": "FORBIDDEN_PRESERVE_PASS320_OF320_AS_PROVENANCE",
+    "design_audit_execution_authority": "CENSURED",
+    "q003_implementation_authority": "NONE",
+    "q003_contract_probe_authority": "NONE_NO_PROBES_CONSUMED",
+    "q003_qualification_authority": "NONE",
+    "repair_rerun_or_reclassification": "FORBIDDEN",
+    "route_exhausted": false,
+    "next": "SEPARATELY_REGISTERED_REPORTING_ONLY_PHASE_FA_DESIGN_REVIEW004_OR_ROUTE_REVIEW031"
+  },
+  "interpretation_limits": [
+    "CONTROL_PLANE_DESIGN_CONSISTENCY_EVIDENCE_ONLY",
+    "NO_REACHABILITY_SEARCH_RAN",
+    "NO_MC32_QUALITY_OR_RESOURCE_MEASUREMENT_RAN",
+    "NO_TEACHER_ASSET_METHOD_BEHAVIOR_OR_STRENGTH_INFERENCE",
+    "NO_CLAIM_ABOUT_REACHABLE_CELLS_BEYOND_THE_STATIC_OPEN_CHECKED_POSITION_PROOF"
+  ],
+  "official_hands": 0,
+  "strength": "L0"
+}

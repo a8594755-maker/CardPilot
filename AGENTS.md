@@ -30,7 +30,39 @@ The formal Slumbot success bar remains one frozen trained policy completing at l
 100,000 fresh Slumbot hands with bb/100 greater than zero, a 95% confidence-interval
 lower bound greater than zero, and a reproducible hand-level evidence bundle.
 
+## Structural Learning Principle
+
+Do not ask only which checkpoint scored highest. Every experiment retrospective must
+also answer: **what structural property of the poker learning system did this result
+reveal?**
+
+- Decompose results by seat. Persistent SB/BB asymmetry can indicate position
+  representation, credit assignment, opponent-distribution, or shared-network
+  interference rather than insufficient training volume.
+- Treat successful seat-specialized models as evidence about architecture. Test
+  position specialization, shared-trunk plus position-specific heads, and
+  mixture-of-experts as scalable learned designs rather than relying on ad hoc policy
+  splicing.
+- Maintain stable, same-method training-volume curves at meaningful milestones such
+  as 10M, 50M, and 100M hands. Do not attribute gains to more hands when datasets,
+  opponents, architectures, or algorithms changed simultaneously.
+- Slumbot may be a teacher and remains the external benchmark, but it must not define
+  the policy's entire training distribution. Use self-play and diverse opponent
+  leagues to measure and improve general poker strength.
+- Quick5k is directional evidence, not a binary verdict on an idea. A losing result
+  may still retain a hypothesis when it isolates a valuable mechanism, while a noisy
+  positive result does not by itself justify the method.
+- When additional training plateaus, explicitly test whether the limiting factor is
+  the observation, action abstraction, network capacity, learning target, or
+  optimization dynamics rather than simply adding more hands.
+- Prefer representations and learned components that can extend naturally to six-max,
+  without changing the current heads-up objective prematurely.
+
 ## Research Autonomy
+
+Remain methodologically open-minded: do not default only to established training
+recipes; actively test novel, high-information approaches that could produce
+step-change gains, while requiring empirical evidence for retention.
 
 The agent may, without further approval:
 
@@ -179,6 +211,8 @@ fragmentation, not impose a route limit or approval gate.
 
 - Slumbot measures external heads-up strength; self-play and opponent-league results
   measure learning progress and generalization.
+- Develop for generalizable poker competence rather than Slumbot-specific fit; Slumbot
+  is an external measurement instrument, not the definition of the policy's target behavior.
 - Do not use completed Slumbot evaluation hands to create direct action rules. They may
   motivate a new training hypothesis, which must then improve weights and be tested on
   fresh hands.

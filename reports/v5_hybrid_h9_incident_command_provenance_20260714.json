@@ -1,0 +1,48 @@
+{
+  "schema_version": "v5.hybrid.h9.incident_command_provenance.v1",
+  "captured_at": "2026-07-14T20:31:00Z",
+  "classification": "IMMUTABLE_COMMAND_PROVENANCE",
+  "source_thread": {
+    "thread_id": "019f6033-5f1a-7731-bc0d-705f6ed48561",
+    "task_context": "separate concurrent CardPilot review task",
+    "delegated_agent_thread_id": "019f6248-5544-7fc0-a100-8468de5a4dbb",
+    "delegated_agent_path": "/root/external_eval_review",
+    "interrupted_after_incident": true
+  },
+  "triggering_commands": [
+    {
+      "tool_timestamp_utc": "2026-07-14T20:23:09.142Z",
+      "command": "python scripts/alpha_holdem/v5_slumbot_benchmark_plan.py --run-dir models/alpha_holdem_v5_hybrid/v5_hybrid_h9_control_catchmse_same33834_20m_r1_20260714 --stage quick5k --tag h9_external_readonly_probe_20260714 --output-dir models",
+      "exit_code": 0,
+      "wall_seconds": 2.7,
+      "stdout_summary": "overall=READY; planned_hands=5000; printed a proposed command only",
+      "detected_by_h9_protocol": {
+        "pid": 46864,
+        "token": "v5_slumbot"
+      }
+    },
+    {
+      "tool_timestamp_utc": "2026-07-14T20:23:17.423Z",
+      "command": "python scripts/alpha_holdem/v5_slumbot_benchmark_plan.py --run-dir models/alpha_holdem_v5_hybrid/v5_hybrid_h9_control_catchmse_same33834_20m_r1_20260714 --stage promotion20k --tag h9_external_promotion_readonly_probe_20260714 --output-dir models",
+      "exit_code": 1,
+      "wall_seconds": 2.7,
+      "stdout_summary": "overall=BLOCKED; planned_hands=20400; printed a proposed command only",
+      "occurred_after_terminal_judgment": true
+    }
+  ],
+  "effects": {
+    "planner_output_files_created": false,
+    "slumbot_connection_started": false,
+    "slumbot_match_started": false,
+    "official_hands": 0,
+    "h9_protocol_effect": "H9_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+    "trainer_pid_49380_terminated_by_protocol_watcher": true,
+    "treatment_launched": false
+  },
+  "source_records": [
+    "C:\\Users\\a8594\\.codex\\sessions\\2026\\07\\14\\rollout-2026-07-14T06-36-52-019f6033-5f1a-7731-bc0d-705f6ed48561.jsonl",
+    "C:\\Users\\a8594\\.codex\\sessions\\2026\\07\\14\\rollout-2026-07-14T16-19-00-019f6248-5544-7fc0-a100-8468de5a4dbb.jsonl"
+  ],
+  "source_record_note": "Source session logs remain application-owned and mutable while their tasks are open; this project artifact freezes the exact relevant command transcript and must be cited with the immutable H9 status snapshot.",
+  "inference_limit": "This proves a local planner-token isolation violation only. It is not Slumbot evidence and cannot reclassify H9."
+}

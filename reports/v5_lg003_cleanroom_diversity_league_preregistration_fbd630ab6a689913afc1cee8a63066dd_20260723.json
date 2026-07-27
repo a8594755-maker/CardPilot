@@ -1,0 +1,202 @@
+{
+  "schema_version": "v5.lg003.behavior_window.preregistration.v1",
+  "design_id": "LG003_CLEANROOM_H11_DIVERSITY_WEIGHTED_OPPONENT_LEAGUE",
+  "registered_at": "2026-07-23T03:07:13-04:00",
+  "registration_identity": "fbd630ab6a689913afc1cee8a63066dda9d449e5b8a6d1b3f8b1dcf0ea5a333e",
+  "registration_token": "fbd630ab6a689913afc1cee8a63066dd",
+  "identity_basis": "LG003_CLEANROOM_DIVERSITY_LEAGUE_V1|RS009_TERMINAL_65be12120cda80e9aa68d01d5797ffcdd8143ebac07adfdc7db0ad9863a308d6|H11_96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13|H4_de60e08500d282f6a554dfda1d2bcb98667e035a8c078cb22900f946d3e40cb9|CLEAN_BASE_7cacc211065ab8494b9bb12c7d8b4ad30abbb303bb29875f9d70b756a52f8ca7",
+  "status": "REGISTERED_PREIMPLEMENTATION_NO_SCIENTIFIC_OUTPUT",
+  "objective": "Test whether diversity weighting over the exact frozen H11 five-member opponent pool improves greedy-direct Slumbot direction and reduces the externally observed postflop raise-plus-all-in collapse relative to a same-start uniform control.",
+  "evidence_matrix": {
+    "formal_external": {
+      "h11_bb100": -100.2475,
+      "h11_ci95": [-112.4067, -88.0883],
+      "authority": "FORMAL100K_L0"
+    },
+    "latest_external": {
+      "rs009_bb100": -159.32,
+      "rs009_ci95": [-275.2580, -43.3820],
+      "rs009_postflop_raise_allin": 0.846589,
+      "classification": "VALID_DIRECTIONAL_NONPASS",
+      "result_audit_sha256": "65be12120cda80e9aa68d01d5797ffcdd8143ebac07adfdc7db0ad9863a308d6"
+    },
+    "association": {
+      "h4_pool_result_sha256": "de60e08500d282f6a554dfda1d2bcb98667e035a8c078cb22900f946d3e40cb9",
+      "h4_status": "INCONCLUSIVE_NO_CANDIDATE",
+      "use": "MECHANISM_AND_WEIGHT_DEFINITION_ONLY"
+    },
+    "same_start_method_effect": "MISSING_LG001_LG002_PRODUCED_ZERO_TRAINING_ROWS_AND_ZERO_CHECKPOINTS",
+    "teacher_counterfactual": "PCV019_MEAN_L1_0_4581518791_EXCEEDS_FA002_0_2_QUALITY_GATE",
+    "critic_target": "NO_FROZEN_FUNDAMENTALLY_NEW_CT003_CAUSAL_HYPOTHESIS",
+    "resolver": "CURRENT_PAIRED_MC32_LCB_HYPOTHESIS_FALSIFIED"
+  },
+  "ranked_hypotheses": [
+    {
+      "rank": 1,
+      "family": "OPPONENT_LEAGUE",
+      "hypothesis": "The exact H11 policy overfit the uniform treatment of a non-transitive historical pool; diversity-proportional exposure will improve external direction and reduce postflop overaggression.",
+      "falsifier": "Any complete Stage-A gate fails."
+    },
+    {
+      "rank": 2,
+      "family": "EXACT_V5_5_TEACHER",
+      "hypothesis": "A guaranteed-distinct-pair teacher with substantially more than MC32 samples can create a policy-improving BC seed.",
+      "blocker": "Current exact teacher is too noisy and the registered-quality asset would be materially slower than LG003."
+    },
+    {
+      "rank": 3,
+      "family": "CRITIC_TARGET",
+      "hypothesis": "A fundamentally revised target design may improve policy learning.",
+      "blocker": "No new frozen causal target design is supported after CT002."
+    },
+    {
+      "rank": 4,
+      "family": "PLAY_TIME_RESOLVER",
+      "hypothesis": "A fundamentally different resolver may help.",
+      "blocker": "The fully-live paired-MC32 LCB resolver worsened the latest external direction and another local continuation is forbidden."
+    }
+  ],
+  "one_coherent_intervention": {
+    "behavior_variable": "CONDITIONAL_OPPONENT_WEIGHT_VECTOR_ONLY",
+    "control": {
+      "self_probability": 0.2,
+      "conditional_weights": {"103": 0.2, "109": 0.2, "115": 0.2, "120": 0.2, "129": 0.2}
+    },
+    "treatment": {
+      "self_probability": 0.2,
+      "conditional_weights": {
+        "103": 0.151331630996897,
+        "109": 0.272679451627751,
+        "115": 0.062503368673781,
+        "120": 0.325118010944971,
+        "129": 0.1883675377566
+      }
+    },
+    "shared_assignment": "SHA256_FIRST8_BIG_ENDIAN_OF_LG003_ASSIGNMENT_V1_PIPE_TOKEN_PIPE_2026072301_PIPE_ABSOLUTE_ITERATION",
+    "same_assignment_u64_both_arms": true,
+    "global_rng_consumption": 0,
+    "pool_membership_frozen": true,
+    "new_snapshot_addition_disabled": true,
+    "unchanged": [
+      "SOURCE_MODEL_OPTIMIZER_HAND_COUNTER",
+      "NETWORK_OBSERVATION_ACTION_REWARD_ENVIRONMENT",
+      "PPO_AND_VALUE_HEAD_CATCHUP_MATH",
+      "TRAINING_DEAL_STREAM_AND_WORKER_SEEDS",
+      "SELF_PLAY_FRACTION_AND_ASSIGNMENT_GRANULARITY",
+      "EVALUATION_POLICY_AND_STACK"
+    ]
+  },
+  "source": {
+    "checkpoint_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_endpoint.pt",
+    "checkpoint_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "iteration": 35051,
+    "total_hands": 576021901,
+    "checkpoint_substitution": "FORBIDDEN",
+    "historical_h11_trainer_sha256": "98fe394c4d7b9338faa05abfbdf59015b4b0114cc8567f366cbda445a9afd19a"
+  },
+  "cleanroom_source_contract": {
+    "reason": "The current train_v5.py is a censured LG002 postimage and is forbidden as a runtime. The historical exact H11 bytes are not present as a normal file or Git object.",
+    "method": "Reverse, in memory, every post-H11 train_v5.py patch recorded in the immutable local Codex session log, normalize LF, and materialize a fresh path. Then add only the registered LG003 opt-in contract.",
+    "current_censured_source_sha256": "9d42ff31a57c13ae8afd361b553fe9ea6e086c3e6d0c46328012f39b245b5310",
+    "expected_clean_base_sha256": "7cacc211065ab8494b9bb12c7d8b4ad30abbb303bb29875f9d70b756a52f8ca7",
+    "expected_clean_base_bytes": 156892,
+    "forbidden_in_clean_base": ["LG001", "LG002", "H12", "H13", "H14", "H15", "H16", "H17", "H18"],
+    "independent_equivalence_requirement": "Compile, run the frozen H11 implementation tests, prove dormant/default semantics and all non-LG003 training math are AST-equivalent to the clean base, and execute zero-output contract probes for both arms.",
+    "historical_h11_byte_hash_mismatch_interpretation": "EXPECTED_LINEAGE_RECONSTRUCTION_DIFFERENCE_NOT_AUTHORITY; runtime requires independent semantic and AST audit before output."
+  },
+  "frozen_pool": {
+    "checkpoint_order": [109, 115, 120, 129, 103],
+    "members": {
+      "103": "cdec36f3deb27470a61c586b6491cd5de44aa3a99194b026a6e491a3121335a1",
+      "109": "aee38c625bf0faada6b163f23aeb4cc539d67f7cbe46dc234aa4f46b18960953",
+      "115": "ed92c7724486e446c13e5d4c623327d4288c68652964b7b4f35c0d2a7630d0c1",
+      "120": "86c3d7bacce72dd5749c21deaad3865c7313c9f118860cbc7e9b8b378070494e",
+      "129": "9d008780ac3cd259579131532df9775b53b4e3c95c7b0f12f2aac70bc915b255"
+    }
+  },
+  "common_training": {
+    "device": "cuda",
+    "workers": 22,
+    "hands_per_iter": 16384,
+    "rollout_mode": "multi",
+    "rollout_envs_per_worker": 16,
+    "inference_min_batch_slots": 256,
+    "inference_batch_deadline_us": 1000.0,
+    "fixed_training_deal_stream": true,
+    "worker_seed_base": 73000,
+    "seed": 20260703,
+    "starting_stack_bb": 200.0,
+    "env_version": "v55",
+    "learning_rate": 0.0003,
+    "ppo_epochs": 4,
+    "ppo_target_kl": 0.03,
+    "mini_batch_size": 1024,
+    "gamma": 0.999,
+    "entropy_coef": 0.05,
+    "entropy_floor": 0.3,
+    "critic_contract": "critic_v1",
+    "value_coef": 0.5,
+    "value_head_catchup": true,
+    "catchup_loss": "mse",
+    "mirror_self_play_deals": true,
+    "allin_runout_ev": true,
+    "allin_runout_ev_max_runouts": 200,
+    "preflop_action_prior_coef": 0.01,
+    "postflop_action_prior_coef": 0.02,
+    "reset_optimizer": false,
+    "reset_hand_counter": false,
+    "snapshot_every": 200,
+    "save_interval": 1,
+    "max_runtime_seconds_each": 10800
+  },
+  "stage_a": {
+    "control_target_hands": 581021901,
+    "treatment_target_hands": 581021901,
+    "increment_each": 5000000,
+    "maximum_overshoot_hands": 50000,
+    "launch_order": ["control_uniform", "treatment_diversity"],
+    "one_complete_greedy_direct_quick5k_each": true,
+    "no_stage_b_before_both_audited_quick5k_bundles": true
+  },
+  "stage_a_judgment": {
+    "treatment_minus_control_bb100_min": 20.0,
+    "treatment_minus_historical_h11_quick5k_min": 20.0,
+    "historical_h11_quick5k_bb100": -146.1726,
+    "treatment_bb100_must_exceed": -126.1726,
+    "treatment_postflop_raise_allin_max": 0.8,
+    "all_gates_pass": "AUTHORIZE_TREATMENT_ONLY_STAGE_B_TO_596021901_HANDS",
+    "any_valid_gate_fail": "SCIENTIFIC_FAIL_WEIGHT_VECTOR_AND_RERANK",
+    "control_plane_or_incomplete_bundle": "INCONCLUSIVE_PRESERVE_AND_STOP"
+  },
+  "stage_b": {
+    "treatment_target_hands": 596021901,
+    "additional_after_stage_a": 15000000,
+    "quick5k_required": true,
+    "20k_promotion": "ONLY_IF_STAGE_B_QUICK5K_BB100_GREATER_THAN_25_AND_COMPLETE_AUDIT",
+    "formal100k": "ONLY_AFTER_PREREGISTERED_20K_GATE_MAKES_L5_STATISTICALLY_PLAUSIBLE"
+  },
+  "rollback_and_abort": {
+    "rollback": "PRESERVE_NEW_CHECKPOINTS_READ_ONLY_AND_RETURN_TO_EXACT_H11_SOURCE",
+    "abort": [
+      "SOURCE_OR_POOL_IDENTITY_MISMATCH",
+      "NONFINITE_LOSS_OR_CHECKPOINT",
+      "ASSIGNMENT_REPLAY_OR_PROVENANCE_FAILURE",
+      "OUTPUT_PATH_COLLISION",
+      "GPU_OOM_OR_CONCURRENT_GPU_WORK",
+      "WALL_CLOCK_LIMIT",
+      "SCIENTIFIC_GATE_FAILURE"
+    ],
+    "adaptive_sample_extension": "FORBIDDEN"
+  },
+  "fresh_paths": {
+    "clean_base": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_lg003_h11_clean_base_fbd630ab6a689913afc1cee8a63066dd.py",
+    "trainer": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_lg003_train_fbd630ab6a689913afc1cee8a63066dd.py",
+    "materializer": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_lg003_materialize_fbd630ab6a689913afc1cee8a63066dd.py",
+    "launcher": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_lg003_launcher_fbd630ab6a689913afc1cee8a63066dd.ps1",
+    "implementation_auditor": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_lg003_implementation_audit_fbd630ab6a689913afc1cee8a63066dd.py",
+    "window_auditor": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_lg003_window_audit_fbd630ab6a689913afc1cee8a63066dd.py",
+    "output_root": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_lg003_fbd630ab6a689913afc1cee8a63066dd_20260723"
+  },
+  "strength_authority": "NONE_UNTIL_LATER_FORMAL100K_PASSES_COMPLETE_L5_BAR",
+  "route_exhausted": false
+}

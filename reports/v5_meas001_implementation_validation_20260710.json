@@ -1,0 +1,69 @@
+{
+  "checked_at": "2026-07-10T01:56:00-04:00",
+  "design_id": "MEAS-001",
+  "overall": "PASS_NOT_LAUNCHED",
+  "claim_scope": "measurement_implementation_only_not_slumbot_not_v4_l5_l6",
+  "checks": [
+    {
+      "name": "historical_evaluator_preserved",
+      "status": "PASS",
+      "detail": "new v5_meas001_common_deal_eval.py; hash-pinned v5_mirror_eval.py was not edited"
+    },
+    {
+      "name": "identical_deal_ids_and_seat_swaps",
+      "status": "PASS",
+      "detail": "one manifest seed/stream drives all three roles; every record requires candidate seats [0,1]"
+    },
+    {
+      "name": "aligned_per_pair_returns_and_replay",
+      "status": "PASS",
+      "detail": "aligned JSONL retains all role returns; native-axis effect is recomputed per deal; deterministic replay test passed"
+    },
+    {
+      "name": "hash_bound_inputs_evaluator_manifest_and_results",
+      "status": "PASS",
+      "detail": "frozen UTF-8 source bundle, exact checkpoint identities, deal-stream hash, manifest hash, JSONL hash, summary payload hash, and execution summary hash are independently audited"
+    },
+    {
+      "name": "fail_closed_artifacts",
+      "status": "PASS",
+      "detail": "non-100k samples, late/mismatched checkpoints, collisions, duplicate IDs, partial rows, incomplete swaps, and hash mismatches are rejected"
+    },
+    {
+      "name": "one_shot_terminal_status",
+      "status": "PASS",
+      "detail": "terminal measurement status is PASS, FAIL, or INCONCLUSIVE; existing outputs are never overwritten"
+    },
+    {
+      "name": "focused_tests",
+      "status": "PASS",
+      "detail": "10/10 unittest cases passed"
+    },
+    {
+      "name": "full_v5_regression",
+      "status": "PASS",
+      "detail": "14/14 V5 test scripts passed: 142 unittest cases plus 14 canonical rearm checks"
+    },
+    {
+      "name": "live_training_unchanged",
+      "status": "PASS",
+      "detail": "trainer PID 48476 remained alive; no weights, flags, rollout behavior, watcher cadence, or Slumbot launch changed"
+    }
+  ],
+  "artifacts": {
+    "evaluator": {
+      "path": "scripts/alpha_holdem/v5_meas001_common_deal_eval.py",
+      "sha256": "03d8441f1caeb77e96c8f3bafc195574e3969fc5d5468acef99f40772bd4ec84"
+    },
+    "audit_cli": {
+      "path": "scripts/alpha_holdem/v5_meas001_bundle_audit.py",
+      "sha256": "1578556a1b46e77d4f6676c62a71e86e74234ff5363d8d09480f925687f91e8d"
+    },
+    "focused_test": {
+      "path": "scripts/alpha_holdem/test_v5_meas001_common_deal_eval.py",
+      "sha256": "3549fa49b4a66b9bdbfa3c7fd1d20c0c8b99de23e87a9bd3c9443c6ed937b297"
+    }
+  },
+  "measurement_launched": false,
+  "next_use_rule": "only after a future behavior experiment separately registers and freezes exact pre/post/native inputs"
+}

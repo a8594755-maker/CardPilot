@@ -1,0 +1,71 @@
+{
+  "schema_version": "v5.lg003c1.stage_a.judgment.v1",
+  "judged_at": "2026-07-23T06:21:24-04:00",
+  "status": "LG003C1_STAGE_A_SCIENTIFIC_FAIL_DIVERSITY_WEIGHT_VECTOR_RERANK",
+  "preregistration_sha256": "525dc9acb2672218f6b09466b3a16d50e8303fa079640b146e58688b239d254d",
+  "control": {
+    "checkpoint_sha256": "9c8f8033f92cb34291b62eb685761110026ee9afb5eb84e398caa03ea8f332ff",
+    "hands": 5000,
+    "bb_per_100": -131.3494,
+    "ci95": [-212.7405371214895, -49.95826287851051],
+    "result_audit_sha256": "27ac75084bd1ca769f4975fe2f3d497993f382358e4d97e7eadd5be2b0979b0f",
+    "result_audit": "PASS_113_OF_113"
+  },
+  "treatment": {
+    "checkpoint_sha256": "a504d118e4999e3a16e3efab552de368f088e7af2a1fede7d6c994440355efba",
+    "window_audit_sha256": "fa3b2e0a913548668eb89a1fe92b936724233aee8a9866425c2c71d11903531a",
+    "hands": 5000,
+    "decisions": 32240,
+    "total_chips": -1141475,
+    "bb_per_100": -228.295,
+    "ci95": [-322.41320199908927, -134.17679800091076],
+    "artifact_audit_sha256": "c157f7ac127b686215aeb2076359ceabd23317680e033b58b782e47a45e28ab9",
+    "hand_review_sha256": "d257479d285a086729a12709734e2c69bd037d8bbad25636780fc2dc0d68ab4b",
+    "result_audit_sha256": "59a0aeb87930f53564ff9a5034c0687ea23b9c71403e5fb4cf25b83ad8265c28",
+    "result_audit": "PASS_113_OF_113"
+  },
+  "registered_gates": {
+    "treatment_minus_control_bb100": {
+      "threshold_min": 20.0,
+      "observed": -96.9456,
+      "pass": false
+    },
+    "treatment_minus_historical_h11_bb100": {
+      "historical_h11_bb100": -146.1726,
+      "threshold_min": 20.0,
+      "observed": -82.1224,
+      "pass": false
+    },
+    "treatment_absolute_bb100": {
+      "strict_threshold": -126.1726,
+      "observed": -228.295,
+      "pass": false
+    },
+    "treatment_postflop_raise_plus_allin": {
+      "definition": "hero postflop dump rows with action_move=b divided by all hero postflop dump rows",
+      "numerator": 5051,
+      "denominator": 9202,
+      "threshold_max": 0.8,
+      "observed": 0.5489024125190176,
+      "pass": true
+    }
+  },
+  "judgment_rule": "ANY_VALID_GATE_FAIL_EQUALS_SCIENTIFIC_FAIL_WEIGHT_VECTOR_AND_RERANK",
+  "interpretation": {
+    "falsified": "DIVERSITY_PROPORTIONAL_EXPOSURE_TO_THE_FROZEN_H11_POOL_IMPROVES_EXTERNAL_DIRECTION",
+    "not_proved": [
+      "ENTIRE_OPPONENT_LEAGUE_FAMILY_EXHAUSTED",
+      "FORMAL_STRENGTH",
+      "ANY_INTERNAL_REWARD_INFERENCE"
+    ],
+    "stage_b_authorized": false,
+    "20k_authorized": false,
+    "formal100k_authorized": false,
+    "rollback": "PRESERVE_BOTH_CHECKPOINTS_READ_ONLY_AND_RETURN_TO_EXACT_H11_SOURCE"
+  },
+  "progress_guard": {
+    "consecutive_scientifically_valid_no_progress_interventions": 2,
+    "required_next": "META_REVIEW_AND_SWITCH_OR_FUNDAMENTALLY_REVISE_HYPOTHESIS_FAMILY",
+    "forbidden": "LOCAL_LG003_WEIGHT_OR_WINDOW_TUNING"
+  }
+}

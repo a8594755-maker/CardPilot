@@ -1,0 +1,497 @@
+{
+  "schema_version": "v5.vr001.faithful_qboost_core.preregistration.v1",
+  "registered_at": "2026-07-23T10:23:05-04:00",
+  "design_id": "VR001_FROZEN_H11_FAITHFUL_QBOOST_CORE_ADAPTATION",
+  "status": "REGISTERED_PREIMPLEMENTATION_AUDIT_REQUIRED",
+  "identity": {
+    "basis": "VR001_QBOOST_V1|6c6724f5a5566b4cb3e044e1de5e5704cf88296055e2f64e8463ae5583ba1af3|96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13|f841144c883d51e66a1d2de889e15303e7339695c8664f81e60208ff77770452|69197b52baee7463d79e4a940f01f8bb241ed8e70975b51e043b99fd8a5cbc4d|25f4520d31f4ce5ffcfd23fc0d56b8736fd3b5fad537706b9cd13ee270b4a171|3ab591176a8119d21ac11e043bdfef72bd30b8842e34a9fea45cdd36b945f9de|1500278c6a0fd2909c3bb7aa741aad1842651478b84a676e0783031aa27a6a8a|CENTRAL895_TWO_FOCAL_VIEWS_ASSIGNMENT_CONDITIONED_Q9_PSEUDOSIAMESE|EXPECTED_SARSA_GAMMA0.999_LAMBDA0.95|QBOOST_ACTOR_EPOCH_RECOMPUTE|POST_ACTOR_FROZEN_POLICY_AND_Q_SNAPSHOT_TARGET|ZERO_INIT_Q_OUTPUT_HEAD|CURRENT_ROLLOUT_ONLY|QINIT2026072302|QMB2026072303|581021901|LG003_ASSIGNMENT_V1|fbd630ab6a689913afc1cee8a63066dd|2026072301|20260723",
+    "sha256": "bf019687bae673973839f47e51e589bfcc7aadea41197dffa15525cdc406bac4",
+    "token": "bf019687bae673973839f47e51e589bf"
+  },
+  "entry_authority": {
+    "current_state": "CT003_STAGE_A_SCIENTIFIC_FAIL_MC_VALUE_TARGET_RERANK_TO_FAITHFUL_VRPO_QBOOST",
+    "current_agents_sha256": "6c6724f5a5566b4cb3e044e1de5e5704cf88296055e2f64e8463ae5583ba1af3",
+    "family": "CRITIC_TARGET_DESIGN",
+    "rank": 1,
+    "reason": "CT003 falsified full-hand Monte-Carlo targets for the existing scalar V critic, but did not test centralized Q values, policy expectation, Expected SARSA, or Q-boosted actor advantages. VR001 moves the intervention upstream to the estimator identified by the primary VRPO paper."
+  },
+  "evidence_matrix": {
+    "formal_external": {
+      "checkpoint": "H11",
+      "hands": 100000,
+      "bb_per_100": -100.2475,
+      "ci95": [-112.4067, -88.0883],
+      "authority": "FORMAL_EXTERNAL_STRENGTH"
+    },
+    "same_start_frozen_control": {
+      "checkpoint_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_lg003c1_8bf8cedf78b6e8c8fe153802908ed893_20260723\\control_uniform_stagea\\latest.pt",
+      "checkpoint_sha256": "9c8f8033f92cb34291b62eb685761110026ee9afb5eb84e398caa03ea8f332ff",
+      "window_audit_sha256": "71a6acf3d3fb0d43f6f3ebf7c6ab5d776d521cfd10f8671b64965c10007c0a41",
+      "quick5k_result_audit_sha256": "27ac75084bd1ca769f4975fe2f3d497993f382358e4d97e7eadd5be2b0979b0f",
+      "hands": 5000,
+      "bb_per_100": -131.3494,
+      "reuse": "FROZEN_NO_REEXECUTION"
+    },
+    "last_behavior_window": {
+      "design": "CT003_FULL_TRAJECTORY_MONTE_CARLO_CRITIC_TARGET",
+      "checkpoint_sha256": "76b85c5bd377533329424140d01352075e44b6a1aeb5796828fee60f34037f62",
+      "quick5k_bb_per_100": -145.462,
+      "quick5k_ci95": [-227.9171, -63.0069],
+      "result_audit_sha256": "7b2efc434046f0835b842c97a6253055bd6cc8577d84e95a3028c4358862c0dc",
+      "interpretation": "MC scalar-V target failed all registered external score gates; critic/target family remains open only for materially different Q-boost design."
+    },
+    "realized_loss_localization": {
+      "lg004_showdown_bucket_bb_per_100": -427.8548516439455,
+      "lg004_hero_fold_bucket_bb_per_100": -975.1079847908745,
+      "scope": "ASSOCIATION_ONLY_NOT_CAUSAL_AUTHORITY"
+    },
+    "counterfactual_mechanism": {
+      "risk": "Sampled future-action noise in stochastic self-play can propagate through GAE even with an accurate V critic.",
+      "test": "Paired raw pre-normalization variance of VR001 Q-boost advantages versus the frozen legacy H11 GAE comparator on the same fresh actor rows.",
+      "authority": "MECHANISM_ONLY"
+    }
+  },
+  "falsifiable_hypothesis": {
+    "prediction": "On the exact H11/LG003C1 same start, replacing only the scalar-V GAE estimator and scalar-V critic training with a centralized legal-nine-action Q critic, policy-expectation values, and Expected-SARSA(lambda=.95) Q-boosting will reduce raw paired advantage variance and improve the 5M endpoint by at least 20 bb/100 versus both the frozen same-start control and historical H11 quick5k.",
+    "scientific_falsifier": "A valid completed endpoint fails any registered external score or aggression gate.",
+    "mechanism_falsifier": "The paired final-half raw advantage variance ratio is not below1, held-out Expected-SARSA target error does not improve, legal-action Q dispersion is degenerate, or any estimator/coverage/leakage invariant fails."
+  },
+  "one_coherent_intervention": {
+    "behavior_variable": "ADVANTAGE_AND_CRITIC_ESTIMATOR",
+    "control": "H11 scalar V critic plus sampled-action GAE(gamma=.999,lambda=.95)",
+    "treatment": "Training-only centralized Q9 critic plus policy-expectation Vpi, Expected-SARSA(lambda=.95), Q-boosted actor advantages, and Q-lambda regression targets",
+    "actor_objective_unchanged": [
+      "H11 decentralized actor input and exact 9-action abstraction",
+      "PPO ratio and Trinal-Clip policy objective",
+      "entropy coefficient and floor",
+      "existing preflop and postflop action priors",
+      "actor Adam optimizer state and learning rate",
+      "greedy-direct evaluation policy"
+    ],
+    "environment_and_sampling_unchanged": [
+      "V5.5 environment and 200bb stacks",
+      "fixed training deal stream and mirror-self-play rule",
+      "all-in runout EV rule",
+      "LG003 uniform five-member pool and assignment stream",
+      "worker count, rollout slots, actor sampling seed, and hand budget"
+    ],
+    "removed_from_training": [
+      "scalar V loss",
+      "scalar V bootstrap in actor advantage",
+      "H8 value-head catchup"
+    ],
+    "scalar_value_head_contract": "The checkpoint-compatible scalar value head remains present but every value-head parameter is frozen, receives no gradient, and is excluded from all losses."
+  },
+  "paper_fidelity_and_deviations": {
+    "method_name": "FAITHFUL_QBOOST_CORE_ADAPTATION_UNDER_FROZEN_H11_ACTOR_OBJECTIVE",
+    "primary_source": "https://arxiv.org/abs/2605.19235",
+    "faithful_core": [
+      "centralized full-information action-value critic",
+      "Vpi as legal-action policy expectation of Q",
+      "multi-step Expected-SARSA trace",
+      "Q-boosted stop-gradient PPO advantages",
+      "actor update before critic regression",
+      "current-rollout-only critic data, which is paper-ablation comparable"
+    ],
+    "registered_adaptations": [
+      "CardPilot deals chance inside env.step, so each betting transition compresses sampled Nature transitions into its observed successor and retains chance variance.",
+      "gamma remains .999 rather than the paper recipe's 1.0.",
+      "H11 Adam, Trinal-Clip, entropy, and action priors remain frozen rather than adopting Muon, KL-to-uniform, or the paper schedules.",
+      "No EMA evaluation policy is introduced.",
+      "CardPilot keeps its fixed nine-slot betting abstraction and CNN actor instead of the paper's decomposed-action Transformer."
+    ],
+    "claim_limit": "VR001 tests the causal Q-boost core under CardPilot's frozen actor objective; it must not be called an exact reproduction of the full paper recipe."
+  },
+  "frozen_inputs": {
+    "checkpoint": {
+      "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_endpoint.pt",
+      "sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+      "bytes": 261417230,
+      "iteration": 35051,
+      "total_hands": 576021901
+    },
+    "parent_trainer": {
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_lg003c1_train_8bf8cedf78b6e8c8fe153802908ed893.py",
+      "sha256": "f841144c883d51e66a1d2de889e15303e7339695c8664f81e60208ff77770452"
+    },
+    "parent_launcher": {
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_lg003c1_launcher_8bf8cedf78b6e8c8fe153802908ed893.ps1",
+      "sha256": "c20ebf0d3201b8fdb01a2a31945dbb2166defb646a2f1e410ca2e6d2e04b3d96"
+    },
+    "ppo_module": {
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\train_mp3_hybrid_h1.py",
+      "sha256": "69197b52baee7463d79e4a940f01f8bb241ed8e70975b51e043b99fd8a5cbc4d"
+    },
+    "actor_network": {
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\network_hybrid_h1.py",
+      "sha256": "25f4520d31f4ce5ffcfd23fc0d56b8736fd3b5fad537706b9cd13ee270b4a171"
+    },
+    "environment": {
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\environment_v55.py",
+      "sha256": "3ab591176a8119d21ac11e043bdfef72bd30b8842e34a9fea45cdd36b945f9de"
+    },
+    "game_state": {
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\deep_cfr\\game_state.py",
+      "sha256": "1500278c6a0fd2909c3bb7aa741aad1842651478b84a676e0783031aa27a6a8a"
+    },
+    "pool_order": [109, 115, 120, 129, 103],
+    "assignment_rule": "LG003_ASSIGNMENT_V1",
+    "assignment_token": "fbd630ab6a689913afc1cee8a63066dd",
+    "assignment_seed": 2026072301,
+    "arm": "control_uniform",
+    "self_probability": 0.2,
+    "conditional_pool_weights": [0.2, 0.2, 0.2, 0.2, 0.2]
+  },
+  "full_information_and_leakage_contract": {
+    "actor_ipc_observation_floats": 823,
+    "actor_inputs_bit_contract": "The existing card6x4x13, action25x4x5, extra2, and legal9 actor tensors remain byte-for-byte constructed by the parent path.",
+    "inference_result_floats": 12,
+    "inference_result_layout": [
+      "sampled_action",
+      "sampled_log_probability",
+      "legacy_scalar_value_diagnostic_only",
+      "serving_policy_probability_slot0",
+      "serving_policy_probability_slot1",
+      "serving_policy_probability_slot2",
+      "serving_policy_probability_slot3",
+      "serving_policy_probability_slot4",
+      "serving_policy_probability_slot5",
+      "serving_policy_probability_slot6",
+      "serving_policy_probability_slot7",
+      "serving_policy_probability_slot8"
+    ],
+    "central_view_floats": 895,
+    "central_view": {
+      "cards": {
+        "shape": [7, 4, 13],
+        "construction": "The active player's exact actor card6 tensor followed by one opponent-hole plane containing exactly the opponent's two already-dealt private cards."
+      },
+      "action_history": {
+        "shape": [25, 4, 5],
+        "construction": "The exact actor action-history tensor for the active player before the physical action."
+      },
+      "public_and_conditioning": {
+        "shape": [22],
+        "layout": [
+          "active_stack_div200",
+          "other_stack_div200",
+          "pot_div400",
+          "active_street_commit_div200",
+          "other_street_commit_div200",
+          "to_call_div200",
+          "last_bet_size_div200",
+          "raise_count_div200",
+          "num_actions_this_street_div200",
+          "street_preflop",
+          "street_flop",
+          "street_turn",
+          "street_river",
+          "active_absolute_player_is1",
+          "target_player_is_active",
+          "target_absolute_player_is1",
+          "assignment_self_play",
+          "assignment_pool_index0_id109",
+          "assignment_pool_index1_id115",
+          "assignment_pool_index2_id120",
+          "assignment_pool_index3_id129",
+          "assignment_pool_index4_id103"
+        ]
+      },
+      "legal_mask": {
+        "shape": [9],
+        "construction": "Exact executable V5.5 action-slot mask before the physical action."
+      },
+      "two_focal_views": "Each physical betting action produces one target-player0 and one target-player1 central view. The shared Q critic predicts the selected focal player's return; actor advantage uses the view whose target is the active actor."
+    },
+    "chronological_trace": {
+      "unit": "ONE_COMPLETE_POKER_HAND",
+      "row_order": "Every physical betting action from both players in exact env.step order, including frozen-pool opponent actions.",
+      "row_pre_step_fields": [
+        "deal_identity",
+        "step_index",
+        "absolute_active_player",
+        "hero_absolute_player",
+        "request_model_id",
+        "assignment_kind_and_pool_index",
+        "actor_card_action_extra_legal_tensors",
+        "selected_action",
+        "old_log_probability",
+        "exact_serving_pi_ref9",
+        "central_state_source_fields"
+      ],
+      "post_step_fields": [
+        "done",
+        "successor_reference_or_terminal",
+        "terminal_payoff_player0_bb",
+        "terminal_payoff_player1_bb"
+      ],
+      "atomic_transport": "One completed-hand pipe message carries legacy actor rows and the joint chronological trace; incomplete hands are discarded.",
+      "chance_contract": "Chance sampled inside env.step is compressed into the successor betting state. Undealt cards, future deck order, and RNG state are never stored in a central view."
+    },
+    "forbidden_critic_inputs": [
+      "undealt deck contents or order",
+      "future board cards",
+      "future actions",
+      "terminal outcome before terminal transition",
+      "runout RNG state",
+      "Slumbot evaluation data"
+    ],
+    "information_barrier_tests": [
+      "Changing opponent hole cards while holding actor infoset fixed may change Q but must leave actor logits bit-identical.",
+      "Changing assignment onehot while holding actor infoset fixed may change Q but must leave actor logits bit-identical.",
+      "Permuting the undealt future deck while holding current dealt state fixed must change neither actor logits nor Q.",
+      "Q tensors must never be passed into actor forward or official evaluation.",
+      "Actor and Q models must have disjoint Parameter objects, storages, optimizers, gradients, and state_dict namespaces."
+    ]
+  },
+  "qboost_math_contract": {
+    "units": "RAW_BIG_BLINDS",
+    "gamma": 0.999,
+    "lambda": 0.95,
+    "state_value": "V_i_t=sum_over_legal_a(pi_active_t(a|actor_infoset_t)*Qbar_i(s_t,a))",
+    "expected_sarsa_residual": "delta_i_t=r_i_t+0.999*(1-done_t)*V_i_(t+1)-Qbar_i(s_t,a_t)",
+    "reverse_trace": "E_i_t=delta_i_t+0.999*0.95*(1-done_t)*E_i_(t+1)",
+    "actor_advantage": "Aboost_i_t=stopgrad(Qbar_i(s_t,a_t)-V_i_t+E_i_t)",
+    "critic_target": "Qtarget_i_t=stopgrad(Qbar_i(s_t,a_t)+E_i_t)",
+    "terminal_value": 0.0,
+    "illegal_actions": "Excluded exactly from pi expectation; probabilities are normalized over the legal mask and illegal Q outputs are not overwritten.",
+    "actor_row_selection": "Only rows controlled by the trainable hero model update the actor; all physical rows remain in the residual trace and critic regression.",
+    "actor_phase": {
+      "order": "ACTOR_BEFORE_CRITIC",
+      "q_snapshot": "Freeze Qbar once at actor-phase start and do not mutate Q until all actor epochs finish.",
+      "epochs": 4,
+      "recompute": "At the start of every actor epoch, recompute hero/self-play probabilities, Vpi, the complete-hand reverse traces, and Aboost on the entire fresh rollout before minibatch shuffling.",
+      "pool_policy": "For a frozen-pool-controlled row, use the exact serving pi_ref9 captured during rollout; never substitute the current hero policy.",
+      "detach": "Detach Aboost only after whole-trajectory recomputation.",
+      "normalization": "Normalize the complete set of trainable fresh-rollout Aboost values globally once per actor epoch before creating minibatches; never normalize per minibatch.",
+      "loss": "Existing H11 Trinal-Clip PPO policy loss, entropy, and registered action priors only."
+    },
+    "critic_phase": {
+      "target_timing": "After actor phase, freeze the post-actor hero policy and use it with the unchanged pre-critic Qbar snapshot to compute one fixed Qtarget tensor for the current rollout.",
+      "pool_policy": "Frozen-pool rows continue to use captured exact pi_ref9.",
+      "epochs": 4,
+      "minibatch_size": 1024,
+      "shuffle_seed": 2026072303,
+      "target_reuse": "The fixed semi-gradient target is reused for all four critic epochs.",
+      "loss": "mean(0.5*(Q_i(s,a_t)-Qtarget_i_t)^2) over both focal-player rows",
+      "historical_replay": false
+    },
+    "reference_contract_tests": [
+      "Scalar hand traces with analytically computed Vpi, residuals, advantages, and Q targets.",
+      "lambda0 one-step identity.",
+      "lambda1 finite-horizon recursion.",
+      "terminal single-action identity.",
+      "two-player zero-sum terminal targets.",
+      "pool-policy versus hero-policy expectation switch.",
+      "full-hand recomputation invariant to minibatch permutation."
+    ]
+  },
+  "q_critic_and_optimizer": {
+    "class": "CentralizedQCritic",
+    "architecture": [
+      "Independent CNNBranch(in_channels=7,norm_layer=bn) for centralized cards.",
+      "Independent CNNBranch(in_channels=25,norm_layer=bn) for active-perspective action history.",
+      "Independent Linear(22,32)+ReLU conditioning branch.",
+      "Concatenate both flattened CNN outputs and conditioning32.",
+      "Trunk Linear(fusion,2048)+ReLU+Linear(2048,1024)+ReLU+Linear(1024,512)+ReLU+Linear(512,256)+ReLU.",
+      "Linear(256,9) Q output."
+    ],
+    "parameter_sharing_with_actor": false,
+    "initialization_seed": 2026072302,
+    "rng_isolation": "Construct and initialize Q under torch.random.fork_rng and use a dedicated critic minibatch generator; actor sampling, deal RNG, and global actor initialization state must remain unchanged.",
+    "hidden_initialization": "Inherited PyTorch default initialization under the dedicated Q seed.",
+    "output_initialization": "All Q output-head weights and biases exactly zero.",
+    "zero_init_reason": "The first actor update starts from a legal trace return rather than arbitrary random action-value dispersion; this is frozen initialization, not a warmup window.",
+    "optimizer": {
+      "type": "Adam",
+      "learning_rate": 0.0003,
+      "betas": [0.9, 0.999],
+      "eps": 1e-8,
+      "weight_decay": 0.0,
+      "max_grad_norm": 0.5
+    },
+    "checkpoint_schema": {
+      "official_actor_key": "model",
+      "official_actor_schema_unchanged": true,
+      "actor_optimizer_key": "optimizer",
+      "q_model_key": "vr001_q_model",
+      "q_optimizer_key": "vr001_q_optimizer",
+      "q_config_key": "vr001_q_config",
+      "official_evaluator_loads_only_model": true
+    }
+  },
+  "assignment_and_training_window": {
+    "device": "cuda",
+    "workers": 22,
+    "rollout_envs_per_worker": 16,
+    "inference_slots": 352,
+    "inference_min_batch_slots": 256,
+    "inference_batch_deadline_us": 1000,
+    "hands_per_iter": 16384,
+    "target_total_hands": 581021901,
+    "minimum_increment_hands": 5000000,
+    "maximum_overshoot_hands": 50000,
+    "maximum_runtime_seconds": 10800,
+    "starting_stack_bb": 200,
+    "env_version": "v55",
+    "actor_learning_rate": 0.0003,
+    "actor_epochs": 4,
+    "ppo_target_kl": 0.03,
+    "actor_minibatch_size": 1024,
+    "gamma": 0.999,
+    "entropy_coef": 0.05,
+    "entropy_floor": 0.3,
+    "preflop_action_prior_coef": 0.01,
+    "postflop_action_prior_coef": 0.02,
+    "preflop_special_priors": 0.0,
+    "epsilon": 0.0,
+    "fixed_training_deal_stream": true,
+    "mirror_self_play_deals": true,
+    "allin_runout_ev": true,
+    "allin_runout_ev_max_runouts": 200,
+    "actor_seed": 20260703,
+    "worker_seed_base": 73000,
+    "q_init_seed": 2026072302,
+    "q_minibatch_seed": 2026072303,
+    "actor_optimizer_state_and_hand_counter_preserved": true,
+    "pool_membership_and_assignment_exact": true,
+    "no_historical_critic_replay": true
+  },
+  "mechanism_and_endpoint_gates": {
+    "prelaunch_contracts": [
+      "IDENTITY_AND_ALL_FROZEN_INPUT_HASHES_EXACT",
+      "ALL_PLANNED_PATHS_ABSENT_AT_REGISTRATION",
+      "CHRONOLOGICAL_COMPLETE_HAND_TRACE_INCLUDES_BOTH_PLAYERS_AND_POOL_ACTIONS",
+      "TWO_FOCAL_VIEWS_PER_PHYSICAL_ACTION",
+      "INFERENCE_PI_REF9_MATCHES_ACTION_LOGPROB_AND_LEGAL_MASK",
+      "EXPECTED_SARSA_SCALAR_REFERENCE_SUITE_PASS",
+      "ACTOR_Q_PARAMETER_OPTIMIZER_AND_GRADIENT_ISOLATION_PASS",
+      "SCALAR_VALUE_HEAD_FROZEN_NO_LOSS_NO_GRAD_PASS",
+      "FUTURE_DECK_AND_PRIVILEGED_ACTOR_LEAKAGE_SUITE_PASS",
+      "DEDICATED_Q_RNG_DOES_NOT_CHANGE_ACTOR_SAMPLING_SEQUENCE",
+      "OFFICIAL_EVALUATOR_STRICT_LOADS_CHECKPOINT_MODEL_ONLY",
+      "ONE_ZERO_OUTPUT_FINAL_LAUNCHER_PROBE_WITH_NO_CUDA_INITIALIZATION"
+    ],
+    "valid_completed_endpoint": [
+      "NEW_HANDS_BETWEEN5000000_AND5050000",
+      "EVERY_PHYSICAL_ACTION_IN_ONE_CHRONOLOGICAL_COMPLETE_HAND_TRACE",
+      "EXACTLY_TWO_FOCAL_Q_ROWS_PER_PHYSICAL_ACTION",
+      "ACTOR_ROW_TERMINAL_REWARD_AND_HAND_COUNTS_EXACT",
+      "ESTIMATOR_FORMULA_AND_QTARGET_COVERAGE_EXACT1",
+      "LEGAL_POLICY_MASS_SUM1_AND_CHOSEN_LOGPROB_MATCH",
+      "ALL_ACTOR_Q_AND_OPTIMIZER_TENSORS_FINITE",
+      "ACTOR_Q_STORAGE_AND_RECIPROCAL_GRADIENT_ISOLATION_EXACT",
+      "SCALAR_VALUE_HEAD_BIT_IDENTICAL_TO_SOURCE",
+      "LEAKAGE_SUITE_PASS",
+      "SOURCE_POOL_DEAL_ASSIGNMENT_AND_SEED_PROVENANCE_EXACT",
+      "CHECKPOINT_MODEL_STRICT_LOADS_AS_OFFICIAL_ACTOR_AND_Q_KEYS_LOAD_SEPARATELY",
+      "CHECKPOINT_RAW_METRICS_PROVENANCE_AND_MANIFEST_IMMUTABLY_HASHED"
+    ],
+    "mechanism_success": [
+      "For every update record paired raw pre-normalization Var(Aboost) and Var(legacy H11 GAE) on the exact same fresh trainable actor rows.",
+      "Median Var(Aboost)/Var(legacy GAE) over the final half of updates must be strictly below1.",
+      "On a deterministic frozen held-out trace split, median Expected-SARSA Q-target absolute error in the final quartile must be strictly below the first quartile.",
+      "Median legal-action Q standard deviation over the final half must be strictly above0.",
+      "Record raw advantage means, standard deviations, variance ratio, Q gradient norms, Q parameter delta, and Q-target correlation without using them as post-hoc gates."
+    ],
+    "throughput": "Record effective hands per second and peak CPU/GPU/RAM, but throughput is not a scientific success gate unless the registered runtime abort prevents a valid endpoint."
+  },
+  "mandatory_external": {
+    "trigger": "ONE_VALID_COMPLETE_AUDITED_5M_BEHAVIOR_ENDPOINT",
+    "opponent": "Slumbot",
+    "policy": "greedy-direct",
+    "sessions": 4,
+    "hands_per_session": 1250,
+    "complete_hands_exact": 5000,
+    "no_posthoc_extension": true,
+    "required_bundle": [
+      "FOUR_SESSION_RESULTS",
+      "FOUR_APPEND_ONLY_HAND_JSONL_FILES",
+      "FOUR_APPEND_ONLY_DECISION_DUMPS",
+      "BB100_AND_CI95",
+      "PROMOTION_DECISION",
+      "LOSS_REPORT",
+      "ARTIFACT_AUDIT",
+      "INDEPENDENT_HAND_REVIEW",
+      "EXACT_RESULT_AUDIT"
+    ]
+  },
+  "exact_judgment": {
+    "frozen_control_bb100": -131.3494,
+    "historical_h11_quick5k_bb100": -146.1726,
+    "treatment_minus_control_bb100_min": 20.0,
+    "treatment_minus_historical_h11_bb100_min": 20.0,
+    "treatment_bb100_must_exceed": -126.1726,
+    "treatment_postflop_raise_allin_max": 0.8,
+    "external_all_four_and_mechanism_pass": "AUTHORIZE_SEPARATELY_REGISTERED_20K_GREEDY_DIRECT_SCREEN",
+    "external_pass_mechanism_fail": "FREEZE_CONTRADICTION_NO_PROMOTION_AND_RERANK",
+    "any_valid_external_fail": "VR001_SCIENTIFIC_FAIL_QBOOST_CORE;CT003_PLUS_VR001_TRIGGER_CRITIC_FAMILY_META_REVIEW_AND_SWITCH_TO_LEARNER_REACHED_EXACT_V55_TEACHER",
+    "invalid_endpoint": "PRESERVE_ABORT_NO_QUICK5K_UNLESS_A_DEPLOYABLE_VALID_CHECKPOINT_EXISTS",
+    "incomplete_external_bundle": "INCONCLUSIVE_PRESERVE_AND_STOP",
+    "directional_only": true,
+    "formal_claim_bar": "100000_COMPLETE_OFFICIAL_GREEDY_DIRECT_HANDS_BB100_GT0_AND_CI95_LOWER_GT0_WITH_COMPLETE_INDEPENDENTLY_AUDITED_HAND_LEVEL_BUNDLE"
+  },
+  "planned_paths": {
+    "preregistration": "C:\\Users\\a8594\\CardPilot\\reports\\v5_vr001_faithful_qboost_preregistration_bf019687bae673973839f47e51e589bf_20260723.json",
+    "preimplementation_audit": "C:\\Users\\a8594\\CardPilot\\reports\\v5_vr001_faithful_qboost_preregistration_audit_bf019687bae673973839f47e51e589bf_20260723.json",
+    "qboost_core": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_vr001_qboost_core_bf019687bae673973839f47e51e589bf.py",
+    "trainer": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_vr001_train_bf019687bae673973839f47e51e589bf.py",
+    "launcher": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_vr001_launcher_bf019687bae673973839f47e51e589bf.ps1",
+    "window_auditor": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_vr001_window_audit_bf019687bae673973839f47e51e589bf.py",
+    "implementation_audit": "C:\\Users\\a8594\\CardPilot\\reports\\v5_vr001_implementation_audit_bf019687bae673973839f47e51e589bf_20260723.json",
+    "output_root": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_vr001_bf019687bae673973839f47e51e589bf_20260723",
+    "run_dir": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_vr001_bf019687bae673973839f47e51e589bf_20260723\\vrpo_stagea",
+    "all_nonregistration_paths_absent_at_registration": true,
+    "exclusive_create_no_reuse": true
+  },
+  "preimplementation_audit_contract": {
+    "single_report_only": true,
+    "checks": [
+      "JSON parses and identity basis hashes exactly.",
+      "AGENTS authority and every frozen input hash match.",
+      "Every planned implementation output path is absent.",
+      "Math equations, terminal conventions, actor-phase recomputation, and fixed critic-target timing are complete.",
+      "Joint chronological trace, two focal views, exact pool pi, and assignment conditioning are unambiguous.",
+      "Privileged features cannot reach actor and future deck cannot reach critic.",
+      "Actor/Q storage, optimizer, gradient, RNG, and checkpoint namespaces are independent.",
+      "5M budget, abort, mechanism, quick5k bundle, and four external gates are exact.",
+      "Formal claim bar and all remaining non-V6 families remain unchanged."
+    ],
+    "pass_authority": "IMPLEMENTATION_AUTHORIZED_NOT_SCIENTIFIC_OUTPUT"
+  },
+  "abort_and_rollback": {
+    "identity_source_or_planned_path_collision": "ABORT_BEFORE_OUTPUT",
+    "trace_formula_policy_probability_or_leakage_contract_failure": "ABORT_PRESERVE",
+    "nonfinite_actor_q_or_optimizer": "ABORT_PRESERVE",
+    "actor_or_deal_rng_drift": "ABORT_PRESERVE",
+    "runtime_exceeds_10800_seconds_before_valid_endpoint": "ABORT_PRESERVE",
+    "memory_or_resource_safety": "ABORT_PRESERVE_AND_SIMPLIFY_STORAGE_WITHOUT_CHANGING_SCIENCE_ONLY_UNDER_FRESH_CORRECTED_IDENTITY",
+    "preoutput_control_plane_failure": "ONE_FRESH_CORRECTED_IDENTITY_ALLOWED_ONLY_IF_SCIENCE_IS_BIT_UNCHANGED",
+    "rollback": "Exact frozen H11 source remains canonical and VR001 is never resumed after terminal judgment."
+  },
+  "prohibitions": {
+    "ct003_repair_replay_or_extension": true,
+    "actor_observation_or_action_schema_change": true,
+    "reward_shaping_or_new_action_prior": true,
+    "opponent_pool_deal_or_assignment_change": true,
+    "teacher_league_or_resolver_change": true,
+    "future_information_in_critic": true,
+    "critic_features_in_actor": true,
+    "historical_q_replay": true,
+    "posthoc_budget_gate_hyperparameter_or_sample_change": true,
+    "quick5k_strength_claim": true,
+    "v6_architecture_or_observation_redesign": true
+  },
+  "completion_context": {
+    "route_exhausted": false,
+    "remaining_non_v6_families": [
+      "critic_target_design",
+      "learner_reached_exact_v55_teacher_warmstart",
+      "adaptive_payoff_league",
+      "public_belief_state_resolver"
+    ],
+    "formal_claim_hands": 0,
+    "strength": "L0",
+    "goal": "ACTIVE"
+  }
+}

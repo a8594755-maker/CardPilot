@@ -1,0 +1,115 @@
+{
+  "schema_version": "v5.rs007.transition_domain_census.v1",
+  "generated_at": "2026-07-23T01:02:00-04:00",
+  "classification": "RS007_READ_ONLY_TRANSITION_DOMAIN_CENSUS_COMPLETE",
+  "scope": {
+    "sources": [
+      "C:\\Users\\a8594\\CardPilot\\models\\bench_v55_cal_ext_002_h11_control_greedy_quick5k_20260716_part1_dump.jsonl",
+      "C:\\Users\\a8594\\CardPilot\\models\\bench_v55_cal_ext_002_h11_control_greedy_quick5k_20260716_part2_dump.jsonl",
+      "C:\\Users\\a8594\\CardPilot\\models\\bench_v55_cal_ext_002_h11_control_greedy_quick5k_20260716_part3_dump.jsonl",
+      "C:\\Users\\a8594\\CardPilot\\models\\bench_v55_cal_ext_002_h11_control_greedy_quick5k_20260716_part4_dump.jsonl"
+    ],
+    "source_scoped_hand_key": "TUPLE_ABSOLUTE_SOURCE_PATH_HAND_IDX",
+    "rows": 29878,
+    "hands": 5000,
+    "adjacent_prefix_transitions": 24878,
+    "analysis": "READ_ONLY_NO_OUTPUT_FROM_MODEL_NO_NETWORK_NO_GPU"
+  },
+  "method": {
+    "observed_increment": "b<action_amount> when action_move is b, otherwise action_move",
+    "policy_slot_membership": "Exact string membership in play_slumbot.build_action_table(play_slumbot.parse_action(action_str_before))[1]",
+    "basic_public_legality": {
+      "fold": "to_call > 0",
+      "check": "to_call == 0",
+      "call": "to_call > 0",
+      "bet_or_raise": "target > current_bet AND target <= own_street_commitment + stack_remaining AND (target >= current_bet + max(last_bet_size,100) OR target == own_street_commitment + stack_remaining)"
+    },
+    "projection_or_nearest_slot": "NONE"
+  },
+  "counts": {
+    "rows": 29878,
+    "hero_rows": 12564,
+    "opponent_rows": 17314,
+    "policy_slot_exact_rows": 28220,
+    "policy_slot_external_rows": 1658,
+    "hero_policy_slot_exact_rows": 12564,
+    "hero_policy_slot_external_rows": 0,
+    "opponent_policy_slot_exact_rows": 15656,
+    "opponent_policy_slot_external_rows": 1658,
+    "external_rows_all_bet_or_raise": 1658,
+    "external_rows_fold_check_or_call": 0,
+    "basic_public_legal_rows": 29878,
+    "basic_public_illegal_rows": 0
+  },
+  "external_by_street": {
+    "preflop": 852,
+    "flop": 442,
+    "turn": 196,
+    "river": 168
+  },
+  "all_rows_by_street": {
+    "preflop": 13366,
+    "flop": 9687,
+    "turn": 4303,
+    "river": 2522
+  },
+  "all_rows_by_move": {
+    "bet_or_raise": 15597,
+    "call": 6705,
+    "fold": 4441,
+    "check": 3135
+  },
+  "canonical_counterexample": {
+    "source": "bench_v55_cal_ext_002_h11_control_greedy_quick5k_20260716_part1_dump.jsonl",
+    "hand_idx": 3,
+    "move_idx": 1,
+    "who": "opp",
+    "street": 0,
+    "prefix": "b200",
+    "observed_increment": "b600",
+    "pot_before": 300,
+    "to_call": 100,
+    "stack_remaining": 19900,
+    "policy_table": ["f","c",null,null,null,null,null,"b400","b20000"],
+    "public_legality": "LEGAL_FULL_RAISE",
+    "policy_membership": false
+  },
+  "additional_counterexample_classes": [
+    {
+      "prefix": "b200b400c/b400",
+      "observed_increment": "b2300",
+      "street": 1,
+      "policy_table": ["f","c",null,null,null,"b928","b1200","b1600","b19600"],
+      "classification": "LEGAL_EXTERNAL_RAISE_TARGET"
+    },
+    {
+      "prefix": "b200c/kb132c/kb219c/",
+      "observed_increment": "b249",
+      "street": 3,
+      "policy_table": [null,"k","b363","b551","b738","b826","b1102","b1653","b19449"],
+      "classification": "LEGAL_EXTERNAL_OPEN_BET_TARGET"
+    },
+    {
+      "prefix": "b200b600b1200c/kb1200c/kb2400c/",
+      "observed_increment": "b7350",
+      "street": 3,
+      "policy_table": [null,"k","b3168","b4800","b6432","b7200","b9600","b14400","b15200"],
+      "classification": "LEGAL_EXTERNAL_OPEN_BET_TARGET"
+    }
+  ],
+  "design_inference": {
+    "single_counterexample_only": false,
+    "external_action_domain_material": true,
+    "external_rate_all_rows": 0.05549233549769061,
+    "external_rate_opponent_rows": 0.09576065611643757,
+    "hero_action_table_identity_supported": true,
+    "public_parser_must_not_require_policy_slot_membership": true,
+    "policy_selector_must_require_exact_non_null_slot_membership": true,
+    "observed_external_action_projection": "FORBIDDEN",
+    "strength_or_behavior_inference": "NONE"
+  },
+  "network_or_slumbot_hands": 0,
+  "official_hands": 0,
+  "checkpoint_created": false,
+  "route_exhausted": false
+}

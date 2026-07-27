@@ -1,0 +1,78 @@
+{
+    "schema_version":  "v5.exp_w1.warmup_protocol_failure.v1",
+    "checked_at":  "2026-07-11T16:40:00Z",
+    "immutable":  true,
+    "experiment":  "EXP-W1",
+    "classification":  "EXP_W1_FAIL_WARMUP_GATE",
+    "method_authority":  "TERMINAL_FAIL",
+    "program_stop":  "FREEZE_TIER2_NO_2_7B_INERTIA",
+    "design_lock":  {
+                        "path":  "reports/v5_exp_w1_design_lock_v3_20260711.json",
+                        "revision":  3,
+                        "sha256":  "ed38a7d1465cc22afb1fe69fa7fddb9a5daeb7c0272c437b5f19bb01c1e32984"
+                    },
+    "control_endpoint":  {
+                             "run_id":  "v5_zero_l6_expw1_control_same31400_20m_r2_20260711",
+                             "iteration":  32617,
+                             "hands":  535999504,
+                             "status":  "ARM_ENDPOINT_FROZEN_PASS",
+                             "checkpoint_sha256":  "119083bc4bb12c781898bfb44e703dd172fe620de3e586e1267cda225adec836"
+                         },
+    "treatment":  {
+                      "run_id":  "v5_zero_l6_expw1_treatment_same31400_20m_r2_20260711",
+                      "source_iteration":  31400,
+                      "source_hands":  515989661,
+                      "source_checkpoint_sha256":  "bcbb46bd01d62fcdea602269b7047323315d4e9bbcf447ea0323e289fde11a8e",
+                      "process_id":  36612,
+                      "process_state":  "EXITED_AFTER_LOCKED_WARMUP_FAILURE",
+                      "normal_ppo_iterations_completed":  0,
+                      "endpoint_authority":  "NONE"
+                  },
+    "warmup_gate":  {
+                        "report_path":  "reports/v5_exp_w1_value_warmup_gate31401_20260711.json",
+                        "report_sha256":  "389bc63dfce60dbb378357b17710d8e69d1429a7902ccde15bd7cd3797ef7794",
+                        "iteration":  31401,
+                        "epochs":  8,
+                        "before_heldout_mse":  969.35762449063384,
+                        "after_heldout_mse":  962.71395935829048,
+                        "relative_heldout_mse_reduction":  0.0068536781106295934,
+                        "minimum_relative_heldout_mse_reduction":  0.02,
+                        "comparison":  "0.006853678110629593 \u003c 0.02",
+                        "policy_logits_max_abs_delta":  0,
+                        "non_value_model_state_bitwise_unchanged":  true,
+                        "non_value_optimizer_state_unchanged":  true,
+                        "value_head_changed":  true,
+                        "status":  "FAIL",
+                        "locked_failure_action":  "ABORT_BEFORE_NORMAL_PPO"
+                    },
+    "abort_evidence":  {
+                           "stderr_path":  "models/alpha_holdem_v5_from_zero/v5_zero_l6_expw1_treatment_same31400_20m_r2_20260711/console.err.log",
+                           "stderr_sha256":  "8e58d270227860410d5ec352ca18644e40911f7bbff6e636ca481cb1305d0b98",
+                           "stderr_signature":  "EXP-W1 value-head warmup gate FAIL; refusing PPO continuation",
+                           "stdout_sha256":  "fa2d14104093883bd78d1f5331fae1e50e5ef2ee945b61c318b8792be404ef72",
+                           "manifest_sha256":  "fc02a8b2156013e17bf5ef643fcd49ebcba5112c361067f38e8fc18854757359",
+                           "manifest_last_identity":  "iteration31400_hands515989661_initialized",
+                           "aborted_checkpoint_sha256":  "b2955180fed3497860f90597640e342714c613bafeebba54f26cc038034dd648",
+                           "aborted_checkpoint_classification":  "ABORTED_WARMUP_CHECKPOINT_NO_ENDPOINT_AUTHORITY"
+                       },
+    "downstream":  {
+                       "treatment_fixed20m":  "TERMINAL_BLOCKED",
+                       "first60_throughput_gate":  "NOT_REACHED_NOT_APPLICABLE",
+                       "primary100k":  "FORBIDDEN",
+                       "promotion20k":  "FORBIDDEN",
+                       "formal100k":  "FORBIDDEN",
+                       "slumbot":  "FORBIDDEN",
+                       "tier2_adjustments":  "FROZEN"
+                   },
+    "official_strength":  {
+                              "level":  "L0",
+                              "hands":  20400,
+                              "policy":  "greedy-direct",
+                              "bb_per_100":  -153.3,
+                              "ci95":  [
+                                           -187.695,
+                                           -118.905
+                                       ],
+                              "changed_by_exp_w1":  false
+                          }
+}

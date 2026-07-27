@@ -1,0 +1,71 @@
+{
+  "schema_version": "v5.hybrid.route_review.result.v20.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-020",
+  "checked_at": "2026-07-19T19:25:00Z",
+  "overall": "PASS_ROUTE_REVIEW",
+  "registration_sha256": "79c498a0fa381df1174eea06151c7244f340ab4a7252ecdca8c9f49c3566b651",
+  "registration_audit_sha256": "6cce032ef096988c906c66879166229d60fadfb2322eba57978040d504e50890",
+  "evidence_matrix": {
+    "pcv008": {
+      "classification": "PCV008_FAIL_CLOSED_PATH1_IDENTITY_CHANGED_NO_RESULT",
+      "failure_sha256": "c53014f03da6b11d5b3fe0f7705dfcf4fbcd56578c51e0ffda742ab31502b78f",
+      "terminal_audit_sha256": "a50679421f7d0cd71facf17463579d1e5c7503dbc618689f14c5c6738b49ff37",
+      "terminal_audit_checks": "18/18",
+      "failure_stage": "FINAL_PATH1_IDENTITY_GATE_BEFORE_RESULT_WRITE",
+      "result_written": false,
+      "scientific_or_timing_inference": "FORBIDDEN"
+    },
+    "path1_coordinator_code": {
+      "path": "packages/cfr-solver/src/scripts/solve-v3-parallel.ts",
+      "sha256": "71c60ea468d530b26a24673607c141a8f5ca80c5e1e2acdd61a06e2cac2cf986",
+      "configured_workers": 6,
+      "solve_role": "FORK_SOLVE_WORKER_TS_FOR_ONE_BOARD",
+      "qa_role": "AFTER_SOLVE_AND_GZIP_SPAWN_NODE_QA_200BB_BOARD_FOR_THE_SAME_LOGICAL_RUN_LOOP",
+      "role_transition": "SOLVE_CHILD_EXITS_BEFORE_QA_CHILD_RUNS",
+      "implication": "AN_INSTANTANEOUS_FIVE_SOLVE_WORKER_PLUS_ONE_QA_CHILD_SNAPSHOT_IS_COMPATIBLE_WITH_NORMAL_SIX_LOOP_OPERATION"
+    },
+    "frozen_identity_checker": {
+      "path": "scripts/alpha_holdem/v5_hybrid_h17_perf_cal.py",
+      "sha256": "8191f46a08b37d4a6d4ba9223fea9ecd7477e869c6cef64d8aa305b8b8060d07",
+      "predicate": "COUNT_ONLY_DIRECT_CHILDREN_WHOSE_COMMAND_CONTAINS_SOLVE_WORKER_TS_AND_REQUIRE_EXACTLY_SIX",
+      "qa_child_recognized": false,
+      "classification": "NOT_PHASE_AWARE"
+    },
+    "failure_snapshot": {
+      "coordinator_pid": 23720,
+      "priority": "BelowNormal",
+      "solve_workers": 5,
+      "qa_children": 1,
+      "agent_path1_mutation": false,
+      "interpretation": "COMPATIBLE_WITH_EXPECTED_SOLVE_TO_QA_TRANSITION_BUT_NOT_A_RETROACTIVE_PCV008_PASS"
+    },
+    "other_routes": {
+      "h3_cfr_bc": "NOT_SELECTED_NO_NEW_IMMUTABLE_ASSET_AND_BRIDGE_COMPLETION_IN_THIS_REVIEW",
+      "direct_h19": "FORBIDDEN_UNRESOLVED_RESOURCE_IDENTITY_CONTRACT",
+      "route_exhaustion": "NOT_SUPPORTED_BECAUSE_A_PROSPECTIVE_PHASE_AWARE_REPORTING_CONTRACT_REMAINS"
+    }
+  },
+  "decision": {
+    "selected_next": "PCV009_REPORTING_ONLY_PHASE_AWARE_PATH1_IDENTITY_CONTRACT_AUDIT",
+    "causal_reason": "THE_PCV008_FAILURE_PREDICATE_COUNTED_ONLY_SOLVE_WORKER_CHILDREN_WHILE_THE_IMMUTABLE_COORDINATOR_CODE_DEFINES_A_NORMAL_SOLVE_CHILD_TO_QA_CHILD_TRANSITION_WITHIN_EACH_OF_SIX_LOGICAL_RUN_LOOPS;THE_OBSERVED_FIVE_PLUS_ONE_SNAPSHOT_IS_COMPATIBLE_WITH_NORMAL_OPERATION,BUT_PCV008_STAYS_TERMINAL_AND_A_NEW_PROSPECTIVE_CONTRACT_MUST_BE_VALIDATED_SEPARATELY",
+    "behavior_change": false,
+    "route_exhausted": false,
+    "behavior_launch_authority": "NONE_REPORTING_ONLY_PCV009_REQUIRES_SEPARATE_PREREGISTRATION",
+    "automatic_h19_launch": false
+  },
+  "pcv009_constraints": {
+    "trainerless": true,
+    "gpu_measurement": false,
+    "checkpoint_write": false,
+    "official_hands": 0,
+    "path1_mutation_restart_or_repair": "FORBIDDEN",
+    "required_contract": "BIND_COORDINATOR_PID_COMMAND_PRIORITY_CONFIGURED_SIX_LOGICAL_LOOPS_AND_ALLOWLISTED_SOLVE_OR_QA_CHILD_ROLES_WITH_TRANSITION_TOLERANCE",
+    "must_fail_on": "UNKNOWN_CHILD_ROLE_COORDINATOR_IDENTITY_CHANGE_GPU_USE_OR_NON_BELOWNORMAL_PRIORITY",
+    "pcv008_reclassification_or_rerun": "FORBIDDEN",
+    "behavior_launch": "FORBIDDEN"
+  },
+  "pcv008_terminal_closure": "CLOSED_NO_RERUN_NO_RECONSTRUCTION_NO_RECLASSIFICATION_NO_INFERENCE",
+  "path1_mutation_authority": "NONE",
+  "official_hands": 0,
+  "strength_claim": "FORBIDDEN"
+}

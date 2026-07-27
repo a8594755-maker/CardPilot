@@ -1,0 +1,150 @@
+{
+  "schema_version": "v5.pcv017.preregistration.v1",
+  "design_id": "PCV017",
+  "registered_at": "2026-07-20T03:54:00Z",
+  "status": "REGISTERED_NO_IMPLEMENTATION_NO_EXECUTION",
+  "route_review028": {
+    "result_sha256": "7dcde76c63070539ec08445bf9b0935c4d192852dd7b6f3064409d48d48356d8",
+    "audit_sha256": "f55b0e7de5a7ec09ab5986d21999ec9091ed0377d1756945172f4991343d5eef",
+    "audit_checks": "55/55",
+    "selected_next": "PCV017_NEW_TRAINERLESS_EXACT_V55_TEACHER_SOLVER_INTERFACE_AND_BOUNDED_CPU_SMOKE"
+  },
+  "safe_boundary": {
+    "active_window_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_active_window.json",
+    "active_window_sha256": "341f917dd0370861150253be465dce718609c3604268c516a1d56478340c4b40",
+    "active": false,
+    "terminal": true,
+    "trainer_pid": null
+  },
+  "frozen_existing_inputs": [
+    {"path":"C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\environment_v55.py","sha256":"3ab591176a8119d21ac11e043bdfef72bd30b8842e34a9fea45cdd36b945f9de","role":"EXACT_V55_OBSERVATION_ACTION_TABLE_AND_STEP_OWNER"},
+    {"path":"C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\environment.py","sha256":"764c838ff060881705b91477d8bf3a5df6949f94a6e503fcb816c6f1b4c57f9b","role":"TRANSITIVE_V55_IMPORT_FOR_V4_HISTORY_COMPATIBILITY"},
+    {"path":"C:\\Users\\a8594\\CardPilot\\scripts\\deep_cfr\\game_state.py","sha256":"1500278c6a0fd2909c3bb7aa741aad1842651478b84a676e0783031aa27a6a8a","role":"EXACT_STATE_TRANSITION_LEGAL_ACTION_PAYOFF_TERMINAL_AND_DEAL_OWNER"},
+    {"path":"C:\\Users\\a8594\\CardPilot\\scripts\\deep_cfr\\hand_eval.py","sha256":"fc30df48b0ae0091311f2ff40f8e320278bc47abba606c0c1f71fcce498f490d","role":"SHOWDOWN_PAYOFF_OWNER"},
+    {"path":"C:\\Users\\a8594\\CardPilot\\reports\\v5_pcv016_result_20260719.json","sha256":"b149e9f06715d102ac89a7f636f49dd1dde74f9756145dd3fcda95a27da7901f","role":"IMMUTABLE_LOCALIZED_FEASIBILITY_GAPS"},
+    {"path":"C:\\Users\\a8594\\CardPilot\\reports\\v5_pcv016_result_audit_20260719.json","sha256":"d391ce6dc5680b19f319b8dea889df505cb483b67f3c02e47782167ae56240ef","role":"IMMUTABLE_PCV016_AUDIT_PASS64_OF64"},
+    {"path":"C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_route_review_028_result_20260719.json","sha256":"7dcde76c63070539ec08445bf9b0935c4d192852dd7b6f3064409d48d48356d8","role":"IMMUTABLE_SELECTION_AUTHORITY"},
+    {"path":"C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_route_review_028_result_audit_20260719.json","sha256":"f55b0e7de5a7ec09ab5986d21999ec9091ed0377d1756945172f4991343d5eef","role":"IMMUTABLE_ROUTE_REVIEW_AUDIT_PASS55_OF55"}
+  ],
+  "planned_implementation": {
+    "runner_path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_pcv017_exact_v55_teacher_smoke.py",
+    "runner_pre_registration_state": "ABSENT",
+    "auditor_path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_pcv017_result_audit.py",
+    "auditor_pre_registration_state": "ABSENT",
+    "implementation_audit_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_pcv017_implementation_audit_20260719.json",
+    "implementation_audit_pre_registration_state": "ABSENT",
+    "single_engineering_variable": "NEW_SMOKE_INTERFACE_ENUMERATES_ONLY_EXACT_NON_NULL_BUILD_ACTION_TABLE_ENTRIES_AND_USES_EXACT_V55_OBSERVATIONS_INSTEAD_OF_LEGACY_HUNLENCODER_AND_ORDINAL_ACTIONS_TO_SLOTS",
+    "existing_behavior_code_change": "NONE",
+    "path1_code_or_asset_change": "NONE"
+  },
+  "immutable_outputs": {
+    "root": "C:\\Users\\a8594\\CardPilot\\reports\\pcv017_exact_v55_teacher_smoke_20260719",
+    "teacher_rows": "C:\\Users\\a8594\\CardPilot\\reports\\pcv017_exact_v55_teacher_smoke_20260719\\teacher_rows.jsonl",
+    "terminal_probes": "C:\\Users\\a8594\\CardPilot\\reports\\pcv017_exact_v55_teacher_smoke_20260719\\terminal_probes.jsonl",
+    "raw_metrics": "C:\\Users\\a8594\\CardPilot\\reports\\pcv017_exact_v55_teacher_smoke_20260719\\raw_metrics.json",
+    "result": "C:\\Users\\a8594\\CardPilot\\reports\\pcv017_exact_v55_teacher_smoke_20260719\\result.json",
+    "audit": "C:\\Users\\a8594\\CardPilot\\reports\\pcv017_exact_v55_teacher_smoke_20260719\\result_audit.json",
+    "root_pre_registration_state": "ABSENT",
+    "overwrite": "FORBIDDEN"
+  },
+  "exact_interface_contract": {
+    "config": "GameConfig.full_200bb_WITH_raise_cap_per_street_999",
+    "state_owner": "HUNLGameState",
+    "observation_functions": ["encode_cards","encode_action_history","encode_extra"],
+    "legal_action_owner": "build_action_table",
+    "slots": 9,
+    "slot_to_action": "ONLY_NON_NULL_TABLE_ENTRIES_WITH_MASK1",
+    "transition": "HUNLGameState.apply_THE_EXACT_BOUND_ACTION_OBJECT",
+    "terminal": "HUNLGameState.is_terminal",
+    "payoff": "HUNLGameState.payoff_FROM_THE_DECISION_PLAYER_PERSPECTIVE",
+    "replay_identity": "STATE_OBSERVATION_MASK_ORDERED_SLOT_ACTION_NEXT_STATE_PAYOFF_AND_TERMINAL_HASHES_MUST_MATCH_ON_REPEAT",
+    "legacy_hunlencoder_or_actions_to_slots": "FORBIDDEN"
+  },
+  "teacher_row_contract": {
+    "classification": "FORBIDDEN_TRAINING_SMOKE_ONLY",
+    "required_fields": ["row_id","deal_id","street","player","state_sha256","observation_sha256","legal_mask_sha256","ordered_slot_actions","batch_a_values","batch_b_values","teacher_probabilities","teacher_probability_sha256","batch_l1","seed_identity"],
+    "teacher_method": "TWO_INDEPENDENT_DETERMINISTIC_MONTE_CARLO_ACTION_VALUE_BATCHES_FOUR_TERMINAL_ROLLOUTS_PER_EXACT_ACTION_PER_BATCH_THEN_SOFTMAX_OF_THE_MEAN_VALUES_AT_TEMPERATURE100",
+    "probability_rules": "FINITE_NONNEGATIVE_SUM_ONE_ZERO_ON_ILLEGAL_SLOTS",
+    "projection_drop_renormalization_after_drop": "FORBIDDEN",
+    "slot_collision": "FORBIDDEN_BECAUSE_ONLY_ONE_BOUND_ACTION_PER_NON_NULL_TABLE_SLOT_IS_EXPORTED",
+    "same_seed_repeat": "FIRST8_ROWS_MUST_REPRODUCE_IDENTICAL_STATE_OBSERVATION_ACTION_AND_TEACHER_PROBABILITY_HASHES"
+  },
+  "deterministic_smoke_scope": {
+    "deal_seed": 2026072091,
+    "rollout_seed": 2026972091,
+    "deals": 16,
+    "decision_rows": 64,
+    "decision_rows_per_street": {"PREFLOP":16,"FLOP":16,"TURN":16,"RIVER":16},
+    "state_line": "PREFLOP_CALL_THEN_POSTFLOP_CHECK_CHECK_TO_NATURAL_SHOWDOWN",
+    "terminal_probes_per_class": 16,
+    "terminal_classes": ["FOLD_AFTER_EXACT_SIZED_ACTION","ALLIN_CALL_SHOWDOWN","PASSIVE_RIVER_SHOWDOWN"],
+    "teacher_batches": 2,
+    "rollouts_per_action_per_batch": 4,
+    "rollout_policy": "UNIFORM_OVER_EXACT_NON_NULL_V55_TABLE_SLOTS_USING_PER_ROLLOUT_DETERMINISTIC_SEED",
+    "max_rollout_steps": 128,
+    "teacher_temperature": 100.0,
+    "same_seed_repeat_rows": 8,
+    "cpu_workers": 1,
+    "device": "CPU_ONLY_GPU_FORBIDDEN"
+  },
+  "hard_gates": {
+    "input_hashes": "8_OF_8_EXACT",
+    "implementation_audit": "PASS_ALL_CHECKS_BEFORE_EXECUTION",
+    "decision_rows": 64,
+    "street_counts": {"PREFLOP":16,"FLOP":16,"TURN":16,"RIVER":16},
+    "terminal_probe_counts_minimum": {"FOLD_AFTER_EXACT_SIZED_ACTION":16,"ALLIN_CALL_SHOWDOWN":16,"PASSIVE_RIVER_SHOWDOWN":16},
+    "exact_replay_failures_max": 0,
+    "observation_or_action_identity_failures_max": 0,
+    "probability_failures_max": 0,
+    "projection_drop_renormalization_or_collision_count_max": 0,
+    "illegal_positive_probability_mass_max": 0.0,
+    "same_seed_repeat_hash_failures_max": 0,
+    "rollout_nonterminal_failures_max": 0,
+    "batch_l1_mean_max": 0.75,
+    "batch_l1_max_max": 1.75,
+    "wall_seconds_max": 180.0,
+    "peak_rss_mb_max": 2048.0,
+    "bundle_bytes_max": 26214400,
+    "row_wall_seconds_p95_max": 2.0,
+    "extrapolation_target_rows": 1000000,
+    "extrapolated_serial_wall_seconds_max": 2592000.0,
+    "extrapolated_storage_bytes_max": 53687091200,
+    "gpu_visible_or_used": false
+  },
+  "extrapolation_rule": {
+    "time": "P95_DECISION_ROW_WALL_SECONDS_MULTIPLIED_BY1000000_NO_PARALLEL_SPEEDUP",
+    "storage": "CEILING_TOTAL_BUNDLE_BYTES_PER_DECISION_ROW_MULTIPLIED_BY1000000",
+    "memory": "MEASURED_SINGLE_WORKER_PEAK_RSS_NO_SCALE_DOWN_OR_PARALLEL_CLAIM",
+    "authority": "PLANNING_BOUND_ONLY_NOT_FULL_ASSET_RUNTIME_CLAIM"
+  },
+  "classification_rules": {
+    "PASS": "EVERY_HARD_GATE_PASSES_AND_INDEPENDENT_RESULT_AUDIT_PASSES",
+    "PASS_classification": "PCV017_PASS_EXACT_V55_INTERFACE_AND_BOUNDED_CPU_SMOKE",
+    "FAIL_CLOSED": "ANY_INPUT_IMPLEMENTATION_REPLAY_SEMANTIC_PROBABILITY_RESOURCE_DEVICE_OR_OUTPUT_HARD_GATE_FAILS",
+    "FAIL_CLOSED_classification": "PCV017_FAIL_CLOSED_EXACT_V55_INTERFACE_OR_BOUNDED_CPU_SMOKE_GATE",
+    "INCONCLUSIVE": "EXTERNAL_INTERRUPTION_OR_MISSING_NONSEMANTIC_RESOURCE_TELEMETRY_PREVENTS_A_REGISTERED_GATE_FROM_BEING_JUDGED_WITHOUT_A_SEMANTIC_FAILURE",
+    "INCONCLUSIVE_classification": "PCV017_INCONCLUSIVE_BOUNDED_SMOKE_NOT_JUDGEABLE",
+    "nonpass_next": "SEPARATELY_REGISTERED_ROUTE_REVIEW029",
+    "pass_next": "SEPARATELY_REGISTERED_FULL_ASSET_DESIGN_REVIEW_NO_AUTOMATIC_GENERATION"
+  },
+  "abort_rules": {
+    "hash_mismatch": "FAIL_CLOSED_BEFORE_SMOKE",
+    "implementation_audit_nonpass": "FAIL_CLOSED_NO_SMOKE",
+    "gpu_visibility_or_use": "FAIL_CLOSED_IMMEDIATE",
+    "path1_write_signal_or_process_dependency": "ABORT_FORBIDDEN",
+    "trainer_evaluator_slumbot_checkpoint_or_official_hand": "ABORT_FORBIDDEN",
+    "hard_wall_or_rss_limit": "FAIL_CLOSED_STOP",
+    "adaptive_sample_seed_threshold_or_output_change": "FORBIDDEN",
+    "rerun_same_registration": false
+  },
+  "interpretation": {
+    "scope": "ASSET_INTERFACE_AND_RESOURCE_FEASIBILITY_ONLY",
+    "training_eligibility": "FORBIDDEN",
+    "full_asset_generation_authority": "NONE",
+    "behavior_method_or_strength_inference": "FORBIDDEN",
+    "automatic_h19_or_later_launch": false
+  },
+  "behavior_launch_authority": "NONE",
+  "official_hands": 0,
+  "strength_claim": "FORBIDDEN"
+}

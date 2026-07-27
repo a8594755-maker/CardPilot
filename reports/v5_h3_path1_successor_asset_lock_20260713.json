@@ -1,0 +1,44 @@
+{
+  "schema_version": "v5.hybrid.h3.path1_successor_asset_lock.v1",
+  "design_id": "H3-PATH1-LEGAL-ALLIN-V2",
+  "status": "LOCKED_ASSET_GENERATION_ONLY",
+  "locked_at": "2026-07-13T05:34:56+00:00",
+  "reason": "replace protocol-aborted Path-1 assets whose CFR tree offered illegal post-all-in actions",
+  "source_failure": {
+    "audit_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_h3_path1_asset_readiness_audit_v3_20260713.json",
+    "audit_sha256": "db2fef9c70b44d3f7b0af437c9e68b5615451326e59dac393a1e1b9ab79096d5",
+    "classification": "PATH1_FAIL_PROTOCOL_ABORT_ILLEGAL_POST_ALLIN_ACTIONS",
+    "preserved_source_dir": "C:\\Users\\a8594\\CardPilot\\data\\cfr\\pipeline_v3_hu_srp_200bb",
+    "preserved_complete_board_pairs": 161
+  },
+  "single_asset_correction": "when the opponent stack is zero, a heads-up player facing a wager may only fold or call",
+  "configuration": {
+    "config": "pipeline_srp_v3_200bb",
+    "iterations_per_board": 80000,
+    "target_boards": 600,
+    "selection_method": "isomorphism weight plus texture stratification",
+    "selection_seed": 20260712,
+    "samples_per_bucket": 1,
+    "workers": 6,
+    "heap_mb_per_worker": 18432,
+    "process_priority": "BelowNormal",
+    "device": "CPU_ONLY_GPU_FORBIDDEN",
+    "output_dir": "C:\\Users\\a8594\\CardPilot\\data\\cfr\\pipeline_v3_hu_srp_200bb_legalallin_v2",
+    "overwrite_source_assets": false
+  },
+  "code_identity": [
+    {"path":"C:\\Users\\a8594\\CardPilot\\packages\\cfr-solver\\src\\scripts\\solve-v3-parallel.ts","sha256":"71c60ea468d530b26a24673607c141a8f5ca80c5e1e2acdd61a06e2cac2cf986"},
+    {"path":"C:\\Users\\a8594\\CardPilot\\packages\\cfr-solver\\src\\tree\\tree-config.ts","sha256":"583c960e99a68daf34791f6789303bec344e654dc0c228f51514e26560629771"},
+    {"path":"C:\\Users\\a8594\\CardPilot\\packages\\cfr-solver\\src\\tree\\tree-builder.ts","sha256":"84b2fa1b50404e8cd25ec0c59b3e6838f0987d45f885fdccdefacaf2bf06e517"},
+    {"path":"C:\\Users\\a8594\\CardPilot\\scripts\\qa-200bb-board.mjs","sha256":"0cc97dd503f7e1a6b7ff9101b8e4870c85859f46175ea0cced3c47ae586ce83d"}
+  ],
+  "prelaunch_validation": {
+    "post_allin_tree_test": "PASS_1_OF_1",
+    "tree_debug_regression_test": "PASS_1_OF_1",
+    "legacy_board_288_qa": "EXPECTED_FAIL_1438172_ILLEGAL_ROWS",
+    "typecheck": "BLOCKED_BY_PREEXISTING_UNRELATED_subgame-resolver.ts_lines130_131_params_errors"
+  },
+  "per_board_gate": "QA_PASS requires convergence thresholds and zero illegal post-all-in extra-action rows",
+  "h3_behavior_authorized": false,
+  "official_hands_authorized": 0
+}

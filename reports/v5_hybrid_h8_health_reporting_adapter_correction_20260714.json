@@ -1,0 +1,73 @@
+{
+  "schema_version": "v5.hybrid.h8.reporting_correction.v1",
+  "recorded_at": "2026-07-14T07:16:01-04:00",
+  "classification": "CENSURE_H8_FROZEN_MONITOR_LOG_TOKEN_COMPATIBILITY_CORRECTED",
+  "scope": "reporting_and_control_plane_only",
+  "cause": "The frozen v5_monitor.py parser predates the H8-only vhcatch=0/1 token in latest_train.log, so it parsed zero H8 rows and emitted WARN despite a healthy exact run.",
+  "correction": {
+    "adapter": "v5.h8.health_log_adapter.v1",
+    "source": "scripts/alpha_holdem/v5_health_watch.py",
+    "source_sha256": "e7bc44b2ff596b22f365ee79a5d91279259fe8f3d376dff7bcf53c05fef02ed7",
+    "operation": "Create an H8-only shadow reporting view that removes only the whitespace-delimited vhcatch=[01] token, preserves source log mtime, copies the exact manifest/stderr, runs the frozen monitor against the shadow, and atomically publishes health with adapter provenance.",
+    "source_artifacts_mutated": false,
+    "trainer_mutated_or_restarted": false,
+    "method_or_evaluator_changed": false
+  },
+  "frozen_monitor": {
+    "path": "scripts/alpha_holdem/v5_monitor.py",
+    "sha256": "fb7ed628e2a2d246d5094fb1882465c42ac11768ed6a0bcec2ebab05ebd034a4",
+    "changed": false
+  },
+  "preserved_failed_report": {
+    "path": "reports/v5_h8_control_health_warn_before_adapter_20260714.json",
+    "sha256": "d2055122060a9e7473ccbb557a259bb3aa17620334d965cc951564d3e577547f",
+    "classification": "PRESERVED_REPORTING_WARN_NO_METHOD_AUTHORITY"
+  },
+  "treatment_launcher_syntax_correction": {
+    "path": "scripts/alpha_holdem/v5_hybrid_h8_launch_treatment.ps1",
+    "sha256": "830cdfc5b6da9f6d1330311e5c46467e79545f63417355ce6ad94b2e7659815d",
+    "locked_by_h8_v5_design_lock": false,
+    "change": "Whitespace-only token separation for two PowerShell boolean operator expressions; no argument, identity, gate, or behavior change.",
+    "parser_errors": 0,
+    "validate_only": "EXPECTED_NOT_READY_WHILE_CONTROL_RUNNING",
+    "validate_only_exit_code": 3,
+    "unexpected_mirror_outputs": 0
+  },
+  "tests": {
+    "command": "python -m pytest scripts/alpha_holdem/test_v5_health_watch_h8_compat.py scripts/alpha_holdem/test_v5_rearm_watchers.py scripts/alpha_holdem/test_v5_hybrid_h8_preflight.py scripts/alpha_holdem/test_v5_hybrid_h8_implementation.py -q",
+    "passed": 25,
+    "failed": 0,
+    "compatibility_test_sha256": "6b863f86032c6dc7567f2251746d7329d509ffa4e67c7994f86d1dbe04cf3464"
+  },
+  "lock_reaudit": {
+    "design_lock_path": "reports/v5_hybrid_h8_design_lock_v5_20260714.json",
+    "design_lock_sha256": "298daa368585af79586f3ba24b7fde1ae862de41a8221cdf46c0825d041957c6",
+    "audit_path": "reports/v5_hybrid_h8_design_lock_v5_post_health_adapter_audit_20260714.json",
+    "audit_sha256": "5c3b04b5ea9f9762c8bd9e2c53a15d316f73dcfaf2c06ceaceb1c6ef63fe3821",
+    "overall": "PASS_IMMUTABLE_H8_DESIGN_LOCK"
+  },
+  "canonical_rearm": {
+    "rearmed_at": "2026-07-14T07:15:00.3809559-04:00",
+    "survival_pass": true,
+    "permitted_watchers_alive": 8,
+    "terminally_blocked_paths": 8,
+    "failed_watchers": 0,
+    "trainer_pid": 45144,
+    "trainer_remained_alive": true
+  },
+  "post_correction_observation": {
+    "run_id": "v5_hybrid_h8_control_kles003_nocatch_same32617_20m_r1_20260714",
+    "run_status": "running",
+    "health": "PASS",
+    "adapter_provenance_present": true,
+    "endpoint_state": "ARM_RUNNING",
+    "protocol_state": "ARM_RUNNING_GUARDS_PASS",
+    "treatment_launch_state": "WAITING_FOR_CONTROL_ENDPOINT",
+    "official_hands": 0
+  },
+  "authority": {
+    "h8_method_judgment": "UNCHANGED_PENDING_REGISTERED_ENDPOINTS_AND_MIRROR",
+    "strength_claim": "NONE",
+    "official_slumbot_launch": "TERMINALLY_BLOCKED_DURING_H8"
+  }
+}

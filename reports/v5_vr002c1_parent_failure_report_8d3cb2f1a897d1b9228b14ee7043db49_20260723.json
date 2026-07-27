@@ -1,0 +1,123 @@
+{
+  "schema_version": "v5.vr002.stagea.preoutput_failure.v1",
+  "recorded_at": "2026-07-23T11:24:00-04:00",
+  "status": "VR002_STAGEA_PREOUTPUT_CUDA_RNG_ISOLATION_ASSERT_FAILURE_NO_SCIENCE_NO_RERUN",
+  "classification": "PREOUTPUT_CONTROL_PLANE_FAILURE",
+  "parent_identity": {
+    "design": "VR002_CORRECTED_FROZEN_H11_FAITHFUL_QBOOST_CORE",
+    "sha256": "dbc03bbf7d1d9cb0270c4b1f9d583a586b82c23a655de48a4fb2139ac00a3fb1",
+    "token": "dbc03bbf7d1d9cb0270c4b1f9d583a58",
+    "preregistration_sha256": "029411e18760455197471a12f0c00c07d08e6d3123e3d8d62e4b51bc6b7b6fcd",
+    "preimplementation_audit_sha256": "fe45bd5235f4be3130616b3a387db7a3b41df9f9bfaf9eb44b2bd0d65ec876c6",
+    "implementation_audit_sha256": "b4c8ce596bc935874a19d90c5f0018e11c36234f5da09cf13349f5ef4febfc42"
+  },
+  "frozen_implementation": {
+    "core": {
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_vr002_qboost_core_dbc03bbf7d1d9cb0270c4b1f9d583a58.py",
+      "sha256": "63e600bf4e7dd447e514849f223dc160c5b4808ca716d173c22981ac7ff488ef",
+      "bytes": 47251
+    },
+    "trainer": {
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_vr002_train_dbc03bbf7d1d9cb0270c4b1f9d583a58.py",
+      "sha256": "868032be3c94f58915921acf0a95a7c6684469797a8c54cf5c1fffd94a4cf432",
+      "bytes": 67380
+    },
+    "launcher": {
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_vr002_launcher_dbc03bbf7d1d9cb0270c4b1f9d583a58.ps1",
+      "sha256": "77c2ccb9e596afd9c03d57040c816784f53638ff0c9ef586e14e9097d5d2490a",
+      "bytes": 7118
+    },
+    "implementation_auditor": {
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_vr002_implementation_audit_dbc03bbf7d1d9cb0270c4b1f9d583a58.py",
+      "sha256": "40938dc3e87b7b852e10f0a19dceb261be83bad12100205c69a4d78912f84f22",
+      "bytes": 23142
+    },
+    "window_auditor": {
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_vr002_window_audit_dbc03bbf7d1d9cb0270c4b1f9d583a58.py",
+      "sha256": "68c45035bedaa0b1405c84535ad05d2a755da602d21780679968e4a147ecedf2",
+      "bytes": 32655
+    }
+  },
+  "stagea_attempt": {
+    "mode": "StageA",
+    "launcher_owned": true,
+    "observed_elapsed_seconds_approx": 5,
+    "exit_code": 1,
+    "failure_phase": "Q_CPU_CONSTRUCTION_POSTCONDITION_BEFORE_Q_TO_CUDA",
+    "failing_call_order": [
+      "trainer.py:974 run_dir.mkdir(parents=True)",
+      "trainer.py:982-990 actor/source checkpoint and optimizer load on cuda",
+      "trainer.py:999 qcore.make_q_critic_isolated(seed=2026072302)",
+      "core.py:627 snapshot_torch_rng_states",
+      "core.py:628 fork_rng(devices=[])",
+      "core.py:629 torch.manual_seed(2026072302)",
+      "core.py:630 CentralizedQCritic CPU construction",
+      "core.py:631 assert_torch_rng_states_equal"
+    ],
+    "exception": {
+      "type": "RuntimeError",
+      "message": "Q operation changed global CUDA RNG state",
+      "core_guard_lines": [667, 677]
+    },
+    "not_reached": [
+      "q_model.to(cuda)",
+      "Q optimizer and dedicated minibatch generator",
+      "opponent pool materialization",
+      "shared-memory allocation",
+      "worker spawn",
+      "assignment provenance",
+      "any hand or physical-action row",
+      "any actor or Q update",
+      "any checkpoint or metric"
+    ]
+  },
+  "output_census": {
+    "output_root": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_vr002_dbc03bbf7d1d9cb0270c4b1f9d583a58_20260723",
+    "output_root_exists": true,
+    "descendant_directories": 1,
+    "sole_directory": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_vr002_dbc03bbf7d1d9cb0270c4b1f9d583a58_20260723\\vrpo_stagea",
+    "files": 0,
+    "file_bytes": 0,
+    "checkpoint_files": 0,
+    "metrics_files": 0,
+    "trace_files": 0,
+    "provenance_files": 0,
+    "manifest_files": 0
+  },
+  "scientific_counts": {
+    "workers_spawned": 0,
+    "complete_hands": 0,
+    "physical_action_rows": 0,
+    "actor_updates": 0,
+    "q_updates": 0,
+    "new_checkpoints": 0,
+    "network_requests": 0,
+    "slumbot_hands": 0,
+    "official_hands": 0
+  },
+  "judgment": {
+    "scientific_output": false,
+    "behavior_change": false,
+    "scientific_authority": "NONE",
+    "quick5k_required": false,
+    "critic_family_falsified": false,
+    "route_exhaustion_effect": "NONE",
+    "fresh_corrected_attempt_allowed": true,
+    "never_repair_mutate_reuse_or_rerun_parent": true,
+    "preserve_empty_output_root": true
+  },
+  "allowed_fresh_correction": {
+    "name": "CPU_DEFAULT_GENERATOR_ONLY",
+    "exact_old_statement": "torch.manual_seed(int(seed))",
+    "exact_new_statement": "torch.random.default_generator.manual_seed(int(seed))",
+    "scope": "Only inside the existing with torch.random.fork_rng(devices=[]): block of make_q_critic_isolated.",
+    "preserve": [
+      "fork_rng(devices=[])",
+      "before and after CPU/CUDA RNG snapshot assertions",
+      "Q seed 2026072302",
+      "canonical Q state hash 6f03d90f76c67afcd35a70551d2102815b2ed4c86ebcecfb13c1689ebe24e281",
+      "all scientific design, training, mechanism and external gates"
+    ]
+  },
+  "goal": "ACTIVE"
+}

@@ -1,0 +1,80 @@
+{
+  "schema_version": "v5.hybrid.h3.domain_adapter.design_lock.v2",
+  "design_id": "H3-DOMAIN-ADAPTER-001-V2",
+  "status": "LOCKED_OFFLINE_CORRECTION_IMPLEMENTATION_PENDING",
+  "locked_at": "2026-07-13T06:26:00+00:00",
+  "authority": "standing DRIVE_TO_L5 campaign authorization; H3 engineering prerequisite only",
+  "supersedes_before_asset_use": {
+    "design_lock_v1_sha256": "3b1a9e117e4bd48151c317f9ce868708a3c074a907eecf99e5d8cdd2424d2fa9",
+    "reason": "v1 omitted the solver export's bounded three-decimal probability residual and did not make smoke-only rows mechanically ineligible for behavior training",
+    "v1_behavior_or_official_use_occurred": false
+  },
+  "preserved_v1_contract": {
+    "corrected_qa_pass_assets_only": true,
+    "synthetic_path1_entry_ood_label_required": "SYNTHETIC_PATH1_SRP_ENTRY_OOD_NOT_DEPLOYMENT_REACHABLE",
+    "actual_v55_legal_mask_required": true,
+    "unsupported_target_mass_tolerance": 0.0,
+    "actor_only": true,
+    "critic_supervision_forbidden": true,
+    "selection_seed": 20260712,
+    "representatives_per_bucket": 1,
+    "required_complete_boards_for_h3_preregistration": 600
+  },
+  "new_frozen_probability_serialization_contract": {
+    "evidence_report": "C:\\Users\\a8594\\CardPilot\\reports\\v5_h3_bridge_probability_rounding_audit_20260713.json",
+    "evidence_report_sha256": "e5519cb10325d286cecbf60d8a0dd40c4bb6bfca8a21b4b469af7def926a7b85",
+    "maximum_allowed_absolute_source_sum_residual": 0.0050000001,
+    "correction": "add residual 1-sum(source probabilities) to the first maximum-probability source action",
+    "tie_break": "lowest source action index",
+    "post_correction_sum_tolerance": 1e-12,
+    "source_probability_bounds": [0.0, 1.0],
+    "record_per_row": [
+      "source_probability_sum",
+      "rounding_residual",
+      "rounding_residual_action_index"
+    ],
+    "fail_closed_if": [
+      "absolute residual exceeds 0.0050000001",
+      "any probability is non-finite or outside 0..1",
+      "correction would make the selected action leave 0..1",
+      "corrected total differs from 1 by more than 1e-12"
+    ],
+    "unsupported_mass_rule": "correction occurs in CFR action space before mapping; the adapter still rejects any mapped mass on an illegal v5.5 action and never renormalizes it away"
+  },
+  "new_frozen_bridge_scope_contract": {
+    "required_field": "bridge_scope",
+    "smoke_scope": "SMOKE_PREFIX_ONLY_FORBIDDEN_TRAINING",
+    "smoke_prefix_ceiling_rows": 10000,
+    "smoke_purpose": "pipeline shape, identity, determinism, OOD provenance and legality validation only",
+    "smoke_training_eligible": false,
+    "full_scope": "FULL_BOARD_CORPUS",
+    "full_scope_training_eligible_only_after": "all 600 selected boards independently QA PASS and the full-corpus identity/coverage/domain-risk audit passes",
+    "mixed_scope_output_forbidden": true
+  },
+  "source_identity_and_qa_contract": {
+    "only_asset_root": "C:\\Users\\a8594\\CardPilot\\data\\cfr\\pipeline_v3_hu_srp_200bb_legalallin_v2",
+    "source_gzip_sha256_required": true,
+    "meta_pair_identity_required": true,
+    "metadata": {
+      "game": "HU_NLHE_SRP",
+      "stack": "200bb",
+      "config": "pipeline_srp_v3_200bb",
+      "iterations": 80000,
+      "bucket_count": 50
+    },
+    "strict_streaming_qa": {
+      "physical_rows_equal_meta_infosets": true,
+      "valid_rows_equal_meta_infosets": true,
+      "minimum_rows": 100000,
+      "minimum_mean_max_probability": 0.55,
+      "minimum_decisive_rate_ge_0_6": 0.35,
+      "illegal_post_allin_extra_action_rows": 0
+    }
+  },
+  "first_board_gate": "run one bounded smoke-prefix export and domain-adapter conversion twice; require exact deterministic identity, shapes, OOD label, unit target mass, zero unsupported mass and training_eligible=false",
+  "full_corpus_row_selection": "NOT_FROZEN_BY_THIS_CORRECTION; full-board exporter emits every source info-set with a representative under the v1 contract. Any bounded training-row subsampling requires its own preregistration before H3 behavior use.",
+  "h3_preregistration_authorized": false,
+  "behavior_launch_authorized": false,
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

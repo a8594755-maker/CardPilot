@@ -1,0 +1,52 @@
+{
+  "schema_version": "v5.hybrid.route_review.result.v13.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-013",
+  "checked_at": "2026-07-19T16:13:00Z",
+  "overall": "PASS_ROUTE_REVIEW",
+  "registration_sha256": "0d1bd3527491d5ce82135f059e34435e8b8b270ef51f4e99d2d15dd9cb6b50a8",
+  "registration_audit_sha256": "5ceee4b057b177d73faa1ee90165f3ca42c17b5d8cf07466838752553f34ddab",
+  "registration_audit": "PASS_22_OF_22",
+  "evidence_matrix": {
+    "h15": {
+      "verdict": "FAIL",
+      "classification": "H15_FAIL_PREARM_PERF_CAL_NO_LAUNCH",
+      "judgment_sha256": "b182ce5990788029807b59df7de21e0ea4685277b2d11df96a57fbef2499ccda",
+      "terminal_audit_sha256": "d19f1d85b70002c9a5a221a70bca9cd4d995984f1c3e3fb8becd9eba523405ee",
+      "loss_only_ratio": 0.9298062924031755,
+      "loss_only_gate": 0.95,
+      "end_to_end_arm_gate": 0.85,
+      "trainer_started": false,
+      "method_inference": "NONE"
+    },
+    "localization": {
+      "loss_only_overhead_supported": true,
+      "end_to_end_throughput_regression_supported": false,
+      "scientific_effect_supported": false,
+      "same_window_rerun": "FORBIDDEN"
+    },
+    "campaign": {
+      "clean_h11_source_available": true,
+      "external_debt_hands": 0,
+      "latest_official_level": "L0",
+      "official_hands_this_review": 0,
+      "path1": "UNCHANGED"
+    }
+  },
+  "decision": {
+    "selected_next": "H16_REPRESENTATIVE_FULL_PPO_PERF_CAL_SAME_SCIENCE",
+    "reason": "H15_FAILED_ONLY_A_NONREPRESENTATIVE_LOSS_ONLY_0.95_GATE;OBSERVED_RATIO_0.929806_REMAINS_ABOVE_THE_REGISTERED_END_TO_END_0.85_ABORT_FLOOR;NO_ARM_OR_METHOD_EVIDENCE_EXISTS",
+    "h16_science": "EXACT_H11_SOURCE_FRESH_FIXED20M_MSE_CONTROL_VS_SMOOTHL1_BETA1_TREATMENT",
+    "h16_prearm": "NUMERICAL_AND_GRADIENT_IDENTITY;COMMON_MSE_BASELINE_RATIO_AT_LEAST_0.95;REPRESENTATIVE_FULL_PPO_UPDATE_THROUGHPUT_RATIO_AT_LEAST_0.85",
+    "h16_arm_throughput": "UNCHANGED_FIRST60_AND_FULL_RATIO_AT_LEAST_0.85",
+    "pcv005_fallback": "ONLY_IF_H16_REPRESENTATIVE_PREARM_GATE_FAILS",
+    "route_exhausted": false,
+    "authority": "SEPARATE_H16_PREREGISTRATION_ONLY"
+  },
+  "closures": {
+    "h12_h13_h14_h15": "TERMINAL_NO_REOPEN",
+    "h14_partial": "FORBIDDEN",
+    "h15_perf_cal": "NO_RERUN_OR_RECLASSIFICATION"
+  },
+  "official_hands": 0,
+  "strength_claim": "FORBIDDEN"
+}

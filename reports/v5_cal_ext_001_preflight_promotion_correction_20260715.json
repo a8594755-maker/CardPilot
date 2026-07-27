@@ -1,0 +1,54 @@
+{
+  "schema_version": "v5.external_calibration.preflight_correction.v2",
+  "event_id": "v5-cal-ext-001-preflight-promotion-correction-20260715",
+  "recorded_at": "2026-07-15T05:56:20Z",
+  "classification": "CENSURE_REPORTING_CONTROL_PLANE_CORRECTION_NO_HANDS",
+  "measurement_id": "CAL-EXT-001_H8_TREATMENT_GREEDY_QUICK5K",
+  "failed_bundle": {
+    "archive_dir": "reports/v5_cal_ext_001_preflight_v2_failed_20260715",
+    "preflight_json_sha256": "181f06f01be0852f9902818aa03b145935395fc392bb8e27c32ace1f1d54507a",
+    "preflight_status_sha256": "6f6b282c4b5b622772e1024b512df01272347993e7916aa7c17ce43964a15fda",
+    "watch_plan_sha256": "102aee04c2c05d57540fbd7034b30a8227c4c346bd3833f9aac177b485018a45",
+    "status": "FAIL_CLOSED",
+    "preservation": "ARCHIVED_READ_ONLY",
+    "slumbot_connection_attempted": false,
+    "official_hands_generated": 0
+  },
+  "diagnosis": {
+    "local_checkpoint_load": "PASS",
+    "representative_inference_cases": "PASS_6_OF_6",
+    "ci_pipeline": "PASS",
+    "root_causes": [
+      "Synthetic promotion-pipeline preflight did not propagate terminal endpoint/protocol identity and therefore reported stopped-run health_status as an unexpected failure.",
+      "Direct quick5k orchestration treated the expected promotion_hands<20000 gate verdict as an artifact-production failure, conflating staged strength eligibility with bundle validity."
+    ],
+    "model_or_method_failure": false
+  },
+  "correction": {
+    "terminal_health": "Promotion and synthetic preflight now validate the frozen benchmark copy against the exact finished endpoint SHA, manifest, endpoint status and protocol status.",
+    "quick5k_gate_separation": "A quick5k promotion gate may be artifact-complete only when its sole FAIL is promotion_hands; any health, identity, metadata or artifact failure remains rejected.",
+    "below_normal_priority": "Still mandatory and fail-closed.",
+    "bypass_flags_used": false,
+    "tool_hashes": {
+      "scripts/alpha_holdem/v5_slumbot_benchmark_plan.py": "01e8e9c0c58d04d626dc7400302445626181dc45dd4f01b5d29871bec7287d5b",
+      "scripts/alpha_holdem/v5_slumbot_benchmark_watch.py": "444bdf226f253398f9affcc8fb0d77b402a3dc17efe643d0dc8ec39dda4099d3",
+      "scripts/alpha_holdem/v5_slumbot_pipeline_preflight.py": "6118206f1e7232322a3b9d338293a72c47236aa1a11a5f483e935079cf40397a",
+      "scripts/alpha_holdem/v5_slumbot_promotion_gate.py": "9b29c8335956c40be37bed4e6f20d66b295804175300764b9bfad23b287ef325",
+      "scripts/alpha_holdem/test_v5_slumbot_benchmark_control.py": "db745304275eb88d6f6679f1dd1415a4bbce38560644481649c50733401325c6"
+    }
+  },
+  "validation": {
+    "py_compile": "PASS",
+    "unit_tests": "PASS_7_OF_7",
+    "terminal_frozen_copy_identity_test": "PASS",
+    "quick5k_expected_hand_gate_test": "PASS",
+    "unexpected_terminal_health_failure_rejection_test": "PASS",
+    "resource_warning": "CLOSED"
+  },
+  "authority": {
+    "v2_preregistration_sha256": "7aa89018db7d92ac310e4575a02a24d14e1dd5c5f180800c93d84b4f40765e1e",
+    "v2_status": "SUPERSEDED_TOOL_LOCK_NO_LAUNCH_AUTHORITY",
+    "v3_preregistration_required": true,
+    "launch_authority": "NONE_UNTIL_V3_AUDIT_AND_SEPARATE_PREFLIGHT_PASS"
+  }
+}

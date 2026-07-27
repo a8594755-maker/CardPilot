@@ -1,0 +1,42 @@
+{
+  "checked_at": "2026-07-10T14:44:00-04:00",
+  "status": "CORRECTED_VALIDATED",
+  "scope": "reporting_and_control_plane_only",
+  "trainer_behavior_changed": false,
+  "trainer_pid": 30224,
+  "first_rearm_attempt": {
+    "survival_pass": false,
+    "failed_watcher": "v5_gate_sequence_watch.py",
+    "cause": "canonical rearm hard-coded expected opponent assignment per-iteration while EXP-005 manifest correctly declared per-group",
+    "gate_status_effect": "gate31500 temporary FAIL on opponent_assignment identity only",
+    "trainer_affected": false
+  },
+  "additional_stale_contract_found": {
+    "exp003_watchers": "would reopen a terminally INCONCLUSIVE experiment on the continuation run",
+    "slumbot_watchers": "would make promotion/formal launchable before the registered EXP-005 endpoint and MEAS-001 method judgment"
+  },
+  "correction": {
+    "expected_assignment_source": "run_manifest.config.opponent_assignment",
+    "exp005_identity": "run_id contains exp005, assignment per-group, opponent_groups 5",
+    "exp003_freeze_bundle": "explicitly skipped",
+    "promotion20k": "explicitly skipped until frozen 20M endpoint and MEAS-001 judgment",
+    "formal100k": "explicitly skipped until strong same-checkpoint promotion"
+  },
+  "final_rearm": {
+    "survival_pass": true,
+    "range": "31500..32700",
+    "required_watchers_alive": 7,
+    "trainer_untouched": true
+  },
+  "validation": {
+    "powershell_parse": "PASS",
+    "rearm_contract_checks": "14/14 PASS",
+    "exp005_focused_tests": "5/5 PASS",
+    "full_v5_unittests": "153/153 PASS"
+  },
+  "sha256": {
+    "train_v5.py": "d9884241740d7040eb5ad09b6810c40423e2558ddac3544cf877b127315713b5",
+    "v5_continue_after_gate.ps1": "8fe692669ded074d6a24f472c24c904d942fe5a05e232cd58e254f810059783e",
+    "v5_rearm_watchers.ps1": "d3fef5e376ce28c4d458fd739f80e3ad3dd9a016faadcb57e6361c72098c0c38"
+  }
+}

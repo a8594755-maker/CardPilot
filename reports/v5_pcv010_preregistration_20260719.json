@@ -1,0 +1,83 @@
+{
+  "schema_version": "v5.pcv010.preregistration.v1",
+  "design_id": "PCV010",
+  "registered_at": "2026-07-19T20:53:00Z",
+  "status": "REGISTERED_REPORTING_ONLY_NO_TRAINER",
+  "route_review": {
+    "result_sha256": "f358094ffb149a0c49e233b6aa1fbe2ef8c087f497db828ce2c74107b12ccbde",
+    "audit_sha256": "eef97df3ea9fbab506cf30d3d237c46d15aaa696445472a4e32c8ac1a7d8282f",
+    "selected_next": "PCV010_NEW_REPORTING_ONLY_ORDER_BALANCED_GPU_TIMING_WITH_PHASE_AWARE_PATH1_IDENTITY"
+  },
+  "source": {
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_endpoint.pt",
+    "sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "iteration": 35051,
+    "hands": 576021901
+  },
+  "novel_identity": {
+    "transition_seed": 2026071986,
+    "update_seed": 2026971986,
+    "output": "reports/v5_pcv010_result_20260719.json",
+    "pcv008_result_input": "FORBIDDEN_AND_ABSENT"
+  },
+  "preserved_measurement": {
+    "rows": 4096,
+    "mini_batch_size": 1024,
+    "ppo_epochs": 4,
+    "target_kl": 1e-12,
+    "old_log_prob_offset": 10.0,
+    "timer": "torch.cuda.Event_with_synchronize",
+    "blocks": 8,
+    "warmup_updates_per_mode_per_block": 2,
+    "timed_updates_per_mode_per_block": 12,
+    "order_sequence": [
+      "MSE_FIRST", "SMOOTH_L1_FIRST", "SMOOTH_L1_FIRST", "MSE_FIRST",
+      "SMOOTH_L1_FIRST", "MSE_FIRST", "MSE_FIRST", "SMOOTH_L1_FIRST"
+    ],
+    "same_seed_within_block_and_update_index": true,
+    "device_telemetry_before_after_each_block": true,
+    "order_associated_threshold": "ABS_LOG_ORDER_EFFECT_GE_LOG_1P01_FOR_EITHER_MODE",
+    "device_excursion_threshold": "TEMPERATURE_RANGE_GE_5C_OR_SM_CLOCK_RANGE_GE_100MHZ_OR_POWER_RANGE_GE_30W"
+  },
+  "sole_control_plane_correction": {
+    "removed": "EXACT_SIX_SOLVE_WORKER_CHILDREN_BEFORE_AND_AFTER_MEASUREMENT",
+    "replacement": "PCV009_PHASE_AWARE_RESOURCE_SNAPSHOT_BEFORE_AND_AFTER_EACH_BLOCK",
+    "resource_snapshots": 16,
+    "coordinator_pid": 23720,
+    "coordinator_create_time": 1784302339.7041352,
+    "coordinator_command_sha256": "efaf227352c6620b4f12dd5f06ac67d98d834feb11384b167170618dc1cf9e99",
+    "configured_logical_loops": 6,
+    "allowed_roles": ["SOLVE_WORKER", "QA_200BB_BOARD", "CONHOST_IGNORED"],
+    "active_work_min": 1,
+    "active_work_max": 6,
+    "node_priority": "BelowNormal",
+    "descendant_gpu_pid_matches": 0
+  },
+  "completion_gates": {
+    "source_identity": true,
+    "new_seed_and_output_identity": true,
+    "exact_measurement_shape": true,
+    "all_updates_forced_shape": true,
+    "all_timing_finite_positive": true,
+    "all_device_telemetry_complete": true,
+    "all_sixteen_phase_aware_resource_snapshots_pass": true,
+    "path1_mutation": false,
+    "trainer_started": false,
+    "checkpoint_written": false,
+    "official_hands": 0
+  },
+  "interpretation": {
+    "pass": "MEASUREMENT_COMPLETE_ROUTE_REVIEW022_ONLY",
+    "fail": "FAIL_CLOSED_ROUTE_REVIEW022_ONLY",
+    "pcv008_data_reuse_reconstruction_or_reclassification": "FORBIDDEN",
+    "behavior_method_or_strength_inference": "FORBIDDEN",
+    "automatic_h19_launch": false
+  },
+  "resource_policy": {
+    "path1": "READ_ONLY_NO_SIGNAL_NO_RESTART_NO_REPAIR_NO_EXPANSION",
+    "gpu": "SHORT_REPORTING_ONLY_SAFE_NO_TRAINER_BOUNDARY",
+    "trainer_evaluator_mirror_slumbot": "FORBIDDEN"
+  },
+  "official_hands": 0,
+  "behavior_launch_authority": "NONE"
+}

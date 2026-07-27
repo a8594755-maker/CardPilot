@@ -1,0 +1,66 @@
+{
+  "schema_version": "v5.ct003.stage_a.window_audit.c1.preregistration.v1",
+  "identity": "25c7b648b419b91c7c68a228b3e5a4d1147719d258ec96791341039311332377",
+  "token": "25c7b648b419b91c7c68a228b3e5a4d1",
+  "classification": "FRESH_CORRECTED_DERIVED_REPORTING_ATTEMPT",
+  "scientific_design_changed": false,
+  "model_or_behavior_changed": false,
+  "network_or_slumbot_authorized": false,
+  "defect": {
+    "terminal_parent_audit_sha256": "63ac2e1bfbca08846dbbb6c1154bc7a132d44a63a8d4bf082cf84d1af5bafb66",
+    "terminal_parent_status": "FAIL_23_OF_24",
+    "sole_failed_check": "provenance_uniform",
+    "root_cause": "parent auditor read absent top-level conditional_weights instead of registered nested lg003.conditional_weights_by_member_id",
+    "taxonomy": "PREOUTPUT_DERIVED_CHECKER_SCHEMA_PATH_DEFECT",
+    "parent_never_rerun_or_reclassified": true
+  },
+  "immutable_inputs": {
+    "checkpoint": {
+      "path": "models/alpha_holdem_v5_hybrid/v5_ct003_7296402ab1ddaadd86ebde1795d0f2ad_20260723/mc_target_stagea/latest.pt",
+      "bytes": 261418894,
+      "sha256": "76b85c5bd377533329424140d01352075e44b6a1aeb5796828fee60f34037f62"
+    },
+    "metrics": {
+      "path": "models/alpha_holdem_v5_hybrid/v5_ct003_7296402ab1ddaadd86ebde1795d0f2ad_20260723/mc_target_stagea/h1_training_metrics.jsonl",
+      "bytes": 279619,
+      "sha256": "21d63aaadb114cb630227eab3b8cf8dc02993c2ed898bf2491d02f65933ed8d1"
+    },
+    "provenance": {
+      "path": "models/alpha_holdem_v5_hybrid/v5_ct003_7296402ab1ddaadd86ebde1795d0f2ad_20260723/mc_target_stagea/opponent_assignment_provenance.jsonl",
+      "bytes": 1324764,
+      "sha256": "93f6d8c252738d9f95fdde016222e01e3878ff93984e2ca259a4102bd5fa967d"
+    },
+    "manifest": {
+      "path": "models/alpha_holdem_v5_hybrid/v5_ct003_7296402ab1ddaadd86ebde1795d0f2ad_20260723/mc_target_stagea/run_manifest.json",
+      "bytes": 12316,
+      "sha256": "87ad99f17c020d5dd31812851dd5ab3a84fa61bb8fbc93dd4721e0351ccc4fa2"
+    },
+    "control_metrics": {
+      "path": "models/alpha_holdem_v5_hybrid/v5_lg003c1_8bf8cedf78b6e8c8fe153802908ed893_20260723/control_uniform_stagea/h1_training_metrics.jsonl",
+      "sha256": "50db465ea1f1037ec7d8d1c7ec5d947fa04cab7b9071a81bc6372cc0779c32ca"
+    }
+  },
+  "auditor": {
+    "path": "scripts/alpha_holdem/v5_ct003_stagea_window_audit_c1_25c7b648b419b91c7c68a228b3e5a4d1.py",
+    "bytes": 14679,
+    "sha256": "f0e97e68d869c131b01c149604d603fd4b3e748918f2a0620f0128a8f2a69aa6"
+  },
+  "output": "reports/v5_ct003_stagea_window_audit_c1_25c7b648b419b91c7c68a228b3e5a4d1_20260723.json",
+  "required_independent_checks": [
+    "all immutable input hashes and sizes exact before load",
+    "producer trainer and launcher processes absent",
+    "parent failure exact and localized",
+    "manifest/checkpoint/metrics endpoint and hand budget exact",
+    "every MC target row present finite and fraction one",
+    "checkpoint model optimizer source identity and pool finite/exact",
+    "nested LG003 registration rule seed arm and weights exact",
+    "independent SHA256-derived u64 and selected opponent recomputation",
+    "every worker assignment group metadata pool reference and hands alignment exact",
+    "complete provenance hash chain exact",
+    "frozen control throughput comparison"
+  ],
+  "judgment": {
+    "all_checks_pass": "SCIENTIFIC_ENDPOINT_VALID_QUICK5K_REGISTRATION_AUTHORIZED",
+    "any_check_fail": "FREEZE_C1_AND_SIMPLIFY_OR_REPLACE_REPORTING_WORKFLOW_NO_QUICK5K"
+  }
+}

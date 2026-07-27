@@ -1,0 +1,89 @@
+{
+    "checked_at":  "2026-07-11T09:00:39.3160004Z",
+    "overall":  "READY_FOR_EXPLICIT_EXP_W1_CONTROL_CUTOVER_NO_LAUNCH",
+    "launch_authority":  "NONE",
+    "experiment":  "EXP-W1",
+    "status":  "PREREGISTERED_AND_IMMUTABLY_LOCKED",
+    "requirements":  [
+                         {
+                             "requirement":  "route evidence",
+                             "status":  "PROVEN",
+                             "evidence":  "research review W1 eligible, W2 ineligible, new behavior false"
+                         },
+                         {
+                             "requirement":  "exact single-variable preregistration",
+                             "status":  "PROVEN",
+                             "evidence":  "SHA dd14e588b0fe7aee06422534663f8ff802375325cae1db2f823a28ed10ff4324; only warmup epochs 0 vs 8"
+                         },
+                         {
+                             "requirement":  "immutable design lock",
+                             "status":  "PROVEN",
+                             "evidence":  "read-only SHA de522a42e6948842f8d06ad3b0c26b07d15f1d18fe721c3eb8b03cf6e29ab02b"
+                         },
+                         {
+                             "requirement":  "control full dry-run",
+                             "status":  "PROVEN",
+                             "evidence":  "22/22 PASS, zero failed checks"
+                         },
+                         {
+                             "requirement":  "treatment full dry-run",
+                             "status":  "PROVEN",
+                             "evidence":  "22/22 PASS, zero failed checks"
+                         },
+                         {
+                             "requirement":  "machine pre-copy/post-copy enforcement",
+                             "status":  "PROVEN",
+                             "evidence":  "candidate SHA preflight and live trainer post-copy verifier before launch"
+                         },
+                         {
+                             "requirement":  "no launch/no behavior change",
+                             "status":  "PROVEN",
+                             "evidence":  "live trainer SHA unchanged; W1 dirs and warmup report absent"
+                         },
+                         {
+                             "requirement":  "explicit cutover decision",
+                             "status":  "PENDING_USER_AUTHORITY",
+                             "evidence":  "user prohibited automatic W1 launch"
+                         }
+                     ],
+    "preregistration":  {
+                            "path":  "reports/v5_exp_w1_preregistration_20260711.json",
+                            "sha256":  "dd14e588b0fe7aee06422534663f8ff802375325cae1db2f823a28ed10ff4324"
+                        },
+    "design_lock":  {
+                        "path":  "reports/v5_exp_w1_design_lock_v1_20260711.json",
+                        "sha256":  "de522a42e6948842f8d06ad3b0c26b07d15f1d18fe721c3eb8b03cf6e29ab02b",
+                        "read_only":  true
+                    },
+    "preflight":  {
+                      "control":  {
+                                      "path":  "reports/v5_cutover_design_lock_preflight_v5_zero_l6_expw1_control_same31400_20m_r1_20260711.json",
+                                      "sha256":  "8b5fdc0c7d452cf56608de06788f1ccd22da7d0a261cd16fa95665189ad3d7fc",
+                                      "overall":  "PASS",
+                                      "checks":  22
+                                  },
+                      "treatment":  {
+                                        "path":  "reports/v5_cutover_design_lock_preflight_v5_zero_l6_expw1_treatment_same31400_20m_r1_20260711.json",
+                                        "sha256":  "5cc5ffca28336686adb41c993b9a50c06dce693fcc33285839e6c63b8555db62",
+                                        "overall":  "PASS",
+                                        "checks":  22
+                                    }
+                  },
+    "validation":  {
+                       "w1_tests":  "12/12 PASS",
+                       "cutover_lock_tests":  "5/5 PASS",
+                       "focused_total":  "17/17 PASS",
+                       "broader":  "30 PASS, 8 TEMP_ACL environment errors; no full PASS claimed"
+                   },
+    "next_action":  "WAIT_FOR_EXPLICIT_USER_AUTHORIZATION_TO_LAUNCH_CONTROL_ARM_OR_STOP",
+    "official_strength":  {
+                              "level":  "L0",
+                              "hands":  20400,
+                              "policy":  "greedy-direct",
+                              "bb100":  -153.3,
+                              "ci95":  [
+                                           -187.695,
+                                           -118.905
+                                       ]
+                          }
+}

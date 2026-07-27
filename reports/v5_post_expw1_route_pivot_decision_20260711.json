@@ -1,0 +1,234 @@
+{
+    "schema_version":  "v5.post_expw1.route_pivot_decision.v1",
+    "checked_at":  "2026-07-11T17:08:00Z",
+    "immutable":  true,
+    "objective":  "select the next falsifiable single-variable direction without reopening terminal experiments or launching behavior",
+    "decision":  "NO_CANDIDATE_PREREGISTRATION_AUTHORIZED_INCONCLUSIVE_NO_LAUNCH",
+    "program_state":  "TIER2_FROZEN_ROUTE_PIVOT",
+    "verifier":  {
+                     "script":  "scripts/alpha_holdem/v5_poker_research_review.py",
+                     "sha256":  "8d45e2f0caeb461d2cc0178589d7ac332ece4fa7fe76ecee4acd0d23a7c25ca4",
+                     "tests":  "11/11 PASS",
+                     "test_sha256":  "ac453f3fbfa62d7db3b39ff93e1fa1889329f8e939a7fb1afd5448c08cc71e84",
+                     "real_review":  "PROGRAM_STOP_NO_CAUSALLY_SUPPORTED_PIVOT_YET"
+                 },
+    "evidence_matrix":  {
+                            "official_external":  {
+                                                      "level":  "EXTERNAL_STAGED",
+                                                      "evidence":  "20400 official greedy-direct hands; -153.2999 bb/100; CI[-187.6945,-118.9052]; bundle PASS",
+                                                      "meaning":  "L0 and non-strong; no L5/L6 or V4 improvement claim"
+                                                  },
+                            "loss_localization":  {
+                                                      "level":  "OBSERVATIONAL_ASSOCIATIONAL",
+                                                      "evidence":  "16 multiplicity-controlled associations; BB -167.34 vs SB -139.26; hero-fold and preflop slices costly",
+                                                      "meaning":  "localizes realized loss only; no unchosen-action EV or action regret"
+                                                  },
+                            "preflop_selector_behavior":  {
+                                                              "level":  "OBSERVATIONAL",
+                                                              "evidence":  "250M to 500M policy lurch: SB call/raise 49.6/37.8 to 15.8/82.6 percent; BB call/raise 21.0/20.5 to 6.6/76.3 percent",
+                                                              "meaning":  "distribution shift hypothesis support only"
+                                                          },
+                            "internal_localization":  {
+                                                          "level":  "INTERNAL_ONLY",
+                                                          "evidence":  "10 exact gates showed warning range7 and two status switches; 200-hand probe estimates had very wide/sign-changing effects",
+                                                          "meaning":  "smoke/localization only; cannot choose a behavior intervention"
+                                                      },
+                            "training_dynamics":  {
+                                                      "level":  "ASSOCIATIONAL_MECHANISM",
+                                                      "evidence":  "1000 rows: KL median0.04035, \u003e0.03 fraction0.902, \u003e0.10 fraction0.049, clipfrac mean0.244539; isolated EXP006A frozen gate false",
+                                                      "meaning":  "PPO update-size concern exists, but the preregistered isolated-selection threshold did not pass"
+                                                  },
+                            "code_mechanism":  {
+                                                   "level":  "CODE_AUDIT",
+                                                   "evidence":  "M2 loss-kbest is not competitive strength ranking; M3 per-iteration assignment causes distribution lurch; M5/M6 controller/KL concerns",
+                                                   "meaning":  "plausible upstream mechanisms, not causal method effects or launch permission"
+                                               },
+                            "value":  {
+                                          "level":  "OFF_POLICY_CALIBRATION",
+                                          "evidence":  "historical audit supports critic/reward issue",
+                                          "meaning":  "its sole W1 eligibility was consumed and falsified by terminal W1 warmup gate; cannot reopen W1"
+                                      },
+                            "same_start":  {
+                                               "level":  "OPS_PROTOCOL_VALIDITY",
+                                               "evidence":  "EXP-W1 warmup 0.0068536781 \u003c 0.02, zero PPO iterations, terminal FAIL",
+                                               "meaning":  "no endpoint poker-effect estimate and no W1 reopen authority"
+                                           },
+                            "counterfactual":  {
+                                                   "level":  "NONE",
+                                                   "evidence":  "ACTION_REGRET_MISSING",
+                                                   "meaning":  "no action-specific behavior registration"
+                                               },
+                            "crossplay":  {
+                                              "level":  "NONE",
+                                              "evidence":  "complete common-deal snapshot matrix absent",
+                                              "meaning":  "no cycle or global non-convergence claim"
+                                          },
+                            "asset":  {
+                                          "level":  "ASSET_COMPATIBILITY",
+                                          "evidence":  "NO_COMPATIBLE_FULL_200BB_ASSET",
+                                          "meaning":  "W2 ineligible"
+                                      }
+                        },
+    "candidate_audit":  [
+                            {
+                                "id":  "EXP-W1_REOPEN",
+                                "upstream_mechanism":  "critic/reward calibration",
+                                "value":  "historical support consumed",
+                                "identity":  "terminal immutable v3 FAIL",
+                                "feasibility":  "warmup gate failed before PPO",
+                                "permission":  "DENIED",
+                                "decision":  "REJECT_TERMINAL_DO_NOT_REOPEN"
+                            },
+                            {
+                                "id":  "EXP-W2",
+                                "upstream_mechanism":  "compatible full-game bootstrap asset",
+                                "value":  "potential but unproven",
+                                "identity":  "no compatible v55/9slot_v5/full200bb asset",
+                                "feasibility":  "FAIL",
+                                "permission":  "DENIED",
+                                "decision":  "INELIGIBLE_NO_ASSET"
+                            },
+                            {
+                                "id":  "ACTION_SPECIFIC_TUNING",
+                                "upstream_mechanism":  "unknown action regret",
+                                "value":  "could address realized-loss slices",
+                                "identity":  "no v5.action_regret.audit.v1",
+                                "feasibility":  "missing validated same-state harness",
+                                "permission":  "DENIED",
+                                "decision":  "INELIGIBLE_ACTION_REGRET_MISSING"
+                            },
+                            {
+                                "id":  "CYCLE_DRIVEN_METHOD",
+                                "upstream_mechanism":  "hypothesized self-play non-transitivity",
+                                "value":  "unproven",
+                                "identity":  "no complete matrix artifact",
+                                "feasibility":  "missing frozen common-deal cross-play matrix",
+                                "permission":  "DENIED",
+                                "decision":  "INELIGIBLE_CROSSPLAY_MISSING"
+                            },
+                            {
+                                "id":  "EXP-006A_ISOLATED_KL_EARLY_STOP",
+                                "upstream_mechanism":  "high PPO KL",
+                                "value":  "direct metric concern",
+                                "identity":  "historical pre500M diagnostic exact",
+                                "feasibility":  "single-variable implementable",
+                                "permission":  "DENIED",
+                                "decision":  "NOT_SELECTED_FROZEN_GATE_FALSE"
+                            },
+                            {
+                                "id":  "EXP-007_ELO_POOL",
+                                "upstream_mechanism":  "loss-kbest is not strength ranking",
+                                "value":  "plausible high-value upstream mechanism",
+                                "identity":  "no immutable current baseline/window or candidate-specific permission artifact",
+                                "feasibility":  "missing frozen tournament harness/design and exact cost/stall gate",
+                                "permission":  "DENIED",
+                                "decision":  "PROMISING_HYPOTHESIS_NOT_PREREGISTRATION_READY"
+                            },
+                            {
+                                "id":  "EXP-008_ENGINE_FAST_PATH",
+                                "upstream_mechanism":  "throughput only",
+                                "value":  "potential speed gain",
+                                "identity":  "no current bit-equivalence artifact",
+                                "feasibility":  "offline work possible but not a poker-method pivot",
+                                "permission":  "OUTSIDE_CURRENT_ROUTE_SELECTION",
+                                "decision":  "NOT_BEHAVIOR_CANDIDATE_NO_2_7B_INERTIA"
+                            }
+                        ],
+    "missing_evidence":  [
+                             {
+                                 "priority":  1,
+                                 "artifact":  "POOL-SELECTION-MEASUREMENT-DESIGN",
+                                 "requirement":  "reporting-only preregistered frozen common-deal round-robin that compares loss-kbest rank with audited competitive rank; exact snapshots, pairs, seats, CI, multiplicity, runtime budget and no behavior launch",
+                                 "unlocks":  "whether EXP-007 deserves a later single-variable preregistration"
+                             },
+                             {
+                                 "priority":  2,
+                                 "artifact":  "v5.action_regret.audit.v1 or same-state measurement design",
+                                 "requirement":  "validated fixtures, exact v55 legal actions, frozen opponent/chance, preregistered states and uncertainty",
+                                 "unlocks":  "action-specific candidate consideration"
+                             },
+                             {
+                                 "priority":  3,
+                                 "artifact":  "complete v5.crossplay.cycle_audit.v1",
+                                 "requirement":  "at least three ordered snapshots, all pairwise common deals with both seats and supported CI edges",
+                                 "unlocks":  "cycle claim only, not automatic behavior"
+                             },
+                             {
+                                 "priority":  4,
+                                 "artifact":  "compatible full200bb v55 asset audit PASS",
+                                 "requirement":  "exact loadable checkpoint and current adapter contract",
+                                 "unlocks":  "W2 reconsideration"
+                             }
+                         ],
+    "permissions":  {
+                        "new_behavior_preregistration":  false,
+                        "new_behavior_launch":  false,
+                        "trainer_launch":  false,
+                        "slumbot_launch":  false,
+                        "w1_reopen":  false,
+                        "w2":  false,
+                        "action_specific":  false,
+                        "cycle_claim":  false,
+                        "l5":  false,
+                        "l6":  false,
+                        "reporting_only_pool_measurement_design":  true
+                    },
+    "next":  "DESIGN_ONLY_POOL_SELECTION_MEASUREMENT_REVIEW; do not register or launch EXP-007 until the measurement design and verifier permission pass",
+    "official_strength":  {
+                              "level":  "L0",
+                              "hands":  20400,
+                              "policy":  "greedy-direct",
+                              "bb100":  -153.29985294117645,
+                              "ci95":  [
+                                           -187.69454378642109,
+                                           -118.90516209593181
+                                       ]
+                          },
+    "sources":  [
+                    {
+                        "role":  "research_review",
+                        "path":  "reports/v5_post_expw1_route_pivot_research_review_20260711.json",
+                        "sha256":  "4d4eff7ce4bea9baa896eca67d6ad00ff25baeedc633e5906b34a9fdbda43511"
+                    },
+                    {
+                        "role":  "official_loss_review",
+                        "path":  "reports/v5_500m_promotion_loss_review_20260710.json",
+                        "sha256":  "04cca92a0509a6d8750ad09540678736d9b53f8f309d4ca965dde1264f1b2cb8"
+                    },
+                    {
+                        "role":  "loss_inference",
+                        "path":  "reports/v5_500m_loss_inference_audit_20260710.json",
+                        "sha256":  "bdbe817430f4bb78d0abf50477ac1d9df46521530d10694a5d04a2cedb1b2bab"
+                    },
+                    {
+                        "role":  "training_dynamics",
+                        "path":  "reports/v5_method_selection_diagnostic_pre500m_20260710_v2.json",
+                        "sha256":  "263e3d9743eaf759d922a55618f7cefaf136be75b9df3e741d59ca9918f9932c"
+                    },
+                    {
+                        "role":  "code_mechanisms",
+                        "path":  "reports/v5_training_method_audit_20260706.md",
+                        "sha256":  "f1a8770246206a7ba16c5b12149f574b228127d7ec4e596e07d46fb6bcdec76d"
+                    },
+                    {
+                        "role":  "roadmap",
+                        "path":  "reports/v5_method_improvement_roadmap.md",
+                        "sha256":  "692ce824a347157d618c407de3af357cbde11f54ca2ecbd5a67f6307dcf50bba"
+                    },
+                    {
+                        "role":  "value",
+                        "path":  "reports/v5_value_audit_001_20260710.json",
+                        "sha256":  "f2b5c16690e4d32d28ff2a2396c47b29164b6fb59773529984e32c6844b34a99"
+                    },
+                    {
+                        "role":  "asset",
+                        "path":  "reports/v5_asset_audit_001_20260710.json",
+                        "sha256":  "3abb2f1f8ec2c66446f47ecc6935790a415b91e8fe292458c2b6ee8bae17651a"
+                    },
+                    {
+                        "role":  "exp_w1_terminal",
+                        "path":  "reports/v5_exp_w1_warmup_protocol_failure_20260711.json",
+                        "sha256":  "973502822227b876d16f11e0bb0195295799be35d522077fb2e53cf80edb3065"
+                    }
+                ]
+}

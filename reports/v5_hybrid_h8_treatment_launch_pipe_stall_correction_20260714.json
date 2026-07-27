@@ -1,0 +1,52 @@
+{
+  "schema_version": "v5.hybrid.h8.treatment_launch_pipe_stall_correction.v1",
+  "event_id": "v5-h8-treatment-launch-pipe-stall-correction-20260714",
+  "classification": "CENSURE_REPORTING_ONLY_LAUNCH_SUPERVISOR_PIPE_STALL_RECOVERED",
+  "observed_at": "2026-07-14T09:33:32.5837628-04:00",
+  "recovered_at": "2026-07-14T09:33:35-04:00",
+  "behavior_change": false,
+  "judgment_authority_changed": false,
+  "official_hands": 0,
+  "strength_claim": "FORBIDDEN",
+  "diagnosis": {
+    "state": "INVOKING_EXACT_TREATMENT_LAUNCHER",
+    "stale_status_sha256": "ca7dba948d0965450f2d540b0d2d4e1dd17b22dc578d9e1be9033c997d1eabd0",
+    "supervisor_pid": 48060,
+    "only_child": {
+      "pid": 40944,
+      "name": "conhost.exe"
+    },
+    "powershell_launcher_child_alive": false,
+    "cause": "The locked Python supervisor remained inside subprocess.run(capture_output=True) after the launcher outcome was already materialized. On Windows the remaining conhost kept the captured pipe from reaching EOF.",
+    "disposition": "Stopped only the one-shot control-side launch supervisor after independently validating the exact treatment identity and canonical rearm. The immutable locked script was not edited."
+  },
+  "locked_identity": {
+    "design_lock_sha256": "298daa368585af79586f3ba24b7fde1ae862de41a8221cdf46c0825d041957c6",
+    "preregistration_sha256": "ecc7f9bc30918c8a2c0b07dbe6ca8dd5d06cdfc6bd3e71b45b543a80e33d5713",
+    "source_checkpoint_sha256": "948050ac6d273ec2cd1291b3e1b430d4c747ea918f5c1820edf18397a6829149",
+    "treatment_run_id": "v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714",
+    "treatment_pid": 40760,
+    "start_iteration": 32617,
+    "start_hands": 536001286,
+    "target_hands": 556001286,
+    "arm": "treatment",
+    "value_head_catchup_after_kl_stop": true
+  },
+  "evidence": {
+    "control_endpoint_status_sha256": "65d6ffedd41f459bbe21beb116a6d016964b6739c64a7d194b0c810eeb750db2",
+    "control_protocol_status_sha256": "cc0431f86f1ecaf10415da0bc8db99c7f32020ceaf0c29b8baf4234f53813050",
+    "treatment_manifest_observed_sha256": "84f817e595bb3f53bf63a3a01b222e63ad0966fc615003e4e189ba660f59b74a",
+    "treatment_watcher_rearm_status_sha256": "d55f77f5577c1701e25053bf00debf472b8bf16ba7c0ee4d1b521a7f1332ba8c",
+    "locked_supervisor_script_sha256": "efae007497f29e8a05869f26dac073b1997943235fee4d579460e1be147a7dcf",
+    "launcher_script_sha256": "830cdfc5b6da9f6d1330311e5c46467e79545f63417355ce6ad94b2e7659815d",
+    "canonical_rearm_survival_pass": true,
+    "canonical_rearm_failed_watchers": [],
+    "generic_and_slumbot_paths_terminally_blocked": 8,
+    "trainer_alive_after_supervisor_stop": true,
+    "health_after_supervisor_stop": "PASS",
+    "protocol_after_supervisor_stop": "ARM_RUNNING_GUARDS_PASS",
+    "stderr_bytes_after_supervisor_stop": 0
+  },
+  "recovered_launch_status": "TREATMENT_ALREADY_LAUNCHED_REARM_PASS_POST_PIPE_STALL",
+  "notes": "This correction repairs reporting state only. It does not infer or force any H8 endpoint, measurement, audit, or experiment verdict."
+}

@@ -1,0 +1,46 @@
+{
+  "schema_version": "v5.hybrid.route_review.preregistration.v26.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-026",
+  "registered_at": "2026-07-20T01:23:00Z",
+  "status": "REGISTERED_REPORTING_ONLY",
+  "trigger": {
+    "pcv014_classification": "PCV014_FAIL_CLOSED_PATH1_COORDINATOR_ABSENT_NO_RESULT",
+    "pcv014_failure_sha256": "c0b8cc066e592df959e95e8b81438e841ea7aded41b1d26f77c858a408a20d32",
+    "pcv014_terminal_audit_sha256": "317c22b40902ebe894e7a42ceb97be73cf6f6ee59438a2f40c210a6331f1ada2"
+  },
+  "evidence_rules": {
+    "pcv008_remains_terminal_no_result_no_reconstruction": true,
+    "pcv009_through_pcv013_are_terminal_control_plane_only": true,
+    "pcv014_is_terminal_no_rerun_repair_reconstruction_reclassification_or_inference": true,
+    "pcv014_failed_before_conditioning_or_timed_pairs": true,
+    "pcv014_observed_only_locked_pid23720_absent": true,
+    "pid_absence_does_not_distinguish_normal_asset_completion_from_premature_coordinator_loss": true,
+    "latest_frozen_path1_progress_sha256": "d153cf5684cef59bb2aca0b62ffdb37d7a74cbf36bd54efa1f4aa111922aa2ed",
+    "latest_frozen_path1_progress_is_553_of_600_diagnostic_only": true,
+    "no_later_immutable_path1_completion_or_terminal_closure_is_in_the_review_input": true,
+    "a_future_audit_may_read_only_existing_asset_manifest_gzip_metadata_qa_and_lifecycle_evidence": true,
+    "a_future_audit_must_classify_complete_terminal_absent_or_incomplete_terminal_absent_fail_closed": true,
+    "a_future_audit_must_not_restart_repair_replace_expand_or_signal_path1": true,
+    "a_future_audit_provides_no_timing_method_behavior_or_strength_authority": true,
+    "other_hybrid_routes_require_existing_immutable_completion_evidence": true,
+    "no_pcv015_h19_or_official_hands": true
+  },
+  "candidate_order": [
+    "PCV015_NEW_REPORTING_ONLY_PATH1_TERMINAL_LIFECYCLE_AND_ASSET_CLOSURE_AUDIT",
+    "ALREADY_COMPLETE_HYBRID_PREREQUISITE_ONLY_IF_NEW_IMMUTABLE_EVIDENCE_SUPPORTS_IT",
+    "ROUTE_EXHAUSTION_IF_NO_CAUSALLY_SUPPORTED_HYBRID_PREREQUISITE_REMAINS"
+  ],
+  "selection_rule": "SELECT_PCV015_IFF_PCV014_TERMINAL_AUDIT_PASSES,PCV014_FAILED_ONLY_BECAUSE_LOCKED_PATH1_PID23720_WAS_ABSENT_BEFORE_ANY_CONDITIONING_OR_TIMED_PAIR,THE_LATEST_FROZEN_PATH1_PROGRESS_IS_553_OF_600_AND_CANNOT_ESTABLISH_CURRENT_COMPLETION,PID_ABSENCE_ALONE_CANNOT_DISTINGUISH_NORMAL_COMPLETION_FROM_PREMATURE_LOSS,A_NEW_TRAINERLESS_READ_ONLY_AUDIT_CAN_FREEZE_AND_VERIFY_SELECTION_MANIFEST_ASSET_PAIR_QA_ILLEGAL_ROW_AND_LIFECYCLE_EVIDENCE_WITHOUT_RESTART_REPAIR_REPLACEMENT_EXPANSION_OR_SIGNAL,AND_NO_OTHER_HYBRID_PREREQUISITE_HAS_NEW_IMMUTABLE_COMPLETION_EVIDENCE;OTHERWISE_SELECT_THE_COMPLETE_ALTERNATIVE_OR_ROUTE_EXHAUSTION",
+  "required_result_fields": [
+    "selected_next",
+    "causal_reason",
+    "route_exhausted",
+    "behavior_launch_authority",
+    "pcv014_terminal_closure",
+    "pcv015_novelty_requirements",
+    "official_hands"
+  ],
+  "official_hands": 0,
+  "behavior_launch_authority": "NONE_REPORTING_ONLY",
+  "strength_claim": "FORBIDDEN"
+}

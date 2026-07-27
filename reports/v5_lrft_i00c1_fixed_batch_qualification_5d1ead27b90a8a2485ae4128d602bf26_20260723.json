@@ -1,0 +1,84 @@
+{
+  "schema_version": "v5.lrft_i00c1.fixed_batch_qualification.v1",
+  "recorded_at": "2026-07-23T22:35:00-04:00",
+  "status": "LRFT-I00C1_FIXED_BATCH_INTERFACE_QUALIFICATION_NONPASS",
+  "identity_sha256": "5d1ead27b90a8a2485ae4128d602bf26d50c3a42455e7e289a5dd44429b87a6d",
+  "parent": {
+    "identity_sha256": "a0354ffed044c37ee5cc17a3d045273ecf7751f256a0199f23140d311e55f704",
+    "result_sha256": "2c30c5570cb39e6b4286f6d5800addf860ec6420c32b3e95a0fd05226883e837",
+    "terminal_status": "LRFT-I00_EXACT_CENT_AND_H11_LIKELIHOOD_INTERFACE_QUALIFICATION_NONPASS",
+    "sole_failed_check": "independent_direct_h11_oracle",
+    "observed_parent_max_abs_error": 6.903324072027317e-05
+  },
+  "source_sha256": {
+    "frozen_exact_cent_engine": "9c429ace16f7c70c9ee4723e3b74209acaa6aa320ff117ae7866f4deebcb3b24",
+    "fresh_fixed_batch_likelihood": "83d8d1cb81a8a16b5a21f583eccd1334ec6dc6a1bd03466b10b4a12a027c85a8",
+    "fresh_test_runner": "bf5d6ca95b9cf1759080cbca03f8649148d67a6e8aee4e4b719e5bb1f9c11a2e",
+    "h11_checkpoint": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13"
+  },
+  "correction": {
+    "sole_change": "FIXED_BATCH_256_CANONICAL_DUPLICATE_PADDING",
+    "canonical_batch_size": 256,
+    "terminal_chunk_padding": "duplicate_final_validated_row_then_discard",
+    "threshold_unchanged": "max_abs_logprob_error<=2e-6",
+    "engine_changed": false,
+    "checkpoint_or_observation_changed": false
+  },
+  "scope": {
+    "interface_only": true,
+    "behavior_changed": false,
+    "training_hands": 0,
+    "teacher_rows": 0,
+    "solver_roots": 0,
+    "checkpoints": 0,
+    "network_calls": 0,
+    "slumbot_hands": 0
+  },
+  "checks": {
+    "parent_failure_identity_exact": true,
+    "parent_engine_exact_and_frozen": true,
+    "fresh_identity_and_sole_correction_exact": true,
+    "fresh_source_static_prohibitions": true,
+    "h11_checkpoint_exact": true,
+    "fresh_4096_observations_independent_exact": true,
+    "fresh_model_and_rng_immutable": true,
+    "fresh_mask_normalization": true,
+    "fixed_batch_independent_oracle_within_2e6": true,
+    "fixed_batch_shape_and_hostile_row_invariance": false,
+    "fixed_batch_order_invariance": false,
+    "hidden_information_absent_from_fresh_api": true,
+    "no_scientific_artifacts_created": true
+  },
+  "counts": {
+    "fresh_observation_rows": 4096,
+    "fixed_batch_oracle_rows": 64,
+    "shape_invariance_cases": 8
+  },
+  "diagnostics": {
+    "direct_oracle_max_abs_error": 0.0,
+    "maximum_shape_case_abs_error": 9.787083683931996e-06,
+    "reverse_order_max_abs_error": 3.505244637835858e-05,
+    "shape_cases": {
+      "n1_p0": 0.0,
+      "n2_p1": 0.0,
+      "n31_p15": 0.0,
+      "n32_p31": 0.0,
+      "n255_p254": 9.787083683931996e-06,
+      "n256_p128": 9.482879775646325e-06,
+      "n257_p256": 0.0,
+      "n513_p512": 0.0
+    }
+  },
+  "judgment": {
+    "clears_exact_cent_interface_blocker": false,
+    "clears_arbitrary_hole_likelihood_blocker": false,
+    "authorizes_lrft_f64_preregistration_only": false,
+    "does_not_authorize_root_census_solver_teacher_bc_checkpoint_or_quick5k": true
+  },
+  "passed": 11,
+  "total": 13,
+  "failed_checks": [
+    "fixed_batch_shape_and_hostile_row_invariance",
+    "fixed_batch_order_invariance"
+  ]
+}

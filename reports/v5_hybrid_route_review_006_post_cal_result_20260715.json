@@ -1,0 +1,135 @@
+{
+  "schema_version": "v5.hybrid.route_review.result.v6.post_cal.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-006-POST-CAL",
+  "checked_at": "2026-07-15T06:53:00Z",
+  "overall": "PASS_ROUTE_REVIEW",
+  "registration_sha256": "dab94a01aa8521a2db70a7ef9b7d46c1b05008cf486ce6f82093c6cecfb04ea1",
+  "trigger_verified": true,
+  "evidence_matrix": {
+    "H7": {
+      "terminal": "H7_FAIL_REGISTERED_GATE",
+      "mirror_treatment_minus_control_bb100": 123.99066107572196,
+      "mirror_ci95": [98.33434216541474, 149.07370901943412],
+      "endpoint_mse_relative_degradation": 0.1222558429907934,
+      "endpoint_mse_degradation_ci95": [0.06307041990893769, 0.18623670262032552],
+      "kl_p95": 0.030620000000000005,
+      "interpretation": "KL early stopping produced a large internal mirror gain but failed registered endpoint value-calibration and KL-p95 gates."
+    },
+    "H8": {
+      "terminal": "H8_FAIL_REGISTERED_GATE",
+      "mirror_treatment_minus_control_bb100": 302.13715380474326,
+      "mirror_ci95": [273.7607358986125, 330.0260519035823],
+      "endpoint_mse_primary_reduction": -0.07397047082246444,
+      "endpoint_mse_primary_ci95": [-0.1283096827693958, -0.02216695726115925],
+      "anchor_mse_relative_degradation": 0.061330252193571466,
+      "anchor_mse_degradation_ci95": [0.002868358651159869, 0.12483631944176035],
+      "kl_fraction_above_0_03": 0.12161051766639278,
+      "registered_kl_fraction_max": 0.06044407894736842,
+      "kl_p95": 0.0329751919357692,
+      "interpretation": "Catch-up value updates magnified internal mirror gains but worsened primary calibration and failed both KL stability gates, supporting an upstream critic-update robustness question."
+    },
+    "H9": {
+      "terminal": "H9_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+      "valid_control_endpoint": false,
+      "treatment_launched": false,
+      "smoothl1_method_evidence": "NONE",
+      "resume_or_reclassification": "FORBIDDEN"
+    },
+    "CAL_EXT_001": {
+      "checkpoint_sha256": "7c388ec68114d497f775157def3c0b3abc82db7ee25baf7e7cb7e9e916f66438",
+      "hands": 5000,
+      "policy": "official_greedy_direct",
+      "bb_per_100": -207.18040000000002,
+      "ci95": [-297.66435886726754, -116.6964411327325],
+      "bundle": "PASS",
+      "milestone": "L0",
+      "catastrophic_external_weakness": true,
+      "causal_scope": "EXTERNAL_OUTCOME_AND_OBSERVATIONAL_LOCALIZATION_ONLY"
+    },
+    "external_comparators": {
+      "V4_current_harness": {
+        "hands": 20400,
+        "bb_per_100": -71.38259803921568,
+        "ci95": [-92.22196361400995, -50.543232464421415]
+      },
+      "V5_formal_251M": {
+        "hands": 100000,
+        "bb_per_100": -100.2475,
+        "ci95": [-112.40674282969657, -88.08825717030344],
+        "milestone": "L0"
+      },
+      "V5_500M_promotion": {
+        "hands": 20400,
+        "bb_per_100": -153.29985294117645,
+        "ci95": [-187.6945437864211, -118.90516209593181],
+        "milestone": "L0"
+      },
+      "conclusion": "The clean H8 endpoint is not an external model candidate and is materially below all current comparators by point estimate; CAL-EXT precision does not authorize a method or action-specific causal claim."
+    },
+    "loss_localization": {
+      "sb_open_raise_rate": 1.0,
+      "bb_vs_open_raise_rate": 0.9906417112299465,
+      "bb_vs_open_call_rate": 0.001336898395721925,
+      "showdown_chips": -1017647,
+      "action_regret_available": false,
+      "action_specific_intervention_authorized": false,
+      "interpretation": "Repeated extreme action frequencies and realized losses are important diagnostics but do not identify the EV of unchosen calls or raises."
+    },
+    "Path1": {
+      "complete_qa_pass_boards": 204,
+      "target_boards": 600,
+      "completion_fraction": 0.34,
+      "coordinator_alive": true,
+      "cpu_only": true,
+      "v55_training_eligible": false,
+      "interpretation": "Healthy asset generation, but incomplete and still diagnostic-only; it cannot be ingested or outrank the ready controlled critic question."
+    },
+    "research_permissions": {
+      "research_review_sha256": "7a65c2cb8ce0a50555ff450113ab0fa9e4471352ef08b1f6c1ac61472e798cf4",
+      "may_localize_loss": true,
+      "may_register_action_specific_intervention": false,
+      "new_behavior_change_authorized_by_reviewer": false,
+      "generic_w1_eligibility_signal": "REJECTED_W1_IS_TERMINAL",
+      "l5_or_l6_claim": false
+    }
+  },
+  "decision": {
+    "selected_next": "H10_CLEAN_RERUN_H9_ROBUST_VALUE_HEAD_CATCHUP_LOSS",
+    "source": {
+      "run_id": "v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714",
+      "checkpoint_path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714/h8_treatment_endpoint.pt",
+      "checkpoint_sha256": "7c388ec68114d497f775157def3c0b3abc82db7ee25baf7e7cb7e9e916f66438",
+      "iteration": 33834,
+      "hands": 556011085,
+      "role": "CONTROLLED_TRAINING_SOURCE_NOT_EXTERNAL_CANDIDATE"
+    },
+    "single_variable": {
+      "name": "catchup_value_loss",
+      "control": "MSE",
+      "treatment": "SmoothL1 beta=1.0 raw critic-v1 bb unit",
+      "standard_ppo_critic_loss": "MSE_UNCHANGED"
+    },
+    "rationale": "The external catastrophe makes continuation without measurement indefensible but does not identify a specific action fix. H7/H8 give controlled evidence that value catch-up and KL behavior are unstable, while H9 never tested the preregistered robust-loss remedy. A fresh exact rerun is therefore the smallest prospective causal test; the H8 checkpoint is used only as a same-start training source, not adopted as a model candidate.",
+    "requirements": [
+      "Create a new post-CAL H10 preregistration; the pre-CAL H10 registration remains superseded.",
+      "Use fresh run directories and exact H8 source for both arms; never use H9 partial latest.pt.",
+      "Keep fixed20M per arm, control-first order, beta1.0 and every H9 statistical gate unchanged.",
+      "Freeze exact implementation/tool hashes, active-window sentinel and process isolation before launch.",
+      "No Slumbot, mirror, evaluator or delegated project-script execution during either active arm.",
+      "If H10 PASSes, run exact-endpoint quick5k before promotion; the current catastrophic external flag blocks automatic promotion absent a clean new endpoint quick5k and all registered quality gates.",
+      "No extension, second seed, later endpoint or official hands during H10 arms."
+    ]
+  },
+  "candidate_dispositions": {
+    "action_specific_preflop_intervention": "REJECTED_NO_COUNTERFACTUAL_ACTION_REGRET",
+    "path1_ingestion_now": "DEFERRED_INCOMPLETE_AND_INELIGIBLE",
+    "opponent_pool_or_resolving_now": "DEFERRED_WEAKER_CURRENT_CAUSAL_SUPPORT",
+    "resume_h9_or_use_partial_checkpoint": "FORBIDDEN_TERMINAL_INVALID_ENDPOINT",
+    "reopen_w1_or_exp005c": "FORBIDDEN_TERMINAL",
+    "route_exhaustion": "FALSE_UNTESTED_SMOOTHL1_AND_OTHER_HYBRID_OPTIONS_REMAIN"
+  },
+  "route_exhausted": false,
+  "behavior_launch_authorized": "ONLY_AFTER_NEW_POST_CAL_H10_PREREGISTRATION_IMPLEMENTATION_AUDIT_DESIGN_LOCK_PREFLIGHT_AND_CANONICAL_REARM_PASS",
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

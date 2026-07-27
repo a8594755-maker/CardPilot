@@ -1,0 +1,64 @@
+{
+  "schema_version": "v5.hybrid.h3.path1_street_scale_audit.v1",
+  "checked_at": "2026-07-13T06:44:00+00:00",
+  "overall": "PASS_FORMAT_EVIDENCE_H3_DATASET_SELECTION_PREREG_REQUIRED",
+  "purpose": "determine whether the corrected Path-1 export supplies all postflop streets and whether emitting every info-set as an AlphaHoldem tensor is operationally feasible",
+  "format_evidence": {
+    "source_path": "C:\\Users\\a8594\\CardPilot\\data\\cfr\\pipeline_v3_hu_srp_200bb\\flop_002.jsonl.gz",
+    "source_sha256": "407e63bd577a918456c34a7f773d26661b1c6abc0688cad83478f55e4ab1c4b5",
+    "source_classification": "QUARANTINED_ORIGINAL_USED_ONLY_FOR_STABLE_EXPORT_FORMAT_AND_SCALE_AUDIT",
+    "rows_scanned_from_file_start": 1000000,
+    "street_prefix_counts": {
+      "F": 119,
+      "T": 26363,
+      "R": 973518
+    },
+    "action_count_histogram": {
+      "2": 622805,
+      "3": 186613,
+      "4": 63234,
+      "5": 80148,
+      "6": 47200
+    },
+    "history_street_separator_counts": {
+      "0": 119,
+      "1": 26363,
+      "2": 973518
+    },
+    "code_path": "C:\\Users\\a8594\\CardPilot\\packages\\cfr-solver\\src\\engine\\cfr-engine.ts",
+    "code_sha256": "c2cf60eb8706d7ebaf3fff7a045e314aa79ba0bf80c30fa71c377af5951892e8",
+    "code_contract": "buildInfoKey emits F/T/R per street",
+    "conclusion": "Path-1 does contain flop, turn and river supervision; an R-only QA contract is invalid"
+  },
+  "scale_evidence": {
+    "representative_board_meta_path": "C:\\Users\\a8594\\CardPilot\\data\\cfr\\pipeline_v3_hu_srp_200bb\\flop_002.meta.json",
+    "representative_board_meta_sha256": "9caa73c922d99c798b81b311dd76ab4a943306c7a315c06d37e46287c41a2726",
+    "representative_board_info_sets": 27705655,
+    "target_boards": 600,
+    "projected_rows_if_every_info_set_emitted": 16623393000,
+    "alpha_holdem_float32_payload_bytes_per_row": 3328,
+    "projected_uncompressed_payload_bytes": 55322651904000,
+    "projected_uncompressed_payload_tib": 50.315658794716,
+    "payload_components": {
+      "card_info": 312,
+      "action_info": 500,
+      "extra_info": 2,
+      "legal_mask": 9,
+      "actor_target": 9,
+      "float32_bytes": 4
+    },
+    "conclusion": "all600 QA/coverage is required, but materializing every info-set tensor is not a viable H3 training corpus"
+  },
+  "decision": {
+    "keep_600_board_asset_and_qa_gate": true,
+    "first_board_smoke_unchanged": true,
+    "full_corpus_row_selection_status": "MUST_BE_SEPARATELY_PREREGISTERED_BEFORE_H3_BEHAVIOR",
+    "forbid_posthoc_row_cap": true,
+    "required_future_contract": "deterministic street/player/history/action/bucket-aware bounded sampling with frozen seed, coverage metrics, duplicate/card-conflict gates and no adaptive extension"
+  },
+  "h3_preregistration_authorized": false,
+  "behavior_launch_authorized": false,
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}
+

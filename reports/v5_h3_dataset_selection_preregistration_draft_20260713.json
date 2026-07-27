@@ -1,0 +1,92 @@
+{
+  "schema_version": "v5.hybrid.h3.dataset_selection_preregistration_draft.v1",
+  "design_id": "H3-DATASET-SAMPLE-001",
+  "status": "DRAFT_PRE_PROFILE_NO_AUTHORITY",
+  "drafted_at": "2026-07-13T06:52:00+00:00",
+  "authority": "standing DRIVE_TO_L5 campaign; H3 asset engineering only",
+  "reason": "the full600-board QA/coverage gate is mandatory, but all-row tensor materialization projects16.623B rows and50.316TiB uncompressed",
+  "frozen_draft_evidence": {
+    "street_scale_audit_sha256": "3110bbec4b3416274b6d5b92c9ee36f2d6d0ef47695f2a38ff782083bd9586d1",
+    "domain_adapter_design_lock_v2_sha256": "cab56df24be190a8486b4036a73ce4a028062e186e01764083f5c9f2f4f4088a",
+    "path1_successor_asset_lock_sha256": "ddc57ea13d9bd02cdc41f40832aa08b07b82b03267d1540b4745abb3b60174d4",
+    "selection_seed": 20260712,
+    "first_corrected_board_profile": "PENDING"
+  },
+  "unchanged_asset_gate": {
+    "selected_boards": 600,
+    "every_board_requires_corrected_qa_pass": true,
+    "board_selection_method": "isomorphism_multiplicity_weighted_texture_stratified_v1",
+    "quarantined_original_assets_forbidden": true,
+    "critic_supervision_forbidden": true
+  },
+  "candidate_resource_contract_frozen_before_profile": {
+    "maximum_uncompressed_float32_tensor_payload_gib": 64.0,
+    "target_rows_per_qa_pass_board": 30000,
+    "maximum_target_rows_over_600_boards": 18000000,
+    "projected_uncompressed_payload_bytes": 59904000000,
+    "projected_uncompressed_payload_gib": 55.79090118408203,
+    "minimum_free_disk_gib_before_materialization": 128.0,
+    "current_free_disk_gib_observed_at_draft": 655.0494728088379,
+    "row_payload_bytes": 3328,
+    "no_adaptive_row_extension": true
+  },
+  "candidate_sampling_rule_frozen_before_profile": {
+    "stratum": "street_prefix|player|cfr_action_count",
+    "streets": ["F", "T", "R"],
+    "players": [0, 1],
+    "action_counts": [2, 3, 4, 5, 6],
+    "first_board_population_source": "exact strictBoardAudit.streetPlayerActionCounts from the chronologically first corrected QA-PASS board",
+    "base_quota_per_nonempty_stratum": 128,
+    "quota_weight": "sqrt(first_board_population_count)",
+    "quota_total": 30000,
+    "apportionment": [
+      "assign min(128, population) to every nonempty first-board stratum",
+      "allocate remaining quota by sqrt(population) weights",
+      "use Hamilton largest-remainder allocation with lexical stratum tie-break",
+      "if a stratum reaches its first-board population capacity, redistribute only its unallocated draft quota by the same frozen rule",
+      "freeze the resulting exact quota map in the immutable preregistration; never recompute it from later boards"
+    ],
+    "within_stratum_selection": "lowest unsigned SHA256 rank of 20260712|board_id|info_set_key",
+    "near_uniform_filter": "FORBIDDEN_NO_POLICY_BASED_ROW_FILTER",
+    "probability_rule": "v2 bounded three-decimal residual restoration before action mapping",
+    "representatives_per_selected_info_set": 1,
+    "representative_selection": "existing seed-keyed deterministic combo reconstruction",
+    "later_board_shortfall": "take every available row in the short stratum; do not reallocate across strata or add replacement rows",
+    "duplicate_info_set_keys": "FAIL_CLOSED",
+    "card_or_action_mapping_conflict": "FAIL_CLOSED"
+  },
+  "candidate_execution_plan": {
+    "pass_1": "strict streaming QA, identity hash and population counts",
+    "pass_2": "bounded top-hash heaps holding at most the frozen per-board quota",
+    "post_pass_2": "build deterministic bucket representative maps only once and adapt selected rows",
+    "full_source_tensor_materialization": false,
+    "worker_order_independent": true,
+    "atomic_no_overwrite_outputs": true
+  },
+  "candidate_full_corpus_gates": {
+    "qa_pass_boards": 600,
+    "source_identity_bound_boards": 600,
+    "missing_or_malformed_rows": 0,
+    "duplicate_selected_info_set_keys": 0,
+    "card_conflicts": 0,
+    "unsupported_v55_target_mass": 0.0,
+    "critic_rows": 0,
+    "all_nonempty_first_board_strata_have_positive_frozen_quota": true,
+    "per_board_and_global_street_player_action_coverage_report_required": true,
+    "texture_and_isomorphism_coverage_report_required": true,
+    "shortfall_report_required": true,
+    "domain_transfer_risk_report_required": true
+  },
+  "items_intentionally_not_frozen_until_first_corrected_profile": [
+    "exact per-stratum quota map",
+    "whether first-board populations make the30k/board candidate feasible without a mandatory stratum shortfall",
+    "immutable preregistration SHA"
+  ],
+  "post_profile_decision_rule": "if base quotas exceed30000 or any required first-board stratum cannot receive a positive quota, classify this draft INFEASIBLE and publish a new pre-behavior draft; otherwise compute the exact quota map mechanically, publish immutable preregistration and audit it before implementing full-corpus sampling",
+  "h3_preregistration_authorized": false,
+  "dataset_materialization_authorized": false,
+  "behavior_launch_authorized": false,
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}
+

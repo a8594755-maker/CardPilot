@@ -1,0 +1,122 @@
+{
+  "registered_at": "2026-07-10T14:10:00-04:00",
+  "experiment_id": "EXP-005",
+  "status": "EXPLORATORY_PILOT_NO_METHOD_JUDGMENT",
+  "selected_method": "GROUP_OPPONENT_ASSIGNMENT",
+  "one_behavior_change": true,
+  "hypothesis": "balanced per-group opponent mixtures reduce per-update distribution lurch and policy oscillation",
+  "exact_change": {
+    "opponent_assignment_from": "per-iteration",
+    "opponent_assignment_to": "per-group",
+    "opponent_groups": 5,
+    "forced_self_play_groups": 1,
+    "reshuffle_worker_membership_each_iteration": true,
+    "distinct_pool_snapshot_groups_when_available": true
+  },
+  "frozen_behavior": {
+    "rollout_mode": "multi",
+    "rollout_envs_per_worker": 16,
+    "inference_min_batch_slots": 256,
+    "inference_batch_deadline_us": 1000,
+    "mirror_self_play_deals": true,
+    "allin_runout_ev": true,
+    "allin_runout_ev_max_runouts": 200,
+    "preflop_prior": 0.01,
+    "postflop_prior": 0.02,
+    "pool_strategy": "loss-kbest",
+    "k_best": 5,
+    "official_policy": "greedy-direct"
+  },
+  "official_anchor": {
+    "iteration": 30700,
+    "hands": 504474081,
+    "checkpoint_path": "models/bench_v55_v5_v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709_500M_promotion20k_cadence_checkpoint.pt",
+    "checkpoint_sha256": "97b260482b55feb2afcc87d80f699dc54f6f1044c78d10fa06273c7c291e7df6",
+    "promotion_bb100": -153.29985294117645,
+    "promotion_ci_lower": -187.6945437864211,
+    "promotion_ci_upper": -118.90516209593181
+  },
+  "inputs": {
+    "ci_sha256": "4756156527fae6edaab392932d6ef9ede777ce2b5813fcb7aaaa12e8beddf5d9",
+    "loss_report_sha256": "6eb3eea857b6bd409ea04bcae896a64262036dadf8d554b262fed708315e64d1",
+    "artifact_audit_sha256": "0ca8bf6d8dfe551734467bed7f9e7620914fbce65bc94ea73c7008158c2098c5",
+    "method_diagnostic_sha256": "263e3d9743eaf759d922a55618f7cefaf136be75b9df3e741d59ca9918f9932c",
+    "meas001_design_sha256": "006bd4b8e2b035a89fb5f8959e009fd7d521c61fcb2b0934aed09894e04b516b",
+    "preimplementation_trainer_sha256": "8b951a43e3b86f6eb38600a69c33ce793c3b4658047325ac06d6e11f6a0b8b31",
+    "implemented_trainer_sha256": "d9884241740d7040eb5ad09b6810c40423e2558ddac3544cf877b127315713b5"
+  },
+  "cutover": {
+    "gate_rule": "first exact PASS gate after implementation and tests",
+    "source_checkpoint_iteration": 31400,
+    "source_checkpoint_hands": 515989661,
+    "source_checkpoint_path": "models/alpha_holdem_v5_from_zero/v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709/v5_exp005_cutover_gate31400_checkpoint.pt",
+    "source_checkpoint_sha256": "bcbb46bd01d62fcdea602269b7047323315d4e9bbcf447ea0323e289fde11a8e",
+    "planned_run_suffix": "exp005_pergroup5_r1_20260710",
+    "cutover_at": "2026-07-10T14:29:20-04:00",
+    "candidate_run_id": "v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710",
+    "candidate_trainer_pid": 30224,
+    "candidate_endpoint_min_hands": 535989661,
+    "first_endpoint_checkpoint_iteration": 32700,
+    "watcher_range": "31500..32700",
+    "watcher_rearm_survival": "PASS"
+  },
+  "judgment": {
+    "actual_hands_after_cutover": 20000000,
+    "success_before_endpoint_forbidden": true,
+    "effective_hps_ratio_min": 0.9,
+    "abort_hps_ratio_below": 0.85,
+    "stability_metrics": ["preflop_warning_range_and_switches", "internal_delta_swing_amplitude", "value_loss_variance"],
+    "stability_pass_rule": "at least two improve and third does not materially worsen",
+    "meas001_pairs": 100000,
+    "meas001_adaptive_extension_forbidden": true,
+    "external_eval": "FORBIDDEN_FOR_THIS_PILOT",
+    "method_pass_fail": "FORBIDDEN_FOR_THIS_PILOT",
+    "meas001": "FORBIDDEN_FOR_THIS_PILOT",
+    "pilot_data_use": "execution health throughput assignment provenance and stability description only"
+  },
+  "abort": [
+    "group assignment invariant failure",
+    "self-play mixture failure",
+    "actual hand accounting failure",
+    "change-attributed crash or sustained health failure",
+    "effective_hps ratio below 0.85",
+    "checkpoint or lineage mismatch",
+    "MEAS-001 terminal failure"
+  ],
+  "rollback": "resume frozen cutover checkpoint with opponent_assignment=per-iteration and all other flags unchanged",
+  "exp006a_selected": false,
+  "exp005_exp006_bundle_forbidden": true,
+  "validation": {
+    "py_compile": "PASS",
+    "focused_tests": "5/5 PASS",
+    "multi_env_smoke": "PASS_200_ACTUAL_HANDS_TWO_ITERATIONS",
+    "full_v5_regression": "153/153 PASS",
+    "live_trainer_pid_untouched": 48476
+  },
+  "operational_speed_diagnosis": {
+    "status": "CONTINUE_SPEED_GATE_CURRENTLY_PASS",
+    "artifact": "reports/v5_exp005_speed_diagnosis_20260710.json",
+    "baseline_exact_window_hands": "495989661..515989661",
+    "baseline_rows": 1216,
+    "baseline_effective_hps_weighted": 1457.516881140675,
+    "candidate_tail_rows": 60,
+    "candidate_effective_hps_weighted": 1499.9084528532194,
+    "effective_hps_ratio": 1.0290847895218669,
+    "success_floor": 0.9,
+    "abort_floor": 0.85,
+    "terminal_method_judgment": false
+  },
+  "reclassification": {
+    "at": "2026-07-10T15:00:00-04:00",
+    "status": "EXPLORATORY_PILOT_NO_METHOD_JUDGMENT",
+    "may_run_to_existing_endpoint": true,
+    "method_pass_fail_forbidden": true,
+    "meas001_forbidden": true,
+    "promotion20k_forbidden": true,
+    "formal100k_forbidden": true,
+    "v4_l5_l6_inference_forbidden": true,
+    "superseding_experiment": "EXP005-C clean same-start control/treatment"
+  },
+  "authorizes_cutover_now": false,
+  "claim_scope": "method experiment only; not V4/L5/L6 strength evidence"
+}

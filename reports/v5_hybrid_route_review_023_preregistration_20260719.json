@@ -1,0 +1,42 @@
+{
+  "schema_version": "v5.hybrid.route_review.preregistration.v23.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-023",
+  "registered_at": "2026-07-19T22:22:00Z",
+  "status": "REGISTERED_REPORTING_ONLY",
+  "trigger": {
+    "pcv011_classification": "PCV011_PASS_MEASUREMENT_COMPLETE_IN_MEASUREMENT_DEVICE_EXCURSION_PERSISTS",
+    "pcv011_result_sha256": "703bc7b83460ffc988748c8081377583a3b9d6ae237a465af99d36f2718e4f62",
+    "pcv011_audit_sha256": "80bc3efbbe32fd66689dc5ca14ce3f2b4df85d596b9bffdb066921405744ca6c"
+  },
+  "evidence_rules": {
+    "pcv008_remains_terminal_no_result_no_reconstruction": true,
+    "pcv009_pcv010_are_terminal_control_plane_only": true,
+    "pcv011_is_terminal_no_rerun_extension_reclassification_or_row_reuse": true,
+    "pcv011_conditioning_envelope_passed": true,
+    "pcv011_measurement_device_excursion_persisted": true,
+    "pcv011_order_association_and_stability_are_not_causal_or_method_evidence": true,
+    "a_future_measurement_must_use_new_design_seeds_and_output": true,
+    "a_future_measurement_may_change_only_prospective_block_local_device_envelope_control_relative_to_pcv011": true,
+    "future_control_must_not_override_gpu_clocks_or_modify_path1": true,
+    "other_hybrid_routes_require_existing_immutable_completion_evidence": true,
+    "no_h19_or_official_hands": true
+  },
+  "candidate_order": [
+    "PCV012_NEW_REPORTING_ONLY_BLOCK_LOCAL_DEVICE_ENVELOPE_GATED_TIMING",
+    "ALREADY_COMPLETE_HYBRID_PREREQUISITE_ONLY_IF_NEW_IMMUTABLE_EVIDENCE_SUPPORTS_IT",
+    "ROUTE_EXHAUSTION_IF_NO_CAUSALLY_SUPPORTED_HYBRID_PREREQUISITE_REMAINS"
+  ],
+  "selection_rule": "SELECT_PCV012_IFF_PCV011_PASSES_ITS_FULL_INDEPENDENT_AUDIT,PREMEASUREMENT_CONDITIONING_PASSED,THE_REGISTERED_DEVICE_EXCURSION_THRESHOLD_WAS_CROSSED_DURING_MEASUREMENT,A_NEW_PROSPECTIVE_MEASUREMENT_CAN_PRESERVE_THE_PCV011_SOURCE_WORKLOAD_ORDER_TIMING_TELEMETRY_AND_RESOURCE_CONTRACT_WHILE_CHANGING_ONLY_BLOCK_LOCAL_DEVICE_ENVELOPE_CONTROL,AND_NO_OTHER_HYBRID_PREREQUISITE_HAS_NEW_IMMUTABLE_COMPLETION_EVIDENCE;OTHERWISE_SELECT_THE_COMPLETE_ALTERNATIVE_OR_ROUTE_EXHAUSTION",
+  "required_result_fields": [
+    "selected_next",
+    "causal_reason",
+    "route_exhausted",
+    "behavior_launch_authority",
+    "pcv011_terminal_closure",
+    "pcv012_novelty_requirements",
+    "official_hands"
+  ],
+  "official_hands": 0,
+  "behavior_launch_authority": "NONE_REPORTING_ONLY",
+  "strength_claim": "FORBIDDEN"
+}

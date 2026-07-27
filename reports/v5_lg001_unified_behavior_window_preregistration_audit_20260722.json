@@ -1,0 +1,196 @@
+{
+  "schema_version": "v5.lg001.unified_behavior_window_preregistration_audit.v1",
+  "audited_at": "2026-07-22T16:22:26-04:00",
+  "design_id": "LG001_V5_DIVERSITY_WEIGHTED_OPPONENT_LEAGUE_BOUNDED_BEHAVIOR_WINDOW",
+  "preregistration_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_lg001_unified_behavior_window_preregistration_20260722.json",
+  "preregistration_sha256": "6881da78f49633afbebdd73dc137961b4cfd81885f1dee745dce2c8c84b52067",
+  "preregistration_length_bytes": 18909,
+  "method": "INDEPENDENT_READ_ONLY_REHASH_CHECKPOINT_CPU_INSPECTION_SOURCE_PARSE_AND_CONTRACT_RECOMPUTATION",
+  "verdict": "PASS",
+  "classification": "LG001_PREREGISTRATION_AUDIT_PASS_IMPLEMENTATION_LATER_ONLY",
+  "checks_passed": 100,
+  "checks_total": 100,
+  "failed": [],
+  "check_groups": {
+    "registration_integrity": {
+      "passed": 10,
+      "total": 10,
+      "checks": [
+        "json_parse",
+        "exact_preregistration_sha256",
+        "exact_preregistration_length",
+        "schema_identity",
+        "design_identity",
+        "classification_is_registration_only",
+        "safe_boundary_stops_before_implementation",
+        "strength_is_L0",
+        "official_hands_are_zero",
+        "route_exhaustion_not_judged"
+      ]
+    },
+    "direct_input_and_collision_authority": {
+      "passed": 25,
+      "total": 25,
+      "checks": [
+        "exactly_20_direct_frozen_inputs",
+        "20_of_20_direct_input_hashes_match_independently",
+        "goal_v3_activation_is_direct_entry_authority",
+        "earliest_authoritative_rr033_collision_censure_is_direct_entry_authority",
+        "rr033_duplicate_censure_singleton_adoption_is_direct_entry_authority",
+        "both_censured_rr033_result_hashes_and_canonical_result_path_are_absent_from_direct_inputs_and_selection_authority"
+      ],
+      "direct_hash_checks_counted_individually": 20,
+      "direct_hash_mismatches": 0,
+      "forbidden_rr033_result_authority_hits": 0,
+      "forbidden_rr033_result_hashes": [
+        "67b7048e793f708189d47f28f13279ebfc0e883a8b54c86965388117d1ea8e89",
+        "58e31f5632482789647b4741b1d4607169255e50cb0bf72022aea0eccf94a303"
+      ]
+    },
+    "source_checkpoint": {
+      "passed": 18,
+      "total": 18,
+      "inspection_device_contract": "CUDA_VISIBLE_DEVICES=-1_MAP_LOCATION_CPU_NO_OUTPUT_FILES",
+      "checks": [
+        "checkpoint_sha256_exact",
+        "checkpoint_length_261417230",
+        "iteration_35051",
+        "total_hands_576021901",
+        "env_version_v55",
+        "obs_version_v55",
+        "action_space_version_9slot_v5",
+        "action_topology_fold_call_six_raises_allin",
+        "starting_stack_bb_200",
+        "critic_contract_v1",
+        "optimizer_state_present",
+        "reset_optimizer_false",
+        "model_state_present",
+        "pool_snapshots_length_5",
+        "pool_active_metadata_length_5",
+        "member_ids_exact_103_109_115_120_129",
+        "member_hands_iterations_and_selection_losses_exact",
+        "frozen_unchanged_config_matches_checkpoint"
+      ],
+      "checkpoint_pool_members": [
+        {"id": 103, "hands": 430445532, "iteration": 26200, "selection_loss": 3.332180558283604},
+        {"id": 109, "hands": 450186098, "iteration": 27400, "selection_loss": 3.109167585027128},
+        {"id": 115, "hands": 469929538, "iteration": 28600, "selection_loss": 3.131971110113375},
+        {"id": 120, "hands": 486379183, "iteration": 29600, "selection_loss": 3.318700045996682},
+        {"id": 129, "hands": 515989661, "iteration": 31400, "selection_loss": 3.3189354866189884}
+      ]
+    },
+    "intervention_recomputation": {
+      "passed": 15,
+      "total": 15,
+      "checks": [
+        "one_changed_variable_opponent_selection_distribution",
+        "diversity_is_limited_to_one_dimensional_trajectory_age_coverage",
+        "members_sorted_by_training_hands",
+        "member_103_cell_and_weight_exact",
+        "member_109_cell_and_weight_exact",
+        "member_115_cell_and_weight_exact",
+        "member_120_cell_and_weight_exact",
+        "member_129_cell_and_weight_exact",
+        "rounded_snapshot_weight_sum_0_8",
+        "total_weight_sum_with_self_1_0",
+        "self_weight_preserved_0_2",
+        "membership_frozen",
+        "new_hero_opponent_snapshots_forbidden",
+        "per_iteration_assignment_preserved",
+        "dedicated_assignment_rng_and_deal_rng_isolation_frozen"
+      ],
+      "recomputed": {
+        "103": {"cell_width": 9870283.0, "weight": 0.092305883435},
+        "109": {"cell_width": 19742003.0, "weight": 0.184625205547},
+        "115": {"cell_width": 18096542.5, "weight": 0.169237026190},
+        "120": {"cell_width": 23030061.5, "weight": 0.215374794453},
+        "129": {"cell_width": 14805239.0, "weight": 0.138457090375}
+      },
+      "binary_float_snapshot_sum": 0.7999999999999999,
+      "registered_decimal_snapshot_sum": 0.8,
+      "total_with_self": 1.0
+    },
+    "source_code_feasibility": {
+      "passed": 8,
+      "total": 8,
+      "checks": [
+        "base_trainer_hash_exact",
+        "exact_v55_environment_hash_exact",
+        "checkpoint_pool_loader_preserves_snapshot_state_and_metadata",
+        "baseline_per_iteration_pool_selection_is_uniform_random",
+        "baseline_self_play_fraction_is_0_2",
+        "existing_assignment_provenance_is_per_iteration_and_hash_chained",
+        "population_ppo_parse_mix_normalizes_weights",
+        "population_ppo_demonstrates_weighted_categorical_sampling_feasibility"
+      ],
+      "inference_limit": "FEASIBILITY_ONLY_NOT_IMPLEMENTATION_VALIDATION"
+    },
+    "training_and_external_contract": {
+      "passed": 14,
+      "total": 14,
+      "checks": [
+        "maximum_new_hands_20000000",
+        "absolute_target_596021901",
+        "milestones_equal_source_plus_5m_10m_20m",
+        "maximum_milestone_overshoot_50000",
+        "only_immutable_milestones_are_evaluation_eligible",
+        "mutable_latest_is_ineligible",
+        "trainer_exit_and_gpu_idle_pause_required_at_each_milestone",
+        "identity_provenance_resource_and_health_failures_are_terminal",
+        "automatic_crash_resume_forbidden",
+        "cal_ext_002_baseline_bb100_exact_minus146_1726",
+        "cal_ext_002_baseline_ci95_exact",
+        "quick5k_four_sessions_1250_each_with_disjoint_registered_seed_sets",
+        "directional_window_rule_is_fixed_before_training",
+        "promotion20k_and_formal100k_each_require_later_separate_preregistration_and_audit"
+      ],
+      "baseline": {
+        "policy": "greedy-direct",
+        "hands": 5000,
+        "bb_per_100": -146.17260000000002,
+        "ci95": [-238.59789051053525, -53.7473094894648]
+      }
+    },
+    "absence_device_and_authority": {
+      "passed": 10,
+      "total": 10,
+      "checks": [
+        "all_six_future_implementation_files_absent",
+        "future_output_root_absent",
+        "dedicated_lg001_active_window_absent",
+        "terminal_global_active_window_hash_unchanged",
+        "no_python_training_process",
+        "no_slumbot_process",
+        "implementation_authority_none_at_this_boundary",
+        "training_authority_none",
+        "evaluation_authority_none",
+        "behavior_launch_authority_none"
+      ],
+      "gpu_census": {
+        "index": 0,
+        "name": "NVIDIA GeForce RTX 4070",
+        "uuid": "GPU-01d41f66-6148-83e4-ce86-8b0c15f8a60d",
+        "memory_mib": 12282
+      },
+      "note": "GPU census validates the frozen future device identity only and does not authorize or perform a CUDA child probe."
+    }
+  },
+  "evidence_judgment": {
+    "h4": "NO_CANDIDATE_UNDER_ITS_FIXED_EXCLUDED_SNAPSHOT_INVERSION_RULE_DOES_NOT_EXHAUST_OPPONENT_DISTRIBUTION_INTERVENTIONS",
+    "h5": "RESOLVER_ROUTE_REMAINS_NOT_BEHAVIOR_READY",
+    "pcv019": "TEACHER_INTERFACE_SMOKE_PASS_HAS_NO_BEHAVIOR_OR_TRAINING_AUTHORITY",
+    "lg001": "ONE_COHERENT_OPPONENT_DISTRIBUTION_WINDOW_IS_AUDITABLE_AND_IMPLEMENTABLE_LATER_WITHOUT_CHANGING_MODEL_PPO_CRITIC_OPTIMIZER_ENVIRONMENT_OBSERVATION_OR_ACTION_SPACE"
+  },
+  "authority": {
+    "current": "PREREGISTRATION_AUDIT_COMPLETE",
+    "next": "ONE_LATER_IMPLEMENTATION_PLUS_PROPORTIONATE_INDEPENDENT_IMPLEMENTATION_AUDIT_ONLY",
+    "preflight": "NONE",
+    "behavior_launch": "NONE",
+    "training": "NONE",
+    "evaluation": "NONE",
+    "slumbot": "NONE",
+    "official_hands": 0
+  },
+  "strength": "L0",
+  "safe_boundary": "STOP_AFTER_LEDGER_AND_CONTROL_REFRESH_BEFORE_ANY_LG001_IMPLEMENTATION"
+}

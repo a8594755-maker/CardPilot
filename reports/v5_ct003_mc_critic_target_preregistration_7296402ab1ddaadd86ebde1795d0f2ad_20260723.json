@@ -1,0 +1,217 @@
+{
+  "schema_version": "v5.ct003.mc_critic_target.preregistration.v1",
+  "registered_at": "2026-07-23T08:23:16-04:00",
+  "design_id": "CT003_FULL_TRAJECTORY_MONTE_CARLO_CRITIC_TARGET",
+  "status": "REGISTERED_PREIMPLEMENTATION_AUDIT_REQUIRED",
+  "identity": {
+    "basis": "CT003_MC_CRITIC_TARGET_V1|96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13|f841144c883d51e66a1d2de889e15303e7339695c8664f81e60208ff77770452|FULL_TRAJECTORY_DISCOUNTED_MC_GAMMA0.999|ACTOR_GAE_LAMBDA0.95_UNCHANGED|581021901|LG003_ASSIGNMENT_V1|fbd630ab6a689913afc1cee8a63066dd|2026072301|20260723",
+    "sha256": "7296402ab1ddaadd86ebde1795d0f2ade6f8c609f8f13aa1c41035c6470761a0",
+    "token": "7296402ab1ddaadd86ebde1795d0f2ad"
+  },
+  "entry_authority": {
+    "current_state": "LG004_STAGE_A_SCIENTIFIC_FAIL_MEMBERSHIP_REPLACEMENT_RERANK_TO_CRITIC_TARGET",
+    "current_agents_sha256": "d708f2ee1a1d5944cece7b1e1a961684d8e3f06a1c863089bfd252f2d6217db2",
+    "family": "CRITIC_TARGET_DESIGN",
+    "materially_distinct_from_ct002": true,
+    "reason": "CT002 proposed offline value-head calibration data distribution and never produced scientific output. CT003 changes the online critic target estimator only, uses no generated calibration dataset, and leaves the network and optimizer contract unchanged."
+  },
+  "evidence_matrix": {
+    "formal_external": {
+      "checkpoint": "H11",
+      "hands": 100000,
+      "bb_per_100": -100.2475,
+      "ci95": [-112.4067, -88.0883],
+      "authority": "FORMAL_EXTERNAL_STRENGTH"
+    },
+    "same_start_frozen_control": {
+      "checkpoint_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_lg003c1_8bf8cedf78b6e8c8fe153802908ed893_20260723\\control_uniform_stagea\\latest.pt",
+      "checkpoint_sha256": "9c8f8033f92cb34291b62eb685761110026ee9afb5eb84e398caa03ea8f332ff",
+      "window_audit_sha256": "71a6acf3d3fb0d43f6f3ebf7c6ab5d776d521cfd10f8671b64965c10007c0a41",
+      "quick5k_result_audit_sha256": "27ac75084bd1ca769f4975fe2f3d497993f382358e4d97e7eadd5be2b0979b0f",
+      "hands": 5000,
+      "bb_per_100": -131.3494,
+      "ci95": [-212.7405371214895, -49.95826287851051],
+      "reuse": "FROZEN_NO_REEXECUTION"
+    },
+    "target_mechanism": {
+      "current_actor_advantage": "GAE_GAMMA0.999_LAMBDA0.95",
+      "current_critic_target": "THE_SAME_BOOTSTRAPPED_GAE_LAMBDA0.95_RETURN",
+      "treatment_critic_target": "FULL_TRAJECTORY_SAMPLED_MONTE_CARLO_DISCOUNTED_RETURN_GAMMA0.999_LAMBDA1_EQUIVALENT",
+      "risk_localized": "The current critic target contains old-value bootstrap terms and can preserve critic bias; this is a causal design hypothesis, not proof of the external loss mechanism."
+    },
+    "association_only": {
+      "lg004_quick5k": {
+        "bb_per_100": -189.2906,
+        "showdown_bucket_bb_per_100": -427.8548516439455,
+        "hero_fold_bucket_bb_per_100": -975.1079847908745
+      },
+      "scope": "LOSS_LOCALIZATION_ONLY_NOT_CAUSAL_EVIDENCE"
+    },
+    "prior_route_results": {
+      "h1_critic_v2": "SCIENTIFIC_FAIL_VALUE_ACCURACY_AND_THROUGHPUT;ARCHITECTURE_VARIANT_CLOSED",
+      "h2_showdown_ev_targets": "PROTOCOL_ABORT_THROUGHPUT_RATIO0.537;METHOD_EFFECT_UNMEASURED_BUT_EXPENSIVE_VARIANT_CLOSED",
+      "ct002": "PREOUTPUT_CONTROL_PLANE_FAILURES;SCIENTIFIC_HYPOTHESIS_UNTESTED",
+      "ct003_novelty": "CHEAP_ALL_ROW_ONLINE_TARGET_ESTIMATOR_WITH_NO_ARCHITECTURE_OR_DATA_GENERATION"
+    }
+  },
+  "falsifiable_hypothesis": {
+    "prediction": "Replacing only the critic's lambda0.95 bootstrapped return with full-trajectory Monte-Carlo discounted returns reduces target confirmation bias enough that the exact-H11 same-start 5M endpoint improves greedy-direct Slumbot by at least20 bb/100 versus the frozen uniform control.",
+    "falsifier": "Any complete registered Stage-A external gate fails.",
+    "mechanism_falsifier": "Any update has target coverage other than1.0, any target recursion mismatch, any actor/GAE input mutation, nonfinite state, or throughput below the registered floor."
+  },
+  "one_coherent_intervention": {
+    "behavior_variable": "CRITIC_TARGET_ESTIMATOR_ONLY",
+    "control": "GAE_LAMBDA0.95_RETURNS_FOR_ACTOR_AND_CRITIC",
+    "treatment": "GAE_LAMBDA0.95_ACTOR_ADVANTAGES_UNCHANGED;FULL_TRAJECTORY_MC_CRITIC_RETURNS",
+    "treatment_equation": "G_t=r_t+0.999*(1-done_t)*G_(t+1)",
+    "trajectory_contract": "TRANSITIONS_ARE_COMPLETE_ORDERED_ACTOR_TRAJECTORIES_AND_EACH_FINAL_ROW_HAS_DONE1",
+    "implementation_seam": "Append one finite raw-BB critic-only target at tuple index12 before the unchanged PPO updater; its existing critic-only override path consumes it.",
+    "unchanged": [
+      "ACTOR_REWARD",
+      "ACTOR_GAE_GAMMA0.999_LAMBDA0.95",
+      "POLICY_LOSS_AND_TRINAL_CLIP",
+      "VALUE_LOSS_MSE_AND_TRINAL_VALUE_BOUNDS",
+      "NETWORK_AND_CRITIC_V1_ARCHITECTURE",
+      "OPTIMIZER_AND_VALUE_COEF0.5",
+      "TARGET_KL_AND_VALUE_HEAD_CATCHUP",
+      "OBSERVATION_ACTION_ENVIRONMENT",
+      "TRAINING_DEALS_AND_RNG",
+      "UNIFORM_FIVE_MEMBER_POOL_AND_ASSIGNMENT_STREAM",
+      "ALL_PRIORS_AND_RESOURCES"
+    ]
+  },
+  "frozen_source": {
+    "checkpoint_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_endpoint.pt",
+    "checkpoint_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "bytes": 261417230,
+    "iteration": 35051,
+    "total_hands": 576021901,
+    "pool_order": [109, 115, 120, 129, 103],
+    "parent_trainer_path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_lg003c1_train_8bf8cedf78b6e8c8fe153802908ed893.py",
+    "parent_trainer_sha256": "f841144c883d51e66a1d2de889e15303e7339695c8664f81e60208ff77770452",
+    "unchanged_ppo_module_path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\train_mp3_hybrid_h1.py",
+    "unchanged_ppo_module_sha256": "69197b52baee7463d79e4a940f01f8bb241ed8e70975b51e043b99fd8a5cbc4d"
+  },
+  "assignment_and_training_contract": {
+    "assignment_rule": "LG003_ASSIGNMENT_V1",
+    "assignment_token": "fbd630ab6a689913afc1cee8a63066dd",
+    "assignment_seed": 2026072301,
+    "arm": "control_uniform",
+    "self_probability": 0.2,
+    "conditional_weights": {"103": 0.2, "109": 0.2, "115": 0.2, "120": 0.2, "129": 0.2},
+    "device": "cuda",
+    "workers": 22,
+    "hands_per_iter": 16384,
+    "target_total_hands": 581021901,
+    "minimum_increment_hands": 5000000,
+    "maximum_overshoot_hands": 50000,
+    "maximum_runtime_seconds": 10800,
+    "starting_stack_bb": 200,
+    "env_version": "v55",
+    "learning_rate": 0.0003,
+    "ppo_epochs": 4,
+    "ppo_target_kl": 0.03,
+    "mini_batch_size": 1024,
+    "gamma": 0.999,
+    "entropy_coef": 0.05,
+    "entropy_floor": 0.3,
+    "critic_contract": "critic_v1",
+    "value_coef": 0.5,
+    "value_head_catchup": true,
+    "catchup_loss": "mse",
+    "fixed_training_deal_stream": true,
+    "worker_seed_base": 73000,
+    "seed": 20260703,
+    "optimizer_and_hand_counter_preserved": true
+  },
+  "mechanism_and_window_gates": {
+    "prelaunch": [
+      "EXACT_SOURCE_AND_PARENT_HASHES",
+      "EXACT_RECURSION_ON_MULTIPLE_SYNTHETIC_TRAJECTORIES",
+      "FIRST12_TRANSITION_FIELDS_BITWISE_UNCHANGED",
+      "ACTOR_GAE_FUNCTION_AND_UNCHANGED_PPO_MODULE_HASH_EXACT",
+      "ZERO_OUTPUT_FINAL_LAUNCHER_PROBE",
+      "NO_CUDA_INITIALIZATION_IN_PROBE"
+    ],
+    "completed_window": [
+      "NEW_HANDS_BETWEEN5000000_AND5050000",
+      "EVERY_UPDATE_CRITIC_TARGET_OVERRIDE_FRACTION_EXACT1",
+      "OVERRIDE_ROWS_EQUAL_TRANSITION_ROWS",
+      "NO_NONFINITE_MODEL_OR_OPTIMIZER",
+      "ASSIGNMENT_HASH_CHAIN_AND_UNIFORM_POOL_EXACT",
+      "MEDIAN_EFFECTIVE_HPS_AT_LEAST0.85_OF_FROZEN_LG003_CONTROL",
+      "CHECKPOINT_AND_RAW_METRICS_IMMUTABLE_HASHED"
+    ]
+  },
+  "planned_paths": {
+    "materializer": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_ct003_materialize_7296402ab1ddaadd86ebde1795d0f2ad.py",
+    "trainer": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_ct003_train_7296402ab1ddaadd86ebde1795d0f2ad.py",
+    "launcher": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_ct003_launcher_7296402ab1ddaadd86ebde1795d0f2ad.ps1",
+    "window_auditor": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_ct003_window_audit_7296402ab1ddaadd86ebde1795d0f2ad.py",
+    "implementation_audit": "C:\\Users\\a8594\\CardPilot\\reports\\v5_ct003_implementation_audit_7296402ab1ddaadd86ebde1795d0f2ad_20260723.json",
+    "output_root": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_ct003_7296402ab1ddaadd86ebde1795d0f2ad_20260723",
+    "run_dir": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_ct003_7296402ab1ddaadd86ebde1795d0f2ad_20260723\\mc_target_stagea",
+    "all_absent_at_registration": true,
+    "exclusive_create_no_reuse": true
+  },
+  "implementation_audit_contract": {
+    "materializer_must_bind_parent_hash_and_exact_replacement_counts": true,
+    "child_must_reverse_to_parent_after_only_registered_top_constants_output_root_validation_helper_probe_metadata_and_one_callsite_are_removed": true,
+    "independent_recursion_and_tuple_preservation_test": true,
+    "unchanged_ppo_module_hash": true,
+    "one_zero_output_final_launcher_probe": true
+  },
+  "mandatory_external": {
+    "trigger": "ONE_COMPLETE_AUDITED_5M_BEHAVIOR_ENDPOINT",
+    "opponent": "Slumbot",
+    "policy": "greedy-direct",
+    "sessions": 4,
+    "hands_per_session": 1250,
+    "complete_hands_exact": 5000,
+    "no_posthoc_extension": true,
+    "required_bundle": [
+      "FOUR_SESSION_RESULTS",
+      "FOUR_HAND_JSONL",
+      "FOUR_DECISION_DUMPS",
+      "CI",
+      "PROMOTION_GATE",
+      "LOSS_REPORT",
+      "ARTIFACT_AUDIT",
+      "HAND_REVIEW",
+      "EXACT_RESULT_AUDIT"
+    ]
+  },
+  "exact_judgment": {
+    "frozen_control_bb100": -131.3494,
+    "historical_h11_bb100": -146.1726,
+    "treatment_minus_control_bb100_min": 20.0,
+    "treatment_minus_historical_h11_bb100_min": 20.0,
+    "treatment_bb100_must_exceed": -126.1726,
+    "treatment_postflop_raise_allin_max": 0.8,
+    "all_four_pass": "AUTHORIZE_SEPARATELY_REGISTERED_15M_UNCHANGED_TARGET_CONTINUATION",
+    "any_valid_fail": "CT003_SCIENTIFIC_FAIL_MC_CRITIC_TARGET_RERANK",
+    "incomplete_bundle": "INCONCLUSIVE_PRESERVE_AND_STOP",
+    "directional_only": true,
+    "formal_claim_bar": "100K_COMPLETE_GREEDY_DIRECT_HANDS_BB100_GT0_CI95_LOWER_GT0"
+  },
+  "abort_and_rollback": {
+    "identity_or_source_mismatch": "ABORT_BEFORE_OUTPUT",
+    "target_contract_or_coverage_mismatch": "ABORT_PRESERVE",
+    "nonfinite_model_or_optimizer": "ABORT_PRESERVE",
+    "throughput_below_floor": "SCIENTIFIC_MECHANISM_FAIL_NO_QUICK5K_IF_NO_VALID_ENDPOINT",
+    "maximum_runtime": "ABORT_PRESERVE",
+    "rollback": "EXACT_H11_SOURCE_REMAINS_CANONICAL_UNCHANGED"
+  },
+  "prohibitions": {
+    "ct002_repair_or_replay": true,
+    "actor_gae_change": true,
+    "network_observation_action_reward_change": true,
+    "league_teacher_resolver_change": true,
+    "posthoc_budget_gate_or_sample_change": true,
+    "strength_claim_from_quick5k": true
+  },
+  "route_exhausted": false,
+  "formal_claim_hands": 0,
+  "strength": "L0",
+  "goal": "ACTIVE"
+}

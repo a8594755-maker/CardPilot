@@ -1,0 +1,166 @@
+{
+  "arms": {
+    "control": {
+      "reuse_rule": "Exact H2 control was frozen before H6 selection and may not be replaced by a later endpoint.",
+      "run_id": "v5_hybrid_h2_control_allinonly_same31400_20m_r1_20260713",
+      "checkpoint_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h2_control_allinonly_same31400_20m_r1_20260713\\h2_control_endpoint.pt",
+      "checkpoint_sha256": "f35558536365006afee9b1311352d465144dfed715a1028362def333147d3d3b",
+      "endpoint_iteration": 32616,
+      "endpoint_hands": 535989948,
+      "ppo_target_kl": 0.0
+    },
+    "treatment": {
+      "actual_hands": 20000000,
+      "run_id": "v5_hybrid_h6_treatment_kles003_same31400_20m_r1_20260713",
+      "target_endpoint_hands": 535989661,
+      "maximum_overshoot_hands": 50000,
+      "ppo_target_kl": 0.03
+    }
+  },
+  "authority": {
+    "implementation_and_offline_validation": "AUTHORIZED_AUTONOMOUSLY",
+    "launch": "BLOCKED_UNTIL_IMPLEMENTATION_AUDIT_DESIGN_LOCK_PREFLIGHT_AND_CANONICAL_REARM_PASS",
+    "official_hands": 0,
+    "strength_claim": "FORBIDDEN"
+  },
+  "baseline_nomination_evidence": {
+    "artifact_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_h6_ppo_stability_readiness_control_20260713.json",
+    "artifact_sha256": "8d0ce3dcf7b129cec092ca7d9bc61d80bc39214f9a393cd316b3dac2b1389b13",
+    "control_rows": 1216,
+    "fraction_above_0_03": 0.12088815789473684,
+    "kl_p95": 0.035324999999999995,
+    "rows_above_0_03": 147,
+    "inference_scope": "associational mechanism nomination only"
+  },
+  "common_config": {
+    "allin_runout_ev": true,
+    "allin_runout_ev_max_runouts": 200,
+    "critic_contract": "critic_v1",
+    "device": "cuda",
+    "entropy_coef": 0.05,
+    "entropy_floor": 0.3,
+    "env_version": "v55",
+    "fixed_training_deal_stream": true,
+    "gamma": 0.999,
+    "hands_per_iter": 16384,
+    "k_best": 5,
+    "lr": 0.0003,
+    "mini_batch_size": 1024,
+    "mirror_self_play_deals": true,
+    "opponent_assignment": "per-iteration",
+    "postflop_action_prior_coef": 0.02,
+    "ppo_epochs": 4,
+    "preflop_action_prior_coef": 0.01,
+    "reset_optimizer": true,
+    "rollout_envs_per_worker": 16,
+    "rollout_mode": "multi",
+    "seed": 20260703,
+    "self_play_fraction": 0.2,
+    "showdown_ev_value_targets": false,
+    "snapshot_every": 200,
+    "starting_stack": 200.0,
+    "value_coef": 0.5,
+    "worker_seed_base": 73000,
+    "workers": 22
+  },
+  "conditional_inference": "One reused frozen control seed supports only a conditional same-start method conclusion, not broad strength or temporal-cycle inference.",
+  "experiment_id": "H6",
+  "immutable": true,
+  "implementation_contract": {
+    "control": "Run all four PPO epochs exactly as current code.",
+    "logging_required": [
+      "ppo_epochs_completed",
+      "kl_early_stop_triggered",
+      "kl_early_stop_epoch",
+      "ppo_target_kl"
+    ],
+    "treatment": "After completing each PPO epoch, compute that epoch's mean approx_kl over its minibatches; if mean>0.03, retain completed updates and skip all remaining epochs for that iteration.",
+    "threshold_comparison": "strict greater-than",
+    "forbidden_bundles": [
+      "entropy coefficient schedule",
+      "value-target rescale",
+      "architecture or observation change",
+      "optimizer/lr/epoch-count change",
+      "opponent-pool or prior change"
+    ]
+  },
+  "judgment": {
+    "abort": [
+      "identity/config/source/provenance mismatch",
+      "nonfinite loss or gradient",
+      "first60 treatment/control effective h/s ratio<0.85",
+      "entropy<0.3 for20 consecutive accepted rows"
+    ],
+    "fail": "Any complete-window mandatory gate fails, or a protocol abort occurs.",
+    "inconclusive": "All identity/health evidence is valid but a registered fixed-sample statistical result is neither PASS nor FAIL; no extension is allowed.",
+    "pass": "Every mandatory offline,KL-stability,endpoint-MSE,mirror,throughput,entropy,health and identity gate passes.",
+    "route_review_after_fail_or_inconclusive": true
+  },
+  "no_adaptive_changes": {
+    "later_endpoint": false,
+    "posthoc_threshold_change": false,
+    "sample_extension": false,
+    "second_seed": false
+  },
+  "official_hands_authorized": 0,
+  "question": "Does adding only the pre-existing roadmap KL early-stop at0.03 reduce PPO KL excursions without critic,mirror,entropy,throughput or health regression?",
+  "registered_at": "2026-07-13T09:10:00+00:00",
+  "registered_measurements": {
+    "endpoint_critic_mse": {
+      "bootstrap_repetitions": 10000,
+      "bootstrap_seed": 2026071602,
+      "holdout": "reports/h1_cal_001_attempt2_20260712 FORBIDDEN_HOLDOUT_ONLY",
+      "relative_degradation_ci95_upper_max": 0.10,
+      "relative_degradation_point_max": 0.05
+    },
+    "entropy": {
+      "median_last200_min": 0.3,
+      "treatment_minus_control_min": -0.1
+    },
+    "internal_mirror": {
+      "adaptive_extension_allowed": false,
+      "bootstrap_repetitions": 10000,
+      "bootstrap_seed": 2026071601,
+      "common_deal_pairs": 40000,
+      "noninferiority_ci95_lower_bb100": -20.0,
+      "seed": 2026071601
+    },
+    "kl_stability": {
+      "baseline_fraction_above_threshold": 0.12088815789473684,
+      "early_stop_trigger_fraction_min": 0.05,
+      "fraction_above_threshold_max": 0.06044407894736842,
+      "p95_max": 0.03,
+      "threshold": 0.03
+    },
+    "throughput": {
+      "first60_ratio_min": 0.85,
+      "full_window_ratio_min": 0.85,
+      "warmup_rows_excluded": 1
+    }
+  },
+  "roadmap": {
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_method_improvement_roadmap.md",
+    "sha256": "692ce824a347157d618c407de3af357cbde11f54ca2ecbd5a67f6307dcf50bba",
+    "item": "R8 KL early-stop only; entropy schedule and value rescale explicitly excluded from this window"
+  },
+  "route_selection": {
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_route_review_002_evidence_rerank_20260713.json",
+    "sha256": "b0d42b33081be007bf16fd5950daec2a1a0b6d8745261e1af777f09c5540c1cd"
+  },
+  "schema_version": "v5.hybrid.h6.preregistration.v1",
+  "single_variable": {
+    "control": "ppo_target_kl disabled (0.0)",
+    "name": "ppo_epoch_mean_kl_early_stop_threshold",
+    "one_behavior_change": true,
+    "treatment": "ppo_target_kl=0.03"
+  },
+  "source": {
+    "hands": 515989661,
+    "iteration": 31400,
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_from_zero\\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\\v5_exp005_cutover_gate31400_checkpoint.pt",
+    "sha256": "bcbb46bd01d62fcdea602269b7047323315d4e9bbcf447ea0323e289fde11a8e"
+  },
+  "status": "REGISTERED_NO_LAUNCH",
+  "strength_claim": "FORBIDDEN",
+  "title": "PPO epoch-mean KL early-stop only"
+}

@@ -1,0 +1,62 @@
+{
+  "schema_version": "v5.pcv007.preregistration.v1",
+  "design_id": "PCV007",
+  "registered_at": "2026-07-19T17:15:00Z",
+  "status": "REGISTERED_REPORTING_ONLY_NO_TRAINER",
+  "route_review": {
+    "result_sha256": "46d1e1bb84912f9c12b63d4dd326875ce7a03f180a6f08e08c4696ad6d6859e2",
+    "audit_sha256": "85ac7bcab8480a3676cbe7eb129f863bc498a53911105af1594a921f2d61ba2d",
+    "selected_next": "PCV007_TRAINERLESS_SAME_MODE_NUMERICAL_ENVELOPE_AND_GPU_EVENT_TIMING"
+  },
+  "source": {
+    "sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "iteration": 35051,
+    "hands": 576021901
+  },
+  "numerical_workload": {
+    "inherit_pcv006_exact_transitions_and_full_update": true,
+    "transition_seed": 2026071980,
+    "identity_update_seed": 2026971980,
+    "same_mode_replicas_each": 4,
+    "modes": ["mse", "smooth_l1"],
+    "non_value_model_max_abs_tolerance": 1e-6,
+    "non_value_optimizer_max_abs_tolerance": 1e-8,
+    "cross_mode_must_not_exceed_tolerances": true,
+    "same_mode_envelope_must_be_reported": true
+  },
+  "timing_workload": {
+    "timer": "torch.cuda.Event_with_synchronize",
+    "alternating_modes": true,
+    "warmup_updates_per_mode": 4,
+    "timed_updates_per_repeat_per_mode": 16,
+    "repeats": 7,
+    "full_update_throughput_ratio_min": 0.85,
+    "mse_repeat_stability_ratio_min": 0.95
+  },
+  "gates": {
+    "source_identity": "PASS",
+    "forced_trigger_shape": true,
+    "cross_mode_non_value_model_within_tolerance": true,
+    "cross_mode_non_value_optimizer_within_tolerance": true,
+    "same_mode_envelope_complete": true,
+    "gpu_event_timing_complete": true,
+    "gpu_event_throughput_ratio_min": 0.85,
+    "gpu_event_mse_stability_ratio_min": 0.95,
+    "trainer_started": false,
+    "checkpoint_written": false,
+    "official_hands": 0
+  },
+  "interpretation": {
+    "pass": "SUPPORTS_ROUTE_REVIEW018_CONSIDERATION_OF_SEPARATELY_REGISTERED_H18_ONLY",
+    "fail": "FAIL_CLOSED_NO_H18",
+    "behavior_or_method_inference": "FORBIDDEN",
+    "automatic_h18_launch": false
+  },
+  "resource_policy": {
+    "path1": "EXISTING_EXACT_JOB_UNTOUCHED",
+    "gpu": "SHORT_REPORTING_ONLY_SAFE_NO_TRAINER_BOUNDARY",
+    "trainer_evaluator_mirror_slumbot": "FORBIDDEN"
+  },
+  "official_hands": 0,
+  "behavior_launch_authority": "NONE"
+}

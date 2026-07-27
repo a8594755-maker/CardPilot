@@ -1,0 +1,57 @@
+{
+  "schema_version": "v5.hybrid.h16.prearm_judgment.v1",
+  "checked_at": "2026-07-19T16:36:30Z",
+  "experiment_id": "H16",
+  "verdict": "FAIL",
+  "classification": "H16_FAIL_PREARM_REPRESENTATIVE_PERF_CAL_EXECUTION_NO_LAUNCH",
+  "registered_gate": {
+    "name": "control_prearm_representative_full_ppo_calibration",
+    "required_work": "FULL_TRINAL_CLIP_PPO_UPDATE_WITH_FORCED_KL_EARLY_STOP_AND_THREE_VALUE_HEAD_CATCHUP_EPOCHS",
+    "required_shape": "EVERY_TIMED_UPDATE_KL_STOP_AFTER_EPOCH1_AND_THREE_CATCHUP_EPOCHS",
+    "observed": "TIMED_UPDATE_VIOLATED_REGISTERED_FORCED_KL_CATCHUP_SHAPE",
+    "passed": false,
+    "failure_action": "FAIL_CLOSED_NO_ARM_LAUNCH_AND_SELECT_PCV005_VIA_ROUTE_REVIEW014"
+  },
+  "identity": {
+    "preregistration_path": "reports/v5_hybrid_h16_preregistration_20260719.json",
+    "preregistration_sha256": "51065761b6b291ef757ea467611203cbe79d45a5e4d54c163edaf79ef8fa1bb0",
+    "design_lock_path": "reports/v5_hybrid_h16_design_lock_v1_20260719.json",
+    "design_lock_sha256": "c5e6ac1bb44a106c296652de54401390c631bc1ec12efa0f0aae83d237650faf",
+    "design_lock_audit_path": "reports/v5_hybrid_h16_design_lock_audit_v1_20260719.json",
+    "design_lock_audit_sha256": "072440ce60aaf64a9ee97413a37931f6ee676470f5792c6ecb9081837edab9ed",
+    "preflight_path": "reports/v5_hybrid_h16_preflight_v1_20260719.json",
+    "preflight_sha256": "c480ae1387eccc4ef0965de2eca0bfb59321daed6935e92fe4c790097ef2c81d",
+    "source_checkpoint_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "source_iteration": 35051,
+    "source_hands": 576021901
+  },
+  "evidence": {
+    "perf_cal_path": "reports/v5_hybrid_h16_control_perf_cal_20260719.json",
+    "perf_cal_sha256": "2350872161547b969bd4f2f3837114c92cbd93817a02ec63fff77cd8e9bcc80f",
+    "perf_cal_audit_path": "reports/v5_hybrid_h16_control_perf_cal_audit_20260719.json",
+    "perf_cal_audit_sha256": "04b8ad68415cfd883457de533e51a0ef0829787b3978a5dba393ab672028a1b7",
+    "perf_cal_classification": "H16_REPRESENTATIVE_PERF_CAL_EXECUTION_FAILURE",
+    "error": "RuntimeError: timed update violated registered forced-KL/catch-up shape"
+  },
+  "lifecycle": {
+    "perf_cal_failed_before_sentinel": true,
+    "active_window_activated": false,
+    "trainer_started": false,
+    "control_run_directory_created": false,
+    "treatment_run_directory_created": false,
+    "endpoint_created": false,
+    "mirror_started": false,
+    "evaluator_started": false,
+    "slumbot_started": false,
+    "official_hands": 0
+  },
+  "interpretation": {
+    "method_effect": "NONE_NO_ARM_LAUNCHED",
+    "throughput_effect": "NONE_NO_VALID_REGISTERED_TIMING_SAMPLE",
+    "strength_inference": "FORBIDDEN",
+    "rerun_same_gate": "FORBIDDEN",
+    "h16_resume_extend_reclassify": "FORBIDDEN",
+    "next": "ROUTE_REVIEW_014_THEN_PCV005"
+  },
+  "route_review_required": true
+}

@@ -1,0 +1,99 @@
+{
+  "schema_version": "v5.tnq002.clean_registration.concurrent_chain_collision_censure.v1",
+  "created_at": "2026-07-22T19:38:30Z",
+  "classification": "TNQ002_CLEAN_REGISTRATION_SINGLETON_ADOPTION_COLLISION_FAIL_CLOSED_NO_IMPLEMENTATION_NO_SECOND_CORRECTION",
+  "campaign_goal": "DRIVE_TO_L5_V3_ACTIVE_INCOMPLETE",
+  "governing_authority": {
+    "late_descendant_censure_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_tnq002_late_same_turn_descendant_censure_20260722.json",
+    "late_descendant_censure_sha256": "d81b5af4f3c8b5423dc512d290f54569c9cf5dcde4983cb0126bee28a9d3c79a",
+    "allowed": "EXACTLY_ONE_LATER_CLEAN_TNQ002_CORRECTION_REGISTRATION_CHAIN_NEW_NONCE_ENTIRELY_FRESH_PATHS",
+    "second_correction_identity": "FORBIDDEN"
+  },
+  "shared_guard": {
+    "token": "d242df102dce415ea01b7a0ef30c21f0",
+    "mutex_name": "Local\\CardPilot_TNQ002_CLEAN_REGISTRATION_SINGLETON",
+    "holder_pid": 38532,
+    "lock_sha256": "37cd62b0c3710f41a3089913e6f1614ce611d43df3eff02111deca36823c33b7",
+    "metadata_sha256": "8a84ee0cebbab3c748e78eb0f640ab461829b68357167f1a74c73fbad46b928e",
+    "failure": "THE_DETACHED_MUTEX_HOLDER_WAS_ADOPTED_BY_TWO_INDEPENDENT_WRITERS_AND_DID_NOT_BIND_EITHER_WRITER_IDENTITY_OR_ONE_CANONICAL_REGISTRATION_PATH",
+    "inference": "HOLDER_ALIVE_AND_WAIT_TIMEOUT_PROVE_ONLY_ONE_MUTEX_HOLDER_NOT_ONE_REGISTRATION_WRITER"
+  },
+  "colliding_chains": [
+    {
+      "chain": "A",
+      "preregistration_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_phase_fa_tnq002_clean_d242df102dce415ea01b7a0ef30c21f0_preregistration_20260722.json",
+      "preregistration_sha256": "8529e95c7fe971be25b8dc6286418c8279ccb46870d53792bff8ab25ec5a7201",
+      "preregistration_created_utc": "2026-07-22T19:32:19.7618275Z",
+      "audit_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_phase_fa_tnq002_clean_d242df102dce415ea01b7a0ef30c21f0_preregistration_audit_20260722.json",
+      "audit_sha256": "67129cb8bfecfa235fa0f90c544a0273e53d8fb1db3c7608c359fe509542557e",
+      "audit_created_utc": "2026-07-22T19:35:00.4681904Z",
+      "reported": "PASS_71_OF_71_IMPLEMENTATION_LATER_ONLY",
+      "fatal_omission": "C059_ONE_CLEAN_PREREGISTRATION_BEFORE_AUDIT_IS_FALSE_BECAUSE_CHAIN_B_PREREGISTRATION_ALREADY_EXISTED",
+      "authority": "NONE_CENSURED_PROVENANCE_ONLY"
+    },
+    {
+      "chain": "B",
+      "preregistration_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_phase_fa_tnq002_d242df102dce415ea01b7a0ef30c21f0_clean_preregistration_20260722.json",
+      "preregistration_sha256": "730d61cb3123d7cebcf5ce2a21fe347ae42a5d034fec5d609c2c98bb032777f9",
+      "preregistration_created_utc": "2026-07-22T19:33:19.2532366Z",
+      "audit_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_phase_fa_tnq002_d242df102dce415ea01b7a0ef30c21f0_clean_preregistration_audit_20260722.json",
+      "audit_sha256": "422687a700613937448751b208757bae47c09b24dd5989fd8fdb98f0bffd8fb1",
+      "audit_created_utc": "2026-07-22T19:36:10.3442804Z",
+      "reported": "PASS_60_OF_60_IMPLEMENTATION_LATER_ONLY",
+      "fatal_omission": "AUDIT_CHECKED_ONLY_ITS_OWN_TOKEN_BOUND_PATH_SET_AND_OMITTED_THE_ALREADY_EXISTING_ALTERNATE_SAME_TOKEN_CHAIN_A_PATH",
+      "authority": "NONE_CENSURED_PROVENANCE_ONLY"
+    }
+  ],
+  "derived_artifacts": {
+    "chain_b_snapshot_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_tnq002_clean_registration_pre_refresh_snapshot_manifest_20260722.json",
+    "chain_b_snapshot_sha256": "edf2cb238889b99aede2b8ed8da68d0a2115c439b7550a8c41af49a8287c8e24",
+    "chain_a_ledger_fragment_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_experiment_ledger_append_tnq002_clean_registration_20260722.md",
+    "chain_a_ledger_fragment_sha256": "92a5da0c148778dce8cf79eeaf5c4a0f3ae2c25b92f1673f44eb23c19de14e7a",
+    "chain_b_main_ledger_event_id": "v5-tnq002-clean-registration-audit-pass-20260722",
+    "all_authority": "NONE_CENSURED_PROVENANCE_ONLY"
+  },
+  "contradictions": [
+    "TWO_DISTINCT_PREREGISTRATION_PATHS_CLAIM_THE_SAME_SINGLE_CORRECTION_IDENTITY_TOKEN_AND_GUARD",
+    "TWO_DISTINCT_AUDITS_REPORT_PASS_FOR_MUTUALLY_EXCLUSIVE_SINGLE_WRITER_CLAIMS",
+    "CHAIN_A_AUDIT_RAN_AFTER_CHAIN_B_PREREGISTRATION_EXISTED_BUT_REPORTED_ONE_CLEAN_PREREGISTRATION",
+    "CHAIN_B_AUDIT_RAN_AFTER_CHAIN_A_PREREGISTRATION_EXISTED_BUT_DID_NOT_ENUMERATE_ALTERNATE_SAME_TOKEN_PATHS",
+    "THE_GUARD_HELPER_OWNED_THE_MUTEX_WHILE_NEITHER_REGISTRATION_WRITER_OWNED_OR_WAS_IDENTITY_BOUND_TO_IT"
+  ],
+  "terminal_judgment": {
+    "registration": "NONPASS_FAIL_CLOSED",
+    "both_preregistrations": "AUTHORITY_NONE",
+    "both_audits": "AUTHORITY_NONE",
+    "reported_implementation_authority": "NONE",
+    "implementation": "FORBIDDEN",
+    "contract_probe": "FORBIDDEN",
+    "qualification": "FORBIDDEN",
+    "scientific_inference": "NONE",
+    "strength_inference": "NONE"
+  },
+  "correction_accounting": {
+    "single_correction_attempt_consumed": true,
+    "another_TNQ002_or_TNQ003_registration_correction": "FORBIDDEN",
+    "reason": "THE_AUTHORIZED_SINGLE_CLEAN_CORRECTION_BOUNDARY_WAS_ATTEMPTED_AND_FAILED_ITS_SINGLE_WRITER_REGISTRATION_GATE",
+    "automatic_route_review": false
+  },
+  "work_observed": {
+    "implementation_files": 0,
+    "contract_probes": 0,
+    "qualification_attempts": 0,
+    "scientific_rows": 0,
+    "rollouts": 0,
+    "outputs": 0,
+    "assets": 0,
+    "model_changes": 0,
+    "training_runs": 0,
+    "gpu_runs": 0,
+    "slumbot_hands": 0,
+    "official_hands": 0
+  },
+  "next_boundary": "ONE_LATER_SEPARATELY_REGISTERED_REPORTING_ONLY_ROUTE_REVIEW033_TN001_ROUTE_LEG_CLOSURE_AND_REMAINING_NON_V6_FAMILY_RERANK",
+  "next_boundary_authority": "PREREGISTRATION_AND_INDEPENDENT_PREREGISTRATION_AUDIT_ONLY_NO_AUTOMATIC_RESULT",
+  "route_exhausted": false,
+  "route_exhaustion_judged": true,
+  "strength": "L0",
+  "terminal_stop": "CENSURE_RELEASE_SNAPSHOT_LEDGER_CONTROL_REFRESH_THEN_STOP_BEFORE_ANY_IMPLEMENTATION_OR_ROUTE_REVIEW_REGISTRATION"
+}

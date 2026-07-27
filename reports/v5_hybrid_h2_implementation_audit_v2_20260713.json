@@ -1,0 +1,79 @@
+{
+  "actor_identity": {
+    "max_abs_actor_logits_delta": 0.0,
+    "pass": true,
+    "rows": 128
+  },
+  "candidate_code": {
+    "train_mp3_hybrid_h1.py": "92c69588819389e2382c8aa113c52cee48a4cc22a259b48b76405856a5606b10",
+    "train_v5.py": "95b845db9babef5288d363da424f0d882da4010f5a37f6d35e8cf37de9a06504",
+    "v5_h2_variance_panel.py": "bd5f38d09717d1ce62ed27f1dd8b72dc7431e5bc83aa193d68f58ea5d929a665",
+    "v5_hybrid_h2_targets.py": "2a99fc3ebc90afcdcb4501d7c6c067c2c112a34c0e023204bd75274a88b70d50"
+  },
+  "checked_at": "2026-07-13T04:53:57.369658+00:00",
+  "checks": {
+    "compile_and_unit_tests": true,
+    "h2_var_audit_pass": true,
+    "h2_var_gates_pass": true,
+    "micro_configs_equal_except_treatment_identity": true,
+    "micro_entropy_floor": true,
+    "micro_rows_complete": true,
+    "micro_throughput_ratio_ge_0_85": true,
+    "micro_treatment_flag_only": true,
+    "pretraining_actor_logits_delta_zero": true
+  },
+  "commands": [
+    {
+      "command": [
+        "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+        "-m",
+        "py_compile",
+        "scripts/alpha_holdem/v5_hybrid_h2_targets.py",
+        "scripts/alpha_holdem/train_mp3_hybrid_h1.py",
+        "scripts/alpha_holdem/train_v5.py",
+        "scripts/alpha_holdem/v5_h2_variance_panel.py"
+      ],
+      "returncode": 0,
+      "stderr": "",
+      "stdout": ""
+    },
+    {
+      "command": [
+        "C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+        "scripts/alpha_holdem/test_v5_hybrid_h2_targets.py",
+        "-q"
+      ],
+      "returncode": 0,
+      "stderr": "----------------------------------------------------------------------\nRan 7 tests in 0.076s\n\nOK\n",
+      "stdout": ""
+    }
+  ],
+  "h2_var": {
+    "audit_sha256": "39f3fdc13d80d4565399066479906e08a3bd6ed9ef3dde587da19c132944a2fa",
+    "mean_bias_abs_ci95_upper": 0.000491576534609282,
+    "mean_bias_abs_point": 8.504738244236636e-05,
+    "summary_sha256": "182195700a073f58becf66244f45c74a586c8ee8b3cc7cb07b39e158c9d64598",
+    "variance_reduction_ci95_lower": 0.9956187755436373,
+    "variance_reduction_point": 0.995886760253629
+  },
+  "launch_authority": "NONE_PREREGISTRATION_REQUIRED",
+  "micro_window": {
+    "classification": "ENGINEERING_ONLY_NOT_METHOD_JUDGMENT",
+    "control_effective_hps": 1573.6394486980996,
+    "control_log_sha256": "8e553499113fc0e203de6383cac840e9f3513dff60ddde8ecf04052adee09167",
+    "control_manifest_sha256": "59d13674ac4e1553efafa819003e49612f58a5b1596c4dea4b6f2550a594c9e4",
+    "control_rows": 10,
+    "hps_ratio": 0.9417748505678677,
+    "minimum_entropy": 1.1604,
+    "treatment_effective_hps": 1482.0140566453545,
+    "treatment_log_sha256": "8e023289af7ff3f5cccd2daf47ac6306b6daf746ef86d2cceb9d8a7970ca6c39",
+    "treatment_manifest_sha256": "049d468f0ef0953df0534dd04b0248bd37b8442457d2410770416185911882a6",
+    "treatment_rows": 10,
+    "warmup_rows_excluded": 1
+  },
+  "official_hands_authorized": 0,
+  "overall": "PASS_IMPLEMENTATION_PREREG_READY",
+  "schema_version": "v5.hybrid.h2.implementation_audit.v1",
+  "source_checkpoint_sha256": "bcbb46bd01d62fcdea602269b7047323315d4e9bbcf447ea0323e289fde11a8e",
+  "strength_claim": "FORBIDDEN"
+}

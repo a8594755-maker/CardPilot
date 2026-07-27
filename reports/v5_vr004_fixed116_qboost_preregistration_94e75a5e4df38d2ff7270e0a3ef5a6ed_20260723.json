@@ -1,0 +1,196 @@
+{
+  "schema_version": "v5.vr004.fixed116_qboost.preregistration.v1",
+  "registered_on": "2026-07-23",
+  "design_id": "VR004_FRESH_H11_EXACT116_GENERATION_PURE_QBOOST",
+  "status": "REGISTERED_PREIMPLEMENTATION_AUDIT_REQUIRED",
+  "identity": {
+    "basis": "VR004_FIXED116_QBOOST_V1|5d7d514116c5f7dba1f2b53c7a837f157eec523d26256f065405f5aec84e5c32|a1ee63277ff4c59e82e9282ddc8c1a647b2c53807101522224091c8ed95d74aa|029411e18760455197471a12f0c00c07d08e6d3123e3d8d62e4b51bc6b7b6fcd|a0a9ff27017257a27cad92bacf2a69f64a1442b218495a3d6d6a76ea7244948e|UPDATES116_X_PURE16384|ASSIGN25_SEED2026072404|SUPERVISOR_MONOTONIC21600|20260723",
+    "sha256": "94e75a5e4df38d2ff7270e0a3ef5a6edfddd4db4f0d1e70bd0ff8bb2c749675b",
+    "token": "94e75a5e4df38d2ff7270e0a3ef5a6ed"
+  },
+  "authority": {
+    "agents_sha256": "5d7d514116c5f7dba1f2b53c7a837f157eec523d26256f065405f5aec84e5c32",
+    "vr003c1_failure_sha256": "a1ee63277ff4c59e82e9282ddc8c1a647b2c53807101522224091c8ed95d74aa",
+    "vr002_design_evidence_sha256": "029411e18760455197471a12f0c00c07d08e6d3123e3d8d62e4b51bc6b7b6fcd",
+    "vr002c1_rng_evidence_sha256": "a0a9ff27017257a27cad92bacf2a69f64a1442b218495a3d6d6a76ea7244948e",
+    "family": "CRITIC_TARGET_DESIGN",
+    "rank": 1,
+    "classification": "NEW_SIMPLIFIED_BEHAVIOR_DESIGN_NOT_CORRECTION_RESUME_EXTENSION_OR_REPLAY"
+  },
+  "hypothesis_and_claim": {
+    "prediction": "From exact H11 under a fresh but distribution-identical opponent/deal stream,training-only centralized Q9 Expected-SARSA(lambda=.95) Qboost will preserve its observed advantage-variance reduction and improve greedy-direct Slumbot direction after exactly116 fixed-size generation-pure updates.",
+    "mechanism_falsifier": "A valid endpoint fails final-half paired variance ratio<1 or nondegenerate legal-action Q dispersion>1e-6.",
+    "external_falsifier": "A complete audited quick5k fails any frozen external gate.",
+    "claim_limit": "Mechanism and directional quick5k only;no strength claim,teacher claim or exact full-paper VRPO reproduction."
+  },
+  "single_intervention": {
+    "behavior_variable": "ADVANTAGE_AND_CRITIC_ESTIMATOR",
+    "treatment": "Centralized full-information Q9,legal policy-expectation Vpi,Expected-SARSA(lambda=.95),stop-gradient Q-boosted PPO advantage and fixed post-actor Q-lambda regression.",
+    "removed": ["scalar value loss", "scalar value bootstrap in actor advantages", "H8 value-head catchup"],
+    "unchanged": [
+      "official decentralized actor architecture,823-float observation,nine-action abstraction and actor checkpoint schema",
+      "PPO ratio,Trinal-Clip policy surrogate,entropy,action priors,KL rule and absolute-progress LR target",
+      "V5.5 environment,200bb,reward/all-in-EV semantics,mirrored deals and opponent distribution",
+      "official greedy-direct inference policy"
+    ]
+  },
+  "frozen_inputs": {
+    "H11": {
+      "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_endpoint.pt",
+      "sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+      "iteration": 35051,
+      "total_hands": 576021901
+    },
+    "shared_runtime": {
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_lg003c1_train_8bf8cedf78b6e8c8fe153802908ed893.py",
+      "sha256": "f841144c883d51e66a1d2de889e15303e7339695c8664f81e60208ff77770452",
+      "allowed": "Environment,worker,inference,opponent-pool and inherited actor optimizer helpers only. Its assignment selector and endpoint logic are forbidden."
+    },
+    "actor_network_sha256": "25f4520d31f4ce5ffcfd23fc0d56b8736fd3b5fad537706b9cd13ee270b4a171",
+    "environment_v55_sha256": "3ab591176a8119d21ac11e043bdfef72bd30b8842e34a9fea45cdd36b945f9de",
+    "game_state_sha256": "1500278c6a0fd2909c3bb7aa741aad1842651478b84a676e0783031aa27a6a8a",
+    "pool_state_dict_sha256": {
+      "109": "aee38c625bf0faada6b163f23aeb4cc539d67f7cbe46dc234aa4f46b18960953",
+      "115": "ed92c7724486e446c13e5d4c623327d4288c68652964b7b4f35c0d2a7630d0c1",
+      "120": "86c3d7bacce72dd5749c21deaad3865c7313c9f118860cbc7e9b8b378070494e",
+      "129": "9d008780ac3cd259579131532df9775b53b4e3c95c7b0f12f2aac70bc915b255",
+      "103": "cdec36f3deb27470a61c586b6491cd5de44aa3a99194b026a6e491a3121335a1"
+    },
+    "forbidden_inputs": "Every VR002/VR002C1/VR003/VR003C1 checkpoint,Q state,optimizer,output,metrics and trace."
+  },
+  "fresh_rng": {
+    "Q_initialization": 2026072402,
+    "Q_shuffle": 2026072403,
+    "actor_shuffle": 2026072401,
+    "worker_seed_base": 74000,
+    "assignment_seed": 2026072404,
+    "CPU_Q_initialization": "torch.random.fork_rng(devices=[]);snapshot and restore CPU default generator;do not enumerate or mutate CUDA RNG.",
+    "all_different_from_VR002C1_except_frozen_actor_model_state": true
+  },
+  "assignment_selector": {
+    "module": "Fresh VR004 module;never call or mutate the LG003 selector.",
+    "message": "UTF8('VR004_ASSIGN_V1|identity|2026072404|update_index|worker_id|env_id|deal_serial|counter')",
+    "integer": "First8 SHA256 bytes big-endian. For n=25,limit=2^64-(2^64 mod25);reject u>=limit and increment counter;bucket=u mod25.",
+    "mapping": {
+      "0..4": "self",
+      "5..8": "pool109",
+      "9..12": "pool115",
+      "13..16": "pool120",
+      "17..20": "pool129",
+      "21..24": "pool103"
+    },
+    "unconditional_probabilities": {"self": 0.2, "109": 0.16, "115": 0.16, "120": 0.16, "129": 0.16, "103": 0.16},
+    "test_vectors": [
+      {"fields": [0,0,0,0], "counter": 0, "digest": "d227c473c62f278e83f23e0c4a6d8568bac9d70cb5489205ca71c72f53ad305e", "bucket": 16, "member": 120},
+      {"fields": [1,0,0,0], "counter": 0, "digest": "d9f066c5e6f17f565b4340c7951024d368f89c3cad89a71bb2349dd353710706", "bucket": 20, "member": 129},
+      {"fields": [35,21,15,7], "counter": 0, "digest": "1e509b406e866c80d7d0cbf25e13fd8e0bdf6048954415ae7ad6a43f3c0f6bea", "bucket": 19, "member": 129},
+      {"fields": [115,3,9,12345], "counter": 0, "digest": "aa66f919da1ec29d9b4d7635198f6cea1217559ad219c9a07ff489ad50ea36a5", "bucket": 20, "member": 129},
+      {"fields": [999,21,0,999999], "counter": 0, "digest": "8b7b3de3021899e4b02286a3663d49f067b2abb404c9f8e994f7d7ac9c55d8ae", "bucket": 12, "member": 115}
+    ]
+  },
+  "trajectory_and_Q_contract": {
+    "chronology": "One row per successful physical action from both players in strict env.step order;one complete-hand packet;UID run|worker|env|deal|step contiguous0..T-1.",
+    "admission": "A hand is generation-pure iff every hero-controlled row has the current update reference generation and assignment version;only pure hands enter actor,Q and mechanism computations;all surplus/mixed/stale hands remain counted and hashed.",
+    "central_view": "895 floats:886 learned full-information features plus legal9 sidecar;hero absolute seat and two focal views;future deck and opponent hole excluded from actor.",
+    "reward": "Intermediate0;exact inherited all-in-EV-adjusted terminal zero-sum vector only;realized payoff diagnostic never a target.",
+    "Q": "Independent centralized Q9 with zero output weight/bias;gamma=.999,lambda=.95;Vpi=sum legal pi*Q;delta=r+gamma*Vnext-Qtaken;backward Expected-SARSA trace;Aboost=stopgrad(Qtaken-Vpi+trace);Qtarget=stopgrad(Qtaken+trace).",
+    "update_order": "Freeze Q eval;at each actor epoch recompute Qboost and population-normalize;run inherited actor update;freeze post-actor policy and pre-critic Q to materialize one target;run exactly4 Q epochs;increment generation once.",
+    "isolation": "Actor and Q parameters,buffers,optimizers,RNG,gradients and checkpoint namespaces disjoint. Scalar value-head parameters and optimizer slots remain source-bit-identical and receive no loss/gradient."
+  },
+  "fixed_update_endpoint": {
+    "updates": 116,
+    "pure_hands_per_update": 16384,
+    "exact_generation_pure_hands": 1900544,
+    "source_iteration": 35051,
+    "endpoint_iteration": 35167,
+    "batching": "Controller maintains FIFO pending complete-hand packets. It processes packets until current pure list is exactly16,384;it then stops draining and runs one update. Remaining packets stay pending and after generation increment are processed,counted,hashed and rejected if stale. No pure hand beyond index16,383 enters that update.",
+    "surplus": "Never dropped,selected or carried as trainable data across actor generation.",
+    "total_complete_hard_cap": 2400000,
+    "checkpoint": "Only after the116th completed audited update and all116 metric/trace rows are fsynced;no earlier/latest/best selection.",
+    "absolute_progress_lr_target_total_hands": 581021901,
+    "no_resume_restart_extension_or_topup": true
+  },
+  "resources_and_supervisor": {
+    "supervisor": "Fresh Python process starts time.monotonic immediately before child creation,captures stdout/stderr separately,polls child tree,terminates at21600s,preserves child/supervisor exit and writes create-new invocation record.",
+    "trainer_clock": "Descriptive only;supervisor monotonic clock is sole runtime authority.",
+    "rate_hps_LCB": "104.44721299953976237984113376780284985605977459182",
+    "overhead_seconds": "2461.7569733",
+    "formula": "1900544/HPS_LCB+overhead",
+    "projected_seconds": "20657.972510505139048896796115089029209747276624910",
+    "limit_seconds": 21600,
+    "headroom_seconds": "942.027489494860951103203884910970790252723375090",
+    "preflight": "CUDA free>=6GiB,no other CardPilot trainer,all hashes exact,all output paths absent,implementation audit PASS.",
+    "runtime_abort": "Before116 updates is resource abort with no eligible checkpoint and no quick5k."
+  },
+  "mechanism_and_validity_gates": {
+    "paired_variance": "Exact same pure actor-row UIDs,first actor epoch pre-update;population Var(Aboost)/Var(legacy own-decision GAE);final-half updates58..115 median strictly<1;all finite denominator>1e-12.",
+    "Q_dispersion": "Final-half median of per-row legal-action Q population standard deviation on rows with>=2 legal actions strictly>0.000001 BB.",
+    "validity": [
+      "116 exact pure batches and1,900,544 admitted hands",
+      "chronology,successor,terminal,reward,bijection and assignment provenance exact",
+      "legal slot/non-null action,pi illegal mass0/legal sum1/chosen logp exact",
+      "Expected-SARSA,target timing,Q/actor/value isolation and information barriers exact",
+      "all tensors/statistics finite",
+      "endpoint actor strict-loads official critic_v1 schema;Q loads separately",
+      "checkpoint,metrics,trace,assignment,surplus and endpoint manifest complete and hashed"
+    ]
+  },
+  "mandatory_external": {
+    "trigger": "Every valid complete independently audited116-update endpoint,mechanism PASS or FAIL.",
+    "evaluation": "Slumbot greedy-direct4 sessions x1,250 complete hands;fresh separately preregistered launcher/config/seeds.",
+    "bundle": "Hand JSONL,decision JSONL,session results,bb/100,CI95,promotion decision,loss report,artifact audit,independent hand review,result audit.",
+    "gates": {
+      "minus_frozen_control_bb100_min": 20.0,
+      "frozen_control_bb100": -131.3494,
+      "minus_historical_H11_bb100_min": 20.0,
+      "historical_H11_bb100": -146.1726,
+      "absolute_strictly_greater_than": -126.1726,
+      "postflop_raise_plus_allin_max": 0.8
+    },
+    "judgment": "All external+mechanism PASS permits separate20k registration;external PASS/mechanism FAIL freezes contradiction;any external FAIL is scientific nonimprovement and family meta-review.",
+    "claim_limit": "quick5k directional only."
+  },
+  "prospective_paths": {
+    "assignment": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_vr004_assignment_94e75a5e4df38d2ff7270e0a3ef5a6ed.py",
+    "core": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_vr004_qboost_core_94e75a5e4df38d2ff7270e0a3ef5a6ed.py",
+    "trainer": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_vr004_train_94e75a5e4df38d2ff7270e0a3ef5a6ed.py",
+    "supervisor": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_vr004_supervisor_94e75a5e4df38d2ff7270e0a3ef5a6ed.py",
+    "implementation_auditor": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_vr004_implementation_audit_94e75a5e4df38d2ff7270e0a3ef5a6ed.py",
+    "window_auditor": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_vr004_window_audit_94e75a5e4df38d2ff7270e0a3ef5a6ed.py",
+    "implementation_audit_report": "C:\\Users\\a8594\\CardPilot\\reports\\v5_vr004_implementation_audit_94e75a5e4df38d2ff7270e0a3ef5a6ed_20260723.json",
+    "output_root": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_vr004_94e75a5e4df38d2ff7270e0a3ef5a6ed_20260723",
+    "run_dir": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_vr004_94e75a5e4df38d2ff7270e0a3ef5a6ed_20260723\\qboost_stagea"
+  },
+  "implementation_and_audit": {
+    "fresh_materialization": "Six identity-bound source files;frozen attempt files remain read-only. Reuse is limited to explicitly frozen shared-runtime helpers and independently verified targeted Q equations.",
+    "no_whole_source_equivalence": true,
+    "preimplementation_audit": "Independently instantiate identity,input hashes,selector vectors,Q equations,fixed FIFO batching,116x16384 arithmetic,supervisor state machine,resource Decimal math,mechanism/external gates and path absence.",
+    "implementation_audit": "Static import graph plus no-model tests for selector,CPU RNG isolation,Q math,actor/Q/value isolation,FIFO exact-batch accounting,supervisor timeout/exit/stdout/stderr and manifest schemas;two zero-output probes.",
+    "window_audit": "Independent raw rehash and recomputation of116 update batches,all counts,mechanism/validity/resource gates and checkpoint loadability.",
+    "preoutput_failure": "One corrected identity only if science unchanged;recurrence replaces workflow."
+  },
+  "abort_and_rollback": {
+    "abort": "Any identity,input,path,selector,seed,FIFO count,formula,trace,reward,leakage,isolation,nonfinite,resource,checkpoint or evidence failure.",
+    "outputs": "Create-new,append-only;never overwrite or reconstruct missing raw evidence.",
+    "rollback": "H11 remains official;VR004 is never resumed,extended or selected post hoc."
+  },
+  "preexecution_counts": {
+    "implementation_files": 0,
+    "model_loads": 0,
+    "updates": 0,
+    "training_hands": 0,
+    "generation_pure_hands": 0,
+    "checkpoints": 0,
+    "slumbot_hands": 0,
+    "official_hands": 0
+  },
+  "campaign": {
+    "formal_H11_bb100": -100.2475,
+    "formal_H11_CI95": [-112.4067,-88.0883],
+    "latest_quick5k": "CT003_-145.462",
+    "families_open": 4,
+    "route_exhaustion": false,
+    "strength": "L0",
+    "goal": "ACTIVE"
+  }
+}

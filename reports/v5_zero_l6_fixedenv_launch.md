@@ -17460,3 +17460,5763 @@ Next gates:
 - checkpoint iteration: `21800`
 - checkpoint hands: `358,064,575`
 - scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-09T21:54:13.080919+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-09T21:54:13.083196+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-09T21:54:13.085544+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-09T21:54:25.107012+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-09T21:54:25.108734+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-09T21:54:25.110429+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Gate 24500 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 17:55 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 24500
+- live hands: 402478588
+- checkpoint iteration: 24500
+- checkpoint hands: 402478588
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[381091761, 65634468, 295538136, 384382577, 394254129]`
+- health status: PASS
+
+Next gates:
+
+- iteration 24600: checkpoint stability save
+- iteration 24600: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 24500
+
+- checked at: `2026-07-09T21:58:40.997493+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter24500_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter24500_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `24500`
+- checkpoint hands: `402,478,588`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Gate 24600 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 18:12 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 24602
+- live hands: 404156065
+- checkpoint iteration: 24600
+- checkpoint hands: 404123258
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[381091761, 65634468, 404123258, 295538136, 384382577]`
+- health status: PASS
+
+Next gates:
+
+- iteration 24700: checkpoint stability save
+- iteration 24800: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 24600
+
+- checked at: `2026-07-09T22:16:24.184709+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter24600_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter24600_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `24600`
+- checkpoint hands: `404,123,258`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/4`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/4`
+
+## Gate 24700 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 18:28 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 24703
+- live hands: 405817655
+- checkpoint iteration: 24700
+- checkpoint hands: 405768303
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[381091761, 65634468, 404123258, 295538136, 384382577]`
+- health status: PASS
+
+Next gates:
+
+- iteration 24800: checkpoint stability save
+- iteration 24800: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 24700
+
+- checked at: `2026-07-09T22:32:11.659596+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter24700_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter24700_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `24700`
+- checkpoint hands: `405,768,303`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Gate 24800 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 18:44 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 24805
+- live hands: 407495433
+- checkpoint iteration: 24800
+- checkpoint hands: 407413020
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[381091761, 65634468, 404123258, 407413020, 295538136]`
+- health status: PASS
+
+Next gates:
+
+- iteration 24900: checkpoint stability save
+- iteration 25000: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 24800
+
+- checked at: `2026-07-09T22:46:47.962930+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter24800_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter24800_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `24800`
+- checkpoint hands: `407,413,020`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/4`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/4`
+
+## Gate 24900 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 18:59 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 24900
+- live hands: 409058520
+- checkpoint iteration: 24900
+- checkpoint hands: 409058520
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[381091761, 65634468, 404123258, 407413020, 295538136]`
+- health status: PASS
+
+Next gates:
+
+- iteration 25000: checkpoint stability save
+- iteration 25000: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 24900
+
+- checked at: `2026-07-09T23:02:49.311760+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter24900_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter24900_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `24900`
+- checkpoint hands: `409,058,520`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-09T23:15:30.494947+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-09T23:15:30.497683+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-09T23:15:30.499239+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Gate 25000 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 19:17 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 25004
+- live hands: 410769128
+- checkpoint iteration: 25000
+- checkpoint hands: 410703306
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[381091761, 65634468, 404123258, 407413020, 295538136]`
+- health status: PASS
+
+Next gates:
+
+- iteration 25100: checkpoint stability save
+- iteration 25200: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 25000
+
+- checked at: `2026-07-09T23:18:49.308905+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25000_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25000_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25000`
+- checkpoint hands: `410,703,306`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 25100 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 19:34 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 25105
+- live hands: 412431309
+- checkpoint iteration: 25100
+- checkpoint hands: 412348835
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[381091761, 65634468, 404123258, 407413020, 295538136]`
+- health status: PASS
+
+Next gates:
+
+- iteration 25200: checkpoint stability save
+- iteration 25200: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 25100
+
+- checked at: `2026-07-09T23:36:33.932642+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25100_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25100_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25100`
+- checkpoint hands: `412,348,835`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`4/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 25200 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 19:49 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 25202
+- live hands: 414026762
+- checkpoint iteration: 25200
+- checkpoint hands: 413993899
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[381091761, 65634468, 404123258, 407413020, 295538136]`
+- health status: PASS
+
+Next gates:
+
+- iteration 25300: checkpoint stability save
+- iteration 25400: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 25200
+
+- checked at: `2026-07-09T23:50:19.570087+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25200_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25200_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25200`
+- checkpoint hands: `413,993,899`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 25300 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 20:05 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 25303
+- live hands: 415689126
+- checkpoint iteration: 25300
+- checkpoint hands: 415639850
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[381091761, 65634468, 404123258, 407413020, 295538136]`
+- health status: PASS
+
+Next gates:
+
+- iteration 25400: checkpoint stability save
+- iteration 25400: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 25300
+
+- checked at: `2026-07-10T00:07:26.110771+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25300_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25300_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25300`
+- checkpoint hands: `415,639,850`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 25400 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 20:21 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 25401
+- live hands: 417301396
+- checkpoint iteration: 25400
+- checkpoint hands: 417284806
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[417284806, 381091761, 65634468, 404123258, 407413020]`
+- health status: PASS
+
+Next gates:
+
+- iteration 25500: checkpoint stability save
+- iteration 25600: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 25400
+
+- checked at: `2026-07-10T00:25:09.785710+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25400_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25400_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25400`
+- checkpoint hands: `417,284,806`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/4`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/4`
+
+## Gate 25500 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 20:38 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 25504
+- live hands: 418996042
+- checkpoint iteration: 25500
+- checkpoint hands: 418930351
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[417284806, 381091761, 65634468, 404123258, 407413020]`
+- health status: PASS
+
+Next gates:
+
+- iteration 25600: checkpoint stability save
+- iteration 25600: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 25500
+
+- checked at: `2026-07-10T00:38:51.289327+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25500_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25500_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25500`
+- checkpoint hands: `418,930,351`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-10T00:39:19.447503+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-10T00:39:19.449795+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-10T00:39:19.451447+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Gate 13900 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 20:39 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 25511
+- live hands: 419111162
+- checkpoint iteration: 25500
+- checkpoint hands: 418930351
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[417284806, 381091761, 65634468, 404123258, 407413020]`
+- health status: PASS
+
+Next gates:
+
+- iteration 14000: checkpoint stability save
+- iteration 14000: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 12900
+
+- checked at: `2026-07-10T00:40:02.465036+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter12900_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter12900_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25500`
+- checkpoint hands: `418,930,351`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Internal Strength Watch Gate 13000
+
+- checked at: `2026-07-10T00:40:44.286032+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13000_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13000_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25500`
+- checkpoint hands: `418,930,351`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`4/5`
+
+## Internal Strength Watch Gate 13100
+
+- checked at: `2026-07-10T00:41:25.899204+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13100_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13100_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25500`
+- checkpoint hands: `418,930,351`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Internal Strength Watch Gate 13200
+
+- checked at: `2026-07-10T00:42:09.047853+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13200_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13200_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25500`
+- checkpoint hands: `418,930,351`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`4/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Internal Strength Watch Gate 13300
+
+- checked at: `2026-07-10T00:42:50.940397+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13300_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13300_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25500`
+- checkpoint hands: `418,930,351`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Internal Strength Watch Gate 13400
+
+- checked at: `2026-07-10T00:43:33.340103+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13400_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13400_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25500`
+- checkpoint hands: `418,930,351`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/5`
+
+## Internal Strength Watch Gate 13500
+
+- checked at: `2026-07-10T00:44:15.790411+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13500_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13500_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25500`
+- checkpoint hands: `418,930,351`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`1/5`
+
+## Internal Strength Watch Gate 13600
+
+- checked at: `2026-07-10T00:44:56.203284+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13600_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13600_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25500`
+- checkpoint hands: `418,930,351`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Internal Strength Watch Gate 13700
+
+- checked at: `2026-07-10T00:45:36.980104+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13700_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13700_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25500`
+- checkpoint hands: `418,930,351`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`4/5`
+- `call-station` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Internal Strength Watch Gate 13800
+
+- checked at: `2026-07-10T00:46:18.222245+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13800_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13800_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25500`
+- checkpoint hands: `418,930,351`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Internal Strength Watch Gate 13900
+
+- checked at: `2026-07-10T00:46:59.494085+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13900_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter13900_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25500`
+- checkpoint hands: `418,930,351`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Internal Strength Watch Gate 14000
+
+- checked at: `2026-07-10T00:47:40.098512+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter14000_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter14000_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25500`
+- checkpoint hands: `418,930,351`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`4/5`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-10T01:02:19.503877+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-10T01:02:19.505513+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-10T01:02:19.507215+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Gate 25700 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 21:13 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 25705
+- live hands: 422302640
+- checkpoint iteration: 25700
+- checkpoint hands: 422220357
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[417284806, 381091761, 65634468, 420575805, 404123258]`
+- health status: PASS
+
+Next gates:
+
+- iteration 25800: checkpoint stability save
+- iteration 25800: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 25700
+
+- checked at: `2026-07-10T01:14:57.344270+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25700_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25700_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25700`
+- checkpoint hands: `422,220,357`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/5`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-10T01:22:23.275907+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-10T01:22:23.277563+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-10T01:22:23.279793+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Gate 25600 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 21:22 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 25754
+- live hands: 423108513
+- checkpoint iteration: 25700
+- checkpoint hands: 422220357
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[417284806, 381091761, 65634468, 420575805, 404123258]`
+- health status: PASS
+
+Next gates:
+
+- iteration 25700: checkpoint stability save
+- iteration 25800: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 25600
+
+- checked at: `2026-07-10T01:23:00.203530+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25600_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25600_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25700`
+- checkpoint hands: `422,220,357`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 25800 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 21:30 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 25800
+- live hands: 423864985
+- checkpoint iteration: 25800
+- checkpoint hands: 423864985
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[417284806, 381091761, 65634468, 420575805, 404123258]`
+- health status: PASS
+
+Next gates:
+
+- iteration 25900: checkpoint stability save
+- iteration 26000: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 25800
+
+- checked at: `2026-07-10T01:32:36.224961+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25800_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25800_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25800`
+- checkpoint hands: `423,864,985`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/5`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-10T01:40:43.054891+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-10T01:40:43.056568+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-10T01:40:43.058827+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Gate 25900 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 21:48 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 25903
+- live hands: 425559144
+- checkpoint iteration: 25900
+- checkpoint hands: 425509942
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[417284806, 381091761, 65634468, 420575805, 404123258]`
+- health status: PASS
+
+Next gates:
+
+- iteration 26000: checkpoint stability save
+- iteration 26000: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 25900
+
+- checked at: `2026-07-10T01:49:20.847221+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25900_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter25900_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `25900`
+- checkpoint hands: `425,509,942`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 26000 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 22:06 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 26003
+- live hands: 427204163
+- checkpoint iteration: 26000
+- checkpoint hands: 427154703
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[417284806, 381091761, 65634468, 420575805, 404123258]`
+- health status: PASS
+
+Next gates:
+
+- iteration 26100: checkpoint stability save
+- iteration 26200: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 26000
+
+- checked at: `2026-07-10T02:06:57.871877+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26000_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26000_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `26000`
+- checkpoint hands: `427,154,703`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`0/5`
+
+## Gate 26100 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 22:24 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 26105
+- live hands: 428881898
+- checkpoint iteration: 26100
+- checkpoint hands: 428799732
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[417284806, 381091761, 65634468, 420575805, 404123258]`
+- health status: PASS
+
+Next gates:
+
+- iteration 26200: checkpoint stability save
+- iteration 26200: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 26100
+
+- checked at: `2026-07-10T02:26:34.808624+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26100_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26100_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `26100`
+- checkpoint hands: `428,799,732`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/5`
+
+## Gate 26200 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 22:42 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 26202
+- live hands: 430478356
+- checkpoint iteration: 26200
+- checkpoint hands: 430445532
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[430445532, 417284806, 381091761, 65634468, 420575805]`
+- health status: PASS
+
+Next gates:
+
+- iteration 26300: checkpoint stability save
+- iteration 26400: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 26200
+
+- checked at: `2026-07-10T02:42:06.124987+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26200_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26200_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `26200`
+- checkpoint hands: `430,445,532`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/4`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/4`
+
+## Gate 26300 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 23:00 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 26303
+- live hands: 432139938
+- checkpoint iteration: 26300
+- checkpoint hands: 432090567
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[430445532, 417284806, 381091761, 65634468, 420575805]`
+- health status: PASS
+
+Next gates:
+
+- iteration 26400: checkpoint stability save
+- iteration 26400: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 26300
+
+- checked at: `2026-07-10T03:01:44.356575+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26300_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26300_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `26300`
+- checkpoint hands: `432,090,567`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 26400 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 23:18 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 26403
+- live hands: 433784775
+- checkpoint iteration: 26400
+- checkpoint hands: 433735577
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[430445532, 417284806, 381091761, 433735577, 65634468]`
+- health status: PASS
+
+Next gates:
+
+- iteration 26500: checkpoint stability save
+- iteration 26600: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 26400
+
+- checked at: `2026-07-10T03:19:16.657629+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26400_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26400_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `26400`
+- checkpoint hands: `433,735,577`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/4`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/4`
+
+## Gate 26500 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 23:36 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 26505
+- live hands: 435462525
+- checkpoint iteration: 26500
+- checkpoint hands: 435380286
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[430445532, 417284806, 381091761, 433735577, 65634468]`
+- health status: PASS
+
+Next gates:
+
+- iteration 26600: checkpoint stability save
+- iteration 26600: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 26500
+
+- checked at: `2026-07-10T03:36:53.730480+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26500_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26500_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `26500`
+- checkpoint hands: `435,380,286`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`4/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 26600 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-09 23:53 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 26600
+- live hands: 437024535
+- checkpoint iteration: 26600
+- checkpoint hands: 437024535
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[430445532, 417284806, 437024535, 381091761, 433735577]`
+- health status: PASS
+
+Next gates:
+
+- iteration 26700: checkpoint stability save
+- iteration 26800: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 26600
+
+- checked at: `2026-07-10T03:54:26.206293+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26600_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26600_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `26600`
+- checkpoint hands: `437,024,535`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/4`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/4`
+
+## Gate 26700 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 00:11 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 26702
+- live hands: 438701998
+- checkpoint iteration: 26700
+- checkpoint hands: 438669174
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[430445532, 417284806, 437024535, 381091761, 433735577]`
+- health status: PASS
+
+Next gates:
+
+- iteration 26800: checkpoint stability save
+- iteration 26800: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 26700
+
+- checked at: `2026-07-10T04:12:03.782584+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26700_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26700_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `26700`
+- checkpoint hands: `438,669,174`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Gate 26800 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 00:29 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 26801
+- live hands: 440330891
+- checkpoint iteration: 26800
+- checkpoint hands: 440314292
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[430445532, 417284806, 440314292, 437024535, 381091761]`
+- health status: PASS
+
+Next gates:
+
+- iteration 26900: checkpoint stability save
+- iteration 27000: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 26800
+
+- checked at: `2026-07-10T04:31:34.834271+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26800_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26800_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `26800`
+- checkpoint hands: `440,314,292`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/4`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/4`
+
+## Gate 26900 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 00:47 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 26904
+- live hands: 442026902
+- checkpoint iteration: 26900
+- checkpoint hands: 441961147
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[430445532, 417284806, 440314292, 437024535, 381091761]`
+- health status: PASS
+
+Next gates:
+
+- iteration 27000: checkpoint stability save
+- iteration 27000: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 26900
+
+- checked at: `2026-07-10T04:49:12.139315+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26900_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter26900_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `26900`
+- checkpoint hands: `441,961,147`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 27000 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 01:05 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 27002
+- live hands: 443638463
+- checkpoint iteration: 27000
+- checkpoint hands: 443605541
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[430445532, 417284806, 440314292, 437024535, 381091761]`
+- health status: PASS
+
+Next gates:
+
+- iteration 27100: checkpoint stability save
+- iteration 27200: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 27000
+
+- checked at: `2026-07-10T05:06:49.023893+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27000_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27000_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `27000`
+- checkpoint hands: `443,605,541`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`4/5`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-10T05:27:38.921760+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-10T05:27:38.923892+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-10T05:27:38.925594+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Gate 27100 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 01:27 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 27127
+- live hands: 445694723
+- checkpoint iteration: 27100
+- checkpoint hands: 445250789
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[430445532, 417284806, 440314292, 437024535, 381091761]`
+- health status: PASS
+
+Next gates:
+
+- iteration 27200: checkpoint stability save
+- iteration 27200: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 27100
+
+- checked at: `2026-07-10T05:28:32.076015+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27100_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27100_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `27100`
+- checkpoint hands: `445,250,789`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Gate 27200 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 01:38 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 27202
+- live hands: 446928315
+- checkpoint iteration: 27200
+- checkpoint hands: 446895262
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[430445532, 417284806, 440314292, 437024535, 381091761]`
+- health status: PASS
+
+Next gates:
+
+- iteration 27300: checkpoint stability save
+- iteration 27400: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 27200
+
+- checked at: `2026-07-10T05:40:15.648281+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27200_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27200_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `27200`
+- checkpoint hands: `446,895,262`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/5`
+- `call-station` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`4/5`
+
+## Gate 27300 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 01:53 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 27302
+- live hands: 448573061
+- checkpoint iteration: 27300
+- checkpoint hands: 448540145
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[430445532, 417284806, 440314292, 437024535, 381091761]`
+- health status: PASS
+
+Next gates:
+
+- iteration 27400: checkpoint stability save
+- iteration 27400: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 27300
+
+- checked at: `2026-07-10T05:55:58.684436+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27300_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27300_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `27300`
+- checkpoint hands: `448,540,145`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 27400 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 02:08 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 27401
+- live hands: 450202508
+- checkpoint iteration: 27400
+- checkpoint hands: 450186098
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 430445532, 417284806, 440314292, 437024535]`
+- health status: PASS
+
+Next gates:
+
+- iteration 27500: checkpoint stability save
+- iteration 27600: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 27400
+
+- checked at: `2026-07-10T06:09:36.303159+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27400_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27400_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `27400`
+- checkpoint hands: `450,186,098`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/4`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/4`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-10T06:12:16.749477+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-10T06:12:16.751145+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-10T06:12:16.754484+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Gate 27500 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 02:28 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 27504
+- live hands: 451896449
+- checkpoint iteration: 27500
+- checkpoint hands: 451830746
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 430445532, 417284806, 440314292, 437024535]`
+- health status: PASS
+
+Next gates:
+
+- iteration 27600: checkpoint stability save
+- iteration 27600: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 27500
+
+- checked at: `2026-07-10T06:28:55.168863+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27500_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27500_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `27500`
+- checkpoint hands: `451,830,746`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 27600 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 02:45 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 27604
+- live hands: 453540806
+- checkpoint iteration: 27600
+- checkpoint hands: 453475071
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 430445532, 417284806, 440314292, 437024535]`
+- health status: PASS
+
+Next gates:
+
+- iteration 27700: checkpoint stability save
+- iteration 27800: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 27600
+
+- checked at: `2026-07-10T06:47:47.456595+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27600_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27600_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `27600`
+- checkpoint hands: `453,475,071`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-10T06:50:42.404340+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-10T06:50:42.406513+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-10T06:50:42.408192+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Gate 27700 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 03:02 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 27702
+- live hands: 455152719
+- checkpoint iteration: 27700
+- checkpoint hands: 455119923
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 430445532, 417284806, 440314292, 437024535]`
+- health status: PASS
+
+Next gates:
+
+- iteration 27800: checkpoint stability save
+- iteration 27800: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 27700
+
+- checked at: `2026-07-10T07:03:21.088515+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27700_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27700_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `27700`
+- checkpoint hands: `455,119,923`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Gate 27800 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 03:20 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 27802
+- live hands: 456799391
+- checkpoint iteration: 27800
+- checkpoint hands: 456766342
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 430445532, 417284806, 440314292, 437024535]`
+- health status: PASS
+
+Next gates:
+
+- iteration 27900: checkpoint stability save
+- iteration 28000: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 27800
+
+- checked at: `2026-07-10T07:22:59.804902+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27800_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27800_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `27800`
+- checkpoint hands: `456,766,342`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Gate 27900 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 03:40 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 27902
+- live hands: 458445469
+- checkpoint iteration: 27900
+- checkpoint hands: 458412500
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 430445532, 417284806, 440314292, 437024535]`
+- health status: PASS
+
+Next gates:
+
+- iteration 28000: checkpoint stability save
+- iteration 28000: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 27900
+
+- checked at: `2026-07-10T07:40:38.765761+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27900_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter27900_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `27900`
+- checkpoint hands: `458,412,500`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 28000 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 03:58 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 28002
+- live hands: 460090513
+- checkpoint iteration: 28000
+- checkpoint hands: 460057601
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 430445532, 417284806, 440314292, 437024535]`
+- health status: PASS
+
+Next gates:
+
+- iteration 28100: checkpoint stability save
+- iteration 28200: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 28000
+
+- checked at: `2026-07-10T07:58:18.357267+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28000_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28000_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `28000`
+- checkpoint hands: `460,057,601`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/5`
+
+## Gate 28100 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 04:16 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 28102
+- live hands: 461736041
+- checkpoint iteration: 28100
+- checkpoint hands: 461703003
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 430445532, 417284806, 440314292, 437024535]`
+- health status: PASS
+
+Next gates:
+
+- iteration 28200: checkpoint stability save
+- iteration 28200: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 28100
+
+- checked at: `2026-07-10T08:18:02.387779+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28100_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28100_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `28100`
+- checkpoint hands: `461,703,003`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`4/5`
+
+## Gate 28200 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 04:34 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 28204
+- live hands: 463414039
+- checkpoint iteration: 28200
+- checkpoint hands: 463348302
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 430445532, 417284806, 440314292, 437024535]`
+- health status: PASS
+
+Next gates:
+
+- iteration 28300: checkpoint stability save
+- iteration 28400: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 28200
+
+- checked at: `2026-07-10T08:35:42.365086+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28200_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28200_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `28200`
+- checkpoint hands: `463,348,302`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Gate 28300 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 04:53 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 28303
+- live hands: 465042705
+- checkpoint iteration: 28300
+- checkpoint hands: 464993502
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 430445532, 417284806, 440314292, 437024535]`
+- health status: PASS
+
+Next gates:
+
+- iteration 28400: checkpoint stability save
+- iteration 28400: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 28300
+
+- checked at: `2026-07-10T08:55:21.297243+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28300_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28300_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `28300`
+- checkpoint hands: `464,993,502`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Gate 28400 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 05:10 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 28402
+- live hands: 466671261
+- checkpoint iteration: 28400
+- checkpoint hands: 466638377
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 430445532, 417284806, 466638377, 440314292]`
+- health status: PASS
+
+Next gates:
+
+- iteration 28500: checkpoint stability save
+- iteration 28600: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 28400
+
+- checked at: `2026-07-10T09:11:00.969557+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28400_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28400_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `28400`
+- checkpoint hands: `466,638,377`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/4`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/4`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-10T09:12:55.626818+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-10T09:12:55.629603+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-10T09:12:55.632115+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Gate 28500 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 05:27 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 28504
+- live hands: 468349216
+- checkpoint iteration: 28500
+- checkpoint hands: 468283337
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 430445532, 417284806, 466638377, 440314292]`
+- health status: PASS
+
+Next gates:
+
+- iteration 28600: checkpoint stability save
+- iteration 28600: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 28500
+
+- checked at: `2026-07-10T09:27:40.026322+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28500_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28500_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `28500`
+- checkpoint hands: `468,283,337`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 28600 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 05:44 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 28601
+- live hands: 469945987
+- checkpoint iteration: 28600
+- checkpoint hands: 469929538
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 430445532, 417284806, 466638377]`
+- health status: PASS
+
+Next gates:
+
+- iteration 28700: checkpoint stability save
+- iteration 28800: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 28600
+
+- checked at: `2026-07-10T09:45:18.476520+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28600_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28600_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `28600`
+- checkpoint hands: `469,929,538`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/4`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/4`
+
+## Gate 28700 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 06:01 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 28701
+- live hands: 471591002
+- checkpoint iteration: 28700
+- checkpoint hands: 471574569
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 430445532, 417284806, 466638377]`
+- health status: PASS
+
+Next gates:
+
+- iteration 28800: checkpoint stability save
+- iteration 28800: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 28700
+
+- checked at: `2026-07-10T10:03:09.040018+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28700_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28700_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `28700`
+- checkpoint hands: `471,574,569`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/5`
+
+## Gate 28800 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 06:20 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 28801
+- live hands: 473235118
+- checkpoint iteration: 28800
+- checkpoint hands: 473218725
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 430445532, 417284806, 466638377]`
+- health status: PASS
+
+Next gates:
+
+- iteration 28900: checkpoint stability save
+- iteration 29000: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 28800
+
+- checked at: `2026-07-10T10:22:57.413939+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28800_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28800_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `28800`
+- checkpoint hands: `473,218,725`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Gate 28900 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 06:38 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 28903
+- live hands: 474913615
+- checkpoint iteration: 28900
+- checkpoint hands: 474864258
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 430445532, 417284806, 466638377]`
+- health status: PASS
+
+Next gates:
+
+- iteration 29000: checkpoint stability save
+- iteration 29000: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 28900
+
+- checked at: `2026-07-10T10:40:41.341454+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28900_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter28900_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `28900`
+- checkpoint hands: `474,864,258`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/5`
+
+## Gate 29000 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 06:54 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 29000
+- live hands: 476509985
+- checkpoint iteration: 29000
+- checkpoint hands: 476509985
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 430445532, 417284806, 476509985]`
+- health status: PASS
+
+Next gates:
+
+- iteration 29100: checkpoint stability save
+- iteration 29200: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 29000
+
+- checked at: `2026-07-10T10:56:15.879777+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29000_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29000_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `29000`
+- checkpoint hands: `476,509,985`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/4`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/4`
+
+## Gate 29100 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 07:11 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 29103
+- live hands: 478205211
+- checkpoint iteration: 29100
+- checkpoint hands: 478155874
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 430445532, 417284806, 476509985]`
+- health status: PASS
+
+Next gates:
+
+- iteration 29200: checkpoint stability save
+- iteration 29200: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 29100
+
+- checked at: `2026-07-10T11:13:58.792571+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29100_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29100_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `29100`
+- checkpoint hands: `478,155,874`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 29200 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 07:30 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 29203
+- live hands: 479849952
+- checkpoint iteration: 29200
+- checkpoint hands: 479800561
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 430445532, 417284806, 476509985]`
+- health status: PASS
+
+Next gates:
+
+- iteration 29300: checkpoint stability save
+- iteration 29400: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 29200
+
+- checked at: `2026-07-10T11:31:38.201052+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29200_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29200_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `29200`
+- checkpoint hands: `479,800,561`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 29300 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 07:51 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 29301
+- live hands: 481462657
+- checkpoint iteration: 29300
+- checkpoint hands: 481446177
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 430445532, 417284806, 476509985]`
+- health status: PASS
+
+Next gates:
+
+- iteration 29400: checkpoint stability save
+- iteration 29400: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 29300
+
+- checked at: `2026-07-10T11:53:17.209198+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29300_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29300_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `29300`
+- checkpoint hands: `481,446,177`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 29400 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 08:09 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 29404
+- live hands: 483156113
+- checkpoint iteration: 29400
+- checkpoint hands: 483090386
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 430445532, 417284806, 476509985]`
+- health status: PASS
+
+Next gates:
+
+- iteration 29500: checkpoint stability save
+- iteration 29600: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 29400
+
+- checked at: `2026-07-10T12:11:03.047573+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29400_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29400_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `29400`
+- checkpoint hands: `483,090,386`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-10T12:15:53.098587+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-10T12:15:53.100275+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-10T12:15:53.101963+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Gate 29500 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 08:25 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 29502
+- live hands: 484767180
+- checkpoint iteration: 29500
+- checkpoint hands: 484734368
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 430445532, 417284806, 476509985]`
+- health status: PASS
+
+Next gates:
+
+- iteration 29600: checkpoint stability save
+- iteration 29600: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 29500
+
+- checked at: `2026-07-10T12:26:38.506552+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29500_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29500_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `29500`
+- checkpoint hands: `484,734,368`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-10T12:36:57.968368+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-10T12:36:57.970593+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-10T12:36:57.972260+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Gate 29600 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 08:43 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 29600
+- live hands: 486379183
+- checkpoint iteration: 29600
+- checkpoint hands: 486379183
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 430445532, 417284806]`
+- health status: PASS
+
+Next gates:
+
+- iteration 29700: checkpoint stability save
+- iteration 29800: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 29600
+
+- checked at: `2026-07-10T12:43:32.331195+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29600_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29600_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `29600`
+- checkpoint hands: `486,379,183`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/4`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/4`
+
+## Gate 29700 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 09:02 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 29700
+- live hands: 488023806
+- checkpoint iteration: 29700
+- checkpoint hands: 488023806
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 430445532, 417284806]`
+- health status: PASS
+
+Next gates:
+
+- iteration 29800: checkpoint stability save
+- iteration 29800: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 29700
+
+- checked at: `2026-07-10T13:03:18.311638+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29700_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29700_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `29700`
+- checkpoint hands: `488,023,806`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 29800 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 09:21 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 29805
+- live hands: 489751667
+- checkpoint iteration: 29800
+- checkpoint hands: 489669515
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 430445532, 417284806]`
+- health status: PASS
+
+Next gates:
+
+- iteration 29900: checkpoint stability save
+- iteration 30000: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 29800
+
+- checked at: `2026-07-10T13:22:57.391597+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29800_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29800_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `29800`
+- checkpoint hands: `489,669,515`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Gate 29900 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 09:39 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 29901
+- live hands: 491330875
+- checkpoint iteration: 29900
+- checkpoint hands: 491314339
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 430445532, 417284806]`
+- health status: PASS
+
+Next gates:
+
+- iteration 30000: checkpoint stability save
+- iteration 30000: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 29900
+
+- checked at: `2026-07-10T13:40:36.328081+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29900_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter29900_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `29900`
+- checkpoint hands: `491,314,339`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Gate 30000 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 09:58 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 30003
+- live hands: 493008128
+- checkpoint iteration: 30000
+- checkpoint hands: 492958809
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 430445532, 417284806]`
+- health status: PASS
+
+Next gates:
+
+- iteration 30100: checkpoint stability save
+- iteration 30200: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 30000
+
+- checked at: `2026-07-10T14:00:15.642587+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30000_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30000_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `30000`
+- checkpoint hands: `492,958,809`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 30100 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 10:17 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 30105
+- live hands: 494685778
+- checkpoint iteration: 30100
+- checkpoint hands: 494603729
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 430445532, 417284806]`
+- health status: PASS
+
+Next gates:
+
+- iteration 30200: checkpoint stability save
+- iteration 30200: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 30100
+
+- checked at: `2026-07-10T14:17:54.809009+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30100_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30100_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `30100`
+- checkpoint hands: `494,603,729`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 30200 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 10:34 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 30201
+- live hands: 496265304
+- checkpoint iteration: 30200
+- checkpoint hands: 496248804
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 430445532, 417284806]`
+- health status: PASS
+
+Next gates:
+
+- iteration 30300: checkpoint stability save
+- iteration 30400: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 30200
+
+- checked at: `2026-07-10T14:35:41.035304+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30200_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30200_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `30200`
+- checkpoint hands: `496,248,804`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Gate 30300 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 10:54 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 30301
+- live hands: 497911236
+- checkpoint iteration: 30300
+- checkpoint hands: 497894785
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 430445532, 417284806]`
+- health status: PASS
+
+Next gates:
+
+- iteration 30400: checkpoint stability save
+- iteration 30400: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 30300
+
+- checked at: `2026-07-10T14:55:21.032175+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30300_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30300_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `30300`
+- checkpoint hands: `497,894,785`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`4/5`
+
+## Gate 30400 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 11:13 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 30402
+- live hands: 499571925
+- checkpoint iteration: 30400
+- checkpoint hands: 499539051
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 430445532, 417284806]`
+- health status: PASS
+
+Next gates:
+
+- iteration 30500: checkpoint stability save
+- iteration 30600: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 30400
+
+- checked at: `2026-07-10T15:15:00.003173+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30400_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30400_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `30400`
+- checkpoint hands: `499,539,051`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-10T15:32:01.812040+00:00`
+- status: `PASS`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\milestone_archives\v5_zero_l6_e_f321ba001a65_500M_iter30500_501M.pt`
+- manifest: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\milestone_archives\v5_zero_l6_e_f321ba001a65_500M_iter30500_501M.json`
+- checkpoint iteration: `30500`
+- checkpoint hands: `501,183,802`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Gate 30500 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 11:32 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 30503
+- live hands: 501233289
+- checkpoint iteration: 30500
+- checkpoint hands: 501183802
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 430445532, 417284806]`
+- health status: PASS
+
+Next gates:
+
+- iteration 30600: checkpoint stability save
+- iteration 30600: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 30500
+
+- checked at: `2026-07-10T15:32:49.565991+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30500_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30500_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `30500`
+- checkpoint hands: `501,183,802`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Gate 30600 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 11:52 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 30604
+- live hands: 502894326
+- checkpoint iteration: 30600
+- checkpoint hands: 502828646
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 430445532, 417284806]`
+- health status: PASS
+
+Next gates:
+
+- iteration 30700: checkpoint stability save
+- iteration 30800: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 30600
+
+- checked at: `2026-07-10T15:52:37.565428+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30600_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30600_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `30600`
+- checkpoint hands: `502,828,646`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-10T15:58:53.532824+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-10T15:58:53.535110+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-10T15:58:53.536771+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- manifest: `None`
+- checkpoint iteration: `21800`
+- checkpoint hands: `358,064,575`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-10T15:58:54.068560+00:00`
+- status: `PASS`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\milestone_archives\v5_zero_l6_e_f321ba001a65_500M_iter30600_502M.pt`
+- manifest: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\milestone_archives\v5_zero_l6_e_f321ba001a65_500M_iter30600_502M.json`
+- checkpoint iteration: `30600`
+- checkpoint hands: `502,828,646`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Gate 30700 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 12:12 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 30703
+- live hands: 504523485
+- checkpoint iteration: 30700
+- checkpoint hands: 504474081
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 430445532, 417284806]`
+- health status: PASS
+
+Next gates:
+
+- iteration 30800: checkpoint stability save
+- iteration 30800: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 30700
+
+- checked at: `2026-07-10T16:13:40.528021+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30700_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30700_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `30700`
+- checkpoint hands: `504,474,081`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Gate 30800 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 12:31 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 30805
+- live hands: 506201417
+- checkpoint iteration: 30800
+- checkpoint hands: 506119032
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 430445532, 417284806]`
+- health status: PASS
+
+Next gates:
+
+- iteration 30900: checkpoint stability save
+- iteration 31000: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 30800
+
+- checked at: `2026-07-10T16:31:45.894332+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30800_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30800_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `30800`
+- checkpoint hands: `506,119,032`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 30900 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 12:48 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 30903
+- live hands: 507812877
+- checkpoint iteration: 30900
+- checkpoint hands: 507763528
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 430445532, 417284806]`
+- health status: PASS
+
+Next gates:
+
+- iteration 31000: checkpoint stability save
+- iteration 31000: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 30900
+
+- checked at: `2026-07-10T16:49:47.528931+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30900_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter30900_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `30900`
+- checkpoint hands: `507,763,528`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 31000 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 13:06 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 31003
+- live hands: 509458207
+- checkpoint iteration: 31000
+- checkpoint hands: 509408918
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 430445532, 417284806]`
+- health status: PASS
+
+Next gates:
+
+- iteration 31100: checkpoint stability save
+- iteration 31200: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 31000
+
+- checked at: `2026-07-10T17:07:48.467750+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter31000_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter31000_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `31000`
+- checkpoint hands: `509,408,918`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 31100 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 13:24 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 31103
+- live hands: 511103412
+- checkpoint iteration: 31100
+- checkpoint hands: 511054065
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 430445532, 417284806]`
+- health status: PASS
+
+Next gates:
+
+- iteration 31200: checkpoint stability save
+- iteration 31200: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 31100
+
+- checked at: `2026-07-10T17:25:50.526037+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter31100_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter31100_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `31100`
+- checkpoint hands: `511,054,065`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Gate 31200 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 13:43 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 31202
+- live hands: 512731698
+- checkpoint iteration: 31200
+- checkpoint hands: 512698792
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 430445532, 417284806]`
+- health status: PASS
+
+Next gates:
+
+- iteration 31300: checkpoint stability save
+- iteration 31400: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 31200
+
+- checked at: `2026-07-10T17:43:50.919660+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter31200_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter31200_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `31200`
+- checkpoint hands: `512,698,792`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/5`
+
+## Gate 31300 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 14:02 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 31301
+- live hands: 514360939
+- checkpoint iteration: 31300
+- checkpoint hands: 514344537
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 430445532, 417284806]`
+- health status: PASS
+
+Next gates:
+
+- iteration 31400: checkpoint stability save
+- iteration 31400: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 31300
+
+- checked at: `2026-07-10T18:03:40.619400+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter31300_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter31300_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `31300`
+- checkpoint hands: `514,344,537`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Slumbot promotion20k Benchmark Watch
+
+- checked at: `2026-07-10T17:57:07.966936+00:00`
+- status: `PASS`
+- launch path: `direct`
+- tag: `v5_v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709_500M_promotion20k_cadence`
+- planned hands: `20,400`
+- policy mode: `greedy`
+- policy temperature: `1.0`
+- frozen checkpoint iteration: `30700`
+- frozen checkpoint hands: `504,474,081`
+- orchestrator log: `models\bench_v55_v5_v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709_500M_promotion20k_cadence_direct_launcher.log`
+- CI JSON: `models\bench_v55_v5_v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709_500M_promotion20k_cadence_ci_summary.json`
+- promotion JSON: `models\bench_v55_v5_v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709_500M_promotion20k_cadence_promotion_gate.json`
+- dump analysis: `models\bench_v55_v5_v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709_500M_promotion20k_cadence_dump_analysis.txt`
+- loss report JSON: `models\bench_v55_v5_v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709_500M_promotion20k_cadence_loss_report.json`
+- loss report MD: `models\bench_v55_v5_v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709_500M_promotion20k_cadence_loss_report.md`
+- Slumbot hands: `20,400`
+- Slumbot bb/100: `-153.30`
+- Slumbot 95% CI lower: `-187.69`
+- milestone: `L0`
+- loss report SB open fold / call / raise / all-in: `0.016` / `0.158` / `0.826` / `0.000`
+- loss report BB vs open call / raise: `0.066` / `0.763`
+- loss report warnings:
+  - BB vs open raise rate is very high (76.3%); check for 3bet overuse.
+  - Showdown hands are losing -1,292,401 chips (-159.5 bb/100 within bucket).
+- artifact audit: `PASS`
+- artifact audit JSON: `models\bench_v55_v5_v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709_500M_promotion20k_cadence_artifact_audit.json`
+- artifact audit MD: `models\bench_v55_v5_v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709_500M_promotion20k_cadence_artifact_audit.md`
+- hand review: `PASS`
+- hand review JSON: `models\bench_v55_v5_v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709_500M_promotion20k_cadence_hand_review.json`
+- hand review MD: `models\bench_v55_v5_v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709_500M_promotion20k_cadence_hand_review.md`
+- hand review evidence class: `promotion_scale`
+- hand review training adjustment: `PROMOTION_SCALE_REVIEW_IF_LEAK_REPEATS`
+- hand review top loss hypotheses:
+  - `SB_EV`: SB chips -1,420,443; bb/100 -139.3 -> Review SB open and continuation quality before changing global priors.
+  - `BB_EV`: BB chips -1,706,874; bb/100 -167.3 -> Check BB defense and postflop realization.
+  - `BB_DEFENSE_3BET_HEAVY`: BB vs open raise rate 0.763 -> Check whether BB defense is fold/3bet-heavy and loses postflop/showdown value.
+  - `SHOWDOWN_VALUE`: showdown chips -1,292,401; bb/100 -159.5 -> If repeated, inspect postflop/value targets, not only preflop priors.
+  - `FOLDING_OR_REALIZATION`: hero_fold chips -3,683,652; bb/100 -496.3 -> If repeated, inspect postflop/value targets, not only preflop priors.
+- scope: quick5k is a smoke/API check only; L5/L6 requires formal 100k+ CI gate
+- selector replay status: `PASS`
+- selector replay JSON: `models\bench_v55_v5_v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709_500M_promotion20k_cadence_selector_replay.json`
+- selector replay MD: `models\bench_v55_v5_v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709_500M_promotion20k_cadence_selector_replay.md`
+- selector replay preflop facing-bet call rate: greedy `0.086`, preflop-callguard `0.847`
+- selector replay callguard changes vs greedy: `9732` decisions (`0.155`), preflop facing-bet `9731`
+- selector replay promotion gate rerun: `PASS`, overall `PASS`, selector clean `True`
+
+## Gate 31400 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 14:21 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 31404
+- live hands: 516055548
+- checkpoint iteration: 31400
+- checkpoint hands: 515989661
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\latest.pt`
+- checkpoint opponent assignment: `per-iteration`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 515989661, 430445532]`
+- health status: PASS
+
+Next gates:
+
+- iteration 31500: checkpoint stability save
+- iteration 31600: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 31400
+
+- checked at: `2026-07-10T18:23:18.019363+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter31400_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\internal_strength_probe_iter31400_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/4`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/4`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-10T18:30:38.601171+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-10T18:30:38.611455+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-10T18:30:38.614582+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-10T18:30:38.617679+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-10T18:33:54.481568+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-10T18:33:54.484299+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-10T18:33:54.486434+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-10T18:33:54.488530+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Internal Strength Watch Gate 31400
+
+- checked at: `2026-07-10T18:34:32.713484+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter31400_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter31400_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/4`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/4`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-10T18:35:54.207425+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-10T18:35:54.209081+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-10T18:35:54.211304+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-10T18:35:54.212424+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Gate 31500 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 14:43 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 31503
+- live hands: 517682811
+- checkpoint iteration: 31500
+- checkpoint hands: 517633535
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint opponent assignment: `per-group`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 515989661, 430445532]`
+- health status: PASS
+
+Next gates:
+
+- iteration 31600: checkpoint stability save
+- iteration 31600: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 31500
+
+- checked at: `2026-07-10T18:46:03.561745+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter31500_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter31500_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `31500`
+- checkpoint hands: `517,633,535`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-10T18:50:42.627212+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-10T18:50:42.628868+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-10T18:50:42.629963+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-10T18:50:42.631647+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Gate 31600 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 15:01 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 31602
+- live hands: 519310074
+- checkpoint iteration: 31600
+- checkpoint hands: 519277201
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint opponent assignment: `per-group`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 515989661, 430445532]`
+- health status: PASS
+
+Next gates:
+
+- iteration 31700: checkpoint stability save
+- iteration 31800: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 31600
+
+- checked at: `2026-07-10T19:03:32.315623+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter31600_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter31600_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `31600`
+- checkpoint hands: `519,277,201`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 31700 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 15:19 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 31701
+- live hands: 520938233
+- checkpoint iteration: 31700
+- checkpoint hands: 520921792
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint opponent assignment: `per-group`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 515989661, 430445532]`
+- health status: PASS
+
+Next gates:
+
+- iteration 31800: checkpoint stability save
+- iteration 31800: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 31700
+
+- checked at: `2026-07-10T19:23:19.672975+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter31700_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter31700_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `31700`
+- checkpoint hands: `520,921,792`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-10T19:38:52.079326+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-10T19:38:52.080993+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-10T19:38:52.082651+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-10T19:38:52.083774+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Gate 31800 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 15:46 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 31801
+- live hands: 522583530
+- checkpoint iteration: 31800
+- checkpoint hands: 522567052
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint opponent assignment: `per-group`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 515989661, 430445532]`
+- health status: PASS
+
+Next gates:
+
+- iteration 31900: checkpoint stability save
+- iteration 32000: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 31800
+
+- checked at: `2026-07-10T19:50:10.034184+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter31800_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter31800_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `31800`
+- checkpoint hands: `522,567,052`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 31900 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 16:04 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 31902
+- live hands: 524244279
+- checkpoint iteration: 31900
+- checkpoint hands: 524211481
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint opponent assignment: `per-group`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 515989661, 430445532]`
+- health status: PASS
+
+Next gates:
+
+- iteration 32000: checkpoint stability save
+- iteration 32000: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 31900
+
+- checked at: `2026-07-10T20:06:03.656253+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter31900_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter31900_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `31900`
+- checkpoint hands: `524,211,481`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-10T20:16:36.328186+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-10T20:16:36.329906+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-10T20:16:36.331639+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-10T20:16:36.335096+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Gate 32000 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 16:20 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 32003
+- live hands: 525905630
+- checkpoint iteration: 32000
+- checkpoint hands: 525856388
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint opponent assignment: `per-group`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 515989661, 430445532]`
+- health status: PASS
+
+Next gates:
+
+- iteration 32100: checkpoint stability save
+- iteration 32200: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 32000
+
+- checked at: `2026-07-10T20:21:29.065658+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter32000_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter32000_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `32000`
+- checkpoint hands: `525,856,388`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 32100 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 16:35 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 32103
+- live hands: 527549844
+- checkpoint iteration: 32100
+- checkpoint hands: 527500609
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint opponent assignment: `per-group`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 515989661, 430445532]`
+- health status: PASS
+
+Next gates:
+
+- iteration 32200: checkpoint stability save
+- iteration 32200: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 32100
+
+- checked at: `2026-07-10T20:37:16.547916+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter32100_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter32100_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `32100`
+- checkpoint hands: `527,500,609`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Gate 32200 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 16:49 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 32207
+- live hands: 529260581
+- checkpoint iteration: 32200
+- checkpoint hands: 529145533
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint opponent assignment: `per-group`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 515989661, 430445532]`
+- health status: PASS
+
+Next gates:
+
+- iteration 32300: checkpoint stability save
+- iteration 32400: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 32200
+
+- checked at: `2026-07-10T20:51:02.963230+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter32200_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter32200_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `32200`
+- checkpoint hands: `529,145,533`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 32300 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 17:02 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 32304
+- live hands: 530856239
+- checkpoint iteration: 32300
+- checkpoint hands: 530790541
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint opponent assignment: `per-group`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 515989661, 430445532]`
+- health status: PASS
+
+Next gates:
+
+- iteration 32400: checkpoint stability save
+- iteration 32400: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 32300
+
+- checked at: `2026-07-10T21:04:49.979929+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter32300_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter32300_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `32300`
+- checkpoint hands: `530,790,541`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/5`
+
+## Gate 32400 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 17:15 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 32403
+- live hands: 532483883
+- checkpoint iteration: 32400
+- checkpoint hands: 532434574
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint opponent assignment: `per-group`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 515989661, 430445532]`
+- health status: PASS
+
+Next gates:
+
+- iteration 32500: checkpoint stability save
+- iteration 32600: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 32400
+
+- checked at: `2026-07-10T21:16:36.429508+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter32400_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter32400_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `32400`
+- checkpoint hands: `532,434,574`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Gate 32500 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 17:29 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 32506
+- live hands: 534177767
+- checkpoint iteration: 32500
+- checkpoint hands: 534079223
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint opponent assignment: `per-group`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 515989661, 430445532]`
+- health status: PASS
+
+Next gates:
+
+- iteration 32600: checkpoint stability save
+- iteration 32600: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 32500
+
+- checked at: `2026-07-10T21:30:22.694785+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter32500_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter32500_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `32500`
+- checkpoint hands: `534,079,223`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 32600 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 17:42 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 32602
+- live hands: 535756059
+- checkpoint iteration: 32600
+- checkpoint hands: 535723228
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint opponent assignment: `per-group`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 515989661, 430445532]`
+- health status: PASS
+
+Next gates:
+
+- iteration 32700: checkpoint stability save
+- iteration 32800: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Internal Strength Watch Gate 32600
+
+- checked at: `2026-07-10T21:44:07.341688+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter32600_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter32600_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `32600`
+- checkpoint hands: `535,723,228`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Internal Strength Watch Gate 32700
+
+- checked at: `2026-07-10T21:57:58.650779+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter32700_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710\internal_strength_probe_iter32700_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `32700`
+- checkpoint hands: `537,367,590`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Gate 32700 Verification
+
+Automatically appended by `scripts/alpha_holdem/v5_gate_watch.py` at 2026-07-10 17:58 Eastern Daylight Time:
+
+- overall: PASS
+- live iteration: 32712
+- live hands: 537564870
+- checkpoint iteration: 32700
+- checkpoint hands: 537367590
+- checkpoint version: `v5.zero`
+- checkpoint env version: `v55`
+- checkpoint obs version: `v55`
+- checkpoint action space version: `9slot_v5`
+- checkpoint starting stack: 200.0bb
+- checkpoint actual hand accounting: `True`
+- checkpoint resume source: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint fresh-from-zero lineage: `True`
+- checkpoint lineage root run id: `v5_zero_l6_fixedenv_20260703_1445`
+- checkpoint lineage parent checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- checkpoint opponent assignment: `per-group`
+- checkpoint pool strategy: `loss-kbest`
+- checkpoint pool snapshots: 5
+- pool snapshot hand counts: `[450186098, 469929538, 486379183, 515989661, 430445532]`
+- health status: PASS
+
+Next gates:
+
+- iteration 32800: checkpoint stability save
+- iteration 32800: next opponent-pool snapshot (expected stored snapshots: 5)
+- no Slumbot success or L6 claim is allowed from this gate alone
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-10T22:02:00.960077+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-10T22:02:00.964468+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-10T22:02:00.968383+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-10T22:02:00.970132+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Internal Strength Watch Gate 31500
+
+- checked at: `2026-07-10T22:10:46.531022+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710\internal_strength_probe_iter31500_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710\internal_strength_probe_iter31500_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `31508`
+- checkpoint hands: `517,765,868`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Internal Strength Watch Gate 31600
+
+- checked at: `2026-07-10T22:24:32.339944+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710\internal_strength_probe_iter31600_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710\internal_strength_probe_iter31600_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `31638`
+- checkpoint hands: `519,903,533`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Internal Strength Watch Gate 31700
+
+- checked at: `2026-07-10T22:32:18.173930+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710\internal_strength_probe_iter31700_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710\internal_strength_probe_iter31700_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `31710`
+- checkpoint hands: `521,087,377`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-10T22:32:26.615887+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-10T22:32:26.618126+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-10T22:32:26.619845+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-10T22:32:26.620932+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Internal Strength Watch Gate 31800
+
+- checked at: `2026-07-10T22:43:12.933752+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710\internal_strength_probe_iter31800_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710\internal_strength_probe_iter31800_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `31809`
+- checkpoint hands: `522,714,996`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`1/5`
+
+## Internal Strength Watch Gate 31900
+
+- checked at: `2026-07-10T22:54:58.416891+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710\internal_strength_probe_iter31900_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710\internal_strength_probe_iter31900_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `31919`
+- checkpoint hands: `524,524,148`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Internal Strength Watch Gate 32000
+
+- checked at: `2026-07-10T23:04:44.473009+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710\internal_strength_probe_iter32000_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710\internal_strength_probe_iter32000_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `32007`
+- checkpoint hands: `525,971,488`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Internal Strength Watch Gate 32100
+
+- checked at: `2026-07-10T23:16:30.254657+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710\internal_strength_probe_iter32100_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710\internal_strength_probe_iter32100_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `32112`
+- checkpoint hands: `527,697,822`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Internal Strength Watch Gate 32200
+
+- checked at: `2026-07-10T23:28:15.657420+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710\internal_strength_probe_iter32200_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710\internal_strength_probe_iter32200_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `32219`
+- checkpoint hands: `529,457,347`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-11T04:54:38.165761+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-11T04:54:38.169127+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-11T04:54:38.172011+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-11T04:54:38.173685+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Internal Strength Watch Gate 32400
+
+- checked at: `2026-07-11T05:03:25.301282+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_treatment_pergroup5_same31400_20m_r1_20260710\internal_strength_probe_iter32400_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_treatment_pergroup5_same31400_20m_r1_20260710\internal_strength_probe_iter32400_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `32400`
+- checkpoint hands: `532,435,180`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Internal Strength Watch Gate 32500
+
+- checked at: `2026-07-11T05:31:11.538688+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_treatment_pergroup5_same31400_20m_r1_20260710\internal_strength_probe_iter32500_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_treatment_pergroup5_same31400_20m_r1_20260710\internal_strength_probe_iter32500_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `32502`
+- checkpoint hands: `534,113,535`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+
+## Internal Strength Watch Gate 32600
+
+- checked at: `2026-07-11T06:00:54.119029+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_treatment_pergroup5_same31400_20m_r1_20260710\internal_strength_probe_iter32600_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp005c_treatment_pergroup5_same31400_20m_r1_20260710\internal_strength_probe_iter32600_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `32605`
+- checkpoint hands: `535,807,889`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-11T11:51:11.641725+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-11T11:51:11.645088+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-11T11:51:11.647878+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-11T11:51:11.649551+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-11T11:51:48.177467+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-11T11:51:48.179689+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-11T11:51:48.183635+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-11T11:51:48.185285+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-11T11:53:01.043908+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-11T11:53:01.045554+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-11T11:53:01.047232+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-11T11:53:01.049468+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-11T11:59:11.508102+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-11T11:59:11.512015+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-11T11:59:11.514778+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-11T11:59:11.517035+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Internal Strength Watch Gate 31500
+
+- checked at: `2026-07-11T12:11:56.298218+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_expw1_control_same31400_20m_r2_20260711\internal_strength_probe_iter31500_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_expw1_control_same31400_20m_r2_20260711\internal_strength_probe_iter31500_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `31514`
+- checkpoint hands: `517,863,720`
+- `aggressive` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`2/5`
+- `call-station` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Internal Strength Watch Gate 31600
+
+- checked at: `2026-07-11T12:21:40.638753+00:00`
+- status: `PASS`
+- json: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_expw1_control_same31400_20m_r2_20260711\internal_strength_probe_iter31600_200h.json`
+- markdown: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_expw1_control_same31400_20m_r2_20260711\internal_strength_probe_iter31600_200h.md`
+- scope: internal fixed-opponent probe only; not Slumbot and not an L5/L6 claim
+- checkpoint iteration: `31604`
+- checkpoint hands: `519,344,021`
+- `aggressive` trend: latest_is_best=`True`, strictly_increasing=`False`, positive_steps=`3/5`
+- `call-station` trend: latest_is_best=`False`, strictly_increasing=`False`, positive_steps=`3/5`
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-12T14:04:19.119047+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-12T14:04:19.124189+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-12T14:04:19.133453+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-12T14:04:19.137957+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-12T14:39:36.764161+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-12T14:39:36.766868+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-12T14:39:36.769099+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-12T14:39:36.770799+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-13T03:53:35.078436+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-13T03:53:35.083443+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-13T03:53:35.091469+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-13T03:53:35.093468+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-13T04:59:18.028148+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-13T04:59:18.035393+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-13T04:59:18.043640+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-13T04:59:18.046536+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-13T05:12:23.367751+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-13T05:12:23.369973+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-13T05:12:23.371087+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-13T05:12:23.372796+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-13T05:39:07.333066+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-13T05:39:07.335889+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-13T05:39:07.338685+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-13T05:39:07.341465+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-13T05:41:34.909108+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-13T05:41:34.912491+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-13T05:41:34.915296+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-13T05:41:34.918090+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-13T06:16:14.913673+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-13T06:16:14.916456+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-13T06:16:14.918659+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-13T06:16:14.920224+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-13T08:25:27.127016+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-13T08:25:27.130987+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-13T08:25:27.133812+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-13T08:25:27.136049+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-13T09:30:41.233895+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-13T09:30:41.239947+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-13T09:30:41.245445+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-13T09:30:41.247859+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-13T10:07:09.955458+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-13T10:07:09.961316+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-13T10:07:09.966367+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-13T10:07:09.968052+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-13T14:37:00.296223+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-13T14:37:00.297915+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-13T14:37:00.299552+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-13T14:37:00.301202+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-13T15:10:12.302859+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-13T15:10:12.306211+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-13T15:10:12.309101+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-13T15:10:12.310984+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_from_zero\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\v5_exp005_cutover_gate31400_checkpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `31400`
+- checkpoint hands: `515,989,661`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-14T09:18:22.629913+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-14T09:18:22.642924+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-14T09:18:22.652600+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-14T09:18:22.660650+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-14T10:55:33.125486+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-14T10:55:33.132709+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-14T10:55:33.139448+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-14T10:55:33.142788+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-14T11:15:06.866970+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-14T11:15:06.869111+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-14T11:15:06.871335+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-14T11:15:06.873496+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-14T12:22:12.135929+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-14T12:22:12.138075+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-14T12:22:12.140286+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-14T12:22:12.141948+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-14T13:29:53.530962+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-14T13:29:53.537035+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-14T13:29:53.542918+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-14T13:29:53.546627+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-14T15:29:20.234094+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-14T15:29:20.236282+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-14T15:29:20.238493+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-14T15:29:20.240174+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\h7_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `32617`
+- checkpoint hands: `536,001,286`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-14T17:50:27.379199+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714\h8_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `33834`
+- checkpoint hands: `556,011,085`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-14T17:50:27.386565+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714\h8_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `33834`
+- checkpoint hands: `556,011,085`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-14T17:50:27.392298+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714\h8_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `33834`
+- checkpoint hands: `556,011,085`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-14T17:50:27.396309+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714\h8_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `33834`
+- checkpoint hands: `556,011,085`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 50M
+
+- checked at: `2026-07-14T17:54:29.982580+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714\h8_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `33834`
+- checkpoint hands: `556,011,085`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 100M
+
+- checked at: `2026-07-14T17:54:29.984263+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714\h8_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `33834`
+- checkpoint hands: `556,011,085`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 250M
+
+- checked at: `2026-07-14T17:54:29.985947+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714\h8_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `33834`
+- checkpoint hands: `556,011,085`
+- scope: immutable milestone archive for later internal/Slumbot re-runs
+
+## Checkpoint Archive 500M
+
+- checked at: `2026-07-14T17:54:29.988155+00:00`
+- status: `INHERITED_PARENT`
+- archive: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714\h8_treatment_endpoint.pt`
+- manifest: `None`
+- checkpoint iteration: `33834`
+- checkpoint hands: `556,011,085`
+- scope: immutable milestone archive for later internal/Slumbot re-runs

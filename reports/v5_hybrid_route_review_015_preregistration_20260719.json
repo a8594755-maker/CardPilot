@@ -1,0 +1,53 @@
+{
+  "schema_version": "v5.hybrid.route_review.preregistration.v15.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-015",
+  "registered_at": "2026-07-19T16:46:00Z",
+  "status": "REGISTERED_REPORTING_ONLY",
+  "trigger": {
+    "h16": "FAIL_PREARM_NO_LAUNCH",
+    "pcv005": "FAIL",
+    "pcv005_result_sha256": "5da012bda5738542488d22e0ed4a1245f4b1cfb907cb7f1a6c5e408f88785858",
+    "pcv005_audit_sha256": "38fb16beda8c877422c69023c1aaf4c5c37caf592d2dd6058738a03d68d9c11e",
+    "consecutive_no_progress_windows": 2
+  },
+  "evidence_boundary": {
+    "primary_pcv005_fail": "HUBER_OVER_SMOOTHL1_RATIO_0.9948549347_BELOW_1.0",
+    "valid_supporting_components": {
+      "deterministic_trigger_proof": "PASS_24_OF_24_WITH_OFFSET10",
+      "smooth_l1_huber_equivalence": "PASS",
+      "smooth_l1_over_mse_full_update_ratio": 1.008650302411051,
+      "smooth_l1_over_mse_registered_floor": 0.85,
+      "mse_stability_ratio": 0.955714171127004
+    },
+    "not_supported": ["HUBER_IS_FASTER_THAN_SMOOTHL1","SMOOTHL1_METHOD_EFFECT","EXTERNAL_STRENGTH"]
+  },
+  "candidate_order": [
+    {
+      "rank": 1,
+      "candidate": "H17_CORRECTED_DETERMINISTIC_TRIGGER_SAME_SCIENCE_BASELINE_SMOOTHL1_KERNEL",
+      "change_from_h16": "MEASUREMENT_PROTOCOL_ONLY_OFFSET10;NO_HUBER_KERNEL",
+      "science": "FRESH_FIXED20M_MSE_CONTROL_VS_SMOOTHL1_BETA1_TREATMENT_FROM_EXACT_H11_SOURCE",
+      "required": "NEW_PREREGISTRATION_IMPLEMENTATION_AUDIT_LOCK_PREFLIGHT_AND_PER_ARM_REPRESENTATIVE_CALIBRATION"
+    },
+    {
+      "rank": 2,
+      "candidate": "HYBRID_VALUE_TARGET_ROUTE_REVIEW",
+      "condition": "H17_TERMINAL_NO_PROGRESS"
+    },
+    {
+      "rank": 3,
+      "candidate": "ROUTE_EXHAUSTION",
+      "condition": "ONLY_IF_NO_CAUSALLY_SUPPORTED_HYBRID_WINDOW_REMAINS"
+    }
+  ],
+  "decision_rule": "SELECT_H17_ONLY_IF_PCV005_VALID_COMPONENTS_PROVE_OFFSET10_TRIGGER_STABILITY_AND_ORIGINAL_SMOOTHL1_FULL_UPDATE_RATIO_AT_LEAST_0.85_WITH_MSE_STABILITY_AT_LEAST_0.95;DO_NOT_ADOPT_HUBER",
+  "constraints": {
+    "h16_and_pcv005_terminal": true,
+    "same_window_rerun": false,
+    "clean_source": "H11_CONTROL_ITER35051_HANDS576021901_SHA96A007",
+    "official_hands": 0,
+    "path1": "UNCHANGED",
+    "strength_claim": "FORBIDDEN"
+  },
+  "authority": "REPORTING_ONLY_NO_BEHAVIOR_LAUNCH"
+}

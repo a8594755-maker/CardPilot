@@ -1,0 +1,90 @@
+{
+  "schema_version": "v5.hybrid.h14.resource_isolation_incident.v1",
+  "checked_at": "2026-07-19T14:43:20.727605Z",
+  "design_id": "H14",
+  "overall": "H14_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+  "preregistration_sha256": "822b0de748eea8fa360cfdf64b09677fd159cb01179e3cd8620e6527b70fa35d",
+  "design_lock_sha256": "229763f9a432026c2dbcae3259fec9448e773d670f4036a940a1ba16a86b3694",
+  "arm": "control",
+  "run_id": "v5_hybrid_h14_control_catchmse_same35051_20m_r1_20260717",
+  "trainer": {
+    "pid": 16544,
+    "alive_at_recovery_check": false,
+    "stop_action": "TERMINATED_BY_LOCKED_ORDERED_REARM",
+    "manifest_status": "running",
+    "iteration": 35062,
+    "hands": 576202673,
+    "source_iteration": 35051,
+    "source_hands": 576021901,
+    "training_progress_hands": 180772,
+    "partial_checkpoint_sha256": "1be248ca54b072413c6a5fe77f7b494c724d35ed8f821c62644fc0e24e44a7d9",
+    "endpoint_frozen": false
+  },
+  "registered_classification_rule": "resource-isolation or lifecycle-provenance incident is INCONCLUSIVE; no extension or partial reuse allowed",
+  "trigger": {
+    "primary_component": "v5_hybrid_h14_ordered_rearm.py",
+    "primary_token": "protocol_readiness_timeout",
+    "primary_artifact_sha256": "806ee445c289f7077938cdd04891343c9284f0a7be82d8462485d2fff590b2a4",
+    "secondary_pid": 54532,
+    "secondary_parent_pid": -1,
+    "secondary_token": "allowed_supervisor_identity_mismatch",
+    "secondary_command_line_sha256": "417222c4a0ecb4d60a457ebe8e26fddf3d5406bffb16a5c59af8eeb241beca51",
+    "secondary_actual_role": "PID_REUSE_BY_CONHOST_AFTER_ORDERED_SUPERVISOR_EXIT",
+    "provenance_complete": true,
+    "classification": "FALSE_POSITIVE_STALE_PID_ONLY_SUPERVISOR_BINDING"
+  },
+  "control_plane_failures": [
+    {
+      "component": "v5_hybrid_h14_protocol_watch.py",
+      "failure": "no startup readiness artifact was published within the immutable 180-second ordered-rearm deadline",
+      "required_behavior": "publish bounded readiness before any potentially slow full process scan and remain responsive within the locked deadline",
+      "status": "H14_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION"
+    },
+    {
+      "component": "v5_hybrid_h14_protocol_watch.py",
+      "failure": "the allowed supervisor was bound by PID and command hash but not creation identity; after supervisor exit its PID was recycled by conhost.exe and emitted a false terminal violation",
+      "required_behavior": "bind supervisor creation identity and treat an exited supervisor as lifecycle shutdown, never as a live identity mismatch on PID reuse",
+      "status": "FAIL_CLOSED"
+    },
+    {
+      "component": "v5_hybrid_h14_ordered_rearm.py",
+      "failure": "failure cleanup terminated only the trainer parent and left watcher children plus 21 trainer multiprocessing children alive",
+      "required_behavior": "terminate exact lifecycle children and the full identity-verified trainer descendant tree on fail-closed cleanup",
+      "status": "RECOVERED_OUTSIDE_H14_WINDOW"
+    },
+    {
+      "component": "v5_hybrid_h14_health_watch.py",
+      "failure": "the leaked health watcher later converted expected post-termination staleness into H14_HEALTH_PRODUCER_FAILURE",
+      "required_behavior": "ordered supervisor owns and terminates the health child when rearm fails",
+      "status": "SECONDARY_FAIL_CLOSED"
+    }
+  ],
+  "artifacts": {
+    "run_manifest_sha256": "ef1586a6900653d664beb9f8f3cd5a04758cd8f2a4da73caa74ed495e5ea6ee4",
+    "console_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "watcher_rearm_status_sha256": "6e21e7629798d8f53ad8bd333199f3aa4fdc3bfd545583607254cc95950aef8f",
+    "health_status_sha256": "c75214fc58534bb71056bbaf025f033fc81813b297974553a24faccd2ccaf6b5",
+    "protocol_status_sha256": "b96b96f34ad2ed7c4673330d3831a479a727a6078e5e242bf89b2222be94a0e6",
+    "ordered_rearm_status_sha256": "806ee445c289f7077938cdd04891343c9284f0a7be82d8462485d2fff590b2a4",
+    "control_perf_cal_sha256": "c41c52197182f5f867081040cdfaae3dc17fe9bfde984a122d3aa1155f6361ca",
+    "control_perf_cal_audit_sha256": "14d731475a423b51495c7a28667a8a8cbb5b2b821c76fa50d0c0e562b5d000a5",
+    "partial_checkpoint_sha256": "1be248ca54b072413c6a5fe77f7b494c724d35ed8f821c62644fc0e24e44a7d9",
+    "latest_train_log_sha256": "42f3091be54d0b8e0b386a3644470682104be66b61877ba1ada312233990ffe1",
+    "judgment_sha256": "b5c87836f53b7ddd6c89a50c545e80b096777d6a445d6a7e92a84bcd577b1cf6",
+    "terminal_sentinel_sha256": "341f917dd0370861150253be465dce718609c3604268c516a1d56478340c4b40",
+    "recovery_sha256": "8928d6b739a26ed81f997e91a999d3a7c6e1bb731ce55eda1bd2a3a0d3633572"
+  },
+  "treatment_launched": false,
+  "mirror_launched": false,
+  "official_hands": 0,
+  "method_effect_evidence": "NONE",
+  "strength_claim": "FORBIDDEN",
+  "disposition": {
+    "h14_terminal": true,
+    "verdict": "INCONCLUSIVE",
+    "resume_extend_reclassify": "FORBIDDEN",
+    "partial_control_use": "FORBIDDEN_FOR_METHOD_MODEL_OR_STRENGTH",
+    "repair_same_window": "FORBIDDEN",
+    "next": "ROUTE_REVIEW_011_AFTER_PROSPECTIVE_CONTROL_PLANE_DIAGNOSIS"
+  }
+}

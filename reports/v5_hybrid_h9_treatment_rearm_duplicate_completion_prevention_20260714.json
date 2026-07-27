@@ -1,0 +1,35 @@
+{
+  "schema_version": "v5.hybrid.h9.control_plane_correction.v1",
+  "event_id": "v5-hybrid-h9-treatment-rearm-duplicate-completion-prevention-20260714",
+  "classification": "CENSURE_H9_TREATMENT_REARM_DUPLICATE_COMPLETION_PREVENTED_PRE_CUTOVER",
+  "recorded_at": "2026-07-14T18:02:00Z",
+  "scope": "CONTROL_PLANE_ONLY_PRE_TREATMENT_CUTOVER",
+  "diagnosis": {
+    "condition": "The locked canonical rearm script correctly classifies H9 as a blocked generic-evaluation window and launches H9 supervisors, but its legacy idempotency process-name list predates the H9-specific watcher names. At treatment cutover, the control completion supervisor would therefore survive while a second treatment-side completion supervisor was launched.",
+    "live_control_completion_pid": 17712,
+    "duplicate_was_launched": false,
+    "treatment_run_exists": false,
+    "trainer_pid": 49380,
+    "trainer_untouched": true
+  },
+  "correction": {
+    "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_hybrid_h9_launch_treatment.ps1",
+    "old_sha256": "0ae68c8765e4cdf3613da7688d95560e33ea50142a8c9e83f2b8fffb5c097442",
+    "new_sha256": "55ef052683abd9a9cbbea8a038b4a718840365dfc81b2e06e8ce52079e885229",
+    "design_lock_membership": "EXCLUDED_INTENTIONALLY_TO_AVOID_LAUNCH_HASH_CIRCULARITY",
+    "exact_action": "After the treatment manifest passes its locked identity checks and before invoking canonical rearm, require zero or one Python completion supervisor whose command line contains both v5_hybrid_h9_completion_watch.py and the exact control run id; fail closed on more than one; stop the single prior supervisor if present; then invoke the unchanged canonical rearm.",
+    "powershell_parser": "PASS",
+    "static_contract_checks": "PASS",
+    "canonical_rearm_sha256_unchanged": "3a04e4a5fee495aa08096a9d73be2c12f44ba1a7b5f5808129a63c77fa6057fb",
+    "design_lock_sha256_unchanged": "30071df4fa72ddf9c4244eace4e9ed4cbe8186d7e3c53d93fde0f2044687d81e"
+  },
+  "unchanged": {
+    "trainer_or_checkpoint": true,
+    "behavior": true,
+    "single_variable": true,
+    "sample_size": true,
+    "gates": true,
+    "official_hands": 0,
+    "strength_authority": "NONE"
+  }
+}

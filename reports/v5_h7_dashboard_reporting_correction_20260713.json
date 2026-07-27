@@ -1,0 +1,43 @@
+{
+  "schema_version": "v5.h7.reporting_correction.v1",
+  "checked_at": "2026-07-13T14:37:15+00:00",
+  "overall": "PASS_REPORTING_ONLY_CORRECTION",
+  "classification": "CENSURE_DASHBOARD_WATCHER_NULL_TOTAL_HANDS_CRASH",
+  "run_id": "v5_hybrid_h7_control_kl0_same31400_20m_r1_20260713",
+  "trainer_pid_unchanged": 6852,
+  "path1_pid_unchanged": 10192,
+  "incident": {
+    "stale_progress_last_write": "2026-07-13T10:02:27-04:00",
+    "fresh_health_observed_at": "2026-07-13T10:35:08-04:00",
+    "exception_type": "TypeError",
+    "exception": "unsupported format string passed to NoneType.__format__",
+    "source": "scripts/alpha_holdem/v5_l6_claim_audit.py:187",
+    "cause": "The legacy claim-audit formatter assumed checkpoint.config.total_hands was always numeric; the H7 hybrid checkpoint legitimately carries a null value there.",
+    "impact": "Dashboard/progress reporting became stale. Trainer, endpoint watcher, protocol watcher, treatment launcher, completion watcher, checkpoints, experiment gates and official-hand count were unaffected.",
+    "strength_inference": "NONE"
+  },
+  "correction": {
+    "behavior_change": false,
+    "source_sha256": "4def9104753921ac8895e35f4df22eeae9d56f526bbc6e7aca9875f3ca4a4941",
+    "test_sha256": "6d6e60455d6a1a5cb165513909d9f51285fb84f03c50decd2fdfbe9d00ad743d",
+    "rule": "Optional target counts render as unknown; missing or invalid values never crash the reporting-only audit.",
+    "focused_tests": "PASS_3_OF_3",
+    "py_compile": "PASS",
+    "live_claim_audit": "L6_NOT_PROVEN_BLOCKERS_8",
+    "canonical_rearm_only": true,
+    "watcher_rearm_status_sha256": "4075d4d81a93a6caf414b1cee15a1779ce5dabfb961be08b8c345e8e8c67cdd5",
+    "watcher_survival": "PASS_8_OF_8",
+    "dashboard_stderr_after_rearm_bytes": 0
+  },
+  "post_correction_live_state": {
+    "checked_at": "2026-07-13T14:37:07+00:00",
+    "iteration": 32493,
+    "hands": 533966216,
+    "health": "PASS",
+    "control_endpoint": "ARM_RUNNING",
+    "treatment_launch": "WAITING_FOR_CONTROL_ENDPOINT",
+    "official_hands": 0
+  },
+  "preservation_note": "The canonical rearm recreated dashboard_watch_rearmed.err.log, leaving a zero-byte current stderr file. The exact traceback was captured before rearm and is reproduced in this immutable correction artifact; no experimental evidence file or trainer artifact was overwritten.",
+  "verdict_effect": "NONE_H7_REMAINS_RUNNING_UNCHANGED"
+}

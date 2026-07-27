@@ -1,0 +1,65 @@
+{
+  "schema_version": "v5.hybrid.route_review.result.v12.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-012",
+  "checked_at": "2026-07-19T15:26:00Z",
+  "overall": "PASS_ROUTE_REVIEW",
+  "registration_sha256": "73618b393b689348e51a5e7f1b2c81fc208a1f097f94b9bc12732f02547153a9",
+  "registration_audit_sha256": "97eaf70e7266c8245d3734c9906567782c8357622a1196315b63a3ae9b1126b8",
+  "registration_audit": "PASS_30_OF_30",
+  "evidence_matrix": {
+    "cpv003": {
+      "verdict": "FAIL_CLOSED",
+      "classification": "CPV003_FAIL_REGISTERED_GATE",
+      "result_sha256": "573ba096333e6166f3e7f7344353c1dab120ea4aea3b16072ac846fccd9d120d",
+      "audit_sha256": "429276e4761d25c1314c85032cc57a2c409b2bae8496fa2345d3040b6b895421",
+      "diagnosis_sha256": "7e23c5b31682807eb48bc49fcacf183805fd8a8c3a88d43939dac669f1083e16",
+      "cycles_passed": 0,
+      "cycles_failed": 20,
+      "terminal_reclassification": "FORBIDDEN"
+    },
+    "gate_localization": {
+      "non_cleanup_gates": "PASS_ALL_20_CYCLES",
+      "final_tagged_survivors": 0,
+      "maximum_full_cleanup_elapsed_seconds": 0.375,
+      "cleanup_deadline_seconds": 15.0,
+      "failed_predicate": "INTERMEDIATE_PER_CHILD_SNAPSHOT_REQUIRED_ZERO_WHILE_UNPROCESSED_SIBLINGS_REMAINED",
+      "prospectively_correctable": true,
+      "method_or_strength_evidence": "NONE"
+    },
+    "route_state": {
+      "h12": "TERMINAL_INCONCLUSIVE",
+      "h13": "TERMINAL_INCONCLUSIVE",
+      "h14": "TERMINAL_INCONCLUSIVE_PARTIAL_FORBIDDEN",
+      "clean_h11_source_available": true,
+      "latest_official_level": "L0",
+      "official_hands_this_review": 0,
+      "path1_policy": "EXISTING_EXACT_JOB_ONLY_UNTOUCHED"
+    }
+  },
+  "decision": {
+    "selected_next": "CPV004_CORRECTED_FINAL_CLEANUP_OBSERVATION_GATE",
+    "route_exhausted": false,
+    "classification": "ENGINEERING_PREREQUISITE_NOT_BEHAVIOR_WINDOW",
+    "rationale": "CPV003 terminally failed its executed cleanup predicate,but all20 cycles ended with zero tagged survivors within0.375 seconds and every non-cleanup gate passed. The failure is isolated to observing sequential intermediate snapshots as terminal states. A separately registered CPV004 changing only the final observation point is the smallest causally supported next step.",
+    "cpv004_contract": {
+      "single_engineering_change": "Evaluate zero tagged survivors once after the complete registered child cleanup sequence;retain intermediate snapshots as diagnostic-only.",
+      "stress_cycles": 20,
+      "seed": 2026071903,
+      "roles": ["health", "protocol", "endpoint", "treatment_launch", "completion"],
+      "readiness_deadline_seconds": 10.0,
+      "cleanup_deadline_seconds": 15.0,
+      "identity_fields": ["pid", "parent_pid", "creation_time", "executable", "command_line_sha256", "script_sha256", "design_lock_sha256", "role"],
+      "adversarial_tokens": ["unregistered_sibling", "wrong_parent", "wrong_script_sha256", "wrong_command_line_sha256"],
+      "trainer": false,
+      "gpu": false,
+      "evaluator": false,
+      "slumbot": false,
+      "official_hands": 0,
+      "pass_effect": "PERMITS_SEPARATE_H15_PREREGISTRATION_ONLY",
+      "fail_or_inconclusive_effect": "REQUIRES_ROUTE_REVIEW_013_NO_BEHAVIOR_LAUNCH"
+    }
+  },
+  "behavior_launch_authorized": "NONE_CPV004_ENGINEERING_ONLY",
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

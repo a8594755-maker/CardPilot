@@ -1,0 +1,96 @@
+{
+  "schema_version": "v5.hybrid.h11.throughput_diagnosis.v1",
+  "checked_at": "2026-07-16T19:06:00Z",
+  "overall": "PASS_REPORTING_ONLY_DIAGNOSIS",
+  "classification": "H11_PROTOCOL_FAIL_VALID_CAUSE_NOT_IDENTIFIED_AS_SMOOTHL1",
+  "authority": {
+    "behavior_change": false,
+    "method_verdict": false,
+    "model_candidacy": false,
+    "official_hands": 0,
+    "strength_claim": "FORBIDDEN"
+  },
+  "frozen_inputs": {
+    "terminal_audit": {
+      "path": "reports/v5_hybrid_h11_terminal_audit_20260716.json",
+      "sha256": "fb6217793ea703eb7521dcc6b7d9bdf2d4980c5895c578867e5208aa117c0122"
+    },
+    "trainer_entry": {
+      "path": "scripts/alpha_holdem/train_v5.py",
+      "sha256": "98fe394c4d7b9338faa05abfbdf59015b4b0114cc8567f366cbda445a9afd19a"
+    },
+    "ppo_update": {
+      "path": "scripts/alpha_holdem/train_mp3_hybrid_h1.py",
+      "sha256": "a5c8229993c24a1871f57c7f46f173feeffbb11716987462b90369bbebb7e906"
+    }
+  },
+  "registered_protocol_result": {
+    "control_effective_hps": 1971.3414690797654,
+    "treatment_effective_hps": 1366.4866033762237,
+    "ratio": 0.6931760046696062,
+    "minimum": 0.85,
+    "status": "FAIL"
+  },
+  "paired_first61_metrics": {
+    "paired_rows": 61,
+    "instant_hps_ratio_mean": 0.6925492527238644,
+    "instant_hps_ratio_median": 0.6797338147010475,
+    "first10_ratio_mean": 0.7350563804289514,
+    "last10_ratio_mean": 0.6701093729520162,
+    "row1_ratio": 1.0686937532936258,
+    "control": {
+      "instant_hps_mean": 4806.86991802508,
+      "catchup_minibatches_mean": 32.1,
+      "catchup_epochs_mean": 0.5833333333333334,
+      "ppo_epochs_mean": 3.4166666666666665,
+      "kl_stop_fraction": 0.3,
+      "entropy_median": 1.3676385679445067
+    },
+    "treatment": {
+      "instant_hps_mean": 3298.0087170651914,
+      "catchup_minibatches_mean": 35.516666666666666,
+      "catchup_epochs_mean": 0.65,
+      "ppo_epochs_mean": 3.35,
+      "kl_stop_fraction": 0.35,
+      "entropy_median": 1.360617190362539
+    },
+    "instant_ratio_by_max_catchup_epochs": {
+      "0": {"rows": 38, "ratio_mean": 0.6923162158841403},
+      "1": {"rows": 4, "ratio_mean": 0.6795129116750681},
+      "2": {"rows": 10, "ratio_mean": 0.6955188577538088},
+      "3": {"rows": 9, "ratio_mean": 0.6960275542577817}
+    }
+  },
+  "gpu_loss_microbenchmark": {
+    "device": "NVIDIA GeForce RTX 4070",
+    "torch": "2.6.0+cu124",
+    "tensor_elements": 1024,
+    "warmup_loops": 200,
+    "timed_loops": 5000,
+    "operation": "loss_forward_plus_backward",
+    "mse_microseconds": 330.9279399982188,
+    "smooth_l1_beta1_microseconds": 339.74945999798365,
+    "mse_over_smooth_l1_time_ratio": 0.974035219953,
+    "scope": "SUPPORTING_MICROBENCHMARK_NOT_A_TRAINING_GATE"
+  },
+  "code_mechanism": {
+    "single_changed_operation": "F.mse_loss -> F.smooth_l1_loss(beta=1.0) inside otherwise identical value-head-only catch-up minibatches",
+    "actor_trunk_and_standard_ppo": "UNCHANGED_BY_H11_LOCK",
+    "observed_catchup_minibatch_increase_fraction": 0.10643821391588782,
+    "observed_full_hps_decrease_fraction": 0.3068239953303938
+  },
+  "findings": [
+    "The registered throughput FAIL is real and independently reproduced from exact rows 2..61.",
+    "The slowdown is present even in rows with zero catch-up epochs; paired ratio means are approximately 0.69 across every catch-up-epoch group.",
+    "Treatment executed about 10.6% more catch-up minibatches, which is insufficient by itself to identify the cause of the approximately 30.7% full-throughput loss.",
+    "The isolated loss forward/backward microbenchmark measured only about 2.6% SmoothL1 overhead and is supporting evidence only.",
+    "Sequential arms ran on different days while the permitted Path-1 six-worker CPU job continued variable board work, so H11 does not identify SmoothL1 as the causal throughput source."
+  ],
+  "inference_limits": {
+    "smooth_l1_method_effect": "UNMEASURED",
+    "smooth_l1_causal_throughput_penalty": "NOT_ESTABLISHED",
+    "h11_protocol_verdict": "UNCHANGED_FAIL",
+    "reuse_or_resume_h11": "FORBIDDEN",
+    "next_window_requirement": "NEW_PREREGISTRATION_ONLY_AFTER_RESOURCE_MATCHED_PERFORMANCE_CALIBRATION_AND_CONTROL_PLANE_REPAIR"
+  }
+}

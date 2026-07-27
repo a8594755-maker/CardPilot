@@ -1,0 +1,389 @@
+{
+  "schema_version": "v5.cutover_design_lock.v1",
+  "design_id": "EXP005-C",
+  "status": "LOCKED",
+  "locked_at": "2026-07-10T15:55:00-04:00",
+  "scope": "clean same-start control/treatment method experiment; no strength claim",
+  "source_checkpoint": {
+    "path": "C:/Users/a8594/CardPilot/models/alpha_holdem_v5_from_zero/v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709/v5_exp005_cutover_gate31400_checkpoint.pt",
+    "sha256": "bcbb46bd01d62fcdea602269b7047323315d4e9bbcf447ea0323e289fde11a8e",
+    "iteration": 31400,
+    "hands": 515989661,
+    "version": "v5.zero",
+    "env_version": "v55",
+    "obs_version": "v55",
+    "action_space_version": "9slot_v5",
+    "optimizer_and_pool_loaded_from_same_bytes": true,
+    "unique_same_start": true
+  },
+  "trainer_sha256": "e59b33cc69429f3eeed5b6a44271c2c15ffc9af51dede3f0b8476b0b52453ac1",
+  "tool_sha256": [
+    {
+      "path": "scripts/alpha_holdem/train_v5.py",
+      "sha256": "e59b33cc69429f3eeed5b6a44271c2c15ffc9af51dede3f0b8476b0b52453ac1"
+    },
+    {
+      "path": "scripts/alpha_holdem/v5_continue_after_gate.ps1",
+      "sha256": "63978670ed536408c38d792b01b4346324bf69e8f155b19ef046e337c0f4f505"
+    },
+    {
+      "path": "scripts/alpha_holdem/v5_cutover_design_lock_verify.py",
+      "sha256": "4137c6ffaebc31390beb4fcd5b591037f75366f2828cd121bbd74eaf80ab96f6"
+    },
+    {
+      "path": "scripts/alpha_holdem/v5_assignment_provenance_audit.py",
+      "sha256": "b061a13766b2af3c373918f731edfd77d5cdb4a9e7dfb97bb2fe0a2f8f6ebf6a"
+    },
+    {
+      "path": "scripts/alpha_holdem/v5_meas001_common_deal_eval.py",
+      "sha256": "03d8441f1caeb77e96c8f3bafc195574e3969fc5d5468acef99f40772bd4ec84"
+    },
+    {
+      "path": "scripts/alpha_holdem/v5_meas001_bundle_audit.py",
+      "sha256": "1578556a1b46e77d4f6676c62a71e86e74234ff5363d8d09480f925687f91e8d"
+    },
+    {
+      "path": "scripts/alpha_holdem/v5_pilot_endpoint_stop_watch.py",
+      "sha256": "8103af9cc023656bfd0a9e42ca969fed0dcc03f0639412c59dcb3c6de15e9425"
+    }
+  ],
+  "arm_order": [
+    "control",
+    "treatment"
+  ],
+  "arm_budget": {
+    "actual_hands_target_delta": 20000000,
+    "minimum_endpoint_hands": 535989661,
+    "selection_rule": "first post-update checkpoint with total_hands >= 535989661; save_interval=1; no later substitution",
+    "maximum_single_arm_overshoot_hands": 50000,
+    "maximum_between_arm_endpoint_hand_difference": 50000,
+    "adaptive_extension_forbidden": true
+  },
+  "arms": {
+    "control": {
+      "run_id": "v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710",
+      "run_dir": "C:/Users/a8594/CardPilot/models/alpha_holdem_v5_from_zero/v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710",
+      "provenance_path": "C:/Users/a8594/CardPilot/models/alpha_holdem_v5_from_zero/v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710/opponent_assignment_provenance.jsonl",
+      "expected_config": {
+        "device": "cuda",
+        "workers": 22,
+        "hands_per_iter": 16384,
+        "total_hands": 535989661,
+        "starting_stack": 200.0,
+        "env_version": "v55",
+        "lr": 0.0003,
+        "ppo_epochs": 4,
+        "mini_batch_size": 1024,
+        "epsilon": 0.0,
+        "seed": 20260703,
+        "worker_seed_base": 73000,
+        "fixed_training_deal_stream": true,
+        "gamma": 0.999,
+        "delta1": 3.0,
+        "entropy_coef": 0.05,
+        "entropy_floor": 0.3,
+        "postflop_action_prior_coef": 0.02,
+        "postflop_action_prior_target": "0.15,0.30,0.52,0.03",
+        "preflop_action_prior_coef": 0.01,
+        "preflop_action_prior_target": "0.24,0.36,0.38,0.02",
+        "preflop_sb_open_action_prior_coef": 0.0,
+        "preflop_sb_open_action_prior_target": "0.15,0.20,0.63,0.02",
+        "preflop_bb_vs_open_action_prior_coef": 0.0,
+        "preflop_bb_vs_open_action_prior_target": "0.25,0.55,0.18,0.02",
+        "k_best": 5,
+        "pool_strategy": "loss-kbest",
+        "pool_history_limit": 200,
+        "self_play_fraction": 0.2,
+        "opponent_assignment": "per-iteration",
+        "opponent_groups": 5,
+        "snapshot_every": 200,
+        "save_interval": 1,
+        "rollout_mode": "multi",
+        "rollout_envs_per_worker": 16,
+        "inference_min_batch_slots": 256,
+        "inference_batch_deadline_us": 1000,
+        "mirror_self_play_deals": true,
+        "allin_runout_ev": true,
+        "allin_runout_ev_max_runouts": 200,
+        "reset_optimizer": false,
+        "assignment_provenance_schema": "v5.opponent_assignment_provenance.v1"
+      }
+    },
+    "treatment": {
+      "run_id": "v5_zero_l6_exp005c_treatment_pergroup5_same31400_20m_r1_20260710",
+      "run_dir": "C:/Users/a8594/CardPilot/models/alpha_holdem_v5_from_zero/v5_zero_l6_exp005c_treatment_pergroup5_same31400_20m_r1_20260710",
+      "provenance_path": "C:/Users/a8594/CardPilot/models/alpha_holdem_v5_from_zero/v5_zero_l6_exp005c_treatment_pergroup5_same31400_20m_r1_20260710/opponent_assignment_provenance.jsonl",
+      "expected_config": {
+        "device": "cuda",
+        "workers": 22,
+        "hands_per_iter": 16384,
+        "total_hands": 535989661,
+        "starting_stack": 200.0,
+        "env_version": "v55",
+        "lr": 0.0003,
+        "ppo_epochs": 4,
+        "mini_batch_size": 1024,
+        "epsilon": 0.0,
+        "seed": 20260703,
+        "worker_seed_base": 73000,
+        "fixed_training_deal_stream": true,
+        "gamma": 0.999,
+        "delta1": 3.0,
+        "entropy_coef": 0.05,
+        "entropy_floor": 0.3,
+        "postflop_action_prior_coef": 0.02,
+        "postflop_action_prior_target": "0.15,0.30,0.52,0.03",
+        "preflop_action_prior_coef": 0.01,
+        "preflop_action_prior_target": "0.24,0.36,0.38,0.02",
+        "preflop_sb_open_action_prior_coef": 0.0,
+        "preflop_sb_open_action_prior_target": "0.15,0.20,0.63,0.02",
+        "preflop_bb_vs_open_action_prior_coef": 0.0,
+        "preflop_bb_vs_open_action_prior_target": "0.25,0.55,0.18,0.02",
+        "k_best": 5,
+        "pool_strategy": "loss-kbest",
+        "pool_history_limit": 200,
+        "self_play_fraction": 0.2,
+        "opponent_assignment": "per-group",
+        "opponent_groups": 5,
+        "snapshot_every": 200,
+        "save_interval": 1,
+        "rollout_mode": "multi",
+        "rollout_envs_per_worker": 16,
+        "inference_min_batch_slots": 256,
+        "inference_batch_deadline_us": 1000,
+        "mirror_self_play_deals": true,
+        "allin_runout_ev": true,
+        "allin_runout_ev_max_runouts": 200,
+        "reset_optimizer": false,
+        "assignment_provenance_schema": "v5.opponent_assignment_provenance.v1"
+      }
+    }
+  },
+  "same_start_invariants": {
+    "only_behavior_difference": "opponent_assignment per-iteration versus per-group/5",
+    "optimizer_state_identical_at_start": true,
+    "pool_snapshots_and_order_identical_at_start": true,
+    "global_seed": 20260703,
+    "worker_seed_base": 73000,
+    "deal_stream": "v5.fixed.training.deal.v1 keyed by worker_seed, env_index, source_deal_index",
+    "workers": 22,
+    "envs_per_worker": 16,
+    "all_other_flags_exactly_equal": true
+  },
+  "assignment_provenance": {
+    "required": true,
+    "schema_version": "v5.opponent_assignment_provenance.v1",
+    "hash_chain_required": true,
+    "one_record_per_executed_iteration": true,
+    "worker_to_resolved_snapshot_identity_required": true,
+    "control_uniform_assignment_required": true,
+    "treatment_balanced_five_groups_required": true,
+    "treatment_exactly_one_self_play_group_required": true,
+    "distinct_pool_group_assignments_when_pool_sufficient": true,
+    "missing_or_invalid_provenance_result": "FAIL"
+  },
+  "endpoint_freeze": {
+    "require_health_pass": true,
+    "require_empty_stderr": true,
+    "require_checkpoint_sha256": true,
+    "require_exact_source_lineage": true,
+    "require_config_identity": true,
+    "require_provenance_audit_pass": true,
+    "later_checkpoint_substitution_forbidden": true
+  },
+  "measurement": {
+    "pairs": 100000,
+    "seed": 2026071051,
+    "device": "cpu",
+    "priority": "below-normal",
+    "starting_stack_bb": 200.0,
+    "policy_mode": "greedy_argmax_both_sides",
+    "pre_role": "control endpoint",
+    "post_role": "treatment endpoint",
+    "native_anchor": {
+      "path": "C:/Users/a8594/CardPilot/models/bench_v55_v5_v5_zero_l6_fixedenv_20260703_1445_after4000_aprior002_r1_after4400_preprior001_r1_after4600_preprior002_call36_r1_iter4600_75M_quick5k_checkpoint.pt",
+      "sha256": "47318cf20388f0f2cfdc63d9d76bd6c5519d39de54ab0e24589fcb1f90fc8f63",
+      "iteration": 4600,
+      "hands": 75479020,
+      "env_version": "v55"
+    },
+    "gate30700_as_pre_role_forbidden": true,
+    "adaptive_extension_forbidden": true,
+    "second_seed_forbidden": true,
+    "200_hand_probe_role": "smoke_only_not_primary"
+  },
+  "numerical_gates": {
+    "primary_100k_paired": {
+      "pairs": 100000,
+      "alpha": 0.05,
+      "estimand": "(treatment endpoint versus native) - (control endpoint versus native) on identical deal IDs",
+      "ci_formula": "mean_bb100 +/- 1.959963984540054 * sample_sd_bb100 / sqrt(100000)",
+      "max_ci_halfwidth_bb100": 20.0,
+      "pass_ci_lower_gt_bb100": 0.0,
+      "fail_rule": "valid precision-passing CI upper <= 0",
+      "inconclusive_rule": "CI overlaps 0 or halfwidth > 20 bb/100"
+    },
+    "direct_endpoint_check": {
+      "estimand": "treatment endpoint versus control endpoint with seats swapped on the same deal stream",
+      "ci_formula": "mean_bb100 +/- 1.959963984540054 * sample_sd_bb100 / sqrt(100000)",
+      "max_ci_halfwidth_bb100": 20.0,
+      "pass_ci_lower_gt_bb100": 0.0,
+      "required_for_pass": true
+    },
+    "training_budget": {
+      "minimum_actual_hands_per_arm": 20000000,
+      "maximum_overshoot_per_arm": 50000,
+      "maximum_endpoint_hand_difference": 50000
+    },
+    "throughput": {
+      "treatment_over_control_effective_hps_min": 0.9,
+      "abort_if_below_after_60_rows": 0.85,
+      "formula": "sum(actual iteration hands) / sum(collect_seconds + ppo_seconds)"
+    },
+    "validity": {
+      "native_anchor_ood_rate_max": 0.15,
+      "legal_action_errors": 0,
+      "duplicate_or_missing_deal_ids": 0,
+      "incomplete_seat_swaps": 0,
+      "checkpoint_or_hash_mismatches": 0
+    },
+    "abort": {
+      "source_or_lineage_mismatch": "abort before launch",
+      "optimizer_pool_or_flag_mismatch": "abort before launch",
+      "assignment_provenance_failure": "abort arm and FAIL",
+      "actual_hand_accounting_failure": "abort arm and FAIL",
+      "change_attributed_crash_or_sustained_health_failure": "abort arm and FAIL",
+      "treatment_effective_hps_ratio_below_0_85_after_60_rows": "abort treatment and FAIL"
+    }
+  },
+  "classification": {
+    "PASS": "all identity, provenance, health, budget, throughput, validity and precision gates pass; both paired primary and direct endpoint CI lower bounds > 0",
+    "FAIL": "protocol/abort gate fails, final throughput ratio < 0.90, or a valid precision-passing primary/direct CI upper bound <= 0",
+    "INCONCLUSIVE": "valid bundle but either primary CI overlaps zero or either primary CI halfwidth > 20 bb/100",
+    "point_estimate_only_forbidden": true
+  },
+  "promotion_after_pass": {
+    "authorized_only_if_exp005c_pass": true,
+    "checkpoint": "exact treatment endpoint only",
+    "hands": 20400,
+    "policy": "official greedy-direct",
+    "full_bundle_required": true,
+    "relative_v4_ci_required": true,
+    "relative_v4_estimand": "treatment promotion bb/100 - fresh V4 baseline bb/100",
+    "relative_v4_ci_formula": "paired CI if identical Slumbot deal/session IDs are proven; otherwise Welch two-sample 95% CI",
+    "relative_v4_pass_rule": "95% CI lower bound > 0",
+    "point_estimate_above_minus_71_4_is_not_a_gate": true,
+    "formal100k_rule": "promotion_20k_strong=true from the exact same treatment endpoint",
+    "non_strong_rule": "freeze Tier-2 and enter route-pivot review"
+  },
+  "rollback": {
+    "arms_are_isolated_not_mainline_adoption": true,
+    "on_arm_abort": "stop the affected arm; preserve gate31400 and all artifacts; do not substitute a later checkpoint",
+    "on_fail_or_inconclusive": "do not adopt treatment; freeze Tier-2 from-zero tuning and stop budget-driven continuation",
+    "on_pass": "do not auto-adopt; only authorize exact treatment endpoint promotion20k"
+  },
+  "program_stop_rule": {
+    "EXP005_C_FAIL": "freeze all Tier-2 from-zero adjustments; 2.7B budget does not authorize continuation",
+    "EXP005_C_INCONCLUSIVE": "freeze all Tier-2 from-zero adjustments; 2.7B budget does not authorize continuation",
+    "EXP005_C_PASS": "allow exact treatment endpoint promotion20k only",
+    "PROMOTION_STRONG": "allow exact same-checkpoint formal100k",
+    "PROMOTION_NOT_STRONG": "freeze Tier-2 and enter route-pivot review",
+    "route_pivot_choice_limit": 1,
+    "EXP_W1_requires": "VALUE-AUDIT-001 supports critic/reward problem",
+    "EXP_W2_requires": "ASSET-AUDIT-001 finds compatible full 200bb asset",
+    "forbidden_bundle": [
+      "reward normalization",
+      "value warmup",
+      "BC initialization",
+      "CFR teacher"
+    ]
+  },
+  "tests": {
+    "overall": "PASS",
+    "results": [
+      {
+        "name": "full_v5_unittests",
+        "status": "PASS",
+        "count": "161/161"
+      },
+      {
+        "name": "canonical_rearm_contract",
+        "status": "PASS",
+        "count": "14/14"
+      },
+      {
+        "name": "group_assignment_and_fixed_deal_helpers",
+        "status": "PASS",
+        "count": "8/8"
+      },
+      {
+        "name": "control_and_treatment_provenance_smokes",
+        "status": "PASS",
+        "count": "2 arms / 2 executed iterations each"
+      },
+      {
+        "name": "fixed_deal_stream_end_to_end_smoke",
+        "status": "PASS",
+        "count": "1 arm / 1 executed iteration"
+      },
+      {
+        "name": "assignment_provenance_auditor",
+        "status": "PASS",
+        "count": "1/1"
+      },
+      {
+        "name": "design_lock_verifier",
+        "status": "PASS",
+        "count": "1/1"
+      },
+      {
+        "name": "continuation_lock_contract",
+        "status": "PASS",
+        "count": "2/2"
+      },
+      {
+        "name": "negative_execute_without_lock",
+        "status": "PASS",
+        "count": "refused before run-dir creation, trainer stop, or launch"
+      },
+      {
+        "name": "pilot_endpoint_stop_preconditions",
+        "status": "PASS",
+        "count": "1/1"
+      },
+      {
+        "name": "design_lock_v1_automatic_tool_hash_invalidation",
+        "status": "PASS",
+        "count": "v1 verifier FAIL exactly on stale continuation SHA; no launch"
+      },
+      {
+        "name": "design_locked_inline_watcher_block_and_exp005c_rearm_routing",
+        "status": "PASS",
+        "count": "continuation2/2 plus rearm14/14"
+      }
+    ]
+  },
+  "ledger_binding": {
+    "path": "reports/v5_experiment_ledger.md",
+    "prefix_bytes": 568593,
+    "prefix_sha256": "d0e36dad8c179394c5d1975d577fad33bd243f9a4feff10ac51ef6b512e2e5bb",
+    "event_id": "v5-exp005c-design-lock-v2-locked-20260710-1555",
+    "contract": "verifier hashes the immutable ledger prefix and requires the later append-only event row to contain both event_id and exact design-lock SHA256"
+  },
+  "forbidden": [
+    "using the exploratory pilot as a control or treatment arm",
+    "gate30700 versus treatment endpoint as EXP005-C primary evidence",
+    "200-hand probe as primary evidence",
+    "adaptive pairs or second seed",
+    "later endpoint substitution",
+    "point-estimate-only V4 or promotion gate",
+    "continuing Tier-2 merely because 2.7B remains"
+  ],
+  "lock_revision": 2,
+  "supersedes": {
+    "path": "reports/v5_exp005c_design_lock_20260710.json",
+    "sha256": "25ef8fde94236a305f4ff49a1952f1684288afca07d03108262e5e2e5ee78643",
+    "reason": "close inline watcher launch and EXP005-C control rearm routing gaps before any arm cutover",
+    "prior_lock_is_not_launchable": true
+  }
+}
