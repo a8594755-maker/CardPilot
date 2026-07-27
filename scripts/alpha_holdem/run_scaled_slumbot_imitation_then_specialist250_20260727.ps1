@@ -65,16 +65,37 @@ if ($LASTEXITCODE -ne 0) {
 $report = Get-Content -LiteralPath (
     Join-Path $outputDir 'report.json'
 ) -Raw | ConvertFrom-Json
-$bestEpoch = @(
+$sourceAccuracy = [double]$sourceRecord.candidate_validation_accuracy
+$eligibleEpochs = @(
     $report.history |
         Where-Object {
-            [int]$_.epoch -eq [int]$report.best_epoch
+            [double]$_.behavior_accuracy -ge $sourceAccuracy -and
+            [double]$_.slice_accuracy.p0s0 -ge 0.55 -and
+            [double]$_.slice_accuracy.p1s0 -ge 0.70
+        } |
+        Sort-Object {
+            [double]$_.validation_objective
         }
-)[0]
-$bestAccuracy = [double]$bestEpoch.behavior_accuracy
-$candidate = (Resolve-Path -LiteralPath $report.best_checkpoint).Path
-$p0Preflop = [double]$bestEpoch.slice_accuracy.p0s0
-$p1Preflop = [double]$bestEpoch.slice_accuracy.p1s0
+)
+if ($eligibleEpochs.Count -gt 0) {
+    $selectedEpoch = $eligibleEpochs[0]
+} else {
+    $selectedEpoch = @(
+        $report.history |
+            Where-Object {
+                [int]$_.epoch -eq [int]$report.best_epoch
+            }
+    )[0]
+}
+$selectedEpochNumber = [int]$selectedEpoch.epoch
+$selectedAccuracy = [double]$selectedEpoch.behavior_accuracy
+$candidate = (
+    Resolve-Path -LiteralPath (
+        Join-Path $outputDir "epoch_${selectedEpochNumber}.pt"
+    )
+).Path
+$p0Preflop = [double]$selectedEpoch.slice_accuracy.p0s0
+$p1Preflop = [double]$selectedEpoch.slice_accuracy.p1s0
 $mappedRows = [int64]$report.ingest.mapped_rows
 $sampledRows = [int64]$report.ingest.sampled_rows
 
@@ -101,19 +122,19 @@ $sampledRows = [int64]$report.ingest.sampled_rows
     source_validation_accuracy = (
         [double]$sourceRecord.candidate_validation_accuracy
     )
-    candidate_validation_accuracy = $bestAccuracy
+    unconstrained_best_epoch = [int]$report.best_epoch
+    selected_eligible_epoch = $selectedEpochNumber
+    candidate_validation_accuracy = $selectedAccuracy
+    candidate_validation_objective = (
+        [double]$selectedEpoch.validation_objective
+    )
     candidate_p0_preflop_validation_accuracy = $p0Preflop
     candidate_p1_preflop_validation_accuracy = $p1Preflop
     candidate_checkpoint = $candidate
     candidate_checkpoint_sha256 = (
         Get-FileHash -LiteralPath $candidate -Algorithm SHA256
     ).Hash.ToLowerInvariant()
-    decision = if (
-        $bestAccuracy -ge
-            [double]$sourceRecord.candidate_validation_accuracy -and
-        $p0Preflop -ge 0.55 -and
-        $p1Preflop -ge 0.70
-    ) {
+    decision = if ($eligibleEpochs.Count -gt 0) {
         'READY_FOR_PURE_FRESH5K'
     } else {
         'REJECT'
