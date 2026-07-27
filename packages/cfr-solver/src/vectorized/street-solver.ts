@@ -12,6 +12,7 @@
 
 import type { TreeConfig, Street } from '../types.js';
 import type { WeightedCombo } from '../integration/preflop-ranges.js';
+import { warmStartFromVNet } from './vnet-warm-start.js';
 import { buildStreetTree } from './street-tree-builder.js';
 import { flattenTree, isTerminal, decodeTerminalId, type FlatTree } from './flat-tree.js';
 import { ArrayStore } from './array-store.js';
@@ -62,6 +63,10 @@ export interface StreetSolveParams {
    */
   transitionEvalFn?: TransitionEvalFn;
   onProgress?: (iter: number, elapsed: number) => void;
+  /** Optional VNet model for warm-starting CFR (NN-guided solving) */
+  vnetModel?: import('@cardpilot/fast-model').MLP;
+  /** Weight for VNet warm-start (default: 10). Higher = more VNet influence. */
+  vnetWeight?: number;
 }
 
 export interface StreetSolveResult {
@@ -127,6 +132,20 @@ export function solveStreet(params: StreetSolveParams): StreetSolveResult {
 
   // 4. Create store
   const store = new ArrayStore(tree, nc);
+
+  // 4b. VNet warm-start: seed strategySums with neural network predictions
+  if (params.vnetModel) {
+    warmStartFromVNet({
+      store,
+      tree,
+      board,
+      street: street as 'FLOP' | 'TURN' | 'RIVER',
+      vnetModel: params.vnetModel,
+      initialWeight: params.vnetWeight ?? 10,
+      validCombos,
+      blockerMatrix,
+    });
+  }
 
   // 5. Build initial reach
   const oopInitReach = initialReachOOP

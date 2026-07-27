@@ -145,6 +145,30 @@ export const PIPELINE_SRP_V3_100BB_CONFIG: TreeConfig = {
   raiseCapPerStreet: 1,
 };
 
+// V3 SRP 200bb: 3 sizes, raise cap 1 (deep-stacked, matches teacher/Slumbot depth)
+export const PIPELINE_SRP_V3_200BB_CONFIG: TreeConfig = {
+  startingPot: 5,
+  effectiveStack: 197.5,
+  betSizes: PIPELINE_V3_BET_SIZES,
+  raiseCapPerStreet: 1,
+};
+
+// V3 3-bet 50bb: 3 sizes, raise cap 1
+export const PIPELINE_3BET_V3_CONFIG: TreeConfig = {
+  startingPot: 17.5,
+  effectiveStack: 41.25,
+  betSizes: PIPELINE_V3_BET_SIZES,
+  raiseCapPerStreet: 1,
+};
+
+// V3 3-bet 100bb: 3 sizes, raise cap 1
+export const PIPELINE_3BET_V3_100BB_CONFIG: TreeConfig = {
+  startingPot: 17.5,
+  effectiveStack: 91.25,
+  betSizes: PIPELINE_V3_BET_SIZES,
+  raiseCapPerStreet: 1,
+};
+
 // ═══════════════════════════════════════════════════════════
 // Realtime Resolver: 3 sizes per street for higher-quality blueprints
 // Superset of pipeline V2 sizes — adds a mid-range option each street
@@ -432,9 +456,12 @@ export type TreeConfigName =
   | 'pipeline_3bet_v2'
   | 'pipeline_srp_100bb'
   | 'pipeline_3bet_100bb'
-  // Pipeline V3 (4 sizes, raise cap 2, high resolution)
+  // Pipeline V3 (3 sizes, raise cap 1, high resolution)
   | 'pipeline_srp_v3'
   | 'pipeline_srp_v3_100bb'
+  | 'pipeline_srp_v3_200bb'
+  | 'pipeline_3bet_v3'
+  | 'pipeline_3bet_v3_100bb'
   // Phase 2: HU expanded configs
   | 'hu_btn_bb_srp_100bb'
   | 'hu_btn_bb_3bp_100bb'
@@ -561,6 +588,30 @@ const CONFIG_REGISTRY: Record<TreeConfigName, ConfigMeta> = {
     config: PIPELINE_SRP_V3_100BB_CONFIG,
     label: 'Pipeline V3 SRP 100bb (3 sizes, cap 1)',
     outputDir: 'pipeline_v3_hu_srp_100bb',
+    stackLabel: '100bb',
+    iterations: 200000,
+    buckets: 50,
+  },
+  pipeline_srp_v3_200bb: {
+    config: PIPELINE_SRP_V3_200BB_CONFIG,
+    label: 'Pipeline V3 SRP 200bb (3 sizes, cap 1)',
+    outputDir: 'pipeline_v3_hu_srp_200bb',
+    stackLabel: '200bb',
+    iterations: 200000,
+    buckets: 50,
+  },
+  pipeline_3bet_v3: {
+    config: PIPELINE_3BET_V3_CONFIG,
+    label: 'Pipeline V3 3-bet 50bb (3 sizes, cap 1)',
+    outputDir: 'pipeline_v3_hu_3bet_50bb',
+    stackLabel: '50bb',
+    iterations: 200000,
+    buckets: 50,
+  },
+  pipeline_3bet_v3_100bb: {
+    config: PIPELINE_3BET_V3_100BB_CONFIG,
+    label: 'Pipeline V3 3-bet 100bb (3 sizes, cap 1)',
+    outputDir: 'pipeline_v3_hu_3bet_100bb',
     stackLabel: '100bb',
     iterations: 200000,
     buckets: 50,

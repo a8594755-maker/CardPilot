@@ -13,7 +13,7 @@ const hasData = existsSync(DATA_DIR) && existsSync(BIN_PATH);
 test('V1 tree structure is correct', () => {
   const root = buildTree(V1_TREE_CONFIG);
   const counts = countNodes(root);
-  assert.equal(counts.action, 1008, 'Expected 1008 action nodes');
+  assert.equal(counts.action, 928, 'Expected 928 action nodes after post-all-in raise pruning');
   assert.ok(counts.terminal > 1000, 'Expected many terminal nodes');
   assert.equal(root.player, 0, 'OOP acts first');
   assert.equal(root.street, 'FLOP');
