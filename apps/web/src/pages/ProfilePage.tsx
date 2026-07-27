@@ -23,6 +23,8 @@ export type UserPreferences = {
     turn: [number, number, number];
     river: [number, number, number];
   };
+  raiseMultipliers: [number, number];
+  potPercentages: [number, number, number];
   dataRetention: boolean;
 };
 
@@ -37,6 +39,8 @@ const DEFAULT_PREFS: UserPreferences = {
     turn: [50, 75, 125],
     river: [50, 100, 200],
   },
+  raiseMultipliers: [2, 3],
+  potPercentages: [33, 50, 100],
   dataRetention: true,
 };
 
@@ -91,124 +95,129 @@ export function ProfilePage({
     }
   }
 
+  const mults = prefs.raiseMultipliers ?? DEFAULT_PREFS.raiseMultipliers;
+  const pcts = prefs.potPercentages ?? DEFAULT_PREFS.potPercentages;
+
   return (
     <main className="flex-1 p-6 overflow-y-auto">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <h2 className="text-2xl font-bold text-white">Profile</h2>
-
-        {/* Avatar + Name */}
-        <div className="glass-card p-6">
-          <div className="flex items-start gap-4">
-            <div className="flex w-16 sm:w-24 shrink-0 flex-col items-center gap-2">
-              <div
-                className={`w-12 h-12 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br ${AVATAR_COLORS[prefs.avatarColor]} flex items-center justify-center text-xl sm:text-3xl font-bold text-white uppercase shadow-lg`}
-              >
-                {displayName[0]}
-              </div>
-              <div className="flex gap-1 mt-1">
-                {AVATAR_COLORS.map((c: string, i: number) => (
-                  <button
-                    key={i}
-                    onClick={() => updatePref('avatarColor', i)}
-                    className={`w-3.5 h-3.5 sm:w-5 sm:h-5 rounded-full bg-gradient-to-br ${c} border-2 transition-all ${
-                      prefs.avatarColor === i
-                        ? 'border-white scale-110'
-                        : 'border-transparent opacity-60 hover:opacity-100'
-                    }`}
-                  />
-                ))}
-              </div>
+      <div className="max-w-xl mx-auto space-y-5">
+        {/* ── Profile Card ── */}
+        <div className="cp-lobby-card p-5 space-y-4">
+          <div className="flex items-center gap-4">
+            <div
+              className={`w-14 h-14 rounded-full bg-gradient-to-br ${AVATAR_COLORS[prefs.avatarColor]} flex items-center justify-center text-2xl font-extrabold text-white uppercase shadow-lg shrink-0`}
+            >
+              {displayName[0]}
             </div>
-            <div className="flex-1 min-w-0 space-y-2.5">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  Display Name
-                </label>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    value={editName}
-                    onChange={(e) => setEditName(e.target.value)}
-                    className="input-field flex-1 min-w-0 !py-1.5"
-                    maxLength={32}
-                  />
-                  <button
-                    onClick={handleSaveName}
-                    className="btn-primary text-xs !py-1.5 !px-3 shrink-0"
-                  >
-                    Save
-                  </button>
-                </div>
-                {saved && <p className="text-xs text-emerald-400">Name updated!</p>}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSaveName();
+                  }}
+                  className="cp-input flex-1 min-w-0 text-base font-bold"
+                  maxLength={32}
+                  placeholder="Display Name"
+                />
+                <button
+                  onClick={handleSaveName}
+                  className={`cp-btn text-xs px-4 py-2 shrink-0 ${saved ? 'cp-btn-success' : 'cp-btn-primary'}`}
+                >
+                  {saved ? 'Saved' : 'Save'}
+                </button>
               </div>
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-                  Email
-                </label>
-                <p className="text-sm text-slate-300">{email || 'Guest account'}</p>
-              </div>
+              <p className="text-xs text-slate-500 mt-1.5 truncate">{email || 'Guest account'}</p>
             </div>
           </div>
         </div>
 
-        {/* Bet Size Presets */}
-        <div className="glass-card p-4 sm:p-6 space-y-4">
-          <h3 className="text-lg font-bold text-white">Custom Bet Size Presets</h3>
-          <p className="text-xs text-slate-400">
-            Set your preferred bet sizes as % of pot for each street.
-          </p>
-          {(['flop', 'turn', 'river'] as const).map((street) => (
-            <div key={street} className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-400 uppercase tracking-wider">
-                {street}
-              </label>
-              <div className="flex gap-1.5 sm:gap-2">
-                {prefs.betPresets[street].map((val, i) => (
-                  <div key={i} className="flex items-center gap-1 min-w-0">
-                    <input
-                      type="number"
-                      value={val}
-                      min={1}
-                      max={500}
-                      onChange={(e) => {
-                        const next = [...prefs.betPresets[street]] as [number, number, number];
-                        next[i] = Number(e.target.value) || 0;
-                        updatePref('betPresets', { ...prefs.betPresets, [street]: next });
-                      }}
-                      className="input-field w-14 sm:w-20 text-center text-xs sm:text-sm"
-                    />
-                    <span className="text-xs text-slate-500">%</span>
-                  </div>
-                ))}
-              </div>
+        {/* ── Action Presets ── */}
+        <div className="cp-lobby-card p-5 space-y-4">
+          <h3 className="text-sm font-extrabold text-white uppercase tracking-wider">
+            Action Presets
+          </h3>
+
+          {/* Raise Multipliers */}
+          <div className="space-y-2">
+            <div className="flex items-baseline justify-between">
+              <label className="text-xs font-bold text-slate-300">Facing a Bet</label>
+              <span className="text-[10px] text-slate-500">Multiplier of bet size</span>
             </div>
-          ))}
+            <div className="flex gap-2">
+              {mults.map((val, i) => (
+                <div key={i} className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    value={val}
+                    min={1}
+                    max={20}
+                    step={0.5}
+                    onChange={(e) => {
+                      const next = [...mults] as [number, number];
+                      next[i] = Number(e.target.value) || 2;
+                      updatePref('raiseMultipliers', next);
+                    }}
+                    className="cp-input w-16 text-center text-sm font-bold"
+                  />
+                  <span className="text-xs text-slate-500 font-bold">x</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="border-t border-white/[0.04]" />
+
+          {/* Pot Percentages */}
+          <div className="space-y-2">
+            <div className="flex items-baseline justify-between">
+              <label className="text-xs font-bold text-slate-300">No Facing Bet</label>
+              <span className="text-[10px] text-slate-500">% of pot</span>
+            </div>
+            <div className="flex gap-2">
+              {pcts.map((val, i) => (
+                <div key={i} className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    value={val}
+                    min={1}
+                    max={500}
+                    onChange={(e) => {
+                      const next = [...pcts] as [number, number, number];
+                      next[i] = Number(e.target.value) || 33;
+                      updatePref('potPercentages', next);
+                    }}
+                    className="cp-input w-16 text-center text-sm font-bold"
+                  />
+                  <span className="text-xs text-slate-500 font-bold">%</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Data Retention */}
-        <div className="glass-card p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-bold text-white">Data Retention</h3>
-              <p className="text-xs text-slate-400 mt-1">
-                Hand history is server-authored and visible by room permissions. Toggle this to hide
-                local preference data only.
+        {/* ── Data Retention ── */}
+        <div className="cp-lobby-card p-5">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <h3 className="text-sm font-extrabold text-white uppercase tracking-wider">
+                Data Retention
+              </h3>
+              <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
+                Toggle to control local preference storage. Hand history follows room permissions.
               </p>
             </div>
             <button
               onClick={() => updatePref('dataRetention', !prefs.dataRetention)}
-              className={`relative w-12 h-7 rounded-full transition-colors ${prefs.dataRetention ? 'bg-emerald-500' : 'bg-slate-600'}`}
+              className={`relative w-11 h-6 rounded-full transition-colors duration-150 shrink-0 ${prefs.dataRetention ? 'bg-emerald-500' : 'bg-slate-600'}`}
+              aria-label="Toggle data retention"
             >
               <div
-                className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform ${prefs.dataRetention ? 'translate-x-5' : 'translate-x-0.5'}`}
+                className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${prefs.dataRetention ? 'translate-x-[22px]' : 'translate-x-0.5'}`}
               />
             </button>
           </div>
-          {prefs.dataRetention && (
-            <div className="mt-3 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400">
-              Local client preferences are stored in your browser. Hand history is stored on the
-              server and follows room visibility rules.
-            </div>
-          )}
         </div>
       </div>
     </main>

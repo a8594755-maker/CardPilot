@@ -154,7 +154,9 @@ export function useGameSocketEvents({
 
     const onHoleCards = (d: { cards: string[]; seat: number }) => {
       setHoleCards(d.cards);
+      holeCardsRef.current = d.cards; // Sync ref immediately (useEffect is deferred)
       setSeat(d.seat);
+      seatRef.current = d.seat; // Sync ref immediately
       playUiSfx('deal');
     };
 
@@ -167,6 +169,7 @@ export function useGameSocketEvents({
       setMyRunPreference(null);
       setBoardReveal(null);
       setHoleCards([]);
+      holeCardsRef.current = []; // Sync ref immediately
       setSettlement(null);
       setPreAction(null);
       setLastActionBySeat({});
@@ -321,9 +324,26 @@ export function useGameSocketEvents({
 
       // Save hand to localStorage for local hand history
       try {
-        const heroCards = holeCardsRef.current;
-        const heroSeat = seatRef.current;
+        let heroCards = holeCardsRef.current;
+        let heroSeat = seatRef.current;
         const fs = d.finalState;
+
+        // Fallback: if refs are stale (useEffect not yet synced), try to recover
+        // hero identity from finalState using authUserId
+        if (fs && (heroCards.length < 2 || heroSeat <= 0) && authUserId) {
+          const heroPlayer = fs.players.find((p) => p.userId === authUserId);
+          if (heroPlayer) {
+            if (heroSeat <= 0) heroSeat = heroPlayer.seat;
+            // Try to recover hole cards from revealedHoles
+            if (heroCards.length < 2) {
+              const revealed = fs.revealedHoles?.[heroPlayer.seat];
+              if (revealed && revealed.length >= 2) {
+                heroCards = [revealed[0], revealed[1]];
+              }
+            }
+          }
+        }
+
         if (fs && heroCards.length >= 2 && heroSeat > 0) {
           const heroPlayer = fs.players.find((p) => p.seat === heroSeat);
           const heroLedger = d.settlement?.ledger.find((e) => e.seat === heroSeat);
@@ -378,9 +398,15 @@ export function useGameSocketEvents({
             isBombPotHand: fs.isBombPotHand,
             isDoubleBoardHand: fs.isDoubleBoardHand,
           });
+        } else if (fs) {
+          console.warn(
+            '[hand-history] Skipped save: heroCards=%d heroSeat=%d',
+            heroCards.length,
+            heroSeat,
+          );
         }
-      } catch {
-        // Non-critical — don't break the hand-ended flow
+      } catch (e) {
+        console.warn('[hand-history] Save failed:', e);
       }
 
       // Delay clearing hole cards so the hand-end summary can still show them.

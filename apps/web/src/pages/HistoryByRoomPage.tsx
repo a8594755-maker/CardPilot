@@ -21,12 +21,12 @@ type DetailTab = 'detail' | 'replay';
 /** Quick filter presets for the hands list */
 type QuickFilter = 'all' | 'this_week' | 'big_pots' | 'all_in' | 'run_it_twice';
 
-const QUICK_FILTERS: { key: QuickFilter; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'this_week', label: 'This Week' },
-  { key: 'big_pots', label: 'Big Pots' },
-  { key: 'all_in', label: 'All-in' },
-  { key: 'run_it_twice', label: 'Run It Twice' },
+const QUICK_FILTERS: { key: QuickFilter; label: string; icon: string }[] = [
+  { key: 'all', label: 'All', icon: '' },
+  { key: 'this_week', label: 'This Week', icon: '' },
+  { key: 'big_pots', label: 'Big Pots', icon: '' },
+  { key: 'all_in', label: 'All-in', icon: '' },
+  { key: 'run_it_twice', label: 'RIT', icon: '' },
 ];
 
 /** Mobile navigation depth: rooms -> hands -> detail */
@@ -159,15 +159,16 @@ export function HistoryByRoomPage(_props: {
     return [...buckets].sort((a, b) => a.localeCompare(b));
   }, [selectedRoom, handsByRoom]);
 
-  const positionSummary = useMemo(() => {
-    const totals = new Map<string, number>();
-    for (const hand of currentRoomHands) {
-      const position = hand.position || 'Unknown';
-      totals.set(position, (totals.get(position) ?? 0) + (hand.result ?? 0));
-    }
-    return [...totals.entries()]
-      .map(([position, net]) => ({ position, net }))
-      .sort((a, b) => b.net - a.net);
+  // Session stats
+  const sessionStats = useMemo(() => {
+    const hands = currentRoomHands;
+    if (hands.length === 0) return null;
+    const totalNet = hands.reduce((sum, h) => sum + (h.result ?? 0), 0);
+    const wins = hands.filter((h) => (h.result ?? 0) > 0).length;
+    const losses = hands.filter((h) => (h.result ?? 0) < 0).length;
+    const biggestWin = Math.max(...hands.map((h) => h.result ?? 0), 0);
+    const biggestLoss = Math.min(...hands.map((h) => h.result ?? 0), 0);
+    return { totalNet, wins, losses, biggestWin, biggestLoss, total: hands.length };
   }, [currentRoomHands]);
 
   // Selected hand object
@@ -346,54 +347,52 @@ export function HistoryByRoomPage(_props: {
   const selectedRoomData = rooms.find((r) => r.roomCode === selectedRoom);
 
   return (
-    <main className="history-page flex-1 flex flex-col overflow-hidden max-lg:overflow-y-auto">
-      {/* Header */}
-      <div className="history-head shrink-0 px-2.5 py-1.5 border-b border-white/[0.06] flex items-center justify-between gap-1.5">
-        <div className="flex items-center gap-1.5 min-w-0">
+    <main className="cp-history-page flex-1 flex flex-col overflow-hidden max-lg:overflow-y-auto">
+      {/* ── Header ── */}
+      <div className="cp-history-head shrink-0 px-4 py-2.5 border-b border-white/[0.06] flex items-center justify-between gap-3 bg-[#0a1020]/80 backdrop-blur-md">
+        <div className="flex items-center gap-3 min-w-0">
           {/* Mobile back button */}
           {mobilePane !== 'rooms' && (
             <button
               onClick={handleMobileBack}
-              className="history-back-btn lg:hidden text-[9px] px-1.5 py-1 rounded-md bg-white/5 text-slate-300 border border-white/[0.08] hover:bg-white/10 transition-all min-w-[32px] min-h-[30px] flex items-center justify-center"
+              className="lg:hidden text-xs px-2.5 py-1.5 rounded-lg bg-white/5 text-slate-300 border border-white/[0.08] hover:bg-white/10 transition-all min-w-[36px] min-h-[32px] flex items-center justify-center"
             >
-              ← Back
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
             </button>
           )}
           <div className="min-w-0">
-            <h2 className="text-[14px] font-bold text-white truncate leading-tight">
+            <h2 className="text-[15px] font-bold text-white truncate leading-tight tracking-tight">
               Hand History
             </h2>
-            <p className="text-[10px] text-slate-500 truncate leading-tight">
+            <p className="text-[11px] text-slate-500 truncate leading-tight mt-0.5">
               {rooms.length} room{rooms.length !== 1 ? 's' : ''}
               {selectedRoomData
-                ? ` · ${selectedRoomData.roomName} · ${currentRoomHands.length} hands`
+                ? ` / ${selectedRoomData.roomName} / ${currentRoomHands.length} hands`
                 : ''}
             </p>
           </div>
         </div>
-        <button
-          onClick={refresh}
-          className="history-refresh-btn text-[9px] px-2 py-1 rounded-md bg-white/5 text-slate-400 border border-white/[0.08] hover:bg-white/10 transition-all shrink-0 min-h-[30px]"
-        >
-          ↻ Refresh
-        </button>
-      </div>
-
-      {/* Info banner — local storage notice + export/import */}
-      <div className="shrink-0 px-2.5 py-1.5 border-b border-white/[0.06] bg-slate-800/30 flex items-center justify-between gap-2 flex-wrap">
-        <span className="text-[10px] text-slate-400 leading-tight">
-          Stored locally on this device. 30-day retention, max 500 hands.
-        </span>
         <div className="flex items-center gap-1.5">
           <button
             onClick={handleExport}
-            className="text-[9px] px-2 py-1 rounded-md bg-white/5 text-slate-400 border border-white/[0.08] hover:bg-white/10 transition-all min-h-[26px]"
+            className="cp-history-action-btn text-[10px] px-2.5 py-1.5 rounded-lg bg-white/[0.04] text-slate-400 border border-white/[0.07] hover:bg-white/[0.08] hover:text-slate-200 transition-all min-h-[30px]"
           >
-            Export All
+            Export
           </button>
           <button
             onClick={() => importInputRef.current?.click()}
-            className="text-[9px] px-2 py-1 rounded-md bg-white/5 text-slate-400 border border-white/[0.08] hover:bg-white/10 transition-all min-h-[26px]"
+            className="cp-history-action-btn text-[10px] px-2.5 py-1.5 rounded-lg bg-white/[0.04] text-slate-400 border border-white/[0.07] hover:bg-white/[0.08] hover:text-slate-200 transition-all min-h-[30px]"
           >
             Import
           </button>
@@ -404,24 +403,44 @@ export function HistoryByRoomPage(_props: {
             onChange={handleImportFile}
             className="hidden"
           />
+          <button
+            onClick={refresh}
+            className="cp-history-action-btn text-[10px] px-2.5 py-1.5 rounded-lg bg-white/[0.04] text-slate-400 border border-white/[0.07] hover:bg-white/[0.08] hover:text-slate-200 transition-all min-h-[30px]"
+          >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 2v6h-6" />
+              <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+              <path d="M3 22v-6h6" />
+              <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+            </svg>
+          </button>
         </div>
       </div>
 
       {/* Status message (toast-like) */}
       {statusMsg && (
         <div
-          className={`shrink-0 px-2.5 py-1 border-b border-white/[0.06] text-[10px] ${
+          className={`shrink-0 px-4 py-2 text-[11px] font-medium transition-all ${
             statusMsg.isError
-              ? 'bg-rose-500/10 text-rose-300 border-rose-500/20'
-              : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
+              ? 'bg-rose-500/10 text-rose-300 border-b border-rose-500/20'
+              : 'bg-emerald-500/10 text-emerald-300 border-b border-emerald-500/20'
           }`}
         >
           {statusMsg.text}
         </div>
       )}
 
-      {/* 3-column layout (desktop) / stacked nav (mobile) */}
-      <div className="flex-1 min-h-0 overflow-hidden max-lg:overflow-y-auto lg:grid lg:grid-cols-[minmax(14rem,clamp(14rem,22vw,18rem))_minmax(18rem,clamp(18rem,30vw,24rem))_minmax(0,1fr)]">
+      {/* ── 3-column layout (desktop) / stacked nav (mobile) ── */}
+      <div className="flex-1 min-h-0 overflow-hidden max-lg:overflow-y-auto lg:grid lg:grid-cols-[minmax(14rem,clamp(14rem,20vw,17rem))_minmax(18rem,clamp(18rem,28vw,23rem))_minmax(0,1fr)]">
         {/* Column 1: Rooms */}
         <div
           className={`
@@ -429,8 +448,8 @@ export function HistoryByRoomPage(_props: {
           ${mobilePane === 'rooms' ? 'max-lg:flex' : 'max-lg:hidden'} lg:flex
         `}
         >
-          <div className="shrink-0 px-3 py-2 border-b border-white/[0.06]">
-            <div className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+          <div className="shrink-0 px-4 py-2.5 border-b border-white/[0.06]">
+            <div className="text-[10px] uppercase tracking-[0.1em] text-slate-500 font-semibold">
               Rooms
             </div>
           </div>
@@ -449,42 +468,55 @@ export function HistoryByRoomPage(_props: {
           ${mobilePane === 'hands' ? 'max-lg:flex max-lg:flex-1 max-lg:w-full' : 'max-lg:hidden'} lg:flex
         `}
         >
-          {/* Quick filters + search */}
-          <div className="shrink-0 px-2.5 py-1.5 border-b border-white/[0.06] space-y-1.5">
-            <div className="history-search-bucket-row flex items-center gap-1">
-              <input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search cards, position, tags..."
-                className="history-search-input flex-[1.45] min-w-0 text-[10px] bg-slate-800/40 border border-white/[0.08] rounded-md px-2 py-1 text-slate-300 outline-none focus:border-sky-500/40 placeholder:text-slate-600 placeholder:text-[10px] h-[34px]"
-              />
-              <label className="text-[9px] uppercase tracking-wider text-slate-500 font-semibold shrink-0">
-                Bucket
-              </label>
+          {/* Filters area */}
+          <div className="shrink-0 px-3 py-2 border-b border-white/[0.06] space-y-2">
+            {/* Search + Bucket */}
+            <div className="flex items-center gap-1.5">
+              <div className="relative flex-[1.5] min-w-0">
+                <svg
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search cards, position..."
+                  className="w-full text-[11px] bg-white/[0.04] border border-white/[0.07] rounded-lg pl-7 pr-2.5 py-1.5 text-slate-300 outline-none focus:border-sky-500/40 focus:bg-white/[0.06] placeholder:text-slate-600 transition-all h-[32px]"
+                />
+              </div>
               <select
                 value={startingHandFilter}
                 onChange={(e) => setStartingHandFilter(e.target.value)}
-                className="history-bucket-select flex-1 min-w-0 text-[10px] bg-slate-800/40 border border-white/[0.08] rounded-md px-2 py-1 text-slate-300 outline-none focus:border-sky-500/40 h-[34px]"
+                className="flex-1 min-w-0 text-[11px] bg-white/[0.04] border border-white/[0.07] rounded-lg px-2 py-1.5 text-slate-300 outline-none focus:border-sky-500/40 h-[32px] cursor-pointer"
               >
-                <option value="all" className="history-bucket-option">
-                  All buckets
-                </option>
+                <option value="all">All Buckets</option>
                 {startingHandBuckets.map((bucket) => (
-                  <option key={bucket} value={bucket} className="history-bucket-option">
+                  <option key={bucket} value={bucket}>
                     {bucket}
                   </option>
                 ))}
               </select>
             </div>
-            <div className="flex items-center gap-1 flex-wrap">
+            {/* Quick filters */}
+            <div className="flex items-center gap-1">
               {QUICK_FILTERS.map((f) => (
                 <button
                   key={f.key}
                   onClick={() => setQuickFilter(f.key)}
-                  className={`text-[10px] px-2 py-0.5 rounded-md transition-all ${
+                  className={`text-[10px] px-2.5 py-1 rounded-lg transition-all font-medium ${
                     quickFilter === f.key
-                      ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
-                      : 'text-slate-500 hover:text-slate-300 border border-transparent hover:border-white/[0.08]'
+                      ? 'bg-sky-500/15 text-sky-300 border border-sky-500/30 shadow-sm shadow-sky-500/10'
+                      : 'text-slate-500 hover:text-slate-300 border border-transparent hover:border-white/[0.08] hover:bg-white/[0.03]'
                   }`}
                 >
                   {f.label}
@@ -492,32 +524,37 @@ export function HistoryByRoomPage(_props: {
               ))}
             </div>
           </div>
-          <div className="shrink-0 px-3 py-1.5 border-b border-white/[0.06]">
-            <div className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+
+          {/* Session stats strip */}
+          {sessionStats && (
+            <div className="shrink-0 px-3 py-2 border-b border-white/[0.06] bg-white/[0.015]">
+              <div className="flex items-center gap-3 text-[10px]">
+                <span
+                  className={`font-bold tabular-nums ${sessionStats.totalNet > 0 ? 'text-emerald-400' : sessionStats.totalNet < 0 ? 'text-red-400' : 'text-slate-400'}`}
+                >
+                  {sessionStats.totalNet > 0 ? '+' : ''}
+                  {sessionStats.totalNet.toLocaleString()}
+                </span>
+                <span className="text-slate-600">|</span>
+                <span className="text-slate-400">
+                  <span className="text-emerald-400/70">{sessionStats.wins}W</span>
+                  {' / '}
+                  <span className="text-red-400/70">{sessionStats.losses}L</span>
+                </span>
+                <span className="text-slate-600">|</span>
+                <span className="text-slate-500">{sessionStats.total} hands</span>
+              </div>
+            </div>
+          )}
+
+          {/* Hands header */}
+          <div className="shrink-0 px-4 py-2 border-b border-white/[0.06]">
+            <div className="text-[10px] uppercase tracking-[0.1em] text-slate-500 font-semibold">
               Hands{' '}
               {currentRoomHands.length > 0 && (
                 <span className="text-slate-600">({currentRoomHands.length})</span>
               )}
             </div>
-            {positionSummary.length > 0 && (
-              <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                {positionSummary.slice(0, 5).map((entry) => (
-                  <span
-                    key={entry.position}
-                    className={`text-[9px] px-1.5 py-0.5 rounded-full border ${
-                      entry.net > 0
-                        ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
-                        : entry.net < 0
-                          ? 'bg-rose-500/10 text-rose-300 border-rose-500/30'
-                          : 'bg-slate-700/40 text-slate-400 border-white/[0.08]'
-                    }`}
-                  >
-                    {entry.position} {entry.net > 0 ? '+' : ''}
-                    {entry.net.toLocaleString()}
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
           <HandList2
             hands={currentRoomHands}
@@ -537,32 +574,32 @@ export function HistoryByRoomPage(_props: {
         `}
         >
           {/* Detail/Replay tabs */}
-          <div className="shrink-0 px-3 py-2 border-b border-white/[0.06] flex items-center gap-2">
-            <div className="inline-flex rounded-lg border border-white/[0.08] overflow-hidden">
+          <div className="shrink-0 px-4 py-2.5 border-b border-white/[0.06] flex items-center gap-3">
+            <div className="inline-flex rounded-lg overflow-hidden border border-white/[0.08]">
               <button
                 onClick={() => setDetailTab('detail')}
-                className={`text-[11px] font-semibold px-4 py-2 transition-all ${
+                className={`text-[11px] font-semibold px-5 py-2 transition-all ${
                   detailTab === 'detail'
-                    ? 'bg-gradient-to-r from-cyan-600/80 to-emerald-600/60 text-white'
-                    : 'bg-slate-800/40 text-slate-400 hover:text-slate-200'
+                    ? 'bg-gradient-to-r from-cyan-600/70 to-emerald-600/50 text-white shadow-inner'
+                    : 'bg-white/[0.03] text-slate-500 hover:text-slate-300 hover:bg-white/[0.06]'
                 }`}
               >
                 Detail
               </button>
               <button
                 onClick={() => setDetailTab('replay')}
-                className={`text-[11px] font-semibold px-4 py-2 transition-all ${
+                className={`text-[11px] font-semibold px-5 py-2 transition-all ${
                   detailTab === 'replay'
-                    ? 'bg-gradient-to-r from-cyan-600/80 to-emerald-600/60 text-white'
-                    : 'bg-slate-800/40 text-slate-400 hover:text-slate-200'
+                    ? 'bg-gradient-to-r from-cyan-600/70 to-emerald-600/50 text-white shadow-inner'
+                    : 'bg-white/[0.03] text-slate-500 hover:text-slate-300 hover:bg-white/[0.06]'
                 }`}
               >
                 Replay
               </button>
             </div>
             {selectedHand && (
-              <span className="text-[10px] text-slate-500 ml-2 truncate">
-                {selectedHand.heroCards.join(' ')} · {selectedHand.position} · {selectedHand.stakes}
+              <span className="text-[10px] text-slate-500 ml-1 truncate">
+                {selectedHand.heroCards.join(' ')} / {selectedHand.position} / {selectedHand.stakes}
               </span>
             )}
           </div>
@@ -572,7 +609,7 @@ export function HistoryByRoomPage(_props: {
               {Array.from({ length: 6 }).map((_, idx) => (
                 <div
                   key={idx}
-                  className="animate-pulse min-h-[56px] rounded-lg border border-white/[0.06] bg-white/[0.03]"
+                  className="animate-pulse min-h-[56px] rounded-xl border border-white/[0.06] bg-white/[0.03]"
                 />
               ))}
             </div>
