@@ -116,8 +116,8 @@ $candidateSha = (
 ).Hash.ToLowerInvariant()
 $totalHandsText = @(& python -X utf8 -c (
     'import sys,torch; ' +
-    'print(int(torch.load(sys.argv[1],map_location="cpu",' +
-    'weights_only=False)["total_hands"]))'
+    'print(int(torch.load(sys.argv[1],map_location=''cpu'',' +
+    'weights_only=False)[''total_hands'']))'
 ) $candidate)
 if ($LASTEXITCODE -ne 0) {
     throw 'Could not inspect fast position-adapter hand count'
@@ -139,6 +139,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 $recordPath = Join-Path $runDir 'experiment_record.json'
+$freezeTime = (Get-Date).ToUniversalTime().ToString('o')
 $record = [ordered]@{
     schema = 'cardpilot.discovery_experiment.v1'
     hypothesis = (
@@ -159,11 +160,17 @@ $record = [ordered]@{
     new_training_hands = $newTrainingHands
     inherited_lineage_training_hands = 10283876
     inherited_offline_decision_samples = 750000
+    policy_inference_classification = 'PURE_TRAINED'
+    training_data_classification = 'SLUMBOT_ASSISTED'
+    slumbot_free = $false
+    evaluation_data_classification = 'FRESH_POST_FREEZE_ONLY'
+    same_or_earlier_slumbot_hands_forbidden = $true
+    candidate_frozen_at = $freezeTime
     pure_weight_policy = $true
     evaluator_side_overrides = $false
     external_result = $null
     status = 'READY_FOR_PURE_FRESH5K'
-    recorded_at = (Get-Date).ToUniversalTime().ToString('o')
+    recorded_at = $freezeTime
 }
 $record | ConvertTo-Json -Depth 8 |
     Set-Content -LiteralPath $recordPath -Encoding UTF8
@@ -173,6 +180,16 @@ if (Test-Path -LiteralPath $quickDir) {
     throw "Fast position-adapter fresh5k output already exists: $quickDir"
 }
 New-Item -ItemType Directory -Path $quickDir | Out-Null
+@{
+    schema = 'cardpilot.external_evaluation_isolation.v1'
+    candidate_checkpoint_sha256 = $candidateSha
+    candidate_frozen_at = $freezeTime
+    evaluation_data_classification = 'FRESH_POST_FREEZE_ONLY'
+    pre_freeze_slumbot_hands_forbidden = $true
+} | ConvertTo-Json -Depth 4 |
+    Set-Content -LiteralPath (
+        Join-Path $quickDir 'evaluation_isolation.json'
+    ) -Encoding UTF8
 & powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
     'scripts/alpha_holdem/bench_v55_slumbot.ps1' `
     -ModelPath $candidate `

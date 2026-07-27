@@ -1043,7 +1043,10 @@ def decide_action(
     c = compute_commitments(state)
     stacks = [STACK_SIZE - c['hero_total'], STACK_SIZE - c['opp_total']]
     extra_values = encode_extra(stacks)
-    if int(getattr(model, 'position_adapter_hidden', 0)) > 0:
+    if (
+        bool(getattr(model, 'requires_position_feature', False))
+        or int(getattr(model, 'position_adapter_hidden', 0)) > 0
+    ):
         extra_values = np.concatenate(
             [
                 extra_values,
@@ -1585,6 +1588,84 @@ def main():
         checkpoint = torch.load(path, map_location=device, weights_only=False)
         norm = checkpoint.get('norm_layer', 'bn')
         model_state = checkpoint.get('model', {})
+        def build_checkpoint_actor(actor_checkpoint):
+            actor_state = actor_checkpoint.get('model', {})
+            actor_norm = actor_checkpoint.get('norm_layer', 'bn')
+            actor_separate_preflop_head = bool(
+                actor_checkpoint.get('separate_preflop_head')
+                or (actor_checkpoint.get('config') or {}).get(
+                    'separate_preflop_head'
+                )
+                or 'preflop_policy_head.weight' in actor_state
+            )
+            actor_position_adapter_hidden = int(
+                actor_checkpoint.get('position_adapter_hidden')
+                or (actor_checkpoint.get('config') or {}).get(
+                    'position_adapter_hidden'
+                )
+                or (
+                    actor_state[
+                        'position_policy_adapters.0.0.weight'
+                    ].shape[0]
+                    if 'position_policy_adapters.0.0.weight' in actor_state
+                    else 0
+                )
+            )
+            actor = AlphaHoldemNet(
+                num_actions=NUM_ACTIONS,
+                norm_layer=actor_norm,
+                separate_preflop_head=actor_separate_preflop_head,
+                position_adapter_hidden=actor_position_adapter_hidden,
+                critic_contract=str(
+                    actor_checkpoint.get('critic_contract')
+                    or (actor_checkpoint.get('config') or {}).get(
+                        'critic_contract'
+                    )
+                    or 'critic_v1'
+                ),
+            ).to(device)
+            actor.eval()
+            actor(
+                torch.zeros(2, 6, 4, 13, device=device),
+                torch.zeros(2, 25, 4, 5, device=device),
+                torch.zeros(
+                    2,
+                    3 if actor_position_adapter_hidden > 0 else 2,
+                    device=device,
+                ),
+            )
+            actor.load_state_dict(actor_state)
+            return actor
+
+        if checkpoint.get('architecture') == 'dual_seat_v1':
+            from alpha_holdem.network_dual_seat import (
+                DualSeatAlphaHoldemNet,
+            )
+
+            def load_seat_actor(prefix):
+                seat_state = {
+                    key[len(prefix):]: value
+                    for key, value in model_state.items()
+                    if key.startswith(prefix)
+                }
+                seat_checkpoint = {
+                    **checkpoint,
+                    'architecture': None,
+                    'model': seat_state,
+                }
+                return build_checkpoint_actor(seat_checkpoint)
+
+            net = DualSeatAlphaHoldemNet(
+                sb_model=load_seat_actor('sb_model.'),
+                bb_model=load_seat_actor('bb_model.'),
+            ).to(device)
+            net.eval()
+            net.raise_action_mapping = checkpoint.get(
+                'raise_action_mapping',
+                'legacy_total_over_pot',
+            )
+            return net, checkpoint, norm
+
         separate_preflop_head = bool(
             checkpoint.get('separate_preflop_head')
             or (checkpoint.get('config') or {}).get('separate_preflop_head')

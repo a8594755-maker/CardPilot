@@ -42,7 +42,11 @@ function Invoke-RecordScreen {
         [Parameter(Mandatory = $true)][string]$TrainingMethod,
         [Parameter(Mandatory = $true)][string]$HashFailureLabel
     )
-    if ([string]$Record.decision -ne 'READY_FOR_PURE_FRESH5K') {
+    $readyDecisions = @(
+        'READY_FOR_PURE_FRESH5K',
+        'READY_FOR_PURE_FRESH5K_ON_NEW_HANDS_ONLY'
+    )
+    if ([string]$Record.decision -notin $readyDecisions) {
         Write-Output "$Candidate failed its held-out gate; screen skipped."
         return
     }
@@ -74,6 +78,24 @@ function Invoke-RecordScreen {
         throw "$Candidate incomplete fresh5k output already exists: $quickDir"
     }
     New-Item -ItemType Directory -Path $quickDir | Out-Null
+    [ordered]@{
+        schema = 'cardpilot.external_evaluation_isolation.v1'
+        checkpoint = $checkpoint
+        checkpoint_sha256 = $sha
+        training_data_classification = (
+            [string]$Record.training_data_classification
+        )
+        evaluation_data_classification = (
+            [string]$Record.evaluation_data_classification
+        )
+        output_directory_created_fresh = $true
+        prior_training_dump_paths_reused_as_evidence = $false
+        fresh_slumbot_interactions_required = $true
+        started_at = (Get-Date).ToUniversalTime().ToString('o')
+    } | ConvertTo-Json -Depth 6 |
+        Set-Content -LiteralPath (
+            Join-Path $quickDir 'evaluation_isolation.json'
+        ) -Encoding UTF8
     & powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
         'scripts/alpha_holdem/bench_v55_slumbot.ps1' `
         -ModelPath $checkpoint `
@@ -114,6 +136,34 @@ function Invoke-BestResponseScreen {
     param([Parameter(Mandatory = $true)][string]$RecordPath)
     $bestResponseRecord = Get-Content -LiteralPath $RecordPath -Raw |
         ConvertFrom-Json
+    if ($null -eq $bestResponseRecord.training_data_classification) {
+        $bestResponseRecord | Add-Member -NotePropertyName (
+            'policy_inference_classification'
+        ) -NotePropertyValue 'PURE_TRAINED'
+        $bestResponseRecord | Add-Member -NotePropertyName (
+            'training_data_classification'
+        ) -NotePropertyValue 'SLUMBOT_ASSISTED'
+        $bestResponseRecord | Add-Member -NotePropertyName 'slumbot_free' `
+            -NotePropertyValue $false
+        $bestResponseRecord | Add-Member -NotePropertyName (
+            'evaluation_data_classification'
+        ) -NotePropertyValue 'SLUMBOT_EVAL_CONTAMINATED'
+        $bestResponseRecord | Add-Member -NotePropertyName (
+            'evaluation_data_note'
+        ) -NotePropertyValue (
+            'The scaled opponent inherited Slumbot actions from prior ' +
+            'evaluation dumps, including Standard32 fresh20k. Evaluate this ' +
+            'descendant only on newly generated Slumbot hands.'
+        )
+        $bestResponseRecord | Add-Member -NotePropertyName (
+            'fresh_external_evaluation_required'
+        ) -NotePropertyValue $true
+        $bestResponseRecord | Add-Member -NotePropertyName (
+            'reuse_of_training_dump_as_external_evidence_forbidden'
+        ) -NotePropertyValue $true
+        $bestResponseRecord | ConvertTo-Json -Depth 8 |
+            Set-Content -LiteralPath $RecordPath -Encoding UTF8
+    }
     Invoke-RecordScreen `
         -Record $bestResponseRecord `
         -Candidate 'sourcev4_standard10_scaledopponent_bestresponse20m' `
@@ -131,7 +181,10 @@ $bestResponseRecordPath = (
 )
 $bestResponseScreened = $false
 if (
-    [string]$record.decision -eq 'READY_FOR_PURE_FRESH5K' -and
+    [string]$record.decision -in @(
+        'READY_FOR_PURE_FRESH5K',
+        'READY_FOR_PURE_FRESH5K_ON_NEW_HANDS_ONLY'
+    ) -and
     (Test-Path -LiteralPath $bestResponseRecordPath -PathType Leaf)
 ) {
     Invoke-BestResponseScreen -RecordPath $bestResponseRecordPath
@@ -146,7 +199,10 @@ Invoke-RecordScreen `
     -HashFailureLabel 'Scaled imitation'
 
 if (
-    [string]$record.decision -eq 'READY_FOR_PURE_FRESH5K' -and
+    [string]$record.decision -in @(
+        'READY_FOR_PURE_FRESH5K',
+        'READY_FOR_PURE_FRESH5K_ON_NEW_HANDS_ONLY'
+    ) -and
     -not $bestResponseScreened
 ) {
     while (

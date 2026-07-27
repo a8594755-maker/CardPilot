@@ -110,6 +110,7 @@ class AlphaHoldemNet(nn.Module):
         flop_adapter_hidden: int = 0,
         postflop_adapter_hidden: int = 0,
         position_adapter_hidden: int = 0,
+        position_value_adapter_hidden: int = 0,
     ):
         super().__init__()
         if critic_contract not in {CRITIC_V1, CRITIC_V2}:
@@ -124,6 +125,9 @@ class AlphaHoldemNet(nn.Module):
         self.flop_adapter_hidden = int(flop_adapter_hidden)
         self.postflop_adapter_hidden = int(postflop_adapter_hidden)
         self.position_adapter_hidden = int(position_adapter_hidden)
+        self.position_value_adapter_hidden = int(
+            position_value_adapter_hidden
+        )
 
         self.card_cnn = CNNBranch(in_channels=6, norm_layer=norm_layer)
         self.action_cnn = CNNBranch(in_channels=25, norm_layer=norm_layer)
@@ -142,6 +146,7 @@ class AlphaHoldemNet(nn.Module):
         self.flop_policy_adapter = None
         self.postflop_policy_adapter = None
         self.position_policy_adapters = None
+        self.position_value_adapters = None
         self.value_head = None
 
     def _init_trunk(self, card_flat: int, action_flat: int):
@@ -216,6 +221,30 @@ class AlphaHoldemNet(nn.Module):
             for adapter in self.position_policy_adapters:
                 nn.init.zeros_(adapter[-1].weight)
                 nn.init.zeros_(adapter[-1].bias)
+        if self.position_value_adapter_hidden > 0:
+            # A shared critic can alias strategically different BB/OOP and
+            # SB/IP states.  These behavior-neutral residual critics let PPO
+            # learn seat-specific baselines while retaining the common value
+            # head and representation.
+            self.position_value_adapters = nn.ModuleList(
+                [
+                    nn.Sequential(
+                        nn.Linear(
+                            256,
+                            self.position_value_adapter_hidden,
+                        ),
+                        nn.ReLU(),
+                        nn.Linear(
+                            self.position_value_adapter_hidden,
+                            1,
+                        ),
+                    )
+                    for _ in range(2)
+                ]
+            )
+            for adapter in self.position_value_adapters:
+                nn.init.zeros_(adapter[-1].weight)
+                nn.init.zeros_(adapter[-1].bias)
         if self.critic_contract == CRITIC_V1:
             self.value_head = nn.Linear(256, 1)
         else:
@@ -266,6 +295,10 @@ class AlphaHoldemNet(nn.Module):
             if self.position_policy_adapters is not None:
                 self.position_policy_adapters = (
                     self.position_policy_adapters.to(device)
+                )
+            if self.position_value_adapters is not None:
+                self.position_value_adapters = (
+                    self.position_value_adapters.to(device)
                 )
             self.value_head = self.value_head.to(device)
 
@@ -340,6 +373,25 @@ class AlphaHoldemNet(nn.Module):
             policy_logits = policy_logits + selected_delta
         value_input = h.detach() if self.critic_contract == CRITIC_V2 else h
         value = self.value_head(value_input)
+        if self.position_value_adapters is not None:
+            if extra_info.shape[1] < 3:
+                raise ValueError(
+                    'position_value_adapters require extra_info[:, 2] seat '
+                    'feature'
+                )
+            value_seat = extra_info[:, 2].round().long().clamp(0, 1)
+            value_deltas = torch.stack(
+                [
+                    adapter(value_input)
+                    for adapter in self.position_value_adapters
+                ],
+                dim=1,
+            )
+            selected_value_delta = value_deltas.gather(
+                1,
+                value_seat.view(-1, 1, 1),
+            ).squeeze(1)
+            value = value + selected_value_delta
 
         if legal_mask is not None:
             policy_logits = policy_logits + (1 - legal_mask) * (-1e9)

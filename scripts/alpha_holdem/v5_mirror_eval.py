@@ -60,7 +60,7 @@ class Policy:
     path: Path
     sha256: str
     checkpoint: dict[str, Any]
-    model: AlphaHoldemNet
+    model: torch.nn.Module
     env_version: str
     obs_version: str
     emulate_raise_cap1_legality: bool
@@ -177,16 +177,128 @@ def should_emulate_raise_cap1_legality(env_version: str) -> bool:
     return env_version in {"v4", "v55cap1", "v55cap1v4obs"}
 
 
-def init_model(checkpoint: dict[str, Any], device: str) -> AlphaHoldemNet:
-    norm_layer = str(checkpoint.get("norm_layer") or "bn")
-    model = AlphaHoldemNet(num_actions=NUM_ACTIONS, norm_layer=norm_layer).to(device)
+def checkpoint_value(checkpoint: dict[str, Any], key: str, default: Any) -> Any:
+    config = checkpoint.get("config") if isinstance(checkpoint.get("config"), dict) else {}
+    value = checkpoint.get(key)
+    if value is None:
+        value = config.get(key)
+    return default if value is None else value
+
+
+def hidden_width(state_dict: dict[str, torch.Tensor], key: str) -> int:
+    return int(state_dict[key].shape[0]) if key in state_dict else 0
+
+
+def init_actor(
+    checkpoint: dict[str, Any],
+    state_dict: dict[str, torch.Tensor],
+    device: str,
+) -> torch.nn.Module:
+    position_adapter_hidden = hidden_width(
+        state_dict, "position_policy_adapters.0.0.weight"
+    )
+    position_value_adapter_hidden = hidden_width(
+        state_dict, "position_value_adapters.0.0.weight"
+    )
+    common_kwargs = {
+        "num_actions": NUM_ACTIONS,
+        "norm_layer": str(checkpoint_value(checkpoint, "norm_layer", "bn")),
+        "separate_preflop_head": bool(
+            checkpoint_value(checkpoint, "separate_preflop_head", False)
+            or "preflop_policy_head.weight" in state_dict
+        ),
+        "preflop_adapter_hidden": hidden_width(
+            state_dict, "preflop_policy_adapter.0.weight"
+        ),
+        "preflop_raw_adapter_hidden": hidden_width(
+            state_dict, "preflop_raw_policy_adapter.0.weight"
+        ),
+        "flop_adapter_hidden": hidden_width(
+            state_dict, "flop_policy_adapter.0.weight"
+        ),
+        "postflop_adapter_hidden": hidden_width(
+            state_dict, "postflop_policy_adapter.0.weight"
+        ),
+        "position_adapter_hidden": position_adapter_hidden,
+        "critic_contract": str(
+            checkpoint_value(checkpoint, "critic_contract", "critic_v1")
+        ),
+    }
+    if position_value_adapter_hidden > 0:
+        from alpha_holdem.network_hybrid_h1 import (
+            AlphaHoldemNet as PositionValueAlphaHoldemNet,
+        )
+
+        model = PositionValueAlphaHoldemNet(
+            **common_kwargs,
+            position_value_adapter_hidden=position_value_adapter_hidden,
+        ).to(device)
+    else:
+        model = AlphaHoldemNet(
+            **common_kwargs,
+            preflop_raw_action_scale=float(
+                checkpoint_value(
+                    checkpoint, "preflop_raw_action_scale", 1.0
+                )
+            ),
+            preflop_raw_gate=str(
+                checkpoint_value(
+                    checkpoint, "preflop_raw_gate", "none"
+                )
+            ),
+        ).to(device)
     with torch.no_grad():
         model(
             torch.zeros(2, 6, 4, 13, device=device),
             torch.zeros(2, 25, 4, 5, device=device),
-            torch.zeros(2, 2, device=device),
+            torch.zeros(
+                2,
+                3
+                if (
+                    position_adapter_hidden > 0
+                    or position_value_adapter_hidden > 0
+                )
+                else 2,
+                device=device,
+            ),
         )
-    model.load_state_dict(checkpoint["model"])
+    model.load_state_dict(state_dict)
+    model.eval()
+    for param in model.parameters():
+        param.requires_grad_(False)
+    return model
+
+
+def init_model(checkpoint: dict[str, Any], device: str) -> torch.nn.Module:
+    state_dict = checkpoint["model"]
+    architecture = str(checkpoint.get("architecture") or "")
+    if architecture not in {"dual_seat_v1", "dual_seat_v2"}:
+        return init_actor(checkpoint, state_dict, device)
+
+    def load_seat_actor(prefix: str) -> AlphaHoldemNet:
+        seat_state = {
+            key[len(prefix) :]: value
+            for key, value in state_dict.items()
+            if key.startswith(prefix)
+        }
+        if not seat_state:
+            raise KeyError(f"{architecture} checkpoint has no {prefix!r} tensors")
+        return init_actor(checkpoint, seat_state, device)
+
+    if architecture == "dual_seat_v1":
+        from alpha_holdem.network_dual_seat import DualSeatAlphaHoldemNet
+
+        model = DualSeatAlphaHoldemNet(
+            sb_model=load_seat_actor("sb_model."),
+            bb_model=load_seat_actor("bb_model."),
+        ).to(device)
+    else:
+        from alpha_holdem.network_dual_seat_v2 import DualSeatAlphaHoldemNetV2
+
+        model = DualSeatAlphaHoldemNetV2(
+            sb_model=load_seat_actor("sb_model."),
+            bb_model=load_seat_actor("bb_model."),
+        ).to(device)
     model.eval()
     for param in model.parameters():
         param.requires_grad_(False)
@@ -234,17 +346,28 @@ def make_fixed_state(env: HUNLEnvironmentV55, deck: list[int]) -> HUNLGameState:
     return state
 
 
-def observation_for(state: HUNLGameState, player: int, obs_version: str) -> tuple[dict[str, Any], list[Any]]:
+def observation_for(
+    state: HUNLGameState,
+    player: int,
+    obs_version: str,
+    *,
+    include_position: bool,
+) -> tuple[dict[str, Any], list[Any]]:
     legal_mask, slot_to_action = build_action_table(state)
     action_info = (
         encode_action_history_v55(state, player)
         if obs_version == "v55"
         else encode_action_history_v4(state, player)
     )
+    extra_info = encode_extra(state, player)
+    if include_position:
+        extra_info = np.concatenate(
+            [extra_info, np.asarray([float(player)], dtype=np.float32)]
+        )
     obs = {
         "card_info": encode_cards(state, player),
         "action_info": action_info,
-        "extra_info": encode_extra(state, player),
+        "extra_info": extra_info,
         "legal_mask": legal_mask,
         "player": player,
     }
@@ -278,7 +401,17 @@ def apply_policy_legal_emulation(
 
 @torch.no_grad()
 def choose_action(policy: Policy, state: HUNLGameState, player: int) -> tuple[int, Any, bool]:
-    obs, slot_to_action = observation_for(state, player, policy.obs_version)
+    include_position = bool(
+        getattr(policy.model, "requires_position_feature", False)
+    ) or int(getattr(policy.model, "position_adapter_hidden", 0)) > 0 or int(
+        getattr(policy.model, "position_value_adapter_hidden", 0)
+    ) > 0
+    obs, slot_to_action = observation_for(
+        state,
+        player,
+        policy.obs_version,
+        include_position=include_position,
+    )
     ood_node = apply_policy_legal_emulation(policy, state, obs["legal_mask"], slot_to_action)
     card_t = torch.as_tensor(obs["card_info"], dtype=torch.float32, device=policy.device).unsqueeze(0)
     action_t = torch.as_tensor(obs["action_info"], dtype=torch.float32, device=policy.device).unsqueeze(0)
@@ -366,11 +499,13 @@ def summarize_anchor(
     pairs: int,
     seed: int,
     starting_stack: float,
+    include_pair_outcomes: bool = False,
 ) -> dict[str, Any]:
     env = HUNLEnvironmentV55(starting_stack=starting_stack)
     rng = random.Random(seed)
     pair_bb_per_hand: list[float] = []
     hand_rewards: list[float] = []
+    rewards_by_seat: dict[int, list[float]] = {0: [], 1: []}
     pair_wins = pair_losses = pair_draws = 0
     hand_wins = hand_losses = hand_draws = 0
     total_decisions = 0
@@ -395,6 +530,8 @@ def summarize_anchor(
             candidate_seat=1,
         )
         rewards = [float(first["candidate_reward_bb"]), float(second["candidate_reward_bb"])]
+        rewards_by_seat[0].append(rewards[0])
+        rewards_by_seat[1].append(rewards[1])
         pair_total = rewards[0] + rewards[1]
         pair_mean = pair_total / 2.0
         pair_bb_per_hand.append(pair_mean)
@@ -421,7 +558,11 @@ def summarize_anchor(
     elapsed = time.time() - started
     pair_stats = mean_ci(pair_bb_per_hand)
     hand_stats = mean_ci(hand_rewards)
-    return {
+    seat_stats = {
+        "bb": mean_ci(rewards_by_seat[0]),
+        "sb": mean_ci(rewards_by_seat[1]),
+    }
+    result = {
         "anchor": anchor.label,
         "anchor_path": str(anchor.path),
         "anchor_sha256": anchor.sha256,
@@ -440,6 +581,19 @@ def summarize_anchor(
         "candidate_std_bb_per_hand_pair_mean": pair_stats["std"],
         "unpaired_hand_bb100": hand_stats["mean"] * 100.0,
         "unpaired_hand_ci95_bb100": hand_stats["ci95"] * 100.0,
+        "candidate_by_seat": {
+            seat: {
+                "hands": pairs,
+                "candidate_bb100": stats["mean"] * 100.0,
+                "candidate_ci95_bb100": stats["ci95"] * 100.0,
+                "candidate_std_bb_per_hand": stats["std"],
+                "total_candidate_bb": float(sum(rewards_by_seat[index])),
+            }
+            for seat, index, stats in (
+                ("bb", 0, seat_stats["bb"]),
+                ("sb", 1, seat_stats["sb"]),
+            )
+        },
         "total_candidate_bb": float(sum(hand_rewards)),
         "pair_wins": pair_wins,
         "pair_losses": pair_losses,
@@ -455,6 +609,13 @@ def summarize_anchor(
         "elapsed_seconds": elapsed,
         "hands_per_second": (pairs * 2) / max(elapsed, 1e-9),
     }
+    if include_pair_outcomes:
+        result["paired_outcomes"] = {
+            "overall_bb_per_hand": pair_bb_per_hand,
+            "bb_bb_per_hand": rewards_by_seat[0],
+            "sb_bb_per_hand": rewards_by_seat[1],
+        }
+    return result
 
 
 def annotate_anchor_validity(row: dict[str, Any], anchor_ood_valid_threshold: float) -> None:
@@ -484,6 +645,13 @@ def checkpoint_summary(checkpoint: dict[str, Any]) -> dict[str, Any]:
         "starting_stack_bb": checkpoint.get("starting_stack_bb"),
         "fresh_from_zero_lineage": checkpoint.get("fresh_from_zero_lineage"),
         "run_id": checkpoint.get("run_id"),
+        "architecture": checkpoint.get("architecture"),
+        "position_adapter_hidden": checkpoint_value(
+            checkpoint, "position_adapter_hidden", 0
+        ),
+        "position_value_adapter_hidden": checkpoint_value(
+            checkpoint, "position_value_adapter_hidden", 0
+        ),
     }
 
 
@@ -504,15 +672,17 @@ def write_markdown(summary: dict[str, Any], path: Path) -> None:
         "",
         "## Results",
         "",
-        "| anchor | hands | candidate bb/100 | 95% CI | anchor OOD rate | OOD gate | pair W/L/D | h/s |",
-        "|---|---:|---:|---:|---:|---|---|---:|",
+        "| anchor | hands | overall bb/100 | BB bb/100 | SB bb/100 | 95% CI (overall) | anchor OOD rate | OOD gate | pair W/L/D | h/s |",
+        "|---|---:|---:|---:|---:|---:|---:|---|---|---:|",
     ]
     for row in summary["anchors"]:
         lines.append(
-            "| {anchor} | {hands:,} | {bb100:+.2f} | +/-{ci:.2f} | {ood:.4f} | {gate} | {pw}/{pl}/{pd} | {hps:.1f} |".format(
+            "| {anchor} | {hands:,} | {bb100:+.2f} | {bb:+.2f} | {sb:+.2f} | +/-{ci:.2f} | {ood:.4f} | {gate} | {pw}/{pl}/{pd} | {hps:.1f} |".format(
                 anchor=row["anchor"],
                 hands=int(row["hands"]),
                 bb100=float(row["candidate_bb100"]),
+                bb=float(row["candidate_by_seat"]["bb"]["candidate_bb100"]),
+                sb=float(row["candidate_by_seat"]["sb"]["candidate_bb100"]),
                 ci=float(row["candidate_ci95_bb100"]),
                 ood=float(row.get("anchor_ood_node_rate", 0.0)),
                 gate="VALID" if bool(row.get("anchor_ood_valid", True)) else "INVALID",
@@ -574,6 +744,7 @@ def evaluate(args: argparse.Namespace) -> dict[str, Any]:
             pairs=args.pairs,
             seed=args.seed + index * 1_000_003,
             starting_stack=args.starting_stack,
+            include_pair_outcomes=args.include_pair_outcomes,
         )
         annotate_anchor_validity(row, args.anchor_ood_valid_threshold)
         anchors.append(row)
@@ -634,6 +805,14 @@ def main() -> int:
     )
     parser.add_argument("--pairs", type=int, default=10000, help="Mirrored deal pairs per anchor")
     parser.add_argument("--starting-stack", type=float, default=200.0)
+    parser.add_argument(
+        "--include-pair-outcomes",
+        action="store_true",
+        help=(
+            "Retain per-deck overall/BB/SB outcomes so a multi-checkpoint "
+            "curve can compute paired checkpoint deltas."
+        ),
+    )
     parser.add_argument("--seed", type=int, default=20260706)
     parser.add_argument("--device", choices=["cpu", "cuda"], default="cpu")
     parser.add_argument(

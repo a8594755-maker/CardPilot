@@ -45,12 +45,31 @@ if ($originalHands -ne 4999) {
     throw "Repair applies only to the preserved 4,999-hand bundle; found $originalHands"
 }
 
+$reuseExistingRepairRaw = $false
 if (Test-Path -LiteralPath $repairDir) {
-    $existingRepairArtifacts = @(
-        Get-ChildItem -LiteralPath $repairDir -Force
+    $existingRepairHandFiles = @(
+        Get-ChildItem -LiteralPath $repairDir -Filter '*_hands.jsonl' -File
     )
-    if ($existingRepairArtifacts.Count -ne 0) {
-        throw "Non-empty repair output already exists: $repairDir"
+    $existingRepairDumpFiles = @(
+        Get-ChildItem -LiteralPath $repairDir -Filter '*_dump.jsonl' -File
+    )
+    $existingRepairLogFiles = @(
+        Get-ChildItem -LiteralPath $repairDir -Filter '*.log' -File |
+            Where-Object { $_.Name -notmatch '_err\.log$' }
+    )
+    if (
+        $existingRepairHandFiles.Count -eq 1 -and
+        $existingRepairDumpFiles.Count -eq 1 -and
+        $existingRepairLogFiles.Count -eq 1 -and
+        (
+            Get-Content -LiteralPath $existingRepairHandFiles[0].FullName |
+                Measure-Object -Line
+        ).Lines -eq 1
+    ) {
+        $reuseExistingRepairRaw = $true
+        Write-Output 'Reusing the complete preserved one-hand raw repair.'
+    } elseif (@(Get-ChildItem -LiteralPath $repairDir -Force).Count -ne 0) {
+        throw "Non-empty repair output lacks a valid raw triplet: $repairDir"
     }
 } else {
     New-Item -ItemType Directory -Path $repairDir | Out-Null
@@ -58,17 +77,18 @@ if (Test-Path -LiteralPath $repairDir) {
 
 # bench_v55_slumbot.ps1 owns the shared named mutex, so this one-hand repair
 # waits behind any active evaluation rather than contending with it.
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
-    'scripts/alpha_holdem/bench_v55_slumbot.ps1' `
-    -ModelPath $candidate `
-    -Tag "${tag}_repair1" `
-    -HandsPerSession 1 `
-    -Sessions 1 `
-    -OutputDir (Resolve-Path -LiteralPath $repairDir).Path `
-    -PolicyMode greedy `
-    -Strategy model
-if ($LASTEXITCODE -ne 0) {
-    throw 'One-hand position-AWR evidence repair failed'
+$repairBenchExitCode = 0
+if (-not $reuseExistingRepairRaw) {
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
+        'scripts/alpha_holdem/bench_v55_slumbot.ps1' `
+        -ModelPath $candidate `
+        -Tag "${tag}_repair1" `
+        -HandsPerSession 1 `
+        -Sessions 1 `
+        -OutputDir (Resolve-Path -LiteralPath $repairDir).Path `
+        -PolicyMode greedy `
+        -Strategy model
+    $repairBenchExitCode = $LASTEXITCODE
 }
 
 $repairHandFiles = @(
@@ -94,6 +114,12 @@ $repairHands = (
 ).Lines
 if ($repairHands -ne 1) {
     throw "One-hand repair produced $repairHands hands"
+}
+if ($repairBenchExitCode -ne 0) {
+    Write-Warning (
+        'The one-hand bench returned nonzero only after writing a complete ' +
+        'raw triplet; rebuilding full-bundle derived evidence directly.'
+    )
 }
 
 $derivedArtifacts = @(
@@ -149,8 +175,17 @@ $promotionText = $promotionResult -join "`n"
 $promotionText | Out-File -FilePath (
     Join-Path $quickDir "bench_v55_${tag}_promotion_gate.txt"
 ) -Encoding utf8
-if ($promotionExitCode -ne 0 -or -not (Test-Path -LiteralPath $promotionJson)) {
+if (
+    -not (Test-Path -LiteralPath $promotionJson) -or
+    -not (Test-Path -LiteralPath $promotionMd)
+) {
     throw "Combined promotion-gate rebuild failed: $promotionText"
+}
+if ($promotionExitCode -ne 0) {
+    Write-Output (
+        'Combined promotion gate recorded a scientific FAIL; preserving it ' +
+        'and continuing the exact evidence rebuild.'
+    )
 }
 
 $originalDumpFiles = @(
@@ -264,6 +299,11 @@ if ($sourceSummary.Count -ne 1) {
 }
 $sourceExternal = Get-Content -LiteralPath $sourceSummary[0].FullName -Raw |
     ConvertFrom-Json
+$experimentDecision = if ([bool]$quickDecision.promote_to_fresh20k) {
+    'PROMOTED_TO_FRESH20K'
+} else {
+    'REJECT_EXTERNAL_FRESH5K'
+}
 $experiment = [ordered]@{
     schema = 'cardpilot.discovery_experiment.v1'
     hypothesis = (
@@ -299,13 +339,7 @@ $experiment = [ordered]@{
             'all 4,999 original raw hands and dumps preserved unchanged.'
         )
     }
-    decision = (
-        if ([bool]$quickDecision.promote_to_fresh20k) {
-            'PROMOTED_TO_FRESH20K'
-        } else {
-            'REJECT_EXTERNAL_FRESH5K'
-        }
-    )
+    decision = $experimentDecision
     recorded_at = (Get-Date).ToUniversalTime().ToString('o')
 }
 $experiment | ConvertTo-Json -Depth 8 |

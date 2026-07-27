@@ -174,12 +174,23 @@ $candidateHands = [int64]$manifest.total_hands
     learning_rate = 0.000001
     preflop_head_learning_rate = 0.0000003
     source_policy_kl_coef = 8.0
+    policy_inference_classification = 'PURE_TRAINED'
+    training_data_classification = 'SLUMBOT_ASSISTED'
+    slumbot_free = $false
+    evaluation_data_classification = 'SLUMBOT_EVAL_CONTAMINATED'
+    evaluation_data_note = (
+        'The scaled opponent inherited Slumbot actions from prior evaluation ' +
+        'dumps, including the Standard32 fresh20k dumps. This descendant may ' +
+        'be screened only on newly generated Slumbot hands.'
+    )
+    fresh_external_evaluation_required = $true
+    reuse_of_training_dump_as_external_evidence_forbidden = $true
     candidate_checkpoint = $candidate
     candidate_checkpoint_sha256 = (
         Get-FileHash -LiteralPath $candidate -Algorithm SHA256
     ).Hash.ToLowerInvariant()
     candidate_total_hands = $candidateHands
-    decision = 'READY_FOR_PURE_FRESH5K'
+    decision = 'READY_FOR_PURE_FRESH5K_ON_NEW_HANDS_ONLY'
     recorded_at = (Get-Date).ToUniversalTime().ToString('o')
 } | ConvertTo-Json -Depth 8 |
     Set-Content -LiteralPath (Join-Path $runDir 'experiment_record.json') `

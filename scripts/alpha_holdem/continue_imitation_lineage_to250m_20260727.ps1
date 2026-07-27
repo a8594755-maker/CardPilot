@@ -107,10 +107,10 @@ if ($sourceSha -ne [string]$sourceRecord.candidate_checkpoint_sha256) {
     throw "$Lineage 60M source hash mismatch"
 }
 
-# Do not spend several days extending a 60M endpoint that fresh Slumbot has
-# already ruled out directionally.  A negative point estimate may continue
-# when its interval still crosses zero, but a wholly negative interval or a
-# worse-than -30 bb/100 point estimate stops this long continuation.
+# Do not spend several days extending a 60M endpoint that has not even earned
+# the preregistered fresh20k directional promotion.  Standard32's quick5k
+# passed at -9.91 but its exact20k regressed to -13.63, so the older permissive
+# -30 gate is no longer enough evidence for a 190M continuation.
 $quickDir = Join-Path (
     'models'
 ) "bench_${screenStem}_pure_fresh5k_20260726"
@@ -128,7 +128,7 @@ $quickDecision = Get-Content -LiteralPath $quickDecisionPath -Raw |
     ConvertFrom-Json
 $quickBbPer100 = [double]$quickDecision.quick5k_bb_per_100
 $quickUpper = [double]$quickDecision.quick5k_ci95_upper
-if ($quickUpper -le 0 -or $quickBbPer100 -lt -30) {
+if (-not [bool]$quickDecision.promote_to_fresh20k) {
     Write-Output (
         "$Lineage 250M continuation rejected by its completed 60M fresh5k: " +
         "bb/100=$quickBbPer100, CI95 upper=$quickUpper."

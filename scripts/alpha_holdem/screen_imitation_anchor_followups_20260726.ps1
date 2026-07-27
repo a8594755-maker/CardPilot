@@ -77,6 +77,18 @@ function Invoke-CandidateScreen {
         throw "$Candidate incomplete fresh5k output already exists: $quickDir"
     }
     New-Item -ItemType Directory -Path $quickDir | Out-Null
+    @{
+        schema = 'cardpilot.external_evaluation_isolation.v1'
+        candidate_checkpoint_sha256 = $observedSha
+        evaluation_started_after_checkpoint_freeze = (
+            Get-Date
+        ).ToUniversalTime().ToString('o')
+        evaluation_data_classification = 'FRESH_POST_FREEZE_ONLY'
+        preexisting_slumbot_hands_reused = $false
+    } | ConvertTo-Json -Depth 4 |
+        Set-Content -LiteralPath (
+            Join-Path $quickDir 'evaluation_isolation.json'
+        ) -Encoding UTF8
     & powershell.exe -NoProfile -ExecutionPolicy Bypass -File `
         'scripts/alpha_holdem/bench_v55_slumbot.ps1' `
         -ModelPath $checkpointPath `

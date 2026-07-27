@@ -131,6 +131,25 @@ def pack_position_extra(
     )
 
 
+def position_adapter_trainable_prefixes(
+    training_seat: str,
+) -> tuple[str, ...]:
+    """Return the actor/value parameter prefixes for a seat-isolated update."""
+    seat = str(training_seat).lower()
+    if seat == 'all':
+        actor_prefixes = ('position_policy_adapters.',)
+    elif seat == 'bb':
+        actor_prefixes = ('position_policy_adapters.0.',)
+    elif seat == 'sb':
+        actor_prefixes = ('position_policy_adapters.1.',)
+    else:
+        raise ValueError("training_seat must be one of: all, bb, sb")
+    return actor_prefixes + (
+        'value_head.',
+        'position_value_adapters.',
+    )
+
+
 def linear_decay_group_lrs(progress: float, base_lrs) -> list[float]:
     """Preserve each optimizer group's LR ratio during the second-half decay."""
     if progress < 0.5:
@@ -1906,6 +1925,16 @@ def main():
         ),
     )
     parser.add_argument(
+        '--position-value-adapter-hidden',
+        type=int,
+        default=0,
+        help=(
+            'Add two zero-initialized residual value experts of this width, '
+            'selected by the public HU seat feature. This tests whether a '
+            'shared critic aliases BB/OOP and SB/IP credit assignment.'
+        ),
+    )
+    parser.add_argument(
         '--adapter-only-training',
         action='store_true',
         help=(
@@ -1919,6 +1948,16 @@ def main():
         help=(
             'Freeze the source actor; update only the two position residual '
             'experts and value head.'
+        ),
+    )
+    parser.add_argument(
+        '--position-adapter-training-seat',
+        choices=('all', 'bb', 'sb'),
+        default='all',
+        help=(
+            'When position-adapter-only training is enabled, update both '
+            'seat experts (all) or isolate actor updates to BB/SB. The value '
+            'head remains trainable in every mode.'
         ),
     )
     parser.add_argument(
@@ -2322,6 +2361,8 @@ def main():
         parser.error('--postflop-adapter-hidden must be >= 0')
     if args.position_adapter_hidden < 0:
         parser.error('--position-adapter-hidden must be >= 0')
+    if args.position_value_adapter_hidden < 0:
+        parser.error('--position-value-adapter-hidden must be >= 0')
     if args.adapter_only_training and args.postflop_adapter_hidden <= 0:
         parser.error('--adapter-only-training requires --postflop-adapter-hidden > 0')
     if (
@@ -2331,6 +2372,14 @@ def main():
         parser.error(
             '--position-adapter-only-training requires '
             '--position-adapter-hidden > 0'
+        )
+    if (
+        args.position_adapter_training_seat != 'all'
+        and not args.position_adapter_only_training
+    ):
+        parser.error(
+            '--position-adapter-training-seat bb/sb requires '
+            '--position-adapter-only-training'
         )
     exclusive_training_modes = sum(
         bool(value)
@@ -3487,6 +3536,9 @@ def main():
         separate_preflop_head=args.separate_preflop_head,
         postflop_adapter_hidden=args.postflop_adapter_hidden,
         position_adapter_hidden=args.position_adapter_hidden,
+        position_value_adapter_hidden=(
+            args.position_value_adapter_hidden
+        ),
     ).to(device)
     dc = torch.zeros(1, 6, 4, 13, device=device)
     da = torch.zeros(1, 25, 4, 5, device=device)
@@ -3495,7 +3547,9 @@ def main():
     print(f'Parameters: {count_parameters(model):,}')
 
     if args.position_adapter_only_training:
-        trainable_prefixes = ('position_policy_adapters.', 'value_head.')
+        trainable_prefixes = position_adapter_trainable_prefixes(
+            args.position_adapter_training_seat
+        )
         for name, parameter in model.named_parameters():
             parameter.requires_grad = name.startswith(trainable_prefixes)
         trainable_count = sum(
@@ -3513,7 +3567,8 @@ def main():
         )
         print(
             f'Position-adapter-only training: {trainable_count:,} trainable '
-            'parameters (seat residual experts + value head)'
+            f'parameters (actor seat={args.position_adapter_training_seat} '
+            '+ value head)'
         )
     elif args.adapter_only_training:
         trainable_prefixes = ('postflop_policy_adapter.', 'value_head.')
@@ -3896,9 +3951,15 @@ def main():
             'separate_preflop_head': bool(args.separate_preflop_head),
             'postflop_adapter_hidden': int(args.postflop_adapter_hidden),
             'position_adapter_hidden': int(args.position_adapter_hidden),
+            'position_value_adapter_hidden': int(
+                args.position_value_adapter_hidden
+            ),
             'adapter_only_training': bool(args.adapter_only_training),
             'position_adapter_only_training': bool(
                 args.position_adapter_only_training
+            ),
+            'position_adapter_training_seat': str(
+                args.position_adapter_training_seat
             ),
             'effective_stack_divisor': args.h1_effective_stack_divisor if args.critic_contract == CRITIC_V2 else 1.0,
             'value_coef': args.value_coef,
@@ -4041,8 +4102,68 @@ def main():
                     for name in target_state
                     if not name.startswith('value_head.')
                 }
-                if set(source_actor) != target_actor_keys:
-                    missing = sorted(target_actor_keys - set(source_actor))
+                source_has_preflop_head = (
+                    'preflop_policy_head.weight' in source_actor
+                    and 'preflop_policy_head.bias' in source_actor
+                )
+                adding_preflop_head = (
+                    args.separate_preflop_head and not source_has_preflop_head
+                )
+                source_has_postflop_adapter = (
+                    'postflop_policy_adapter.0.weight' in source_actor
+                )
+                adding_postflop_adapter = (
+                    args.postflop_adapter_hidden > 0
+                    and not source_has_postflop_adapter
+                )
+                source_has_position_adapter = (
+                    'position_policy_adapters.0.0.weight' in source_actor
+                )
+                adding_position_adapter = (
+                    args.position_adapter_hidden > 0
+                    and not source_has_position_adapter
+                )
+                source_has_position_value_adapter = (
+                    'position_value_adapters.0.0.weight' in source_actor
+                )
+                adding_position_value_adapter = (
+                    args.position_value_adapter_hidden > 0
+                    and not source_has_position_value_adapter
+                )
+                allowed_new_actor_keys = set()
+                if adding_preflop_head:
+                    allowed_new_actor_keys.update({
+                        'preflop_policy_head.weight',
+                        'preflop_policy_head.bias',
+                    })
+                if adding_postflop_adapter:
+                    allowed_new_actor_keys.update({
+                        'postflop_policy_adapter.0.weight',
+                        'postflop_policy_adapter.0.bias',
+                        'postflop_policy_adapter.2.weight',
+                        'postflop_policy_adapter.2.bias',
+                    })
+                if adding_position_adapter:
+                    allowed_new_actor_keys.update({
+                        f'position_policy_adapters.{seat}.{layer}.{parameter}'
+                        for seat in (0, 1)
+                        for layer in (0, 2)
+                        for parameter in ('weight', 'bias')
+                    })
+                if adding_position_value_adapter:
+                    allowed_new_actor_keys.update({
+                        f'position_value_adapters.{seat}.{layer}.{parameter}'
+                        for seat in (0, 1)
+                        for layer in (0, 2)
+                        for parameter in ('weight', 'bias')
+                    })
+                missing_actor_keys = target_actor_keys - set(source_actor)
+                extra_actor_keys = set(source_actor) - target_actor_keys
+                if (
+                    missing_actor_keys != allowed_new_actor_keys
+                    or extra_actor_keys
+                ):
+                    missing = sorted(missing_actor_keys)
                     extra = sorted(set(source_actor) - target_actor_keys)
                     raise RuntimeError(
                         'autonomous critic_v2 actor keys mismatch: '
@@ -4059,6 +4180,7 @@ def main():
                     for name in target_state
                     if name.startswith('value_head.')
                 }
+                expected_missing.update(allowed_new_actor_keys)
                 if (
                     set(loaded.missing_keys) != expected_missing
                     or loaded.unexpected_keys
@@ -4068,10 +4190,37 @@ def main():
                         f'missing={loaded.missing_keys} '
                         f'unexpected={loaded.unexpected_keys}'
                     )
+                if adding_preflop_head:
+                    with torch.no_grad():
+                        model.preflop_policy_head.weight.copy_(
+                            model.policy_head.weight
+                        )
+                        model.preflop_policy_head.bias.copy_(
+                            model.policy_head.bias
+                        )
+                    print(
+                        'Initialized separate preflop head from exact source '
+                        'policy head during critic_v2 reset'
+                    )
+                if adding_postflop_adapter:
+                    print(
+                        'Initialized zero residual postflop policy adapter '
+                        'during critic_v2 reset'
+                    )
+                if adding_position_adapter:
+                    print(
+                        'Initialized zero residual BB/SB position policy '
+                        'adapters during critic_v2 reset'
+                    )
+                if adding_position_value_adapter:
+                    print(
+                        'Initialized zero residual BB/SB position value '
+                        'adapters during critic_v2 reset'
+                    )
                 current = model.state_dict()
                 changed_actor = [
                     name
-                    for name in sorted(target_actor_keys)
+                    for name in sorted(source_actor)
                     if not torch.equal(
                         current[name].detach().cpu(),
                         source_actor[name].detach().cpu(),
@@ -4083,8 +4232,9 @@ def main():
                         f'{changed_actor[:5]}'
                     )
                 print(
-                    'Autonomous critic_v1->critic_v2 actor-exact migration PASS; '
-                    'fresh optimizer and critic'
+                    'Autonomous critic_v1->critic_v2 shared-actor-exact '
+                    'migration PASS; behavior-neutral new adapters, fresh '
+                    'optimizer and critic'
                 )
             else:
                 migration = migrate_v1_checkpoint_to_v2(
@@ -4130,10 +4280,18 @@ def main():
                 args.position_adapter_hidden > 0
                 and not source_has_position_adapter
             )
+            source_has_position_value_adapter = (
+                'position_value_adapters.0.0.weight' in ckpt['model']
+            )
+            adding_position_value_adapter = (
+                args.position_value_adapter_hidden > 0
+                and not source_has_position_value_adapter
+            )
             if (
                 adding_preflop_head
                 or adding_postflop_adapter
                 or adding_position_adapter
+                or adding_position_value_adapter
             ):
                 load_result = model.load_state_dict(ckpt['model'], strict=False)
                 expected_missing = set()
@@ -4156,6 +4314,13 @@ def main():
                         for layer in (0, 2)
                         for parameter in ('weight', 'bias')
                     })
+                if adding_position_value_adapter:
+                    expected_missing.update({
+                        f'position_value_adapters.{seat}.{layer}.{parameter}'
+                        for seat in (0, 1)
+                        for layer in (0, 2)
+                        for parameter in ('weight', 'bias')
+                    })
                 if set(load_result.missing_keys) != expected_missing or load_result.unexpected_keys:
                     raise RuntimeError(
                         'unexpected state mismatch while adding policy adapters: '
@@ -4174,6 +4339,11 @@ def main():
                         'Initialized zero residual BB/SB position policy '
                         'adapters'
                     )
+                if adding_position_value_adapter:
+                    print(
+                        'Initialized zero residual BB/SB position value '
+                        'adapters'
+                    )
             else:
                 model.load_state_dict(ckpt['model'])
             if not args.reset_optimizer:
@@ -4181,6 +4351,7 @@ def main():
                     adding_preflop_head
                     or adding_postflop_adapter
                     or adding_position_adapter
+                    or adding_position_value_adapter
                 ):
                     raise RuntimeError(
                         'adding a policy head/adapter requires --reset-optimizer'
@@ -4478,6 +4649,15 @@ def main():
                         ].shape[0]
                     )
                     if 'position_policy_adapters.0.0.weight' in snapshot_state
+                    else 0
+                ),
+                position_value_adapter_hidden=(
+                    int(
+                        snapshot_state[
+                            'position_value_adapters.0.0.weight'
+                        ].shape[0]
+                    )
+                    if 'position_value_adapters.0.0.weight' in snapshot_state
                     else 0
                 ),
             ).to(device)
