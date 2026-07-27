@@ -1,0 +1,258 @@
+{
+    "schema_version":  "v5.hybrid.h1.preregistration.v1",
+    "experiment_id":  "H1",
+    "title":  "HYBRID critic_v2 magnitude, isolation, and coefficient package",
+    "checked_at":  "2026-07-11T17:28:00Z",
+    "immutable":  true,
+    "status":  "REGISTERED_NO_LAUNCH",
+    "route":  "HYBRID",
+    "authority":  {
+                      "user_route_escalation_event":  "v5-user-route-escalation-hybrid-goal-20260711",
+                      "implementation_and_offline_validation":  "AUTHORIZED",
+                      "control_or_treatment_launch":  "NONE_UNTIL_SEPARATE_DESIGN_LOCK_AND_PREFLIGHT_PASS",
+                      "official_slumbot_hands":  0,
+                      "official_evaluation":  "FORBIDDEN_IN_H1",
+                      "strength_claim":  "FORBIDDEN"
+                  },
+    "terminal_experiment_exclusions":  {
+                                           "exp005c":  "EXP005C_FAIL_PROTOCOL_ABORT_DO_NOT_REOPEN",
+                                           "exp_w1":  "EXP_W1_FAIL_WARMUP_GATE_DO_NOT_REOPEN_OR_REUSE_ENDPOINTS",
+                                           "exp003":  "TERMINAL_INCONCLUSIVE_DO_NOT_REOPEN"
+                                       },
+    "question":  "Does the integrated critic_v2 contract materially reduce normalized held-out critic error at fixed training hands without degrading throughput or entropy?",
+    "estimand":  {
+                     "primary":  "1 - treatment_endpoint_normalized_MSE / control_endpoint_normalized_MSE on frozen H1-CAL-001 deal clusters",
+                     "unit":  "frozen common deal_id cluster; both seat swaps remain in one cluster",
+                     "claim_scope":  "causal for this exact source, seed, 20M window, and integrated critic_v2 package only",
+                     "forbidden_component_claims":  "No separate causal claim for scaling, head depth, detach isolation, or value_coef."
+                 },
+    "source":  {
+                   "checkpoint_path":  "models/alpha_holdem_v5_from_zero/v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709/v5_exp005_cutover_gate31400_checkpoint.pt",
+                   "checkpoint_sha256":  "bcbb46bd01d62fcdea602269b7047323315d4e9bbcf447ea0323e289fde11a8e",
+                   "iteration":  31400,
+                   "hands":  515989661,
+                   "env_version":  "v55",
+                   "obs_version":  "v55",
+                   "action_space_version":  "9slot_v5",
+                   "starting_stack_bb":  200,
+                   "pool_strategy":  "loss-kbest",
+                   "source_run_id":  "v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709",
+                   "route_identity_after_cutover":  "HYBRID_NOT_FROM_ZERO_CLAIM"
+               },
+    "baseline_code":  {
+                          "train_v5_sha256":  "0380d6cd8b927be1a8413935359a7169e57b491b19ec291361dc858f8735ea41",
+                          "train_mp3_sha256":  "8cd15d992bb7c4e43b5c730b61459afa1ecbd7c5c69503ae07213cfbc0cfd1d3",
+                          "network_sha256":  "86cc9e2ca36925f36ce33d7a8917ff13a6d69aecf9b768b52d55b09d87a98da2",
+                          "goal_sha256":  "7b691750e19716289956036c0d9cf84901941453e6120fa7d6b620bfd942b156",
+                          "decision_contract_sha256":  "aab756ee98048bca74bc7540745fa782ff79eb6af7e437eeaedbcc3f6ac6e129"
+                      },
+    "single_window_variable":  {
+                                   "name":  "critic_contract",
+                                   "control":  "critic_v1",
+                                   "treatment":  "critic_v2",
+                                   "atomic_package":  true,
+                                   "reason":  "The user-authorized H1 window treats magnitude units, critic isolation/depth, and value coefficient as one integrated subsystem contract.",
+                                   "all_actor_rollout_pool_prior_and_target_semantics_unchanged":  true
+                               },
+    "arms":  {
+                 "common":  {
+                                "source_checkpoint":  "EXACT_SOURCE_ABOVE",
+                                "actual_hands_per_arm":  20000000,
+                                "target_endpoint_hands":  535989661,
+                                "endpoint_overshoot_max_hands":  50000,
+                                "sequential_order":  [
+                                                         "control",
+                                                         "treatment"
+                                                     ],
+                                "seed":  20260703,
+                                "worker_seed_base":  73000,
+                                "fixed_training_deal_stream":  true,
+                                "opponent_assignment":  "per-iteration",
+                                "rollout_mode":  "multi",
+                                "rollout_envs_per_worker":  16,
+                                "workers":  22,
+                                "hands_per_iteration":  16384,
+                                "ppo_epochs":  4,
+                                "mini_batch_size":  1024,
+                                "lr":  0.0003,
+                                "gamma":  0.999,
+                                "entropy_coef":  0.05,
+                                "entropy_floor":  0.3,
+                                "preflop_prior_coef":  0.01,
+                                "postflop_prior_coef":  0.02,
+                                "exp002":  "RETAINED",
+                                "exp003_flags":  "PRESERVED_AS_SOURCE_CONFIG_WITHOUT_REOPENING_JUDGMENT"
+                            },
+                 "control":  {
+                                 "run_id":  "v5_hybrid_h1_control_criticv1_same31400_20m_r1_20260711",
+                                 "critic_contract":  "critic_v1",
+                                 "reward_and_value_units":  "BB",
+                                 "reward_scale_divisor":  1,
+                                 "value_head":  "Linear(256,1), shared-trunk gradients enabled",
+                                 "value_coef":  0.5,
+                                 "popart":  false
+                             },
+                 "treatment":  {
+                                   "run_id":  "v5_hybrid_h1_treatment_criticv2_same31400_20m_r1_20260711",
+                                   "critic_contract":  "critic_v2",
+                                   "reward_and_value_units":  "effective_stack_fraction",
+                                   "fixed_effective_stack_divisor":  200,
+                                   "scale_exactly":  [
+                                                         "terminal rewards before GAE",
+                                                         "old value predictions used by GAE",
+                                                         "returns and critic targets",
+                                                         "Trinal-Clip delta2/delta3 value bounds"
+                                                     ],
+                                   "do_not_scale":  [
+                                                        "raw chip accounting",
+                                                        "hand accounting",
+                                                        "logged raw reward copy",
+                                                        "policy logits",
+                                                        "normalized PPO advantages after standardization"
+                                                    ],
+                                   "popart":  false,
+                                   "value_head":  "Sequential Linear(256,256),ReLU,Linear(256,128),ReLU,Linear(128,1)",
+                                   "value_head_input":  "shared trunk h.detach()",
+                                   "value_gradient_to_shared_trunk":  false,
+                                   "hidden_initialization":  "orthogonal_gain_sqrt2_bias0",
+                                   "output_initialization":  "orthogonal_gain1_bias0",
+                                   "initialization_seed":  2026071102,
+                                   "value_coef":  1,
+                                   "actor_and_shared_weights":  "bitwise copy from source",
+                                   "actor_optimizer_state":  "exact copy by parameter name",
+                                   "old_linear_value_head":  "discarded_no_reuse",
+                                   "new_critic_optimizer_state":  "fresh_empty_Adam_state_under_existing_optimizer"
+                               }
+             },
+    "cutover_invariants":  {
+                               "pretraining_policy_logits_max_abs_delta":  0,
+                               "legal_mask_policy_mode_identical":  true,
+                               "source_actor_weights_bitwise_identical":  true,
+                               "actor_optimizer_state_bitwise_identical":  true,
+                               "pool_snapshot_state_hashes_identical":  true,
+                               "reward_semantics":  "LINEAR_UNIT_CONVERSION_ONLY_EXPECTATION_UNCHANGED",
+                               "one_behavior_window":  "critic_v1_to_critic_v2_integrated_package_only"
+                           },
+    "calibration_dataset":  {
+                                "id":  "H1-CAL-001",
+                                "status_required_before_launch":  "IMMUTABLE_BUNDLE_AUDIT_PASS",
+                                "source_policy":  "exact gate31400 greedy",
+                                "opponent_panel":  "exact gate31400 active loss-kbest pool ids in deterministic round-robin",
+                                "deal_seed":  2026071111,
+                                "common_deal_pairs":  10000,
+                                "hands":  20000,
+                                "seat_order":  [
+                                                   0,
+                                                   1
+                                               ],
+                                "starting_stack_bb":  200,
+                                "env_version":  "v55",
+                                "action_space_version":  "9slot_v5",
+                                "target":  "discounted terminal hero net return / 200 at every evaluated hero decision",
+                                "gamma":  0.999,
+                                "split":  "whole-deal cluster only",
+                                "training_use":  "FORBIDDEN_HOLDOUT_ONLY",
+                                "policy_mode":  "greedy_argmax_both_sides",
+                                "max_ood_rate":  0.15,
+                                "required_artifacts":  [
+                                                           "manifest with deal hashes",
+                                                           "per-decision JSONL",
+                                                           "source and opponent identities",
+                                                           "bundle audit JSON/MD"
+                                                       ]
+                            },
+    "measurement_schedule":  {
+                                 "baseline":  "source checkpoint",
+                                 "progress_targets_actual_hands":  [
+                                                                       4000000,
+                                                                       8000000,
+                                                                       12000000,
+                                                                       16000000
+                                                                   ],
+                                 "endpoint_actual_hands":  20000000,
+                                 "endpoint_only_is_confirmatory":  true,
+                                 "first_checkpoint_at_or_above_each_target":  true,
+                                 "target_overshoot_max_hands":  50000,
+                                 "later_checkpoint_substitution":  false
+                             },
+    "statistics":  {
+                       "normalized_mse":  "mean squared error in effective-stack-fraction units",
+                       "paired_relative_reduction":  "1 - MSE_treatment/MSE_control",
+                       "cluster_bootstrap_repetitions":  10000,
+                       "bootstrap_seed":  2026071112,
+                       "ci":  0.95,
+                       "minimum_meaningful_relative_reduction":  0.1,
+                       "pass_point_relative_reduction":  0.15,
+                       "pass_ci_lower_relative_reduction":  0.1,
+                       "no_adaptive_extension":  true,
+                       "no_second_seed":  true,
+                       "no_later_endpoint":  true,
+                       "no_posthoc_slices":  true
+                   },
+    "guards":  {
+                   "throughput":  {
+                                      "first_rows":  60,
+                                      "abort_if_treatment_over_control_effective_hps_below":  0.85,
+                                      "full_window_noninferiority_ratio":  0.85,
+                                      "metric":  "actual hands / wall-clock from first to last accepted row; exclude neither stalls nor setup after row1"
+                                  },
+                   "entropy":  {
+                                   "window_rows":  200,
+                                   "treatment_median_min":  0.3,
+                                   "noninferior_to_control_median_delta":  -0.1,
+                                   "sustained_abort":  "entropy \u003c 0.3 for 20 consecutive training rows"
+                               },
+                   "health":  [
+                                  "no nonfinite losses/gradients",
+                                  "stderr empty except registered graceful stop",
+                                  "checkpoint identity PASS",
+                                  "assignment provenance complete",
+                                  "all required rows present"
+                              ],
+                   "diagnostics_not_gates":  [
+                                                 "normalized train vloss ratio",
+                                                 "calibration slope/intercept",
+                                                 "explained variance",
+                                                 "policy KL/clipfrac",
+                                                 "gradient norms by actor/critic"
+                                             ]
+               },
+    "terminal_rule":  {
+                          "protocol_abort":  [
+                                                 "identity or source hash mismatch",
+                                                 "H1-CAL-001 audit not PASS",
+                                                 "pretraining policy logits delta != 0",
+                                                 "nonfinite metric or gradient",
+                                                 "first60 throughput ratio \u003c 0.85",
+                                                 "entropy \u003c 0.3 for 20 consecutive rows",
+                                                 "missing provenance or endpoint artifact"
+                                             ],
+                          "pass":  "primary point reduction \u003e=0.15 AND bootstrap CI lower \u003e=0.10 AND full-window hps ratio \u003e=0.85 AND entropy median \u003e=0.3 AND treatment-control entropy delta \u003e=-0.10 AND all health checks PASS",
+                          "fail":  "complete valid window but primary bootstrap CI upper \u003c0.10, OR treatment normalized MSE is \u003e10% worse with bootstrap CI lower above zero, OR a full-window throughput/entropy guard fails after the first60 protocol gate",
+                          "inconclusive":  "complete valid fixed sample that is neither PASS nor FAIL",
+                          "no_extension":  true,
+                          "no_reclassification":  true
+                      },
+    "rollback":  {
+                     "checkpoint":  "exact source checkpoint",
+                     "code":  "restore baseline train_v5/train_mp3/network hashes",
+                     "control_contract":  "critic_v1",
+                     "on_fail_or_inconclusive":  "do not adopt critic_v2; freeze H1; count one FAIL/no-progress window for hybrid stop rule"
+                 },
+    "downstream":  {
+                       "on_pass":  "adopt critic_v2 for H2 preregistration preparation only",
+                       "official_slumbot":  "FORBIDDEN",
+                       "internal_mirror":  "NOT_A_H1_GATE",
+                       "v4_claim":  "FORBIDDEN",
+                       "l5_l6_claim":  "FORBIDDEN",
+                       "h2_launch":  "REQUIRES_SEPARATE_PREREGISTRATION"
+                   },
+    "preregistration_completion_requirements":  [
+                                                    "immutable registration artifact read-only and SHA-bound in ledger",
+                                                    "independent preregistration audit PASS",
+                                                    "implementation and offline fixture tests PASS before design lock",
+                                                    "H1-CAL-001 immutable audit PASS before any arm launch",
+                                                    "separate design lock pins candidate code/tool hashes and exact arm commands",
+                                                    "canonical watchers prove generic cadence/promotion/formal/Slumbot blocked"
+                                                ]
+}

@@ -1,0 +1,70 @@
+{
+  "schema_version": "v5.hybrid.route_review.result.v5",
+  "design_id": "HYBRID-ROUTE-REVIEW-005",
+  "checked_at": "2026-07-14T17:29:00Z",
+  "overall": "PASS_ROUTE_REVIEW",
+  "registration_sha256": "3d9a5d4dca984a11dd6a1693fb1a4868b2ebfb95ec89e67735b3ed6a0add5a3c",
+  "trigger_verified": true,
+  "consecutive_no_progress": {"h7": "H7_FAIL_REGISTERED_GATE", "h8": "H8_FAIL_REGISTERED_GATE", "route_review_required": true},
+  "research_review": {
+    "path": "reports/v5_hybrid_route_review_005_research_review_20260714.json",
+    "sha256": "bad3dfedc715cd855732ec9c42e0a35b1b3ecd070b098835dc224cf189f0b6f4",
+    "method_scope": "CONDITIONAL_SINGLE_SEED_METHOD_EFFECT",
+    "action_specific_intervention": false,
+    "behavior_launch_authorized_by_reviewer": false,
+    "l5_claim": false
+  },
+  "mechanism_audit": {
+    "path": "reports/v5_hybrid_route_review_005_h8_mechanism_audit_20260714.json",
+    "sha256": "c9f40c1c7ba5f54037c6a57c54b7f5a10f863aae9dfbb43bb482140752c7616f",
+    "overall": "PASS_H8_CAUSAL_LOCALIZATION_FOR_ROUTE_SELECTION_ONLY"
+  },
+  "h8_frozen_interpretation": {
+    "terminal_status": "H8_FAIL_REGISTERED_GATE",
+    "reclassification_forbidden": true,
+    "mirror_treatment_control": "+302.137154 bb/100 CI[273.760736,330.026052] PASS_INTERNAL_SINGLE_SEED",
+    "mirror_treatment_anchor": "+331.384440 bb/100 CI[300.082649,363.086799] PASS_INTERNAL_SINGLE_SEED",
+    "critic_primary": "FAIL_REDUCTION_-0.073970_CI_-0.128310_TO_-0.022167",
+    "critic_anchor": "FAIL_DEGRADATION_0.061330_CI_UPPER_0.124836",
+    "kl": "FAIL_P95_0.032975_AND_FRACTION_0.121611",
+    "external_strength": "UNMEASURED_OFFICIAL_HANDS_0"
+  },
+  "decision": {
+    "selected_next": "H9_ROBUST_VALUE_HEAD_CATCHUP_LOSS",
+    "source": {
+      "run_id": "v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714",
+      "checkpoint_path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714/h8_treatment_endpoint.pt",
+      "checkpoint_sha256": "7c388ec68114d497f775157def3c0b3abc82db7ee25baf7e7cb7e9e916f66438",
+      "iteration": 33834,
+      "hands": 556011085,
+      "status": "DIAGNOSTIC_SOURCE_NOT_ADOPTED_STRENGTH"
+    },
+    "single_variable": {
+      "name": "catchup_value_loss",
+      "control": "MSE",
+      "treatment": "SmoothL1 beta=1.0 raw critic-v1 bb unit",
+      "standard_ppo_critic_loss": "MSE_UNCHANGED"
+    },
+    "scale_lock_rationale": "beta=1.0 is the standard SmoothL1 canonical default and one raw critic-v1 unit equals one big blind; it is fixed without searching the forbidden holdout or H8 outcomes.",
+    "rationale": "H8 proves actor/trunk isolation and catch-up accounting while clearly refuting extra unweighted squared-error fitting as a calibration repair. A catch-up-only robust loss is the smallest upstream prospective change that limits outlier leverage without altering policy epochs, target-KL, targets, optimizer, actor/trunk, standard PPO critic loss or the positive internal mirror mechanism.",
+    "requirements": [
+      "Separate immutable H9 preregistration, implementation audit, design lock, preflight and canonical watcher rearm before launch.",
+      "Fresh same-start control and treatment; no reuse of H8 endpoints as H9 outcomes.",
+      "Only catch-up loss differs; beta1.0 is frozen and no holdout-driven tuning is allowed.",
+      "Offline forced-trigger tests prove disabled-mode equivalence and actor/trunk/optimizer-state isolation.",
+      "Fixed endpoint calibration, KL, mirror, throughput, entropy and health gates; no extension, second seed or later endpoint.",
+      "No official Slumbot hands in H9."
+    ]
+  },
+  "candidate_dispositions": {
+    "learning_rate_or_epoch_tuning": "REJECTED_MULTIPLE_POSTHOC_SCALAR_CHOICES",
+    "target_kl_or_gate_relaxation": "FORBIDDEN",
+    "h8_adoption": "FORBIDDEN_FAILED_REGISTERED_GATES",
+    "h3_h5": "ENGINEERING_PREREQUISITES_REMAIN_INCOMPLETE",
+    "route_exhaustion": "FALSE_ROBUST_CRITIC_TARGET_FITTING_AND_ASSET_PREREQUISITES_REMAIN"
+  },
+  "route_exhausted": false,
+  "behavior_launch_authorized": "ONLY_AFTER_SEPARATE_H9_PREREGISTRATION_IMPLEMENTATION_AUDIT_DESIGN_LOCK_PREFLIGHT_AND_CANONICAL_REARM_PASS",
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

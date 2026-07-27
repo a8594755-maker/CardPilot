@@ -1,0 +1,78 @@
+{
+  "schema_version": "v5.pcv005.preregistration.v1",
+  "design_id": "PCV005",
+  "registered_at": "2026-07-19T16:41:00Z",
+  "status": "REGISTERED_TRAINERLESS_NO_LAUNCH",
+  "route_review": {
+    "result_path": "reports/v5_hybrid_route_review_014_result_20260719.json",
+    "result_sha256": "35bff22fd8cc7e2221144ba076817e89a9b6647db9c6c8ad4dc2b6e1cb5a3bb8",
+    "audit_path": "reports/v5_hybrid_route_review_014_result_audit_20260719.json",
+    "audit_sha256": "7ea64c1ea79a233901918988ced2742db59f236fbc709526d846de4185b44a0d",
+    "route_exhausted": false
+  },
+  "source": {
+    "checkpoint_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_endpoint.pt",
+    "checkpoint_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "iteration": 35051,
+    "hands": 576021901
+  },
+  "engineering_candidate": {
+    "baseline": "torch.nn.functional.smooth_l1_loss(beta=1.0,reduction=mean)",
+    "candidate": "torch.nn.functional.huber_loss(delta=1.0,reduction=mean)",
+    "scope": "VALUE_HEAD_CATCHUP_ONLY",
+    "mathematical_relation": "IDENTICAL_AT_BETA_DELTA_ONE",
+    "behavior_change": false
+  },
+  "deterministic_trigger_proof": {
+    "rows": 4096,
+    "mini_batch_size": 1024,
+    "ppo_epochs": 4,
+    "target_kl": 1e-12,
+    "old_log_prob_offset": 10.0,
+    "seeds": [2026071950,2026071951,2026071952,2026071953,2026071954,2026071955,2026071956,2026071957],
+    "required": "EVERY_MODE_AND_SEED_STOPS_AFTER_EPOCH1_WITH_EXACTLY_THREE_CATCHUP_EPOCHS"
+  },
+  "equivalence_gates": {
+    "tensor_shapes": [[4096],[1024],[257]],
+    "seeds": [2026071960,2026071961,2026071962,2026071963],
+    "dtypes": ["float32"],
+    "forward_max_abs_tolerance": 1e-7,
+    "gradient_max_abs_tolerance": 1e-7,
+    "adam_parameter_max_abs_tolerance": 1e-7,
+    "adam_state_max_abs_tolerance": 1e-7,
+    "all_finite": true
+  },
+  "representative_benchmark": {
+    "device": "cuda",
+    "rows": 4096,
+    "mini_batch_size": 1024,
+    "ppo_epochs": 4,
+    "target_kl": 1e-12,
+    "old_log_prob_offset": 10.0,
+    "warmup_updates": 2,
+    "timed_updates": 8,
+    "repeats": 5,
+    "order": "ALTERNATING_MSE_SMOOTHL1_HUBER",
+    "seed": 2026071970,
+    "huber_over_smooth_l1_throughput_ratio_min": 1.0,
+    "huber_over_mse_full_update_throughput_ratio_min": 0.85,
+    "mse_repeat_stability_ratio_min": 0.95
+  },
+  "judgment": {
+    "pass": "EVERY_TRIGGER_EQUIVALENCE_FINITE_STABILITY_AND_THROUGHPUT_GATE_PASSES",
+    "fail": "ANY_VALID_FIXED_GATE_FAILS",
+    "inconclusive": "RESOURCE_OR_PROVENANCE_INCIDENT_PREVENTS_VALID_FIXED_SAMPLE",
+    "pass_next": "SEPARATELY_PREREGISTER_H17_SAME_SCIENCE_WITH_HUBER_DELTA1_IMPLEMENTATION",
+    "fail_or_inconclusive_next": "ROUTE_REVIEW_015"
+  },
+  "constraints": {
+    "trainer_launch": false,
+    "active_window_sentinel": false,
+    "checkpoint_write": false,
+    "h16_rerun": false,
+    "path1": "UNCHANGED_EXACT_EXISTING_JOB",
+    "official_hands": 0,
+    "strength_claim": "FORBIDDEN"
+  },
+  "authority": "TRAINERLESS_ENGINEERING_MEASUREMENT_ONLY"
+}

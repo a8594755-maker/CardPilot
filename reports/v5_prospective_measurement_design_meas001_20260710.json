@@ -1,0 +1,61 @@
+{
+  "design_id": "MEAS-001",
+  "status": "IMPLEMENTED_VALIDATED_NOT_LAUNCHED",
+  "registered_date": "2026-07-10",
+  "applies_to": "future_separately_registered_behavior_experiment",
+  "does_not_reopen_exp003": true,
+  "authorizes_behavior_change": false,
+  "sample": {
+    "mirrored_pairs": 100000,
+    "adaptive_extension_allowed": false,
+    "later_checkpoint_substitution_allowed": false,
+    "common_deal_stream_required": true,
+    "policy_mode": "greedy_argmax_both_sides",
+    "starting_stack_bb": 200,
+    "priority": "BelowNormal"
+  },
+  "roles": [
+    "pre_vs_native",
+    "post_vs_native",
+    "post_vs_pre_direct"
+  ],
+  "primary_estimands": [
+    "paired_native_axis_delta_post_minus_pre",
+    "post_vs_pre_direct"
+  ],
+  "gates": {
+    "primary_ci95_halfwidth_max_bb100": 20.0,
+    "adopt_requires_both_primary_ci_lower_gt_zero": true,
+    "native_anchor_ood_rate_max": 0.15,
+    "health": "PASS",
+    "trainer_stderr": "empty",
+    "official_strength_claim_allowed": false
+  },
+  "power_planning": {
+    "exp003_worst_halfwidth_bb100_at_25000_pairs": 22.199,
+    "projected_worst_halfwidth_bb100_at_100000_pairs": 11.0995,
+    "projected_conservative_independent_axis_halfwidth_bb100": 13.6107,
+    "note": "planning calculation only; common-deal paired covariance is the registered estimator"
+  },
+  "terminal_outcomes": [
+    "PASS",
+    "FAIL",
+    "INCONCLUSIVE"
+  ],
+  "implementation": {
+    "evaluator": "scripts/alpha_holdem/v5_meas001_common_deal_eval.py",
+    "evaluator_sha256": "03d8441f1caeb77e96c8f3bafc195574e3969fc5d5468acef99f40772bd4ec84",
+    "audit_cli": "scripts/alpha_holdem/v5_meas001_bundle_audit.py",
+    "audit_cli_sha256": "1578556a1b46e77d4f6676c62a71e86e74234ff5363d8d09480f925687f91e8d",
+    "focused_test": "scripts/alpha_holdem/test_v5_meas001_common_deal_eval.py",
+    "focused_test_sha256": "3549fa49b4a66b9bdbfa3c7fd1d20c0c8b99de23e87a9bd3c9443c6ed937b297",
+    "focused_tests_passed": 10,
+    "v5_test_scripts_passed": 14,
+    "v5_unittest_cases_passed": 142,
+    "rearm_checks_passed": 14,
+    "measurement_launched": false,
+    "validation_artifact": "reports/v5_meas001_implementation_validation_20260710.json",
+    "validation_overall": "PASS_NOT_LAUNCHED"
+  },
+  "source_exp003_judgment": "v5_exp003_judgment_gate24900.json"
+}

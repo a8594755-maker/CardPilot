@@ -1,0 +1,79 @@
+{
+    "schema_version":  "v5.exp005c.protocol_failure.v1",
+    "artifact_id":  "EXP005-C-PROTOCOL-ABORT-20260711",
+    "created_at":  "2026-07-11T06:38:09.2037916+00:00",
+    "immutable":  true,
+    "classification":  "EXP005C_FAIL_PROTOCOL_ABORT",
+    "design_lock":  {
+                        "path":  "C:\\Users\\a8594\\CardPilot\\reports\\v5_exp005c_design_lock_v2_20260710.json",
+                        "sha256":  "2d64d3b82700d5bea2250121a09567e78f46b6bcc486a55d593acb33bcb86007",
+                        "expected_sha256":  "2d64d3b82700d5bea2250121a09567e78f46b6bcc486a55d593acb33bcb86007",
+                        "lock_revision":  2
+                    },
+    "registered_gate":  {
+                            "minimum_rows":  60,
+                            "abort_ratio_below":  0.85,
+                            "locked_rule":  "treatment_effective_hps_ratio_below_0_85_after_60_rows: abort treatment and FAIL"
+                        },
+    "first_60_rows":  {
+                          "control":  {
+                                          "log_path":  "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_from_zero\\v5_zero_l6_exp005c_control_periter_same31400_20m_r1_20260710\\console.out.log",
+                                          "log_sha256":  "de97a7b4879793a9d52a5bf40fe725e95c6f3df162162e90aecb5fe0c45c92f3",
+                                          "row_count":  60,
+                                          "first_iteration":  31401,
+                                          "last_iteration":  31460,
+                                          "start_hands":  515989661,
+                                          "last_hands":  516976582,
+                                          "actual_iteration_hands_sum":  986921,
+                                          "collect_plus_ppo_seconds_sum":  371.2,
+                                          "effective_hps":  2658.7311422413791,
+                                          "formula":  "sum(actual iteration hands) / sum(collect_seconds + ppo_seconds)"
+                                      },
+                          "treatment":  {
+                                            "log_path":  "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_from_zero\\v5_zero_l6_exp005c_treatment_pergroup5_same31400_20m_r1_20260710\\console.out.log",
+                                            "log_sha256":  "6cbc27a639f8f941ce7aa2808c3c91a42b425498e60c9e4452dc1b0e2b488755",
+                                            "row_count":  60,
+                                            "first_iteration":  31401,
+                                            "last_iteration":  31460,
+                                            "start_hands":  515989661,
+                                            "last_hands":  516976334,
+                                            "actual_iteration_hands_sum":  986673,
+                                            "collect_plus_ppo_seconds_sum":  896,
+                                            "effective_hps":  1101.1975446428571,
+                                            "formula":  "sum(actual iteration hands) / sum(collect_seconds + ppo_seconds)"
+                                        },
+                          "treatment_over_control_ratio":  0.41418160984661245,
+                          "threshold":  0.85,
+                          "threshold_comparison":  "0.4141816098 \u003c 0.85",
+                          "gate_result":  "FAIL"
+                      },
+    "protocol_effect":  {
+                            "authoritative_method_classification":  "EXP005C_FAIL_PROTOCOL_ABORT",
+                            "treatment_rows_after_iteration":  31460,
+                            "classification":  "POST_PROTOCOL_EXPLORATORY_ONLY",
+                            "treatment_endpoint_method_authority":  "NONE",
+                            "primary100k":  "FORBIDDEN_TERMINATED",
+                            "meas001":  "FORBIDDEN",
+                            "promotion20k":  "FORBIDDEN",
+                            "formal100k":  "FORBIDDEN",
+                            "tier2_from_zero_adjustments":  "FROZEN",
+                            "route":  "ROUTE_PIVOT_REVIEW"
+                        },
+    "terminated_primary":  {
+                               "directory":  "C:\\Users\\a8594\\CardPilot\\reports\\exp005c_primary_100k",
+                               "partial_pairs":  7083,
+                               "aligned_pairs_sha256":  "c64981213c81032b73b0152b79f15db43ec633f48e1a75f9da71847d5d0168d3",
+                               "evaluator_pid":  35788,
+                               "evaluator_alive":  false,
+                               "classification":  "PARTIAL_POST_ABORT_INVALID_FOR_METHOD_JUDGMENT"
+                           },
+    "latest_official_strength":  {
+                                     "level":  "L0",
+                                     "hands":  20400,
+                                     "policy":  "greedy-direct",
+                                     "bb100":  -153.3,
+                                     "ci95_lower":  -187.695,
+                                     "ci95_upper":  -118.905,
+                                     "claim":  "NO_L5_L6_CLAIM"
+                                 }
+}

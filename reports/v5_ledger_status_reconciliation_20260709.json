@@ -1,0 +1,17 @@
+{
+  "purpose": "Update only the seeded experiment entry status fields; the Ops table remains append-only.",
+  "replacements": [
+    {
+      "old": "- status: IMPLEMENTED_AWAITING_CUTOVER (implementation completed in isolated `scripts/alpha_holdem/train_v5_exp002.py`; live `train_v5.py` and active trainer remain unchanged; cutover remains blocked until EXP-004 step-1 is judged at its registered gate and a gate boundary is PASS)",
+      "new": "- status: ADOPTED_RETAINED (cut over at gate 14000; throughput and health gates passed; retained through the active EXP-003 run)"
+    },
+    {
+      "old": "### EXP-003 Mirrored self-play deals + all-in runout EV (R3)\n- status: REGISTERED",
+      "new": "### EXP-003 Mirrored self-play deals + all-in runout EV (R3)\n- status: RUNNING_JUDGMENT_PENDING (bounded-K=200 cutover at gate 21800 / 358,064,575; first eligible judgment checkpoint is PASS and >=408,064,575)"
+    },
+    {
+      "old": "- status: RUNNING (first halving cutover at gate_11000; preflop prior coef 0.02 -> 0.01, postflop remains 0.02)",
+      "new": "- status: ROLLED_BACK_TO_STABLE_FLOOR (0.005 step failed and was rolled back; retain preflop 0.01 / postflop 0.02; zero-prior step is not authorized while EXP-003 is open)"
+    }
+  ]
+}

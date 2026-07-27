@@ -1,0 +1,33 @@
+{
+  "schema_version": "v5.hybrid.route_review.h8_mechanism_audit.v1",
+  "checked_at": "2026-07-14T17:28:30Z",
+  "source_script": "scripts/alpha_holdem/train_mp3_hybrid_h1.py",
+  "source_script_sha256": "2526aee22f67f0e8766874050d75b615528a09d94005de73f15cf3555a43a4cb",
+  "h8_judgment_sha256": "2436b8eccf095408b55a1f0357f6f85fbf1eb8936c7fe621adccc0e815efc384",
+  "findings": {
+    "catchup_triggered_rows": 434,
+    "catchup_rows_with_remaining_epochs": 348,
+    "treatment_rows": 1217,
+    "catchup_actor_state_unchanged_all_rows": true,
+    "remaining_epoch_accounting_exact": true,
+    "catchup_target": "the same per-trajectory clipped return used by the standard critic update",
+    "catchup_loss": "torch.nn.functional.mse_loss",
+    "catchup_loss_source_lines": [777, 783],
+    "value_head_only_gradient_guard_source_lines": [744, 810],
+    "optimizer_and_gradient_clip_preserved": true,
+    "mechanism_localization": "H8 did not leak actor/trunk updates. It added repeated squared-error value-head fitting on the same noisy on-policy return targets after KL stopped joint epochs.",
+    "observed_fixed_sample_effect": "Both internal mirrors strongly improved while primary and anchor critic calibration clearly worsened; KL stability also failed.",
+    "robust_loss_candidate_scope": "Change only catch-up loss from MSE to a preregistered robust regression loss; leave standard PPO critic loss, targets, actor/trunk, target-KL, optimizer, epochs, deal stream and all other config unchanged.",
+    "scale_selection_risk": "A robust-loss beta chosen by searching H8 holdout outcomes would be post-hoc. H9 requires one fixed scale justified independently before registration or must remain engineering-only."
+  },
+  "permissions": {
+    "h8_reclassification": false,
+    "h8_adoption": false,
+    "official_hands": 0,
+    "h9_preregistration_possible_after_independent_scale_lock": true,
+    "h9_launch_authorized": false,
+    "gate_relaxation": false
+  },
+  "overall": "PASS_H8_CAUSAL_LOCALIZATION_FOR_ROUTE_SELECTION_ONLY",
+  "strength_claim": "FORBIDDEN"
+}

@@ -1,0 +1,59 @@
+{
+  "schema_version": "v5.pcv014.execution_failure.v1",
+  "failed_at": "2026-07-20T01:00:00Z",
+  "design_id": "PCV014",
+  "verdict": "FAIL",
+  "classification": "PCV014_FAIL_CLOSED_PATH1_COORDINATOR_ABSENT_NO_RESULT",
+  "preregistration_sha256": "8284a18e891409cc8adb9eea92eec9c6e78fc08c5285ec3b645d43865359e4c0",
+  "preregistration_audit_sha256": "9409837dcd00655010769a516bdd4d4302c8f61e5b46b93bbf84694aced45b9e",
+  "implementation_audit_sha256": "76dc08e0dac0d509f4ced25c4835bbe2de5ae090be01b187d9f5d9de17f9f23c",
+  "runner_sha256": "12e352c0def9316a5a6a89f65141bfca1d651fb2cfd1924f55a138d4d11a7ebd",
+  "source_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+  "execution": {
+    "one_registered_attempt_consumed": true,
+    "failure_stage": "INITIAL_PATH1_RESOURCE_SNAPSHOT_BEFORE_CONDITIONING",
+    "exception_type": "psutil.NoSuchProcess",
+    "exception_message": "process PID not found (pid=23720)",
+    "exit_code": 1,
+    "registered_path1_coordinator_pid": 23720,
+    "result_path": "reports/v5_pcv014_result_20260719.json",
+    "result_written": false,
+    "raw_timing_or_telemetry_bundle_written": false,
+    "conditioning_updates_executed": 0,
+    "timed_pairs_executed": 0,
+    "deterministic_transition_fixture_may_have_materialized_on_gpu_before_resource_snapshot": true
+  },
+  "implementation_censure": {
+    "classification": "CENSURE_RESOURCE_SNAPSHOT_EXCEPTION_PRECEDED_REGISTERED_RESULT_WRITER",
+    "issue": "The resource helper raised NoSuchProcess before the runner could serialize its registered resource-failure branch.",
+    "failed_attempt_preserved": true,
+    "repair_or_rerun_authority": "NONE",
+    "method_or_timing_inference": "NONE"
+  },
+  "path1_observation": {
+    "registered_coordinator_pid": 23720,
+    "observed_only_from_exception": "ABSENT_AT_INITIAL_SNAPSHOT",
+    "replacement_coordinator_or_completion_inference": "NONE",
+    "agent_action_on_path1": "NONE"
+  },
+  "lifecycle": {
+    "trainer_started": false,
+    "checkpoint_written": false,
+    "h19_created": false,
+    "evaluator_started": false,
+    "slumbot_started": false,
+    "official_hands": 0
+  },
+  "interpretation": {
+    "pcv014_timing_result": "NONE_NO_IMMUTABLE_RESULT_WRITTEN",
+    "attribution": "FORBIDDEN",
+    "behavior_method_or_strength_inference": "FORBIDDEN",
+    "rerun_same_registration": "FORBIDDEN",
+    "reconstruct_from_console_or_memory": "FORBIDDEN",
+    "path1_restart_repair_or_replacement_by_pcv014": "FORBIDDEN"
+  },
+  "next": "ROUTE_REVIEW026",
+  "route_review_required": true,
+  "behavior_launch_authority": "NONE",
+  "official_hands": 0
+}

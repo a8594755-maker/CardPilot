@@ -1,0 +1,94 @@
+{
+  "schema_version": "v5.hybrid.h10.resource_isolation_incident.v1",
+  "recorded_at": "2026-07-15T07:41:58.1096180Z",
+  "design_id": "H10",
+  "status": "TERMINAL_PRESERVED_NO_RESUME",
+  "registered_verdict": "INCONCLUSIVE",
+  "registered_classification": "H10_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+  "design_lock_sha256": "a0f959f882846eb0d1454aaa9627366f7eaa8b123baa3e1febdbae2145221905",
+  "judgment": {
+    "path": "reports/v5_hybrid_h10_judgment_20260715.json",
+    "sha256": "c29671f5e5fce292d0fdadc4a351c2c089137f2d018f614b7564657dd3178897"
+  },
+  "control": {
+    "run_id": "v5_hybrid_h10_control_catchmse_same33834_20m_r1_20260715",
+    "trainer_pid": 46712,
+    "trainer_process_present_after_abort": false,
+    "last_iteration": 33912,
+    "last_hands": 557293500,
+    "registered_endpoint_hands": 576011085,
+    "remaining_hands": 18717585,
+    "first60_status": "PASS_CONTROL_BASELINE_FROZEN",
+    "first60_effective_hps": 1779.7600339716028,
+    "first60_rows_used": [2, 61],
+    "endpoint_status": "PROCESS_IDENTITY_FAILURE",
+    "checkpoint_role": "PARTIAL_DIAGNOSTIC_ONLY_FORBIDDEN_AS_ENDPOINT"
+  },
+  "treatment": {
+    "launched": false,
+    "status": "TERMINAL_BLOCKED_CONTROL_FAILED"
+  },
+  "protocol_trigger": {
+    "observed_at": "2026-07-15T07:36:51Z",
+    "pid": 7848,
+    "token": "unregistered_cardpilot_project_process",
+    "trainer_stop_action": "TERMINATED",
+    "trigger_process_present_at_forensic_capture": false,
+    "trigger_command_line_preserved_by_watcher": false
+  },
+  "control_plane_diagnosis": {
+    "classification": "OVERBROAD_PROCESS_MATCH_AND_INSUFFICIENT_TRIGGER_PROVENANCE",
+    "evidence": [
+      "The watcher stores only PID and token, not executable, parent PID, creation time, command line, or command-line hash.",
+      "The watcher classifies any Python, Node, or PowerShell command containing /CardPilot/ as a project process unless an allowlisted lifecycle token is present.",
+      "DRIVE-TO-L5 v2 explicitly permits parent/delegated file reads, hashes, and process listings during an active arm.",
+      "PID 7848 had exited before forensic capture, so its exact identity cannot be reconstructed from the frozen watcher artifact."
+    ],
+    "resource_contention_proven": false,
+    "terminal_verdict_changed": false,
+    "reason_terminal_unchanged": "The registered watcher terminated the trainer before the fixed 20M control endpoint; no valid same-start H10 comparison can be completed."
+  },
+  "frozen_evidence": [
+    {
+      "path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h10_control_catchmse_same33834_20m_r1_20260715/h10_control_protocol_status.json",
+      "sha256": "2d8e47716801cfd1e8af839823daafdbf7acff407c634d74c5cdc021ff257b19"
+    },
+    {
+      "path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h10_control_catchmse_same33834_20m_r1_20260715/h10_control_endpoint_status.json",
+      "sha256": "75c0e0ebd9baabf54743aa76f51875fc5f0024ff2bfd377a166ff25cdd48780c"
+    },
+    {
+      "path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h10_control_catchmse_same33834_20m_r1_20260715/h10_treatment_launch_watch_status.json",
+      "sha256": "532b0952fb6d981b51ad2eeeda19783d3f351733a5a64426738bcf64b1a75308"
+    },
+    {
+      "path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h10_control_catchmse_same33834_20m_r1_20260715/h10_completion_watch_status.json",
+      "sha256": "2570674b2944d1780e534411b627f3d7af49442dd5abfd09e12385d256c5bb30"
+    },
+    {
+      "path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h10_control_catchmse_same33834_20m_r1_20260715/run_manifest.json",
+      "sha256": "b95889f2239f1ca03fbe34132301007ab0bca40bcbd71ef7c115b1ef6c45b014"
+    },
+    {
+      "path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h10_control_catchmse_same33834_20m_r1_20260715/h1_training_metrics.jsonl",
+      "sha256": "1946d3dbd1580dd3a4d0b0fe3477d0d9c1b4b7c1b45e7fc2a30ff73e8f19215c"
+    },
+    {
+      "path": "reports/v5_hybrid_h10_active_window_pre_terminal_recovery_snapshot_20260715.json",
+      "sha256_before_terminal_recovery": "a794fd59255bc7904a685307015ece2ff87b99e815f7da0ff20e46a187d6c9d0"
+    }
+  ],
+  "inference_limits": {
+    "method_verdict": "NO_METHOD_JUDGMENT",
+    "model_candidacy": "NONE",
+    "strength_claim": "FORBIDDEN",
+    "official_hands": 0,
+    "control_first60": "THROUGHPUT_BASELINE_ONLY"
+  },
+  "required_next": [
+    "Terminalize the stuck H10 active-window sentinel without changing the immutable judgment.",
+    "Append one Ops CENSURE/recovery row and refresh goal/handoff.",
+    "Correct future protocol provenance and distinguish permitted read-only observer commands before any new trainer arm.",
+    "Run a separately registered Route Review 007; do not relaunch H10."
+  ]
+}

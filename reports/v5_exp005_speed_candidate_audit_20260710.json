@@ -1,0 +1,199 @@
+{
+  "exp005_gate_use": "NOT_AUTHORITATIVE_GENERIC_TAIL_AUDIT_USE_v5_exp005_speed_diagnosis_20260710.json",
+  "batch_buckets": {
+    "fast_fraction": 1.0,
+    "fast_rows": {
+      "collect_seconds_mean": 6.95,
+      "effective_hps_mean": 1426.2,
+      "effective_hps_p50": 1199.0,
+      "effective_hps_p90": 1928.7,
+      "first_hands": 517501769,
+      "first_iteration": 31492,
+      "inference_batch_size_mean": 69.34,
+      "inference_batch_size_p50": 69.3,
+      "iteration_total_seconds_mean": 12.32,
+      "label": "fast_batch",
+      "latest_hands": 518471394,
+      "latest_iteration": 31551,
+      "ppo_seconds_mean": 5.37,
+      "ppo_share_mean": 0.441,
+      "reported_collect_hps_mean": 2588.7,
+      "reported_collect_hps_p50": 2090.0,
+      "reported_collect_hps_p90": 3767.5,
+      "rows": 60,
+      "trainable_decisions_per_second_mean": 6818.0
+    },
+    "slow_rows": null,
+    "threshold_fast_inference_batch_size": 18.0
+  },
+  "checked_at": "2026-07-10T18:54:08.567166+00:00",
+  "classification": {
+    "checks": [
+      {
+        "detail": "latest window rows 60 >= 60",
+        "name": "sample_rows",
+        "status": "PASS"
+      },
+      {
+        "detail": "effective h/s 1426.2 >= 800.0",
+        "name": "effective_hps",
+        "status": "PASS"
+      },
+      {
+        "detail": "PPO takes 44.1% of collect+PPO time",
+        "name": "ppo_share",
+        "status": "WARN"
+      },
+      {
+        "detail": "mean inf_bs 69.34",
+        "name": "inference_batching",
+        "status": "PASS"
+      },
+      {
+        "detail": "nvidia-smi unavailable: None",
+        "name": "gpu_utilization",
+        "status": "WARN"
+      }
+    ],
+    "overall": "WARN",
+    "recommendations": [
+      "PPO time is a meaningful share of wall clock; test larger hands_per_iter or larger mini_batch_size in a separate short sweep before changing the live run."
+    ]
+  },
+  "config": {
+    "device": "cuda",
+    "hands_per_iter": 16384,
+    "mini_batch_size": 1024,
+    "opponent_assignment": "per-group",
+    "ppo_epochs": 4,
+    "self_play_fraction": 0.2,
+    "workers": 22
+  },
+  "decision": "CONTINUE_WITH_THROUGHPUT_WARN",
+  "effective_hps_latest": 1426.2,
+  "effective_hps_long": 1812.2,
+  "fast_effective_hps_mean": 1426.2,
+  "fast_fraction": 1.0,
+  "gpu": {
+    "available": false,
+    "skipped": true
+  },
+  "gpu_memory_total_mb": null,
+  "gpu_memory_used_mb": null,
+  "gpu_utilization_percent": null,
+  "inference_batch_size_mean": 69.34,
+  "latest_row": {
+    "action_mix": {
+      "allin": 0.021,
+      "call": 0.288,
+      "fold": 0.234,
+      "raise": 0.456
+    },
+    "action_prior_loss": 2.3744,
+    "approx_kl": 0.0331,
+    "clip_frac": 0.19,
+    "collect_seconds": 4.8,
+    "collect_share": 0.5393258426966293,
+    "delta1_bite_frac": 0.004,
+    "effective_hands_per_second": 1854.044943820225,
+    "entropy": 1.3476,
+    "epsilon": 0.0,
+    "exp003_metrics": {
+      "allin_ev_replacements": 438,
+      "allin_ev_runouts": 70284,
+      "allin_ev_skipped_hands": 0,
+      "allin_ev_skipped_runouts": 0,
+      "mirror_replay_hands": 1674,
+      "mirror_source_hands": 1663
+    },
+    "hands": 518471394,
+    "hands_per_second": 3463.0,
+    "inference_batch_size": 69.7,
+    "iteration": 31551,
+    "iteration_hands": 16501,
+    "iteration_total_seconds": 8.899999999999999,
+    "policy_loss": -0.0034,
+    "pool_size": 5,
+    "postflop_action_mix": {
+      "allin": 0.022,
+      "call": 0.28,
+      "fold": 0.184,
+      "raise": 0.514
+    },
+    "ppo_seconds": 4.1,
+    "ppo_share": 0.4606741573033708,
+    "preflop_action_mix": {
+      "allin": 0.02,
+      "call": 0.299,
+      "fold": 0.298,
+      "raise": 0.383
+    },
+    "ratio_max": 8.39,
+    "ratio_p50": 0.99,
+    "ratio_p95": 1.16,
+    "ratio_p99": 1.37,
+    "raw": "[31551] hands=518,471,394 rew=+0.248 rew100=+0.368 ploss=-0.0034 vloss=1206.7845 ent=1.3476 kl=0.0331 clipfrac=0.190 d1bite=0.004 aprior=2.3744 r50=0.99/r95=1.16/r99=1.37/rmax=8.39 eps=0.000 pool=5 mirror=1674/1663 aiev=438:70284 aiev_skip=0:0 trans=41690 terms=19000 mix=F0.234/C0.288/R0.456/A0.021 pmix=F0.298/C0.299/R0.383/A0.020 xmix=F0.184/C0.280/R0.514/A0.022 h/s=3463 tdec/s=8750 inf_bs=69.7 collect=4.8s ppo=4.1s",
+    "reported_collect_hands_per_second": 3463.0,
+    "reward": 0.248,
+    "reward_window_100": 0.368,
+    "terminal_trajectories": 19000,
+    "trainable_decisions_per_second": 8750.0,
+    "transitions": 41690,
+    "value_loss": 1206.7845
+  },
+  "latest_window": {
+    "collect_seconds_mean": 6.95,
+    "effective_hps_mean": 1426.2,
+    "effective_hps_p50": 1199.0,
+    "effective_hps_p90": 1928.7,
+    "first_hands": 517501769,
+    "first_iteration": 31492,
+    "inference_batch_size_mean": 69.34,
+    "inference_batch_size_p50": 69.3,
+    "iteration_total_seconds_mean": 12.32,
+    "label": "tail_60",
+    "latest_hands": 518471394,
+    "latest_iteration": 31551,
+    "ppo_seconds_mean": 5.37,
+    "ppo_share_mean": 0.441,
+    "reported_collect_hps_mean": 2588.7,
+    "reported_collect_hps_p50": 2090.0,
+    "reported_collect_hps_p90": 3767.5,
+    "rows": 60,
+    "trainable_decisions_per_second_mean": 6818.0
+  },
+  "long_window": {
+    "collect_seconds_mean": 5.32,
+    "effective_hps_mean": 1812.2,
+    "effective_hps_p50": 1978.9,
+    "effective_hps_p90": 2226.1,
+    "first_hands": 516121279,
+    "first_iteration": 31408,
+    "inference_batch_size_mean": 69.27,
+    "inference_batch_size_p50": 69.2,
+    "iteration_total_seconds_mean": 9.75,
+    "label": "tail_144",
+    "latest_hands": 518471394,
+    "latest_iteration": 31551,
+    "ppo_seconds_mean": 4.43,
+    "ppo_share_mean": 0.462,
+    "reported_collect_hps_mean": 3406.3,
+    "reported_collect_hps_p50": 3741.0,
+    "reported_collect_hps_p90": 4280.1,
+    "rows": 144,
+    "trainable_decisions_per_second_mean": 8848.5
+  },
+  "notes": [
+    "reported_collect_hps is the trainer log h/s and excludes PPO time.",
+    "effective_hps uses iteration_hands / (collect_seconds + ppo_seconds), so it is closer to wall-clock throughput.",
+    "This is an engineering throughput audit only; it does not prove model strength, Slumbot progress, L5, or L6."
+  ],
+  "overall": "WARN",
+  "parsed_rows": 151,
+  "ppo_share_mean": 0.441,
+  "recommendation_summary": "PPO time is a meaningful share of wall clock; test larger hands_per_iter or larger mini_batch_size in a separate short sweep before changing the live run.",
+  "reported_collect_hps_latest": 2588.7,
+  "run_dir": "models\\alpha_holdem_v5_from_zero\\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710",
+  "run_id": "v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710",
+  "slow_effective_hps_mean": null
+}

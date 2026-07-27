@@ -1,0 +1,43 @@
+{
+  "schema_version": "v5.hybrid.route_review.preregistration.v24.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-024",
+  "registered_at": "2026-07-19T23:22:00Z",
+  "status": "REGISTERED_REPORTING_ONLY",
+  "trigger": {
+    "pcv012_classification": "PCV012_PASS_MEASUREMENT_COMPLETE_IN_BLOCK_DEVICE_EXCURSION_PERSISTS",
+    "pcv012_result_sha256": "555bb7bc0039dd6d39cf54e38f8847adf171ccd1919e0f62726788ece35b3e68",
+    "pcv012_audit_sha256": "59430171046c68fa9fc79d75e5859e991f2adeb39defcb32248eac4287e6d33d"
+  },
+  "evidence_rules": {
+    "pcv008_remains_terminal_no_result_no_reconstruction": true,
+    "pcv009_pcv010_pcv011_are_terminal_control_plane_only": true,
+    "pcv012_is_terminal_no_rerun_extension_reclassification_or_row_reuse": true,
+    "pcv012_all_local_envelopes_passed": true,
+    "pcv012_stability_recovered_above_0_95": true,
+    "pcv012_cross_block_temperature_excursion_and_mse_order_association_persisted": true,
+    "pcv012_mixed_signals_are_not_causal_or_method_evidence": true,
+    "a_future_measurement_must_use_new_design_seeds_and_output": true,
+    "a_future_measurement_may_change_only_prospective_absolute_cross_block_device_state_alignment_relative_to_pcv012": true,
+    "future_control_must_not_override_gpu_clocks_or_modify_path1": true,
+    "other_hybrid_routes_require_existing_immutable_completion_evidence": true,
+    "no_h19_or_official_hands": true
+  },
+  "candidate_order": [
+    "PCV013_NEW_REPORTING_ONLY_ABSOLUTE_CROSS_BLOCK_DEVICE_STATE_ALIGNED_TIMING",
+    "ALREADY_COMPLETE_HYBRID_PREREQUISITE_ONLY_IF_NEW_IMMUTABLE_EVIDENCE_SUPPORTS_IT",
+    "ROUTE_EXHAUSTION_IF_NO_CAUSALLY_SUPPORTED_HYBRID_PREREQUISITE_REMAINS"
+  ],
+  "selection_rule": "SELECT_PCV013_IFF_PCV012_PASSES_ITS_FULL_INDEPENDENT_AUDIT,ALL_BLOCK_LOCAL_ENVELOPES_PASS,MSE_STABILITY_IS_AT_LEAST_0_95,CROSS_BLOCK_DEVICE_EXCURSION_AND_MSE_ORDER_ASSOCIATION_PERSIST,A_NEW_PROSPECTIVE_MEASUREMENT_CAN_PRESERVE_THE_PCV012_SOURCE_WORKLOAD_ORDER_TIMING_TELEMETRY_RESOURCE_AND_LOCAL_ENVELOPE_CONTRACT_WHILE_CHANGING_ONLY_AN_ABSOLUTE_CROSS_BLOCK_START_STATE_ANCHOR_WITH_BOUNDED_HEAT_OR_IDLE_ADMISSION_AND_NO_CLOCK_OVERRIDE,AND_NO_OTHER_HYBRID_PREREQUISITE_HAS_NEW_IMMUTABLE_COMPLETION_EVIDENCE;OTHERWISE_SELECT_THE_COMPLETE_ALTERNATIVE_OR_ROUTE_EXHAUSTION",
+  "required_result_fields": [
+    "selected_next",
+    "causal_reason",
+    "route_exhausted",
+    "behavior_launch_authority",
+    "pcv012_terminal_closure",
+    "pcv013_novelty_requirements",
+    "official_hands"
+  ],
+  "official_hands": 0,
+  "behavior_launch_authority": "NONE_REPORTING_ONLY",
+  "strength_claim": "FORBIDDEN"
+}

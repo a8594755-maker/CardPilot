@@ -1,0 +1,337 @@
+{
+  "schema_version": "v5.ct002.fixed_opponent_mix_critic_calibration.preregistration.v1",
+  "created_at": "2026-07-22T22:19:14Z",
+  "immutable": true,
+  "status": "REGISTERED_NO_IMPLEMENTATION_NO_EXECUTION",
+  "candidate_id": "CT002_FRESH_CRITIC_OR_TARGET_CAUSAL_INTERVENTION",
+  "hypothesis_id": "CT002_FIXED_OPPONENT_MIX_CRITIC_CALIBRATION_DISTRIBUTION",
+  "family": "critic_or_target_correction",
+  "identity": {
+    "basis": "CT002|0ac4a83714df460dc3533d519eecc5a89e83cafcedffbd6c8b02c5e0e0faa851",
+    "sha256": "c216cb227e53f64ba20f2de73030bbbd24ace4a2c2b748cd479cd926be65fa48",
+    "token": "c216cb227e53f64ba20f2de73030bbbd"
+  },
+  "trigger": {
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_simplified_route_review001_atomic_result_691b10aab0b6c812f92936e741e81af8_20260722.json",
+    "sha256": "0ac4a83714df460dc3533d519eecc5a89e83cafcedffbd6c8b02c5e0e0faa851",
+    "bytes": 10041,
+    "classification": "SIMPLIFIED_ROUTE_REVIEW001_PASS_SELECT_CT002_FRESH_CRITIC_OR_TARGET_CAUSAL_INTERVENTION_REGISTRATION_LATER_ONLY",
+    "result_audit_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_simplified_route_review001_atomic_result_audit_691b10aab0b6c812f92936e741e81af8_20260722.json",
+    "result_audit_sha256": "5c01fff4e4f756610dea66d202dd5c994eb6af55c8dea002b0e8975e061abb77",
+    "result_audit": "PASS_27_OF_27"
+  },
+  "scientific_question": "At the exact H11 control source, does critic-only calibration on returns generated against the source checkpoint's frozen active opponent pool, rather than matched calibration on self-play returns, improve opponent-mixture value calibration and subsequent greedy-direct Slumbot direction after an otherwise identical fixed PPO window?",
+  "estimand": {
+    "primary_mechanism": "1 - treatment_opponent_mix_holdout_MSE_BB2 / control_opponent_mix_holdout_MSE_BB2 after critic-only calibration",
+    "self_play_no_harm": "treatment_self_play_holdout_MSE_BB2 / control_self_play_holdout_MSE_BB2 - 1 after critic-only calibration",
+    "primary_external": "treatment_minus_control greedy-direct Slumbot bb_per_100 on the same 2500 seat-swapped deal clusters after each completed 5M PPO endpoint",
+    "claim_scope": "causal only for this exact H11 source, fixed calibration datasets, value-head-only optimizer contract, 5M PPO continuation, and quick5k evaluation",
+    "forbidden_claims": [
+      "no prior warm-critic or H11 method is reclassified PASS",
+      "no isolated claim about optimizer choice, target definition, pool member, PPO hyperparameter, or evaluator",
+      "no L4, L5, L6, Slumbot win, or general poker-strength claim"
+    ]
+  },
+  "single_behavior_variable": {
+    "name": "CRITIC_ONLY_CALIBRATION_DATA_DISTRIBUTION",
+    "control": "returns from exact-source self-play",
+    "treatment": "returns from a uniform fixed mixture of the exact-source active pool ids 109,115,120,129,103",
+    "all_else_common": true,
+    "actor_frozen_during_calibration": true,
+    "equal_critic_updates": true,
+    "identical_target_definition": true,
+    "identical_subsequent_ppo": true,
+    "identical_evaluation_contract": true
+  },
+  "frozen_inputs": [
+    {"role":"goal_activation","path":"C:\\Users\\a8594\\CardPilot\\reports\\v5_campaign_goal_v3_activation_20260722.json","sha256":"bf29356f490af7c7cb57100a956727fbcae154a10640879298aed48df75bb4a1","bytes":2847},
+    {"role":"ct002_selection_result","path":"C:\\Users\\a8594\\CardPilot\\reports\\v5_simplified_route_review001_atomic_result_691b10aab0b6c812f92936e741e81af8_20260722.json","sha256":"0ac4a83714df460dc3533d519eecc5a89e83cafcedffbd6c8b02c5e0e0faa851","bytes":10041},
+    {"role":"ct002_selection_result_audit","path":"C:\\Users\\a8594\\CardPilot\\reports\\v5_simplified_route_review001_atomic_result_audit_691b10aab0b6c812f92936e741e81af8_20260722.json","sha256":"5c01fff4e4f756610dea66d202dd5c994eb6af55c8dea002b0e8975e061abb77","bytes":4091},
+    {"role":"warm_critic_hypothesis_evidence","path":"C:\\Users\\a8594\\CardPilot\\reports\\warm_critic_1500k_decision_report.md","sha256":"d0a3bea91f81fff412af5f98a80e31ce6cb161f35b70202546d2a3132501a747","bytes":8675},
+    {"role":"h11_design_lock","path":"C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h11_design_lock_20260715.json","sha256":"d6c5019439ff6ee1543dc6a9a61b7214f4d0a283b2847096ed6074c2366616d8","bytes":16481},
+    {"role":"h11_protocol_judgment","path":"C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h11_judgment_20260715.json","sha256":"88f86867183a36abbf34fedc6eb7556b2fd81e33c1fd47f79e44031ae41fa316","bytes":912},
+    {"role":"h11_terminal_audit","path":"C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h11_terminal_audit_20260716.json","sha256":"fb6217793ea703eb7521dcc6b7d9bdf2d4980c5895c578867e5208aa117c0122","bytes":3130},
+    {"role":"h11_external_quick5k_result","path":"C:\\Users\\a8594\\CardPilot\\reports\\v5_cal_ext_002_completion_20260716.json","sha256":"89baf334e35cf699b75f0845a3c1dea70335ddbe4ee81e219a15048dc4e9b9d7","bytes":4888},
+    {"role":"h11_external_quick5k_audit","path":"C:\\Users\\a8594\\CardPilot\\reports\\v5_cal_ext_002_completion_audit_20260716.json","sha256":"e5dc2487ce8c0e4d0712a79c3b1bde6f41d488ed857ad1504068a5cd0aafaba3","bytes":2208},
+    {"role":"h11_run_manifest","path":"C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\run_manifest.json","sha256":"3c9d55b2ae907661c5ae28f11e76ab6e2bd5bfd8d5f8612b639f8a7c85c7862e","bytes":12224},
+    {"role":"exact_h11_source_checkpoint","path":"C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\latest.pt","sha256":"96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13","bytes":261417230},
+    {"role":"h11_historical_launcher_evidence_only","path":"C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_hybrid_h11_launch_control.ps1","sha256":"676f6696f6955a1248c9451a60653c161b9bee2f069627f39d7b1eedaa72b5a3","bytes":5307},
+    {"role":"lg002_post_terminal_descendant_censure","path":"C:\\Users\\a8594\\CardPilot\\reports\\v5_lg002_recovery_post_terminal_descendant_censure_2320b32682e51ba0e3781407b92d3d75_20260722.json","sha256":"96f0d5ccc80c673bd81d74533a9d303527805d1463f34fdb98d72e5af6520731","bytes":4909},
+    {"role":"current_censured_trainer_postimage_forbidden_not_scientific_input","path":"C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\train_v5.py","sha256":"9d42ff31a57c13ae8afd361b553fe9ea6e086c3e6d0c46328012f39b245b5310","bytes":220304}
+  ],
+  "source_checkpoint": {
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\latest.pt",
+    "sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "bytes": 261417230,
+    "iteration": 35051,
+    "total_hands": 576021901,
+    "env_version": "v55",
+    "obs_version": "v55",
+    "action_space_version": "9slot_v5",
+    "starting_stack_bb": 200,
+    "critic_contract": "critic_v1",
+    "value_units": "BB",
+    "gamma": 0.999,
+    "model_value_parameters": ["value_head.weight", "value_head.bias"],
+    "pool_strategy": "loss-kbest",
+    "active_pool_ids_in_frozen_order": [109,115,120,129,103],
+    "active_pool_snapshot_canonical_tensor_manifest_sha256_in_order": [
+      "7c92a57f7148329c3bc4b142e7084160a64464525ceb5d7ad7c0d4021820a131",
+      "5532d114fbf74f15bb177ccb7fd3a9e1746542e8cd8ff3f5b534311318a87ade",
+      "bf8f3d940fcdcb6a13dad3a4aa7db8103eb73baa96862780ad74a39e31064be4",
+      "aca1ab3a55c411fa1e7224738481949daf1ea591b5ad8ad65f96d9102b226899",
+      "34cc4c1ecc5e842ab057ce5aed99238bb77e331df4bc8d84cd562a76e48544cf"
+    ]
+  },
+  "source_code_availability": {
+    "exact_h11_historical_train_v5_sha256": "98fe394c4d7b9338faa05abfbdf59015b4b0114cc8567f366cbda445a9afd19a",
+    "exact_h11_historical_train_v5_file_present": false,
+    "current_train_v5_is_usable": false,
+    "reason": "The current train_v5.py is a post-terminal LG002 descendant explicitly CENSUREd with authority NONE. No workspace file matches the historical H11 clean trainer hash.",
+    "future_rule": "A dedicated CT002 runner must be newly implemented after a separate implementation authorization and must prove the frozen H11 load, environment, actor, pool, optimizer, PPO, and evaluator contracts without importing, copying, executing, or defaulting to the CENSUREd current train_v5.py.",
+    "h11_launcher_scope": "evidence-only; it is not launch authority and cannot make the missing historical trainer recoverable"
+  },
+  "future_paths_all_absent_at_registration": {
+    "runner": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_ct002_fixed_opponent_mix_critic_calibration_c216cb227e53f64ba20f2de73030bbbd.py",
+    "launcher": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_ct002_launch_c216cb227e53f64ba20f2de73030bbbd.ps1",
+    "implementation_auditor": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_ct002_implementation_audit_c216cb227e53f64ba20f2de73030bbbd.py",
+    "contract_tests": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\test_v5_ct002_c216cb227e53f64ba20f2de73030bbbd.py",
+    "dataset_root": "C:\\Users\\a8594\\CardPilot\\reports\\v5_ct002_datasets_c216cb227e53f64ba20f2de73030bbbd_20260722",
+    "control_run_root": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_ct002_control_selfplay_cal_c216cb227e53f64ba20f2de73030bbbd_20260722",
+    "treatment_run_root": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_ct002_treatment_oppmix_cal_c216cb227e53f64ba20f2de73030bbbd_20260722",
+    "result": "C:\\Users\\a8594\\CardPilot\\reports\\v5_ct002_atomic_result_c216cb227e53f64ba20f2de73030bbbd_20260722.json",
+    "result_audit": "C:\\Users\\a8594\\CardPilot\\reports\\v5_ct002_atomic_result_audit_c216cb227e53f64ba20f2de73030bbbd_20260722.json"
+  },
+  "dataset_contract": {
+    "common": {
+      "source_actor": "exact H11 source checkpoint, frozen",
+      "hero_policy_mode": "categorical sampling from legal-masked source policy",
+      "opponent_policy_mode": "categorical sampling from legal-masked frozen opponent policy",
+      "environment": "exact v55, 200bb, 9slot_v5",
+      "allin_runout_ev": true,
+      "allin_runout_ev_max_runouts": 200,
+      "train_complete_hands_per_distribution": 131072,
+      "holdout_complete_hands_per_distribution": 32768,
+      "whole_hand_split_only": true,
+      "target": "for every hero decision, gamma^(remaining_hero_decision_count) times terminal hero net return in BB",
+      "gamma": 0.999,
+      "no_target_clipping": true,
+      "train_deal_seed": 2026072201,
+      "holdout_deal_seed": 2026072202,
+      "hero_action_rng_seed": 2026072203,
+      "opponent_action_rng_seed": 2026072204,
+      "same_deal_and_hero_action_uniform_streams_across_distributions": true,
+      "immutable_per_hand_and_per_decision_records": true,
+      "training_use_of_holdout": "FORBIDDEN"
+    },
+    "control": {
+      "opponent_distribution": "exact H11 source actor clone with independent action RNG",
+      "label": "SELF_PLAY_RETURN_DISTRIBUTION"
+    },
+    "treatment": {
+      "opponent_distribution": "uniform deterministic round-robin over exact pool ids 109,115,120,129,103",
+      "mixture_weights": [0.2,0.2,0.2,0.2,0.2],
+      "assignment_seed": 2026072205,
+      "assignment_balance": "each contiguous 5-hand block contains each pool id exactly once in a seeded permutation",
+      "label": "FIXED_OPPONENT_MIX_RETURN_DISTRIBUTION"
+    },
+    "required_bundle": [
+      "manifest with source, pool, seeds, counts, deal hashes, and file hashes",
+      "train and holdout per-hand JSONL for both distributions",
+      "train and holdout per-decision records for both distributions",
+      "independent bundle audit proving counts, no overlap, target recomputation, legal actions, and exact hashes"
+    ]
+  },
+  "critic_calibration_contract": {
+    "start": "two byte-identical logical clones of the exact H11 source checkpoint",
+    "network_mode": "eval for the entire calibration; all BatchNorm parameters and buffers frozen",
+    "trainable_parameters_exact": ["value_head.weight", "value_head.bias"],
+    "all_other_parameters_and_buffers": "requires_grad false and bitwise unchanged",
+    "loss": "mean squared error in BB units",
+    "optimizer": "Adam using the source optimizer's exact value-head states and param-group betas 0.9/0.999, eps 1e-8, weight_decay 0, with lr overridden equally to 0.0001 for calibration",
+    "optimizer_updates_per_arm": 2048,
+    "batch_size_decisions": 1024,
+    "sampled_decisions_per_arm": 2097152,
+    "sampling": "deterministic seeded shuffled cycles over every train decision; no holdout sample",
+    "minibatch_seed": 2026072206,
+    "gradient_clip_global_norm": 1.0,
+    "mixed_precision": false,
+    "actor_and_trunk_forward": "computed under no_grad; value head alone receives gradients",
+    "post_calibration_optimizer": "retain the resulting value-head Adam state; restore the original lr 0.0003; all other optimizer state remains bitwise source-identical",
+    "required_cutover_invariants": [
+      "only value_head.weight and value_head.bias tensors may differ from source",
+      "only optimizer state entries for the two value-head parameters may differ from source",
+      "policy logits and legal-masked greedy actions on the frozen fixture are bitwise identical before versus after calibration",
+      "actor, trunk, card/action encoders, BatchNorm buffers, pool snapshots, iteration, total_hands, route identity, and environment metadata remain exact",
+      "both arms execute exactly 2048 accepted optimizer updates"
+    ]
+  },
+  "mechanism_measurement": {
+    "checkpoints": ["source", "post_calibration", "post_5M_PPO"],
+    "evaluate_each_arm_on": ["self_play_holdout", "fixed_opponent_mix_holdout"],
+    "mse_units": "BB squared",
+    "cluster_unit": "complete hand",
+    "bootstrap_repetitions": 10000,
+    "bootstrap_seed": 2026072207,
+    "primary_opponent_mix_gate": {
+      "point_relative_mse_reduction_min": 0.10,
+      "bootstrap_ci95_lower_min": 0.0
+    },
+    "self_play_no_harm_gate": {
+      "point_relative_mse_increase_max": 0.10,
+      "bootstrap_ci95_upper_max": 0.15
+    },
+    "diagnostics_not_independent_variables": [
+      "calibration slope and intercept",
+      "explained variance",
+      "per-pool-id MSE",
+      "value prediction quantiles",
+      "policy action mix and raise frequency trajectory"
+    ],
+    "no_posthoc_slice_gate": true
+  },
+  "subsequent_ppo_contract": {
+    "start": "each arm's valid post-calibration checkpoint",
+    "actual_hands_per_arm": 5000000,
+    "endpoint": "first checkpoint at or above source total_hands plus 5000000",
+    "endpoint_overshoot_max_hands": 50000,
+    "common_configuration": {
+      "device": "cuda",
+      "workers": 22,
+      "hands_per_iter": 16384,
+      "lr": 0.0003,
+      "ppo_epochs": 4,
+      "ppo_target_kl": 0.03,
+      "mini_batch_size": 1024,
+      "gamma": 0.999,
+      "entropy_coef": 0.05,
+      "entropy_floor": 0.3,
+      "value_coef": 0.5,
+      "critic_contract": "critic_v1",
+      "pool_strategy": "loss-kbest",
+      "k_best": 5,
+      "self_play_fraction": 0.2,
+      "opponent_assignment": "per-iteration",
+      "opponent_groups": 5,
+      "fixed_training_deal_stream": true,
+      "mirror_self_play_deals": true,
+      "rollout_mode": "multi",
+      "rollout_envs_per_worker": 16,
+      "allin_runout_ev": true,
+      "allin_runout_ev_max_runouts": 200,
+      "showdown_ev_value_targets": false,
+      "postflop_action_prior_coef": 0.02,
+      "preflop_action_prior_coef": 0.01,
+      "seed": 2026072208,
+      "worker_seed_base": 82000
+    },
+    "matched_requirements": [
+      "same training deal stream",
+      "same opponent assignment stream and frozen starting pool",
+      "same minibatch permutation stream",
+      "same H11 configuration except registered paths, identity, fixed budget, and calibrated value-head consequences",
+      "no adaptive extension, second seed, later endpoint substitution, or arm-specific rescue"
+    ],
+    "sequential_order": ["control", "treatment"],
+    "no_concurrent_arms": true
+  },
+  "quick5k_contract": {
+    "required_after": "both valid completed 5M PPO endpoints and post-window mechanism measurements",
+    "policy": "greedy-direct",
+    "opponent": "Slumbot",
+    "hands_per_endpoint": 5000,
+    "deal_clusters_per_endpoint": 2500,
+    "seat_swaps_per_cluster": 2,
+    "same_deal_seed_and_cluster_order_for_both_endpoints": true,
+    "deal_seed": 2026072211,
+    "bootstrap_repetitions": 10000,
+    "bootstrap_seed": 2026072212,
+    "required_per_endpoint_bundle": [
+      "5000 complete unique hand records",
+      "2500 exact seat-swapped deal clusters",
+      "checkpoint hash and evaluator hash",
+      "bb_per_100 and cluster bootstrap 95 percent CI",
+      "selector failure, illegal action, fallback, protocol error, and missing-hand counts",
+      "preflop and postflop action mix with aggression guards"
+    ],
+    "hard_validity": {
+      "selector_failures": 0,
+      "illegal_actions": 0,
+      "fallbacks": 0,
+      "protocol_errors": 0,
+      "missing_or_duplicate_hands": 0
+    },
+    "directional_pass_gate": {
+      "treatment_minus_control_bb_per_100_min": 10.0,
+      "paired_cluster_bootstrap_ci95_lower_min": -20.0
+    },
+    "official_l5_use": "FORBIDDEN; quick5k is directional screening only"
+  },
+  "resource_contract": {
+    "registration_boundary": "CPU_READ_ONLY_REPORTING_ONLY",
+    "future_execution": "requires separate implementation audit PASS and separate exact launch authority",
+    "future_gpu_count": 1,
+    "concurrent_gpu_consumers_max": 0,
+    "concurrent_trainer_or_evaluator_max": 0,
+    "dataset_and_calibration_wall_clock_seconds_max": 14400,
+    "ppo_wall_clock_seconds_max_per_arm": 14400,
+    "quick5k_wall_clock_seconds_max_per_endpoint": 10800,
+    "disk_growth_bytes_max": 85899345920,
+    "path1_mutation": "FORBIDDEN",
+    "fail_closed_on_resource_or_identity_mismatch": true
+  },
+  "required_future_implementation_audit": {
+    "minimum": [
+      "all 14 frozen input path/hash/byte triples exact",
+      "all future code/output paths newly absent before implementation",
+      "dedicated runner has no import, subprocess, dynamic load, copy, or fallback path to current train_v5.py or any LG002 descendant",
+      "checkpoint metadata and all five pool snapshot manifests independently rederived",
+      "dataset common-deal, whole-hand split, target, balance, and no-leakage fixture tests PASS",
+      "exact two-parameter calibration and bitwise actor/trunk/BatchNorm/pool invariants PASS",
+      "optimizer name mapping and state-isolation tests PASS",
+      "two-arm matched 5M PPO configuration and output collision gates PASS",
+      "greedy-direct quick5k evaluator and complete evidence bundle contract PASS",
+      "Windows parent-to-child device and absolute-path contracts PASS",
+      "no training, asset generation, GPU kernel, checkpoint, evaluation, Slumbot hand, or behavior output during audit"
+    ],
+    "implementation_audit_authority": "CONTRACT_TESTS_ONLY_AFTER_SEPARATE_BOUNDARY; NO_TRAINING_OR_EVALUATION"
+  },
+  "terminal_judgment": {
+    "protocol_abort": "Any source, code, dataset, invariant, count, resource, endpoint, evaluator, or evidence-bundle mismatch; this is no method judgment and forbids repair or rerun in place.",
+    "pass": "All protocol gates PASS; opponent-mix post-calibration relative MSE reduction point >=0.10 with CI95 lower >0; self-play MSE increase point <=0.10 with CI95 upper <=0.15; both 5M windows and both complete quick5k bundles valid; treatment-control quick5k delta >=10 bb/100 with paired CI95 lower >=-20 bb/100.",
+    "fail": "A complete valid fixed window where opponent-mix relative MSE reduction point <=0, or self-play MSE increase point >0.15, or treatment-control quick5k delta <=-10 bb/100, or a treatment-only selector/aggression hard validity failure occurs while control remains valid.",
+    "inconclusive": "A complete valid fixed window that is neither PASS nor FAIL.",
+    "no_extension": true,
+    "no_rerun": true,
+    "no_threshold_change": true,
+    "no_reclassification": true,
+    "pass_next": "separate registered stronger external screen only; no automatic 100k",
+    "fail_or_inconclusive_next": "freeze CT002 and return to a separately registered four-family route review; do not automatically launch another behavior window"
+  },
+  "authority": {
+    "current": "PREREGISTRATION_ONLY_PENDING_INDEPENDENT_PREIMPLEMENTATION_AUDIT",
+    "implementation": "NONE",
+    "contract_test_or_probe": "NONE",
+    "dataset_or_asset_generation": "NONE",
+    "training": "NONE",
+    "gpu": "NONE",
+    "checkpoint": "NONE",
+    "evaluation_or_slumbot": "NONE",
+    "official_hands": 0,
+    "strength_claim": "FORBIDDEN",
+    "route_exhaustion": "FALSE_UNJUDGED"
+  },
+  "campaign_state": {
+    "behavior_windows_under_drive_to_l5_v3": 0,
+    "control_nonbehavior_boundaries_before_registration": 22,
+    "critic_or_target_correction": "OPEN_CT002_REGISTERED_NOT_IMPLEMENTED",
+    "cfr_or_bc_distillation_warm_start": "OPEN_NOT_EVALUATED_AFTER_CT002_SELECTION",
+    "play_time_subgame_resolver": "OPEN_NOT_EVALUATED_AFTER_CT002_SELECTION",
+    "opponent_league": "OPEN_LG002_RECOVERY_PERMANENTLY_CLOSED",
+    "route_exhausted": false,
+    "official_hands_this_registration": 0,
+    "strength": "L0"
+  },
+  "next_later_only": "INDEPENDENT_READ_ONLY_CT002_PREIMPLEMENTATION_AUDIT_OF_THIS_REGISTRATION_THEN_LEDGER_SNAPSHOT_AND_CONTROL_REFRESH",
+  "terminal_stop": "STOP_BEFORE_CT002_IMPLEMENTATION_CONTRACT_TEST_DATASET_GENERATION_TRAINING_GPU_CHECKPOINT_EVALUATION_OR_SLUMBOT"
+}

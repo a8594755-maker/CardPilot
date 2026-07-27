@@ -1,0 +1,119 @@
+{
+    "schema_version":  "v5.exp_w1.preregistration.v1",
+    "experiment_id":  "EXP-W1",
+    "status":  "PREREGISTERED_DESIGN_COMPLETE_NO_LAUNCH_AUTHORITY",
+    "registered_at":  "2026-07-11T08:34:48.5600711Z",
+    "hypothesis":  "A one-time value-head-only warmup on the first normal on-policy rollout batch improves critic calibration and subsequent poker learning without changing reward semantics, trunk, policy weights, or policy logits.",
+    "source_checkpoint":  {
+                              "path":  "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_from_zero\\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\\v5_exp005_cutover_gate31400_checkpoint.pt",
+                              "sha256":  "bcbb46bd01d62fcdea602269b7047323315d4e9bbcf447ea0323e289fde11a8e",
+                              "iteration":  31400,
+                              "hands":  515989661,
+                              "env_version":  "v55",
+                              "obs_version":  "v55",
+                              "action_space_version":  "9slot_v5",
+                              "fresh_from_zero_lineage":  true
+                          },
+    "single_behavior_variable":  {
+                                     "name":  "exp_w1_value_warmup_epochs",
+                                     "control":  0,
+                                     "treatment":  8,
+                                     "all_other_planned_config_identical":  true
+                                 },
+    "treatment":  {
+                      "name":  "VALUE_HEAD_ONLY_FIRST_ROLLOUT_WARMUP",
+                      "at_iteration":  31401,
+                      "data":  "first normal fixed-deal on-policy rollout batch",
+                      "split":  "whole-hand deterministic 80/20",
+                      "split_seed":  2026071101,
+                      "heldout_fraction":  0.2,
+                      "minimum_relative_mse_reduction":  0.02,
+                      "reward_semantics":  "UNCHANGED",
+                      "policy_and_trunk_update":  "FORBIDDEN",
+                      "optimizer":  "source optimizer preserved; extra steps only for value_head"
+                  },
+    "arms":  {
+                 "order":  [
+                               "control",
+                               "treatment"
+                           ],
+                 "actual_hands_each":  20000000,
+                 "minimum_endpoint_hands":  535989661,
+                 "maximum_overshoot_hands":  50000,
+                 "fixed_deal_stream":  true,
+                 "worker_seed_base":  73000,
+                 "opponent_assignment":  "per-iteration",
+                 "optimizer_pool_seed_and_all_non_w1_flags_identical":  true,
+                 "assignment_provenance_required":  true
+             },
+    "operational_abort":  {
+                              "minimum_rows":  60,
+                              "metric":  "treatment_effective_hps/control_effective_hps using sum(actual hands)/sum(collect+ppo seconds), including one-time warmup",
+                              "abort_if_ratio_below":  0.85,
+                              "result":  "FAIL_PROTOCOL_ABORT"
+                          },
+    "primary":  {
+                    "pairs":  100000,
+                    "seed":  2026071102,
+                    "comparison":  "treatment endpoint minus control endpoint on common deals",
+                    "ci":  "paired Student-t 95% CI",
+                    "pass":  "CI lower \u003e 0",
+                    "fail":  "CI upper \u003c= 0",
+                    "inconclusive":  "otherwise or halfwidth \u003e 15 bb/100",
+                    "strength_inference":  "NONE"
+                },
+    "downstream":  {
+                       "pass":  "allow exact treatment endpoint promotion20k only",
+                       "promotion":  "greedy-direct 12x1700 direct BelowNormal full bundle plus fresh-V4 Welch relative CI lower \u003e 0",
+                       "promotion_strong":  "allow same-checkpoint formal100k",
+                       "promotion_not_strong":  "freeze Tier-2 and route review",
+                       "formal":  "greedy-direct 20x5000 full bundle; L5/L6 only by unchanged official rules"
+                   },
+    "abort_and_rollback":  {
+                               "warmup_gate_fail":  "stop before regular PPO and write immutable report",
+                               "arm_health_or_identity_fail":  "abort arm",
+                               "primary_fail_or_inconclusive":  "freeze Tier-2; no 2.7B inertia",
+                               "rollback":  "retain exact gate31400 source checkpoint; never adopt treatment endpoint without registered PASS"
+                           },
+    "route_evidence":  {
+                           "researcher_review_sha256":  "c24f003e2c1d316b49cb8ec9869fd79ab03fd17ef54a216631adc936f83883f0",
+                           "review_overall":  "ROUTE_PIVOT_EXP_W1_ELIGIBLE_REQUIRES_REGISTRATION",
+                           "exp_w1_eligible":  true,
+                           "exp_w2_eligible":  false,
+                           "new_behavior_authorized_by_review":  false,
+                           "preregistration_review_sha256":  "16a0bebf21488eb3cc77ab9612e9fe2ca18d87efff5cd3be2d488b08232ae7dd"
+                       },
+    "forbidden":  [
+                      "automatic trainer launch",
+                      "Slumbot launch before primary PASS",
+                      "reward normalization",
+                      "BC initialization",
+                      "CFR teacher",
+                      "trunk warmup",
+                      "policy warmup",
+                      "post-hoc sample or threshold changes",
+                      "V4/L5/L6 inference from internal method evidence"
+                  ],
+    "implementation":  {
+                           "candidate_trainer":  "scripts/alpha_holdem/train_v5_exp_w1.py",
+                           "warmup_helper":  "scripts/alpha_holdem/v5_exp_w1_value_warmup.py",
+                           "endpoint_watcher":  "scripts/alpha_holdem/v5_exp_w1_arm_endpoint_freeze_watch.py",
+                           "primary_watcher":  "scripts/alpha_holdem/v5_exp_w1_primary_watch.py",
+                           "promotion_program":  "scripts/alpha_holdem/v5_exp_w1_promotion_program_watch.py",
+                           "continuation":  "scripts/alpha_holdem/v5_continue_after_gate.ps1"
+                       },
+    "validation":  {
+                       "w1_tests":  "12/12 PASS",
+                       "cutover_and_lock_tests":  "5/5 PASS",
+                       "combined_focused":  "17/17 PASS",
+                       "broader_legacy":  "30 PASS, 8 TEMP_ACL_ENVIRONMENT_ERRORS, no full PASS claimed",
+                       "py_compile":  "PASS",
+                       "powershell_ast":  "PASS"
+                   },
+    "ledger_binding":  {
+                           "prefix_bytes":  599583,
+                           "prefix_sha256":  "4f5f2b3e65c03b88fee05be5a79024bd8b96488aa7fd8709dc56910468d500f4",
+                           "event_id":  "v5-exp-w1-exact-single-variable-preregistered-20260711"
+                       },
+    "launch_authority":  "NONE_UNTIL_IMMUTABLE_DESIGN_LOCK_PREFLIGHT_AND_SEPARATE_USER_CONTINUATION"
+}

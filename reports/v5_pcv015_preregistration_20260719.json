@@ -1,0 +1,113 @@
+{
+  "schema_version": "v5.pcv015.preregistration.v1",
+  "design_id": "PCV015",
+  "registered_at": "2026-07-20T02:00:00Z",
+  "status": "REGISTERED_REPORTING_ONLY_NO_TRAINER",
+  "route_review": {
+    "result_sha256": "a27011e2634526963e832cff7935b2cc9c1f116f7e08a80b296c0c3a057d1db6",
+    "audit_sha256": "c0ad83750c919c4fc315e6cca4c2f03576dacd5b2921f7ed65b183796a7337b2",
+    "selected_next": "PCV015_NEW_REPORTING_ONLY_PATH1_TERMINAL_LIFECYCLE_AND_ASSET_CLOSURE_AUDIT"
+  },
+  "frozen_inputs": {
+    "asset_lock": {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_h3_path1_successor_asset_lock_20260713.json",
+      "sha256": "ddc57ea13d9bd02cdc41f40832aa08b07b82b03267d1540b4745abb3b60174d4"
+    },
+    "progress_553": {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_path1_legalallin_v2_progress_553_20260719.json",
+      "sha256": "d153cf5684cef59bb2aca0b62ffdb37d7a74cbf36bd54efa1f4aa111922aa2ed"
+    },
+    "asset_directory": "C:\\Users\\a8594\\CardPilot\\data\\cfr\\pipeline_v3_hu_srp_200bb_legalallin_v2",
+    "selection_manifest": {
+      "path": "C:\\Users\\a8594\\CardPilot\\data\\cfr\\pipeline_v3_hu_srp_200bb_legalallin_v2\\path1-selection-manifest.json",
+      "sha256": "fe35f02a09b8e9a8c0368c010e3b3366ec2b06c502f4aa5f88cd355a7af69515"
+    },
+    "solver_status": {
+      "path": "C:\\Users\\a8594\\CardPilot\\data\\cfr\\pipeline_v3_hu_srp_200bb_legalallin_v2\\path1-solver-status.json",
+      "sha256": "0481d567f01645eeaaeda1907d055d46a4e1200e7a093f51532fb582d098c797"
+    },
+    "qa_log": {
+      "path": "C:\\Users\\a8594\\CardPilot\\data\\cfr\\pipeline_v3_hu_srp_200bb_legalallin_v2\\path1-qa.log",
+      "sha256": "a576929cdaffe1718b84ef52aad3a3c1bc2165e215d4658537e2c614c28875bd"
+    },
+    "parallel_log": {
+      "path": "C:\\Users\\a8594\\CardPilot\\data\\cfr\\pipeline_v3_hu_srp_200bb_legalallin_v2\\parallel-solver.log",
+      "sha256": "cb9874ba262f8a36a89d8897d74b0b8943a069ec79e941070d112fb30f29b75a"
+    }
+  },
+  "selection_contract": {
+    "config": "pipeline_srp_v3_200bb",
+    "target_boards": 600,
+    "selection_seed": 20260712,
+    "selection_method": "isomorphism_multiplicity_weighted_texture_stratified_v1",
+    "iterations_per_board": 80000,
+    "samples_per_bucket": 1,
+    "selected_board_identity_source": "selection_manifest.selectedBoardIds",
+    "selected_board_id_count_must_equal_target": true,
+    "selected_board_ids_must_be_unique": true
+  },
+  "asset_pair_contract": {
+    "gzip_pattern": "flop_<board_id_zero_padded_min3>.jsonl.gz",
+    "meta_pattern": "flop_<board_id_zero_padded_min3>.meta.json",
+    "pair_rule": "ONE_NONEMPTY_GZIP_AND_ONE_PARSEABLE_META_FOR_EACH_SELECTED_BOARD_AND_NO_UNSELECTED_PAIR",
+    "meta_identity": "boardId/config/iterations must equal the frozen selection and asset lock",
+    "inventory_digest": "SHA256_OVER_SORTED_BOARD_ID_PATH_SIZE_MTIME_NS_AND_META_CONTENT_SHA256",
+    "gzip_content_decompression": "FORBIDDEN_NOT_AN_INPUT_TO_THIS_CLOSURE_AUDIT"
+  },
+  "qa_contract": {
+    "record_start": "TIMESTAMPED_PATH_LINE_FOR_FLOP_GZIP",
+    "latest_record_rule": "LAST_QA_RECORD_IN_FROZEN_QA_LOG_FOR_EACH_SELECTED_BOARD",
+    "valid_board_rule": "PAIR_PRESENT_META_IDENTITY_PASS_LATEST_QA_PASS_AND_ILLEGAL_POST_ALLIN_EXTRA_ACTION_ROWS_EQUALS_ZERO",
+    "historical_failures": "ALLOWED_ONLY_IF_A_LATER_RECORD_FOR_THE_SAME_BOARD_PASSES",
+    "missing_latest_qa": "INVALID",
+    "unresolved_qa_fail": "INVALID",
+    "solver_failed_count_or_unresolved_error": "INVALID",
+    "parallel_log_use": "TERMINAL_STATUS_AND_UNRESOLVED_BOARD_CORROBORATION_ONLY"
+  },
+  "lifecycle_contract": {
+    "registered_coordinator_pid": 23720,
+    "registered_coordinator_create_time": 1784302339.7041352,
+    "registered_coordinator_command_sha256": "efaf227352c6620b4f12dd5f06ac67d98d834feb11384b167170618dc1cf9e99",
+    "configured_logical_loops": 6,
+    "required_priority_if_alive": "BelowNormal",
+    "allowed_child_roles_if_alive": ["SOLVE_WORKER", "QA_200BB_BOARD", "CONHOST_IGNORED"],
+    "unknown_roles_if_alive": "FAIL_CLOSED",
+    "coordinator_identity_change_if_alive": "FAIL_CLOSED",
+    "descendant_gpu_use_if_alive": "FAIL_CLOSED",
+    "registered_pid_absent": "TERMINAL_ABSENT",
+    "process_scope": "REGISTERED_COORDINATOR_AND_ITS_DESCENDANTS_ONLY_NO_GLOBAL_PROCESS_ENUMERATION"
+  },
+  "classification_rules": {
+    "pass_terminal_complete": "EXACTLY_600_VALID_SELECTED_PAIRS_NO_UNRESOLVED_ERRORS_AND_REGISTERED_COORDINATOR_ABSENT",
+    "fail_terminal_incomplete": "FEWER_THAN_600_VALID_SELECTED_PAIRS_AND_REGISTERED_COORDINATOR_ABSENT",
+    "inconclusive_active": "REGISTERED_COORDINATOR_IDENTITY_IS_EXACT_AND_STILL_ACTIVE",
+    "fail_identity_or_input": "ANY_FROZEN_HASH_SCHEMA_SELECTION_COORDINATOR_ROLE_PRIORITY_OR_GPU_CONTRACT_FAILURE",
+    "pass_classification": "PCV015_PASS_PATH1_TERMINAL_COMPLETE_RESOURCE_CONTRACT",
+    "fail_incomplete_classification": "PCV015_FAIL_CLOSED_PATH1_TERMINAL_INCOMPLETE_NO_RESTART",
+    "inconclusive_active_classification": "PCV015_INCONCLUSIVE_PATH1_STILL_ACTIVE_READ_ONLY",
+    "fail_contract_classification": "PCV015_FAIL_CLOSED_INPUT_OR_RESOURCE_CONTRACT"
+  },
+  "abort_rules": {
+    "frozen_input_hash_mismatch": "FAIL_CLOSED_BEFORE_RESULT_INFERENCE",
+    "path1_write_or_signal_needed": "ABORT_FORBIDDEN",
+    "adaptive_extension": false,
+    "rerun_same_registration": false
+  },
+  "immutable_output": "C:\\Users\\a8594\\CardPilot\\reports\\v5_pcv015_result_20260719.json",
+  "independent_audit_output": "C:\\Users\\a8594\\CardPilot\\reports\\v5_pcv015_result_audit_20260719.json",
+  "resource_policy": {
+    "path1": "READ_ONLY_NO_WRITE_NO_SIGNAL_NO_RESTART_NO_REPAIR_NO_REPLACEMENT_NO_EXPANSION",
+    "gpu": "FORBIDDEN",
+    "trainer_evaluator_mirror_slumbot": "FORBIDDEN",
+    "checkpoint": "FORBIDDEN",
+    "prior_timing_rows": "FORBIDDEN"
+  },
+  "interpretation": {
+    "scope": "CONTROL_PLANE_RESOURCE_LIFECYCLE_AND_EXISTING_ASSET_CLOSURE_ONLY",
+    "timing_method_behavior_or_strength_inference": "FORBIDDEN",
+    "automatic_h19_or_later_launch": false,
+    "next_after_terminal": "SEPARATELY_REGISTERED_ROUTE_REVIEW027"
+  },
+  "official_hands": 0,
+  "behavior_launch_authority": "NONE"
+}

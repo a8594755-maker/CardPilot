@@ -1,0 +1,108 @@
+{
+  "schema_version": "v5.hybrid.h9.preregistration.v1",
+  "experiment_id": "H9",
+  "status": "REGISTERED_NO_LAUNCH",
+  "registered_at": "2026-07-14T17:30:00Z",
+  "route_review": {
+    "result_path": "reports/v5_hybrid_route_review_005_result_20260714.json",
+    "result_sha256": "49ae4ac04ecaa48cbd4ea3c8acecd3f29c9a92a5516a0deffd73b7e7c53c6956",
+    "selected_next": "H9_ROBUST_VALUE_HEAD_CATCHUP_LOSS",
+    "route_exhausted": false
+  },
+  "hypothesis": "H8 catch-up failed critic calibration because repeated squared-error fitting gives extreme clipped-return residuals quadratic leverage. Replacing only catch-up MSE with canonical SmoothL1 beta1.0 will improve frozen-holdout calibration while preserving actor/trunk isolation, KL stopping and the internal mirror signal.",
+  "single_variable": {
+    "name": "catchup_value_loss",
+    "control": "MSE",
+    "treatment": "SmoothL1",
+    "treatment_beta_raw_bb": 1.0,
+    "standard_ppo_critic_loss_both_arms": "MSE",
+    "beta_selection": "canonical SmoothL1 default and one critic-v1 unit equals one big blind; no holdout or H8 outcome search"
+  },
+  "source": {
+    "run_id": "v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714",
+    "checkpoint_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714\\h8_treatment_endpoint.pt",
+    "checkpoint_sha256": "7c388ec68114d497f775157def3c0b3abc82db7ee25baf7e7cb7e9e916f66438",
+    "iteration": 33834,
+    "hands": 556011085,
+    "optimizer_preserved": true,
+    "strength_status": "DIAGNOSTIC_SOURCE_NOT_ADOPTED_STRENGTH"
+  },
+  "arms": {
+    "order": ["control", "treatment"],
+    "actual_hands_each": 20000000,
+    "minimum_endpoint_hands": 576011085,
+    "maximum_overshoot_hands": 50000,
+    "control_run_id": "v5_hybrid_h9_control_catchmse_same33834_20m_r1_20260714",
+    "treatment_run_id": "v5_hybrid_h9_treatment_catchsmoothl1b1_same33834_20m_r1_20260714",
+    "fresh_same_start": true,
+    "adaptive_extension": false,
+    "second_seed": false,
+    "later_endpoint": false
+  },
+  "frozen_common_config": {
+    "target_kl": 0.03,
+    "value_head_catchup_after_kl_stop": true,
+    "critic_contract": "critic_v1",
+    "value_coef": 0.5,
+    "ppo_epochs": 4,
+    "mini_batch_size": 1024,
+    "lr": 0.0003,
+    "gamma": 0.999,
+    "entropy_coef": 0.05,
+    "entropy_floor": 0.3,
+    "workers": 22,
+    "rollout_mode": "multi",
+    "rollout_envs_per_worker": 16,
+    "fixed_training_deal_stream": true,
+    "worker_seed_base": 73000,
+    "opponent_assignment": "per-iteration",
+    "pool_strategy": "loss-kbest",
+    "k_best": 5,
+    "self_play_fraction": 0.2,
+    "preflop_action_prior_coef": 0.01,
+    "postflop_action_prior_coef": 0.02,
+    "optimizer_reset": false
+  },
+  "resource_isolation": {
+    "evaluation_during_arm": "FORBIDDEN",
+    "slumbot_during_arm": "FORBIDDEN",
+    "path1_existing_job": "MAY_CONTINUE_EXISTING_BELOWNORMAL_NO_RESTART_EXPANSION_OR_NEW_WORKERS",
+    "evaluation_start": "AFTER_BOTH_ENDPOINTS_FROZEN_PASS_AND_NO_TRAINER_ACTIVE"
+  },
+  "offline_requirements": [
+    "Disabled/MSE mode bitwise equivalent to H8 catch-up implementation.",
+    "Forced-trigger SmoothL1 mode changes only value-head parameters and value-head optimizer state; actor/trunk parameters,buffers and non-value optimizer state remain bitwise unchanged.",
+    "SmoothL1 beta is exactly1.0 in raw critic-v1 bb units and applies only to catch-up minibatches.",
+    "Remaining-epoch accounting, deterministic minibatch order and global RNG isolation remain exact.",
+    "Independent implementation audit, immutable design lock, preflight and canonical watcher rearm all pass before control launch."
+  ],
+  "gates": {
+    "endpoint_mse_primary_reduction_point_min": 0.075,
+    "endpoint_mse_primary_ci95_lower_min": 0.0,
+    "source_anchor_degradation_point_max": 0.05,
+    "source_anchor_degradation_ci95_upper_max": 0.10,
+    "kl_p95_max": 0.03,
+    "kl_fraction_above_0_03_max": 0.06044407894736842,
+    "early_stop_trigger_fraction_min": 0.05,
+    "first60_hps_ratio_min": 0.85,
+    "full_hps_ratio_min": 0.85,
+    "entropy_median_last200_min": 0.3,
+    "entropy_treatment_minus_control_min": -0.1,
+    "mirror_pairs": 40000,
+    "mirror_treatment_control_ci95_lower_min_bb100": -20.0,
+    "mirror_treatment_source_ci95_lower_min_bb100": -20.0
+  },
+  "judgment": {
+    "pass": "Every identity,isolation,robust-loss accounting,critic-MSE point+CI,source-anchor guard,KL,mirror,throughput,entropy and health gate passes.",
+    "fail": "A valid protocol abort,a clearly adverse fixed-sample result,or any complete-window deterministic mandatory gate fails.",
+    "inconclusive": "Evidence is valid but a fixed-sample statistical gate does not satisfy PASS and is not clearly adverse; no extension allowed.",
+    "route_review_after_fail_or_inconclusive": true
+  },
+  "holdout": "reports/h1_cal_001_attempt2_20260712 FORBIDDEN_HOLDOUT_ONLY; never training or beta selection",
+  "authority": {
+    "implementation_and_control_plane": "AUTHORIZED_AUTONOMOUSLY",
+    "launch": "BLOCKED_UNTIL_IMPLEMENTATION_AUDIT_DESIGN_LOCK_PREFLIGHT_AND_CANONICAL_REARM_PASS",
+    "official_hands": 0,
+    "strength_claim": "FORBIDDEN"
+  }
+}

@@ -1,0 +1,194 @@
+{
+  "schema_version": "v5.hybrid.h8.preregistration.v1",
+  "experiment_id": "H8",
+  "title": "Value-head-only catch-up after PPO KL early stop",
+  "status": "REGISTERED_NO_LAUNCH",
+  "immutable": true,
+  "registered_at": "2026-07-14T07:27:00+00:00",
+  "question": "Starting from the exact H7 target-KL endpoint, does completing only the omitted value-head epochs restore critic calibration while preserving KL stability, policy mirror performance, entropy, throughput and health?",
+  "route_selection": {
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_route_review_004_result_20260714.json",
+    "sha256": "126dfc461c822c4b2bb4e599ac3da276b6412a9dda210ba8912a8d97fc0a6859",
+    "selected_next": "H8_VALUE_HEAD_ONLY_CATCHUP_AFTER_KL_STOP",
+    "route_exhausted": false
+  },
+  "single_variable": {
+    "name": "value_head_only_catchup_after_kl_stop",
+    "control": false,
+    "treatment": true,
+    "common_ppo_target_kl": 0.03,
+    "one_behavior_change": true
+  },
+  "source": {
+    "run_id": "v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713",
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\\h7_treatment_endpoint.pt",
+    "sha256": "948050ac6d273ec2cd1291b3e1b430d4c747ea918f5c1820edf18397a6829149",
+    "endpoint_status_sha256": "dbd70ff5dd6fe8c281de8e01f5e54a37b16d7035dbe57eefc0bd218a094910b7",
+    "run_manifest_sha256": "86b1ebf6ece261f51199f5ec20215f044200d7ed5cebeaed80d13d936b82fc57",
+    "iteration": 32617,
+    "hands": 536001286,
+    "optimizer_state_count": 80,
+    "optimizer_preserved": true,
+    "status": "DIAGNOSTIC_SOURCE_NOT_STRENGTH_ADOPTION"
+  },
+  "arms": {
+    "control": {
+      "run_id": "v5_hybrid_h8_control_kles003_nocatch_same32617_20m_r1_20260714",
+      "actual_hands": 20000000,
+      "target_endpoint_hands": 556001286,
+      "maximum_overshoot_hands": 50000,
+      "ppo_target_kl": 0.03,
+      "value_head_catchup": false
+    },
+    "treatment": {
+      "run_id": "v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714",
+      "actual_hands": 20000000,
+      "target_endpoint_hands": 556001286,
+      "maximum_overshoot_hands": 50000,
+      "ppo_target_kl": 0.03,
+      "value_head_catchup": true
+    }
+  },
+  "common_config": {
+    "device": "cuda",
+    "workers": 22,
+    "hands_per_iter": 16384,
+    "rollout_mode": "multi",
+    "rollout_envs_per_worker": 16,
+    "inference_min_batch_slots": 256,
+    "inference_batch_deadline_us": 1000,
+    "ppo_epochs": 4,
+    "mini_batch_size": 1024,
+    "lr": 0.0003,
+    "gamma": 0.999,
+    "entropy_coef": 0.05,
+    "entropy_floor": 0.3,
+    "seed": 20260703,
+    "worker_seed_base": 73000,
+    "fixed_training_deal_stream": true,
+    "opponent_assignment": "per-iteration",
+    "pool_strategy": "loss-kbest",
+    "k_best": 5,
+    "self_play_fraction": 0.2,
+    "mirror_self_play_deals": true,
+    "allin_runout_ev": true,
+    "allin_runout_ev_max_runouts": 200,
+    "preflop_action_prior_coef": 0.01,
+    "postflop_action_prior_coef": 0.02,
+    "critic_contract": "critic_v1",
+    "value_coef": 0.5,
+    "reset_optimizer": false,
+    "save_interval": 1,
+    "snapshot_every": 200,
+    "showdown_ev_value_targets": false
+  },
+  "catchup_contract": {
+    "activation": "only when epoch_mean_kl is strictly greater than0.03 after a completed epoch and completed_epochs<4",
+    "remaining_epochs": "4 - ppo_epochs_completed",
+    "trainable_parameters": "model.value_head parameters only",
+    "frozen": "card/action encoders,extra_fc,trunk,policy_head parameters and every model buffer",
+    "model_mode": "eval during catch-up; restore prior train mode afterward",
+    "critic_targets": "unchanged H7 critic_v1 clipped returns",
+    "optimizer": "same preserved Adam optimizer; parameters with grad None must retain state bitwise",
+    "minibatch_order": "sequential fixed order; consumes no global RNG",
+    "gradient_clip": "value_head parameters only at max_grad_norm0.5",
+    "logging_required": [
+      "value_head_catchup_enabled",
+      "value_head_catchup_epochs",
+      "value_head_catchup_minibatches",
+      "value_head_catchup_loss",
+      "value_head_catchup_actor_state_unchanged"
+    ],
+    "forbidden_bundles": [
+      "KL threshold change",
+      "minimum policy epoch change",
+      "critic architecture or target change",
+      "entropy,learning-rate,optimizer,opponent-pool or prior change"
+    ]
+  },
+  "resource_isolation_contract": {
+    "arm_order": ["control", "treatment"],
+    "fresh_same_start_arms_required": true,
+    "mirror_or_holdout_evaluation_while_any_arm_trainer_active": "FORBIDDEN",
+    "official_or_diagnostic_slumbot_while_any_arm_trainer_active": "FORBIDDEN",
+    "endpoint_evaluations_start": "ONLY_AFTER_BOTH_ENDPOINTS_FROZEN_PASS",
+    "path1_existing_job": "May remain as the pre-existing BelowNormal CPU-only six-worker job; no restart, expansion or new asset worker during either H8 arm.",
+    "additional_cpu_or_gpu_jobs": "FORBIDDEN_DURING_ARMS",
+    "resource_contract_violation": "INCONCLUSIVE_FAIL_CLOSED_NO_METHOD_JUDGMENT"
+  },
+  "registered_measurements": {
+    "catchup_isolation": {
+      "forced_trigger_actor_trunk_parameters_bitwise_unchanged": true,
+      "forced_trigger_buffers_bitwise_unchanged": true,
+      "forced_trigger_non_value_optimizer_state_bitwise_unchanged": true,
+      "disabled_mode_bitwise_equivalent_to_h7": true,
+      "runtime_remaining_epoch_accounting_exact": true
+    },
+    "endpoint_critic_mse_primary": {
+      "holdout": "reports/h1_cal_001_attempt2_20260712 FORBIDDEN_HOLDOUT_ONLY",
+      "estimand": "1 - treatment_normalized_mse/control_normalized_mse",
+      "bootstrap_repetitions": 10000,
+      "bootstrap_seed": 2026071802,
+      "reduction_point_min": 0.075,
+      "reduction_ci95_lower_min": 0.0
+    },
+    "endpoint_critic_mse_anchor_guard": {
+      "anchor": "frozen H7 no-stop control endpoint SHA468f7a854e59387f2dda3bef7287a934a31d0ef75a5ec402db18bce02290d71b",
+      "relative_degradation_point_max": 0.05,
+      "relative_degradation_ci95_upper_max": 0.10
+    },
+    "kl_stability": {
+      "threshold": 0.03,
+      "treatment_p95_max": 0.03,
+      "treatment_fraction_above_threshold_max": 0.06044407894736842,
+      "early_stop_trigger_fraction_min": 0.05
+    },
+    "internal_mirror": {
+      "common_deal_pairs": 40000,
+      "seed": 2026071801,
+      "bootstrap_repetitions": 10000,
+      "bootstrap_seed": 2026071801,
+      "treatment_vs_control_noninferiority_ci95_lower_bb100": -20.0,
+      "treatment_vs_h7_nostop_anchor_ci95_lower_bb100": -20.0,
+      "adaptive_extension_allowed": false
+    },
+    "throughput": {
+      "first60_ratio_min": 0.85,
+      "full_window_ratio_min": 0.85,
+      "warmup_rows_excluded": 1,
+      "baseline": "fresh H8 control only"
+    },
+    "entropy": {
+      "median_last200_min": 0.3,
+      "treatment_minus_control_min": -0.1
+    }
+  },
+  "abort": [
+    "identity,source,optimizer,config or provenance mismatch",
+    "resource isolation contract violation",
+    "catch-up changes any frozen actor/trunk parameter or buffer in offline validation",
+    "nonfinite loss or gradient",
+    "treatment/control first60 effective h/s ratio<0.85",
+    "entropy<0.3 for20 consecutive accepted rows"
+  ],
+  "judgment": {
+    "pass": "Every identity,isolation,catch-up accounting,critic-MSE point+CI,anchor guard,KL,mirror,throughput,entropy and health gate passes.",
+    "fail": "A valid protocol abort, a clearly adverse fixed-sample result, or any complete-window deterministic mandatory gate fails.",
+    "inconclusive": "Evidence is valid but a fixed-sample statistical gate does not satisfy PASS and is not clearly adverse; no extension allowed.",
+    "route_review_after_fail_or_inconclusive": true
+  },
+  "no_adaptive_changes": {
+    "sample_extension": false,
+    "second_seed": false,
+    "later_endpoint": false,
+    "posthoc_threshold_change": false
+  },
+  "authority": {
+    "implementation_and_control_plane": "AUTHORIZED_AUTONOMOUSLY",
+    "launch": "BLOCKED_UNTIL_IMPLEMENTATION_AUDIT_DESIGN_LOCK_PREFLIGHT_AND_CANONICAL_REARM_PASS",
+    "official_hands": 0,
+    "strength_claim": "FORBIDDEN"
+  },
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

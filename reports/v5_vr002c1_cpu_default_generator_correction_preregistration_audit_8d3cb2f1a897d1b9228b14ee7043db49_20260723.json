@@ -1,0 +1,168 @@
+{
+  "schema_version": "v5.vr002c1.preregistration_audit.v1",
+  "audited_at": "2026-07-23T11:31:00-04:00",
+  "status": "VR002C1_REGISTERED_PREIMPLEMENTATION_AUDIT_PASS_IMPLEMENTATION_AUTHORIZED_ONLY",
+  "audit_scope": "Independent read-only audit of the fresh VR002C1 preregistration and exact one-line CPU-default-generator correction. No VR002C1 implementation, launcher probe, model execution, training, checkpoint creation, official hands, network access, or scientific output was authorized or performed.",
+  "preregistration": {
+    "path": "reports/v5_vr002c1_cpu_default_generator_correction_preregistration_8d3cb2f1a897d1b9228b14ee7043db49_20260723.json",
+    "sha256": "a0a9ff27017257a27cad92bacf2a69f64a1442b218495a3d6d6a76ea7244948e",
+    "identity_basis": "VR002C1|dbc03bbf7d1d9cb0270c4b1f9d583a586b82c23a655de48a4fb2139ac00a3fb1|CPU_DEFAULT_GENERATOR_ONLY|2026-07-23",
+    "recomputed_identity_sha256": "8d3cb2f1a897d1b9228b14ee7043db496c7a319c4af7318aae4e0103ac534a4d",
+    "token": "8d3cb2f1a897d1b9228b14ee7043db49"
+  },
+  "frozen_parent_evidence": {
+    "identity_sha256": "dbc03bbf7d1d9cb0270c4b1f9d583a586b82c23a655de48a4fb2139ac00a3fb1",
+    "failure_status": "VR002_STAGEA_PREOUTPUT_CUDA_RNG_ISOLATION_ASSERT_FAILURE_NO_SCIENCE_NO_RERUN",
+    "failure_report": {
+      "path": "reports/v5_vr002_stagea_preoutput_cuda_rng_isolation_failure_dbc03bbf7d1d9cb0270c4b1f9d583a58_20260723.json",
+      "sha256": "ae67083e3cec4041664648c9559fb965d6bf5725f6d3d7d490084b1986d751d1"
+    },
+    "failure_audit": {
+      "path": "reports/v5_vr002_stagea_preoutput_cuda_rng_isolation_failure_audit_dbc03bbf7d1d9cb0270c4b1f9d583a58_20260723.json",
+      "sha256": "0decb9421687dca668b1647bae935c4310e60e927fd97631a803aff939e4a009"
+    },
+    "c1_parent_failure_report": {
+      "path": "reports/v5_vr002c1_parent_failure_report_8d3cb2f1a897d1b9228b14ee7043db49_20260723.json",
+      "sha256": "45d064d88a8d7f4cf3d14024168c0833c5d6c6604f304659f66395a60f05baaa"
+    },
+    "parent_preregistration_sha256": "029411e18760455197471a12f0c00c07d08e6d3123e3d8d62e4b51bc6b7b6fcd",
+    "parent_preimplementation_audit_sha256": "fe45bd5235f4be3130616b3a387db7a3b41df9f9bfaf9eb44b2bd0d65ec876c6",
+    "parent_implementation_audit_sha256": "b4c8ce596bc935874a19d90c5f0018e11c36234f5da09cf13349f5ef4febfc42",
+    "frozen_source_sha256": {
+      "core": "63e600bf4e7dd447e514849f223dc160c5b4808ca716d173c22981ac7ff488ef",
+      "trainer": "868032be3c94f58915921acf0a95a7c6684469797a8c54cf5c1fffd94a4cf432",
+      "launcher": "77c2ccb9e596afd9c03d57040c816784f53638ff0c9ef586e14e9097d5d2490a",
+      "implementation_auditor": "40938dc3e87b7b852e10f0a19dceb261be83bad12100205c69a4d78912f84f22",
+      "window_auditor": "68c45035bedaa0b1405c84535ad05d2a755da602d21780679968e4a147ecedf2"
+    },
+    "source_checkpoint": {
+      "path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715/h11_control_endpoint.pt",
+      "sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+      "bytes": 261417230,
+      "total_hands": 576021901
+    }
+  },
+  "planned_path_absence": {
+    "core_absent": true,
+    "trainer_absent": true,
+    "launcher_absent": true,
+    "implementation_auditor_absent": true,
+    "window_auditor_absent": true,
+    "implementation_audit_report_absent": true,
+    "output_root_absent": true,
+    "paths": [
+      "scripts/alpha_holdem/v5_vr002c1_qboost_core_8d3cb2f1a897d1b9228b14ee7043db49.py",
+      "scripts/alpha_holdem/v5_vr002c1_train_8d3cb2f1a897d1b9228b14ee7043db49.py",
+      "scripts/alpha_holdem/v5_vr002c1_launcher_8d3cb2f1a897d1b9228b14ee7043db49.ps1",
+      "scripts/alpha_holdem/v5_vr002c1_implementation_audit_8d3cb2f1a897d1b9228b14ee7043db49.py",
+      "scripts/alpha_holdem/v5_vr002c1_window_audit_8d3cb2f1a897d1b9228b14ee7043db49.py",
+      "reports/v5_vr002c1_implementation_audit_8d3cb2f1a897d1b9228b14ee7043db49_20260723.json",
+      "models/alpha_holdem_v5_hybrid/v5_vr002c1_8d3cb2f1a897d1b9228b14ee7043db49_20260723"
+    ]
+  },
+  "exact_correction_satisfiability": {
+    "parent_scope": "make_q_critic_isolated inside existing with torch.random.fork_rng(devices=[])",
+    "old_statement": "torch.manual_seed(int(seed))",
+    "new_statement": "torch.random.default_generator.manual_seed(int(seed))",
+    "old_statement_occurrences_in_frozen_core": 1,
+    "new_statement_occurrences_in_frozen_core": 0,
+    "candidate_parses": true,
+    "normalized_full_ast_equal_after_reversing_only_the_registered_call_target": true,
+    "all_other_calls_statements_constants_and_control_flow_unchanged": true,
+    "scientific_design_changed": false
+  },
+  "rng_semantics_audit": {
+    "runtime_dependency": "torch 2.6.0+cu124",
+    "installed_torch_random_py_sha256": "71f36c94731b85b4e402ab22bbd37f1ca099581df265c933bb09d57019c44fdd",
+    "torch_random_default_generator_origin": "torch._C.default_generator",
+    "torch_get_rng_state_is_cpu_default_generator_only": true,
+    "torch_manual_seed_calls_cuda_manual_seed_all_before_cpu_default_generator_manual_seed": true,
+    "registered_call_directly_invokes_only_cpu_default_generator_manual_seed": true,
+    "fork_rng_devices_empty_snapshots_and_restores_cpu_only": true,
+    "initialized_cuda_preservation_proof": "The registered call has no CUDA call or CUDA generator reference; CPU construction consumes only the CPU default generator inside the CPU-restoring fork. Therefore every already-initialized CUDA generator state and next-draw trajectory are untouched.",
+    "lazy_cuda_preservation_proof": "The registered call has no torch.cuda manual-seed/lazy-call path and devices=[] prevents fork_rng from querying CUDA RNG state. Therefore it neither initializes CUDA nor queues the Q seed; the independently seeded actor CUDA trajectory remains governed by actor_seed 20260703.",
+    "cpu_preservation_proof": "fork_rng(devices=[]) snapshots torch.get_rng_state and restores it in finally; direct seeding and CPU-only Q construction occur inside that scope.",
+    "different_outer_cpu_histories_proof": "The direct seed resets the same CPU default generator to q_init_seed before deterministic CPU construction, while fork_rng restores each outer history afterward.",
+    "q_to_cuda_and_adam_requirement": "Must be rechecked by the fresh implementation auditor after materialization; the registered correction introduces no CUDA or optimizer operation.",
+    "runtime_candidate_probe_performed": false
+  },
+  "q_identity_audit": {
+    "q_init_seed": 2026072302,
+    "canonical_q_state_dict_sha256": "6f03d90f76c67afcd35a70551d2102815b2ed4c86ebcecfb13c1689ebe24e281",
+    "bit_identity_proof": "For CPU initialization, both the parent call and registered call end by applying manual_seed(2026072302) to torch._C.default_generator immediately before the unchanged CentralizedQCritic constructor. Removing only the parent call's device-seeding side effects cannot change CPU Q weights.",
+    "q_output_head_exact_zero_in_frozen_constructor": true,
+    "canonical_hash_is_frozen_by_failure_audit_sha256": "0decb9421687dca668b1647bae935c4310e60e927fd97631a803aff939e4a009",
+    "implementation_auditor_must_recompute_before_execution": true
+  },
+  "unchanged_science": {
+    "source_checkpoint_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "source_hands": 576021901,
+    "target_first_crossing_hands": 581021901,
+    "allowed_new_complete_hands_min": 5000000,
+    "allowed_new_complete_hands_max": 5050000,
+    "runtime_seconds_max": 21600,
+    "actor_seed": 20260703,
+    "q_init_seed": 2026072302,
+    "q_minibatch_seed": 2026072303,
+    "worker_seed_base": 73000,
+    "expected_sarsa_gamma": 0.999,
+    "expected_sarsa_lambda": 0.95,
+    "q_epochs": 4,
+    "q_physical_minibatch_rows": 512,
+    "actor_before_critic": true,
+    "historical_replay": false,
+    "parent_mechanism_validity_external_and_rollback_gates_inherited_exact": true
+  },
+  "checks": [
+    {"id": "C01", "name": "preregistration_sha256_exact", "pass": true},
+    {"id": "C02", "name": "identity_basis_recomputed_exact", "pass": true},
+    {"id": "C03", "name": "identity_token_exact_prefix", "pass": true},
+    {"id": "C04", "name": "parent_identity_exact", "pass": true},
+    {"id": "C05", "name": "parent_failure_status_exact", "pass": true},
+    {"id": "C06", "name": "failure_report_sha256_exact", "pass": true},
+    {"id": "C07", "name": "failure_audit_sha256_exact", "pass": true},
+    {"id": "C08", "name": "c1_parent_failure_report_sha256_exact", "pass": true},
+    {"id": "C09", "name": "parent_preregistration_sha256_exact", "pass": true},
+    {"id": "C10", "name": "parent_preimplementation_audit_sha256_exact", "pass": true},
+    {"id": "C11", "name": "parent_implementation_audit_sha256_exact", "pass": true},
+    {"id": "C12", "name": "parent_core_sha256_exact", "pass": true},
+    {"id": "C13", "name": "parent_trainer_sha256_exact", "pass": true},
+    {"id": "C14", "name": "parent_launcher_sha256_exact", "pass": true},
+    {"id": "C15", "name": "parent_implementation_auditor_sha256_exact", "pass": true},
+    {"id": "C16", "name": "parent_window_auditor_sha256_exact", "pass": true},
+    {"id": "C17", "name": "source_checkpoint_sha256_exact", "pass": true},
+    {"id": "C18", "name": "all_seven_planned_paths_absent", "pass": true},
+    {"id": "C19", "name": "exact_old_statement_occurs_once", "pass": true},
+    {"id": "C20", "name": "registered_new_statement_absent_from_parent", "pass": true},
+    {"id": "C21", "name": "candidate_one_line_replacement_parses", "pass": true},
+    {"id": "C22", "name": "normalized_ast_diff_is_only_registered_call_target", "pass": true},
+    {"id": "C23", "name": "cpu_default_generator_semantics_exact", "pass": true},
+    {"id": "C24", "name": "cpu_outer_rng_state_restored_by_empty_device_fork", "pass": true},
+    {"id": "C25", "name": "initialized_cuda_states_and_next_draws_preserved", "pass": true},
+    {"id": "C26", "name": "lazy_cuda_not_initialized_or_seed_queued", "pass": true},
+    {"id": "C27", "name": "different_outer_histories_produce_same_q", "pass": true},
+    {"id": "C28", "name": "canonical_q_state_hash_preserved", "pass": true},
+    {"id": "C29", "name": "q_output_head_zero_contract_preserved", "pass": true},
+    {"id": "C30", "name": "actor_q_namespace_disjointness_unchanged", "pass": true},
+    {"id": "C31", "name": "q_to_cuda_and_adam_runtime_recheck_required", "pass": true},
+    {"id": "C32", "name": "training_budget_seeds_math_update_order_unchanged", "pass": true},
+    {"id": "C33", "name": "mechanism_external_promotion_and_rollback_gates_inherited", "pass": true},
+    {"id": "C34", "name": "authority_limited_to_fresh_implementation_only", "pass": true}
+  ],
+  "passed": 34,
+  "total": 34,
+  "failed_checks": [],
+  "judgment": {
+    "result": "PASS",
+    "authority": "VR002C1_REGISTERED_PREIMPLEMENTATION_AUDIT_PASS_IMPLEMENTATION_AUTHORIZED_ONLY",
+    "implementation_authorized": true,
+    "launcher_probe_authorized": false,
+    "stagea_authorized": false,
+    "training_authorized": false,
+    "checkpoint_authorized": false,
+    "official_slumbot_hands_authorized": false,
+    "scientific_strength_authority": "NONE",
+    "required_next_gate": "Materialize only the fresh identity-bound VR002C1 files with the exact registered one-line correction, then obtain a fresh independent implementation-audit PASS before the one registered final-launcher CPU zero-output probe or StageA.",
+    "parent_vr002_never_mutate_repair_reuse_or_rerun": true
+  }
+}

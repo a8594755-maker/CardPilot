@@ -1,0 +1,33 @@
+{
+  "schema_version": "v5.hybrid.h14.preflight_priority_type_correction.v1",
+  "checked_at": "2026-07-17T16:34:00Z",
+  "overall": "PASS_REPORTING_ONLY_CORRECTION_REQUIRES_SUPERSEDING_LOCK",
+  "failed_preflight": {
+    "path": "reports/v5_hybrid_h14_preflight_20260717.json",
+    "sha256": "b5b5147c573d04c182ce72464b4a88f4509b6815c14cc063fe29c5e9af0da8dd",
+    "overall": "FAIL_CLOSED",
+    "only_failed_check": "path1_existing_six_worker_job",
+    "observed": {"coordinator_pid": 23720, "worker_count": 6, "priority_raw": "16384", "ignored_nonworker": "conhost.exe"},
+    "trainer_launched": false
+  },
+  "superseded_lock": {
+    "path": "reports/v5_hybrid_h14_design_lock_v2_20260717.json",
+    "sha256": "6f3588b81c63815ab449ae2a3a6497faccc32fc07c4d0d0fd61e2aeb5d40daaf",
+    "audit_sha256": "f746fa54f82b1f64cc76ca6448df5f1a869d2a8a7c12c899a5916b097def4903",
+    "preflight_tool_sha256": "073e620b6917765b59432647a661aa2c0ea8727f89a5608c9159513588059493",
+    "disposition": "SUPERSEDED_PRELAUNCH_NO_TRAINER"
+  },
+  "correction": {
+    "preflight_tool_sha256": "952e90254446df8e8ffbc765002c8b6fce2e59007187a33f469edf20208fb0d2",
+    "old_check": "string contains BELOW_NORMAL",
+    "new_check": "int(priority_raw) equals psutil.BELOW_NORMAL_PRIORITY_CLASS",
+    "windows_constant": 16384,
+    "scope": "REPORTING_TYPE_NORMALIZATION_ONLY",
+    "run_identity_worker_count_and_priority_requirement": "UNCHANGED",
+    "scientific_behavior": "UNCHANGED",
+    "requires_new_lock": "v5_hybrid_h14_design_lock_v3_20260717.json"
+  },
+  "official_hands": 0,
+  "launch_authority": "NONE_UNTIL_V3_LOCK_AUDIT_AND_PREFLIGHT_PASS",
+  "strength_claim": "FORBIDDEN"
+}

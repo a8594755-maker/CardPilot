@@ -1,0 +1,80 @@
+{
+  "schema_version": "v5.hybrid.route_review.preregistration.v8.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-008",
+  "status": "REGISTERED",
+  "registered_at": "2026-07-16T19:08:00Z",
+  "trigger": {
+    "h10": "H10_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+    "h11": "H11_FAIL_PROTOCOL_ABORT_FIRST60_THROUGHPUT",
+    "consecutive_method_no_progress_windows": 2,
+    "h11_treatment_endpoint_frozen": false,
+    "h11_method_effect_evidence": "NONE",
+    "route_review_required": true
+  },
+  "frozen_inputs": [
+    {"path": "reports/v5_hybrid_route_review_007_result_20260715.json", "sha256": "e53d7e72a53317ce88501d12c877f96d4c1dc2ec7edcd497c786ef7524403c93", "role": "prior route decision"},
+    {"path": "reports/v5_hybrid_route_review_007_audit_20260715.json", "sha256": "e24338f58f8eb434aefa406f81fcc3aed5146226c35d4fb9de5bc876b2165ff9", "role": "prior route decision audit"},
+    {"path": "reports/v5_hybrid_h11_preregistration_20260715.json", "sha256": "d493b1f9e936d89f0c2e51a0b6c5dbc5a8dd20b312d5f9cd5e415f43f44528d0", "role": "H11 registered science and abort gate"},
+    {"path": "reports/v5_hybrid_h11_design_lock_20260715.json", "sha256": "d6c5019439ff6ee1543dc6a9a61b7214f4d0a283b2847096ed6074c2366616d8", "role": "H11 immutable identity"},
+    {"path": "reports/v5_hybrid_h11_judgment_20260715.json", "sha256": "88f86867183a36abbf34fedc6eb7556b2fd81e33c1fd47f79e44031ae41fa316", "role": "H11 terminal verdict"},
+    {"path": "reports/v5_hybrid_h11_terminal_audit_20260716.json", "sha256": "fb6217793ea703eb7521dcc6b7d9bdf2d4980c5895c578867e5208aa117c0122", "role": "independent terminal evidence audit"},
+    {"path": "reports/v5_hybrid_h11_throughput_diagnosis_20260716.json", "sha256": "8e92b23f9d2984b1cbc2f83bf797f1a5962476e558064ebcda2c3b4d5261c6bd", "role": "reporting-only performance localization and inference limits"},
+    {"path": "reports/v5_cal_ext_001_completion_20260715.json", "sha256": "04eb29d61f73031d943ee6dc098f596c145515d8faf17ae30255259abe693019", "role": "latest exact official staged evidence"},
+    {"path": "reports/v5_cal_ext_001_completion_audit_20260715.json", "sha256": "098a5e5946ecad263cd6a42fb6a62c09849aa457d046526a82125050f37a9679", "role": "official staged bundle authority"},
+    {"path": "reports/v5_hybrid_route_review_006_post_cal_research_review_20260715.json", "sha256": "7a65c2cb8ce0a50555ff450113ab0fa9e4471352ef08b1f6c1ac61472e798cf4", "role": "unchanged fail-closed inference permissions"},
+    {"path": "reports/v5_path1_legalallin_v2_progress_204_20260715.json", "sha256": "5af6c02a0c1f40d8a124ccc7ad106a76c0bc60da9bc001bf3a49257507f8ee7f", "role": "latest immutable Path-1 eligibility snapshot"},
+    {"path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715/h11_control_endpoint_status.json", "sha256": "076d081988758fe9740dec0962c5746ba96886af05fa14a1f9609e196e25e1ac", "role": "new clean main-line source identity"},
+    {"path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715/h11_control_endpoint.pt", "sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13", "role": "new clean main-line source checkpoint"}
+  ],
+  "questions": [
+    "Did H11 produce a valid SmoothL1 method-effect estimate?",
+    "Is the H11 throughput abort valid, and does it causally identify SmoothL1 as the slowdown source?",
+    "Can a new prospective loss comparison be protected from cross-day resource drift without weakening the registered throughput gate?",
+    "Are the H11 endpoint-health producer deadlock and simultaneous-rearm dependency race repaired before another arm?",
+    "Is the exact H11 control endpoint a clean main-line source?",
+    "Is external evidence debt currently due, and when will it become due next?",
+    "Do opponent-pool, Path-1 distillation or resolving alternatives have stronger frozen causal/readiness evidence?",
+    "Is the HYBRID route family exhausted?"
+  ],
+  "candidate_actions": [
+    "H12 fresh same-start fixed20M MSE-versus-SmoothL1 beta1 retry from exact H11 control after resource-matched PERF-CAL and control-plane repair",
+    "declare SmoothL1 failed from H11 throughput",
+    "resume H11 treatment or use its partial checkpoint",
+    "switch immediately to opponent-pool behavior",
+    "ingest current Path-1 CFR asset",
+    "launch the incomplete play-time resolver",
+    "declare HYBRID route exhausted"
+  ],
+  "decision_rule": "Select H12 only if H11 terminal audit passes, H11 supplies no method-effect estimate, the throughput FAIL remains valid but exact paired metrics and the isolated loss benchmark do not establish SmoothL1 as the causal 30% slowdown, the exact frozen H11 control endpoint is clean, external debt is below the hard boundary, and a separately audited resource-matched performance calibration plus endpoint-health/watcher-order repair can fail closed before launch. Otherwise select the smallest better-supported hybrid alternative or declare route exhaustion.",
+  "minimums_before_h12_registration_or_launch": [
+    "freeze and independently audit a reporting-only PERF-CAL design that measures identical source/model/batch forward-backward work for MSE and SmoothL1 and a common MSE system baseline immediately before each arm",
+    "require isolated SmoothL1/MSE throughput ratio >=0.95 and between-arm common-baseline ratio >=0.95 before an arm may launch",
+    "provide the exact endpoint health producer required by the endpoint watcher under strict rearm",
+    "start dependency watchers in ordered phases so downstream launch/completion cannot consume a stale endpoint result",
+    "retain the registered first60 treatment/control ratio >=0.85 without override",
+    "retain zero parent/delegated observers during active arms and full forbidden-process provenance",
+    "keep existing Path-1 coordinator37656 and six BelowNormal workers unchanged; no restart, expansion, ingestion or GPU use",
+    "complete implementation audit, immutable H12 preregistration/design lock, preflight and canonical rearm before launch"
+  ],
+  "hard_exclusions": {
+    "resume_or_reclassify_h11": true,
+    "use_h11_treatment_partial": true,
+    "reinterpret_protocol_fail_as_method_fail": true,
+    "relax_first60_gate": true,
+    "treat_microbenchmark_as_method_evidence": true,
+    "touch_path1_job": true,
+    "official_hands_before_due_or_method_milestone": true,
+    "weaken_l5_claim_bar": true
+  },
+  "external_evidence_rule": {
+    "latest_complete_official_checkpoint_hands": 556011085,
+    "new_clean_source_hands": 576021901,
+    "current_debt_hands": 20010816,
+    "target_cadence_hands": 25000000,
+    "hard_maximum_hands": 50000000,
+    "next_safe_boundary_rule": "After H12 terminal, complete CAL-EXT-002 on the exact selected clean checkpoint before H13; an H12 PASS exact-treatment quick5k may satisfy this debt."
+  },
+  "official_hands_authorized": 0,
+  "behavior_launch_authorized": false,
+  "strength_claim": "FORBIDDEN"
+}

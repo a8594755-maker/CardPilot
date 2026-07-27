@@ -1,0 +1,35 @@
+{
+  "schema_version": "v5.hybrid.h3.first_board_smoke_supervisor.ordering_correction.v1",
+  "corrected_at": "2026-07-13T06:38:26.930758+00:00",
+  "overall": "PASS_CORRECTED_BEFORE_TRIGGER",
+  "defect": "the initial watcher iterated the numerically sorted selected-board manifest after converting QA-PASS log entries to a set; if multiple boards passed within one poll, it could choose the lowest board id instead of the chronologically first QA-PASS board",
+  "impact": {
+    "qa_pass_boards_before_correction": 0,
+    "smoke_runs_started": 0,
+    "artifacts_or_verdicts_affected": 0,
+    "behavior_or_official_hands_affected": false
+  },
+  "correction": "preserve append-only parallel-solver.log QA_PASS order and select the first logged board that is in the frozen600-board selection with an intact gzip/meta pair",
+  "preserved_original_launch_artifact_sha256": "48b28035729034fe3ade8604c87e72ef8deba202cda627c58d11b38fa9486097",
+  "old": {
+    "pid": 35996,
+    "watcher_sha256": "ac2c352c83056bbbe084c336dd320c508c8611efe44aae53cd14c6fb94fe8764"
+  },
+  "new": {
+    "pid": 41060,
+    "watcher_sha256": "6adaae51170da6675bf72bb2c200ab5d51dbe86eb3c961d79ad3902ea38737c7",
+    "test_sha256": "384a7afe3c390118b834e6a75c1aab94f66d13c2144425189f2896596bcf4bd1",
+    "tests": "PASS_13_OF_13_WITH_REVERSED_ID_LOG_ORDER",
+    "python_compile": "PASS",
+    "priority": "BelowNormal",
+    "state": "WAITING_FIRST_QA_PASS_BOARD",
+    "stderr_bytes": 0
+  },
+  "trainer_touched": false,
+  "path1_solver_touched": false,
+  "gpu_touched": false,
+  "h3_preregistration_authorized": false,
+  "behavior_launch_authorized": false,
+  "official_hands_authorized": 0
+}
+

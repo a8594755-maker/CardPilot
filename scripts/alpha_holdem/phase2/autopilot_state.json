@@ -1,0 +1,147 @@
+{
+  "current_stage_id": "ask_user_for_rl2_after_scale",
+  "history": [
+    {
+      "run_id": "20260530T021617_bootstrap",
+      "from_stage": "bootstrap",
+      "decision": "CONTINUE",
+      "runtime_s": null,
+      "next_stage": "rl1_per_position_analysis",
+      "pass_gates_n": 0,
+      "fail_gates_n": 0,
+      "hard_stops_n": 0,
+      "timestamp": "2026-05-30T02:16:17-0400"
+    },
+    {
+      "run_id": "20260530T021617_rl1_per_position_analysis",
+      "from_stage": "rl1_per_position_analysis",
+      "decision": "CONTINUE",
+      "runtime_s": 0.1300034523010254,
+      "next_stage": "rl1_history_analysis",
+      "pass_gates_n": 1,
+      "fail_gates_n": 0,
+      "hard_stops_n": 0,
+      "timestamp": "2026-05-30T02:16:17-0400"
+    },
+    {
+      "run_id": "20260530T021617_rl1_history_analysis",
+      "from_stage": "rl1_history_analysis",
+      "decision": "CONTINUE",
+      "runtime_s": 0.058373451232910156,
+      "next_stage": "value_warmup_smoke",
+      "pass_gates_n": 1,
+      "fail_gates_n": 0,
+      "hard_stops_n": 0,
+      "timestamp": "2026-05-30T02:16:17-0400"
+    },
+    {
+      "run_id": "20260530T021617_value_warmup_smoke",
+      "from_stage": "value_warmup_smoke",
+      "decision": "CONTINUE",
+      "runtime_s": 36.02904224395752,
+      "next_stage": "wire_warmup_ckpt_into_ppo",
+      "pass_gates_n": 3,
+      "fail_gates_n": 0,
+      "hard_stops_n": 0,
+      "timestamp": "2026-05-30T02:16:53-0400"
+    },
+    {
+      "run_id": "manual_advance_2026-05-30",
+      "from_stage": "wire_warmup_ckpt_into_ppo",
+      "decision": "CONTINUE",
+      "runtime_s": null,
+      "next_stage": "warm_critic_ppo_smoke",
+      "pass_gates_n": 0,
+      "fail_gates_n": 0,
+      "hard_stops_n": 0,
+      "note": "User pre-approved trainer code change; --warmup-ckpt wired in train_population_ppo.py + verified by sanity load",
+      "timestamp": "2026-05-30T02:25:00-0400"
+    },
+    {
+      "run_id": "20260530T022055_warm_critic_ppo_smoke",
+      "from_stage": "warm_critic_ppo_smoke",
+      "decision": "CONTINUE",
+      "runtime_s": 9797.359957933426,
+      "next_stage": "internal_eval_warm_critic",
+      "pass_gates_n": 3,
+      "fail_gates_n": 0,
+      "hard_stops_n": 0,
+      "timestamp": "2026-05-30T05:04:12-0400"
+    },
+    {
+      "run_id": "20260530T050412_internal_eval_warm_critic",
+      "from_stage": "internal_eval_warm_critic",
+      "decision": "ERROR",
+      "runtime_s": 4.180637836456299,
+      "next_stage": null,
+      "pass_gates_n": 0,
+      "fail_gates_n": 0,
+      "hard_stops_n": 0,
+      "timestamp": "2026-05-30T05:04:16-0400"
+    },
+    {
+      "run_id": "20260530T050540_internal_eval_warm_critic",
+      "from_stage": "internal_eval_warm_critic",
+      "decision": "CONTINUE",
+      "runtime_s": 801.3823146820068,
+      "next_stage": "ask_user_for_rl2_5M",
+      "pass_gates_n": 1,
+      "fail_gates_n": 0,
+      "hard_stops_n": 0,
+      "timestamp": "2026-05-30T05:19:01-0400"
+    },
+    {
+      "run_id": "manual_advance_2026-05-30_to_1500k",
+      "from_stage": "ask_user_for_rl2_5M",
+      "decision": "CONTINUE",
+      "runtime_s": null,
+      "next_stage": "warm_critic_1500k_scale",
+      "pass_gates_n": 0,
+      "fail_gates_n": 0,
+      "hard_stops_n": 0,
+      "note": "User pre-approved 1.5M scale test (Option A) per 2026-05-30 message; bypassed ask_user_for_rl2_5M which originally pointed to full RL-2 5M.",
+      "timestamp": "2026-05-30T05:35:00-0400"
+    },
+    {
+      "run_id": "20260530T151550_warm_critic_1500k_scale",
+      "from_stage": "warm_critic_1500k_scale",
+      "decision": "CONTINUE",
+      "runtime_s": 44509.3795440197,
+      "next_stage": "warm_critic_1500k_internal_eval",
+      "pass_gates_n": 3,
+      "fail_gates_n": 0,
+      "hard_stops_n": 0,
+      "timestamp": "2026-05-31T03:37:39-0400"
+    },
+    {
+      "run_id": "20260531T033739_warm_critic_1500k_internal_eval",
+      "from_stage": "warm_critic_1500k_internal_eval",
+      "decision": "CONTINUE",
+      "runtime_s": 2814.400630235672,
+      "next_stage": "warm_critic_1500k_slumbot_bench",
+      "pass_gates_n": 1,
+      "fail_gates_n": 0,
+      "hard_stops_n": 0,
+      "timestamp": "2026-05-31T04:24:34-0400"
+    },
+    {
+      "run_id": "20260531T042434_warm_critic_1500k_slumbot_bench",
+      "from_stage": "warm_critic_1500k_slumbot_bench",
+      "decision": "CONTINUE",
+      "runtime_s": 2870.242444038391,
+      "next_stage": "ask_user_for_rl2_after_scale",
+      "pass_gates_n": 1,
+      "fail_gates_n": 0,
+      "hard_stops_n": 0,
+      "timestamp": "2026-05-31T05:12:24-0400"
+    }
+  ],
+  "runway": {
+    "active": true,
+    "approved_at": "2026-05-30T02:16:13-0400",
+    "approved_until": "2026-05-31T02:16:13-0400",
+    "experiments_used": 3
+  },
+  "created_at": "2026-05-30T02:10:50-0400",
+  "schema_version": 1
+}

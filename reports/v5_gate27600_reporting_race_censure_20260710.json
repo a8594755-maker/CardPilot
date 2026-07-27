@@ -1,0 +1,59 @@
+{
+  "incident_id": "V5-GATE27600-POST-REVIEW-AGGREGATE-RACE-20260710",
+  "checked_at": "2026-07-10T02:51:11-04:00",
+  "overall": "CENSURE_PUBLISHED_FIXED_FAIL_CLOSED",
+  "affected_ops_row": {
+    "timestamp": "2026-07-10 02:48",
+    "title": "EXP-003 run gate_27600 evidence update",
+    "superseded_scope": "internal delta mean/lower fields only",
+    "incorrect_values_bb100": {
+      "mean": 283.043,
+      "lower": 108.467
+    },
+    "incorrect_source_iteration": 27500,
+    "preserved_valid_facts": [
+      "gate 27600 exact PASS",
+      "checkpoint 27600 / 453475071",
+      "health PASS",
+      "internal probe checkpoint identity VALID",
+      "internal verdict MIXED_INTERNAL",
+      "preflop WARN with 4 warnings",
+      "no strength claim"
+    ]
+  },
+  "correct_gate27600_internal": {
+    "aggregate_iteration": 27600,
+    "aggregate_hands": 453475071,
+    "aggregate_identity": "MATCH",
+    "verdict": "MIXED_INTERNAL",
+    "delta_mean_bb100": -345.678,
+    "delta_lower_bb100": -94.704,
+    "target_rows_bb100": {
+      "call_station": 33.885,
+      "aggressive": 167.75
+    },
+    "evidence_class": "internal_only"
+  },
+  "root_cause": "The exact target probe completed after the prior v5_l6_status_brief aggregate refresh. summarize_internal_probe accepted watcher completion plus a valid target artifact as COMPLETED while still copying verdict/delta fields from the older aggregate iteration.",
+  "remediation": {
+    "file": "scripts/alpha_holdem/v5_post_gate_review.py",
+    "sha256": "f91f7890d5c39e32f748b7be2718d64c13fa6da5e1f8d0caacaba738ad20c4c9",
+    "contract": "A scheduled target remains PENDING_L6_AGGREGATE_IDENTITY until the L6 aggregate iteration exactly equals the gate target; stale verdict/delta fields are emitted as null.",
+    "test_file": "scripts/alpha_holdem/test_v5_post_gate_review.py",
+    "test_sha256": "fcaba667316d28ef85eec90cdcb9f4ac3ede67ca1b415e47954272bf0ec0d2b9",
+    "focused_tests": "5/5 PASS",
+    "full_v5_tests": "152/152 PASS",
+    "rearm_contract_checks": "14/14 PASS",
+    "canonical_watcher_rearm_survival": "PASS",
+    "new_watcher_range": [27700, 28800]
+  },
+  "impact": {
+    "trainer_restarted": false,
+    "trainer_behavior_changed": false,
+    "weights_changed": false,
+    "slumbot_launched": false,
+    "strength_claim_changed": false,
+    "exp003_reopened": false
+  },
+  "ledger_rule": "The original row remains byte-preserved. A new append-only CENSURE row supersedes only its stale internal-delta fields."
+}

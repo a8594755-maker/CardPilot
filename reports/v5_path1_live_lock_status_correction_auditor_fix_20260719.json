@@ -1,0 +1,14 @@
+{
+  "schema_version": "v5.path1.live_lock_status_correction_auditor_fix.v1",
+  "recorded_at": "2026-07-19T15:11:00Z",
+  "overall": "PASS_AUDITOR_ONLY_CORRECTION",
+  "failed_audit_v1_sha256": "37d3f1aa5a28cad3296c9fa5dad0aa098dc4a2367d3a84c7bd74baad5ac53e08",
+  "failed_checks": ["six_workers", "workers_priority"],
+  "cause": "Audit v1 re-read mutable worker PIDs after the immutable progress snapshot. Normal per-board worker turnover made the later PID set differ and could transiently reduce the live count,so the auditor incorrectly treated a time-varying observation as immutable evidence.",
+  "correction": "Audit v2 verifies worker count,PIDs,coordinator identity and priority from the already immutable independent progress artifact whose hash is frozen by the correction;it does not demand later PID equality.",
+  "correction_scope": "AUDITOR_ONLY",
+  "solver_process_touched": false,
+  "asset_behavior_change": false,
+  "official_hands": 0,
+  "strength_claim": "FORBIDDEN"
+}

@@ -1,0 +1,99 @@
+{
+  "schema_version": "v5.hybrid.route_review.preregistration.v7.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-007",
+  "status": "REGISTERED",
+  "registered_at": "2026-07-15T07:49:00Z",
+  "trigger": {
+    "h9": "H9_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+    "h10": "H10_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+    "consecutive_method_no_progress_windows": 2,
+    "h10_treatment_launched": false,
+    "h10_method_evidence": "NONE",
+    "route_review_required": true
+  },
+  "frozen_inputs": [
+    {
+      "path": "reports/v5_hybrid_route_review_006_post_cal_result_20260715.json",
+      "sha256": "6420251b4e1ab8c54f8935dc375beea04c2038e3a8e2a69f432111a091e49bfe",
+      "role": "prior route decision"
+    },
+    {
+      "path": "reports/v5_hybrid_route_review_006_post_cal_audit_20260715.json",
+      "sha256": "08873349008b7c03ea8fd8c9853017af86850443aaef8b404922f6b7eab77368",
+      "role": "prior route decision audit"
+    },
+    {
+      "path": "reports/v5_hybrid_h9_judgment_20260714.json",
+      "sha256": "dd1ada4c08058b2d479b5b8fa80b6c0880df71c49b70b6d0fc401c1e562d3fe6",
+      "role": "first isolation-aborted no-method window"
+    },
+    {
+      "path": "reports/v5_hybrid_h10_judgment_20260715.json",
+      "sha256": "c29671f5e5fce292d0fdadc4a351c2c089137f2d018f614b7564657dd3178897",
+      "role": "second isolation-aborted no-method window"
+    },
+    {
+      "path": "reports/v5_hybrid_h10_resource_isolation_incident_20260715.json",
+      "sha256": "5c40cb7b692d71f8211bacf05aba4cc1571f8e0bd4ab34d140a40a421e5adb57",
+      "role": "H10 control-plane diagnosis and inference limits"
+    },
+    {
+      "path": "reports/v5_cal_ext_001_completion_20260715.json",
+      "sha256": "04eb29d61f73031d943ee6dc098f596c145515d8faf17ae30255259abe693019",
+      "role": "latest exact-checkpoint official staged evidence"
+    },
+    {
+      "path": "reports/v5_cal_ext_001_completion_audit_20260715.json",
+      "sha256": "098a5e5946ecad263cd6a42fb6a62c09849aa457d046526a82125050f37a9679",
+      "role": "official staged bundle authority"
+    },
+    {
+      "path": "reports/v5_hybrid_route_review_006_post_cal_research_review_20260715.json",
+      "sha256": "7a65c2cb8ce0a50555ff450113ab0fa9e4471352ef08b1f6c1ac61472e798cf4",
+      "role": "unchanged fail-closed inference permissions"
+    },
+    {
+      "path": "reports/v5_path1_legalallin_v2_progress_204_20260715.json",
+      "sha256": "5af6c02a0c1f40d8a124ccc7ad106a76c0bc60da9bc001bf3a49257507f8ee7f",
+      "role": "frozen Path-1 eligibility snapshot"
+    }
+  ],
+  "questions": [
+    "Did H10 supply any MSE-versus-SmoothL1 method evidence?",
+    "Was the H10 terminal event a method failure, a proven resource-contention failure, or a control-plane observability failure?",
+    "Can process isolation be made fail-closed without classifying permitted read-only observers as behavior/resource jobs?",
+    "Does the severe CAL-EXT-001 result causally authorize an action-specific intervention?",
+    "Does Path-1 currently satisfy compatibility and completeness gates for ingestion?",
+    "Is a third clean prospective test of the still-untested robust-loss question justified after two incident-only windows?",
+    "Is the HYBRID route family exhausted?"
+  ],
+  "candidate_actions": [
+    "H11 clean same-start fixed20M MSE-versus-SmoothL1 rerun after control-plane provenance correction and a no-observer active-arm rule",
+    "register an action-specific intervention from CAL-EXT-001 realized-loss cuts",
+    "ingest current Path-1 CFR asset",
+    "switch immediately to opponent-pool or resolving behavior",
+    "resume or reuse H9/H10 partial checkpoints",
+    "declare HYBRID route exhausted"
+  ],
+  "decision_rule": "Select H11 only if H9 and H10 supplied zero SmoothL1 method evidence, H10's trainer stop makes its endpoint irrecoverable but does not establish a method failure, exact trigger provenance was insufficient, a stricter no-observer active-arm protocol plus full process provenance and control-abort terminalization can be validated offline, external debt is paid, action-specific tuning remains unauthorized, Path-1 remains incomplete or incompatible, and the exact H8 source plus H10 variable/sample/gates can be prospectively re-registered without using partial outcomes. Otherwise select the smallest better-supported hybrid alternative or declare route exhaustion.",
+  "hard_exclusions": {
+    "resume_h9_or_h10": true,
+    "use_h9_or_h10_partial_checkpoint": true,
+    "reinterpret_h10_first60_as_method_evidence": true,
+    "relax_process_isolation_or_claim_bar": true,
+    "register_action_tuning_from_realized_loss": true,
+    "ingest_path1_without_frozen_compatibility_gate": true,
+    "official_hands_before_route_decision": true
+  },
+  "control_plane_minimums_for_any_next_arm": [
+    "preserve trigger PID,parent PID,creation time,executable,full command line and command-line SHA256",
+    "terminalize protocol aborts from either control or treatment arm",
+    "freeze a no-parent-observer rule: no shell/project command is executed while either trainer is active",
+    "retain exact evaluator,Slumbot,mirror and unregistered project-execution detection",
+    "prove the watcher does not self-trigger on its own locked lifecycle and existing Path-1 processes",
+    "complete offline tests,immutable tool lock,preflight and canonical rearm before launch"
+  ],
+  "official_hands_authorized": 0,
+  "behavior_launch_authorized": false,
+  "strength_claim": "FORBIDDEN"
+}

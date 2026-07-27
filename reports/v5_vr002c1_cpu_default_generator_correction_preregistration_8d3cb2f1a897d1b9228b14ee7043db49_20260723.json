@@ -1,0 +1,98 @@
+{
+  "schema_version": "v5.vr002c1.preregistration.v1",
+  "registered_at": "2026-07-23T11:24:00-04:00",
+  "status": "VR002C1_REGISTERED_PREIMPLEMENTATION_AUDIT_REQUIRED",
+  "identity": {
+    "sha256": "8d3cb2f1a897d1b9228b14ee7043db496c7a319c4af7318aae4e0103ac534a4d",
+    "token": "8d3cb2f1a897d1b9228b14ee7043db49",
+    "basis": "VR002C1|dbc03bbf7d1d9cb0270c4b1f9d583a586b82c23a655de48a4fb2139ac00a3fb1|CPU_DEFAULT_GENERATOR_ONLY|2026-07-23"
+  },
+  "parent": {
+    "identity_sha256": "dbc03bbf7d1d9cb0270c4b1f9d583a586b82c23a655de48a4fb2139ac00a3fb1",
+    "failure_status": "VR002_STAGEA_PREOUTPUT_CUDA_RNG_ISOLATION_ASSERT_FAILURE_NO_SCIENCE_NO_RERUN",
+    "preregistration_sha256": "029411e18760455197471a12f0c00c07d08e6d3123e3d8d62e4b51bc6b7b6fcd",
+    "preimplementation_audit_sha256": "fe45bd5235f4be3130616b3a387db7a3b41df9f9bfaf9eb44b2bd0d65ec876c6",
+    "implementation_audit_sha256": "b4c8ce596bc935874a19d90c5f0018e11c36234f5da09cf13349f5ef4febfc42",
+    "frozen_source_sha256": {
+      "core": "63e600bf4e7dd447e514849f223dc160c5b4808ca716d173c22981ac7ff488ef",
+      "trainer": "868032be3c94f58915921acf0a95a7c6684469797a8c54cf5c1fffd94a4cf432",
+      "launcher": "77c2ccb9e596afd9c03d57040c816784f53638ff0c9ef586e14e9097d5d2490a",
+      "implementation_auditor": "40938dc3e87b7b852e10f0a19dceb261be83bad12100205c69a4d78912f84f22",
+      "window_auditor": "68c45035bedaa0b1405c84535ad05d2a755da602d21780679968e4a147ecedf2"
+    }
+  },
+  "causal_intervention": {
+    "family": "critic_target_faithful_qboost",
+    "scientific_design_changed": false,
+    "control_plane_correction_only": true,
+    "exact_core_ast_change": {
+      "scope": "make_q_critic_isolated inside existing with torch.random.fork_rng(devices=[])",
+      "remove": "torch.manual_seed(int(seed))",
+      "add": "torch.random.default_generator.manual_seed(int(seed))"
+    },
+    "preserve_before_after_rng_assertions": true,
+    "forbidden": [
+      "torch.manual_seed inside make_q_critic_isolated",
+      "torch.cuda.manual_seed",
+      "torch.cuda.manual_seed_all",
+      "CUDA RNG setter",
+      "CUDA-aware fork that initializes CUDA",
+      "Q weight or seed change",
+      "actor trainer data pool reward optimizer schedule budget gate change"
+    ],
+    "canonical_q_state_dict_sha256": "6f03d90f76c67afcd35a70551d2102815b2ed4c86ebcecfb13c1689ebe24e281"
+  },
+  "unchanged_science": {
+    "source_checkpoint_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "source_hands": 576021901,
+    "target_first_crossing_hands": 581021901,
+    "allowed_new_complete_hands_min": 5000000,
+    "allowed_new_complete_hands_max": 5050000,
+    "runtime_seconds_max": 21600,
+    "actor_seed": 20260703,
+    "q_init_seed": 2026072302,
+    "q_minibatch_seed": 2026072303,
+    "worker_seed_base": 73000,
+    "expected_sarsa_gamma": 0.999,
+    "expected_sarsa_lambda": 0.95,
+    "q_epochs": 4,
+    "q_physical_minibatch_rows": 512,
+    "actor_before_critic": true,
+    "historical_replay": false,
+    "all_parent_vr002_mechanism_validity_external_and_rollback_gates_inherited_exact": true
+  },
+  "planned_paths": {
+    "core": "scripts/alpha_holdem/v5_vr002c1_qboost_core_8d3cb2f1a897d1b9228b14ee7043db49.py",
+    "trainer": "scripts/alpha_holdem/v5_vr002c1_train_8d3cb2f1a897d1b9228b14ee7043db49.py",
+    "launcher": "scripts/alpha_holdem/v5_vr002c1_launcher_8d3cb2f1a897d1b9228b14ee7043db49.ps1",
+    "implementation_auditor": "scripts/alpha_holdem/v5_vr002c1_implementation_audit_8d3cb2f1a897d1b9228b14ee7043db49.py",
+    "window_auditor": "scripts/alpha_holdem/v5_vr002c1_window_audit_8d3cb2f1a897d1b9228b14ee7043db49.py",
+    "implementation_audit_report": "reports/v5_vr002c1_implementation_audit_8d3cb2f1a897d1b9228b14ee7043db49_20260723.json",
+    "output_root": "models/alpha_holdem_v5_hybrid/v5_vr002c1_8d3cb2f1a897d1b9228b14ee7043db49_20260723"
+  },
+  "preimplementation_audit_gates": [
+    "identity basis recomputes exact",
+    "VR002 failure and source hashes exact",
+    "all planned paths absent",
+    "normalized full AST permits only identity path import and exact CPU seed-call correction",
+    "initialized-CUDA CPU and every CUDA RNG state plus next-draw trajectory exact before versus after Q init",
+    "fresh-child lazy-CUDA actor seed remains 20260703 after Q init",
+    "different outer RNG histories produce bit-identical canonical Q state",
+    "Q head exact zero and canonical state hash exact",
+    "Q to CUDA plus Adam creation leaves global RNG exact",
+    "actor Q storage optimizer gradient checkpoint namespaces remain disjoint"
+  ],
+  "execution_authority": {
+    "implementation_requires_independent_preimplementation_audit_pass": true,
+    "one_final_launcher_cpu_zero_output_probe": true,
+    "stagea_requires_implementation_audit_pass": true,
+    "stagea_attempts": 1,
+    "valid_endpoint_mandates_registered_greedy_direct_quick5k": true,
+    "same_rng_failure_recurrence": "FREEZE_AND_SIMPLIFY_EXPLICIT_SNAPSHOT_SET_RESTORE_NO_SECOND_CORRECTION"
+  },
+  "rollback": {
+    "never_modify_or_reuse_vr002_files_or_empty_output_root": true,
+    "any_unregistered_difference": "FAIL_CLOSED_NO_IMPLEMENTATION",
+    "any_scientific_output_before_all_audits": "INVALID_FREEZE"
+  }
+}

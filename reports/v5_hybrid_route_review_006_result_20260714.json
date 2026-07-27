@@ -1,0 +1,73 @@
+{
+  "schema_version": "v5.hybrid.route_review.result.v6",
+  "design_id": "HYBRID-ROUTE-REVIEW-006",
+  "checked_at": "2026-07-14T20:36:00Z",
+  "overall": "PASS_ROUTE_REVIEW",
+  "registration_sha256": "71238add47e6186e37e41ad1c52b1477712aadfc54b7c4b57279b7e73c03ac2b",
+  "trigger_verified": true,
+  "consecutive_no_progress": {
+    "h8": "H8_FAIL_REGISTERED_GATE",
+    "h9": "H9_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+    "route_review_required": true
+  },
+  "h9_frozen_interpretation": {
+    "terminal_status": "H9_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+    "judgment_sha256": "dd1ada4c08058b2d479b5b8fa80b6c0880df71c49b70b6d0fc401c1e562d3fe6",
+    "terminal_audit_sha256": "54d782f684dd091e4e095537231a9bfdee6575714341b4baef0476800cc02ee2",
+    "valid_control_endpoint": false,
+    "treatment_launched": false,
+    "calibration_or_mirror_run": false,
+    "method_effect_identified": false,
+    "official_hands": 0,
+    "reclassification_forbidden": true
+  },
+  "research_review": {
+    "path": "reports/v5_hybrid_route_review_006_research_review_20260714.json",
+    "sha256": "a5f03bc0bf43dae86e2b4b2fb9fad361807dd35c4cb79dd3336bd4648a8b88cc",
+    "method_evidence": "NONE_H9_PROTOCOL_ABORT_BEFORE_COMPARISON",
+    "behavior_launch_authorized_by_reviewer": false,
+    "generic_w1_eligibility_signal": "IGNORED_TERMINAL_EXP_W1_MUST_NOT_REOPEN",
+    "l5_claim": false
+  },
+  "decision": {
+    "selected_next": "H10_CLEAN_RERUN_H9_ROBUST_VALUE_HEAD_CATCHUP_LOSS",
+    "source": {
+      "run_id": "v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714",
+      "checkpoint_path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714/h8_treatment_endpoint.pt",
+      "checkpoint_sha256": "7c388ec68114d497f775157def3c0b3abc82db7ee25baf7e7cb7e9e916f66438",
+      "iteration": 33834,
+      "hands": 556011085,
+      "status": "DIAGNOSTIC_SOURCE_NOT_ADOPTED_STRENGTH"
+    },
+    "single_variable": {
+      "name": "catchup_value_loss",
+      "control": "MSE",
+      "treatment": "SmoothL1 beta=1.0 raw critic-v1 bb unit",
+      "standard_ppo_critic_loss": "MSE_UNCHANGED"
+    },
+    "rationale": "H9 ended before a valid control endpoint and before treatment launch, so it contains no evidence about the registered method. The H8/Route Review005 mechanism evidence remains the strongest frozen causal lead. A separately locked clean rerun from the same pre-H9 source is the smallest prospective action and avoids post-hoc method, source, gate or sample changes.",
+    "requirements": [
+      "Create a separate immutable H10 preregistration; H9 remains terminal and closed.",
+      "Use fresh run directories and the exact H8 source for both arms; never use H9 partial latest.pt.",
+      "Keep fixed20M per arm, control-first order, beta1.0 and every H9 statistical gate unchanged.",
+      "Reuse validated trainer semantics only after a new H10 identity audit, design lock and preflight pass.",
+      "Harden reporting/control-plane isolation with an active-window sentinel and exact evaluator-process matching; this may not change trainer behavior or relax the no-evaluation rule.",
+      "No extension, second seed, later endpoint or official Slumbot hands in H10.",
+      "No concurrent delegated CardPilot task may inspect or execute evaluation planners while an H10 arm is active."
+    ]
+  },
+  "candidate_dispositions": {
+    "resume_or_complete_h9": "FORBIDDEN_TERMINAL_WINDOW",
+    "use_h9_partial_checkpoint": "FORBIDDEN_INVALID_ENDPOINT",
+    "launch_h9_treatment": "FORBIDDEN_CONTROL_ENDPOINT_NOT_PASS",
+    "change_beta_source_gates_or_sample": "REJECTED_POSTHOC_CONFOUND",
+    "new_method_before_resolving_h9_question": "DEFERRED_WEAKER_CAUSAL_SUPPORT",
+    "unregistered_external_calibration": "FORBIDDEN",
+    "exp_w1": "FORBIDDEN_TERMINAL_DO_NOT_REOPEN",
+    "route_exhaustion": "FALSE_H9_HYPOTHESIS_REMAINS_UNTESTED_AND_HYBRID_OPTIONS_REMAIN"
+  },
+  "route_exhausted": false,
+  "behavior_launch_authorized": "ONLY_AFTER_SEPARATE_H10_PREREGISTRATION_IDENTITY_AUDIT_DESIGN_LOCK_PREFLIGHT_AND_CANONICAL_REARM_PASS",
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

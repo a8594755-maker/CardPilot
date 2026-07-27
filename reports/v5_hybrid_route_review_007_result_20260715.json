@@ -1,0 +1,102 @@
+{
+  "schema_version": "v5.hybrid.route_review.result.v7.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-007",
+  "checked_at": "2026-07-15T07:50:00Z",
+  "overall": "PASS_ROUTE_REVIEW",
+  "registration_sha256": "2d2a33e336786d6aac3ff24d4bec393182b71abdeb56726e4c20b06681b5d0cc",
+  "trigger_verified": true,
+  "evidence_matrix": {
+    "H9": {
+      "terminal": "H9_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+      "valid_control_endpoint": false,
+      "treatment_launched": false,
+      "method_evidence": "NONE",
+      "incident_scope": "delegated Slumbot planner commands; no connection or official hands"
+    },
+    "H10": {
+      "terminal": "H10_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+      "judgment_sha256": "c29671f5e5fce292d0fdadc4a351c2c089137f2d018f614b7564657dd3178897",
+      "incident_sha256": "5c40cb7b692d71f8211bacf05aba4cc1571f8e0bd4ab34d140a40a421e5adb57",
+      "control_last_iteration": 33912,
+      "control_last_hands": 557293500,
+      "control_target_hands": 576011085,
+      "remaining_hands": 18717585,
+      "control_first60_effective_hps": 1779.7600339716028,
+      "control_first60_inference": "THROUGHPUT_BASELINE_ONLY",
+      "treatment_launched": false,
+      "method_evidence": "NONE",
+      "trigger_pid": 7848,
+      "trigger_command_identity_preserved": false,
+      "resource_contention_proven": false,
+      "control_plane_finding": "OVERBROAD_PROCESS_MATCH_AND_INSUFFICIENT_TRIGGER_PROVENANCE",
+      "resume_or_reclassification": "FORBIDDEN"
+    },
+    "external_state": {
+      "cal_ext_001_hands": 5000,
+      "cal_ext_001_bb100": -207.1804,
+      "cal_ext_001_ci95": [-297.6644, -116.6964],
+      "cal_ext_001_class": "EXTERNAL_STAGED_CALIBRATION_ONLY",
+      "external_debt_paid": true,
+      "action_specific_intervention_authorized": false,
+      "strength": "L0"
+    },
+    "Path1": {
+      "frozen_complete_qa_pass_boards": 204,
+      "target_boards": 600,
+      "completion_fraction": 0.34,
+      "v55_training_eligible": false,
+      "status": "HEALTHY_DIAGNOSTIC_ONLY_INCOMPLETE"
+    },
+    "research_permissions": {
+      "research_review_sha256": "7a65c2cb8ce0a50555ff450113ab0fa9e4471352ef08b1f6c1ac61472e798cf4",
+      "may_localize_loss": true,
+      "may_register_action_specific_intervention": false,
+      "path1_ingestion_authorized": false,
+      "new_behavior_change_authorized_by_reviewer": false,
+      "strength_claim": false
+    }
+  },
+  "decision": {
+    "selected_next": "H11_CLEAN_RERUN_ROBUST_VALUE_HEAD_CATCHUP_AFTER_CONTROL_PLANE_GATE",
+    "source": {
+      "run_id": "v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714",
+      "checkpoint_path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714/h8_treatment_endpoint.pt",
+      "checkpoint_sha256": "7c388ec68114d497f775157def3c0b3abc82db7ee25baf7e7cb7e9e916f66438",
+      "iteration": 33834,
+      "hands": 556011085,
+      "role": "CONTROLLED_TRAINING_SOURCE_NOT_EXTERNAL_CANDIDATE"
+    },
+    "single_variable": {
+      "name": "catchup_value_loss",
+      "control": "MSE",
+      "treatment": "SmoothL1 beta=1.0 raw critic-v1 bb unit",
+      "standard_ppo_critic_loss": "MSE_UNCHANGED"
+    },
+    "rationale": "H9 and H10 failed to produce a valid control endpoint or any treatment outcome, so the robust-loss question remains prospectively untested. H10 exposed a control-plane observability defect rather than a method effect. The smallest causal continuation is one new clean H11 with the exact H10 scientific variable, source, fixed sample and gates, but only after a separately audited process-provenance and terminalization gate. CAL-EXT-001 is severe but observational, and Path-1 remains incomplete and ineligible.",
+    "control_plane_gate": [
+      "H11 must preserve full forbidden-process provenance: PID,parent PID,creation time,executable,command line and command-line SHA256.",
+      "A protocol abort from either control or treatment must atomically terminalize the active-window sentinel.",
+      "No parent or delegated shell,hash,file-read,process-list,project or evaluation command may run while either H11 trainer is active; exact locked watchers and unchanged Path-1 are the only project processes.",
+      "Offline tests must prove exact evaluator/Slumbot/mirror detection,locked lifecycle/Path-1 non-triggering,full provenance capture and control-arm terminal recovery.",
+      "Immutable H11 preregistration,implementation audit,design lock,preflight and canonical rearm must all pass before launch."
+    ],
+    "scientific_lock": [
+      "Use fresh run directories and the exact canonical H8 endpoint for both arms;never use H9/H10 partial checkpoints.",
+      "Use fixed20M actual hands per arm,control-first order,beta1.0 and every H10 statistical gate unchanged.",
+      "Do not reuse H10 first60 as H11 control throughput baseline.",
+      "No extension,second seed,later endpoint,adaptive sample or official hands during H11 arms.",
+      "If H11 method-PASSes,run exact-treatment-endpoint greedy-direct quick5k before any promotion."
+    ]
+  },
+  "candidate_dispositions": {
+    "repeat_h10_or_resume_partial": "FORBIDDEN_NEW_H11_ONLY",
+    "action_specific_intervention": "REJECTED_NO_VALIDATED_COUNTERFACTUAL_ACTION_REGRET",
+    "path1_ingestion_now": "DEFERRED_INCOMPLETE_AND_INELIGIBLE",
+    "opponent_pool_or_resolving_now": "DEFERRED_WEAKER_CAUSAL_SUPPORT_THAN_UNTESTED_ROBUST_LOSS",
+    "route_exhaustion": "FALSE_UNTESTED_SMOOTHL1_AND_OTHER_HYBRID_OPTIONS_REMAIN"
+  },
+  "route_exhausted": false,
+  "behavior_launch_authorized": "ONLY_AFTER_NEW_H11_PREREGISTRATION_CONTROL_PLANE_AUDIT_DESIGN_LOCK_PREFLIGHT_AND_CANONICAL_REARM_PASS",
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

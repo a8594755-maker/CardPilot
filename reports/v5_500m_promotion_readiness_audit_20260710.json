@@ -1,0 +1,130 @@
+{
+  "audit_id": "V5-500M-PROMOTION-READINESS-20260710",
+  "checked_at": "2026-07-10T02:13:36-04:00",
+  "overall": "WAITING_BLOCKED_EXPECTED",
+  "run_id": "v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709",
+  "trainer": {
+    "pid": 48476,
+    "alive": true,
+    "restarted": false,
+    "live_iteration": 27424,
+    "live_hands": 450580699,
+    "checkpoint_iteration": 27400,
+    "checkpoint_hands": 450186098,
+    "health": "PASS",
+    "collect_hps": 4560.78,
+    "effective_hps": 1784.3,
+    "effective_hps_long": 1822.7
+  },
+  "next_gate": 27500,
+  "gate_27400": {
+    "overall": "PASS",
+    "checkpoint_iteration": 27400,
+    "checkpoint_hands": 450186098,
+    "post_gate_review": "REVIEW_REQUIRED_NO_AUTO_RESTART",
+    "preflop_probe": "WARN"
+  },
+  "cadence": {
+    "overall": "CANDIDATES_BLOCKED",
+    "stage": "promotion20k",
+    "target_checkpoint_hands": 500000000,
+    "candidate_count": 1,
+    "launchable_key": null,
+    "active_launches": [],
+    "planned_hands": 20400,
+    "sessions": 12,
+    "hands_per_session": 1700,
+    "policy_mode": "greedy",
+    "temperature": 1.0,
+    "failed_checks": [
+      "training_hands",
+      "quality_gate"
+    ],
+    "output_collision": "PASS",
+    "remaining_checkpoint_hands": 49813902,
+    "remaining_live_hands": 49468637,
+    "effective_eta_hours": 7.70,
+    "no_launch_occurred": true
+  },
+  "checks": [
+    {
+      "name": "trainer_health",
+      "status": "PASS",
+      "detail": "Trainer PID 48476 is alive; refreshed health is PASS."
+    },
+    {
+      "name": "target_checkpoint",
+      "status": "WAIT",
+      "detail": "Saved checkpoint has 450,186,098 hands; 49,813,902 remain to 500M."
+    },
+    {
+      "name": "quality_gate",
+      "status": "WAIT",
+      "detail": "The current exact-checkpoint preflop probe is WARN; no quality override is allowed."
+    },
+    {
+      "name": "official_policy",
+      "status": "PASS",
+      "detail": "The cadence plan is greedy-direct at temperature 1.0 for 20,400 hands."
+    },
+    {
+      "name": "duplicate_safety",
+      "status": "PASS",
+      "detail": "Output collision check passes, active launch list is empty, and cadence/bundle mutex checks remain enabled."
+    },
+    {
+      "name": "checkpoint_freeze",
+      "status": "PASS",
+      "detail": "The launch watcher copies the selected checkpoint and validates run metadata before preflight."
+    },
+    {
+      "name": "below_normal_priority",
+      "status": "PASS",
+      "detail": "Official direct sessions now fail closed if Windows BelowNormal priority cannot be applied."
+    },
+    {
+      "name": "full_bundle",
+      "status": "PASS",
+      "detail": "The plan declares hand JSONL, decision dump JSONL, CI, promotion gate, dump analysis, loss report, artifact audit, hand review, and selector replay artifacts."
+    },
+    {
+      "name": "formal100k_provenance",
+      "status": "PASS",
+      "detail": "Formal100k now requires a strong promotion20k gate for the exact same checkpoint identity and is pinned to that promotion checkpoint and gate."
+    },
+    {
+      "name": "strength_claim",
+      "status": "BLOCKED",
+      "detail": "No stronger-than-V4, L5, or L6 claim is allowed; latest official current-line evidence remains L0."
+    }
+  ],
+  "control_plane_changes": {
+    "trainer_behavior_changed": false,
+    "trainer_restarted": false,
+    "slumbot_launched": false,
+    "watcher_rearm_script_only": true,
+    "watcher_rearm_survival_pass": true,
+    "watcher_range": [27500, 28600],
+    "focused_tests": "9/9 PASS",
+    "full_v5_unittests": "151/151 PASS",
+    "rearm_checks": "14/14 PASS"
+  },
+  "code_sha256": {
+    "scripts/alpha_holdem/v5_slumbot_benchmark_plan.py": "4c7f90e246a04268616ff8be5c01fc3bf5d20ed62762b37385b67fab43f98d11",
+    "scripts/alpha_holdem/v5_eval_cadence_watch.py": "f282cdb85e3d53d78e68543007954ca51c45f01d5a53ad69bba7dd0fb500d2ac",
+    "scripts/alpha_holdem/v5_slumbot_benchmark_watch.py": "8286f33a347aec77d1c8d644533c48716e65ba5f6e120ec0c8c7d541cbd8ebf8",
+    "scripts/alpha_holdem/test_v5_eval_cadence_watch.py": "621b12cfb45373f71265be9d97037216a3f597cc328d86d7536a7da754fb1fa4",
+    "scripts/alpha_holdem/test_v5_slumbot_benchmark_control.py": "aef9becea8a103a3ddc55bdb02d014ebab31387947655a343ed46eaaec1dc3c4"
+  },
+  "decision": {
+    "immediate_direction": "KEEP_CURRENT_TRAINER_UNCHANGED_AND_WAIT_FOR_AN_ELIGIBLE_500M_PROMOTION_CHECKPOINT",
+    "method_direction": "PROVISIONAL_EXP005_PRIORITY_ONLY_AFTER_500M_NON_STRONG_RESULT_AND_FULL_LOSS_REVIEW",
+    "formal_branch": "RUN_FORMAL100K_ONLY_ON_THE_EXACT_PROMOTED_CHECKPOINT_WHEN_PROMOTION_20K_STRONG_IS_TRUE",
+    "forbidden": [
+      "launching while training_hands or quality_gate fails",
+      "using another checkpoint's strong promotion gate",
+      "continuing official direct sessions at Normal priority",
+      "claiming strength from promotion20k or local diagnostics"
+    ]
+  }
+}

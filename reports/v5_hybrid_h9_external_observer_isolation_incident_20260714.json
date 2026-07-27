@@ -1,0 +1,65 @@
+{
+  "schema_version": "v5.hybrid.h9.external_observer_isolation_incident.v1",
+  "recorded_at": "2026-07-14T20:26:00Z",
+  "classification": "CENSURE_H9_EXTERNAL_OBSERVER_PLANNER_TOKEN_RESOURCE_ISOLATION_ABORT",
+  "responsibility": "A delegated read-only review task incorrectly executed local Slumbot benchmark planner commands while the H9 control arm was active. The primary agent accepts responsibility for the delegation failure.",
+  "h9": {
+    "run_id": "v5_hybrid_h9_control_catchmse_same33834_20m_r1_20260714",
+    "preregistration_sha256": "05bcb04a34cff546cce2159ecdee3e31850c54e0f8a9f37accb30090a100f84b",
+    "design_lock_sha256": "30071df4fa72ddf9c4244eace4e9ed4cbe8186d7e3c53d93fde0f2044687d81e",
+    "terminal_judgment": "INCONCLUSIVE",
+    "terminal_classification": "H9_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+    "judgment_path": "reports/v5_hybrid_h9_judgment_20260714.json",
+    "judgment_sha256": "dd1ada4c08058b2d479b5b8fa80b6c0880df71c49b70b6d0fc401c1e562d3fe6",
+    "last_iteration": 34990,
+    "last_hands": 575018637,
+    "registered_target_hands": 576011085,
+    "remaining_hands_at_abort": 992448,
+    "trainer_pid": 49380,
+    "trainer_stopped": true,
+    "treatment_launched": false,
+    "official_hands": 0,
+    "strength_claim": "FORBIDDEN"
+  },
+  "trigger": {
+    "detected_pid": 46864,
+    "detected_token": "v5_slumbot",
+    "planner_source": "scripts/alpha_holdem/v5_slumbot_benchmark_plan.py",
+    "planner_source_sha256": "4c7f90e246a04268616ff8be5c01fc3bf5d20ed62762b37385b67fab43f98d11",
+    "working_directory": "C:\\Users\\a8594\\CardPilot",
+    "commands": [
+      "python scripts/alpha_holdem/v5_slumbot_benchmark_plan.py --run-dir models/alpha_holdem_v5_hybrid/v5_hybrid_h9_control_catchmse_same33834_20m_r1_20260714 --stage quick5k --tag h9_external_readonly_probe_20260714 --output-dir models",
+      "python scripts/alpha_holdem/v5_slumbot_benchmark_plan.py --run-dir models/alpha_holdem_v5_hybrid/v5_hybrid_h9_control_catchmse_same33834_20m_r1_20260714 --stage promotion20k --tag h9_external_promotion_readonly_probe_20260714 --output-dir models"
+    ],
+    "planner_results": [
+      "quick5k planner returned READY and only printed a proposed 4 x 1250-hand command",
+      "promotion20k planner returned BLOCKED and only printed a proposed 12 x 1700-hand command"
+    ],
+    "slumbot_connection_started": false,
+    "slumbot_session_started": false,
+    "slumbot_hands": 0,
+    "planner_output_files_created": false
+  },
+  "immutable_evidence": {
+    "incident_snapshot_dir": "reports/v5_hybrid_h9_incident_snapshot_20260714_202305Z",
+    "run_manifest_snapshot_sha256": "e5033cd94659483317505d4e01cb7b2500e32d51580a5b638042627502634baa",
+    "protocol_status_sha256": "62a2d6242fcb0b7433078c54b3983c01aab3fd7c3296c335dc4344fe054a13b8",
+    "endpoint_status_sha256": "d49ec558095dd8cd72eaa957722b9ee7541f2be0f8a951a129bc2eb775107462",
+    "completion_status_sha256": "381dde6b6c33878528b3ac4c8ca30ff5b48f9ab6005441caf827feb33e3237e2"
+  },
+  "disposition": {
+    "watcher_action": "The immutable H9 watcher correctly treated the command token as a resource-isolation violation and terminated the trainer.",
+    "verdict_reclassification": "FORBIDDEN",
+    "resume_or_extension": "FORBIDDEN",
+    "later_endpoint_or_second_seed": "FORBIDDEN",
+    "treatment_launch": "BLOCKED",
+    "route_review_required": true,
+    "external_calibration": "No Slumbot evaluation may be inferred from the planner commands. A future external calibration requires a new post-H9 registration and a clean exact checkpoint."
+  },
+  "corrective_actions": [
+    "Interrupted all delegated review agents before further commands could run.",
+    "Preserved the H9 INCONCLUSIVE judgment and did not restart or complete the missing hands.",
+    "Recorded the exact planner commands, hashes, immutable statuses, zero Slumbot hands and responsibility.",
+    "Require future live-run review delegation to use an explicit no-process-launch constraint; planner execution is forbidden while any registered resource-isolated arm is active."
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "schema_version": "v5.hybrid.route_review.preregistration.v13.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-013",
+  "registered_at": "2026-07-19T16:12:00Z",
+  "status": "REGISTERED_REPORTING_ONLY",
+  "trigger": {
+    "h15_verdict": "FAIL",
+    "h15_classification": "H15_FAIL_PREARM_PERF_CAL_NO_LAUNCH",
+    "h15_judgment_sha256": "b182ce5990788029807b59df7de21e0ea4685277b2d11df96a57fbef2499ccda",
+    "h15_terminal_audit_sha256": "d19f1d85b70002c9a5a221a70bca9cd4d995984f1c3e3fb8becd9eba523405ee",
+    "observed_loss_only_ratio": 0.9298062924031755,
+    "registered_loss_only_minimum": 0.95,
+    "trainer_started": false,
+    "method_evidence": "NONE_NO_ARM_LAUNCHED"
+  },
+  "frozen_truth": {
+    "h12": "TERMINAL_INCONCLUSIVE",
+    "h13": "TERMINAL_INCONCLUSIVE",
+    "h14": "TERMINAL_INCONCLUSIVE_PARTIAL_FORBIDDEN",
+    "h15": "TERMINAL_FAIL_PREARM_NO_LAUNCH",
+    "clean_source": "H11_CONTROL_ITER35051_HANDS576021901_SHA96A007",
+    "latest_official_level": "L0",
+    "official_hands_this_review": 0,
+    "external_debt_hands": 0,
+    "path1": "EXISTING_EXACT_SIX_BELOWNORMAL_CPU_WORKERS_UNTOUCHED"
+  },
+  "causal_localization": {
+    "supported": "F_SMOOTH_L1_VALUE_HEAD_ONLY_KERNEL_PATH_WAS_7.019_PERCENT_SLOWER_THAN_MSE_IN_THE_REGISTERED_MICROBENCHMARK",
+    "not_supported": [
+      "SMOOTHL1_CAUSES_END_TO_END_TRAINER_THROUGHPUT_BELOW_0.85",
+      "SMOOTHL1_IMPROVES_OR_HARMS_CRITIC_CALIBRATION",
+      "SMOOTHL1_IMPROVES_OR_HARMS_POLICY_STRENGTH"
+    ],
+    "measurement_issue": "THE_LOSS_ONLY_0.95_GATE_IS_STRICTER_THAN_AND_NOT_REPRESENTATIVE_OF_THE_REGISTERED_END_TO_END_FIRST60_0.85_ABORT_GATE"
+  },
+  "candidate_order": [
+    {
+      "rank": 1,
+      "candidate": "H16_REPRESENTATIVE_FULL_PPO_PERF_CAL_SAME_SCIENCE",
+      "change": "MEASUREMENT_PROTOCOL_ONLY_BEFORE_ARM;SCIENTIFIC_VARIABLE_REMAINS_MSE_VS_SMOOTHL1_BETA1",
+      "required_prearm_gate": "FULL_PPO_UPDATE_TREATMENT_CONTROL_THROUGHPUT_RATIO_AT_LEAST_0.85;NUMERICAL_AND_GRADIENT_IDENTITY_PASS;COMMON_MSE_BASELINE_MATCH_AT_LEAST_0.95",
+      "arm_gate": "UNCHANGED_FIRST60_AND_FULL_HPS_RATIO_AT_LEAST_0.85",
+      "authority_if_selected": "SEPARATE_H16_PREREGISTRATION_ONLY"
+    },
+    {
+      "rank": 2,
+      "candidate": "PCV005_NUMERICALLY_EQUIVALENT_SMOOTHL1_KERNEL_ENGINEERING_GATE",
+      "change": "ENGINEERING_ONLY_EXACT_FORWARD_GRADIENT_OPTIMIZER_EQUIVALENCE",
+      "authority_if_selected": "SEPARATE_TRAINERLESS_PREREGISTRATION_ONLY"
+    },
+    {
+      "rank": 3,
+      "candidate": "ROUTE_EXHAUSTION",
+      "condition": "ONLY_IF_NO_CAUSALLY_SUPPORTED_HYBRID_WINDOW_OR_ENGINEERING_PREREQUISITE_REMAINS"
+    }
+  ],
+  "decision_rule": "SELECT_H16_IF_H15_FAILED_ONLY_THE_LOSS_ONLY_0.95_MICROBENCHMARK,THE_OBSERVED_RATIO_REMAINS_AT_LEAST_0.85,NO_TRAINER_OR_METHOD_EVIDENCE_EXISTS,AND_A_PROSPECTIVE_REPRESENTATIVE_FULL_UPDATE_GATE_CAN_BE_FROZEN;OTHERWISE_SELECT_PCV005;ROUTE_EXHAUSTED_ONLY_IF_NEITHER_IS_VALID",
+  "constraints": {
+    "h15_rerun_resume_extend_reclassify": "FORBIDDEN",
+    "single_behavior_variable": true,
+    "exact_checkpoint_identity": true,
+    "official_hands": 0,
+    "action_tuning": "FORBIDDEN",
+    "ledger_append_only": true,
+    "strength_claim": "FORBIDDEN"
+  },
+  "authority": "REPORTING_ONLY_NO_BEHAVIOR_LAUNCH"
+}

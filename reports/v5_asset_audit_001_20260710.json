@@ -1,0 +1,57 @@
+{
+  "audit_id": "ASSET-AUDIT-001",
+  "checked_at": "2026-07-10T20:10:00+00:00",
+  "status": "COMPLETED_REPORTING_ONLY",
+  "claim_scope": "route-pivot compatibility diagnostic only; no trainer change or strength inference",
+  "required_contract": {
+    "complete_game": "200bb heads-up NLHE from preflop through river",
+    "observation": "AlphaHoldem v55",
+    "action_space": "current 9slot_v5 semantics",
+    "runtime": "loadable by the current full-hand Slumbot policy adapter"
+  },
+  "candidates": [
+    {
+      "name": "BC v3 anchor",
+      "artifact": "models/bc/v3_anchor_5M_d1/best.pt",
+      "sha256": "dd49de42268d8aaebc207e44ff94047febee59dcbe908ec4cd9b8b4103a06822",
+      "facts": [
+        "AlphaHoldemNet with nine outputs and 200bb generated trajectories",
+        "checkpoint metadata is env_version=v4, obs_version=v4, action_space_version=9slot_v4",
+        "teacher data is generated from scripted/legacy teacher rollouts, not a compatible full-game 200bb CFR blueprint"
+      ],
+      "compatible": false,
+      "blocking_reasons": ["v55 observation mismatch", "9slot_v5 contract not proven", "no current adapter-compatibility proof"]
+    },
+    {
+      "name": "SD-CFR HUNL v1/v2",
+      "artifacts": [
+        {"path": "checkpoints/sdcfr_hunl_v1/round0/sdcfr_iter25.pt", "sha256": "f65373ac70fbdd6999b94df96add76953235a31b6d1f8c83273041b8ff12a693"},
+        {"path": "checkpoints/sdcfr_hunl_v2/round0/sdcfr_iter50.pt", "sha256": "8e7a665eff988c9586d9d2d970b4366e163bf72dacc32e8d41db4a8b71506a8d"}
+      ],
+      "facts": ["both inspected checkpoints declare game_config=srp_50bb", "raw encoder is 56-dimensional and distinct from AlphaHoldem v55", "no current full-hand Slumbot adapter binds these checkpoints"],
+      "compatible": false,
+      "blocking_reasons": ["50bb SRP rather than complete 200bb", "observation mismatch", "adapter absent"]
+    },
+    {
+      "name": "pipeline_v3_hu_srp_200bb",
+      "artifact": "data/cfr/pipeline_v3_hu_srp_200bb",
+      "facts": ["96 gzip policy exports and 96 metadata files", "metadata declares HU_NLHE_SRP at 200bb", "postflop single-raised-pot abstraction only", "exports bucketed policy rows rather than a complete-game v55 policy checkpoint"],
+      "compatible": false,
+      "blocking_reasons": ["no preflop or non-SRP coverage", "not a v55 checkpoint", "no direct full-hand adapter"]
+    },
+    {
+      "name": "V10 value network",
+      "artifact": "models/vnet-v10-v3data.json",
+      "sha256": "eb7360f58280529906ddab4c97ffab7e37334fd7997a3ea67ae1b93720a54333",
+      "facts": ["54-dimensional postflop network with 3-way action and 5-way sizing heads", "play_slumbot_v10.py supplies a separate hand-written preflop chart"],
+      "compatible": false,
+      "blocking_reasons": ["not an end-to-end complete-game learned policy", "not v55", "not 9slot_v5"]
+    }
+  ],
+  "decision": {
+    "decision": "NO_COMPATIBLE_FULL_200BB_ASSET",
+    "route_pivot_exp_w2_eligible": false,
+    "exp_w2_registration_authorized_now": false,
+    "note": "An adapter or conversion project would be a new experiment, not evidence that a compatible asset already exists."
+  }
+}

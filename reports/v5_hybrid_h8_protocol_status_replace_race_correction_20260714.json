@@ -1,0 +1,56 @@
+{
+  "schema_version": "v5.hybrid.h8.reporting_correction.v1",
+  "checked_at": "2026-07-14T15:30:30Z",
+  "classification": "CENSURE_REPORTING_ONLY_PROTOCOL_STATUS_REPLACE_RACE_CANONICALLY_REARMED",
+  "scope": "H8 treatment protocol watcher control plane only",
+  "incident": {
+    "watcher_pid": 30320,
+    "last_status_checked_at": "2026-07-14T15:20:20.823643+00:00",
+    "last_status_rows": 827,
+    "last_status_state": "ARM_RUNNING_GUARDS_PASS",
+    "stderr_bytes_observed_before_rearm": 1786,
+    "orphan_temp_bytes_observed_before_rearm": 576,
+    "orphan_temp_last_write_local": "2026-07-14T11:20:35-04:00",
+    "exception": "PermissionError WinError 5 while replacing h8_treatment_protocol_status.json.tmp onto h8_treatment_protocol_status.json",
+    "trainer_affected": false,
+    "endpoint_watcher_affected": false,
+    "completion_watcher_affected": false,
+    "resource_isolation_violation": false,
+    "official_hands": 0
+  },
+  "preservation_censure": {
+    "original_status_and_stderr_snapshotted_before_rearm": false,
+    "reason": "The canonical rearm was run immediately to close the critical watcher gap and its standard redirections recreated the mutable stderr/status files before a separate immutable copy was made.",
+    "fabricated_hashes_for_superseded_mutable_files": false,
+    "recorded_observations_are_exact_values_read_before_rearm": true
+  },
+  "recovery": {
+    "method": "scripts/alpha_holdem/v5_rearm_watchers.ps1 only",
+    "canonical_rearm_at": "2026-07-14T11:29:13.8148530-04:00",
+    "canonical_rearm_status_sha256": "368c3e8c6ab2e73022cf4f76bc2e1bce1f8d36f7a73eb40b278f6b6776264d95",
+    "survival_pass": true,
+    "new_protocol_watcher_pid": 33728,
+    "new_endpoint_watcher_pid": 44328,
+    "new_completion_watcher_pid": 29488,
+    "recovered_protocol_checked_at": "2026-07-14T15:29:48.402658+00:00",
+    "recovered_protocol_rows": 904,
+    "recovered_protocol_state": "ARM_RUNNING_GUARDS_PASS",
+    "recovered_protocol_stderr_bytes": 0,
+    "trainer_pid": 40760,
+    "trainer_remained_alive": true
+  },
+  "immutability": {
+    "design_lock_sha256": "298daa368585af79586f3ba24b7fde1ae862de41a8221cdf46c0825d041957c6",
+    "protocol_watcher_script_sha256": "c7d5451012002d52a883eeb83a76e834bb93864b8bb556cb155057954dd783b9",
+    "locked_script_changed": false,
+    "post_rearm_design_lock_audit_path": "reports/v5_hybrid_h8_design_lock_v5_post_protocol_rearm_audit_20260714.json",
+    "post_rearm_design_lock_audit_sha256": "b848ab3171270ddecc7745da8e30b2b4a4bf3f1f443cfe057f39725b875b7f09",
+    "post_rearm_design_lock_audit_overall": "PASS_IMMUTABLE_H8_DESIGN_LOCK"
+  },
+  "authority": {
+    "behavior_change": false,
+    "method_judgment_authority_changed": false,
+    "strength_authority": "NONE",
+    "h8_fixed_window_and_gates_unchanged": true
+  }
+}

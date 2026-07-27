@@ -1,0 +1,125 @@
+{
+  "schema_version": "v5.hybrid.route_review.result.v10.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-010",
+  "checked_at": "2026-07-17T16:13:30Z",
+  "overall": "PASS_ROUTE_REVIEW",
+  "registration_sha256": "2f51f70f530ddaf8928581b2772448e458b01d8e3e0ef675c73f6153158610cd",
+  "registration_audit_sha256": "f46a7fc1e5e1f502ddac086484d3bcd01229dbdaf7f0f34fa3803c1bd93ba246",
+  "registration_audit": "PASS_38_OF_38",
+  "trigger_verified": true,
+  "evidence_matrix": {
+    "H13": {
+      "terminal": "H13_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+      "judgment_sha256": "b0cc56f55f985819d748989ca1c0574ae8b176495dfcab064aae659de60b8ce6",
+      "incident_sha256": "cad2d325faad44b12604f7b8d930408dc80716cf10aaa2c1c30430b80346172d",
+      "terminal_audit_sha256": "e061add072023f8a474780fe6300bea12988d18d7f0150c0d334086b564a9fb5",
+      "control_training_progress_hands": 0,
+      "control_endpoint": false,
+      "treatment_launched": false,
+      "mirror_launched": false,
+      "official_hands": 0,
+      "method_effect_evidence": "NONE",
+      "root_cause": "exact H13 health watcher child of locked ordered-rearm supervisor was absent from protocol allowlist and was falsely classified as unregistered",
+      "trigger_pid": 50384,
+      "trigger_parent_pid": 6276,
+      "trigger_command_sha256": "d0e91a948fe46eb3d24cc95f72097426f911c5cc30af309c3ff4e083eab06b77",
+      "resume_or_reclassify": "FORBIDDEN"
+    },
+    "control_plane": {
+      "prior_repair_result": "INSUFFICIENT_CHILD_ROLE_COVERAGE",
+      "prior_repair_sha256": "e10cbfa805f93b1a61bf20a338bcb64b20b28caa95b812d60044cbb29bc40901",
+      "prior_repair_audit_sha256": "8a4bb96b0378a5d74bd690ddf63859755d907e277825d29b5fa41bd719e61078",
+      "missing_role": "v5_hybrid_h13_health_watch.py",
+      "repairable_prospectively": true,
+      "required_contract": "enumerated exact lifecycle child roles bound to script,parent relationship,lock identity and full trigger provenance"
+    },
+    "clean_source": {
+      "run_id": "v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715",
+      "checkpoint_path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715/h11_control_endpoint.pt",
+      "checkpoint_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+      "iteration": 35051,
+      "hands": 576021901,
+      "available": true,
+      "role": "CLEAN_MAIN_LINE_SOURCE_NOT_STRENGTH_CANDIDATE"
+    },
+    "external": {
+      "latest_checkpoint_measurement": "CAL_EXT_002_H11_CONTROL_GREEDY_QUICK5K",
+      "official_hands": 5000,
+      "bb_per_100": -146.17260000000002,
+      "ci95": [-238.59789051053525, -53.7473094894648],
+      "level": "L0",
+      "action_regret": "MISSING",
+      "action_specific_tuning": "FORBIDDEN",
+      "promotion_or_formal100k_authorized": false
+    },
+    "Path1": {
+      "recovery_sha256": "bcd12782e9be676c966adda272c1ad74835baa30e26d3e7702e8a26e4a463176",
+      "asset_lock_sha256": "ddc57ea13d9bd02cdc41f40832aa08b07b82b03267d1540b4745abb3b60174d4",
+      "coordinator_pid": 23720,
+      "workers": 6,
+      "priority": "BelowNormal",
+      "gpu": false,
+      "selected_complete_at_restart": 414,
+      "target": 600,
+      "policy": "ASSET_GENERATION_ONLY_NO_OVERWRITE_NO_TRAINING_INGESTION"
+    },
+    "alternatives": {
+      "W1": "TERMINAL_CLOSED_NEVER_REOPEN",
+      "EXP005_C": "TERMINAL_CLOSED_NEVER_REOPEN",
+      "H13": "TERMINAL_CLOSED_NEVER_REOPEN",
+      "action_specific_aggression_tuning": "FORBIDDEN_NO_COUNTERFACTUAL_REGRET",
+      "opponent_pool": "DEFERRED_NO_NEW_FROZEN_CANDIDATE",
+      "cfr_distillation": "DEFERRED_PATH1_INCOMPLETE_AND_NOT_TRAINING_ELIGIBLE",
+      "play_time_resolving": "DEFERRED_PREREQUISITES_INCOMPLETE"
+    }
+  },
+  "decision": {
+    "selected_next": "H14_CLEAN_ROBUST_VALUE_HEAD_CATCHUP_AFTER_EXACT_LIFECYCLE_CHILD_ALLOWLIST_FIX",
+    "route_exhausted": false,
+    "source": {
+      "run_id": "v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715",
+      "checkpoint_path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715/h11_control_endpoint.pt",
+      "checkpoint_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+      "iteration": 35051,
+      "hands": 576021901
+    },
+    "single_variable": {
+      "name": "catchup_value_loss",
+      "control": "MSE",
+      "treatment": "SmoothL1 beta=1.0 raw critic-v1 bb unit",
+      "standard_ppo_critic_loss": "MSE_UNCHANGED"
+    },
+    "window": {
+      "fresh_run_ids": true,
+      "fresh_same_start": true,
+      "control_hands": 20000000,
+      "treatment_hands": 20000000,
+      "sequential_control_then_treatment": true,
+      "no_extension": true,
+      "no_second_seed": true,
+      "no_later_endpoint": true,
+      "terminal_partial_reuse": "FORBIDDEN"
+    },
+    "scientific_gates": "UNCHANGED_FROM_H13_REGISTRATION",
+    "mandatory_prelaunch_control_plane_gate": [
+      "enumerate and exact-bind health,protocol,endpoint,treatment-launch and completion lifecycle child roles",
+      "bind each allowed child to expected script,parent relationship and design-lock identity without broad observer exemption",
+      "adversarial fixtures prove every registered child passes and unregistered sibling or command mismatch fails closed",
+      "retain startup-log PENDING deadline,rearm nonzero-on-survival-fail and launcher exit-plus-survival validation",
+      "prove zero dead-parent Python spawn children before launch",
+      "bind Path-1 coordinator23720 and exactly six BelowNormal CPU workers in preflight without restart or expansion",
+      "implementation audit,preregistration,design lock,live preflight,production PERF-CAL and canonical ordered rearm independently PASS"
+    ],
+    "rationale": "H13 had exactly zero scientific exposure and therefore did not estimate the unresolved MSE-versus-SmoothL1 effect. The exact clean H11 source remains available. The incident is a narrow prospective control-plane defect: one registered lifecycle child role was omitted from the protocol allowlist. A fresh H14 with complete exact-role binding is the smallest causally supported next hybrid window;action tuning remains forbidden and route exhaustion is false."
+  },
+  "candidate_dispositions": {
+    "resume_or_repair_h13": "FORBIDDEN_TERMINAL",
+    "declare_smoothl1_method_fail": "REJECTED_ZERO_SCIENTIFIC_EXPOSURE",
+    "tune_postflop_aggression": "REJECTED_NO_COUNTERFACTUAL_ACTION_REGRET",
+    "reopen_w1_or_exp005c": "FORBIDDEN_TERMINAL",
+    "route_exhaustion": "FALSE_REPAIRABLE_CONTROL_PLANE_AND_CLEAN_WINDOW_REMAIN"
+  },
+  "behavior_launch_authorized": "NONE_UNTIL_H14_PREREGISTRATION_IMPLEMENTATION_AUDIT_EXACT_ROLE_REPAIR_DESIGN_LOCK_PREFLIGHT_PRODUCTION_PERF_CAL_AND_CANONICAL_REARM_PASS",
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

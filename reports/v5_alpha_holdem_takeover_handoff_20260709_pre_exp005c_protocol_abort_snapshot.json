@@ -1,0 +1,101 @@
+{
+  "checked_at": "2026-07-10T16:10:00-04:00",
+  "goal_path": "docs/V5_CURRENT_GOAL.md",
+  "run_id": "v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_exp005_pergroup5_r1_20260710",
+  "trainer": {
+    "pid": 30224,
+    "classification": "EXPLORATORY_PILOT_NO_METHOD_JUDGMENT",
+    "behavior_change_allowed": false,
+    "method_judgment_allowed": false,
+    "slumbot_launch_allowed": false,
+    "endpoint_iteration": 32700,
+    "endpoint_min_hands": 535989661
+  },
+  "pilot_endpoint_stop": {
+    "watcher_pid": 51300,
+    "state": "WAITING_FOR_EXACT_PILOT_ENDPOINT",
+    "fail_closed": true
+  },
+  "watchers": {
+    "canonical_rearm_survival_pass": true,
+    "coverage": "31800..32700",
+    "required_alive": 8,
+    "exp003_meas001_slumbot_blocked_for_pilot": true
+  },
+  "exp005c_fail_closed_chain": {
+    "pilot_stop_pid": 8080,
+    "pilot_stop_transient_supervisor_pid": 35928,
+    "control_launch_pid": 56172,
+    "control_endpoint_freeze_pid": 42484,
+    "treatment_launch_pid": 50452,
+    "treatment_endpoint_freeze_pid": 26560,
+    "primary_100k_pid": 28280,
+    "promotion_formal_program_pid": 21528,
+    "all_downstream_pending": true,
+    "slumbot_launch_authority": "NONE_BEFORE_PRIMARY_PASS",
+    "full_v5_tests": "195/195 PASS",
+    "canonical_rearm_tests": "14/14 PASS"
+  },
+  "source_checkpoint": {
+    "iteration": 31400,
+    "hands": 515989661,
+    "sha256": "bcbb46bd01d62fcdea602269b7047323315d4e9bbcf447ea0323e289fde11a8e"
+  },
+  "exp005c": {
+    "status": "DESIGN_LOCKED_AWAITING_PILOT_STOP",
+    "design_lock": "reports/v5_exp005c_design_lock_v2_20260710.json",
+    "design_lock_sha256": "2d64d3b82700d5bea2250121a09567e78f46b6bcc486a55d593acb33bcb86007",
+    "full_control_dry_run_preflight": "PASS",
+    "arms_launched": false,
+    "control": "per-iteration, fixed 20M actual hands from gate31400",
+    "treatment": "per-group/5, fixed 20M actual hands from gate31400",
+    "primary": "exactly 100k common-deal paired treatment-endpoint versus control-endpoint",
+    "fail_or_inconclusive": "FREEZE_TIER2",
+    "pass": "EXACT_TREATMENT_ENDPOINT_PROMOTION20K_ONLY"
+  },
+  "goal_completion_audit": {
+    "path": "reports/v5_exp005c_goal_completion_audit.json",
+    "overall": "IN_PROGRESS",
+    "pending": 5,
+    "failed": 0,
+    "completion_claim_allowed": false,
+    "reporting_only_watcher_pid": 7416
+  },
+  "reporting_audits": {
+    "VALUE-AUDIT-001": {
+      "decision": "SUPPORTS_CRITIC_OR_REWARD_SCALE_PROBLEM",
+      "route_pivot_exp_w1_eligible": true,
+      "authorized_now": false
+    },
+    "ASSET-AUDIT-001": {
+      "decision": "NO_COMPATIBLE_FULL_200BB_ASSET",
+      "route_pivot_exp_w2_eligible": false,
+      "authorized_now": false
+    }
+  },
+  "poker_research_capability": {
+    "checked_at": "2026-07-10T16:34:00-04:00",
+    "status": "PASS_REPORTING_ONLY_CAPABILITY_BUILT",
+    "contract": "docs/V5_POKER_RESEARCHER_DECISION_CONTRACT.md",
+    "loss_inference": "reports/v5_500m_loss_inference_audit_20260710.json",
+    "research_review": "reports/v5_poker_research_capability_baseline_20260710.json",
+    "real_bundle_hands_candidate_baseline": "20400/20400",
+    "source_sessions_candidate_baseline": "12/12",
+    "causal_action_claim": false,
+    "temporal_cycle_claim": false,
+    "global_nonconvergence_claim": false,
+    "general_200bb_panel_claim": false,
+    "new_behavior_change_authorized": false,
+    "validation": "focused 11/11; full V5 188/188; EXP suites 8/8"
+  },
+  "latest_official": {
+    "evidence_class": "promotion20k",
+    "hands": 20400,
+    "policy": "greedy-direct",
+    "bb100": -153.2999,
+    "ci95": [-187.6945, -118.9052],
+    "promotion_20k_strong": false,
+    "strength_claim": "NONE"
+  },
+  "next_action": "wait for fail-closed pilot endpoint stop, then launch only the locked EXP005-C control arm"
+}

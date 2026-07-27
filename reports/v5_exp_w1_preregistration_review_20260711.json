@@ -1,0 +1,57 @@
+{
+    "schema_version":  "v5.route_pivot.preregistration_review.v1",
+    "checked_at":  "2026-07-11T07:03:15.3713981Z",
+    "program_state":  "EXP005C_FAIL_PROTOCOL_ABORT",
+    "decision":  "EXP_W1_EXACT_DESIGN_PREREGISTRATION_RECOMMENDED_NOT_REGISTERED",
+    "worth_preregistering":  true,
+    "preregistered":  false,
+    "launch_authority":  "NONE",
+    "auto_launch_forbidden":  true,
+    "evidence":  {
+                     "researcher_review_path":  "reports/v5_exp005c_route_pivot_research_review_20260711.json",
+                     "researcher_review_sha256":  "c24f003e2c1d316b49cb8ec9869fd79ab03fd17ef54a216631adc936f83883f0",
+                     "reviewer_overall":  "ROUTE_PIVOT_EXP_W1_ELIGIBLE_REQUIRES_REGISTRATION",
+                     "exp_w1_eligible":  true,
+                     "exp_w2_eligible":  false,
+                     "protocol_abort_scope":  "REGISTERED_PROTOCOL_ABORT_NO_POKER_EFFECT_ESTIMATE",
+                     "value_audit_sha256":  "f2b5c16690e4d32d28ff2a2396c47b29164b6fb59773529984e32c6844b34a99",
+                     "asset_audit_sha256":  "3abb2f1f8ec2c66446f47ecc6935790a415b91e8fe292458c2b6ee8bae17651a",
+                     "failure_artifact_sha256":  "b10e61e06dd5b25d17c375250ac46d8cf955a709b0ba6f459f1c854610810026"
+                 },
+    "reasoning":  [
+                      "VALUE-AUDIT identifies a repeated critic/reward-scale mechanism concern across 62,754 decisions and nine supporting strata.",
+                      "EXP005-C failed its locked throughput protocol and provides no poker-effect estimate, so its post-row60 data cannot select a treatment.",
+                      "W2 is ineligible because no compatible full-200bb asset exists.",
+                      "EXP-W1 is a route category, not an exact single behavior variable; generic registration would violate preregistration and one-variable rules."
+                  ],
+    "recommended_design_direction":  {
+                                         "phase":  "DESIGN_ONLY",
+                                         "preferred_first_candidate":  "VALUE_HEAD_ONLY_WARMUP",
+                                         "preference_reason":  "Targets critic calibration while preserving reward semantics; a design preference, not registration authority.",
+                                         "alternatives_not_to_bundle":  [
+                                                                            "reward_or_advantage_normalization",
+                                                                            "BC_initialization",
+                                                                            "CFR_teacher"
+                                                                        ],
+                                         "required_before_registration":  [
+                                                                              "freeze one exact variable only",
+                                                                              "bind exact source checkpoint and lineage",
+                                                                              "freeze data source, warmup budget, optimizer state, seeds and rollback",
+                                                                              "define matched-hand critic gates plus same-start poker-effect gate",
+                                                                              "complete offline validation and immutable design lock"
+                                                                          ]
+                                     },
+    "forbidden":  [
+                      "generic EXP-W1 registration without an exact treatment",
+                      "trainer launch",
+                      "Slumbot launch",
+                      "bundling value warmup with reward normalization or teacher initialization",
+                      "strength inference"
+                  ],
+    "validation":  {
+                       "focused_tests":  "10/10 PASS",
+                       "full_v5_suite":  "NOT_CLAIMED; discovery exceeded observation window and was terminated without verdict",
+                       "verifier_sha256":  "ab398c392eb0512f4748acd150ae7691974fae69996c9cf61400007a2f8b6aa2",
+                       "verifier_test_sha256":  "785b8b72009d93cc0e9ec7f023d2881c7dcb025cbc8d42150988823631c1f513"
+                   }
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": "v5.hybrid.h2.preregistration.v2",
+  "experiment_id": "H2",
+  "registered_at": "2026-07-13T05:05:00+00:00",
+  "status": "REGISTERED_NO_LAUNCH",
+  "immutable": true,
+  "complete_contract": {
+    "base_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h2_preregistration_20260713.json",
+    "base_sha256": "121a0575448e6a6ec2a7510c6b4acfa3f4e48a5172ae1411eb4e8231d8694569",
+    "incorporation": "all v1 fields are frozen and incorporated except the exact superseding fields below",
+    "base_registration_status": "PRESERVED_PRE_LEDGER_CANDIDATE_NOT_AUTHORITATIVE_ALONE"
+  },
+  "superseding_fields": {
+    "code_bindings.scripts/alpha_holdem/train_v5.py": "95b845db9babef5288d363da424f0d882da4010f5a37f6d35e8cf37de9a06504",
+    "frozen_prerequisites.implementation_audit.path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h2_implementation_audit_v2_20260713.json",
+    "frozen_prerequisites.implementation_audit.sha256": "5ca695ba213d2a81ba8584ed5589718ede47cf87ef687d3318469335eac596d7",
+    "frozen_prerequisites.implementation_audit.overall": "PASS_IMPLEMENTATION_PREREG_READY"
+  },
+  "added_fail_closed_arm_identity": {
+    "required_cli": [
+      "--h2-window-arm control|treatment",
+      "--h2-preregistration ABSOLUTE_PATH",
+      "--h2-preregistration-sha256 EXACT_V2_SHA256",
+      "--h2-design-lock ABSOLUTE_PATH",
+      "--h2-design-lock-sha256 EXACT_SHA256"
+    ],
+    "validation": [
+      "arm identity must agree with showdown target enabled flag",
+      "preregistration file hash must exactly match",
+      "design-lock file hash must exactly match",
+      "resume/allow-resume with optimizer reset is mandatory",
+      "fixed deal stream, worker seed73000, per-iteration assignment and provenance are mandatory"
+    ],
+    "checkpoint_and_manifest_fields": [
+      "h2_window_arm",
+      "h2_preregistration_sha256",
+      "h2_design_lock_sha256"
+    ]
+  },
+  "unchanged_frozen_rules": {
+    "single_variable": "critic-return-only exact-or-K200 all-showdown line targets",
+    "arms": "same gate31400 critic_v1 start; control then treatment; fixed20M actual hands each",
+    "internal_mirror": "fixed40000 common-deal pairs seed2026071403 lower>=-20 bb/100",
+    "offline_variance_bias": "H2-VAR-001 immutable PASS prerequisite",
+    "endpoint_mse_throughput_entropy_health_identity": "all mandatory",
+    "official_slumbot_hands": 0,
+    "strength_claim": "FORBIDDEN",
+    "route_review": "terminal H2 FAIL/no-progress after H1 triggers autonomous review",
+    "no_extension_or_second_seed_or_later_endpoint": true
+  },
+  "reason_for_v2": "Before ledger registration, trainer arm enforcement was strengthened to hash-bind both immutable H2 preregistration and design lock. No result was observed, no arm launched, and no sample, threshold, source, variable, or interpretation changed.",
+  "authority": {
+    "arm_launch": "BLOCKED_UNTIL_V2_AUDIT_DESIGN_LOCK_PREFLIGHT_AND_CANONICAL_REARM_PASS",
+    "official_slumbot_hands": 0
+  }
+}

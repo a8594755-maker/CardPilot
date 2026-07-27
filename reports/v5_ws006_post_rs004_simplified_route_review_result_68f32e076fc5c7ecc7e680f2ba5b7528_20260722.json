@@ -1,0 +1,335 @@
+{
+  "schema_version": "v5.ws006.post_rs004.simplified_route_review.atomic_result.v1",
+  "created_at": "2026-07-22T23:51:00-04:00",
+  "classification": "PASS / WS006_SELECT_RS005_MATERIALLY_NEW_FULLY_LIVE_TERMINAL_UTILITY_RESOLVER_PREREGISTRATION_LATER_ONLY",
+  "overall": "PASS",
+  "identity": {
+    "basis": "WS006_POST_RS004_SIMPLIFIED_ROUTE_REVIEW|342e5643083e4b21552305815f7ad3cf0926f51d72e29aa03a7dbe40ec5dd7c9|259a370d77725d28e4f26b018242ba3879083383a6e74ed461c5e0b9cf6239c3|6f6f5612f8309997aa3eda0bbbdc76c22568e7ae66144d571c5e70c5e46575f5|e6d230c83127fafc19b5003fafe0b5e9e5363420415c1329c9ab6ae108b6ed31|1f4647ab1d9e901d46158e43f38d31f0845bc0bc4bc3626cb32d532caeecd903|78e46e590b349904f5019c69fd040100a62548040ff3cceae50f4ced97162f14|bf29356f490af7c7cb57100a956727fbcae154a10640879298aed48df75bb4a1",
+    "sha256": "68f32e076fc5c7ecc7e680f2ba5b75280e2fd19fed3df9332ab6bc2a594085ac",
+    "token": "68f32e076fc5c7ecc7e680f2ba5b7528"
+  },
+  "registered_authority": {
+    "preregistration_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_ws006_post_rs004_simplified_route_review_preregistration_68f32e076fc5c7ecc7e680f2ba5b7528_20260722.json",
+    "preregistration_bytes": 16810,
+    "preregistration_sha256": "816984ce14e12d8eaf5dfbace545a4efeeba0179df2c3b6328950a8550505b97",
+    "preregistration_audit_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_ws006_post_rs004_simplified_route_review_preregistration_audit_68f32e076fc5c7ecc7e680f2ba5b7528_20260722.json",
+    "preregistration_audit_bytes": 8258,
+    "preregistration_audit_sha256": "9581a83bde3ff442c7238179fe1f40162426f67295fee7ecb0a8f4e338015539",
+    "preregistration_audit": "PASS_54_OF_54",
+    "frozen_inputs": "PASS_13_OF_13_BYTES_SHA256_EXACT_AT_RESULT_PREWRITE"
+  },
+  "prewrite_census": {
+    "canonical_result_path_absent": true,
+    "active_python_processes": 0,
+    "new_behavior_windows": 0,
+    "data_or_asset_rows": 0,
+    "training_hands": 0,
+    "gpu_behavior_workload": false,
+    "checkpoint_created": false,
+    "network_calls": 0,
+    "evaluation_or_slumbot_hands": 0,
+    "official_hands": 0
+  },
+  "frozen_static_source_evidence": [
+    {
+      "role": "rs004_terminal_failure_source_read_only",
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_rs004_live_native_paired_mc32_a4f6cdb3461aa6ef4ea29af61938082c.py",
+      "bytes": 53574,
+      "sha256": "3041e15ae0398579681d61995dd100d84297228200f8815d749b8e12407d315a",
+      "relevant_lines": {
+        "170_342": "CentLedger owns exact-cent commitments,stacks,pot,actions,street progression and a terminal flag.",
+        "349_397": "live_action_table maps exact legal slots to executable cent increments.",
+        "426_442": "RS004 reconstructs a HUNLGameState mirror from the ledger.",
+        "484_508": "RS004 requires HUNL public and terminal agreement after every increment.",
+        "690_738": "RS004 uses state.mirror.payoff at ledger terminal,which is the falsified dependency."
+      },
+      "authority": "STATIC_CAUSE_AND_FEASIBILITY_EVIDENCE_ONLY_NO_CODE_OR_RESULT_REUSE"
+    },
+    {
+      "role": "deployed_live_harness",
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\play_slumbot.py",
+      "bytes": 46248,
+      "sha256": "d44b21b1f91c8f824efa58ce1e897457905ecda160b5557b468027077fb6aa04",
+      "relevant_contract": "Deployed parser,live V5.5 observation encoding,legal mask,executable slot-to-increment action table,H11 inference and complete decision-dump path.",
+      "authority": "READ_ONLY_DEPLOYMENT_CONTRACT"
+    },
+    {
+      "role": "v55_observation_environment",
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\environment_v55.py",
+      "bytes": 17039,
+      "sha256": "3ab591176a8119d21ac11e043bdfef72bd30b8842e34a9fea45cdd36b945f9de",
+      "relevant_contract": "V5.5 observation schema and terminal-observation interface remain unchanged.",
+      "authority": "READ_ONLY_POLICY_INTERFACE"
+    },
+    {
+      "role": "hunl_game_state_negative_boundary",
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\deep_cfr\\game_state.py",
+      "bytes": 27001,
+      "sha256": "1500278c6a0fd2909c3bb7aa741aad1842651478b84a676e0783031aa27a6a8a",
+      "relevant_lines": {
+        "263_271": "HUNL terminal and chance semantics are owned by HUNLGameState and therefore forbidden in RS005.",
+        "273_303": "HUNL payoff mixes terminal,public investment and hand comparison and therefore cannot be imported as RS005 utility authority.",
+        "21": "compare_hands is imported from a separable pure hand-evaluation module."
+      },
+      "authority": "NEGATIVE_INTERFACE_EVIDENCE_ONLY"
+    },
+    {
+      "role": "pure_hidden_hand_comparator",
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\deep_cfr\\hand_eval.py",
+      "bytes": 2187,
+      "sha256": "fc30df48b0ae0091311f2ff40f8e320278bc47abba606c0c1f71fcce498f490d",
+      "relevant_lines": {
+        "49_56": "evaluate depends only on a hole pair and board.",
+        "59_68": "compare_hands depends only on two hole pairs and one board and returns winner/tie ordering."
+      },
+      "authority": "ONLY_PERMITTED_HUNL_ADJACENT_RUNTIME_PRIMITIVE_IF_SEPARATELY_FROZEN_AND_TESTED"
+    },
+    {
+      "role": "v55_network",
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\network.py",
+      "bytes": 6435,
+      "sha256": "86cc9e2ca36925f36ce33d7a8917ff13a6d69aecf9b768b52d55b09d87a98da2",
+      "relevant_contract": "The H11 V5.5 network interface is held fixed for resolver OFF versus ON.",
+      "authority": "READ_ONLY_POLICY_INTERFACE"
+    }
+  ],
+  "preserved_terminal_evidence": {
+    "rs004_status": "TERMINAL_FAIL_CLOSED_NO_REPAIR_RERUN_SECOND_CORRECTION_PARTIAL_OUTPUT_REUSE_OR_QUICK5K",
+    "rs004_terminal_judgment_sha256": "342e5643083e4b21552305815f7ad3cf0926f51d72e29aa03a7dbe40ec5dd7c9",
+    "root_admission": {
+      "ledger_rows": "29878_OF_29878_PASS",
+      "prefixes": "584_OF_584_PASS",
+      "live_interfaces": "6921_OF_6921_PASS",
+      "synthetic_states": "8192_OF_8192_PASS"
+    },
+    "failure": "AT_LEAST_ONE_REACHABLE_FUTURE_TRANSITION_HAS_LIVE_LEDGER_TERMINAL_TRUE_AND_HUNL_MIRROR_TERMINAL_FALSE",
+    "resolution_or_benefit_result": "NONE",
+    "resolver_family_exhausted": false
+  },
+  "registered_gate_order": [
+    "MATERIALLY_DISTINCT_FROM_ALL_TERMINAL_CENSURED_OR_CLOSED_IDENTITIES",
+    "LATEST_NAMED_SCIENTIFIC_BLOCKER_IS_CLEARED_BY_DESIGN_NOT_DEFERRED_TO_A_LATE_ADAPTER_CHECKER_OR_POSTHOC_FIX",
+    "FROZEN_EVIDENCE_SUPPORTS_A_FALSIFIABLE_CAUSAL_MECHANISM_RELEVANT_TO_EXTERNAL_LOSS",
+    "EXACT_LIVE_OBSERVATION_EXECUTABLE_CENT_ACTION_PUBLIC_TRANSITION_TERMINAL_PAYOUT_AND_EVALUATION_CONTRACT_CAN_BE_PREREGISTERED_BEFORE_BEHAVIOR_WORK",
+    "AT_MOST_TWO_FURTHER_NONBEHAVIORAL_BOUNDARIES_TO_A_DEPLOYABLE_CHECKPOINT_OR_VALID_EXTERNAL_ENDPOINT",
+    "ONE_COHERENT_BEHAVIOR_INTERVENTION_WITH_A_MANDATORY_COMPLETE_GREEDY_DIRECT_QUICK5K_TRIGGER",
+    "EXACT_RESOURCE_ABORT_ROLLBACK_AND_HAND_LEVEL_EVIDENCE_GATES_CAN_BE_FROZEN",
+    "NO_FORBIDDEN_CODE_DATA_SEED_RESULT_IDENTITY_PARTIAL_OUTPUT_OR_TERMINAL_DESCENDANT_REUSE",
+    "HIGHEST_EXPECTED_INFORMATION_GAIN_PER_ENGINEERING_TRAINING_AND_EXTERNAL_EVIDENCE_COST"
+  ],
+  "ranked_decision": {
+    "selection_rule": "EVALUATE_IN_FROZEN_RANK_ORDER_SELECT_FIRST_CANDIDATE_PASSING_ALL_NINE_GATES_THEN_STOP",
+    "candidates": [
+      {
+        "rank": 1,
+        "candidate_id": "RS005_MATERIALLY_NEW_FULLY_LIVE_TERMINAL_UTILITY_RESOLVER",
+        "family": "play_time_subgame_resolver",
+        "status": "SELECTED_FIRST_FULL_PASS",
+        "gates": [
+          {
+            "id": "MATERIALLY_DISTINCT_FROM_ALL_TERMINAL_CENSURED_OR_CLOSED_IDENTITIES",
+            "passed": true,
+            "evidence": "RS005 is not a correction of RS004. Its required state type removes HUNLGameState from public,chance,terminal and payout ownership and instead carries exact-cent ledger,board,future deck and hidden pairs directly. A future registration must use a new identity,code,output,seeds and contract and may not import RS004 modules or partial output."
+          },
+          {
+            "id": "LATEST_NAMED_SCIENTIFIC_BLOCKER_IS_CLEARED_BY_DESIGN_NOT_DEFERRED_TO_A_LATE_ADAPTER_CHECKER_OR_POSTHOC_FIX",
+            "passed": true,
+            "evidence": "The observed blocker is disagreement between live-ledger and HUNL terminal semantics. RS005 deletes that comparison and dependency by design:the live state is the sole owner of every public transition,street/chance advance,terminal class and exact payout. The only external primitive allowed at showdown is pure compare_hands(hole0,hole1,board),which has no public-state or terminal semantics."
+          },
+          {
+            "id": "FROZEN_EVIDENCE_SUPPORTS_A_FALSIFIABLE_CAUSAL_MECHANISM_RELEVANT_TO_EXTERNAL_LOSS",
+            "passed": true,
+            "evidence": "The frozen H11 external quick5k is -146.1726 bb/100 and prior frozen resolver evidence shows paired-MC32 can change same-checkpoint root choices,while RS002/RS004 failed before an external causal test because their interfaces were invalid. Holding H11 weights and live V5.5 policy inputs fixed while toggling only a fully-live resolver directly tests whether local planning improves the observed external policy. One complete quick5k can falsify directional benefit."
+          },
+          {
+            "id": "EXACT_LIVE_OBSERVATION_EXECUTABLE_CENT_ACTION_PUBLIC_TRANSITION_TERMINAL_PAYOUT_AND_EVALUATION_CONTRACT_CAN_BE_PREREGISTERED_BEFORE_BEHAVIOR_WORK",
+            "passed": true,
+            "evidence": "The frozen live harness provides the deployed parser,observation,mask and executable cent action path. RS004's source proves an exact-cent ledger can replay all witnessed roots and prefixes. hand_eval.py exposes a separable pure comparator. A future registration can therefore freeze one state record containing ledger,board,future deck and hidden pairs;explicit fold,all-in,river-showdown,chance-runout and payout equations;and zero-projection replay gates before implementation."
+          },
+          {
+            "id": "AT_MOST_TWO_FURTHER_NONBEHAVIORAL_BOUNDARIES_TO_A_DEPLOYABLE_CHECKPOINT_OR_VALID_EXTERNAL_ENDPOINT",
+            "passed": true,
+            "evidence": "Boundary1 is one unified RS005 design/preregistration plus direct independent audit. Boundary2 is one fresh implementation,deterministic contract qualification,independent audit and exact qualification judgment. A PASS endpoint must immediately enter the mandatory complete greedy-direct quick5k behavior window without another reporting or design layer."
+          },
+          {
+            "id": "ONE_COHERENT_BEHAVIOR_INTERVENTION_WITH_A_MANDATORY_COMPLETE_GREEDY_DIRECT_QUICK5K_TRIGGER",
+            "passed": true,
+            "evidence": "The sole behavior intervention is H11 live postflop greedy root selection versus fully-live paired-MC32 LCB95 root selection. Checkpoint,preflop policy,V5.5 observation schema,Slumbot opponent and reward remain fixed. Qualification PASS triggers one complete greedy-direct 4x1250 quick5k;quick5k is directional only."
+          },
+          {
+            "id": "EXACT_RESOURCE_ABORT_ROLLBACK_AND_HAND_LEVEL_EVIDENCE_GATES_CAN_BE_FROZEN",
+            "passed": true,
+            "evidence": "Frozen WS005 evidence preserves the paired32 compute bound from RS002 as resource-planning evidence only. RS005 can independently freeze root/transition/terminal/payout replay counts,distinct hidden pairs,common random futures,latency/RSS/GPU/timeout/fallback ceilings,bit-exact resolver-OFF fallback,immutable decision traces,hand JSONL and rollback to unchanged H11. Any contract or evidence failure aborts before external hands."
+          },
+          {
+            "id": "NO_FORBIDDEN_CODE_DATA_SEED_RESULT_IDENTITY_PARTIAL_OUTPUT_OR_TERMINAL_DESCENDANT_REUSE",
+            "passed": true,
+            "evidence": "Selection requires a new content identity,new implementation paths,new output root and new seeds. RS004 code and partial output are read-only cause evidence and cannot be imported,copied,mutated or treated as qualification. The H11 checkpoint and immutable hand dumps remain permitted frozen inputs but convey no RS004 result authority."
+          },
+          {
+            "id": "HIGHEST_EXPECTED_INFORMATION_GAIN_PER_ENGINEERING_TRAINING_AND_EXTERNAL_EVIDENCE_COST",
+            "passed": true,
+            "evidence": "RS005 tests the latest observed failure edge and the planning-benefit hypothesis on the unchanged H11 checkpoint without20M teacher assets or a self-play training run. Its contract is deterministic and bounded by the existing5,000-hand/29,878-row corpus. LG003,FA003 and CT003 require more upstream design or training before producing an external causal comparison."
+          }
+        ],
+        "gate_summary": "PASS_9_OF_9"
+      },
+      {
+        "rank": 2,
+        "candidate_id": "LG003_MATERIALLY_DISTINCT_NONRECOVERY_OPPONENT_LEAGUE",
+        "family": "opponent_league",
+        "status": "NOT_EVALUATED_AFTER_RANK1_PASS",
+        "family_exhausted": false
+      },
+      {
+        "rank": 3,
+        "candidate_id": "FA003_GUARANTEED_DISTINCT_PAIR_LIVE_ALIGNED_TEACHER_BC",
+        "family": "cfr_bc_distillation_warm_start",
+        "status": "NOT_EVALUATED_AFTER_RANK1_PASS",
+        "family_exhausted": false
+      },
+      {
+        "rank": 4,
+        "candidate_id": "CT003_FUNDAMENTALLY_NEW_CRITIC_TARGET_HYPOTHESIS",
+        "family": "critic_or_target_design",
+        "status": "NOT_EVALUATED_AFTER_RANK1_PASS",
+        "family_exhausted": false
+      }
+    ],
+    "selected_rank": 1,
+    "selected_candidate_id": "RS005_MATERIALLY_NEW_FULLY_LIVE_TERMINAL_UTILITY_RESOLVER",
+    "selected_family": "play_time_subgame_resolver",
+    "first_full_pass": true,
+    "stopped_after_first_pass": true
+  },
+  "later_rs005_preregistration_requirements": {
+    "single_behavior_change": "EXACT_H11_LIVE_POSTFLOP_GREEDY_ROOT_TO_FULLY_LIVE_PAIRED_MC32_LCB95_ROOT_SELECTION",
+    "source_checkpoint": "H11_ITERATION_35051_HANDS_576021901_SHA_96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "freshness": "NEW_IDENTITY_CODE_OUTPUT_ROOT_SEEDS_DEVICE_NONCES_AND_AUDIT_NO_RS004_DESCENDANT",
+    "canonical_rollout_state": {
+      "required_fields": [
+        "EXACT_CENT_LEDGER",
+        "BOARD_AS_0_TO_51_CARD_INTS",
+        "FUTURE_DECK_AS_0_TO_51_CARD_INTS",
+        "TWO_HIDDEN_PAIRS",
+        "TERMINAL_CLASS",
+        "EXACT_PAYOUT_CENTS_OR_BB"
+      ],
+      "forbidden_fields_or_owners": [
+        "HUNL_GAME_STATE",
+        "HUNL_ACTION",
+        "HUNL_PUBLIC_TRANSITION",
+        "HUNL_CHANCE_ADVANCE",
+        "HUNL_IS_TERMINAL",
+        "HUNL_PAYOFF"
+      ]
+    },
+    "live_ledger_exclusive_authority": [
+      "PUBLIC_ACTION_HISTORY",
+      "EXACT_CENT_COMMITMENTS_STACKS_POT_AND_TO_CALL",
+      "EXECUTABLE_SLOT_TO_INCREMENT_TABLE_AND_LEGALITY",
+      "ACTOR_AND_STREET_TRANSITION",
+      "CHANCE_BOARD_RUNOUT_FROM_FROZEN_FUTURE_DECK",
+      "FOLD_ALLIN_RIVER_SHOWDOWN_AND_TERMINAL_CLASS",
+      "EXACT_NET_PAYOUT"
+    ],
+    "only_permitted_hand_primitive": "FROZEN_PURE_COMPARE_HANDS_HOLE0_HOLE1_FIVE_CARD_BOARD_WITH_SEPARATE_UNIT_AND_DIFFERENTIAL_TESTS",
+    "terminal_and_payout_contract": [
+      "FOLD_TERMINATES_WITH_WINNER_NET_EQUAL_OPPONENT_INVESTED_CENTS_AND_FOLDER_NET_NEGATIVE_OWN_INVESTED_CENTS",
+      "RIVER_CHECK_CALL_COMPLETION_RUNS_EXACT_SHOWDOWN_ON_FIVE_BOARD_CARDS",
+      "ALLIN_DECISION_TERMINATION_RUNS_OUT_THE_BOARD_FROM_THE_FROZEN_FUTURE_DECK_TO_FIVE_CARDS_BEFORE_SHOWDOWN",
+      "WIN_LOSS_TIE_PAYOUTS_ARE_DERIVED_ONLY_FROM_LEDGER_INVESTMENTS_AND_PURE_HAND_COMPARISON",
+      "PAYOUTS_MUST_BE_ZERO_SUM_AND_CONSERVE_THE_EXACT_CENT_LEDGER",
+      "NO_HUNL_TERMINAL_OR_PAYOFF_CROSS_CHECK_IS_PERMITTED"
+    ],
+    "qualification_entry_contract": [
+      "REPLAY_ALL_29878_FROZEN_LEDGER_ROWS_AND584_DISTINCT_PREFIXES",
+      "REPLAY_ALL24878_WITHIN_HAND_TRANSITIONS_WITH_EXACT_NEXT_PREFIX",
+      "REPRODUCE_ALL6921_HERO_POSTFLOP_LIVE_V55_OBSERVATION_MASK_TABLE_AND_BASELINE_ACTION_INTERFACES",
+      "PASS8192_BALANCED_SYNTHETIC_ROOTS",
+      "COVER_FOLD_RIVER_SHOWDOWN_ALLIN_FLOP_TURN_AND_RIVER_RUNOUT_WIN_LOSS_AND_TIE_TERMINALS",
+      "ZERO_PUBLIC_ACTION_TERMINAL_PAYOUT_OR_EXECUTABLE_ACTION_PROJECTION",
+      "32_DISTINCT_HIDDEN_PAIRS_WITH_COMMON_FUTURE_DECKS_ACROSS_ROOT_ACTIONS",
+      "PAIRED_ONE_SIDED95_PERCENT_LCB_STRICTLY_POSITIVE_ELSE_LIVE_H11_BASELINE",
+      "SAME_SEED_REPEAT_EXACT_AND_FAULT_FALLBACK_BIT_EXACT",
+      "NO_EXTERNAL_HAND_BEFORE_COMPLETE_RESULT_AND_INDEPENDENT_AUDIT_PASS"
+    ],
+    "resource_and_evidence_contract": [
+      "PREREGISTER_EXACT_P50_P95_P99_MAX_LATENCY_RSS_GPU_TIMEOUT_AND_FALLBACK_LIMITS",
+      "FREEZE_ONE_QUALIFICATION_ATTEMPT_AND_EXACT_ABORTS",
+      "FREEZE_COMPLETE_DECISION_TRACE_HAND_JSONL_DECISION_DUMP_CI_LOSS_REPORT_ARTIFACT_AUDIT_AND_HAND_REVIEW_PATHS",
+      "ROLLBACK_IS_RESOLVER_OFF_WITH_THE_H11_CHECKPOINT_BYTES_UNCHANGED"
+    ],
+    "implementation_boundary_limit": "ONE_FRESH_IMPLEMENTATION_QUALIFICATION_INDEPENDENT_AUDIT_AND_EXACT_JUDGMENT_BOUNDARY_AFTER_REGISTRATION",
+    "mandatory_external_trigger": "ONE_COMPLETE_GREEDY_DIRECT_4X1250_SLUMBOT_QUICK5K_IMMEDIATELY_AFTER_FIRST_QUALIFIED_ENDPOINT",
+    "quick5k_role": "DIRECTIONAL_ONLY_NO_STRENGTH_CLAIM",
+    "promotion": "ONLY_THROUGH_SEPARATELY_PREREGISTERED20K_AND_FORMAL100K_GATES"
+  },
+  "embedded_verification": {
+    "identity_basis_rederived_exact": true,
+    "preregistration_hash_and_bytes_exact": true,
+    "preregistration_audit_hash_and_bytes_exact": true,
+    "preregistration_audit_pass_54_of_54": true,
+    "all_13_frozen_input_hash_byte_triples_exact_at_prewrite": true,
+    "future_result_was_absent_at_prewrite": true,
+    "candidate_order_exact": true,
+    "eligibility_gate_order_exact": true,
+    "gate_count_exactly_9": true,
+    "six_static_source_hashes_recorded": true,
+    "rs004_terminal_dependency_and_pure_compare_hands_boundary_inspected": true,
+    "rs005_gate_results_all_true": true,
+    "rank1_selected": true,
+    "lower_ranks_not_evaluated": true,
+    "no_family_marked_exhausted": true,
+    "selection_authority_only": true,
+    "no_candidate_specific_registration_or_execution": true,
+    "no_network_or_external_hands": true
+  },
+  "scientific_judgment": {
+    "decision": "SELECT_RS005_FOR_ONE_LATER_UNIFIED_CANDIDATE_SPECIFIC_PREREGISTRATION_AND_PROPORTIONATE_INDEPENDENT_AUDIT",
+    "what_is_proven": [
+      "RS005_IS_THE_FIRST_CANDIDATE_PASSING_ALL_NINE_REGISTERED_WS006_GATES",
+      "A_MATERIALLY_NEW_FULLY_LIVE_TERMINAL_UTILITY_RESOLVER_CAN_BE_PREREGISTERED_WITHOUT_V6_OBSERVATION_OR_CHECKPOINT_CHANGE",
+      "THE_DESIGN_DIRECTLY_REMOVES_THE_HUNL_TERMINAL_AND_PAYOFF_DEPENDENCY_FALSIFIED_BY_RS004",
+      "THE_DESIGN_CAN_REACH_A_VALID_EXTERNAL_ENDPOINT_WITHIN_TWO_FURTHER_NONBEHAVIORAL_BOUNDARIES",
+      "ALL_FOUR_NON_V6_ROUTE_FAMILIES_REMAIN_SCIENTIFICALLY_UNEXHAUSTED"
+    ],
+    "what_is_not_proven": [
+      "RS005_IMPLEMENTATION_OR_LEDGER_CHANCE_TERMINAL_PAYOUT_CORRECTNESS",
+      "RS005_QUALIFICATION_RESOURCE_FALLBACK_OR_LATENCY_PASS",
+      "RS005_RESOLVER_ACTION_QUALITY_OR_BENEFIT",
+      "SLUMBOT_DIRECTIONAL_IMPROVEMENT",
+      "MODEL_STRENGTH",
+      "L5_OR_L6",
+      "ANY_ROUTE_EXHAUSTION"
+    ]
+  },
+  "route_state": {
+    "play_time_subgame_resolver": "OPEN_RS002_RS003_RS004_TERMINAL_RS005_SELECTED_FOR_MATERIALLY_NEW_PREREGISTRATION",
+    "opponent_league": "OPEN_NOT_EVALUATED_AFTER_RANK1_PASS",
+    "cfr_bc_distillation_warm_start": "OPEN_NOT_EVALUATED_AFTER_RANK1_PASS",
+    "critic_or_target_design": "OPEN_NOT_EVALUATED_AFTER_RANK1_PASS",
+    "route_exhausted": false,
+    "route_exhaustion_judged": false
+  },
+  "campaign_state": {
+    "formal_v5_official_100k_bb100": -100.2475,
+    "formal_v5_official_100k_ci95": [-112.4067, -88.0883],
+    "last_external_h11_quick5k_bb100": -146.17260000000002,
+    "last_external_h11_quick5k_ci95": [-238.59789051053525, -53.7473094894648],
+    "behavior_windows": 0,
+    "control_or_nonbehavioral_boundaries_after_result": 48,
+    "network_or_slumbot_hands_this_review": 0,
+    "official_hands_this_review": 0,
+    "strength": "L0"
+  },
+  "authority": {
+    "selection": "PASS_REPORTING_ONLY",
+    "next_later": "ONE_UNIFIED_RS005_CANDIDATE_SPECIFIC_PREREGISTRATION_PLUS_PROPORTIONATE_INDEPENDENT_AUDIT_ONLY",
+    "implementation_probe_data_asset_training_gpu_checkpoint_evaluation_slumbot": "NONE",
+    "official_hands": 0,
+    "strength_claim": "FORBIDDEN"
+  },
+  "next_later_only": "ONE_UNIFIED_RS005_CANDIDATE_SPECIFIC_PREREGISTRATION_PLUS_PROPORTIONATE_INDEPENDENT_AUDIT_STOP_BEFORE_IMPLEMENTATION_PROBE_QUALIFICATION_EVALUATION_OR_SLUMBOT",
+  "terminal_stop": true
+}

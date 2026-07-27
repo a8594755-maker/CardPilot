@@ -1,0 +1,74 @@
+{
+  "schema_version": "v5.cpv004.preregistration.v1",
+  "design_id": "CPV004_CORRECTED_FINAL_CLEANUP_OBSERVATION_GATE",
+  "registered_at": "2026-07-19T15:28:00Z",
+  "status": "REGISTERED_ENGINEERING_ONLY_NO_BEHAVIOR_LAUNCH",
+  "authority": {
+    "route_review_012_result_sha256": "c2efbdfb9c5090c0434413d45adb8c2a4a9030270ea0c0b17bdbddbcb97165dd",
+    "route_review_012_audit_sha256": "83361d82fc4e0c613d5045ac2d4d54467852259c6ad8fc38fb072ab2282f2e57",
+    "selected_next": "CPV004_CORRECTED_FINAL_CLEANUP_OBSERVATION_GATE",
+    "route_exhausted": false
+  },
+  "predecessor": {
+    "cpv003_result_sha256": "573ba096333e6166f3e7f7344353c1dab120ea4aea3b16072ac846fccd9d120d",
+    "cpv003_audit_sha256": "429276e4761d25c1314c85032cc57a2c409b2bae8496fa2345d3040b6b895421",
+    "cpv003_diagnosis_sha256": "7e23c5b31682807eb48bc49fcacf183805fd8a8c3a88d43939dac669f1083e16",
+    "verdict": "TERMINAL_FAIL_CLOSED_NO_REOPEN_NO_RECLASSIFY"
+  },
+  "single_engineering_change": "Evaluate zero tagged survivors once after the complete registered child cleanup sequence;retain per-child cleanup snapshots as diagnostic-only evidence.",
+  "fixture": {
+    "seed": 2026071903,
+    "stress_cycles": 20,
+    "roles": ["health", "protocol", "endpoint", "treatment_launch", "completion"],
+    "runner": "scripts/alpha_holdem/v5_cpv004_lifecycle_stress.py",
+    "dummy_supervisor": "scripts/alpha_holdem/v5_cpv003_dummy_supervisor.py",
+    "dummy_child": "scripts/alpha_holdem/v5_cpv003_dummy_child.py",
+    "guard_module": "scripts/alpha_holdem/v5_lifecycle_guard_v2.py",
+    "workspace": "reports/cpv004_20260719",
+    "adaptive_extension": false
+  },
+  "gates": {
+    "initial_ready_deadline_seconds": 10.0,
+    "initial_ready_before_process_scan": true,
+    "stress_cycles_required": 20,
+    "all_roles_exact_pass_each_cycle": true,
+    "identity_binding": ["pid", "parent_pid", "creation_time", "executable", "command_line_sha256", "script_sha256", "design_lock_sha256", "role"],
+    "adversarial_tokens_required": ["unregistered_sibling", "wrong_parent", "wrong_script_sha256", "wrong_command_line_sha256"],
+    "supervisor_exit_classification": "LIFECYCLE_SHUTDOWN",
+    "supervisor_pid_reuse_classification": "LIFECYCLE_SHUTDOWN_PID_REUSED_NOT_RESOURCE_VIOLATION",
+    "cleanup_deadline_seconds": 15.0,
+    "cleanup_zero_tagged_survivors": "ONE_FINAL_SCAN_AFTER_COMPLETE_SEQUENCE",
+    "per_child_survivor_snapshots": "DIAGNOSTIC_ONLY_NOT_GATE",
+    "injected_readiness_failure_exit_nonzero": true,
+    "normal_cycle_exit_zero": true,
+    "full_cycle_bundle_required": true,
+    "independent_audit_required": true
+  },
+  "prohibited": [
+    "train_v5.py",
+    "trainer checkpoint creation",
+    "GPU use",
+    "mirror evaluation",
+    "Slumbot",
+    "official hands",
+    "CPV003 rerun or reclassification",
+    "H14 resume or partial reuse",
+    "H15 preregistration or launch before terminal CPV004 PASS"
+  ],
+  "verdict_rule": {
+    "PASS": "every deterministic gate passes in all20 cycles and the independent audit passes",
+    "FAIL": "any deterministic gate fails with complete provenance",
+    "INCONCLUSIVE": "fixture or platform failure prevents a registered gate from being evaluated",
+    "no_posthoc_threshold_change": true
+  },
+  "terminal_effect": {
+    "PASS": "PERMITS_SEPARATE_H15_PREREGISTRATION_ONLY",
+    "FAIL_OR_INCONCLUSIVE": "REQUIRES_ROUTE_REVIEW_013_NO_BEHAVIOR_LAUNCH"
+  },
+  "path1": {
+    "policy": "MAY_CONTINUE_EXISTING_EXACT_ASSET_JOB_NO_RESTART_NO_EXPANSION_NO_GPU_NO_TRAINING_INGESTION"
+  },
+  "behavior_launch_authority": "NONE",
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

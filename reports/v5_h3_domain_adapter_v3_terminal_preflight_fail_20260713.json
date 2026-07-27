@@ -1,0 +1,53 @@
+{
+  "schema_version": "v5.hybrid.h3.domain_adapter.v3_terminal_preflight_fail.v1",
+  "judged_at": "2026-07-13T07:34:22.277710+00:00",
+  "overall": "FAIL_CLOSED_ACTION_SPACE_INCOMPATIBLE_AT_REGISTERED_ERROR_GATE",
+  "terminal_for": "H3-DOMAIN-ADAPTER-001-V3-SNAPSHOT",
+  "formal_double_run_started": false,
+  "reason_formal_run_not_started": "the training-ineligible single-run preflight already violated the immutable per-action error gate, so spending a second full scan could not produce a PASS",
+  "identity": {
+    "design_lock_v3_sha256": "fe8ae6ecb32829be62f9acd3acf0935df1ee3778b4761ebbf2c2d2b6f5f5832e",
+    "design_lock_audit_sha256": "1cf7f0b389d3344ba9ff5823f5c078770ab33acd36712ee1247fc8c95ec0d1cd",
+    "source_tree_replay_sha256": "3df3d260e0fc880121ef49baa7ec4ad949136edeb8ece7da0554afb83d7d72ef",
+    "bridge_exporter_sha256": "a25de1e2c9c45e7e12a5eade5e20044903128c5d580aedb29e4747d1e54d22b4",
+    "snapshot_adapter_sha256": "d3258190a3da6161e9e1394c64ee838638c174f75cacba6659a3e34df376c5d8"
+  },
+  "preflight_bundle": {
+    "root": "C:\\Users\\a8594\\CardPilot\\reports\\h3_first_board_v3_preflight_20260713",
+    "bridge_jsonl_sha256": "79771fba8e55283e12d3fe177ca53713ec492834e58f6bb401e9417915100329",
+    "bridge_manifest_sha256": "dc9bb580ec4cd812727091298db9c8b6c434fc31cfe8436fd449a941ca5dabf8",
+    "adapter_manifest_sha256": "4f6110202728234fd7c265f5463ad53ac21cad0525b2309f6aae6f9c5922912b",
+    "rows_requested": 1000,
+    "training_eligible": false
+  },
+  "failing_row": {
+    "source_row_ordinal": 39,
+    "info_set_key": "T|6|0|1c/x2|26-18",
+    "history_key": "1c/x2",
+    "source_snapshot": {"pot":14.53,"stacks":[195.85,189.62],"facing_bet":6.23,"current_player":0,"street":"TURN"},
+    "source_raise_2_amount": 32.18,
+    "source_raise_2_probability_mass": 0.026,
+    "actual_legal_nonallin_actions": [
+      {"slot":6,"amount":13.0808},
+      {"slot":7,"amount":21.8}
+    ],
+    "actual_allin": {"slot":8,"amount":195.85},
+    "closest_executable_action": {"slot":7,"amount":21.8},
+    "absolute_amount_error_over_source_pot": 0.7143840330350997,
+    "immutable_maximum": 0.5
+  },
+  "inference": [
+    "including all-in in the candidate set does not repair this row because all-in is much farther from the teacher action",
+    "passing would require relaxing the frozen error gate, discarding/renormalizing teacher mass, or changing the source solver's action/state semantics",
+    "the first two are forbidden; a source solver that uses exact v5.5 state transitions and executable actions is a distinct future asset route"
+  ],
+  "current_path1_asset_classification": "VALID_CORRECTED_CFR_DIAGNOSTIC_ASSET_NOT_TRAINING_ELIGIBLE_FOR_V55_DISTILLATION",
+  "dataset_selection_draft_status": "SUPERSEDED_BLOCKED_BY_ADAPTER_V2_AND_V3_TERMINAL_FAILURES",
+  "exact_quota_finalizer_status": "NOT_TRIGGERED_NO_SUCCESSFUL_SMOKE",
+  "recommended_campaign_transition": "preserve the running Path-1 solve as diagnostic provenance; after H2 terminal judgment, re-rank the next behavior window rather than waiting on current H3 distillation; separately scope an exact-v5.5 teacher solver before any renewed CFR/BC window",
+  "h3_preregistration_authorized": false,
+  "dataset_materialization_authorized": false,
+  "behavior_launch_authorized": false,
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

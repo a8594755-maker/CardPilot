@@ -1,0 +1,153 @@
+{
+  "schema_version": "v5.hybrid.h17.preregistration.v1",
+  "experiment_id": "H17",
+  "registered_at": "2026-07-19T16:50:00Z",
+  "status": "REGISTERED_NO_LAUNCH",
+  "hypothesis": "From the exact clean H11 source, replacing only catch-up value-head MSE with the original SmoothL1 beta1 kernel may improve frozen endpoint critic calibration. H16 produced no arm or method evidence; H17 prospectively corrects only the pre-arm calibration trigger construction using PCV005's frozen deterministic offset10 evidence.",
+  "route_review": {
+    "result_path": "reports/v5_hybrid_route_review_015_result_20260719.json",
+    "result_sha256": "562280fa5398006998ddcd907ae81c802308ab75432f2a6a62ec4aabd9ffa4bb",
+    "audit_path": "reports/v5_hybrid_route_review_015_result_audit_20260719.json",
+    "audit_sha256": "022a2e62cb061ca57246498b79efc73ee49a8677171e5b4461c0d7576c85f5f3",
+    "route_exhausted": false,
+    "selected_next": "H17_CORRECTED_DETERMINISTIC_TRIGGER_SAME_SCIENCE_BASELINE_SMOOTHL1_KERNEL"
+  },
+  "source": {
+    "run_id": "v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715",
+    "checkpoint_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_endpoint.pt",
+    "checkpoint_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "iteration": 35051,
+    "hands": 576021901,
+    "optimizer_preserved": true
+  },
+  "arms": {
+    "order": ["control", "treatment"],
+    "control_run_id": "v5_hybrid_h17_control_catchmse_same35051_20m_r1_20260719",
+    "treatment_run_id": "v5_hybrid_h17_treatment_catchsmoothl1b1_same35051_20m_r1_20260719",
+    "actual_hands_each": 20000000,
+    "minimum_endpoint_hands": 596021901,
+    "maximum_overshoot_hands": 50000,
+    "fresh_same_start": true,
+    "adaptive_extension": false,
+    "second_seed": false,
+    "terminal_partial_reuse": false
+  },
+  "single_variable": {
+    "name": "catchup_value_loss",
+    "control": "MSE",
+    "treatment": "SmoothL1",
+    "treatment_beta_raw_bb": 1.0,
+    "standard_ppo_critic_loss_both_arms": "MSE",
+    "value_head_catchup_after_kl_stop": true,
+    "huber_candidate": "REJECTED_NOT_ADOPTED"
+  },
+  "representative_prearm_calibration": {
+    "required_immediately_before_each_arm": true,
+    "device": "cuda",
+    "source_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "work": "FULL_TRINAL_CLIP_PPO_UPDATE_WITH_DETERMINISTIC_OFFSET10_KL_EARLY_STOP_AND_THREE_VALUE_HEAD_CATCHUP_EPOCHS",
+    "old_log_prob_offset": 10.0,
+    "rows": 4096,
+    "mini_batch_size": 1024,
+    "ppo_epochs": 4,
+    "target_kl": 1e-12,
+    "required_ppo_epochs_completed": 1,
+    "required_catchup_epochs": 3,
+    "warmup_updates": 2,
+    "timed_updates": 8,
+    "repeats": 5,
+    "order": "ALTERNATING_MSE_SMOOTHL1",
+    "control_seed": 2026071980,
+    "treatment_seed": 2026071981,
+    "full_update_throughput_ratio_min": 0.85,
+    "mse_repeat_stability_ratio_min": 0.95,
+    "numerical_gradient_actor_scope_identity": "MUST_PASS",
+    "every_update_shape": "MUST_PASS",
+    "pcv005_supporting_only": {
+      "result_sha256": "5da012bda5738542488d22e0ed4a1245f4b1cfb907cb7f1a6c5e408f88785858",
+      "trigger_pass": true,
+      "original_smooth_l1_over_mse_ratio": 1.008650302411051,
+      "mse_stability_ratio": 0.955714171127004
+    },
+    "failure_action": "FAIL_CLOSED_NO_ARM_LAUNCH_AND_ROUTE_REVIEW016"
+  },
+  "frozen_common_config": {
+    "device": "cuda",
+    "workers": 22,
+    "hands_per_iter": 16384,
+    "rollout_mode": "multi",
+    "rollout_envs_per_worker": 16,
+    "inference_min_batch_slots": 256,
+    "inference_batch_deadline_us": 1000,
+    "ppo_epochs": 4,
+    "mini_batch_size": 1024,
+    "lr": 0.0003,
+    "gamma": 0.999,
+    "entropy_coef": 0.05,
+    "entropy_floor": 0.3,
+    "seed": 20260703,
+    "worker_seed_base": 73000,
+    "fixed_training_deal_stream": true,
+    "opponent_assignment": "per-iteration",
+    "pool_strategy": "loss-kbest",
+    "k_best": 5,
+    "self_play_fraction": 0.2,
+    "mirror_self_play_deals": true,
+    "allin_runout_ev": true,
+    "allin_runout_ev_max_runouts": 200,
+    "preflop_action_prior_coef": 0.01,
+    "postflop_action_prior_coef": 0.02,
+    "critic_contract": "critic_v1",
+    "value_coef": 0.5,
+    "target_kl": 0.03,
+    "optimizer_reset": false
+  },
+  "gates": {
+    "endpoint_mse_primary_reduction_point_min": 0.075,
+    "endpoint_mse_primary_ci95_lower_min": 0.0,
+    "source_anchor_degradation_point_max": 0.05,
+    "source_anchor_degradation_ci95_upper_max": 0.1,
+    "kl_p95_max": 0.03,
+    "kl_fraction_above_0_03_max": 0.06044407894736842,
+    "early_stop_trigger_fraction_min": 0.05,
+    "first60_hps_ratio_min": 0.85,
+    "full_hps_ratio_min": 0.85,
+    "entropy_median_last200_min": 0.3,
+    "entropy_treatment_minus_control_min": -0.1,
+    "mirror_pairs": 40000,
+    "mirror_treatment_control_ci95_lower_min_bb100": -20.0,
+    "mirror_treatment_source_ci95_lower_min_bb100": -20.0
+  },
+  "forbidden_sources": [
+    "H9/H10/H11-treatment/H12/H13/H14/H15/H16 partials or artifacts as training input",
+    "CPV003/CPV004/PCV005 artifacts as training input",
+    "CAL benchmark checkpoint copies",
+    "any later checkpoint or optimizer reset"
+  ],
+  "resource_isolation": {
+    "allowed_project_processes": "EXACT_LOCKED_H17_LIFECYCLE_PLUS_EXISTING_EXACT_PATH1_ONLY",
+    "parent_or_delegated_observer_commands": "FORBIDDEN_WHILE_EITHER_ARM_ACTIVE_INCLUDING_FILE_READ_HASH_PROCESS_LIST",
+    "evaluation_during_arm": "FORBIDDEN",
+    "mirror_or_calibration_during_arm": "FORBIDDEN_EXCEPT_EXACT_PRE_ARM_REPRESENTATIVE_PERF_CAL_BEFORE_SENTINEL_OR_TRAINER",
+    "slumbot_during_arm": "FORBIDDEN",
+    "path1_existing_job": "MAY_CONTINUE_EXISTING_EXACT_LOCKED_SIX_BELOWNORMAL_CPU_WORKERS_NO_RESTART_EXPANSION_OR_NEW_WORKERS",
+    "workspace_active_window_sentinel": "REQUIRED_BEFORE_CONTROL_LAUNCH_UNTIL_TERMINAL_WINDOW"
+  },
+  "judgment": {
+    "pass": "EVERY_IDENTITY_ISOLATION_REPRESENTATIVE_PERF_CAL_CRITIC_MSE_SOURCE_ANCHOR_KL_MIRROR_THROUGHPUT_ENTROPY_AND_HEALTH_GATE_PASSES",
+    "fail": "VALID_REGISTERED_PROTOCOL_ABORT_OR_CLEARLY_ADVERSE_COMPLETE_FIXED_SAMPLE_GATE",
+    "inconclusive": "RESOURCE_ISOLATION_PROVENANCE_INCIDENT_OR_VALID_FIXED_SAMPLE_STATISTICAL_AMBIGUITY",
+    "route_review_after_fail_or_inconclusive": true
+  },
+  "external_policy": {
+    "current_external_debt_hands": 0,
+    "during_arms_official_hands": 0,
+    "method_pass_next": "EXACT_H17_TREATMENT_GREEDY_DIRECT_QUICK5K_BEFORE_PROMOTION_DECISION",
+    "strength_claim": "FORBIDDEN"
+  },
+  "authority": {
+    "implementation_and_control_plane": "AUTHORIZED_AUTONOMOUSLY",
+    "launch": "BLOCKED_UNTIL_IMPLEMENTATION_AUDIT_DESIGN_LOCK_PREFLIGHT_REPRESENTATIVE_PERF_CAL_AND_CANONICAL_REARM_PASS",
+    "official_hands": 0
+  }
+}

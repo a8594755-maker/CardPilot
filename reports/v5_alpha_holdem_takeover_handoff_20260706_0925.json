@@ -1,0 +1,106 @@
+{
+  "checked_at_local": "2026-07-06T09:25:19-04:00",
+  "workspace": "C:\\Users\\a8594\\CardPilot",
+  "scope": "AlphaHoldem V5-from-zero Slumbot track, not 200bb SRP CFR asset build",
+  "reference": {
+    "paper": "Zhao et al., AlphaHoldem: High-Performance Artificial Intelligence for Heads-Up No-Limit Poker via End-to-End Reinforcement Learning, AAAI 2022",
+    "target_bb_per_100_vs_slumbot": 11.156,
+    "official_policy_mode": "greedy"
+  },
+  "active_run": {
+    "run_dir": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_from_zero\\v5_zero_l6_fixedenv_20260703_1445_after4000_aprior002_r1_after4400_preprior001_r1_after4600_preprior002_call36_r1",
+    "trainer_pid": 56876,
+    "do_not_restart_trainer_for_inspection": true,
+    "watcher_pids": {
+      "dashboard": 50348,
+      "eval_cadence": 41668,
+      "gate": 7988,
+      "internal_strength": 57068,
+      "promotion20k": 56144,
+      "formal100k": 39752,
+      "checkpoint_archive": 38004
+    }
+  },
+  "latest_dashboard_read": {
+    "source": "v5_dashboard_watch_status.json",
+    "checked_at": "2026-07-06T13:23:46.710179+00:00",
+    "live_iteration": 8832,
+    "live_hands": 144919423,
+    "checkpoint_iteration": 8800,
+    "checkpoint_hands": 144394363,
+    "recent_hands_per_second": 772.76,
+    "next_gate_overall": "PENDING",
+    "next_external_eval_key": "quick5k_150M",
+    "next_external_eval_remaining_checkpoint_hands": 5605637
+  },
+  "latest_next_action_queue": {
+    "source": "v5_next_action_queue.json",
+    "recommendation": "Wait for gate_8900",
+    "first_key": "gate_8900",
+    "first_status": "WAITING",
+    "first_reason": "live iter 8833 < target 8900; remaining 67 iterations",
+    "next_internal_probe": "internal_probe_9000"
+  },
+  "latest_completed_post_gate_review": {
+    "source": "v5_post_gate_review_8800.json",
+    "overall": "REVIEW_REQUIRED_NO_AUTO_RESTART",
+    "gate_overall": "PASS",
+    "checkpoint_iteration": 8800,
+    "checkpoint_hands": 144394363,
+    "internal_probe_state": "COMPLETED",
+    "internal_verdict": "REGRESSION_RISK_INTERNAL",
+    "internal_delta_mean_bb100_vs_8600": -812.125,
+    "internal_delta_lower_bb100_vs_8600": -1039.408,
+    "preflop_probe_overall": "WARN",
+    "preflop_warning_count": 1,
+    "checkpoint_delta_overall": "LOCAL_GUARDRAILS_REGRESSED",
+    "strength_answer": "NOT_PROVEN_STRONGER_THAN_V4"
+  },
+  "latest_official_slumbot": {
+    "milestone": "100M",
+    "stage": "quick5k",
+    "policy_mode": "greedy",
+    "hands": 5000,
+    "bb_per_100": -85.037,
+    "ci_lower_bb_per_100": -129.224,
+    "ci_upper_bb_per_100": -40.851,
+    "promotion_gate": "FAIL",
+    "milestone_level": "L0",
+    "can_claim_l5": false,
+    "can_claim_l6": false,
+    "loss_shape": {
+      "sb_bb_per_100": -115.0,
+      "bb_bb_per_100": -55.0,
+      "hero_fold_bb_per_100": -167.7,
+      "showdown_bb_per_100": -10.6,
+      "sb_open_fold_call_raise_allin": "0.327/0.506/0.167/0.000",
+      "bb_vs_open_call_raise": "0.340/0.088",
+      "primary_hypothesis": "SB first-action EV, limp-heavy or under-raised opens, BB defense/realization, and postflop hero-fold realization"
+    }
+  },
+  "slumbot_analysis_backfill": {
+    "status_after_backfill": "WARN_HISTORICAL_INCOMPLETE",
+    "complete_count": 6,
+    "total_count": 7,
+    "incomplete_count": 1,
+    "complete_milestones": ["59M", "62M", "65M", "72M", "75M", "100M"],
+    "incomplete_milestones": ["50M"],
+    "incomplete_reason": {
+      "50M": "decision dump JSONL files are missing; hand JSONL exists but action-level loss report cannot be reconstructed"
+    },
+    "trend_ledger": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_from_zero\\v5_zero_l6_fixedenv_20260703_1445_after4000_aprior002_r1_after4400_preprior001_r1_after4600_preprior002_call36_r1\\v5_trend_ledger.json"
+  },
+  "handoff_files": {
+    "markdown": "C:\\Users\\a8594\\CardPilot\\reports\\v5_alpha_holdem_takeover_handoff_20260706_0925.md",
+    "json": "C:\\Users\\a8594\\CardPilot\\reports\\v5_alpha_holdem_takeover_handoff_20260706_0925.json",
+    "agent_workflow": "C:\\Users\\a8594\\CardPilot\\AGENTS.md"
+  },
+  "next_ai_checklist": [
+    "Read v5_dashboard_watch_status.json, v5_next_action_queue.json, v5_trend_ledger.json, v5_eval_cadence_watch_status.json, latest gate_*_status.json, and latest v5_post_gate_review_*.json before answering progress questions.",
+    "Do not stop or restart trainer PID 56876 unless the user explicitly approves a reviewed intervention.",
+    "Wait for gate_8900 and internal_probe_9000.",
+    "Do not launch quick5k_150M until saved checkpoint hands reach 150,000,000.",
+    "Treat future Slumbot benchmarks as incomplete unless hand JSONL, decision dump JSONL, CI summary, promotion gate, dump analysis, loss report, artifact audit, and hand review all exist.",
+    "Do not tune from bb/100 alone; require agreement between Slumbot hand review, preflop probe, selector diagnostics, internal probe, and health."
+  ]
+}

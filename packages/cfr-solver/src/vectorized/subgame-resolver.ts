@@ -39,6 +39,10 @@ export interface ResolveRequest {
   /** Custom transition EV evaluator for sub-street boundaries (turn→river) */
   transitionEvalFn?: TransitionEvalFn;
   onProgress?: (iter: number, elapsed: number) => void;
+  /** Optional VNet model for warm-starting CFR (NN-guided solving) */
+  vnetModel?: import('@cardpilot/fast-model').MLP;
+  /** Weight for VNet warm-start (default: 10) */
+  vnetWeight?: number;
 }
 
 export interface ResolveResult {
@@ -71,6 +75,8 @@ export function resolveSubgame(request: ResolveRequest): ResolveResult {
     iterations = 500,
     transitionEvalFn,
     onProgress,
+    vnetModel,
+    vnetWeight,
   } = request;
 
   // Get boundary data from parent
@@ -123,6 +129,8 @@ export function resolveSubgame(request: ResolveRequest): ResolveResult {
     initialReachIP: ipReachMapped,
     transitionEvalFn,
     onProgress,
+    vnetModel,
+    vnetWeight,
   });
 
   return {

@@ -1,0 +1,43 @@
+{
+  "schema_version": "v5.hybrid.route_review.preregistration.v19.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-019",
+  "registered_at": "2026-07-19T18:22:00Z",
+  "status": "REGISTERED_REPORTING_ONLY",
+  "trigger": {
+    "h18_classification": "H18_FAIL_PREARM_REPRESENTATIVE_PERF_CAL_GATE_NO_LAUNCH",
+    "h18_judgment_sha256": "e97c35dcdaf6497b1885286e36814e13209d0341aaff5b53697760fac2a6d111",
+    "h18_terminal_audit_sha256": "9aaeb6a402a4936c7065e26ddbd43a4ab930a69e19617979771d63f429071507",
+    "h18_calibration_sha256": "a869996f4ad94857320dae2d20f9efbcc6cd6721c7f77e61dbe8482ee3550977",
+    "h18_calibration_audit_sha256": "3e019d3eed71a0e7317c800bba55d6fc4d0f3fea0f396c1aa90595031cf19d86"
+  },
+  "evidence_rules": {
+    "h18_is_terminal_and_cannot_be_rerun_or_reclassified": true,
+    "h18_supplies_no_method_or_strength_effect": true,
+    "h18_corrected_numerical_equivalence_gates_passed": true,
+    "h18_throughput_gate_passed": true,
+    "h18_mse_repeat_stability_gate_failed": true,
+    "pcv007_pass_and_h18_fail_must_be_treated_as_unresolved_timing_repeatability": true,
+    "direct_h19_repetition_without_new_causal_evidence_is_forbidden": true,
+    "h3_h4_h5_may_be_selected_only_if_their_existing_frozen_prerequisites_are_complete": true,
+    "path1_must_remain_untouched": true,
+    "no_official_hands": true
+  },
+  "candidate_order": [
+    "PCV008_REPORTING_ONLY_ORDER_BALANCED_GPU_TIMING_JITTER_ATTRIBUTION",
+    "H3_CFR_BC_ONLY_IF_EXISTING_ASSET_AND_EXACT_V55_BRIDGE_GATES_ARE_ALREADY_COMPLETE",
+    "H4_OPPONENT_POOL_OR_H5_RESOLVING_ONLY_IF_EXISTING_PREREQUISITES_ARE_ALREADY_COMPLETE",
+    "ROUTE_EXHAUSTION_IF_NO_CAUSALLY_SUPPORTED_HYBRID_PREREQUISITE_REMAINS"
+  ],
+  "selection_rule": "SELECT_PCV008_IFF_H18_IS_A_VALID_TERMINAL_PREARM_FAIL_WITH_ZERO_SCIENTIFIC_EXPOSURE,ITS_CORRECTED_EQUIVALENCE_AND_THROUGHPUT_GATES_PASS,ITS_ONLY_FAILED_SCIENTIFIC_PREREQUISITE_IS_MSE_REPEAT_STABILITY,AND_PCV007_PREVIOUSLY_PASSED_THE_SAME_FROZEN_STABILITY_THRESHOLD;SELECT_AN_EXISTING_H3_H4_OR_H5_PATH_ONLY_IF_ITS_FROZEN_PREREQUISITES_ARE_ALREADY_COMPLETE;DECLARE_ROUTE_EXHAUSTION_ONLY_IF_NO_PROSPECTIVELY_AUDITABLE_HYBRID_PREREQUISITE_REMAINS",
+  "required_result_fields": [
+    "selected_next",
+    "causal_reason",
+    "route_exhausted",
+    "behavior_launch_authority",
+    "official_hands",
+    "terminal_window_closure"
+  ],
+  "official_hands": 0,
+  "behavior_launch_authority": "NONE_REPORTING_ONLY",
+  "strength_claim": "FORBIDDEN"
+}

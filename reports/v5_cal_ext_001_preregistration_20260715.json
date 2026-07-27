@@ -1,0 +1,100 @@
+{
+  "schema_version": "v5.external_calibration.preregistration.v1",
+  "measurement_id": "CAL-EXT-001_H8_TREATMENT_GREEDY_QUICK5K",
+  "status": "REGISTERED_NO_LAUNCH",
+  "registered_at": "2026-07-15T05:47:00Z",
+  "authority": {
+    "goal_v2_activation_sha256": "41ed6d11a0d4e1405ddf8331ca8c7aff5b4143d2d6fe447550bbf82de04e6661",
+    "external_debt_hands": 51537004,
+    "external_debt_hard_gate": 50000000,
+    "behavior_launch_blocked_until_complete": true
+  },
+  "classification": "EXTERNAL_STAGED_CALIBRATION_ONLY",
+  "checkpoint": {
+    "run_id": "v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714",
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714\\h8_treatment_endpoint.pt",
+    "sha256": "7c388ec68114d497f775157def3c0b3abc82db7ee25baf7e7cb7e9e916f66438",
+    "bytes": 261413134,
+    "iteration": 33834,
+    "training_hands": 556011085,
+    "run_manifest_sha256": "5b464ea2ce39c6a40f303db102d3a9a724f16bac6dc58d670f92c8baa0897ac4",
+    "endpoint_status_sha256": "de4913626d117aac50f2c09084cf636f9b08232a82dfeb8e33cbcb68d099dfb2",
+    "protocol_status_sha256": "5e265c087a9c4a8ebf1090695a879cea139ad2b556ad86d6ca4b2e908cfb6b7a",
+    "endpoint_state": "ARM_ENDPOINT_FROZEN_PASS",
+    "substitution": "FORBIDDEN"
+  },
+  "match": {
+    "opponent": "Slumbot",
+    "stack_bb": 200,
+    "policy_mode": "greedy",
+    "evidence_policy_label": "greedy-direct",
+    "temperature": 1.0,
+    "sessions": 4,
+    "hands_per_session": 1250,
+    "planned_hands": 5000,
+    "stage": "quick5k",
+    "tag": "cal_ext_001_h8_treatment_greedy_quick5k_20260715",
+    "output_dir": "C:\\Users\\a8594\\CardPilot\\models",
+    "launch_path": "direct",
+    "child_priority": "BelowNormal",
+    "adaptive_extension": false,
+    "later_checkpoint": false,
+    "session_addition_after_score_peek": false,
+    "callguard_or_guarded_or_sampled_selector": false
+  },
+  "required_artifacts": [
+    "hands_jsonl",
+    "decision_dump_jsonl",
+    "ci_json_and_text_summary",
+    "promotion_gate_json",
+    "dump_analysis_text",
+    "loss_report_json",
+    "loss_report_md",
+    "artifact_audit_json",
+    "artifact_audit_md",
+    "hand_review_json",
+    "hand_review_md"
+  ],
+  "tool_lock": {
+    "scripts/alpha_holdem/v5_slumbot_benchmark_plan.py": "4c7f90e246a04268616ff8be5c01fc3bf5d20ed62762b37385b67fab43f98d11",
+    "scripts/alpha_holdem/v5_slumbot_benchmark_watch.py": "8286f33a347aec77d1c8d644533c48716e65ba5f6e120ec0c8c7d541cbd8ebf8",
+    "scripts/alpha_holdem/play_slumbot.py": "d44b21b1f91c8f824efa58ce1e897457905ecda160b5557b468027077fb6aa04",
+    "scripts/alpha_holdem/bench_v55_slumbot.ps1": "3bdff2ba58da2d449a42d2f488ce70fd101d6eb5c4156da67fee111b2447162f",
+    "scripts/alpha_holdem/slumbot_ci_from_hands.py": "554ea49b26c1b24f9ebf71987142583ac6f669215e5198841b9a6a8310e446b9",
+    "scripts/alpha_holdem/v5_slumbot_promotion_gate.py": "6a306f8eb7d6345766f6f4bcbbc00768e0b401626a809132ae1fd46afa4339c5",
+    "scripts/alpha_holdem/analyze_dump.py": "491ff1cd45d812f80777ae5918313dcf0f047fdb558f221a52fc076624386eb0",
+    "scripts/alpha_holdem/v5_slumbot_loss_report.py": "d55a20b8a3fe90643ceffd934280b4110a71adfd68c575be571275ec24952c51",
+    "scripts/alpha_holdem/v5_slumbot_artifact_audit.py": "70ed7f0d7805bb1f7288eed257bd2b5b055d7835dc603ef0c72cbb646fda01ee",
+    "scripts/alpha_holdem/v5_slumbot_hand_review.py": "b49c5c2d1c6c41166dcf2a87cce80967f3736534e82fa3f9d251560ce524d212"
+  },
+  "preflight": {
+    "requirements": [
+      "checkpoint identity/hash/iteration/hands exact",
+      "run manifest finished and endpoint/protocol PASS",
+      "no trainer or mirror evaluator active",
+      "tag has no existing output collision",
+      "all locked tool hashes exact",
+      "local frozen-checkpoint inference preflight PASS",
+      "harness quality and artifact contract PASS",
+      "Slumbot credentials/connection preflight fail closed"
+    ],
+    "launch_authority": "NONE_UNTIL_ALL_PASS"
+  },
+  "abort": [
+    "any checkpoint or tool identity mismatch",
+    "any trainer or mirror process active",
+    "any session failure, stall or unexpected selector",
+    "hand count differs from exactly 5000 after four fixed sessions",
+    "any required artifact missing, stale, incomplete or audit-FAIL",
+    "any request for adaptive extension or checkpoint substitution"
+  ],
+  "interpretation": {
+    "h8_reclassification": "FORBIDDEN",
+    "h9_reclassification": "FORBIDDEN",
+    "v4_improvement_claim": "FORBIDDEN",
+    "l5_l6_claim": "FORBIDDEN",
+    "catastrophic_regression_flag_bb100": -100.0,
+    "tuning_from_delta_below_its_ci": "FORBIDDEN",
+    "must_enter_post_cal_route_review_006": true
+  }
+}

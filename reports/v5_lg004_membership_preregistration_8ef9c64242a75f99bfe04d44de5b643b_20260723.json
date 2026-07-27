@@ -1,0 +1,178 @@
+{
+  "schema_version": "v5.lg004.membership_intervention.preregistration.v1",
+  "registered_at": "2026-07-23T05:34:00-04:00",
+  "design_id": "LG004_UNIFORM_POOL_MEMBERSHIP_REPLACE_103_WITH_81",
+  "status": "REGISTERED_PREIMPLEMENTATION_AUDIT_REQUIRED",
+  "identity": {
+    "basis": "LG004_MEMBERSHIP_V1|96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13|3bbaf4c6a42d5155964e05bfcef6cce45f484875d34b94f59a6804805b53fe94|fd3aec2b32bcc7900eaf255c3ecda8c5cb8dd6339d6ba6551bba07decc91a145|REPLACE_103_WITH_81|581021901|LG003_ASSIGNMENT_V1|fbd630ab6a689913afc1cee8a63066dd|2026072301",
+    "sha256": "8ef9c64242a75f99bfe04d44de5b643b2bc94fece490e215ec47d157e5a39ac7",
+    "token": "8ef9c64242a75f99bfe04d44de5b643b"
+  },
+  "entry_authority": {
+    "current_state": "TN001_NONPASS_RERANK_TO_OPPONENT_LEAGUE_NO_REPAIR_OR_BOUND_EXTENSION",
+    "family": "OPPONENT_LEAGUE",
+    "materially_distinct_from_lg003": true,
+    "reason": "LG003 changed conditional weights over unchanged membership; LG004 preserves uniform weights and changes exactly one frozen member."
+  },
+  "evidence_matrix": {
+    "same_start_external_control": {
+      "checkpoint_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_lg003c1_8bf8cedf78b6e8c8fe153802908ed893_20260723\\control_uniform_stagea\\latest.pt",
+      "checkpoint_sha256": "9c8f8033f92cb34291b62eb685761110026ee9afb5eb84e398caa03ea8f332ff",
+      "window_audit_sha256": "71a6acf3d3fb0d43f6f3ebf7c6ab5d776d521cfd10f8671b64965c10007c0a41",
+      "quick5k_result_audit_path": "C:\\Users\\a8594\\CardPilot\\models\\bench_v55_lg003c1_control_c1_dbdad6f2eb1cd2a7423992ffd9fe0a4e_20260723\\result_audit.json",
+      "quick5k_result_audit_sha256": "27ac75084bd1ca769f4975fe2f3d497993f382358e4d97e7eadd5be2b0979b0f",
+      "bb100": -131.3494,
+      "ci95": [-212.7405, -49.9583],
+      "hands": 5000
+    },
+    "counterfactual_pool_measurement": {
+      "result_path": "C:\\Users\\a8594\\CardPilot\\reports\\h4_pool_meas_001_20260713\\result.json",
+      "result_sha256": "de60e08500d282f6a554dfda1d2bcb98667e035a8c078cb22900f946d3e40cb9",
+      "audit_sha256": "c264268a1a8374a8ec3fe8cdfd6d3f3f11451f34e5f82339e287e17139349e7e",
+      "snapshot81_minus_103_bb100": 100.3275,
+      "ci95": [48.28733310639413, 152.36766689360584],
+      "holm_reject": true,
+      "scope": "MECHANISM_SELECTION_ONLY_NOT_EXTERNAL_STRENGTH"
+    },
+    "lg003_falsifier": "Conditional diversity weighting over unchanged membership scored -96.9456 bb/100 versus its uniform control; no local weight or duration tuning is allowed."
+  },
+  "falsifiable_hypothesis": {
+    "prediction": "Replacing loss-selected snapshot103 with cross-play-superior historical snapshot81 under otherwise identical uniform exposure improves greedy-direct Slumbot quick5k by at least20 bb/100 versus the frozen same-start uniform control.",
+    "falsifier": "Any exact Stage-A gate fails after a complete audited treatment window and quick5k."
+  },
+  "one_coherent_intervention": {
+    "behavior_variable": "FROZEN_OPPONENT_POOL_MEMBERSHIP_ONLY",
+    "control_pool_order": [109, 115, 120, 129, 103],
+    "treatment_pool_order": [109, 115, 120, 129, 81],
+    "removed_member": {
+      "id": 103,
+      "state_sha256": "cdec36f3deb27470a61c586b6491cd5de44aa3a99194b026a6e491a3121335a1"
+    },
+    "inserted_member": {
+      "id": 81,
+      "iteration": 18000,
+      "hands": 295538136,
+      "selection_loss": 3.6118517525455847,
+      "state_sha256": "fd3aec2b32bcc7900eaf255c3ecda8c5cb8dd6339d6ba6551bba07decc91a145",
+      "tensor_count": 146,
+      "tensor_keys_shapes_dtypes_compatible_with_103": true
+    },
+    "self_probability": 0.2,
+    "conditional_member_weights": 0.2,
+    "assignment_rule": "LG003_ASSIGNMENT_V1",
+    "assignment_token": "fbd630ab6a689913afc1cee8a63066dd",
+    "assignment_seed": 2026072301,
+    "paired_substitution": "IDENTICAL_U64;FIRST_CONDITIONAL_20_PERCENT_INTERVAL_MAPS_103_CONTROL_TO_81_TREATMENT;OTHER_INTERVALS_AND_SELF_PLAY_IDENTICAL",
+    "new_snapshot_addition_disabled": true
+  },
+  "frozen_sources": {
+    "h11_checkpoint": {
+      "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_endpoint.pt",
+      "sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+      "iteration": 35051,
+      "total_hands": 576021901
+    },
+    "historical_container": {
+      "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_from_zero\\v5_zero_l6_exp004_pre001_exp002_multienv_rollback_r1_20260708\\v5_mirror_plateau_second_gate20700_340M_checkpoint.pt",
+      "sha256": "3bbaf4c6a42d5155964e05bfcef6cce45f484875d34b94f59a6804805b53fe94",
+      "env_version": "v55",
+      "obs_version": "v55",
+      "action_space_version": "9slot_v5"
+    },
+    "implementation_parent": {
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_lg003c1_train_8bf8cedf78b6e8c8fe153802908ed893.py",
+      "sha256": "f841144c883d51e66a1d2de889e15303e7339695c8664f81e60208ff77770452",
+      "use": "MECHANICAL_MATERIALIZATION_WITH_MEMBERSHIP_SEAM_ONLY"
+    }
+  },
+  "common_training_contract": {
+    "device": "cuda",
+    "workers": 22,
+    "hands_per_iter": 16384,
+    "target_total_hands": 581021901,
+    "minimum_increment_hands": 5000000,
+    "maximum_overshoot_hands": 50000,
+    "starting_stack_bb": 200,
+    "env_version": "v55",
+    "learning_rate": 0.0003,
+    "ppo_epochs": 4,
+    "ppo_target_kl": 0.03,
+    "mini_batch_size": 1024,
+    "gamma": 0.999,
+    "entropy_coef": 0.05,
+    "entropy_floor": 0.3,
+    "critic_contract": "critic_v1",
+    "value_coef": 0.5,
+    "value_head_catchup": true,
+    "catchup_loss": "mse",
+    "preflop_action_prior_coef": 0.01,
+    "postflop_action_prior_coef": 0.02,
+    "fixed_training_deal_stream": true,
+    "worker_seed_base": 73000,
+    "seed": 20260703,
+    "mirror_self_play_deals": true,
+    "allin_runout_ev": true,
+    "allin_runout_ev_max_runouts": 200,
+    "optimizer_and_hand_counter_preserved": true,
+    "maximum_runtime_seconds": 10800
+  },
+  "planned_paths": {
+    "materializer": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_lg004_materialize_8ef9c64242a75f99bfe04d44de5b643b.py",
+    "trainer": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_lg004_train_8ef9c64242a75f99bfe04d44de5b643b.py",
+    "launcher": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_lg004_launcher_8ef9c64242a75f99bfe04d44de5b643b.ps1",
+    "window_auditor": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_lg004_window_audit_8ef9c64242a75f99bfe04d44de5b643b.py",
+    "implementation_audit": "C:\\Users\\a8594\\CardPilot\\reports\\v5_lg004_implementation_audit_8ef9c64242a75f99bfe04d44de5b643b_20260723.json",
+    "output_root": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_lg004_8ef9c64242a75f99bfe04d44de5b643b_20260723",
+    "all_absent_at_registration": true,
+    "exclusive_create_no_reuse": true
+  },
+  "implementation_audit_contract": {
+    "independent_parent_and_output_ast_comparison": true,
+    "allowed_behavior_differences": [
+      "LG004_IDENTITY_AND_PATH_CONSTANTS",
+      "HISTORICAL_CONTAINER_LOAD_AND_EXACT_SNAPSHOT81_VERIFICATION",
+      "IN_MEMORY_103_TO_81_POOL_REPLACEMENT",
+      "UNIFORM_PAIRED_SELECTOR_AND_PROVENANCE"
+    ],
+    "all_other_training_math_and_RUNTIME_CONFIGURATION_IDENTICAL": true,
+    "zero_output_final_launcher_probes": 1,
+    "probe_requires_exact_four_assignment_samples_and_no_gpu_initialization": true
+  },
+  "stage_a": {
+    "control": "REUSE_FROZEN_LG003C1_UNIFORM_CONTROL_NO_REEXECUTION",
+    "treatment_launches": 1,
+    "checkpoint_and_raw_training_evidence_independent_audit_required": true,
+    "mandatory_external": "ONE_COMPLETE_GREEDY_DIRECT_4X1250_QUICK5K_BEFORE_ANY_OTHER_BEHAVIOR_WINDOW"
+  },
+  "exact_judgment": {
+    "treatment_minus_control_bb100_min": 20.0,
+    "treatment_minus_historical_h11_bb100_min": 20.0,
+    "historical_h11_quick5k_bb100": -146.1726,
+    "treatment_bb100_must_exceed": -126.1726,
+    "treatment_postflop_raise_allin_max": 0.8,
+    "all_four_pass": "AUTHORIZE_ONE_15M_UNCHANGED_MEMBERSHIP_CONTINUATION_TO_596021901_THEN_MANDATORY_QUICK5K",
+    "any_valid_fail": "SCIENTIFIC_FAIL_MEMBERSHIP_REPLACEMENT_AND_RERANK_NO_LOCAL_LEAGUE_TUNING",
+    "incomplete_bundle": "INCONCLUSIVE_PRESERVE_AND_STOP",
+    "quick5k_directional_only": true,
+    "formal_claim_bar_unchanged": "100K_COMPLETE_GREEDY_DIRECT_HANDS_BB100_GT0_CI95_LOWER_GT0"
+  },
+  "abort_and_rollback": {
+    "nonfinite_model_or_optimizer": "ABORT_PRESERVE",
+    "source_or_historical_hash_mismatch": "ABORT_BEFORE_OUTPUT",
+    "snapshot81_identity_or_compatibility_mismatch": "ABORT_BEFORE_OUTPUT",
+    "pool_membership_or_assignment_mismatch": "ABORT_PRESERVE",
+    "maximum_runtime": "ABORT_PRESERVE",
+    "rollback": "EXACT_H11_SOURCE_REMAINS_CANONICAL_UNCHANGED"
+  },
+  "prohibitions": {
+    "lg003_weight_tuning": true,
+    "new_pool_snapshot_addition": true,
+    "teacher_or_resolver_or_critic_change": true,
+    "observation_action_reward_change": true,
+    "posthoc_budget_or_gate_change": true,
+    "strength_claim_from_quick5k": true
+  },
+  "route_exhausted": false,
+  "official_hands": 0,
+  "strength": "L0"
+}

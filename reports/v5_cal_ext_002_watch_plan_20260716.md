@@ -1,0 +1,72 @@
+# V5 Slumbot Benchmark Plan
+
+- Checked at: `2026-07-16T19:58:24.768349+00:00`
+- Overall: **READY_WITH_WARNINGS**
+- Stage: `quick5k`
+- Purpose: API/loader smoke only; not a promotion or win claim.
+- Planned hands: `5,000`
+- Policy mode: `greedy`
+- Policy temperature: `1.0`
+- Min training hands: `50,000,000`
+- Checkpoint: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\h11_control_endpoint.pt`
+- Tag: `cal_ext_002_h11_control_greedy_quick5k_20260716`
+
+Checks:
+
+- PASS: `active_window_sentinel` - no nonterminal active-window block
+- PASS: `run_dir` - exists: C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715
+- PASS: `checkpoint_load` - loaded C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\h11_control_endpoint.pt
+- PASS: `version` - version=v5.zero
+- PASS: `env_version` - env_version=v55
+- PASS: `obs_version` - obs_version=v55
+- PASS: `action_space_version` - action_space_version=9slot_v5
+- PASS: `starting_stack_bb` - starting_stack_bb=200.0
+- PASS: `actual_hand_accounting` - actual_hand_accounting=True
+- PASS: `fresh_from_zero_lineage` - fresh_from_zero_lineage=True
+- PASS: `terminal_endpoint_health` - terminal endpoint/protocol identity PASS
+- PASS: `training_hands` - checkpoint hands 576,021,901 >= 50,000,000
+- PASS: `planned_hands` - planned hands 5,000
+- WARN: `quality_gate` - quality gate disabled by --no-require-quality-gate
+- PASS: `output_collision` - no existing outputs for tag cal_ext_002_h11_control_greedy_quick5k_20260716
+
+Quality gate:
+
+- Required: `False`
+- Status: `WARN`
+- Detail: quality gate disabled by --no-require-quality-gate
+- Scorecard: `C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\v5_scorecard.json`
+- Quality status: `None`
+- Preflop overall: `None`
+
+Command:
+
+```powershell
+.\scripts\alpha_holdem\bench_v55_slumbot.ps1 `
+  -ModelPath 'C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\h11_control_endpoint.pt' `
+  -Tag 'cal_ext_002_h11_control_greedy_quick5k_20260716' `
+  -HandsPerSession 1250 `
+  -Sessions 4 `
+  -OutputDir 'C:\Users\a8594\CardPilot\models' `
+  -RunDir 'C:\Users\a8594\CardPilot\models\alpha_holdem_v5_hybrid\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715' `
+  -PolicyMode 'greedy' `
+  -Temperature 1 `
+  -GuardedAllinMaxSpr 2 `
+  -GuardedAllinMinProb 0.65 `
+  -CallguardMinProb 0.2 `
+  -CallguardRatio 0.65
+```
+
+Artifacts:
+
+- CI JSON: `C:\Users\a8594\CardPilot\models\bench_v55_cal_ext_002_h11_control_greedy_quick5k_20260716_ci_summary.json`
+- Promotion gate JSON: `C:\Users\a8594\CardPilot\models\bench_v55_cal_ext_002_h11_control_greedy_quick5k_20260716_promotion_gate.json`
+- Loss report JSON: `C:\Users\a8594\CardPilot\models\bench_v55_cal_ext_002_h11_control_greedy_quick5k_20260716_loss_report.json`
+- Artifact audit JSON: `C:\Users\a8594\CardPilot\models\bench_v55_cal_ext_002_h11_control_greedy_quick5k_20260716_artifact_audit.json`
+- Hand review JSON: `C:\Users\a8594\CardPilot\models\bench_v55_cal_ext_002_h11_control_greedy_quick5k_20260716_hand_review.json`
+- Hand review MD: `C:\Users\a8594\CardPilot\models\bench_v55_cal_ext_002_h11_control_greedy_quick5k_20260716_hand_review.md`
+
+Notes:
+
+- This planner does not call Slumbot or run the benchmark.
+- 20k promotion benchmarks cannot prove L5/L6.
+- L5/L6 claims still require the promotion gate over saved per-hand artifacts.

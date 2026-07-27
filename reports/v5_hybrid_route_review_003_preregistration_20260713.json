@@ -1,0 +1,33 @@
+{
+  "schema_version": "v5.hybrid.route_review.preregistration.v3",
+  "design_id": "HYBRID-ROUTE-REVIEW-003",
+  "status": "REGISTERED",
+  "registered_at": "2026-07-13T09:49:00+00:00",
+  "trigger": {
+    "experiment": "H6",
+    "terminal_judgment_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h6_judgment_20260713.json",
+    "terminal_judgment_sha256": "25950437f46dbda6ec7c07d61db61c9c5630061868769d6723116cd2a2677053",
+    "classification": "H6_FAIL_PROTOCOL_ABORT_FIRST60_THROUGHPUT",
+    "route_review_required": true
+  },
+  "frozen_inputs": [
+    {"path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h6_protocol_abort_audit_20260713.json", "sha256": "0adcc3326b3934072a31757ba8319839afa7a2346db4c7f3350ce9263518d867"},
+    {"path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_route_review_002_evidence_rerank_20260713.json", "sha256": "b0d42b33081be007bf16fd5950daec2a1a0b6d8745261e1af777f09c5540c1cd"},
+    {"path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h6_implementation_audit_20260713.json", "sha256": "d138bb33e9b0c7bf1dff560eb94612d6de36589a908a58444a3fad171f6d054c"}
+  ],
+  "questions": [
+    "Did H6 produce a valid method judgment or only a protocol-abort judgment?",
+    "Is the throughput loss localized to KL behavior work, rollout, PPO, or asymmetric concurrent workload?",
+    "What is the smallest next registered design that restores a contemporaneous fair baseline without reclassifying H6?",
+    "Is the HYBRID route family exhausted?"
+  ],
+  "candidate_actions": [
+    "H7 fresh contemporaneous control and treatment with all mirrors/evaluations deferred until both trainer endpoints are frozen",
+    "abandon KL early-stop and select a different HYBRID method family",
+    "declare HYBRID route exhausted"
+  ],
+  "decision_rule": "Select H7 only if H6 is terminal strictly on protocol, implementation remains offline-valid, early-stop work cannot explain a two-sided collect/PPO slowdown, and treatment-only concurrent evaluation is a frozen resource asymmetry. Otherwise re-rank a distinct family. Route exhaustion requires all hybrid families to be causally exhausted.",
+  "inference_limits": "Resource asymmetry may justify corrected prospective design but may not reclassify H6, impute endpoint efficacy, or authorize official hands.",
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

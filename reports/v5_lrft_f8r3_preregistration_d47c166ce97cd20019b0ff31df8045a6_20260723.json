@@ -1,0 +1,267 @@
+{
+  "schema_version": "v5.lrft_f8r3.preregistration.v1",
+  "registered_on": "2026-07-23",
+  "design_id": "LRFT_F8R3_FIXED8_BOUNDED_PASSIVE_ANALYTIC_PAIRED_SCREEN",
+  "status": "REGISTERED_PREIMPLEMENTATION_AUDIT_REQUIRED",
+  "identity": {
+    "basis": "LRFT_F8R3_V1|2d93b348fd650928fe4720b26f42843fb2f2b34002390de6a52da27f57080bad|e2f8a92c82d238edd7a47e9471a12d943d4940ff0bc95fc2ddbe735532faa563|cebde5e41eac63b10c1c7f60614f1f58f6bd0348639ef7fb56208c4af61ee996|6783a63c3026303a4144b8b3a4b08cfa20ed5d91eb194d11f05348368fe3d367|ROOT8|CENSUS4096_CAP28672|MCCFRPLUS2048X2|LEAFCAP8_PASSIVE_ACTION6084200_CHANCE180225|E0_2048|E1_4096|ANALYTIC_WELCH_T_LCB|RHO0.125|20260723",
+    "sha256": "d47c166ce97cd20019b0ff31df8045a6334b0430761932fa41a34cb4fef1368c",
+    "token": "d47c166ce97cd20019b0ff31df8045a6"
+  },
+  "entry_authority": {
+    "agents_sha256": "2d93b348fd650928fe4720b26f42843fb2f2b34002390de6a52da27f57080bad",
+    "f8r2_preregistration_sha256": "e2f8a92c82d238edd7a47e9471a12d943d4940ff0bc95fc2ddbe735532faa563",
+    "f8r2_failure_sha256": "cebde5e41eac63b10c1c7f60614f1f58f6bd0348639ef7fb56208c4af61ee996",
+    "f8r1c1_resource_result_sha256": "6783a63c3026303a4144b8b3a4b08cfa20ed5d91eb194d11f05348368fe3d367",
+    "family": "EXACT_V55_CFR_BC_TEACHER_WARM_START",
+    "rank": 1,
+    "scientific_revision": "Fresh design after F8R2 structural failure;retains the fixed-eight hybrid-continuation hypothesis and adds complete passive action/chance accounting."
+  },
+  "claim_scope": {
+    "estimand": "theta=(1/8)*sum_r E[d_ri | frozen public root r,frozen source-actor hole r],where d is ensemble-root minus canonical-H11-root payoff for the root actor and both arms share H11-P256 for at most eight post-root decisions followed by passive exact closure.",
+    "pass_authority": "LRFT_F8R3_FIXED8_MECHANISM_PASS_BROADER_TEACHER_DESIGN_ELIGIBLE_ONLY",
+    "primary_gate": "Unrounded one-sided fixed-root Welch-Satterthwaite 95% LCB(theta)>=+0.20 big blinds per reached root.",
+    "not_authorized": [
+      "pure H11-P256 continuation effect",
+      "learner-root population uplift",
+      "full-HUNL GTO,equilibrium,NashConv or exploitability",
+      "teacher-row,BC,RL or checkpoint eligibility",
+      "Slumbot improvement,quick5k,20k,formal100k,L5 or L6"
+    ],
+    "no_quick5k_reason": "No deployable checkpoint or official greedy-direct policy is created."
+  },
+  "frozen_runtime_and_inputs": {
+    "python": "3.12.10",
+    "numpy": "2.4.4",
+    "scipy": "1.17.0",
+    "torch": "2.6.0+cu124",
+    "torch_cuda": "12.4",
+    "student_t_quantile": "scipy.stats.t.ppf(0.95,df)",
+    "h11_checkpoint": {
+      "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_endpoint.pt",
+      "sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13"
+    },
+    "network": {
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\network_hybrid_h1.py",
+      "sha256": "25f4520d31f4ce5ffcfd23fc0d56b8736fd3b5fad537706b9cd13ee270b4a171"
+    },
+    "showdown": {
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\deep_cfr\\hand_eval.py",
+      "sha256": "fc30df48b0ae0091311f2ff40f8e320278bc47abba606c0c1f71fcce498f490d",
+      "allowed_symbols": ["compare_hands", "evaluate"]
+    },
+    "encoder_oracle_only": {
+      "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\environment_v55.py",
+      "sha256": "3ab591176a8119d21ac11e043bdfef72bd30b8842e34a9fea45cdd36b945f9de",
+      "runtime_state_engine_forbidden": true
+    },
+    "forbidden_runtime_or_code_reuse": [
+      "v5_lrft_f64_5d7506904a3846b736d272d13162c2c8",
+      "v5_lrft_f8r1_b35078ee7ad2ab123d5f9b0770538793",
+      "v5_lrft_f8r1c1_80f4f9d2e7e6c7f4bc9f6dc82e7f2e89",
+      "v5_lrft_f8r2_a424689522962d2a61eab3c530f1fc5d",
+      "HUNLGameState",
+      "HUNLEnvironmentV55"
+    ]
+  },
+  "prospective_paths": {
+    "runner": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\v5_lrft_f8r3_d47c166ce97cd20019b0ff31df8045a6.py",
+    "implementation_auditor": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\audit_v5_lrft_f8r3_d47c166ce97cd20019b0ff31df8045a6.py",
+    "result_auditor": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\audit_v5_lrft_f8r3_result_d47c166ce97cd20019b0ff31df8045a6.py",
+    "output_root": "C:\\Users\\a8594\\CardPilot\\reports\\lrft_f8r3_d47c166ce97cd20019b0ff31df8045a6",
+    "resource_admission": "C:\\Users\\a8594\\CardPilot\\reports\\lrft_f8r3_d47c166ce97cd20019b0ff31df8045a6\\resource_admission.json",
+    "root_manifest": "C:\\Users\\a8594\\CardPilot\\reports\\lrft_f8r3_d47c166ce97cd20019b0ff31df8045a6\\roots.jsonl",
+    "belief_manifest": "C:\\Users\\a8594\\CardPilot\\reports\\lrft_f8r3_d47c166ce97cd20019b0ff31df8045a6\\belief_manifest.json",
+    "e0_seed_manifest": "C:\\Users\\a8594\\CardPilot\\reports\\lrft_f8r3_d47c166ce97cd20019b0ff31df8045a6\\e0_seed_manifest.json",
+    "e1_sealed_seed_manifest": "C:\\Users\\a8594\\CardPilot\\reports\\lrft_f8r3_d47c166ce97cd20019b0ff31df8045a6\\e1_sealed_seed_manifest.json",
+    "candidate_manifest": "C:\\Users\\a8594\\CardPilot\\reports\\lrft_f8r3_d47c166ce97cd20019b0ff31df8045a6\\candidate_manifest.json",
+    "e1_raw": "C:\\Users\\a8594\\CardPilot\\reports\\lrft_f8r3_d47c166ce97cd20019b0ff31df8045a6\\e1_paired_tapes.jsonl",
+    "e1_result": "C:\\Users\\a8594\\CardPilot\\reports\\lrft_f8r3_d47c166ce97cd20019b0ff31df8045a6\\e1_result.json",
+    "final_manifest": "C:\\Users\\a8594\\CardPilot\\reports\\lrft_f8r3_d47c166ce97cd20019b0ff31df8045a6\\manifest.json",
+    "final_audit": "C:\\Users\\a8594\\CardPilot\\reports\\lrft_f8r3_d47c166ce97cd20019b0ff31df8045a6\\audit.json"
+  },
+  "rng_probability_and_lanes": {
+    "rng": "SHA256 counter RNG over identity|domain|fields|counter;big-endian first8;open01=(u64+0.5)/2^64;bounded integers use rejection;all census,solver,E0,E1 domains are disjoint and raw keys retained.",
+    "probability": "One LEGAL_LOGITS_CPU_F64_CDF_V1 routine:float32 logit row copied to CPU;legal logits cast float64,subtract legal max,exp,divide by float64 sum;illegal mass0;slot-order CDF;force final legal CDF1;sample first CDF strictly greater than open01.",
+    "canonical": "Root/belief H11 uses fixed contiguous batch256 chunks;duplicate only final real row for padding and discard padding.",
+    "leaf": "H11-P256 uses permanent512 lanes,two batch256 chunks,no compaction,profile-independent mapping physical=(logical+73*t) mod512.",
+    "lane_balance": "With2,048 iterations every logical lane occupies every physical position exactly4 times.",
+    "pairing": "E0/E1 use separate profile passes;same tape retains opponent hole,sealed deck,root uniform,ordinal uniforms and lane;profile is excluded from RNG and lane keys."
+  },
+  "root_census_and_belief": {
+    "hands": 4096,
+    "decision_hard_cap": 28672,
+    "root_count": 8,
+    "cells": "street{preflop,flop,turn,river} x acting_absolute_player{0,1}",
+    "selection": "Preassign one cell per hand;within hand keep the smallest eligible public-only digest;between hands keep the smallest in each cell;all selected roots use distinct hands;missing,duplicate or invalid root is terminal NONPASS with no replacement.",
+    "eligibility": "Nonterminal exact public state,at least two legal nonnull V5.5 slots,complete exact-cent public history,no seventh same-street action;selection excludes holes,outcome,reward,probability and solver output.",
+    "joint_target": "mu(h0,h1) proportional to uniform ordered disjoint-hole prior times all chronological canonical-H11 observed-action likelihoods;CPU-f64 logsumexp;never multiply marginals.",
+    "source_hole": "Frozen only after public selection;positive marginal required;never influences public selection or alternative-hole likelihoods.",
+    "belief_gates": {
+      "joint_sum_abs_error_max": 1e-12,
+      "blocker_positive_entries": 0,
+      "support_min": 4096,
+      "joint_kish_ess_min": 256,
+      "max_joint_mass_max": 0.02,
+      "each_marginal_kish_ess_min": 32
+    }
+  },
+  "solver": {
+    "algorithm": "ROOT_IMPORTANCE_EXTERNAL_SAMPLING_MCCFR_PLUS",
+    "replicas": ["A", "B"],
+    "outer_iterations": 2048,
+    "traversers": 2,
+    "single_endpoint_only": true,
+    "decision_depth": 2,
+    "proposal": {
+      "rho": 0.125,
+      "source_event": "A={root actor own hole equals frozen source hole}",
+      "nu": "1[A]*mu/m_star",
+      "q": "(1-rho)*mu+rho*nu",
+      "weight": "mu/q applied exactly once",
+      "full_support": true,
+      "weight_max": 1.1428571428571428
+    },
+    "update": "Freeze sigma_t;sample independent traverser0/1 paths from full q;enumerate traverser legal slots;collect both delta tables;then apply R=max(0,R+w*(y_a-sum sigma*y)) simultaneously.",
+    "root_average": "Before each update S+=t*sigma_t,D=2048*2049/2=2098176;one stream per replica;candidate=.5*(A endpoint+B endpoint).",
+    "sampling_gates_each_root_replica": {
+      "source_event_visits_min": 128,
+      "weighted_kish_ess_min": 64
+    }
+  },
+  "hybrid_continuation": {
+    "h11_p256_player_action_cap": 8,
+    "cap_scope": "Count post-root H11-P256 player actions;root action excluded.",
+    "passive_trigger": "Before a ninth H11-P256 decision or before another H11 observation would require a seventh same-street action.",
+    "passive_actions": "No further network query. Facing wager call min(to_call,stack),including legal short all-in;otherwise check. Never fold,bet or raise.",
+    "chance": "Use the tape's presealed uniform remaining-deck permutation;deal exact future cards without replacement;all-in runs out;otherwise check through streets.",
+    "terminal": "Resolve every outstanding wager before street advance;continue to exact fold/all-in/river-showdown terminal;refund unmatched excess and produce exact-cent zero-sum payoff.",
+    "trace": "Record trigger reason,all passive actions,chance cards,legality,commitments,terminal class,payoff and trace hash.",
+    "fallback_event": "Count once per outcome;report CAP8 and HISTORY_OVERFLOW separately.",
+    "fallback_gates": {
+      "global_fraction_max": 0.05,
+      "each_root_phase_profile_fraction_max": 0.05,
+      "each_solver_root_replica_traverser_fraction_max": 0.05
+    },
+    "hard_caps": {
+      "passive_outcomes_max_for_pass": 36044,
+      "passive_actions_per_outcome_max": 8,
+      "passive_action_transitions_max_for_pass": 288352,
+      "passive_action_transitions_terminal_abort_cap": 288360,
+      "chance_runout_operations_per_fallback_max": 5,
+      "chance_runout_operations_terminal_abort_cap": 180225
+    }
+  },
+  "E0": {
+    "tapes_per_root": 2048,
+    "profiles": ["canonical_H11_root", "replica_A_root", "replica_B_root", "ensemble_root"],
+    "conditional_deal": "Fix source actor hole and sample opponent hole directly from mu(.|source hole),never q;sample future cards without replacement.",
+    "candidate_freeze": "Ensemble=.5*(replica A+replica B) is frozen before E0 and cannot be selected or changed using E0.",
+    "gates": {
+      "replica_A_point_uplift_strictly_positive": true,
+      "replica_B_point_uplift_strictly_positive": true,
+      "ensemble_analytic_LCB_strictly_positive": true,
+      "mean_JS_A_B_max": 0.1,
+      "root_p95_JS_A_B_max": 0.25,
+      "top_slot_agreement_min": 0.5,
+      "all_integrity_resource_solver_fallback_and_evidence_gates": true
+    },
+    "failure": "Terminal scientific NONPASS;E1 remains sealed."
+  },
+  "E1": {
+    "sealed_before_solver": "Manifest bytes and SHA exist before solver/E0 and are inaccessible to both processes.",
+    "open_condition": "Fresh process binds immutable replicas,ensemble,E0 raw hashes and unopened E1 manifest SHA.",
+    "tapes_per_root": 4096,
+    "profiles": ["canonical_H11_root", "frozen_ensemble_root"],
+    "primary_gate": "Unrounded analytic LCB>=0.20 big blinds per reached root.",
+    "no_adaptation": "No top-up,reopen,candidate change,root change or reuse.",
+    "raw_rows": "Create-new rows bind identity,phase,root,tape,actor,opponent hole,sealed deck hash,arm,root uniform/slot,ordinal RNG hashes,lane,network count,fallback reason/passive trace,terminal payoff cents and paired difference."
+  },
+  "analytic_confidence": {
+    "difference": "d_ri=(ensemble_payoff_cents-baseline_payoff_cents)/100 for root actor.",
+    "root_statistics": "In fixed root order use binary64 mean_r and sample variance s_r^2 with ddof=1.",
+    "theta": "(1/8)*sum mean_r",
+    "variance": "V=(1/64)*sum(s_r^2/n_r)",
+    "components": "v_r=s_r^2/(64*n_r)",
+    "df": "(sum v_r)^2/sum(v_r^2/(n_r-1))",
+    "lcb": "theta-scipy.stats.t.ppf(0.95,df)*sqrt(V)",
+    "degenerate": "If V exactly0,all differences and pairing gates must be finite/valid;set df=positive infinity and LCB=theta. Otherwise denominator and df must be finite and positive.",
+    "sample_sizes": "n_r=2048 for E0 and4096 for E1.",
+    "scope": "Roots are fixed strata and never resampled;candidate fixed;solver randomness excluded;one E1 primary quantity."
+  },
+  "exact_work": {
+    "canonical_census": {"calls": 28672, "rows": 7340032, "base_action_transitions": 28672},
+    "history_likelihood": {"calls": 1152, "rows": 294912},
+    "solver": {"calls": 32768, "rows": 8388608, "traversals": 65536, "outcomes": 589824, "base_action_transitions": 4718592},
+    "E0": {"calls": 2048, "rows": 524288, "outcomes": 65536, "base_action_transitions": 524288},
+    "E1": {"calls": 2048, "rows": 524288, "outcomes": 65536, "base_action_transitions": 524288},
+    "joint_entries_max": 12994800,
+    "proposal_samples": 65536,
+    "totals": {
+      "network_calls_max": 66688,
+      "network_rows_max": 17072128,
+      "outcomes_max": 720896,
+      "base_action_transitions_max": 5795840,
+      "all_action_transitions_terminal_cap": 6084200,
+      "chance_runout_operations_terminal_cap": 180225,
+      "artifact_bytes_max": 2147483648,
+      "bootstrap_draws": 0
+    }
+  },
+  "resource_admission": {
+    "position": "After fresh implementation and independent implementation-audit PASS;before any census,root,belief,solver or evaluation row.",
+    "performance_probe": "Use frozen F8R1C1 eight-block minimum rates and fixed costs;no new performance measurement.",
+    "science_exact_projection_seconds": 4808.1346,
+    "padding_envelope": {
+      "network_calls": 70784,
+      "network_rows": 18120704,
+      "base_action_transitions": 6844416,
+      "outcomes": 851968,
+      "all_action_transitions_including_passive_terminal_cap": 7132776,
+      "chance_runout_operations_terminal_cap": 180225,
+      "purpose": "Resource-only duplicate-E0/E1 padding;must never create extra scientific profiles,tapes or rows."
+    },
+    "padded_projection_seconds_max": 5109.8081,
+    "pass_gates": {
+      "projected_total_wall_seconds_max": 21600,
+      "projected_process_tree_rss_bytes_max": 21474836480,
+      "projected_cuda_allocated_bytes_max": 6442450944,
+      "projected_artifact_bytes_max": 2147483648,
+      "gpu_free_bytes_at_start_min": 6442450944,
+      "other_training_processes": 0,
+      "scientific_rows": 0
+    },
+    "nonpass": "LRFT_F8R3_RESOURCE_ADMISSION_NONPASS_NO_SCIENTIFIC_ROWS"
+  },
+  "implementation_audit_and_judgment": {
+    "fresh_runtime_graph": "fresh exact-cent engine->strict H11 loader/encoder->canonical census/belief->MCCFR+->P256-cap8/passive closure->E0->candidate freeze->sealed E1->exclusive evidence",
+    "preimplementation_audit": "Independently recompute identity,input hashes,exact formulas,passive bounds,resource projection,inference and path absence.",
+    "implementation_audit": "Execute independent no-model exact-cent,RNG,probability,tiny-MCCFR+,lane,passive termination/legality,paired inference,E0/E1 isolation and count oracles before resource admission.",
+    "result_audit": "Independently rehash and recompute every raw payoff,difference,count,fallback denominator,mean,variance,df,t critical,LCB,resource and integrity gate.",
+    "exclusive_outputs": "Create-new only;no overwrite,latest pointer,reconstruction from missing raw evidence or mutation of frozen attempts.",
+    "valid_statuses": [
+      "LRFT_F8R3_FIXED8_MECHANISM_PASS_BROADER_TEACHER_DESIGN_ELIGIBLE_ONLY",
+      "LRFT_F8R3_RESOURCE_ADMISSION_NONPASS_NO_SCIENTIFIC_ROWS",
+      "LRFT_F8R3_SCIENTIFIC_NONPASS",
+      "LRFT_F8R3_ABORT_INCOMPLETE_NO_CLAIM"
+    ],
+    "rollback": "H11 remains the only official policy.",
+    "route_effect": "PASS authorizes only a separately registered broader teacher design;NONPASS reranks but alone does not exhaust the family."
+  },
+  "preexecution_counts": {
+    "implementation_files": 0,
+    "model_or_network_calls": 0,
+    "resource_rows": 0,
+    "census_hands": 0,
+    "selected_roots": 0,
+    "belief_rows": 0,
+    "solver_traversals": 0,
+    "leaf_outcomes": 0,
+    "E0_tapes": 0,
+    "E1_tapes": 0,
+    "teacher_rows": 0,
+    "checkpoints": 0,
+    "slumbot_hands": 0,
+    "official_hands": 0
+  }
+}

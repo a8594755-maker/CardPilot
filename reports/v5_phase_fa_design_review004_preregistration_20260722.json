@@ -1,0 +1,92 @@
+{
+  "schema_version": "v5.phase_fa.design_review004.preregistration.v1",
+  "registered_at": "2026-07-22T15:58:00.000Z",
+  "review_id": "PHASE_FA_DESIGN_REVIEW004_EXACT_PUBLIC_STATE_SUPPORT_AND_STREET_AWARE_TAXONOMY_REVIEW",
+  "scope": "REPORTING_ONLY_READ_ONLY_BOUNDED_CPU_NO_IMPLEMENTATION_NO_QUALIFICATION_NO_ASSET_GENERATION",
+  "entry_classification": "PHASE_FA_DESIGN_REVISION003_FAIL_CLOSED_PREIMPLEMENTATION_UNREACHABLE_POSITION_CELL_CONTRACT_NO_CODE_NO_PROBES",
+  "entry_evidence": [
+    {"role":"REVISION003_FAILURE","path":"C:\\Users\\a8594\\CardPilot\\reports\\v5_phase_fa_design_revision003_preimplementation_failure_20260722.json","sha256":"ee6292511091037020e3f72ed30af5ed582a2add8eac676daf80982adb213368"},
+    {"role":"REVISION003_FAILURE_AUDIT","path":"C:\\Users\\a8594\\CardPilot\\reports\\v5_phase_fa_design_revision003_preimplementation_failure_audit_20260722.json","sha256":"9cf5742ebff274e043cf4bc9f9ec80b85140200ea3ee6b715f553ea81a9a0c23"},
+    {"role":"REVISION003_DESIGN_PROVENANCE","path":"C:\\Users\\a8594\\CardPilot\\reports\\v5_phase_fa_design_revision003_preregistration_20260722.json","sha256":"b8040e360e13bd1da0a64589688dadb188df437b4a44ba25b57f39cf3ae6cc56"},
+    {"role":"REVISION003_DESIGN_AUDIT_PROVENANCE","path":"C:\\Users\\a8594\\CardPilot\\reports\\v5_phase_fa_design_revision003_preregistration_audit_20260722.json","sha256":"ecef168e126f1eee7e25cc50d601719251ef1edbe24a88b72c0e0bb29f02e409"},
+    {"role":"EXACT_V55_ACTION_TABLE","path":"C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\environment_v55.py","sha256":"3ab591176a8119d21ac11e043bdfef72bd30b8842e34a9fea45cdd36b945f9de"},
+    {"role":"FULL_HUNL_PUBLIC_TRANSITIONS","path":"C:\\Users\\a8594\\CardPilot\\scripts\\deep_cfr\\game_state.py","sha256":"1500278c6a0fd2909c3bb7aa741aad1842651478b84a676e0783031aa27a6a8a"},
+    {"role":"FROZEN_PYTHON_RUNTIME","path":"C:\\Users\\a8594\\AppData\\Local\\Programs\\Python\\Python312\\python.exe","sha256":"4d6f5f81a4bca11191c4c7c6b43632694d0a4ce74e068619d8fdc161d469859a"},
+    {"role":"REVIEW002_SELECTION_PROVENANCE","path":"C:\\Users\\a8594\\CardPilot\\reports\\v5_phase_fa_design_review002_result_20260722.json","sha256":"d07fdebddef5cad16341e8b286c872c30326657d9edf67a70c88ad41ec54ae7f"}
+  ],
+  "census_contract": {
+    "method":"EXACT_BREADTH_FIRST_ENUMERATION_OF_UNIQUE_PUBLIC_DECISION_STATE_SIGNATURES",
+    "depths":[200,100,50],
+    "root":"ONE_FIXED_DEAL_PER_DEPTH_FROM_GameConfig.full_DEPTH_WITH_raise_cap_per_street_999",
+    "expansion":"EVERY_NONNULL_SLOT_ACTION_FROM_FROZEN_build_action_table_THEN_HUNLGameState.apply",
+    "public_signature":["street","current_player","pot_cents","stack0_cents","stack1_cents","committed0_cents","committed1_cents","raise_count","last_bet_size_cents","num_actions_this_street"],
+    "terminal_states":"COUNT_BUT_DO_NOT_EXPAND_OR_CLASSIFY",
+    "card_invariance_basis":"legal_actions_build_action_table_and_apply_public_betting_FIELDS_DO_NOT_BRANCH_ON_CARD_IDENTITIES_FOR_NONTERMINAL_ACTION_LEGALITY",
+    "fixed_cards_authority":"SUPPORT_ENUMERATION_ONLY_NOT_PAYOFF_TEACHER_OR_STRENGTH_EVIDENCE",
+    "max_unique_public_states_per_depth":2000000,
+    "max_wall_seconds_total":600,
+    "max_peak_rss_mb":2048,
+    "failure_on_bound":"INCONCLUSIVE_NO_SUPPORT_SELECTION",
+    "files_written":0
+  },
+  "proposed_street_aware_taxonomy": {
+    "precedence":["ALLIN_RESPONSE_ONLY","SHORT_SPR_FACING","SHORT_SPR_UNOPENED","FACING_DEEP_RERAISE","FACING_FIRST_RAISE","FACING_FIRST_BET","CHECKED_TO_NO_BET","FIRST_ACTION_NO_VOLUNTARY_BET"],
+    "definitions": {
+      "ALLIN_RESPONSE_ONLY":"TO_CALL_POSITIVE_AND_NONNULL_SLOTS_SUBSET_0_1",
+      "SHORT_SPR_FACING":"TO_CALL_POSITIVE_AND_EFFECTIVE_SPR_LE1",
+      "SHORT_SPR_UNOPENED":"TO_CALL_ZERO_AND_EFFECTIVE_SPR_LE1",
+      "FACING_DEEP_RERAISE":"TO_CALL_POSITIVE_AND_RAISE_COUNT_GE3",
+      "FACING_FIRST_RAISE":"TO_CALL_POSITIVE_AND_RAISE_COUNT_EQ2",
+      "FACING_FIRST_BET":"TO_CALL_POSITIVE_AND_RAISE_COUNT_EQ1",
+      "CHECKED_TO_NO_BET":"TO_CALL_ZERO_AND_NUM_ACTIONS_THIS_STREET_GE1",
+      "FIRST_ACTION_NO_VOLUNTARY_BET":"NUM_ACTIONS_THIS_STREET_EQ0_AND_RAISE_COUNT_EQ0"
+    },
+    "preflop_blind_rule":"INITIAL_SMALL_BLIND_DECISION_IS_FIRST_ACTION_NO_VOLUNTARY_BET_DESPITE_FORCED_BLIND_TO_CALL_0_5",
+    "classification_multiplicity":"EXACTLY_ONE_BY_PRECEDENCE",
+    "unclassified_public_decision_states_required":0
+  },
+  "support_output_contract": {
+    "support_key":"DEPTH_STREET_TAXONOMY_BUCKET_ACTING_PLAYER",
+    "record":"EXACT_SORTED_SUPPORT_KEYS_PLUS_UNIQUE_PUBLIC_STATE_COUNT_PER_KEY",
+    "required_diagnostics":["TOTAL_UNIQUE_PUBLIC_STATES","TERMINAL_TRANSITIONS","ACTION_TABLE_COLLISIONS","UNCLASSIFIED_STATES","SUPPORT_KEYS_PER_DEPTH_STREET","BOTH_PLAYERS_PER_DEPTH","BOUND_STATUS","WALL_SECONDS","PEAK_RSS_MB"],
+    "position_quota_policy":"FUTURE_DESIGN_MAY_ALLOCATE_ONLY_TO_ENUMERATED_REACHABLE_SUPPORT_KEYS_NO_UNOBSERVED_POSITION_BALANCE",
+    "state_relabeling":"FORBIDDEN"
+  },
+  "candidate_order": [
+    {
+      "rank":1,
+      "candidate_id":"PHASE_FA_DESIGN_REVISION005_STREET_AWARE_REACHABLE_SUPPORT_INFOSET_MC32",
+      "select_if":"CENSUS_COMPLETES_ALL_DEPTHS_WITH_UNCLASSIFIED_ZERO_EVERY_DEPTH_STREET_NONEMPTY_PREFLOP_FIRST_ACTION_PRESENT_POSTFLOP_FIRST_ACTION_AND_CHECKED_PRESENT_BOTH_PLAYERS_REPRESENTED_PER_DEPTH_AND_EXACT_SUPPORT_MAP_FIXED",
+      "future_design_change":"REPLACE_IMPOSSIBLE_UNIFORM_192_POSITION_GRID_WITH_EXACT_ENUMERATED_STREET_AWARE_REACHABLE_SUPPORT_KEYS_WHILE_PRESERVING_20M_70_15_15_ALL_INFOSET_MC32_EXACT_V55_NO_V6",
+      "mandatory_next":"SEPARATE_FULL_REVISION005_PREREGISTRATION_AND_INDEPENDENT_AUDIT_ONLY"
+    },
+    {
+      "rank":2,
+      "candidate_id":"ROUTE_REVIEW031_REPORTING_ONLY",
+      "select_if":"CENSUS_BOUND_FAILS_UNCLASSIFIED_NONZERO_OR_NO_FULL_HUNL_STREET_AWARE_SUPPORT_REMAINS_JUDGEABLE_WITHOUT_V6_OR_RELABELING"
+    }
+  ],
+  "judgment_rules": {
+    "route_exhausted":"FALSE_IF_REVISION005_SELECTS_TRUE_ONLY_AFTER_SEPARATE_ROUTE_REVIEW_FINDS_NO_NON_V6_TEACHER_DISTILLATION_ROUTE",
+    "strength_inference":"FORBIDDEN",
+    "automatic_next_phase":"FORBIDDEN"
+  },
+  "immutable_outputs": {
+    "result":"C:\\Users\\a8594\\CardPilot\\reports\\v5_phase_fa_design_review004_result_20260722.json",
+    "result_audit":"C:\\Users\\a8594\\CardPilot\\reports\\v5_phase_fa_design_review004_result_audit_20260722.json",
+    "pre_registration_state":"ABSENT",
+    "write_mode":"EXCLUSIVE_CREATE_ONLY"
+  },
+  "prohibitions": {
+    "revision003_implementation_repair_rerun_or_reclassification":true,
+    "qualification_or_contract_probe":true,
+    "asset_generation_or_training":true,
+    "path1_or_protected_source_mutation":true,
+    "gpu_evaluator_slumbot_checkpoint_h19_or_later":true,
+    "official_hands":true,
+    "automatic_revision005_or_route_review031":true
+  },
+  "current_stop":"REGISTERED_REVIEW_ONLY_NO_CENSUS_BEFORE_INDEPENDENT_PREREGISTRATION_AUDIT",
+  "official_hands":0,
+  "strength":"L0"
+}

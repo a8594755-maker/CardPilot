@@ -1,0 +1,51 @@
+{
+  "schema_version": "v5.external_calibration.preflight_correction.v1",
+  "event_id": "v5-cal-ext-001-terminal-endpoint-preflight-correction-20260715",
+  "recorded_at": "2026-07-15T05:50:40Z",
+  "classification": "CENSURE_REPORTING_CONTROL_PLANE_CORRECTION_NO_HANDS",
+  "measurement_id": "CAL-EXT-001_H8_TREATMENT_GREEDY_QUICK5K",
+  "failed_bundle": {
+    "plan_json": "reports/v5_cal_ext_001_plan_20260715.json",
+    "plan_sha256": "f3952691e1af36a90c43d8c40c8e44d74ea5b8337545f0f9e12355a0f45eafe7",
+    "status": "BLOCKED",
+    "failed_checks": [
+      "health_status",
+      "health_age"
+    ],
+    "preservation": "READ_ONLY_FAILED_BUNDLE"
+  },
+  "diagnosis": {
+    "root_cause": "The canonical planner required fresh live trainer health even when evaluating a finished run whose exact endpoint and completion protocol were already frozen PASS.",
+    "model_or_method_failure": false,
+    "slumbot_connection_attempted": false,
+    "official_hands_generated": 0
+  },
+  "correction": {
+    "behavior": "For a stopped finished run only, accept terminal health authority when both endpoint and protocol status paths are supplied and exact manifest/checkpoint identity checks pass. Otherwise retain the original live-health fail-closed path.",
+    "planner_old_sha256": "4c7f90e246a04268616ff8be5c01fc3bf5d20ed62762b37385b67fab43f98d11",
+    "planner_new_sha256": "01e8e9c0c58d04d626dc7400302445626181dc45dd4f01b5d29871bec7287d5b",
+    "watcher_old_sha256": "8286f33a347aec77d1c8d644533c48716e65ba5f6e120ec0c8c7d541cbd8ebf8",
+    "watcher_new_sha256": "f9c36ed84a6558c91bc27ac6b8e95ac8ed59eb2ba5526290962254ecfd518d72",
+    "test_sha256": "c98c579cd23d07627e1411d442ca9fcca0dc542ea6a7d3e83c9552f08c7dfc7b",
+    "required_terminal_checks": [
+      "manifest status finished",
+      "endpoint ARM_ENDPOINT_FROZEN/PASS",
+      "protocol ARM_FINISHED_GUARDS_PASS/PASS",
+      "checkpoint absolute path and SHA256 exact",
+      "checkpoint, manifest and endpoint iteration/hands exact",
+      "run_id and arm exact"
+    ]
+  },
+  "validation": {
+    "py_compile": "PASS",
+    "unit_tests": "PASS_4_OF_4",
+    "tampered_checkpoint_sha_test": "PASS_FAILS_CLOSED",
+    "bypass_flags_used": false
+  },
+  "authority": {
+    "v1_preregistration_sha256": "2fe0aa64edfc10e1229dadd66b5ba35b3965a5db0886be61d76ae0b0654f0110",
+    "v1_status": "SUPERSEDED_TOOL_LOCK_NO_LAUNCH_AUTHORITY",
+    "v2_preregistration_required": true,
+    "launch_authority": "NONE_UNTIL_V2_AUDIT_AND_SEPARATE_PREFLIGHT_PASS"
+  }
+}

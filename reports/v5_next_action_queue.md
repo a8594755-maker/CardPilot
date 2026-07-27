@@ -1,0 +1,578 @@
+# V5 Next Action Queue
+
+- Checked: `2026-07-23T04:12:00Z`
+- Current boundary:RS005 fully-live terminal-utility resolver registered/audited
+- Identity/token:`5a01b095...05bde` / `5a01b095e04a242d79f0a20907a3e6f9`
+- Prereg/audit:`70a232c8...0c8c` / `7f6b4800...35c4`;PASS170/170;inputs26/26
+- Live state owns public/action/chance/terminal/zero-sum payout
+- HUNL state/action/chance/is_terminal/payoff and RS004 runtime reuse forbidden
+- Showdown matched cents:`min(total0,total1)`;uncalled excess returned
+- Qualification:29878 ledger,584 prefixes,24878 transitions,6921 live,8192 synthetic
+- Additional:1280 terminal utility,1280 resolution,192 repeat,128 fault rows
+- Snapshot/shard:`ac4b514e...797b` / `1eaf9b4c...296a`
+- All implementation/output paths absent
+- Next later only:combined RS005 implementation through qualification and judgment
+- Stop before quick5k
+- Counters:no-progress behavior0;control-plane/nonbehavioral49;official hands0;L0
+- The 03:55 WS006-result bullets below are historical evidence.
+
+- Checked: `2026-07-23T03:55:00Z`
+- Current boundary:WS006 atomic result selects materially new fully-live RS005
+- Result:`52dd1e08...ae42`;20,666B;embedded verification PASS15/15
+- Selected:`RS005_MATERIALLY_NEW_FULLY_LIVE_TERMINAL_UTILITY_RESOLVER`;gates9/9
+- Lower LG003/FA003/CT003 unevaluated and open;route exhaustion false
+- RS005 live state exclusively owns public/action/chance/terminal/exact payout
+- HUNL state/action/chance/is_terminal/payoff forbidden;pure compare_hands only
+- Snapshot/shard:`bdac818a...6e99` / `6cac3754...ffc6`
+- Next later only:one unified RS005 preregistration plus independent audit
+- Stop before implementation,probe,qualification,evaluation or Slumbot
+- Counters:no-progress behavior0;control-plane/nonbehavioral48;official hands0;L0
+- The 03:35 WS006-registration bullets below are historical evidence.
+
+- Checked: `2026-07-23T03:35:00Z`
+- Current boundary:WS006 post-RS004 simplified route review registered/audited
+- Identity/token:`68f32e07...085ac` / `68f32e076fc5c7ecc7e680f2ba5b7528`
+- Prereg/audit:`816984ce...5b97` / `9581a83b...1539`;PASS54/54;inputs13/13
+- Order:fully-live RS005,nonrecovery LG003,live-aligned FA003,new-target CT003
+- Nine fixed gates;missing evidence NONPASS;first ranked full PASS wins
+- RS005 entry contract:live ledger exclusively owns public/action/chance/terminal/payout
+- HUNL permitted only as pure hidden-hand comparator;RS004 repair/relabel forbidden
+- Snapshot/shard:`a8888d00...8ede` / `dc689188...83a5`
+- Result absent;selected candidate NONE
+- Next later only:one atomic reporting-only WS006 result with embedded verification
+- Stop before candidate-specific registration,implementation or execution
+- Counters:no-progress behavior0;control-plane/nonbehavioral47;official hands0;L0
+- The 03:18 RS004-terminal bullets below are historical evidence.
+
+- Checked: `2026-07-23T03:18:00Z`
+- Current boundary:RS004 terminal qualification failure
+- Classification:`RS004_FAIL_CLOSED_QUALIFICATION_LIVE_LEDGER_HUNL_TERMINAL_SEMANTICS_MISMATCH_NO_RESULT_NO_QUICK5K_NO_RERUN`
+- Implementation audit:`259a370d...239c3`;PASS31/31;deep test+two probes
+- Qualification admission exact:29878 ledger,584 prefixes,6921 live,8192 synthetic
+- Failure:reachable rollout had live ledger terminal true,HUNL mirror terminal false
+- Resolution/repeat/fault/metrics/result/result-audit outputs absent
+- Result-audit attempt1 exited on missing result.json
+- Judgment/snapshot/shard:`342e5643...dd7c9` / `990fc70b...ffb41` / `f6968c3f...edc97`
+- RS004 immutable:no repair,rerun,extension,reconstruction,second correction or quick5k
+- Next later only:register+audit simplified post-RS004 route review
+- Stop before route-review result or execution
+- Counters:no-progress behavior0;control-plane/nonbehavioral46;official hands0;L0
+- The 03:04 RS004-registration bullets below are historical evidence.
+
+- Checked: `2026-07-23T03:04:00Z`
+- Current boundary:RS004 fresh correction registered/audited
+- Identity/token:`a4f6cdb3...a6dfb` / `a4f6cdb3461aa6ef4ea29af61938082c`
+- Prereg/audit:`d6fd7ec5...74b2b` / `b0041732...8f258`;PASS58/58
+- Sole correction:independent census key `(dump source absolute path,hand_idx)`
+- Correct census:4 dumps,29878 rows,5000 hands,584 prefixes,24878 transitions
+- Old-key counterfactual:1250 hands,28628 transitions,noncontiguous
+- Inputs26/26 exact;inherited science contract:`458ffa6c...ff8ba`
+- Snapshot/shard:`a5ab2a75...95ccf` / `53e7436f...675ec`
+- Next later only:one combined RS004 implementation through qualification/judgment
+- Stop before quick5k;no implementation,probe,qualification or external hands now
+- Counters:no-progress behavior0;control-plane/nonbehavioral45;official hands0;L0
+- The 02:54 RS003-terminal bullets below are historical evidence.
+
+- Checked: `2026-07-23T02:54:00Z`
+- Current boundary:RS003 terminal before probes
+- Classification:`RS003_FAIL_CLOSED_IMPLEMENTATION_AUDIT_PREPROBE_DUMP_LOCAL_HAND_KEY_COLLISION_NO_QUALIFICATION_NO_RERUN`
+- Implementation audit:`2c50418b...10dc`;PASS20/21;sole failure independent census
+- Root cause:four dump-local hand_idx namespaces were incorrectly merged
+- Correct census key:`(dump source,hand_idx)`;truth5000 hands/24878 transitions
+- Probes0;qualification0;quick5k0;training/checkpoint/Slumbot/official0
+- Judgment/snapshot/shard:`ceb70758...8b42` / `9b7e80f8...3b83` / `ad598fa8...3ba0`
+- RS003 immutable:no repair,rerun,probe,qualification,mutation or adoption
+- Next later only:fresh RS004 correction preregistration plus independent audit
+- Sole allowed correction:census key;preserve all RS003 science and use fresh paths
+- Stop before implementation,probes,qualification or quick5k
+- Counters:no-progress behavior0;control-plane/nonbehavioral44;official hands0;L0
+- The 02:34 RS003-registration bullets below are historical evidence.
+
+- Checked: `2026-07-23T02:34:00Z`
+- Current boundary:RS003 live-native paired-MC32 registered/audited
+- Identity/token:`f7709e4b...679fdb` / `f7709e4bfba3febe0a829c10781054b5`
+- Prereg/audit:`19a75a06...c706b` / `f411bd44...0744e`;PASS97/97;inputs22/22
+- Census:29878 rows,584 prefixes,24878 transitions,6921 live hero interfaces
+- Future full qualification:+8192 synthetic,1280 resolves,192 repeats,128 faults
+- Public owner:action string+integer exact-cent ledger;live V5.5 policy path only
+- Approximate commitments,HUNL obs/action mapping,RS002 runtime and projection forbidden
+- Snapshot/shard:`629cb384...a62c0` / `78ec9e0c...58e97`
+- Next later only:one combined implementation through qualification/audit/judgment
+- Stop before quick5k;no implementation or external hands now
+- Counters:no-progress behavior0;control-plane/nonbehavioral43;official hands0;L0
+- The 02:14 WS005-result bullets below are historical evidence.
+
+- Checked: `2026-07-23T02:14:00Z`
+- Current boundary:WS005 atomic result selects fresh live-native RS003
+- Result:`6f6f5612...575f5`;RS003 gates9/9;lower ranks not evaluated
+- Public owner:Slumbot action string plus fresh exact-cent ledger
+- Policy observations/actions:live V5.5 tensor and exact slot/increment identities only
+- Existing approximate commitment helper and HUNL observation/action mapping forbidden
+- Qualification:all6921 witnessed roots and all distinct prefixes plus resolver gates
+- Snapshot/shard:`41992423...2e950` / `7ec9e114...6fabf`
+- Next later only:one unified RS003 preregistration plus proportionate audit
+- Stop before implementation,probe,qualification,evaluation or Slumbot
+- Counters:no-progress behavior0;control-plane/nonbehavioral42;official hands0;L0
+- The 02:05 WS005-registration bullets below are historical evidence.
+
+- Checked: `2026-07-23T02:05:00Z`
+- Current boundary:WS005 live-boundary route review registered/audited
+- Identity/token:`150ef48c...b6bc6f` / `150ef48caea4872d5478a1af75ee0d24`
+- Prereg/audit:`314fbee1...1bd9c` / `96b894b0...fe33c`;PASS58/58;inputs23/23
+- Order:live-native RS003,nonrecovery LG003,live-aligned FA003,new-target CT003
+- Nine gates;named blocker and actual live contract are entry gates
+- Missing evidence is NONPASS;first ranked full PASS wins
+- Snapshot/shard:`e127f8eb...a4494` / `5455d6a0...d6755`
+- Next later only:one atomic reporting-only WS005 result with embedded verification
+- Stop before candidate-specific registration,implementation or execution
+- Counters:no-progress behavior0;control-plane/nonbehavioral41;official hands0;L0
+- The 01:54 RS002-terminal bullets below are historical evidence.
+
+- Checked: `2026-07-23T01:54:00Z`
+- Current boundary:RS002 terminal live-observation/action-identity failure;no quick5k
+- Corrected audit/judgment:`bc2a490d...a85e` / `78eeb4d2...1e9f`
+- Live exact rows0/6921;action-table exact5490/6921;minimum fallback1.0>0.02
+- Cause:live calls encode nonzero amount;frozen HUNL CALL amount is zero
+- Offline qualification remains HUNL-only evidence and grants no live authority
+- No Slumbot/network hands,training or checkpoint mutation;H11 unchanged
+- Next:one simplified reporting-only route review:RS003,LG003,FA003,CT003
+- Stop before candidate implementation,probe,training,GPU or external launch
+- Counters:no-progress behavior0;control-plane/nonbehavioral40;official hands0;L0
+- The 01:35 offline-qualification bullets below are historical evidence.
+
+- Checked: `2026-07-23T01:35:00Z`
+- Current boundary:RS002 offline qualification and independent result audit PASS
+- Judgment:`2cec9650...a5bf2`;implementation audit:`fc77a2d3...f5e9`;PASS23/23
+- Qualification result/audit:`a7b6e92b...b3b0` / `4009d362...a45f`;PASS25/25 and34/34
+- Evidence:8192 synthetic,6921 witnessed,1280 resolves,192 exact repeats,128 exact faults
+- Fallback0.003125;root change562/1276=0.44044;latency p95=0.128s,max=1.528s
+- H11 unchanged:`96a00703...5ca13`;no training,checkpoint,Slumbot or official hands
+- Next:one complete greedy-direct4x1250 RS002 quick5k behavior window
+- In that same boundary implement/audit only the thin live adapter;no scientific change
+- Stop here before quick5k;quick5k directional only,no strength claim
+- Counters:no-progress behavior0;control-plane/nonbehavioral39;official hands0;L0
+- The 01:03 RS002 registration bullets below are historical evidence.
+
+- Checked: `2026-07-23T01:03:30Z`
+- Current boundary:RS002 paired-MC32 LCB95 resolver registered/audited
+- Identity/token:`81b61579...1ef43` / `81b61579f99755eb755d8c3c1905c22f`
+- Prereg/audit:`93316de0...4563c7` / `e346a5b5...1ea4bd`;PASS101/101;inputs19/19
+- Behavior change:H11 bit-exact;postflop root action uses paired32-state LCB95 resolver
+- Qualification:8192 synthetic,6921 witnessed,1280 resolves,192 repeats,128 faults
+- Quick5k already registered:4x1250 after qualification PASS only
+- Snapshot/shard:`080b8375...440a6` / `87d768cb...fdb3d`
+- Next later only:combined implementation/tests/2 probes/impl audit/qualification/audit
+- Stop before quick5k;failure terminal,no repair or rerun
+- Counters:no-progress behavior0;control-plane/nonbehavioral38;official hands0;L0
+- The 00:50 WS004 selection bullets below are historical evidence.
+
+- Checked: `2026-07-23T00:50:00Z`
+- Current boundary:WS004 atomic result selects RS002 play-time resolver
+- Result:`40a5404a...6e7e8`;embedded verification17/17;RS002 gates7/7
+- FA002 classification:structural scientific-design failure;no corrected Q01
+- Intervention:same H11 checkpoint,resolver OFF versus ON,inference-time only
+- Bound:one registration/audit plus one combined implementation/qualification/audit
+- External trigger:first qualified endpoint immediately runs greedy-direct4x1250 quick5k
+- Snapshot/shard:`de761a15...f1dfd` / `e810f092...a48fa`
+- Next later only:one unified RS002 candidate preregistration plus audit
+- Stop before implementation,probe,qualification,evaluation or Slumbot
+- Counters:no-progress behavior0;control-plane/nonbehavioral37;official hands0;L0
+- The 00:43 WS004 registration bullets below are historical evidence.
+
+- Checked: `2026-07-23T00:43:00Z`
+- Current boundary:WS004 post-FA002-Q01 simplified route review registered/audited
+- Identity/token:`99a9bc69...bdf7c` / `99a9bc69ece4a50b642c086917930a38`
+- Prereg/audit:`bfa16410...6cd49` / `ed6a55ea...9dc9c`;PASS62/62;inputs12/12 exact
+- Frozen order:RS002 resolver,LG003 league,FA003 new teacher,CT003 new critic/target
+- Selection:first candidate passing all seven gates;missing evidence is NONPASS
+- Progress bound:selected route gets at most two nonbehavioral boundaries to endpoint
+- Snapshot/shard:`dcfbca52...f4b5d` / `fbe3437b...d95f2`
+- Next later only:one atomic WS004 reporting-only result with embedded verification
+- Stop before candidate registration,implementation,probe,data,training,GPU or Slumbot
+- Counters:no-progress behavior0;control-plane/nonbehavioral36;official hands0;L0
+- The 00:34 FA002 terminal bullets below are historical evidence.
+
+- Checked: `2026-07-23T00:34:00Z`
+- Current boundary:FA002 Q01 terminal pre-output hidden-pair-diversity failure
+- Qualification:exactly1 consumed,exit1,`hidden_pair_diversity_below28`,no rerun
+- Preserved output:invocation plus120,000 reached states;quality/repeat/metrics/result absent
+- Result audit:exactly1 consumed,exit1 on absent result.json;result audit absent
+- Judgment/snapshot/shard:`e6d230c8...ed31` / `4efd9c25...6303` / `870e642f...2c0c`
+- Interpretation:Q01 neither PASS nor complete NONPASS;teacher/resource/BC/strength unjudged
+- Next later only:separately registered simplified post-FA002-Q01 route review plus audit
+- Review purpose:classify failure,re-rank all four non-V6 families,select one fresh route
+- No automatic corrected Q01;stop before implementation,probe,data,training,GPU or Slumbot
+- Counters:no-progress behavior0;control-plane/nonbehavioral35;official hands0;L0
+- The 00:24 Q01 implementation-audit bullets below are historical prequalification evidence.
+
+- Checked: `2026-07-23T00:24:35Z`
+- Current boundary:FA002 Q01 implementation audit PASS148/148
+- Runner/launcher/auditors:`8f1858c1...bc491` / `ba4414c...9c9a9` /
+  `355edf54...22c0a` / `35cedae2...e96c`
+- Science self-tests:runner30/30;independent result auditor7/7
+- Probes:exactly2 consumed;both exit0,files0,snapshot3324→3324,diff0,Torch absent
+- Implementation audit:`36d7aba3...e0f1d`;snapshot/shard:`e83eab2b...6814a` /
+  `4ff11ab8...94975`
+- Next later only:one exact Q01 qualification,then one launcher-owned audit/judgment
+- Stop before asset implementation/generation,training,GPU,checkpoint or Slumbot
+- Counters:no-progress behavior0;control-plane/nonbehavioral34;official hands0;L0
+- The FA002-registration bullets below are historical preimplementation evidence.
+- Checked: `2026-07-23T00:05:17Z`
+- Current boundary:FA002 unified candidate registration/audit PASS161/161
+- Identity/token:`61e5047f...668d88` / `61e5047f8820e9df19733e57c257a04a`
+- Prereg/audit:`18765838...d849a7` / `004090c0...b6e5f7`;inputs17/17 exact
+- Frozen science:exact-V5.5 infoset MC32 4x8 -> one H11 policy-first BC checkpoint
+- Q01 prerequisite:120k reached states,6,144 quality rows,768 repeats,20M projection
+- Later-only asset/BC:20M rows;three epochs;one eligible checkpoint;mandatory quick5k
+- Snapshot/shard:`c010ff27...9ba09` / `92056c3a...f5fde`
+- Next later only:implement/audit Q01 with exactly two fresh zero-file CPU child probes
+- Stop before qualification,data/assets,training,GPU,checkpoint,evaluation or Slumbot
+- Counters:no-progress behavior0;control-plane/nonbehavioral33;official hands0;L0
+- The WS003-result bullets below are historical selection evidence.
+- Checked: `2026-07-22T23:47:58Z`
+- Current boundary:WS003 atomic result PASS selects FA002
+- Result:`eb1dd37b...5c443`;prereg/audit:`093d5ee3...61821` / `c3d09612...47924`
+- Verification:9/9 frozen inputs exact;FA002 passes six/six registered gates
+- Lower ranks:RS002,LG003,CT003 not evaluated and remain open
+- Late e469 pair:authority NONE via CENSURE `6b2e5d43...ff7186` PASS24/24
+- Snapshot/shard:`6660b8ed...54726` / `5a59ec01...49f05`
+- Next later only:one unified FA002 candidate-specific preregistration plus audit
+- Stop before implementation,probe,data/assets,training,GPU,checkpoint,evaluation or Slumbot
+- Counters:no-progress behavior0;control-plane/nonbehavioral32;official hands0;L0
+- The 23:41 WS003-registration bullets below are historical pre-result evidence.
+- Checked: `2026-07-22T23:41:00Z`
+- Current boundary:WS003 registration/audit PASS52/52
+- Identity/token:`5365a562...f969c` / `5365a5621df98b4fbf4a2c81db13269d`
+- Prereg/audit:`093d5ee3...61821` / `c3d09612...47924`;inputs9/9 exact
+- Order:FA002,RS002,LG003,then fundamentally new CT003 only
+- Result path:registered and absent;six gates select first PASS
+- Snapshot/shard:`ab2370f6...75eef` / `caeb685a...98267`
+- Next later only:one atomic WS003 result with embedded verification
+- Stop before candidate registration,implementation,probe,data,training,GPU or Slumbot
+- Counters:no-progress behavior0;control-plane/nonbehavioral31;official hands0;L0
+- The 23:31 late-descendant bullets below are historical terminal-chain evidence.
+- Checked: `2026-07-22T23:31:02Z`
+- Current boundary:late 7fa auditor/result descendant CENSURE PASS28/28
+- CENSURE:`e7b40e93...3ac1`;snapshot/shard:`f2ae173a...53e1f` / `fd288c57...365d9`
+- Late auditor/result:`d6af2edd...09ea` / `4981876e...4420`;authority NONE
+- Stable runner/test/launcher:`1a2ade05...1fd5` / `4eeb6e4b...2f5` / `bb9cf001...cd9`
+- Parent terminal judgment binding;prior census superseded only for auditor/result absence
+- Output root absent;authoritative post-terminal probes `UNOBSERVABLE_NO_AUTHORITY`
+- No science or strength evidence;no second corrected identity
+- Next later only:simplified reporting-only workflow/route-review registration plus audit
+- Stop before review result or execution
+- Counters:no-progress behavior0;control-plane/nonbehavioral30;official hands0;L0
+- The 23:27 reconciliation bullets below are historical pre-late-result evidence.
+- Checked: `2026-07-22T23:27:03Z`
+- Current boundary:7fa post-CENSURE descendant reconciliation PASS26/26
+- Reconciliation:`919d4c3a...c869b`;snapshot/shard:`28c04179...a389c` / `b415fadd...7dec`
+- Final runner/test/launcher/auditor:`1a2ade05...1fd5` / `4eeb6e4b...2f5` /
+  `bb9cf001...cd9` / `26e0305a...562c`;all authority NONE
+- Parent CENSURE remains binding;only its earlier bundle census is superseded
+- Audit result/output root absent;post-terminal probes `UNOBSERVABLE_NO_AUTHORITY`
+- Data,training,GPU,checkpoint,evaluation and Slumbot remain zero;science untested
+- Next later only:simplified reporting-only workflow/route-review preregistration plus audit
+- Stop before review result,implementation,probe,data,training,GPU or Slumbot
+- Counters:no-progress behavior0;control-plane/nonbehavioral29;official hands0;L0
+- The 23:19 preprobe-CENSURE bullets below are historical terminal-parent evidence.
+- Checked: `2026-07-22T23:19:32Z`
+- Current boundary:7fa implementation-audit preprobe CENSURE PASS30/30
+- CENSURE:`1f4647ab...cd903`;snapshot/shard:`bc0beac9...b16dc` / `b0e2c705...c77ba`
+- Bundle:AST3/3,direct tests13/13;sole audit exited1 after counter observed12
+- Failure:argparse split one test output line;checker defect before checkpoint audit/probes
+- Probes0;audit result/output root absent;data,training,GPU,Slumbot all zero
+- 7fa bundle:authority NONE,preserve read-only,no repair/rerun/probe/descendant
+- Fresh correction allowance:consumed;no second corrected CT002 identity
+- Next later only:simplified reporting-only workflow/route-review preregistration plus audit
+- Stop before review result,implementation,probe,data,training,GPU or Slumbot
+- Counters:no-progress behavior0;control-plane/nonbehavioral28;official hands0;L0
+- The 23:03 corrected-registration bullets below are historical preimplementation evidence.
+- Checked: `2026-07-22T23:03:19Z`
+- Current boundary:corrected CT002 identity 7fa preregistration/audit PASS70/70
+- Identity/token:`7fa29a5e...b480f1` / `7fa29a5e2f003b9fe4236c23fdad2093`
+- Prereg/audit:`4c21f92d...ac1b2` / `7dc738ce...4233a`
+- Evidence:10/10 direct and28/28 transitive inputs/tools exact;science unchanged
+- Fresh only:identity,absolute paths,seeds,and two future probe nonces
+- Late ac12 competitor:authority NONE via CENSURE `4536653f...03b3` PASS16/16
+- Snapshot/shard:`587594cb...06e29` / `6f9d3bcd...e7a99`
+- Next later only:one clean-room 7fa implementation plus independent implementation
+  audit and exactly two new-nonce CPU-only zero-output probes
+- Stop before data generation,calibration,PPO,GPU,checkpoint,evaluation or Slumbot
+- Counters:no-progress behavior0;control-plane/nonbehavioral27;official hands0;L0
+- The 22:52 ae78 descendant bullets below are historical authority-NONE evidence.
+- Checked: `2026-07-22T22:52:54Z`
+- Current boundary:ae78 post-CENSURE descendant reconciliation PASS32/32
+- Reconciliation:`f859f269...f07ee`;snapshot/shard:`9e3edf7d...00d90` / `e7bae921...82547`
+- Late audit:`349a5c6f...e113`,self-reported PASS49/49;exactly two zero-file probes
+- Authority:final ae78 bundle,audit PASS and probes all NONE because parent CENSURE was earlier
+- Output root absent;data,calibration,PPO,GPU,checkpoint,evaluation,Slumbot all zero
+- Next later only:one fresh corrected CT002 preregistration plus independent audit on
+  new absolute paths/nonces
+- Stop before corrected implementation,probes,data,training,GPU,evaluation or Slumbot
+- Counters:no-progress behavior0;control-plane/nonbehavioral26;official hands0;L0
+- The 22:44 terminal-parent bullets below remain binding historical evidence;their
+  same-path bundle census is superseded only by the descendant reconciliation.
+- Checked: `2026-07-22T22:44:11Z`
+- Current boundary:ae78 implementation bundle collision CENSURE PASS32/32
+- CENSURE:`8f2b4c11...46399`;snapshot/shard:`1405692d...05a7c` / `4bc53299...0e6ea`
+- Validation:AST3/3;unit tests total10/pass1/failure1/errors8
+- Probes:0/2;implementation-audit result/output root absent
+- ae78 implementation files:authority NONE,preserve read-only,no repair/merge/probe
+- Scientific CT002 hypothesis:preserved but untested
+- Next later only:one fresh corrected CT002 identity preregistration plus independent
+  preimplementation audit using new absolute paths
+- Stop before corrected implementation,probe,data,calibration,PPO,GPU or Slumbot
+- Counters:no-progress behavior0;control-plane/nonbehavioral25;official hands0;L0
+- The 22:25 ae78 registration bullets below are historical design evidence only.
+- Checked: `2026-07-22T22:25:15Z`
+- Current boundary:canonical ae78 CT002 preregistration/audit PASS52/52
+- Token:`ae78e683c41a2abcff33eeae9fdad8ad`
+- Prereg/audit:`faef13ef...072da` / `2426ca76...860e`
+- Evidence:20/20 frozen inputs,8/8 tools,H11 model/optimizer/five pool states exact
+- Intervention:critic calibration data distribution only,self-play vs fixed opponent mix
+- Competing c216 pair:authority NONE via reconciliation `271205d8...615158`
+- c216 snapshot/shard and main-ledger canonical claim:superseded provenance only
+- Snapshot/shard/main ledger:`a5b41aad...5b673` / `3e2e26cb...1dca1` / `a49e15fd...b54e7`
+- Next later only:implement canonical ae78 plus independent implementation audit and
+  exactly two zero-output contract probes
+- Stop before dataset generation,calibration,PPO,GPU,checkpoint,evaluation or Slumbot
+- Counters:no-progress behavior0;control-plane/nonbehavioral24;official hands0;L0
+- The 22:24 c216 bullets below are historical authority-NONE evidence.
+- Checked: `2026-07-22T22:24:09Z`
+- Current boundary:CT002 candidate-specific preregistration/audit PASS54/54
+- Token:`c216cb227e53f64ba20f2de73030bbbd`
+- Prereg/audit:`c7728ed0...78818` / `981426a5...65e5`;14/14 inputs exact
+- Intervention:critic calibration data distribution only,self-play vs fixed H11 pool mix
+- Source:H11 `96a00703...ca13`,iteration35051,hands576021901;five pool manifests exact
+- Current `train_v5.py` is CENSUREd and forbidden;dedicated CT002 paths remain absent
+- Snapshot/shard/main ledger:`3110fbb9...b3455` / `97f01b6a...e1969` / `ab55406d...d40b`
+- Next later only:fresh dedicated CT002 implementation plus independent implementation audit
+- Stop before dataset generation,training,GPU,checkpoint,evaluation or Slumbot
+- Counters:no-progress behavior0;control-plane/nonbehavioral23;official hands0;L0
+- The 22:07 selection bullets below are historical evidence.
+- Checked: `2026-07-22T22:07:37Z`
+- Current boundary:SIMPLIFIED_ROUTE_REVIEW001 result/audit PASS27/27
+- Result/audit:`0ac4a837...aa851` / `5c01fff4...abb77`
+- Selection:rank1 CT002 critic/target,eligibility4/4
+- Outline:critic calibration data distribution only,self-play vs fixed opponent mixture
+- Prior evidence remains MIXED/protocol-limited;no critic benefit or strength proven
+- Lower ranks:FA002,RS002,LG003 not evaluated and open
+- Snapshot/shard:`9a486a39...21747` / `c011bba8...ef54e`
+- Next later only:fresh CT002 candidate-specific preregistration plus independent audit
+- Stop before implementation,test,training,asset,GPU,checkpoint,evaluation or Slumbot
+- Counters:no-progress behavior0;control-plane/nonbehavioral22;official hands this review0;L0
+- The 22:00 registration bullets below are historical evidence.
+- Checked: `2026-07-22T22:00:37Z`
+- Current boundary:SIMPLIFIED_ROUTE_REVIEW001 preregistration/audit PASS35/35
+- Token:`691b10aab0b6c812f92936e741e81af8`
+- Prereg/audit:`ed4162f6...b493e` / `a3141d43...e5c9`;14/14 frozen inputs exact
+- Candidate order:CT002 critic/target,FA002 CFR/BC,RS002 resolver,LG003 non-recovery league
+- Candidate selected:none;atomic result/audit paths absent
+- Concurrent LG002 descendants:authority NONE;second recovery forbidden
+- Snapshot/shard:`11bcda8f...8ee61` / `1ae8ae57...8c457`
+- Next later only:one atomic reporting-only result plus independent result audit
+- Stop before candidate registration,implementation,test,training,asset,GPU or Slumbot
+- Counters:no-progress behavior0;control-plane/nonbehavioral21;official hands this review0;L0
+- The 21:45 LG002 alternate-path bullets below are historical evidence.
+- Checked: `2026-07-22T21:45:00Z`
+- Current boundary:LG002 recovery forbidden alternate-path CENSURE PASS22/22
+- CENSURE:`78e46e59...162f14`;token:`2320b32682e51ba0e3781407b92d3d75`
+- Canonical prereg/audit:`ef41b731...e9eda9` / `318899d0...9bdec`,now authority NONE
+- Forbidden alternate preregistration:`9f04a600...026b9`,authority NONE
+- Recovery-registration ledger shard was not appended and must remain unappended
+- Snapshot/shard/main ledger:`607c9357...a8eef` / `74f57fb6...22c70c` / `833b2e1c...bd466`
+- Second recovery:forbidden;league hypothesis remains untested
+- Next later only:simplified reporting-only route-review preregistration plus audit
+- Stop before review registration this boundary and before implementation/execution
+- Counters:no-progress behavior0;control-plane/nonbehavioral19;official hands0;L0
+- The 21:41 recovery PASS100/100 bullets below are historical authority-NONE evidence.
+- Current boundary:single LG002 recovery preregistration/audit PASS100/100
+- Token:`2320b32682e51ba0e3781407b92d3d75`
+- Prereg/audit:`ef41b731...e9eda9` / `318899d0...9bdec`
+- Evidence:15/15 inputs,8/8 tools,H11 optimizer+five state hashes,H4 weights exact
+- Intervention:conditional opponent weights only;matched5M control/treatment
+- Snapshot/shard:`5057143f...ee2668` / `ce92247c...6bbe8`
+- Next later only:implementation+independent audit+exactly two zero-output probes
+- Stop before training,GPU,checkpoint,evaluation or Slumbot;second recovery forbidden
+- Counters:no-progress behavior0;control-plane/nonbehavioral19;official hands0;L0
+- The 21:35 collision CENSURE bullets below remain immutable historical evidence.
+- Checked: `2026-07-22T21:35:00Z`
+- Current boundary:LG002 same-token preregistration overwrite CENSURE PASS16/16
+- CENSURE:`33a2f3f6...14e39a8`
+- Audit-bound preimage/current bytes:`0c2dc68f...4d9400` / `d8b7f30a...446ed6b`
+- Unmatched audit:`56b3de4e...ad10bb`;all three authority NONE
+- Scientific status:opponent-league hypothesis untested;all four routes open
+- Snapshot/shard/main ledger:`d4d5bedc...34de03` / `7d637a46...f29be` / `05175d0f...96febd`
+- Next later only:one fresh LG002 recovery preregistration plus independent audit
+- Recovery identity basis:`LG002_RECOVERY|33a2f3f6...14e39a8`;no second correction
+- Stop before implementation,test,training,GPU,evaluation,Slumbot or checkpoint
+- Counters:no-progress behavior0;control-plane/nonbehavioral18;official hands0;L0
+- The 21:22 WS002 selection bullets below are historical evidence.
+- Checked: `2026-07-22T21:22:00Z`
+- Current boundary:WS002 terminal PASS47/47 embedded verification
+- Result:`f431cb8e...e58265`
+- Selection:rank1 `FRESH_ACTUAL_TRAIN_V5_OPPONENT_LEAGUE_IDENTITY`,eligibility7/7
+- Interpretation:LG001 failed before behavior;league science remains untested
+- Ranks2-4:not evaluated,all open;route exhaustion false/unjudged
+- Snapshot/shard/main ledger:`a93d7537...ede7a7` / `75e9af9d...4737de` / `23a14b00...0e5234`
+- Next later only:fresh LG002 actual-`train_v5.py` preregistration plus independent audit
+- Stop before LG002 implementation,test,training,GPU,evaluation,Slumbot or checkpoint
+- Counters:no-progress behavior0;control-plane/nonbehavioral17;official hands0;L0
+- The 21:16 WCSR001 CENSURE bullets below are historical provenance.
+- Checked: `2026-07-22T21:16:00Z`
+- Current boundary:late WCSR001 duplicate CENSURE `0f816cc2...4fe4f2`,PASS12/12
+- Sole authority:content-addressed WS002 token `23dfd356983aa4607683808ee9d9a11c`
+- WS002 prereg/audit:`1a98009e...35830` / `49d4e344...52c6a`,PASS64/64
+- Late WCSR001 token `ce008ad8ef814daa965166a610eda204`:authority NONE,no result descendant
+- CENSURE snapshot/shard/main ledger:`e77296cc...0bd95` / `abdb63ec...a10f5` / `ec3119fd...248fd`
+- Next later only:canonical atomic WS002 direct decision;stop before candidate registration
+- Counters:no-progress behavior0;control-plane/nonbehavioral16;official hands0;L0
+- The 21:12 WS002 registered-state bullets below remain authoritative only as incorporated above.
+- Current boundary:WS002 content-addressed preregistration/audit PASS64/64
+- Token:`23dfd356983aa4607683808ee9d9a11c`
+- Prereg/audit:`1a98009e...35830` / `49d4e344...52c6a`
+- Inputs:6 direct +22 nested exact;global alternate-path census forbidden as gate
+- Snapshot/shard:`09a9b900...19694` / `7d0d92b5...6b17c`
+- Next later only:canonical atomic WS002 direct decision;stop before candidate registration
+- Counters:no-progress behavior0;control-plane/nonbehavioral15;official hands0;L0
+- The 21:05 MR001 terminal bullets below are historical evidence.
+- Checked: `2026-07-22T21:05:00Z`
+- Current boundary:MR001 terminal prewrite collision;result/audit PASS52/52
+- Result/audit:`3a16b12b...4b4bdd` / `33f5ae48...a25fce`
+- Gate:22/22 inputs exact;prewrite5/6;alternate registration absence failed
+- Selection:none;candidate evaluation not started;all four families remain open
+- Snapshot/shard/main ledger:`e5c32ef0...290d47` / `82c5d7cb...caec15` / `3beea4e7...5d451`
+- Next later only:workflow-simplification review preregistration/audit;stop before result
+- Counters:no-progress behavior0;control-plane/nonbehavioral14;official hands0;L0
+- The 21:00 CENSURE bullets below are historical provenance.
+- Checked: `2026-07-22T21:00:00Z`
+- Current boundary:MR001 late duplicate CENSURE `6b3d110a...81da59`,PASS8/8
+- Sole authority:earlier token `519236e85ed44afba11b518aac271c47`,PASS153/153
+- Later token `edc481c357d341a1b8335cb2ca08e469`:authority NONE,no result descendant
+- CENSURE snapshot/shard/main ledger:`b8964a99...161b7` / `4e70c976...ffd7a` / `f269669c...e2fad`
+- Next later only:earlier chain atomic result plus independent audit;stop before candidate registration
+- Counters:no-progress behavior0;control-plane/nonbehavioral13;official hands0;L0
+- The 20:55 registered-state bullets below are historical except for the earlier chain contract.
+- Checked: `2026-07-22T20:55:00Z`
+- Campaign: `ACTIVE_DRIVE_TO_L5_V3`
+- Current boundary:META_ROUTE_REVIEW001 preregistration/audit PASS153/153;stop before result
+- Registration token:`519236e85ed44afba11b518aac271c47`
+- Prereg/audit:`162609df...ab3cb` / `e9509e18...167aa`
+- Frozen rank:fresh actual-train_v5 league;critic/target;distillation;resolver
+- Current train_v5 SHA:`ebd76611...32956`,reporting evidence only
+- Snapshot/ledger shard/main ledger:`f1f5b03c...9915f` / `e767f540...7c0c8e` / `2bc0d201...98dbf`
+- Current result/implementation/training/GPU/Slumbot authority:none
+- Next later only:one atomic collision-checked reporting-only result plus independent result audit
+- Stop before selected-candidate implementation,test,training or evaluation
+- Counters:no-progress behavior0;control-plane/nonbehavioral12;official hands0;L0
+- Route families:all four open;route_exhausted=false/unjudged;goal active/incomplete
+- Historical boundary details below are non-current unless explicitly restated above.
+- Current boundary:LG001 structural trainer-identity failure;no valid implementation
+- Failure/audit:
+  `074e937565b8015ea5bb05e4a77e81b27003dba14d1c8d2d2de721851ce0a87a` /
+  `665bbccbcf5fa8d1a635cbdaa262c56c40dcdfd5f1e84a86129d20c7de95e5f2`,PASS50/50
+- Root cause:registered `train_v5_hybrid_h1.py` is not actual H11 `train_v5.py`
+- Missing on registered base:target-KL0.03 and H8/H11 catch-up runtime semantics
+- Same-boundary code:authority NONE;late audit `3c08a0de...273b29` reported PASS53/53
+  and zero-output tests but is covered by the prior current/later-descendant exclusion
+- Snapshot/ledger shard: `bebacb91...7a506b` / `6172fff9...55094d`
+- Next:simplified meta-route review registration/audit only;stop before result
+- Counters:no-progress behavior0;control-plane/nonbehavioral11
+- Historical boundary:late duplicate LG001 registration CENSUREd;earlier tokenized pair was sole registration authority
+- CENSURE: `840e898f...74fa24`
+- Earlier authoritative prereg/audit: `2d0a306a...be4125` / `92dd02a8...e666e9`,PASS91/91
+- Later censured prereg/audit: `6881da78...52067` / `4d8c41e6...45e0d8`,authority NONE
+- Cause:later prewrite claimed zero alternate registrations and later audit omitted the complete tokenized pair
+- CENSURE snapshot/ledger-shard/main-ledger: `aeb9e458...72c28a` / `06270eb9...fb75d3` / `956be18c...757c4`
+- Preserve all four registration/audit files;no descendant from the later pair
+- Current implementation/training/GPU/Slumbot authority:none
+- Historical next at that boundary:token-bound implementation plus independent implementation audit/zero-output tests;superseded by the structural failure above
+- Historical authoritative registration details follow.
+- Boundary:LG001 unified behavior-window preregistration/audit PASS91/91
+- LG001 prereg/audit: `2d0a306a...be4125` / `92dd02a8...e666e9`
+- Token: `5ee42cb09c534cb3a294be701e94047f`
+- Source:H11 `96a00703...ca13`,iter35051/576,021,901,optimizer and five pool states exact
+- Stage A:same-start uniform-control5M vs diversity-treatment5M;both mandatory quick5k
+- Only arm difference:conditional weights over same frozen pool;self-play remains0.20
+- Stage B:treatment to20M only after >=20bb/100 dual comparison and aggression gate
+- Historical next at registration:opt-in V5 trainer implementation plus independent implementation audit/zero-output tests;superseded by the structural failure above
+- Training/GPU/Slumbot authority:none;stop before training
+- Snapshot/ledger: `ce263959...585c47` / `e921c798...390040`
+- Counters:no-progress behavior0;control-plane/nonbehavioral9
+- Route families:all four open;route_exhausted=false/unjudged;L0
+- Historical provenance below is non-current unless restated above.
+- Historical boundary:RR033 canonical result changed after first complete snapshot;both contents CENSUREd
+- First/current result: `67b7048e...a8e89` reported34/34 / `58e31f56...4a303` reported55/55
+- Collision CENSURE: `11a155c5...b94599`;both selections and route judgments authority NONE
+- Singleton adoption: `23bfa84b...b2e0d`;late duplicate `d6eb1462...38a41` provenance only
+- Ledger after singleton correction: `3a0a4589...00a637`
+- Censure snapshot/ledger shard: `31d2aa8c...45176` / `d0295f19...97c5d`
+- Preserve current result file;no restore,repair,rerun,result audit,correction or alternate path
+- Reported LG001 agreement is provenance only and supplies no entry authority
+- Next:fresh unified LG001 registration from active goal plus direct pre-RR033 evidence;no new route review
+- Freeze next:source lineage,implementation,league members/weights,training bounds,checkpoint eligibility,mandatory quick5k
+- External trigger:complete greedy-direct quick5k for every eligible checkpoint and by20M training hands;directional only
+- Route families:all four scientifically open;route_exhausted=false/unjudged
+- Current execution:behavior/implementation/training/checkpoint/GPU/Slumbot/official hands all0;Python0
+- Historical counters:no-progress behavior0;control-plane/nonbehavioral8
+- Chain A prereg/audit: `8529e95c...a7201` / `67129cb8...2557e`,authority NONE
+- Chain B prereg/audit: `730d61cb...777f9` / `422687a7...8fb1`,authority NONE
+- Collision CENSURE/release: `2811ac11...e97ad5` / `0072ef8c...3bb1a0`
+- Correction accounting:single clean attempt consumed;no TNQ002/TNQ003 correction
+- Snapshot/ledger shard: `fadf810a...ecad6f` / `dc4c74c6...8e0732`
+- Clean prereg/audit: `8529e95c...a7201` / `67129cb8...2557e`
+- Clean nonce/global mutex: `d242df10...21f0` / `Local\CardPilot_TNQ002_CLEAN_REGISTRATION_SINGLETON`
+- Snapshot/ledger shard: `1258eef3...33cd3` / `92a5da0c...14e7a`
+- Science:authoritative24 reached infosets,exact V5.5 nine slots,hidden-resampled two-batch MC32
+- Historical TNQ execution:implementation/probes/qualification/rows/rollouts all0;Python0
+- Latest valid official:20,400 hands,-140.151bb/100,CI95 lower -178.386,L0
+- Last screen:H11 iter35051/576,021,901 `96a00703...ca13`,quick5k -146.1726bb/100
+- Historical rank1/blocker:exact-V5.5 trajectory-native teacher / runtime qualification
+- Historical counters:no-progress behavior0;control-plane/nonbehavioral6;all four families unexhausted
+- Late TNQ002 prereg/audit: `a217b685...24e3` / `cb8eeef...d67c`,provenance only
+- Late-descendant CENSURE: `d81b5af4...c79a`;old nonce and all old paths burned
+- Correction allowance:unconsumed;one later clean TNQ002 registration/audit only
+- Required later freshness:new nonce and entirely fresh registration/audit/lock/metadata/release/implementation/output paths
+- Automatic successor:none;implementation/probe/qualification/scientific rows all0
+- Boundary: TNQ001 registration path collision FAIL_CLOSED;no scientific rows
+- TNQ001 first/final prereg: `86cb798d...bf8ab0` / `6fdbb1ca...16df30`
+- TNQ001 final audit: `d47da445...280a07`,reported PASS192/192,authority NONE
+- TNQ001 collision CENSURE: `dbdf87a4...ed46fd`
+- Correction remaining:exactly one fresh TNQ002 registration/audit later only
+- Same-turn TNQ002 lock CENSURE: `00317b51...13c576`;lock/metadata authority NONE
+- Unauthorized holder PID45836 released by `127d5b3e...fbc91`;late descendants cannot gain authority
+- TN001 prereg/audit: `4be3af34...b20dc0` / `2ca9e69f...47963`
+- Late duplicate TN001: `3dae3b32...1c50dd1` / `a0f2b992...d59423`,authority NONE
+- Late duplicate CENSURE: `5ce8f0a2...1dd43b`;no descendant
+- Witnesses:24 =3 depths x4 streets x2 actors;exact native9-slot replay
+- Teacher design:two independent MC32 batches/action with per-rollout hidden resampling
+- Quality/resource:fail closed;300s,512MiB,64MiB;zero projection/drop/collision/renormalization/illegal mass
+- RR032 prereg/audit: `c424b719...37ade3` / `be9fb211...45952b`,PASS50/50 registration-only
+- CENSURE: `1e7395b5...d2ceed`
+- Result/audit: `40e9ba39...aab2dd` / `cad1e8de...c1f390`,authority NONE
+- C1 prereg/audit: `e0c65b91...525f32` / `e95399d3...6111ac`,PASS152/152
+- C1 result/audit: `3a2ca22d...3fb7` / `477247ca...3f63`,FAIL_CLOSED49/50
+- Failure: same-nine live audit gate requires result absent after result exists
+- RR032-C1 result/rank1/route judgment authority: NONE
+- WS001 prereg/audit: `97a25341...892677` / `9930d3f6...b0e31c`,PASS80/80
+- Duplicate review prereg/audit: `298fa276...b12702` / `27f87be7...aaf2ff`,authority NONE
+- Duplicate CENSURE: `0fd53f71...9ced5d`;no result-chain authority
+- WS001 result: `eedcfb2f...8dc2c9`,embedded10/10 PASS
+- Rehash:33/33 references,30 unique paths,3/3 protected inputs
+- Selection:fresh `PHASE_FA_TN001...`;all four families open;route exhausted false
+- Scientific/pilot/model/training/Slumbot/official rows: all0
+- Route exhausted: `false` / judged
+- Strength: `L0`;latest valid official20,400 hands,-140.151 bb/100,CI95 lower -178.386
+
+Next later boundary only:register and independently audit one simplified reporting-only
+meta-route review choosing either a fresh league identity on actual `train_v5.py` or a
+different hypothesis family,then stop before its result.
+
+Forbidden now:LG001 Stage-A training/GPU/Slumbot before implementation audit;
+executing,repairing or deriving from the authority-NONE LG001 implementation files;
+an in-place LG001 correction identity without meta-route review;
+using either RR033 result as authority;RR033 restore/repair/rerun/result audit/correction;
+C1 repair,rerun,reclassification or use;another correction identity;
+repairing or using the collided RR032 rank1 chain;reuse of
+v1-v10,006/007 or concurrent R1 content;TNQ001 qualification,asset,
+training,protected CFR/Path-1 mutation,GPU,evaluator,Slumbot,checkpoint or official hands.

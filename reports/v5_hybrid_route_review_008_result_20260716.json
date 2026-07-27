@@ -1,0 +1,124 @@
+{
+  "schema_version": "v5.hybrid.route_review.result.v8.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-008",
+  "checked_at": "2026-07-16T19:09:00Z",
+  "overall": "PASS_ROUTE_REVIEW",
+  "registration_sha256": "1208b8cde66207871a03b3a23acf8cec6efb44caf786e15565c48f58d5fa147e",
+  "trigger_verified": true,
+  "evidence_matrix": {
+    "H11": {
+      "terminal": "H11_FAIL_PROTOCOL_ABORT_FIRST60_THROUGHPUT",
+      "judgment_sha256": "88f86867183a36abbf34fedc6eb7556b2fd81e33c1fd47f79e44031ae41fa316",
+      "terminal_audit_sha256": "fb6217793ea703eb7521dcc6b7d9bdf2d4980c5895c578867e5208aa117c0122",
+      "terminal_audit": "PASS_COMPLETE_H11_TERMINAL_FAIL_PROTOCOL_ABORT",
+      "control_endpoint_frozen": true,
+      "control_endpoint_hands": 576021901,
+      "control_checkpoint_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+      "treatment_last_iteration": 33895,
+      "treatment_last_hands": 557014309,
+      "treatment_endpoint_frozen": false,
+      "treatment_first60_hps": 1366.4866033762237,
+      "control_first60_hps": 1971.3414690797654,
+      "first60_ratio": 0.6931760046696062,
+      "first60_minimum": 0.85,
+      "method_effect_evidence": "NONE",
+      "resume_or_reclassification": "FORBIDDEN"
+    },
+    "throughput_diagnosis": {
+      "artifact_sha256": "8e92b23f9d2984b1cbc2f83bf797f1a5962476e558064ebcda2c3b4d5261c6bd",
+      "registered_fail_valid": true,
+      "paired_instant_hps_ratio_mean": 0.6925492527238644,
+      "ratio_without_catchup_epochs": 0.6923162158841403,
+      "catchup_minibatch_increase_fraction": 0.10643821391588782,
+      "full_hps_decrease_fraction": 0.3068239953303938,
+      "isolated_loss_time_ratio_mse_over_smoothl1": 0.974035219953,
+      "smooth_l1_causal_30pct_penalty_established": false,
+      "cross_day_resource_matching_established": false
+    },
+    "control_plane": {
+      "full_process_provenance_and_zero_observer": "PASS_DURING_H11",
+      "endpoint_health_producer_under_strict_rearm": "DEFECT_RECOVERED_REPORTING_ONLY_NOT_YET_FIXED_CANONICALLY",
+      "dependent_watcher_start_order": "DEFECT_STALE_STATUS_RACE_NOT_YET_FIXED_CANONICALLY",
+      "h12_launch_ready": false
+    },
+    "external_state": {
+      "cal_ext_001_checkpoint_hands": 556011085,
+      "cal_ext_001_hands": 5000,
+      "cal_ext_001_bb100": -207.1804,
+      "cal_ext_001_ci95": [-297.6644, -116.6964],
+      "new_clean_source_hands": 576021901,
+      "current_debt_hands": 20010816,
+      "target_25m_due_now": false,
+      "hard_50m_due_now": false,
+      "strength": "L0"
+    },
+    "Path1": {
+      "frozen_complete_qa_pass_boards": 204,
+      "target_boards": 600,
+      "coordinator_pid": 37656,
+      "workers": 6,
+      "priority": "BelowNormal",
+      "v55_training_eligible": false,
+      "transition_authority": "UNCHANGED_DIAGNOSTIC_ONLY_NO_TOUCH"
+    },
+    "alternative_readiness": {
+      "opponent_pool": "H4_TERMINAL_INCONCLUSIVE_NO_CANDIDATE",
+      "cfr_distillation": "ADAPTER_V2_V3_FAIL_CLOSED_PATH1_INELIGIBLE",
+      "play_time_resolving": "H5_PREREQUISITES_INCOMPLETE",
+      "action_specific_tuning": "FORBIDDEN_NO_VALIDATED_COUNTERFACTUAL_REGRET"
+    }
+  },
+  "decision": {
+    "selected_next": "H12_RESOURCE_MATCHED_ROBUST_VALUE_HEAD_CATCHUP_AFTER_PERF_CAL_AND_CONTROL_PLANE_REPAIR",
+    "route_exhausted": false,
+    "source": {
+      "run_id": "v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715",
+      "checkpoint_path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715/h11_control_endpoint.pt",
+      "checkpoint_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+      "iteration": 35051,
+      "hands": 576021901,
+      "role": "CLEAN_MAIN_LINE_SOURCE_NOT_STRENGTH_CANDIDATE"
+    },
+    "single_variable": {
+      "name": "catchup_value_loss",
+      "control": "MSE",
+      "treatment": "SmoothL1 beta=1.0 raw critic-v1 bb unit",
+      "standard_ppo_critic_loss": "MSE_UNCHANGED"
+    },
+    "scientific_lock": [
+      "Use fresh same-start run directories and exact H11 control endpoint for both fixed20M arms.",
+      "Keep actor,trunk,standard PPO,optimizer,target-KL0.03,catch-up policy,seeds and every H11 scientific gate unchanged.",
+      "Retain first60 and full-window throughput ratio minimum0.85;no override,extension,second seed or later endpoint.",
+      "H11 treatment partial and all H9/H10 partials are forbidden.",
+      "No endpoint evaluation,mirror or official hands during active H12 arms."
+    ],
+    "mandatory_prelaunch_gate": [
+      "Immutable reporting-only PERF-CAL must use the same frozen source/model/batch work and pass SmoothL1/MSE throughput ratio>=0.95.",
+      "A common MSE system baseline immediately before each arm must match at ratio>=0.95 or the arm launch fails closed without training.",
+      "Canonical strict rearm must include the exact endpoint health producer.",
+      "Watcher rearm must be dependency ordered: health/protocol then endpoint,then downstream completion/launch.",
+      "Offline implementation/audit,immutable H12 preregistration/design lock,live preflight and canonical rearm must all PASS.",
+      "Existing Path-1 coordinator37656 and six BelowNormal workers remain untouched and off GPU."
+    ],
+    "rationale": "H11 correctly failed its throughput gate but produced no treatment endpoint and no method-effect estimate. Exact paired rows show the approximately0.69 ratio even when no catch-up epoch ran, while isolated loss forward/backward measured approximately0.974 MSE-over-SmoothL1 time ratio; this does not causally assign the 30% end-to-end loss to SmoothL1. Other hybrid branches remain less ready or training-ineligible. The smallest supported continuation is one new resource-matched H12 from the clean H11 control endpoint after the two observed control-plane defects and performance comparability are fixed prospectively."
+  },
+  "external_debt_transition": {
+    "current_debt_hands": 20010816,
+    "h12_expected_endpoint_hands": 596021901,
+    "expected_post_h12_debt_hands": 40010816,
+    "cal_ext_002_required_before_h13": true,
+    "h12_pass_quick5k_may_satisfy": true
+  },
+  "candidate_dispositions": {
+    "h11_resume_or_partial_reuse": "FORBIDDEN",
+    "declare_smoothl1_method_fail": "REJECTED_NO_METHOD_EFFECT_ESTIMATE",
+    "opponent_pool_now": "DEFERRED_NO_FROZEN_CANDIDATE",
+    "path1_ingestion_now": "DEFERRED_INCOMPLETE_AND_INELIGIBLE",
+    "play_time_resolving_now": "DEFERRED_PREREQUISITES_INCOMPLETE",
+    "route_exhaustion": "FALSE_UNTESTED_RESOURCE_MATCHED_ROBUST_LOSS_AND_OTHER_HYBRID_OPTIONS_REMAIN"
+  },
+  "route_exhausted": false,
+  "behavior_launch_authorized": "ONLY_AFTER_H12_PERF_CAL_CONTROL_PLANE_IMPLEMENTATION_PREREGISTRATION_DESIGN_LOCK_PREFLIGHT_AND_CANONICAL_REARM_PASS",
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

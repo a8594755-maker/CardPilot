@@ -1,0 +1,225 @@
+{
+  "schema_version": "v5.hybrid.h2.preregistration.v1",
+  "experiment_id": "H2",
+  "title": "Bounded-K all-showdown critic targets",
+  "registered_at": "2026-07-13T05:00:00+00:00",
+  "status": "REGISTERED_NO_LAUNCH",
+  "immutable": true,
+  "route": "HYBRID",
+  "question": "Does applying deterministic K=200 runout-averaged line-value targets to every eligible non-fold showdown critic row reduce target variance and improve or preserve the learned critic without policy, throughput, entropy, or mirrored-play regression?",
+  "authority": {
+    "source": "standing V5 campaign authorization recorded by event v5-user-standing-l5-campaign-authorization-20260713",
+    "implementation_and_preflight": "AUTHORIZED_AUTONOMOUSLY",
+    "arm_launch": "BLOCKED_UNTIL_PREREG_AUDIT_DESIGN_LOCK_PREFLIGHT_AND_CANONICAL_REARM_PASS",
+    "official_slumbot_hands": 0,
+    "official_slumbot": "FORBIDDEN_IN_H2",
+    "strength_claim": "FORBIDDEN"
+  },
+  "terminal_exclusions": {
+    "EXP-003": "TERMINAL_INCONCLUSIVE_DO_NOT_REOPEN",
+    "EXP005-C": "TERMINAL_FAIL_PROTOCOL_ABORT_DO_NOT_REOPEN",
+    "EXP-W1": "TERMINAL_DO_NOT_REOPEN",
+    "H1": "TERMINAL_FAIL_DO_NOT_EXTEND_OR_RECLASSIFY"
+  },
+  "source": {
+    "selection_rule": "H1 FAIL selects the exact preregistered critic_v1 rollback checkpoint; no H1 endpoint may be substituted",
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_from_zero\\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\\v5_exp005_cutover_gate31400_checkpoint.pt",
+    "sha256": "bcbb46bd01d62fcdea602269b7047323315d4e9bbcf447ea0323e289fde11a8e",
+    "iteration": 31400,
+    "hands": 515989661,
+    "env_version": "v55",
+    "obs_version": "v55",
+    "action_space_version": "9slot_v5",
+    "starting_stack_bb": 200,
+    "critic_contract": "critic_v1",
+    "value_coef": 0.5,
+    "h1_completion_audit": {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h1_completion_audit_v2_20260713.json",
+      "sha256": "d00c482b63817e251707a20947d44901754b90b3831e8e8c9584119278560f8b",
+      "overall": "PASS_COMPLETE_H1_TERMINAL_FAIL"
+    }
+  },
+  "single_variable": {
+    "name": "showdown_ev_value_target_scope",
+    "control": "existing sampled critic returns plus existing all-in-before-river reward EV",
+    "treatment": "replace critic returns only on eligible non-fold showdown rows with exact-or-K200 conditional line-value targets",
+    "one_behavior_change": true,
+    "actor_reward_unchanged": true,
+    "actor_gae_advantage_unchanged": true,
+    "policy_loss_unchanged": true,
+    "architecture_unchanged": true,
+    "optimizer_and_value_coef_unchanged": true,
+    "deal_stream_and_opponent_assignment_unchanged": true,
+    "priors_unchanged": "preflop0.01/postflop0.02",
+    "exp002_retained": true
+  },
+  "treatment_contract": {
+    "eligible_hand": "terminal non-fold hand with both hole cards revealed",
+    "eligible_rows": "each trainable decision row on an eligible hand whose row board has fewer than five cards",
+    "estimand": "terminal net line profit in existing BB units conditional on revealed holes, row board, and final committed-chip vector",
+    "counterfactual_action_ev": false,
+    "runouts": "exact enumeration when unique completions <=200; otherwise 200 deterministic unique completions",
+    "max_runouts": 200,
+    "target_seed": 2026071401,
+    "sampling_key": "fixed deal identity plus row board; common unique runouts are reused across seats and repeated same-board decisions within the hand",
+    "evaluator": "vectorized exact seven-card rank evaluator validated against treys over 2000 random hands",
+    "application": "critic return field only",
+    "forbidden_interpretation": "does not estimate unchosen action EV and cannot authorize action-specific tuning"
+  },
+  "arms": {
+    "common": {
+      "same_start": "exact source checkpoint above",
+      "actual_hands_per_arm": 20000000,
+      "target_endpoint_hands": 535989661,
+      "maximum_overshoot_hands": 50000,
+      "fixed_order": ["control", "treatment"],
+      "seed": 20260703,
+      "worker_seed_base": 73000,
+      "fixed_training_deal_stream": true,
+      "opponent_assignment": "per-iteration",
+      "rollout_mode": "multi",
+      "rollout_envs_per_worker": 16,
+      "workers": 22,
+      "hands_per_iteration": 16384,
+      "ppo_epochs": 4,
+      "mini_batch_size": 1024,
+      "lr": 0.0003,
+      "gamma": 0.999,
+      "entropy_coef": 0.05,
+      "critic_contract": "critic_v1",
+      "value_coef": 0.5,
+      "preflop_prior": 0.01,
+      "postflop_prior": 0.02,
+      "allin_runout_ev": true,
+      "allin_runout_ev_max_runouts": 200,
+      "device": "cuda"
+    },
+    "control": {
+      "run_id": "v5_hybrid_h2_control_allinonly_same31400_20m_r1_20260713",
+      "showdown_ev_value_targets": false
+    },
+    "treatment": {
+      "run_id": "v5_hybrid_h2_treatment_showdownk200_same31400_20m_r1_20260713",
+      "showdown_ev_value_targets": true,
+      "showdown_ev_value_target_max_runouts": 200,
+      "showdown_ev_value_target_seed": 2026071401
+    }
+  },
+  "frozen_prerequisites": {
+    "H2-VAR-001": {
+      "training_use": "FORBIDDEN_HOLDOUT_ONLY",
+      "summary_path": "C:\\Users\\a8594\\CardPilot\\reports\\h2_var_001_20260713\\summary.json",
+      "summary_sha256": "182195700a073f58becf66244f45c74a586c8ee8b3cc7cb07b39e158c9d64598",
+      "audit_path": "C:\\Users\\a8594\\CardPilot\\reports\\h2_var_001_20260713\\audit.json",
+      "audit_sha256": "39f3fdc13d80d4565399066479906e08a3bd6ed9ef3dde587da19c132944a2fa",
+      "audit_status": "PASS_IMMUTABLE_H2_VAR_001",
+      "common_deal_pairs": 10000,
+      "replicate_target_seeds": 32,
+      "bootstrap_repetitions": 10000,
+      "bootstrap_seed": 2026071402,
+      "variance_reduction_point": 0.995886760253629,
+      "variance_reduction_ci95_lower": 0.9956187755436373,
+      "mean_bias_abs_point_effective_stack_fraction": 0.00008504738244236636,
+      "mean_bias_abs_ci95_upper_effective_stack_fraction": 0.000491576534609282
+    },
+    "implementation_audit": {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h2_implementation_audit_20260713.json",
+      "sha256": "63ade62f208f707fe8a81f86f613e8459bac7c15d04de56493b6e9ee870bccc5",
+      "overall": "PASS_IMPLEMENTATION_PREREG_READY",
+      "pretraining_actor_logits_max_abs_delta": 0.0,
+      "engineering_micro_hps_ratio": 0.9417748505678677
+    },
+    "mirror_power_review": {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h2_mirror_power_review_20260713.json",
+      "sha256": "697458ac8ab2814a948eb8973f6c5d2093f902a6d52d04cf2c5694cee7b20e92",
+      "decision": "AMEND_FINAL_PREREGISTRATION_TO_40000_COMMON_DEAL_PAIRS"
+    }
+  },
+  "code_bindings": {
+    "scripts/alpha_holdem/train_v5.py": "fda3b0c3d7952a46ea39e39c059e2a5a9e701ccae4a1a74377f3073546546569",
+    "scripts/alpha_holdem/train_mp3_hybrid_h1.py": "92c69588819389e2382c8aa113c52cee48a4cc22a259b48b76405856a5606b10",
+    "scripts/alpha_holdem/v5_hybrid_h2_targets.py": "2a99fc3ebc90afcdcb4501d7c6c067c2c112a34c0e023204bd75274a88b70d50",
+    "scripts/alpha_holdem/v5_h2_variance_panel.py": "bd5f38d09717d1ce62ed27f1dd8b72dc7431e5bc83aa193d68f58ea5d929a665"
+  },
+  "registered_measurements": {
+    "offline_variance_and_bias": {
+      "fixed_bundle": "H2-VAR-001 above",
+      "variance_reduction_point_min": 0.30,
+      "variance_reduction_ci95_lower_min": 0.20,
+      "mean_bias_abs_point_max_effective_stack_fraction": 0.01,
+      "mean_bias_abs_ci95_upper_max_effective_stack_fraction": 0.02,
+      "already_frozen_prerequisite": true
+    },
+    "endpoint_critic_mse": {
+      "holdout": "reports/h1_cal_001_attempt2_20260712, FORBIDDEN_HOLDOUT_ONLY",
+      "comparison": "treatment relative degradation versus control on identical rows",
+      "cluster": "whole deal_id",
+      "bootstrap_repetitions": 10000,
+      "bootstrap_seed": 2026071405,
+      "relative_degradation_point_max": 0.05,
+      "relative_degradation_ci95_upper_max": 0.10
+    },
+    "internal_mirror": {
+      "common_deal_pairs": 40000,
+      "hands": 80000,
+      "fixed_panel": "exact gate31400 active loss-kbest K5 snapshot identities in deterministic round-robin",
+      "policy_mode": "greedy_argmax_both_sides",
+      "seat_order": [0, 1],
+      "starting_stack_bb": 200,
+      "seed": 2026071403,
+      "cluster": "whole common deal pair",
+      "bootstrap_repetitions": 10000,
+      "bootstrap_seed": 2026071403,
+      "metric": "treatment minus control bb/100",
+      "noninferiority_ci95_lower_bb100": -20.0,
+      "adaptive_extension_allowed": false,
+      "second_seed_allowed": false,
+      "later_checkpoint_substitution_allowed": false
+    },
+    "throughput": {
+      "metric": "actual hands divided by full wall-clock between accepted metric rows",
+      "warmup_rows_excluded": 1,
+      "first_rows": 60,
+      "first60_treatment_control_ratio_min": 0.85,
+      "full_window_treatment_control_ratio_min": 0.85
+    },
+    "entropy": {
+      "median_last200_min": 0.3,
+      "treatment_minus_control_noninferiority_min": -0.1,
+      "protocol_abort": "treatment entropy below0.3 for20 consecutive accepted rows"
+    }
+  },
+  "identity_and_health": {
+    "required": [
+      "exact source and endpoint iteration/hands/checkpoint SHA256",
+      "control/treatment configs equal except registered H2 treatment fields and identity/output paths",
+      "complete per-iteration opponent-assignment provenance",
+      "finite losses and gradients",
+      "empty trainer stderr",
+      "all registered rows and evidence bundles present",
+      "actor reward and GAE advantage code-path identity",
+      "no H2 holdout used for training"
+    ]
+  },
+  "terminal_rule": {
+    "protocol_abort": "any identity/config/source mismatch, non-PASS frozen prerequisite, nonzero pretraining actor-logit delta, nonfinite loss/gradient, first60 h/s ratio<0.85, entropy<0.3 for20 rows, or missing provenance",
+    "pass": "every offline variance/bias, endpoint-MSE, 40k-pair mirror, first60/full throughput, entropy, health, provenance and identity gate passes",
+    "fail": "a complete valid fixed window has variance CI upper<0.20, mean-bias guard failure, endpoint-MSE guard failure, mirror CI upper<-20, full-window h/s<0.85, or terminal entropy failure",
+    "inconclusive": "a complete valid fixed sample is neither PASS nor FAIL under the frozen rules",
+    "no_extension": true,
+    "no_second_seed": true,
+    "no_later_endpoint": true,
+    "no_posthoc_threshold_change": true
+  },
+  "rollback_and_next": {
+    "on_pass": "adopt H2 treatment endpoint only for separately preregistered downstream H3 preparation",
+    "on_fail_or_inconclusive": "do not adopt H2; restore exact gate31400 critic_v1 source/control contract",
+    "route_review": "H1 is one terminal FAIL/no-progress window; a terminal H2 FAIL/no-progress is the second consecutive and triggers an autonomous registered route review before the next behavior window",
+    "official_slumbot": "zero H2 hands; no V4/L5/L6 inference"
+  },
+  "ledger_pre_registration_binding": {
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_experiment_ledger.md",
+    "sha256_before_h2_registration_event": "d811e4cbfcaebb735f1600c69b1e5b6ab5170deabe4dfa47aca37b92d3c79afe",
+    "length_bytes_before_h2_registration_event": 641785
+  }
+}

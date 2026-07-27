@@ -1,0 +1,64 @@
+{
+  "schema_version": "v5.pcv006.preregistration.v1",
+  "design_id": "PCV006",
+  "registered_at": "2026-07-19T17:11:00Z",
+  "status": "REGISTERED_REPORTING_ONLY_NO_TRAINER",
+  "route_review": {
+    "result_sha256": "de57ef511688dc7cc2bcdb7d5a6c224429923ae45585ec8082cfd4d6baf30876",
+    "audit_sha256": "c2d5c5e967108f3be2de7a6791fb2f3420a893b61be0037b1016c939c32f808f",
+    "selected_next": "PCV006_TRAINERLESS_REAL_MODEL_ACTOR_STATE_DIFFERENCE_LOCALIZATION"
+  },
+  "objective": "Reproduce H17's failed real-model actor-scope identity pair and enumerate every differing non-value model tensor and optimizer-state field without changing trainer behavior or writing a checkpoint.",
+  "source": {
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_endpoint.pt",
+    "sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "iteration": 35051,
+    "hands": 576021901
+  },
+  "frozen_workload": {
+    "transition_generator": "scripts/alpha_holdem/v5_hybrid_h17_perf_cal.py::deterministic_transitions",
+    "update_function": "scripts/alpha_holdem/v5_hybrid_h17_perf_cal.py::one_full_update",
+    "rows": 4096,
+    "mini_batch_size": 1024,
+    "ppo_epochs": 4,
+    "target_kl": 1e-12,
+    "old_log_prob_offset": 10.0,
+    "transition_seed": 2026071980,
+    "identity_update_seed": 2026971980,
+    "modes": ["mse", "smooth_l1"],
+    "smooth_l1_beta": 1.0,
+    "device": "cuda"
+  },
+  "required_outputs": [
+    "exact H17 identity failure reproduction",
+    "all differing non-value model state names,dtypes,shapes,max-absolute deltas",
+    "all differing non-value optimizer state names,fields,dtypes,shapes,max-absolute deltas",
+    "parameter-versus-buffer classification",
+    "value-head difference confirmation",
+    "forced epoch1 KL stop plus three catch-up epochs confirmation"
+  ],
+  "gates": {
+    "source_identity": "PASS",
+    "h17_identity_failure_reproduced": true,
+    "all_non_value_differences_enumerated": true,
+    "all_numerics_finite": true,
+    "forced_trigger_shape": true,
+    "trainer_started": false,
+    "checkpoint_written": false,
+    "official_hands": 0
+  },
+  "interpretation": {
+    "pass": "LOCALIZATION_COMPLETE_SUPPORTS_SEPARATE_ROUTE_REVIEW_ONLY",
+    "fail": "FAIL_CLOSED_NO_CAUSAL_CORRECTION",
+    "behavior_or_method_inference": "FORBIDDEN",
+    "automatic_h18_launch": false
+  },
+  "resource_policy": {
+    "path1": "EXISTING_EXACT_JOB_UNTOUCHED",
+    "gpu": "ONE_SHORT_REPORTING_ONLY_PAIR_ALLOWED_AT_SAFE_NO_TRAINER_BOUNDARY",
+    "trainer": "FORBIDDEN",
+    "evaluator_mirror_slumbot": "FORBIDDEN"
+  },
+  "official_hands": 0,
+  "behavior_launch_authority": "NONE"
+}

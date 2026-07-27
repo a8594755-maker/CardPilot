@@ -21,7 +21,15 @@
  *     --workers 4
  */
 
-import { readFileSync, writeFileSync, readdirSync, existsSync, mkdirSync } from 'node:fs';
+import {
+  readFileSync,
+  writeFileSync,
+  appendFileSync,
+  readdirSync,
+  existsSync,
+  mkdirSync,
+} from 'node:fs';
+import { gunzipSync } from 'node:zlib';
 import { join, resolve } from 'node:path';
 import { fork, type ChildProcess } from 'node:child_process';
 import { cpus } from 'node:os';
@@ -55,7 +63,27 @@ interface TrainingSample {
   s: string;
 }
 
-interface GameState {
+interface V55CompactSample {
+  schema: 'cfr.v55.compact.v1';
+  boardId: number;
+  player: 0 | 1;
+  street: Street;
+  historyKey: string;
+  bucket: string;
+  holeCards: [number, number];
+  boardCards: number[];
+  state: GameState;
+  events: Path1HistoryEvent[];
+  legalMask: number[];
+  target: number[];
+  h: string;
+  s: string;
+}
+
+type OutputSample = TrainingSample | V55CompactSample;
+type OutputFormat = 'fast-v2' | 'v55-compact';
+
+export interface GameState {
   pot: number;
   stacks: [number, number];
   facingBet: number;
@@ -63,6 +91,14 @@ interface GameState {
   street: Street;
   toCall: number;
   isFirstAction: boolean;
+  raiseCount: number;
+}
+
+export interface Path1HistoryEvent {
+  street: Street;
+  player: 0 | 1;
+  actionType: 'CHECK' | 'CALL' | 'FOLD' | 'BET' | 'RAISE' | 'ALLIN';
+  additionalAmount: number | null;
 }
 
 interface ParsedInfoSetKey {
@@ -89,7 +125,12 @@ interface GenerateConfig {
   workers: number;
   riverSamplesPerTurn: number;
   minProbDivergence: number;
+  skipFlops: number;
   maxFlops: number;
+  selectionSeed: number;
+  outputFormat: OutputFormat;
+  outputSampleRate: number;
+  outputSampleRates: Record<Street, number>;
 }
 
 // ══════════════════════════════════════════════
@@ -121,13 +162,21 @@ export function parseInfoSetKey(key: string): ParsedInfoSetKey {
  * bet_0 → '1', bet_1 → '2', raise_0 → '1', raise_1 → '2' etc.
  * '/' = street separator
  */
-export function replayHistory(historyKey: string, config: TreeConfig): GameState {
+export function replayHistoryTrace(
+  historyKey: string,
+  config: TreeConfig,
+): {
+  state: GameState;
+  events: Path1HistoryEvent[];
+} {
   let pot = config.startingPot;
   let stacks: [number, number] = [config.effectiveStack, config.effectiveStack];
   let currentPlayer: 0 | 1 = 0; // OOP acts first
   let facingBet = 0;
   let street: Street = 'FLOP';
   let isFirstAction = true;
+  let raiseCount = 0;
+  const events: Path1HistoryEvent[] = [];
 
   for (const char of historyKey) {
     if (char === '/') {
@@ -136,6 +185,7 @@ export function replayHistory(historyKey: string, config: TreeConfig): GameState
       currentPlayer = 0; // OOP acts first each street
       facingBet = 0;
       isFirstAction = true;
+      raiseCount = 0;
       continue;
     }
 
@@ -144,6 +194,7 @@ export function replayHistory(historyKey: string, config: TreeConfig): GameState
 
     switch (char) {
       case 'x': // check
+        events.push({ street, player: p, actionType: 'CHECK', additionalAmount: null });
         currentPlayer = opp;
         isFirstAction = false;
         // facingBet stays 0 for checks
@@ -152,6 +203,7 @@ export function replayHistory(historyKey: string, config: TreeConfig): GameState
       case 'c': {
         // call
         const callAmt = Math.min(facingBet, stacks[p]);
+        events.push({ street, player: p, actionType: 'CALL', additionalAmount: callAmt });
         stacks = [stacks[0], stacks[1]] as [number, number];
         stacks[p] -= callAmt;
         pot += callAmt;
@@ -161,16 +213,20 @@ export function replayHistory(historyKey: string, config: TreeConfig): GameState
       }
 
       case 'f': // fold
+        events.push({ street, player: p, actionType: 'FOLD', additionalAmount: null });
         // Terminal — shouldn't appear in non-terminal histories
         break;
 
       case 'A': {
         // all-in
+        const isRaise = facingBet > 0;
         const allInAmt = stacks[p];
+        events.push({ street, player: p, actionType: 'ALLIN', additionalAmount: allInAmt });
         stacks = [stacks[0], stacks[1]] as [number, number];
         stacks[p] = 0;
         pot += allInAmt;
         facingBet = allInAmt;
+        if (isRaise) raiseCount++;
         currentPlayer = opp;
         isFirstAction = false;
         break;
@@ -185,7 +241,8 @@ export function replayHistory(historyKey: string, config: TreeConfig): GameState
         const fraction = betSizes[sizeIdx] ?? betSizes[betSizes.length - 1];
 
         let betAmount: number;
-        if (facingBet > 0) {
+        const isRaise = facingBet > 0;
+        if (isRaise) {
           // Raise
           betAmount = calcRaiseAmount(pot, facingBet, fraction, stacks[p]);
         } else {
@@ -193,10 +250,18 @@ export function replayHistory(historyKey: string, config: TreeConfig): GameState
           betAmount = calcBetAmount(pot, fraction, stacks[p]);
         }
 
+        events.push({
+          street,
+          player: p,
+          actionType: isRaise ? 'RAISE' : 'BET',
+          additionalAmount: betAmount,
+        });
+
         stacks = [stacks[0], stacks[1]] as [number, number];
         stacks[p] -= betAmount;
         pot += betAmount;
         facingBet = betAmount;
+        if (isRaise) raiseCount++;
         currentPlayer = opp;
         isFirstAction = false;
         break;
@@ -205,14 +270,22 @@ export function replayHistory(historyKey: string, config: TreeConfig): GameState
   }
 
   return {
-    pot,
-    stacks,
-    facingBet,
-    currentPlayer,
-    street,
-    toCall: facingBet,
-    isFirstAction,
+    state: {
+      pot,
+      stacks,
+      facingBet,
+      currentPlayer,
+      street,
+      toCall: facingBet,
+      isFirstAction,
+      raiseCount,
+    },
+    events,
   };
+}
+
+export function replayHistory(historyKey: string, config: TreeConfig): GameState {
+  return replayHistoryTrace(historyKey, config).state;
 }
 
 function nextStreet(street: Street): Street {
@@ -251,13 +324,27 @@ export function inferActionsFromHistory(historyKey: string, config: TreeConfig):
   if (state.facingBet > 0) {
     // Facing a bet/raise: fold, call, (optionally raises)
     const actions: string[] = ['fold', 'call'];
-    // In pipeline_srp, raiseCapPerStreet=0, so no raises after a bet
-    if (config.raiseCapPerStreet > 0) {
+    const opponentStack = state.stacks[1 - state.currentPlayer];
+    if (
+      opponentStack > 0 &&
+      state.raiseCount < config.raiseCapPerStreet &&
+      state.stacks[state.currentPlayer] > state.facingBet
+    ) {
       const betSizes = getBetSizesForStreet(config, state.street);
       for (let i = 0; i < betSizes.length; i++) {
+        const amount = calcRaiseAmount(
+          state.pot,
+          state.facingBet,
+          betSizes[i],
+          state.stacks[state.currentPlayer],
+        );
+        if (amount >= state.stacks[state.currentPlayer]) {
+          actions.push('allin');
+          break;
+        }
         actions.push(`raise_${i}`);
       }
-      actions.push('allin');
+      if (!actions.includes('allin')) actions.push('allin');
     }
     return actions;
   } else {
@@ -278,6 +365,56 @@ export function inferActionsFromHistory(historyKey: string, config: TreeConfig):
     }
     return actions;
   }
+}
+
+export const V55_RAISE_FRACTIONS = [0.33, 0.5, 0.67, 0.75, 1.0, 1.5] as const;
+
+function closestV55RaiseSlot(potFraction: number): number {
+  let best = 0;
+  let distance = Number.POSITIVE_INFINITY;
+  for (let i = 0; i < V55_RAISE_FRACTIONS.length; i++) {
+    const candidate = Math.abs(potFraction - V55_RAISE_FRACTIONS[i]);
+    if (candidate < distance) {
+      best = i;
+      distance = candidate;
+    }
+  }
+  return best + 2;
+}
+
+/**
+ * Map one exact CFR node strategy to AlphaHoldem v55's 9 action slots.
+ * This preserves probability mass but does not by itself prove that a separately
+ * reconstructed v55 state has the same legal mask; that is an H3 bridge gate.
+ */
+export function mapCfrProbsToV55Actions(
+  historyKey: string,
+  actions: string[],
+  probs: number[],
+  config: TreeConfig,
+): number[] {
+  if (actions.length !== probs.length) throw new Error('CFR action/probability length mismatch');
+  const state = replayHistory(historyKey, config);
+  const target = Array<number>(9).fill(0);
+  const sizes = getBetSizesForStreet(config, state.street);
+  for (let i = 0; i < actions.length; i++) {
+    const action = actions[i];
+    const probability = probs[i] ?? 0;
+    if (action === 'fold') target[0] += probability;
+    else if (action === 'check' || action === 'call') target[1] += probability;
+    else if (action === 'allin') target[8] += probability;
+    else {
+      const match = action.match(/^(bet|raise)_(\d+)$/);
+      if (!match) throw new Error(`unsupported CFR action: ${action}`);
+      const size = sizes[Number.parseInt(match[2], 10)];
+      const amount =
+        match[1] === 'bet'
+          ? calcBetAmount(state.pot, size, state.stacks[state.currentPlayer])
+          : calcRaiseAmount(state.pot, state.facingBet, size, state.stacks[state.currentPlayer]);
+      target[closestV55RaiseSlot(amount / Math.max(state.pot, 1e-9))] += probability;
+    }
+  }
+  return target;
 }
 
 /**
@@ -761,6 +898,7 @@ export function buildBucketComboMap(
   ipRange: WeightedCombo[],
   bucketCount: number,
   riverSamplesPerTurn: number,
+  selectionSeed = 0,
 ): { oopMap: BucketComboMap; ipMap: BucketComboMap } {
   const deadCards = new Set<number>(flopCards);
 
@@ -817,7 +955,11 @@ export function buildBucketComboMap(
     }
 
     // Sample up to riverSamplesPerTurn river cards
-    const riverCards = sampleN(riverCandidates, riverSamplesPerTurn);
+    const riverCards = deterministicSampleN(
+      riverCandidates,
+      riverSamplesPerTurn,
+      `${selectionSeed}|river|${flopCards.join(',')}|${turnCard}`,
+    );
 
     for (const riverCard of riverCards) {
       const riverBoard = [...flopCards, turnCard, riverCard];
@@ -927,12 +1069,33 @@ function buildRiverBuckets(
   }
 }
 
-function sampleN<T>(arr: T[], n: number): T[] {
+function fnv1a32(value: string): number {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return hash >>> 0;
+}
+
+function mulberry32(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = (state + 0x6d2b79f5) | 0;
+    let value = Math.imul(state ^ (state >>> 15), 1 | state);
+    value = (value + Math.imul(value ^ (value >>> 7), 61 | value)) ^ value;
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Stable partial Fisher-Yates sampling, independent of worker count/order. */
+export function deterministicSampleN<T>(arr: T[], n: number, seedKey: string): T[] {
   if (arr.length <= n) return arr;
+  const random = mulberry32(fnv1a32(seedKey));
   // Fisher-Yates partial shuffle
   const copy = [...arr];
   for (let i = 0; i < n; i++) {
-    const j = i + Math.floor(Math.random() * (copy.length - i));
+    const j = i + Math.floor(random() * (copy.length - i));
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy.slice(0, n);
@@ -951,7 +1114,12 @@ export function processFlop(
   samplesPerBucket: number,
   riverSamplesPerTurn: number,
   minProbDivergence: number,
-): TrainingSample[] {
+  selectionSeed = 0,
+  outputFormat: OutputFormat = 'fast-v2',
+  outputSampleRate = 1,
+  outputSampleRates?: Record<Street, number>,
+  onBatch?: (samples: OutputSample[]) => void,
+): { samples: OutputSample[]; count: number } {
   const startTime = Date.now();
   const { flopCards, boardId, bucketCount } = meta;
 
@@ -962,13 +1130,35 @@ export function processFlop(
     ipRange,
     bucketCount,
     riverSamplesPerTurn,
+    selectionSeed,
   );
 
-  const samples: TrainingSample[] = [];
+  const samples: OutputSample[] = [];
+  let pending: OutputSample[] = [];
+  let sampleCount = 0;
+  const emit = (sample: OutputSample): void => {
+    sampleCount++;
+    if (!onBatch) {
+      samples.push(sample);
+      return;
+    }
+    pending.push(sample);
+    if (pending.length >= 50_000) {
+      onBatch(pending);
+      pending = [];
+    }
+  };
 
   // Step 2: Process each info-set
   for (const [key, probs] of infoSets) {
     const parsed = parseInfoSetKey(key);
+    const effectiveOutputSampleRate = outputSampleRates?.[parsed.street] ?? outputSampleRate;
+    if (
+      effectiveOutputSampleRate < 1 &&
+      fnv1a32(`${selectionSeed}|output|${key}`) / 4294967296 >= effectiveOutputSampleRate
+    ) {
+      continue;
+    }
 
     // Skip if probs are near-uniform (not interesting)
     if (isNearUniform(probs, minProbDivergence)) continue;
@@ -994,7 +1184,11 @@ export function processFlop(
     if (!combos || combos.length === 0) continue;
 
     // Sample N representative combos
-    const sampled = sampleN(combos, samplesPerBucket);
+    const sampled = deterministicSampleN(
+      combos,
+      samplesPerBucket,
+      `${selectionSeed}|combo|${boardId}|${key}`,
+    );
 
     for (const entry of sampled) {
       const holeCards = entry.combo;
@@ -1004,30 +1198,63 @@ export function processFlop(
       // Check for card conflicts
       if (boardCards.some((c) => c === holeCards[0] || c === holeCards[1])) continue;
 
-      // Encode features
-      const f = encodeCfrFeatures(
-        holeCards,
-        boardCards,
-        gameState,
-        parsed.player,
-        parsed.historyKey,
-      );
-
-      const sample: TrainingSample = {
-        f,
-        l,
-        h: `flop${String(boardId).padStart(4, '0')}_${parsed.street[0]}${parsed.player}_b${parsed.bucketStr}`,
-        s: parsed.street,
-      };
-      if (sz) sample.sz = sz;
-      samples.push(sample);
+      const sampleId =
+        `flop${String(boardId).padStart(4, '0')}_${parsed.street[0]}` +
+        `${parsed.player}_b${parsed.bucketStr}`;
+      if (outputFormat === 'v55-compact') {
+        const probabilitySum = probs.reduce((sum, value) => sum + value, 0);
+        if (!(probabilitySum > 0) || !Number.isFinite(probabilitySum)) continue;
+        const normalized = probs.map((value) => value / probabilitySum);
+        const target = mapCfrProbsToV55Actions(parsed.historyKey, actions, normalized, config);
+        const legalCounts = mapCfrProbsToV55Actions(
+          parsed.historyKey,
+          actions,
+          actions.map(() => 1),
+          config,
+        );
+        const trace = replayHistoryTrace(parsed.historyKey, config);
+        emit({
+          schema: 'cfr.v55.compact.v1',
+          boardId,
+          player: parsed.player,
+          street: parsed.street,
+          historyKey: parsed.historyKey,
+          bucket: parsed.bucketStr,
+          holeCards,
+          boardCards,
+          state: trace.state,
+          events: trace.events,
+          legalMask: legalCounts.map((value) => (value > 0 ? 1 : 0)),
+          target,
+          h: sampleId,
+          s: parsed.street,
+        });
+      } else {
+        // Encode features for the legacy fast-model trainer.
+        const f = encodeCfrFeatures(
+          holeCards,
+          boardCards,
+          gameState,
+          parsed.player,
+          parsed.historyKey,
+        );
+        const sample: TrainingSample = {
+          f,
+          l,
+          h: sampleId,
+          s: parsed.street,
+        };
+        if (sz) sample.sz = sz;
+        emit(sample);
+      }
     }
   }
+  if (onBatch && pending.length > 0) onBatch(pending);
 
   const elapsed = Date.now() - startTime;
-  console.log(`  Flop ${boardId}: ${samples.length} samples in ${(elapsed / 1000).toFixed(1)}s`);
+  console.log(`  Flop ${boardId}: ${sampleCount} samples in ${(elapsed / 1000).toFixed(1)}s`);
 
-  return samples;
+  return { samples, count: sampleCount };
 }
 
 interface ComboEntry {
@@ -1101,19 +1328,32 @@ function loadFlopMeta(metaPath: string): FlopMeta {
 
 function loadFlopInfoSets(jsonlPath: string): Map<string, number[]> {
   const map = new Map<string, number[]>();
-  const lines = readFileSync(jsonlPath, 'utf-8').split('\n');
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
+  // Supports gzipped (.jsonl.gz, 200bb) and plain (.jsonl, legacy) outputs.
+  // 200bb boards are ~1.5GB decompressed — too large for a single V8 string
+  // (ERR_STRING_TOO_LONG), so parse line-by-line over the Buffer and only
+  // stringify each (small) line.
+  const raw = readFileSync(jsonlPath);
+  const buf = jsonlPath.endsWith('.gz') ? gunzipSync(raw) : raw;
+  const n = buf.length;
+  let start = 0;
+  const parseLine = (s: number, e: number): void => {
+    if (e <= s) return;
+    const trimmed = buf.toString('utf-8', s, e).trim();
+    if (!trimmed) return;
     try {
       const entry = JSON.parse(trimmed);
-      if (entry.key && entry.probs) {
-        map.set(entry.key, entry.probs);
-      }
+      if (entry.key && entry.probs) map.set(entry.key, entry.probs);
     } catch {
       // skip malformed lines
     }
+  };
+  for (let i = 0; i < n; i++) {
+    if (buf[i] === 0x0a) {
+      parseLine(start, i);
+      start = i + 1;
+    }
   }
+  parseLine(start, n);
   return map;
 }
 
@@ -1124,8 +1364,10 @@ function discoverSolvedFlops(
   const result: Array<{ boardId: number; metaPath: string; jsonlPath: string }> = [];
 
   for (const metaFile of files) {
-    const jsonlFile = metaFile.replace('.meta.json', '.jsonl');
-    const jsonlPath = join(cfrDir, jsonlFile);
+    // Prefer gzipped output (.jsonl.gz, 200bb); fall back to plain .jsonl (legacy).
+    const gzPath = join(cfrDir, metaFile.replace('.meta.json', '.jsonl.gz'));
+    const plainPath = join(cfrDir, metaFile.replace('.meta.json', '.jsonl'));
+    const jsonlPath = existsSync(gzPath) ? gzPath : plainPath;
     if (!existsSync(jsonlPath)) continue;
 
     const metaPath = join(cfrDir, metaFile);
@@ -1142,9 +1384,53 @@ function discoverSolvedFlops(
   return result.sort((a, b) => a.boardId - b.boardId);
 }
 
-function writeSamples(outputPath: string, samples: TrainingSample[]): void {
-  const lines = samples.map((s) => JSON.stringify(s));
-  writeFileSync(outputPath, lines.join('\n') + '\n', 'utf-8');
+function validateSelectedFlopMetadata(
+  flops: Array<{ boardId: number; metaPath: string }>,
+  configName: TreeConfigName,
+): { sourceConfigs: string[]; sourceStacks: string[] } {
+  const sourceConfigs = new Set<string>();
+  const sourceStacks = new Set<string>();
+  const failures: string[] = [];
+
+  for (const flop of flops) {
+    let metadata: Record<string, unknown>;
+    try {
+      metadata = JSON.parse(readFileSync(flop.metaPath, 'utf-8')) as Record<string, unknown>;
+    } catch (error) {
+      failures.push(`board ${flop.boardId}: cannot parse ${flop.metaPath}: ${String(error)}`);
+      continue;
+    }
+    const sourceConfig = String(metadata.config ?? '');
+    const sourceStack = String(metadata.stack ?? '');
+    if (sourceConfig) sourceConfigs.add(sourceConfig);
+    if (sourceStack) sourceStacks.add(sourceStack);
+    if (sourceConfig && sourceConfig !== configName) {
+      failures.push(
+        `board ${flop.boardId}: metadata config ${sourceConfig} != ` +
+          `requested converter config ${configName}`,
+      );
+    }
+    if (metadata.boardId !== undefined && Number(metadata.boardId) !== flop.boardId) {
+      failures.push(`board ${flop.boardId}: metadata boardId=${String(metadata.boardId)}`);
+    }
+  }
+
+  if (failures.length > 0) {
+    throw new Error(
+      'CFR source metadata/config mismatch; refusing to reconstruct states:\n' +
+        failures.slice(0, 20).join('\n') +
+        (failures.length > 20 ? `\n... ${failures.length - 20} more` : ''),
+    );
+  }
+  return {
+    sourceConfigs: [...sourceConfigs].sort(),
+    sourceStacks: [...sourceStacks].sort(),
+  };
+}
+
+function appendSampleBatch(outputPath: string, samples: OutputSample[]): void {
+  const chunk = samples.map((sample) => JSON.stringify(sample)).join('\n') + '\n';
+  appendFileSync(outputPath, chunk, 'utf-8');
 }
 
 // ══════════════════════════════════════════════
@@ -1164,6 +1450,10 @@ interface WorkerConfig {
   minProbDivergence: number;
   outputDir: string;
   chartsPath: string;
+  selectionSeed: number;
+  outputFormat: OutputFormat;
+  outputSampleRate: number;
+  outputSampleRates: Record<Street, number>;
 }
 
 const IS_WORKER = process.argv.includes('--worker-mode');
@@ -1187,7 +1477,12 @@ if (IS_WORKER) {
       const meta = loadFlopMeta(task.metaPath);
       const infoSets = loadFlopInfoSets(task.jsonlPath);
 
-      const samples = processFlop(
+      const outputPath = join(
+        config.outputDir,
+        `flop_${String(task.boardId).padStart(4, '0')}.jsonl`,
+      );
+      writeFileSync(outputPath, '', 'utf-8');
+      const result = processFlop(
         meta,
         infoSets,
         treeConfig,
@@ -1196,15 +1491,14 @@ if (IS_WORKER) {
         config.samplesPerBucket,
         config.riverSamplesPerTurn,
         config.minProbDivergence,
+        config.selectionSeed,
+        config.outputFormat,
+        config.outputSampleRate,
+        config.outputSampleRates,
+        (batch) => appendSampleBatch(outputPath, batch),
       );
 
-      const outputPath = join(
-        config.outputDir,
-        `flop_${String(task.boardId).padStart(4, '0')}.jsonl`,
-      );
-      writeSamples(outputPath, samples);
-
-      process.send!({ boardId: task.boardId, samples: samples.length, ok: true });
+      process.send!({ boardId: task.boardId, samples: result.count, ok: true });
     } catch (err) {
       process.send!({
         boardId: task.boardId,
@@ -1229,7 +1523,24 @@ function parseArgs(): GenerateConfig {
   let workers = Math.max(1, cpus().length - 1);
   let riverSamplesPerTurn = 10;
   let minProbDivergence = 0.05;
+  let skipFlops = 0;
   let maxFlops = Infinity;
+  let selectionSeed = 0;
+  let outputFormat: OutputFormat = 'fast-v2';
+  let outputSampleRate = 1;
+  const outputSampleRates: Record<Street, number> = {
+    FLOP: 1,
+    TURN: 1,
+    RIVER: 1,
+  };
+
+  const parseOutputRate = (raw: string, flag: string): number => {
+    const rate = Number.parseFloat(raw);
+    if (!(rate > 0 && rate <= 1)) {
+      throw new Error(`invalid ${flag}: ${rate}`);
+    }
+    return rate;
+  };
 
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--cfr-dir' && argv[i + 1]) cfrDir = argv[++i];
@@ -1240,7 +1551,31 @@ function parseArgs(): GenerateConfig {
     if (argv[i] === '--workers' && argv[i + 1]) workers = parseInt(argv[++i], 10);
     if (argv[i] === '--river-samples' && argv[i + 1]) riverSamplesPerTurn = parseInt(argv[++i], 10);
     if (argv[i] === '--min-divergence' && argv[i + 1]) minProbDivergence = parseFloat(argv[++i]);
+    if (argv[i] === '--skip-flops' && argv[i + 1]) skipFlops = parseInt(argv[++i], 10);
     if (argv[i] === '--max-flops' && argv[i + 1]) maxFlops = parseInt(argv[++i], 10);
+    if (argv[i] === '--selection-seed' && argv[i + 1]) selectionSeed = parseInt(argv[++i], 10);
+    if (argv[i] === '--output-format' && argv[i + 1]) {
+      const value = argv[++i];
+      if (value !== 'fast-v2' && value !== 'v55-compact') {
+        throw new Error(`invalid --output-format: ${value}`);
+      }
+      outputFormat = value;
+    }
+    if (argv[i] === '--output-sample-rate' && argv[i + 1]) {
+      outputSampleRate = parseOutputRate(argv[++i], '--output-sample-rate');
+      outputSampleRates.FLOP = outputSampleRate;
+      outputSampleRates.TURN = outputSampleRate;
+      outputSampleRates.RIVER = outputSampleRate;
+    }
+    if (argv[i] === '--flop-output-sample-rate' && argv[i + 1]) {
+      outputSampleRates.FLOP = parseOutputRate(argv[++i], '--flop-output-sample-rate');
+    }
+    if (argv[i] === '--turn-output-sample-rate' && argv[i + 1]) {
+      outputSampleRates.TURN = parseOutputRate(argv[++i], '--turn-output-sample-rate');
+    }
+    if (argv[i] === '--river-output-sample-rate' && argv[i + 1]) {
+      outputSampleRates.RIVER = parseOutputRate(argv[++i], '--river-output-sample-rate');
+    }
   }
 
   if (!cfrDir) cfrDir = resolve(process.cwd(), 'data/cfr/pipeline_hu_srp_50bb');
@@ -1254,7 +1589,12 @@ function parseArgs(): GenerateConfig {
     workers,
     riverSamplesPerTurn,
     minProbDivergence,
+    skipFlops,
     maxFlops,
+    selectionSeed,
+    outputFormat,
+    outputSampleRate,
+    outputSampleRates,
   };
 }
 
@@ -1355,7 +1695,12 @@ async function runSingleThreaded(
     const meta = loadFlopMeta(task.metaPath);
     const infoSets = loadFlopInfoSets(task.jsonlPath);
 
-    const samples = processFlop(
+    const outputPath = join(
+      config.outputDir,
+      `flop_${String(task.boardId).padStart(4, '0')}.jsonl`,
+    );
+    writeFileSync(outputPath, '', 'utf-8');
+    const result = processFlop(
       meta,
       infoSets,
       treeConfig,
@@ -1364,15 +1709,14 @@ async function runSingleThreaded(
       config.samplesPerBucket,
       config.riverSamplesPerTurn,
       config.minProbDivergence,
+      config.selectionSeed,
+      config.outputFormat,
+      config.outputSampleRate,
+      config.outputSampleRates,
+      (batch) => appendSampleBatch(outputPath, batch),
     );
 
-    const outputPath = join(
-      config.outputDir,
-      `flop_${String(task.boardId).padStart(4, '0')}.jsonl`,
-    );
-    writeSamples(outputPath, samples);
-
-    totalSamples += samples.length;
+    totalSamples += result.count;
     processedFlops++;
   }
 
@@ -1392,6 +1736,14 @@ async function main() {
   console.log(`  River samples/turn: ${config.riverSamplesPerTurn}`);
   console.log(`  Min divergence: ${config.minProbDivergence}`);
   console.log(`  Workers:   ${config.workers}`);
+  console.log(`  Skip flops: ${config.skipFlops}`);
+  console.log(`  Selection seed: ${config.selectionSeed}`);
+  console.log(`  Output format: ${config.outputFormat}`);
+  console.log(`  Output sample rate: ${config.outputSampleRate}`);
+  console.log(
+    `  Output rates by street: flop=${config.outputSampleRates.FLOP} ` +
+      `turn=${config.outputSampleRates.TURN} river=${config.outputSampleRates.RIVER}`,
+  );
   console.log();
 
   // Discover solved flops
@@ -1400,12 +1752,30 @@ async function main() {
     console.error('No solved flops found in:', config.cfrDir);
     process.exit(1);
   }
-  if (config.maxFlops < flops.length) {
-    console.log(`Found ${flops.length} solved flops, limiting to ${config.maxFlops}`);
-    flops = flops.slice(0, config.maxFlops);
+  const discoveredFlopCount = flops.length;
+  if (config.skipFlops > 0 || config.maxFlops < flops.length) {
+    flops = flops.slice(
+      Math.max(0, config.skipFlops),
+      Number.isFinite(config.maxFlops)
+        ? Math.max(0, config.skipFlops) + config.maxFlops
+        : undefined,
+    );
+    console.log(
+      `Found ${discoveredFlopCount} solved flops, selecting ${flops.length} ` +
+        `after skipping ${config.skipFlops}`,
+    );
   } else {
     console.log(`Found ${flops.length} solved flops`);
   }
+  if (flops.length === 0) {
+    console.error('No solved flops remain after skip/limit selection');
+    process.exit(1);
+  }
+  const sourceMetadata = validateSelectedFlopMetadata(flops, config.configName);
+  console.log(
+    `  Source metadata: configs=${sourceMetadata.sourceConfigs.join(',') || 'unknown'} ` +
+      `stacks=${sourceMetadata.sourceStacks.join(',') || 'unknown'}`,
+  );
 
   // Create output directory
   mkdirSync(config.outputDir, { recursive: true });
@@ -1432,6 +1802,10 @@ async function main() {
         minProbDivergence: config.minProbDivergence,
         outputDir: config.outputDir,
         chartsPath,
+        selectionSeed: config.selectionSeed,
+        outputFormat: config.outputFormat,
+        outputSampleRate: config.outputSampleRate,
+        outputSampleRates: config.outputSampleRates,
       },
       config.workers,
     );
@@ -1444,13 +1818,20 @@ async function main() {
   // Write manifest
   const manifest = {
     config: config.configName,
+    sourceConfigs: sourceMetadata.sourceConfigs,
+    sourceStacks: sourceMetadata.sourceStacks,
     flopIds: flops.map((f) => f.boardId),
+    skipFlops: config.skipFlops,
     totalSamples: result.totalSamples,
     processedFlops: result.processedFlops,
     streets: ['FLOP', 'TURN', 'RIVER'],
     samplesPerBucket: config.samplesPerBucket,
     riverSamplesPerTurn: config.riverSamplesPerTurn,
     minProbDivergence: config.minProbDivergence,
+    selectionSeed: config.selectionSeed,
+    outputFormat: config.outputFormat,
+    outputSampleRate: config.outputSampleRate,
+    outputSampleRates: config.outputSampleRates,
     generatedAt: new Date().toISOString(),
   };
   writeFileSync(join(config.outputDir, 'manifest.json'), JSON.stringify(manifest, null, 2));

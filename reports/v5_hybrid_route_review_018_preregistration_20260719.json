@@ -1,0 +1,28 @@
+{
+  "schema_version": "v5.hybrid.route_review.preregistration.v18.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-018",
+  "registered_at": "2026-07-19T17:26:00Z",
+  "status": "REGISTERED_REPORTING_ONLY",
+  "trigger": {
+    "pcv007_classification": "PCV007_PASS_NUMERICAL_ENVELOPE_AND_GPU_EVENT_TIMING",
+    "pcv007_result_sha256": "df785e28f1424906630edb90af4853a66b97d320f94a1d22aef465757e21aabc",
+    "pcv007_audit_sha256": "8cac33b378d93f0bdd79a5456c3a115326558899b39bb6671d88bd8677b57766"
+  },
+  "evidence_rules": {
+    "cross_mode_deltas_must_be_bounded_by_registered_tolerances": true,
+    "cross_mode_deltas_must_not_exceed_same_mode_repeatability_envelope": true,
+    "gpu_event_throughput_and_stability_must_pass": true,
+    "pcv007_is_control_plane_evidence_only": true,
+    "h16_h17_and_all_terminal_partials_remain_closed": true,
+    "h18_launch_is_forbidden_by_current_heartbeat": true
+  },
+  "candidate_order": [
+    "H18_SEPARATELY_REGISTERED_TOLERANCE_AND_GPU_EVENT_PREARM_CORRECTION",
+    "PCV008_ADDITIONAL_REPORTING_ONLY_DEVICE_REPEATABILITY_AUDIT_IF_PCV007_DOES_NOT_SUPPORT_H18",
+    "ROUTE_EXHAUSTION_IF_NO_AUDITABLE_PREARM_CONTRACT_REMAINS"
+  ],
+  "selection_rule": "SELECT_H18_PREPARATION_ONLY_IFF_PCV007_PASSES_ALL_FROZEN_GATES_AND_CROSS_MODE_NON_VALUE_DELTAS_DO_NOT_EXCEED_BOTH_THE_ABSOLUTE_TOLERANCES_AND_THE_CORRESPONDING_SAME_MODE_ENVELOPES;OTHERWISE_SELECT_PCV008_OR_ROUTE_EXHAUSTION",
+  "official_hands": 0,
+  "behavior_launch_authority": "NONE_REPORTING_ONLY",
+  "strength_claim": "FORBIDDEN"
+}

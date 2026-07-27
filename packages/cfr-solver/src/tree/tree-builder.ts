@@ -81,6 +81,7 @@ function buildNode(config: TreeConfig, state: BuildState): GameNode {
 function getLegalActions(config: TreeConfig, state: BuildState): Action[] {
   const actions: Action[] = [];
   const playerStack = state.stacks[state.player];
+  const opponentStack = state.stacks[1 - state.player];
 
   if (state.facingBet > 0) {
     // Facing a bet/raise
@@ -88,7 +89,13 @@ function getLegalActions(config: TreeConfig, state: BuildState): Action[] {
     actions.push('call');
 
     // Can only raise if under the raise cap and have enough stack
-    if (state.raiseCount < config.raiseCapPerStreet && playerStack > state.facingBet) {
+    // In heads-up poker an opponent with zero chips is already all-in. The
+    // remaining player may only fold or call; there is nobody left to raise.
+    if (
+      opponentStack > 0 &&
+      state.raiseCount < config.raiseCapPerStreet &&
+      playerStack > state.facingBet
+    ) {
       const raiseSizes = getRaiseSizesAvailable(
         config,
         state.pot,

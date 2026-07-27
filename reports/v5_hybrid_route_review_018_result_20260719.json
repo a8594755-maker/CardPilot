@@ -1,0 +1,52 @@
+{
+  "schema_version": "v5.hybrid.route_review.result.v18.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-018",
+  "checked_at": "2026-07-19T17:26:30Z",
+  "overall": "PASS_ROUTE_REVIEW",
+  "registration_sha256": "9ad2a539895adbb309b39172f2d33471c84c7a697103868134bac8f9938c89ff",
+  "registration_audit_sha256": "bbc2f89ce5ec6c97e4fde57bfa2d45bb7017aa35f5c682b6a49f4c58781393eb",
+  "evidence_matrix": {
+    "pcv007": {
+      "overall": "PASS",
+      "result_sha256": "df785e28f1424906630edb90af4853a66b97d320f94a1d22aef465757e21aabc",
+      "audit_sha256": "8cac33b378d93f0bdd79a5456c3a115326558899b39bb6671d88bd8677b57766",
+      "audit_checks": "19/19",
+      "cross_mode_non_value_model_max_abs": 1.4901161193847656e-8,
+      "cross_mode_non_value_optimizer_max_abs": 1.1641532182693481e-10,
+      "same_mode_model_envelope_max_abs": 5.960464477539063e-8,
+      "same_mode_optimizer_envelope_max_abs": 1.5279510989785194e-10,
+      "model_absolute_tolerance": 1e-6,
+      "optimizer_absolute_tolerance": 1e-8,
+      "gpu_event_throughput_ratio": 0.9999602515952589,
+      "gpu_event_mse_stability_ratio": 0.9527289479555247,
+      "interpretation": "CROSS_MODE_NON_VALUE_DELTAS_ARE_WITHIN_ABSOLUTE_TOLERANCES_AND_WITHIN_SAME_MODE_CUDA_REPEATABILITY_ENVELOPES;GPU_EVENT_TIMING_PASSES_BOTH_FROZEN_GATES"
+    },
+    "terminal_history": {
+      "h16": "TERMINAL_FAIL_NO_LAUNCH",
+      "h17": "TERMINAL_FAIL_NO_LAUNCH",
+      "huber_and_terminal_partials": "FORBIDDEN",
+      "reopen_or_method_inference": "FORBIDDEN"
+    }
+  },
+  "decision": {
+    "selected_next": "H18_SEPARATELY_REGISTERED_TOLERANCE_AND_GPU_EVENT_PREARM_CORRECTION",
+    "reason": "PCV007_SHOWS_THE_H17_BITWISE_ACTOR_IDENTITY_GATE_WAS_STRICTER_THAN_THE_MEASURED_SAME_MODE_CUDA_REPEATABILITY_ENVELOPE_AND_VALIDATES_THE_REGISTERED_GPU_EVENT_TIMING_INSTRUMENT;A_NEW_WINDOW_MAY_CORRECT_ONLY_THE_PREARM_CONTROL_PLANE_WHILE_PRESERVING_THE_ORIGINAL_SINGLE_SCIENTIFIC_VARIABLE",
+    "behavior_change": false,
+    "route_exhausted": false,
+    "authority": "H18_SEPARATE_PREREGISTRATION_AND_PRELAUNCH_PREPARATION_ONLY_NO_ARM_LAUNCH"
+  },
+  "h18_constraints": {
+    "source": "EXACT_CLEAN_H11_CONTROL_ITER35051_HANDS576021901_SHA96A007",
+    "scientific_variable": "MSE_VERSUS_SMOOTHL1_BETA1_ONLY",
+    "fresh_fixed_20m_same_start_arms": true,
+    "prearm_actor_equivalence": "NON_VALUE_MODEL_MAX_ABS_LE_1E-6_AND_OPTIMIZER_MAX_ABS_LE_1E-8",
+    "prearm_timing": "TORCH_CUDA_EVENT_WITH_SYNCHRONIZE_WARMUP4_TIMED16_REPEATS7",
+    "throughput_ratio_min": 0.85,
+    "mse_stability_ratio_min": 0.95,
+    "h17_artifacts_or_partials_as_source": "FORBIDDEN",
+    "automatic_launch": false
+  },
+  "path1": "UNTOUCHED_EXACT_PID23720_SIX_BELOWNORMAL_CPU_WORKERS",
+  "official_hands": 0,
+  "strength_claim": "FORBIDDEN"
+}

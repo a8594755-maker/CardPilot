@@ -1,0 +1,77 @@
+{
+  "schema_version": "v5.hybrid.route_review.result.v4",
+  "design_id": "HYBRID-ROUTE-REVIEW-004",
+  "checked_at": "2026-07-14T07:25:00+00:00",
+  "overall": "PASS_ROUTE_REVIEW",
+  "registration_sha256": "d2187f612bfd6e5477c7e8a1daf1df2b151cec7c0200981fafbb54ef393ef068",
+  "trigger_verified": true,
+  "consecutive_no_progress": {
+    "h6": "FAIL_PROTOCOL_ABORT_NO_METHOD_JUDGMENT",
+    "h7": "FAIL_REGISTERED_GATE",
+    "route_review_required": true
+  },
+  "research_review": {
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_route_review_004_research_review_20260714.json",
+    "sha256": "e8df3c12876aaf1f38cd88a652bc1ca87f42ba4fab3f83235213f2a61a9efef9",
+    "method_scope": "CONDITIONAL_SINGLE_SEED_METHOD_EFFECT",
+    "action_specific_intervention": false,
+    "w1_eligible": false,
+    "w2_eligible": false,
+    "l5_claim": false,
+    "behavior_launch_authorized_by_reviewer": false
+  },
+  "mechanism_audit": {
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_route_review_004_h7_mechanism_audit_20260714.json",
+    "sha256": "7d4d03e9b640ced56136d7f7aac46e17cc925646af26aed3d9afad893b3044bd",
+    "overall": "PASS_H7_CAUSAL_LOCALIZATION_FOR_H8_PREREGISTRATION_ONLY",
+    "joint_epoch_passes_removed": 383,
+    "joint_epoch_pass_fraction_removed": 0.07867625308134758
+  },
+  "h7_frozen_interpretation": {
+    "terminal_status": "H7_FAIL_REGISTERED_GATE",
+    "reclassification_forbidden": true,
+    "mirror_signal": "PASS_INTERNAL_SINGLE_SEED_123.990661_BB100_CI_98.334342_TO_149.073709",
+    "critic_signal": "FAIL_RELATIVE_MSE_DEGRADATION_0.122255843_CI_0.063070420_TO_0.186236703",
+    "kl_signal": "FAIL_P95_0.030620_GT_0.030000",
+    "external_strength": "UNMEASURED_OFFICIAL_HANDS_0"
+  },
+  "decision": {
+    "selected_next": "H8_VALUE_HEAD_ONLY_CATCHUP_AFTER_KL_STOP",
+    "source": {
+      "run_id": "v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713",
+      "checkpoint_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h7_treatment_kles003_same31400_20m_r1_20260713\\h7_treatment_endpoint.pt",
+      "checkpoint_sha256": "948050ac6d273ec2cd1291b3e1b430d4c747ea918f5c1820edf18397a6829149",
+      "iteration": 32617,
+      "hands": 536001286,
+      "status": "DIAGNOSTIC_SOURCE_NOT_ADOPTED_STRENGTH"
+    },
+    "single_variable": {
+      "name": "value_head_only_catchup_after_kl_stop",
+      "control": false,
+      "treatment": true,
+      "common_target_kl": 0.03
+    },
+    "rationale": "H7 causally established that KL stopping removes both policy and critic work. Its fixed mirror favored the stopped policy, while critic calibration failed. Catch-up is the smallest mechanism that prospectively restores omitted critic-head updates without adding policy epochs, changing the KL threshold, reopening H1/H2, or using action-level narratives.",
+    "requirements": [
+      "Fresh same-start H8 control and treatment each continue fixed20M from the exact H7 treatment endpoint with optimizer state preserved.",
+      "Both arms use target_kl0.03; only treatment runs value-head-only catch-up for remaining epochs after a stop before epoch4.",
+      "Catch-up uses eval mode, frozen actor/trunk parameters and buffers, the existing value head and optimizer, deterministic non-global-RNG minibatch order, and the unchanged critic targets.",
+      "Offline forced-trigger tests prove actor/trunk parameters, buffers and non-value optimizer state are bitwise unchanged by catch-up; disabled mode is bitwise equivalent to H7.",
+      "Fresh first60 and full-window throughput, endpoint holdout MSE, KL, entropy, health and fixed common-deal mirror gates are frozen before launch.",
+      "No evaluation runs while either trainer arm is active; no adaptive extension, second seed, later endpoint or threshold relaxation.",
+      "No official Slumbot hands in H8."
+    ]
+  },
+  "candidate_dispositions": {
+    "threshold_change": "REJECTED_POSTHOC_GATE_RELAXATION_AND_DOES_NOT_RESTORE_CRITIC_WORK",
+    "minimum_policy_epochs": "DEFERRED_CHANGES_ACTOR_EXPOSURE_AND_RISKS_THE_POSITIVE_MIRROR_SIGNAL",
+    "h3": "ENGINEERING_ONLY_BLOCKED_FOR_BEHAVIOR_BY_EXACT_V55_ACTION_COMPATIBILITY",
+    "h4": "TERMINAL_INCONCLUSIVE_NO_CANDIDATE",
+    "h5": "READINESS_INCOMPLETE",
+    "route_exhaustion": "FALSE_MULTIPLE_HYBRID_MECHANISMS_AND_ASSET_PREREQUISITES_REMAIN"
+  },
+  "route_exhausted": false,
+  "behavior_launch_authorized": "ONLY_AFTER_SEPARATE_H8_PREREGISTRATION_IMPLEMENTATION_AUDIT_DESIGN_LOCK_PREFLIGHT_AND_CANONICAL_REARM_PASS",
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

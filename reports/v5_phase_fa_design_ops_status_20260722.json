@@ -1,0 +1,123 @@
+{
+  "schema_version": "v5.phase_fa.design_ops_status.v1",
+  "recorded_at": "2026-07-22T14:32:28.419Z",
+  "design_id": "PHASE_FA_FULL_TEACHER_ASSET_DESIGN_V1",
+  "status": "REGISTERED_PREGENERATION_AUDIT_PASS_DESIGN_READY_STOP",
+  "verdict": "PASS",
+  "classification": "PHASE_FA_FULL_TEACHER_ASSET_DESIGN_REGISTERED_PREGENERATION_AUDIT_PASS_QUALIFICATION_READY_ONLY",
+  "artifacts": {
+    "preregistration": {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_phase_fa_full_teacher_asset_design_preregistration_20260722.json",
+      "sha256": "74b7aeda43d46c1ec84ea72f58f3795c32279b548fdc7674f8fa837e99669a82"
+    },
+    "independent_audit": {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_phase_fa_full_teacher_asset_design_preregistration_audit_20260722.json",
+      "sha256": "ee245f813fc9fd4a301f6a9dfc92761b4e3db51becf7de5361cd59aa8fb0ba68",
+      "checks": "PASS_197_OF_197"
+    }
+  },
+  "exact_command_records": [
+    {
+      "id": "source_content_tree_inventory",
+      "shell": "Windows PowerShell",
+      "command": "For each registered source file in ordinal filename order: Get-FileHash -Algorithm SHA256 -LiteralPath <absolute-file>; for sampled JSONL also obtain rows with rg -c '^' --glob '*.jsonl' <absolute-root>; hash UTF-8 LF-terminated canonical records filename<TAB>length<TAB>sha256[<TAB>rows] with System.Security.Cryptography.SHA256.",
+      "runtime_seconds": 96.5,
+      "writes": 0
+    },
+    {
+      "id": "independent_source_content_tree_recomputation",
+      "shell": "Windows PowerShell",
+      "command": "Recompute all six registered raw/sampled content-tree identities from file contents using Get-FileHash -Algorithm SHA256, rg -c '^', ordinal filenames, UTF-8, LF and System.Security.Cryptography.SHA256; compare to preregistered values.",
+      "runtime_seconds": 57.7,
+      "writes": 0
+    },
+    {
+      "id": "design_static_and_arithmetic_verification",
+      "shell": "Windows PowerShell",
+      "command": "ConvertFrom-Json both design artifacts; recompute every bound input SHA256,20M depth/street/shard/window sums,line fractions,PCV019 PASS entry gate,planned-path absence and197/197 all-true audit state.",
+      "runtime_seconds": 0.5,
+      "writes": 0
+    }
+  ],
+  "source_metrics": {
+    "protected_original_200bb": {"pairs": 161, "files": 322, "bytes": 32630735766, "content_tree_sha256": "4e2a0206561bce7d8c4e4469e8e3eb23ecb1a17d34208cec63db724cab0af64c"},
+    "path1_legalallin_200bb": {"selected": 600, "valid_pairs": 599, "excluded_board": 1747, "inventory_sha256": "cb9ee8fb330f432c39868c1fb345e1ce501469f4964c5dd5938da5cb7b43f4ab"},
+    "raw_50bb_3bet": {"pairs": 243, "files": 486, "bytes": 9439042081, "content_tree_sha256": "8991f68a0ea41c3dde6da51933bf06275310e8f1e59d4089dce3b71c4016ccb4"},
+    "sampled_50bb_srp": {"files": 141, "rows": 28073220, "bytes": 10328334690, "content_tree_sha256": "6846dbcdba48877e36adcbabc8d0b9ca6cb7525efc5ba89b170fb9d32759d7e3"},
+    "sampled_50bb_3bet": {"files": 11, "rows": 2079544, "bytes": 715603340, "content_tree_sha256": "9e6a940642798702308a9a31f4c7b9b2b20a41805fe7a1eab7f27ab32ee0107c"},
+    "sampled_100bb_srp": {"files": 11, "rows": 2091100, "bytes": 771489131, "content_tree_sha256": "7380decb15de7788250aa82521d64282ea23b2d1501159cddab18e362711f930"},
+    "sampled_100bb_3bet": {"files": 11, "rows": 2090131, "bytes": 744086861, "content_tree_sha256": "e707a51ce0e15e131cc902dfe6fa98b68cc40d8610512687f6e600fc22c6cca8"}
+  },
+  "design_metrics_vs_gates": {
+    "total_rows": {"registered": 20000000, "audit": "PASS"},
+    "depth_rows": {"200bb": 16000000, "100bb": 2000000, "50bb": 2000000, "sum": 20000000, "audit": "PASS"},
+    "streets_per_depth": 4,
+    "line_buckets": 8,
+    "position_balance": "50_50",
+    "shards": 400,
+    "rows_per_shard": 50000,
+    "generation_windows": 8,
+    "rows_per_window": 2500000,
+    "workers": 8,
+    "mc_rollouts_per_action": 32,
+    "mc_batches": 4,
+    "mc_rollouts_per_batch": 8,
+    "cfr_minimum_rows": 6000000,
+    "spot_replays_per_shard": 512,
+    "same_seed_repeats_per_shard": 64,
+    "uncompressed_total_bytes_ceiling": 71160000000,
+    "worst_case_mc32_serial_hours": 106.797778668503,
+    "ideal_eight_worker_hours": 13.3497223335629,
+    "worst_case_window_ideal_parallel_hours": 1.66871529169536,
+    "all_registered_arithmetic_and_resource_gates": "PASS"
+  },
+  "host_capacity_snapshot": {
+    "logical_processors": 32,
+    "total_ram_bytes": 137263747072,
+    "free_ram_bytes": 109094244352,
+    "c_free_bytes": 602409984000,
+    "capacity_exceeds_first_window_design_admission": true,
+    "capacity_is_not_launch_authority": true
+  },
+  "operations": {
+    "source_files_written": 0,
+    "qualification_code_files_created": 0,
+    "qualification_processes_launched": 0,
+    "qualification_output_files": 0,
+    "asset_rows_generated": 0,
+    "asset_output_root_exists": false,
+    "trainer_processes_launched": 0,
+    "gpu_workloads_launched": 0,
+    "evaluator_or_slumbot_processes_launched": 0,
+    "checkpoint_files_written": 0,
+    "official_hands": 0
+  },
+  "snapshot_hashes": {
+    "docs/V5_CURRENT_GOAL_snapshot_20260722_phase_fa_design_ready.md": "d350895f760d9d8e0f9185dea7ac11aaa2406d599e843b1c4f769f5e2433ba00",
+    "reports/AGENTS_snapshot_20260722_phase_fa_design_ready.md": "62440f2d9e5260911efcd8de9cb41c96f55dcd65fb3daf0fd2ff9c5b2467f667",
+    "reports/v5_alpha_holdem_takeover_handoff_20260711_snapshot_20260722_phase_fa_design_ready.md": "f934536e1a4d2bc015ef6ce20e84d7fe5598a8f4d920d33859e6a28c31f4ca92",
+    "reports/v5_alpha_holdem_takeover_handoff_20260711_snapshot_20260722_phase_fa_design_ready.json": "9d953d220d307d708a898fea67660510b423d7d486bbc313d25135da259750d1",
+    "reports/v5_next_action_queue_snapshot_20260722_phase_fa_design_ready.md": "92ce4aa231658a6a839eb027972bd14b3fe0afa220f42e91f19496a66de4400f",
+    "reports/v5_next_action_queue_snapshot_20260722_phase_fa_design_ready.json": "952d9cca55d4ab089cadc6d72bf12d531adcd95bfb730c0d37c47c48a7f31451"
+  },
+  "mutable_document_hashes_after_refresh": {
+    "docs/V5_CURRENT_GOAL.md": "d0a7bba2d64328d2a58e554ea94bd11a6dd9aa7244e3b6a34e0eb83800bd85fd",
+    "AGENTS.md": "acc3a55b2292bfccdd18a6fca8cf08ca9e1c1d18c2943a85adcef081ba3d82f9",
+    "reports/v5_alpha_holdem_takeover_handoff_20260711.md": "f81449ce223a862328af12614e7b05bd0b8b58e45fb24f5165e3fc30b1aba72f",
+    "reports/v5_alpha_holdem_takeover_handoff_20260711.json": "02e166cfef23b1551a7556f0197415102a6710dddf20ecfe14d54fca1162f359",
+    "reports/v5_next_action_queue.md": "06562c47576e85b9111472d1e4fb67f28735bdad9e9b6621aae01d0fcbbe7d2b",
+    "reports/v5_next_action_queue.json": "bceb7b8afd7d09c9fd88d434610decfc57f38b27142ef367d8d163270c43f528"
+  },
+  "heartbeat": {
+    "id": "v5-drive-to-l5-monitor",
+    "status": "ACTIVE",
+    "cadence_minutes": 30,
+    "target_thread_id": "019f89fd-666d-7923-9bfc-1712eff5c791",
+    "launches_local_processes": false,
+    "automation_toml_sha256": "905a5d46dcdbb25cca749071d199d795dd64f23c33e7530f240d65921263be64"
+  },
+  "next_registered_step": "SEPARATELY_REGISTERED_PHASE_FA_Q001_IMPLEMENTATION_AND_INDEPENDENT_IMPLEMENTATION_AUDIT_ONLY_NO_LAUNCH",
+  "user_input_required": false,
+  "current_stop": "DESIGN_READY_PREGENERATION_NO_IMPLEMENTATION_OR_GENERATION",
+  "strength": "L0"
+}

@@ -1,0 +1,82 @@
+{
+  "schema_version": "v5.hybrid.h12.resource_isolation_incident.v1",
+  "checked_at": "2026-07-16T19:55:00Z",
+  "design_id": "H12",
+  "overall": "H12_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+  "preregistration_sha256": "7ecd7a4342f75a92f4d4f12493bcd5fda9e3e92e7f43f023f8779becbdb48e57",
+  "design_lock_sha256": "a5318450b699bb2c9b0d6385fc386829155409db68029f47da0121e5ef766c39",
+  "arm": "control",
+  "run_id": "v5_hybrid_h12_control_catchmse_same35051_20m_r1_20260716",
+  "trainer": {
+    "pid": 29392,
+    "alive_at_recovery_check": false,
+    "stop_action": "TERMINATED_BY_LOCKED_ORDERED_REARM_SUPERVISOR",
+    "manifest_status": "initialized",
+    "iteration": 35051,
+    "hands": 576021901,
+    "source_iteration": 35051,
+    "source_hands": 576021901,
+    "training_progress_hands": 0,
+    "endpoint_frozen": false
+  },
+  "registered_classification_rule": "resource-isolation/provenance incident is INCONCLUSIVE; no extension allowed",
+  "trigger": {
+    "pid": 41212,
+    "parent_pid": 53680,
+    "token": "unregistered_cardpilot_project_process",
+    "actual_role": "LOCKED_H12_ORDERED_REARM_SUPERVISOR",
+    "command_line_sha256": "a9c6e019227ae033c802c583e2b2ce9cbc861751d19f1a29386dd1a2c26be132",
+    "provenance_complete": true,
+    "classification": "FALSE_POSITIVE_REGISTERED_LIFECYCLE_PROCESS"
+  },
+  "control_plane_failures": [
+    {
+      "component": "v5_hybrid_h12_health_watch.py",
+      "failure": "FileNotFoundError before first latest_train.log existed",
+      "required_behavior": "remain PENDING until the locked trainer produces the first log",
+      "status": "FAIL_CLOSED"
+    },
+    {
+      "component": "v5_hybrid_h12_protocol_watch.py",
+      "failure": "registered ordered-rearm supervisor was classified as an unregistered CardPilot project process",
+      "required_behavior": "permit exact lock-bound H12 lifecycle command identity",
+      "status": "H12_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION"
+    },
+    {
+      "component": "v5_rearm_watchers.ps1 and v5_hybrid_h12_launch_control.ps1",
+      "failure": "canonical rearm wrote survival_pass=false but returned exit0; launcher emitted H12_CONTROL_LAUNCHED_REARM_PASS",
+      "required_behavior": "nonzero exit and launcher fail-closed whenever survival_pass is not true",
+      "status": "INVALID_SUCCESS_REPORT"
+    }
+  ],
+  "artifacts": {
+    "run_manifest_sha256": "89ddfbe0506915ef9165fa00d94aee2a1f5b9a9b8a212b9c8b19d685c0018e48",
+    "console_stderr_sha256": "bc954346cd118d93f7f5353100bae2a131a377b4645ce2cf355d745181886eb7",
+    "watcher_rearm_status_sha256": "cc543a0ee3ab29af60df5813c1ec491a0bac84d2dd9c20a0781c200b5e49a629",
+    "health_status_sha256": "71d2b39672859e8abb916d599ab7d4644311fad9dbee229feb4944e1b36111c3",
+    "protocol_status_sha256": "e8f6a9dd05994c4f401d01c4b8f0dfa08cb2092f48b8a07fdede8c53e2094bec",
+    "ordered_rearm_status_sha256": "13864b580be863e674cb37766df95d81fc583b3fe7ab083435b06e6864406568",
+    "control_perf_cal_sha256": "64e68e7f7f66d59fe5629a2f5fa215541bd65e2ee4ff42e61220d6c20836b4a9",
+    "control_perf_cal_audit_sha256": "1947c10d0b6ce1ab8e5e2cd1ab8476fd1e1a8e86cdf87b852e2a76724d8cc5e2",
+    "preterminal_sentinel_sha256": "cb0c4f12d6a2bccc0ba38406f08e8b893c7cb242865cec5dff4f6e1c18c54b02"
+  },
+  "performance_calibration": {
+    "overall": "PASS",
+    "loss_throughput_ratio": 1.021235458368017,
+    "minimum": 0.95,
+    "role": "PRELAUNCH_RESOURCE_READINESS_ONLY_NO_METHOD_INFERENCE"
+  },
+  "treatment_launched": false,
+  "mirror_launched": false,
+  "official_hands": 0,
+  "method_effect_evidence": "NONE",
+  "strength_claim": "FORBIDDEN",
+  "disposition": {
+    "h12_terminal": true,
+    "verdict": "INCONCLUSIVE",
+    "resume_extend_reclassify": "FORBIDDEN",
+    "partial_control_use": "FORBIDDEN_FOR_METHOD_MODEL_OR_STRENGTH",
+    "repair_same_window": "FORBIDDEN",
+    "next": "CAL_EXT_002_ON_SEPARATELY_LOCKED_EXACT_CLEAN_CHECKPOINT_THEN_ROUTE_REVIEW_009"
+  }
+}

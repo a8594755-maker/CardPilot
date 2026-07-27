@@ -1,0 +1,60 @@
+{
+    "schema_version":  "v5.hybrid.h8.preflight_correction.v1",
+    "classification":  "CENSURE_H8_V4_PREFLIGHT_PATH1_CHILD_CLASSIFIER",
+    "recorded_at":  "2026-07-14T10:53:10.2982310Z",
+    "design_lock_v4_path":  "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h8_design_lock_v4_20260714.json",
+    "design_lock_v4_sha256":  "50283c58320e966f32288b691839faea80baccfedc92b76dd020d428f97d0152",
+    "design_lock_v4_audit_sha256":  "fcad7e2b80ddc84979fb71a4cffa2f77e517bad99daade8e7e69e89de540845c",
+    "failed_preflight_path":  "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h8_preflight_v4_20260714.json",
+    "failed_preflight_sha256":  "aaf05fd6863e3e0c19f38229f538d4ab0d7e2517a72e261af1e662c81c7cfe57",
+    "failed_preflight_overall":  "FAIL_CLOSED",
+    "failed_check":  "path1_existing_six_worker_job",
+    "root_cause":  "preflight counted all direct coordinator children and therefore treated persistent conhost.exe as a seventh solver worker",
+    "coordinator_pid":  37656,
+    "direct_children":  [
+                            {
+                                "pid":  36808,
+                                "name":  "conhost.exe",
+                                "command":  "\\??\\C:\\WINDOWS\\system32\\conhost.exe 0x4"
+                            },
+                            {
+                                "pid":  39964,
+                                "name":  "node.exe",
+                                "command":  "\"C:\\Program Files\\nodejs\\node.exe\" --import tsx --max-old-space-size=18432 C:\\Users\\a8594\\CardPilot\\packages\\cfr-solver\\src\\orchestration\\solve-worker.ts"
+                            },
+                            {
+                                "pid":  35200,
+                                "name":  "node.exe",
+                                "command":  "\"C:\\Program Files\\nodejs\\node.exe\" --import tsx --max-old-space-size=18432 C:\\Users\\a8594\\CardPilot\\packages\\cfr-solver\\src\\orchestration\\solve-worker.ts"
+                            },
+                            {
+                                "pid":  37700,
+                                "name":  "node.exe",
+                                "command":  "\"C:\\Program Files\\nodejs\\node.exe\" --import tsx --max-old-space-size=18432 C:\\Users\\a8594\\CardPilot\\packages\\cfr-solver\\src\\orchestration\\solve-worker.ts"
+                            },
+                            {
+                                "pid":  18684,
+                                "name":  "node.exe",
+                                "command":  "\"C:\\Program Files\\nodejs\\node.exe\" --import tsx --max-old-space-size=18432 C:\\Users\\a8594\\CardPilot\\packages\\cfr-solver\\src\\orchestration\\solve-worker.ts"
+                            },
+                            {
+                                "pid":  9144,
+                                "name":  "node.exe",
+                                "command":  "\"C:\\Program Files\\nodejs\\node.exe\" --import tsx --max-old-space-size=18432 C:\\Users\\a8594\\CardPilot\\packages\\cfr-solver\\src\\orchestration\\solve-worker.ts"
+                            },
+                            {
+                                "pid":  33036,
+                                "name":  "node.exe",
+                                "command":  "\"C:\\Program Files\\nodejs\\node.exe\" --import tsx --max-old-space-size=18432 C:\\Users\\a8594\\CardPilot\\packages\\cfr-solver\\src\\orchestration\\solve-worker.ts"
+                            }
+                        ],
+    "solver_worker_count":  6,
+    "nonworker_child_count":  1,
+    "corrective_change":  "classify direct children by exact solve-worker.ts command identity; conhost and unrelated node processes excluded",
+    "regression_tests":  "23 passed",
+    "h8_trainer_launched":  false,
+    "official_hands":  0,
+    "method_change":  false,
+    "path1_touched":  false,
+    "disposition":  "V4_SUPERSEDED_NEVER_LAUNCHED"
+}

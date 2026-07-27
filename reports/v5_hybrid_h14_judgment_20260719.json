@@ -1,0 +1,63 @@
+{
+  "schema_version": "v5.hybrid.h14.judgment.v1",
+  "checked_at": "2026-07-19T14:33:41.017Z",
+  "design_id": "H14",
+  "overall": "INCONCLUSIVE",
+  "classification": "H14_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+  "design_lock_sha256": "229763f9a432026c2dbcae3259fec9448e773d670f4036a940a1ba16a86b3694",
+  "arm": "control",
+  "run_id": "v5_hybrid_h14_control_catchmse_same35051_20m_r1_20260717",
+  "source": {
+    "iteration": 35051,
+    "hands": 576021901,
+    "checkpoint_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13"
+  },
+  "partial_control": {
+    "iteration": 35062,
+    "hands": 576202673,
+    "training_progress_hands": 180772,
+    "checkpoint_sha256": "1be248ca54b072413c6a5fe77f7b494c724d35ed8f821c62644fc0e24e44a7d9",
+    "endpoint_frozen": false,
+    "use_for_method_model_or_strength": "FORBIDDEN"
+  },
+  "terminal_evidence": {
+    "ordered_rearm": {
+      "overall": "FAIL_CLOSED",
+      "state": "ORDERED_REARM_FAILURE",
+      "error": "TimeoutError: watcher readiness timeout: h14_control_protocol_status.json",
+      "trainer_stop_action": "TERMINATED",
+      "trainer_pid": 16544,
+      "artifact_sha256": "806ee445c289f7077938cdd04891343c9284f0a7be82d8462485d2fff590b2a4"
+    },
+    "protocol": {
+      "overall": "FAIL",
+      "state": "H14_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+      "stop_action": "ALREADY_EXITED",
+      "trigger_pid": 54532,
+      "trigger_command_line_sha256": "417222c4a0ecb4d60a457ebe8e26fddf3d5406bffb16a5c59af8eeb241beca51",
+      "trigger_token": "allowed_supervisor_identity_mismatch",
+      "artifact_sha256": "b96b96f34ad2ed7c4673330d3831a479a727a6078e5e242bf89b2222be94a0e6"
+    },
+    "health": {
+      "overall": "FAIL_CLOSED",
+      "state": "H14_HEALTH_PRODUCER_FAILURE",
+      "error": "RuntimeError: monitor health failure exit=2 overall=FAIL",
+      "artifact_sha256": "c75214fc58534bb71056bbaf025f033fc81813b297974553a24faccd2ccaf6b5"
+    },
+    "orphan_cleanup": "PASS_RECOVERY_NO_BEHAVIOR_CHANGE"
+  },
+  "causal_diagnosis": {
+    "primary": "the protocol watcher did not publish a readiness status within the immutable 180-second ordered-rearm deadline, so the ordered supervisor fail-closed and terminated trainer PID 16544",
+    "secondary": "the protocol watcher survived its failed supervisor; after supervisor PID 54532 was recycled by conhost.exe, the PID-only supervisor binding produced an allowed_supervisor_identity_mismatch resource-isolation terminal artifact",
+    "cleanup_gap": "terminating the trainer parent left 21 multiprocessing spawn children alive until exact dead-parent cleanup",
+    "scientific_interpretation": "NONE_CONTROL_PLANE_CONTAMINATED_PARTIAL"
+  },
+  "treatment_launched": false,
+  "endpoint_frozen": false,
+  "mirror_launched": false,
+  "official_hands": 0,
+  "method_effect_evidence": "NONE",
+  "route_review_required": true,
+  "resume_extend_reclassify": "FORBIDDEN",
+  "strength_claim": "FORBIDDEN"
+}

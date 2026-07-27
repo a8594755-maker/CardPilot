@@ -1,0 +1,107 @@
+{
+  "schema_version": "v5.ct002.competing_pair_reconciliation.v1",
+  "created_at": "2026-07-22T22:24:20Z",
+  "classification": "CENSURE / CT002_COMPETING_C216_PREREGISTRATION_AND_AUDIT_AUTHORITY_NONE_CANONICAL_AE78_PRESERVED",
+  "purpose": "Correct the race-sensitive audit-absence observation in the first collision censure and atomically adjudicate the complete competing c216 preregistration/audit pair.",
+  "canonical_ae78_pair": {
+    "preregistration": {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_ct002_preregistration_ae78e683c41a2abcff33eeae9fdad8ad_20260722.json",
+      "sha256": "faef13eff5a57270bc59b43ff3272a3eb6bedf0fe43f0539494a2cd0993072da",
+      "bytes": 22034,
+      "created_at_filesystem_utc": "2026-07-22T22:17:44.2441619Z"
+    },
+    "audit": {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_ct002_preregistration_audit_ae78e683c41a2abcff33eeae9fdad8ad_20260722.json",
+      "sha256": "2426ca7663d9f347d7884a0e6ebf36831924f110acc316a5326f80fcfa04860e",
+      "bytes": 9615,
+      "created_at_filesystem_utc": "2026-07-22T22:21:25.6007401Z",
+      "checks": "PASS52_OF_52"
+    },
+    "identity_basis": "CT002|0ac4a83714df460dc3533d519eecc5a89e83cafcedffbd6c8b02c5e0e0faa851|5c01fff4e4f756610dea66d202dd5c994eb6af55c8dea002b0e8975e061abb77",
+    "identity_sha256": "ae78e683c41a2abcff33eeae9fdad8adecd7db86db4827fe659583a2b33c4096",
+    "authority": "CANONICAL_IMPLEMENTATION_READY_LATER_ONLY"
+  },
+  "competing_c216_pair": {
+    "preregistration": {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_ct002_fixed_opponent_mix_critic_calibration_preregistration_c216cb227e53f64ba20f2de73030bbbd_20260722.json",
+      "sha256": "c7728ed025f990badb97b673ff944ee6943ab0e443170ae641471519a2478818",
+      "bytes": 21650,
+      "created_at_filesystem_utc": "2026-07-22T22:21:44.4088136Z"
+    },
+    "audit": {
+      "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_ct002_fixed_opponent_mix_critic_calibration_preregistration_audit_c216cb227e53f64ba20f2de73030bbbd_20260722.json",
+      "sha256": "981426a5fad9ffe3725a81d5299960afdf3b6d4a32c6dd77c16584d790ee65e5",
+      "bytes": 8036,
+      "created_at_filesystem_utc": "2026-07-22T22:23:09.2227848Z",
+      "reported_checks": "PASS54_OF_54"
+    },
+    "identity_basis": "CT002|0ac4a83714df460dc3533d519eecc5a89e83cafcedffbd6c8b02c5e0e0faa851",
+    "identity_sha256": "c216cb227e53f64ba20f2de73030bbbd24ace4a2c2b748cd479cd926be65fa48",
+    "same_candidate_and_behavior_variable_as_ae78": true,
+    "different_identity_basis_bytes_thresholds_and_future_paths": true,
+    "preregistration_and_audit_both_postdate_the_complete_canonical_ae78_pair": true,
+    "authority": "NONE"
+  },
+  "prior_collision_censure": {
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_ct002_late_competing_registration_censure_c216cb227e53f64ba20f2de73030bbbd_20260722.json",
+    "sha256": "182f26847d82b7fa05a517dc5579307599b818eb3e438326b3ca8e227e25cad4",
+    "bytes": 4949,
+    "created_at_filesystem_utc": "2026-07-22T22:23:37.2040379Z",
+    "preserved_read_only": true,
+    "corrected_observation": "Its audit-absent observation was sampled at 22:23:01Z, but the competing audit landed at 22:23:09Z before the censure file completed at 22:23:37Z. Treat that one observation and its PASS_COMPETING_AUDIT_ABSENT_AT_CENSURE check as CENSURED_TOCTOU; the singleton-authority conclusion remains correct and is replaced by this pair-level adjudication."
+  },
+  "adjudication": [
+    "The authorized unit was one CT002 candidate-specific preregistration plus one independent audit.",
+    "The ae78 pair completed first and binds both the selection result and its independent audit in its identity basis.",
+    "The c216 pair is a later competing registration/audit for the same candidate under different identity, bytes, thresholds and paths; its internal PASS cannot grant a second scientific authority.",
+    "Both c216 files remain immutable provenance but have no implementation, execution, result, scientific or strength authority.",
+    "No c216 descendant may be created or used. Any late descendant is authority NONE and must be recorded without execution."
+  ],
+  "checks": [
+    "PASS_CANONICAL_PREREGISTRATION_REHASH_AND_SIZE",
+    "PASS_CANONICAL_AUDIT_REHASH_AND_SIZE",
+    "PASS_CANONICAL_PAIR_COMPLETE_FIRST",
+    "PASS_CANONICAL_IDENTITY_REDERIVED",
+    "PASS_CANONICAL_IDENTITY_BINDS_SELECTION_RESULT_AND_AUDIT",
+    "PASS_CANONICAL_AUDIT_PASS52_OF52",
+    "PASS_COMPETING_PREREGISTRATION_REHASH_AND_SIZE",
+    "PASS_COMPETING_AUDIT_REHASH_AND_SIZE",
+    "PASS_COMPETING_IDENTITY_REDERIVED",
+    "PASS_COMPETING_AUDIT_REPORTED_PASS54_OF54",
+    "PASS_COMPETING_PAIR_POSTDATES_CANONICAL_PAIR",
+    "PASS_SAME_CANDIDATE",
+    "PASS_SAME_BEHAVIOR_VARIABLE",
+    "PASS_DIFFERENT_IDENTITY_BASIS",
+    "PASS_DIFFERENT_BYTES_THRESHOLDS_AND_FUTURE_PATHS",
+    "PASS_SINGLETON_AUTHORITY_VIOLATION",
+    "PASS_TOCTOU_OBSERVATION_IDENTIFIED",
+    "PASS_PRIOR_CENSURE_PRESERVED_NOT_MUTATED",
+    "PASS_PRIOR_AUDIT_ABSENCE_CHECK_CENSURED",
+    "PASS_CANONICAL_AE78_AUTHORITY_PRESERVED",
+    "PASS_COMPETING_C216_PAIR_AUTHORITY_NONE",
+    "PASS_C216_IMPLEMENTATION_DATA_RUN_AND_RESULT_PATHS_ABSENT",
+    "PASS_NO_TRAINING_GPU_CHECKPOINT_EVALUATION_OR_SLUMBOT",
+    "PASS_NO_METHOD_OR_STRENGTH_INFERENCE",
+    "PASS_STOP_AT_CANONICAL_REGISTERED_BOUNDARY"
+  ],
+  "check_count": 25,
+  "pass_count": 25,
+  "fail_count": 0,
+  "authority": {
+    "ae78_pair": "PRESERVED_IMPLEMENTATION_READY_LATER_ONLY",
+    "c216_pair": "NONE_PRESERVE_READ_ONLY_NO_DESCENDANTS",
+    "first_censure_audit_absence_observation": "CENSURED_TOCTOU",
+    "data_generation": "NONE",
+    "calibration": "NONE",
+    "ppo_training": "NONE",
+    "gpu": "NONE",
+    "checkpoint": "NONE",
+    "evaluation": "NONE",
+    "slumbot": "NONE",
+    "method_benefit": "NONE",
+    "strength": "L0",
+    "route_exhausted": false
+  },
+  "next_later_only": "IMPLEMENT_ONLY_THE_CANONICAL_AE78_CT002_CLEAN_ROOM_PATCH_THEN_INDEPENDENTLY_AUDIT_IT_WITH_EXACTLY_TWO_ZERO_OUTPUT_PROBES_AND_STOP_BEFORE_DATA_GENERATION_CALIBRATION_PPO_GPU_EVALUATION_OR_SLUMBOT",
+  "terminal_stop": true
+}

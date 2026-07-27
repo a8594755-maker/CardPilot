@@ -1,0 +1,40 @@
+{
+  "schema_version": "v5.hybrid.route_review.preregistration.v16.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-016",
+  "registered_at": "2026-07-19T17:09:00Z",
+  "status": "REGISTERED_REPORTING_ONLY",
+  "trigger": {
+    "h17_verdict": "FAIL",
+    "h17_classification": "H17_FAIL_PREARM_REPRESENTATIVE_PERF_CAL_GATE_NO_LAUNCH",
+    "h17_judgment_sha256": "2adcda7fa166f997f621827dd51a6475adba80d16282cd4e839805bc43156927",
+    "h17_terminal_audit_sha256": "bdf67c41316344ba3309ad12390b47cf7519688fee639d94f64ad96266678a8b"
+  },
+  "evidence_rules": {
+    "throughput_pass_supports_method": false,
+    "prearm_failure_supports_method": false,
+    "actor_scope_identity_failure_requires_localization": true,
+    "timing_stability_failure_may_not_be_rerun": true,
+    "no_h17_arm_or_checkpoint": true,
+    "huber_remains_rejected": true
+  },
+  "candidate_order": [
+    "PCV006_TRAINERLESS_REAL_MODEL_ACTOR_STATE_DIFFERENCE_LOCALIZATION",
+    "H18_SEPARATELY_REGISTERED_SCOPE_CORRECTION_IF_PCV006_PROVES_ONE",
+    "ROUTE_EXHAUSTION_IF_NO_SINGLE_VARIABLE_CORRECTION_IS_IDENTIFIED"
+  ],
+  "selection_rule": "SELECT_PCV006_FIRST_BECAUSE_H17_FAILED_IDENTITY_AND_STABILITY_BEFORE_ANY_ARM;DO_NOT_REGISTER_BEHAVIOR_UNTIL_THE_REAL_MODEL_ACTOR_STATE_DIFFERENCE_IS_CAUSALLY_LOCALIZED",
+  "source": {
+    "role": "EXACT_CLEAN_H11_CONTROL",
+    "iteration": 35051,
+    "hands": 576021901,
+    "sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13"
+  },
+  "closures": {
+    "h16": "TERMINAL_NO_REOPEN",
+    "pcv005": "TERMINAL_NO_REOPEN_HUBER_REJECTED",
+    "h17": "TERMINAL_NO_REOPEN"
+  },
+  "official_hands": 0,
+  "behavior_launch_authority": "NONE_REPORTING_ONLY",
+  "strength_claim": "FORBIDDEN"
+}

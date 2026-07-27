@@ -1,0 +1,54 @@
+{
+  "schema_version": "v5.hybrid.h3.first_board_smoke.failure_correction.v1",
+  "checked_at": "2026-07-13T07:12:40+00:00",
+  "classification": "CORRECTABLE_ASSET_ADAPTER_ENGINEERING_FAILURE_NO_METHOD_VERDICT",
+  "first_corrected_board": {
+    "board_id": 6,
+    "iterations": 80000,
+    "info_sets": 21192648,
+    "gzip_bytes": 168179805,
+    "source_board_sha256": "bd77b1fbf21bab8bfbfc89040865358e61304aefe9c7a7be40991b4e0028bdb0",
+    "canonical_qa": "PASS_CONVERGED_AND_ZERO_ILLEGAL_POST_ALLIN_ROWS"
+  },
+  "failed_attempt": {
+    "terminal_at": "2026-07-13T07:06:19.691471+00:00",
+    "preserved_root": "C:\\Users\\a8594\\CardPilot\\reports\\h3_first_board_smoke_20260713.interrupted-1783926755",
+    "bridge_jsonl_sha256": "4b2c6c67241c89fcb7892e12cb0b404979320d19f3eba7f1fae39f842c1e9e2c",
+    "bridge_manifest_sha256": "1514ec9cf08c11b3244adba597d8885c3a8dfd840d3b3f75a485f67da24885c2",
+    "adapter_manifest_sha256": "aa6ef6da3a25ee8437beff56843b8a4328e713b77fb1523d570bd72d03c7a9b6",
+    "partial_provenance_sha256": "52e77945ad2a1e1fc4a4b5448089fd96d99fd2252f0e2fe5dae700106fe9f71d",
+    "first_error": "cfr_action_identity_mismatch:['check', 'bet_0', 'bet_1', 'bet_2', 'allin']!=['check']",
+    "first_error_info_set_key": "T|6|0|x12c/|26-18",
+    "first_error_source_row_ordinal": 10,
+    "correction_probe_error": "cfr_action_identity_mismatch:['fold', 'call', 'raise_0', 'allin']!=['fold', 'call', 'raise_0', 'raise_1', 'allin']",
+    "correction_probe_info_set_key": "T|6|0|33c/x3|26-18",
+    "correction_probe_source_row_ordinal": 52,
+    "correction_probe_manifest_sha256": "28c9d19cbb90c1d32a27d96b0db4e785ea2d19d86f66311852c41007ceaf496e"
+  },
+  "root_cause": [
+    "the Python replay restored a prior-street Path-1 raise count after a call advanced the street",
+    "the adapter then required exact action-name/count equality between the Path-1 tree enumerator and a separate Python HUNL enumerator; stack-dependent all-in deduplication makes that equality false at valid deep nodes",
+    "the immutable v2 contract requires mapping Path-1 actions by exact realised amount into v5.5 slots and validating the actual v5.5 legal mask; it does not require the two enumerators to have identical action strings"
+  ],
+  "correction": {
+    "replay_contract_revision": "path1_cfr_raise_count_street_reset_v2",
+    "v55_bridge_sha256": "25ca5a85014bf201166eb0517118dc512e24c52701cbba1abbf9b4551c8044bf",
+    "bridge_exporter_sha256": "413ba1b2a093942f75d396ebad343805065f4068891244f5710534a7f9a474d4",
+    "domain_adapter_sha256": "2a63301597e7b7b711dc4bf51cac9dba0398ce69bca778e77dd529d45c6e9c76",
+    "mapping_contract": "the source-tree replay emits one exact v5.5 slot per CFR action plus the coalesced actor target; the adapter independently validates action semantics, probability identity, mapped-target identity, actual v5.5 legal support, target mass and OOD provenance",
+    "bridge_tests": "PASS_17_OF_17",
+    "adapter_tests": "PASS_38_OF_38",
+    "typescript_exporter_and_action_tests": "PASS_10_OF_10",
+    "smoke_watcher_sha256": "4ab0c198ada90ade2d251e6ba3eba1424f74f95da28f4b72cee4db9ed694908b",
+    "smoke_watcher_tests": "PASS_15_OF_15_TRANSITIVE_IDENTITY_PINNED",
+    "retry_pid": 6520,
+    "retry_priority": "BelowNormal",
+    "retry_device": "CPU_ONLY",
+    "retry_state": "EXECUTING_LOCKED_SMOKE"
+  },
+  "failed_bundle_training_eligible": false,
+  "h3_preregistration_authorized": false,
+  "behavior_launch_authorized": false,
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

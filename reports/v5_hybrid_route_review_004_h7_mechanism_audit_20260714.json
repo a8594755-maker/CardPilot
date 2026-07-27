@@ -1,0 +1,61 @@
+{
+  "schema_version": "v5.hybrid.route_review.h7_mechanism_audit.v1",
+  "checked_at": "2026-07-14T07:24:00+00:00",
+  "overall": "PASS_H7_CAUSAL_LOCALIZATION_FOR_H8_PREREGISTRATION_ONLY",
+  "h7_identity": {
+    "judgment_sha256": "6d0e2ae773ca79c57606d5de6765e67ed2c12aba92be41611f44a2c6ba581304",
+    "audit_sha256": "89382ddb7fadd319cd77afb6cad106182735401b1e37034657c67e94466c5027",
+    "same_start_controlled": true,
+    "common_deal_pairs": 40000,
+    "independent_training_seeds": 1,
+    "terminal_classification": "H7_FAIL_REGISTERED_GATE"
+  },
+  "frozen_outcomes": {
+    "mirror_treatment_minus_control_bb100": 123.99066107572196,
+    "mirror_ci95_lower_bb100": 98.33434216541474,
+    "mirror_ci95_upper_bb100": 149.07370901943412,
+    "critic_mse_relative_degradation": 0.1222558429907934,
+    "critic_mse_ci95_lower": 0.06307041990893769,
+    "critic_mse_ci95_upper": 0.18623670262032552,
+    "treatment_kl_p95": 0.030620000000000005,
+    "registered_kl_p95_max": 0.03,
+    "throughput_ratio_first60": 0.9935337389503484,
+    "throughput_ratio_full": 1.05194840524632,
+    "entropy_noninferior": true
+  },
+  "epoch_work_accounting": {
+    "rows_each": 1217,
+    "control_epoch_counts": {"4": 1217},
+    "treatment_epoch_counts": {"1": 46, "2": 71, "3": 103, "4": 997},
+    "treatment_trigger_rows": 337,
+    "treatment_rows_with_work_skipped": 220,
+    "control_total_joint_epoch_passes": 4868,
+    "treatment_total_joint_epoch_passes": 4485,
+    "joint_epoch_passes_removed": 383,
+    "joint_epoch_pass_fraction_removed": 0.07867625308134758,
+    "treatment_mean_epochs_completed": 3.685291700903862
+  },
+  "code_mechanism": {
+    "path": "C:\\Users\\a8594\\CardPilot\\scripts\\alpha_holdem\\train_mp3_hybrid_h1.py",
+    "sha256": "cdde2b26cb9cf636c514db8d360a05e2cbb137f313b0621291ab31aabb410e54",
+    "joint_loss": "policy loss + value_coef*value loss - entropy + registered priors is optimized in one step",
+    "break_rule": "after a completed epoch, epoch_mean_kl > target_kl sets the trigger and breaks the shared epoch loop",
+    "consequence": "every skipped epoch removes both policy and critic/trunk updates; no value-only catch-up exists"
+  },
+  "inference": {
+    "identified": "H7 target-KL treatment causally removed 383 joint optimizer epoch passes in this same-start seed/window.",
+    "associated_not_identified": "The 12.23% endpoint critic-MSE degradation is temporally and mechanistically consistent with removed critic work, but H7 does not prove that value-head catch-up will repair it.",
+    "prospective_test_required": "A fresh same-start H8 must isolate catch-up as the sole variable and retain all H7 gates without relaxing thresholds."
+  },
+  "candidate_ranking": {
+    "selected_for_preregistration": "H8_VALUE_HEAD_ONLY_CATCHUP_AFTER_KL_STOP",
+    "why_not_threshold_change": "would tune the failed KL gate post hoc and would not directly restore omitted critic work",
+    "why_not_minimum_policy_epochs": "would change actor exposure and confound the promising mirror signal",
+    "h3": "behavior launch remains blocked by exact-v55 action-space incompatibility",
+    "h4": "terminal no-candidate under the frozen Holm rule",
+    "h5": "readiness incomplete for exact200bb legality/integration/latency",
+    "route_exhausted": false
+  },
+  "official_hands": 0,
+  "strength_claim": "FORBIDDEN"
+}

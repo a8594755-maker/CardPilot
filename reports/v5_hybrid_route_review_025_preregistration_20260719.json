@@ -1,0 +1,45 @@
+{
+  "schema_version": "v5.hybrid.route_review.preregistration.v25.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-025",
+  "registered_at": "2026-07-20T00:23:00Z",
+  "status": "REGISTERED_REPORTING_ONLY",
+  "trigger": {
+    "pcv013_classification": "PCV013_FAIL_CLOSED_ABSOLUTE_ADMISSION_NO_LATER_BLOCKS",
+    "pcv013_result_sha256": "afc79ede23e9d784f62630a433e16ab4ced3c56e11eddd6373ae7809a4cdf5e2",
+    "pcv013_audit_sha256": "c0ef62e710934134922604e6fa78b8db06f294a9f38091f3f74a77a80eb94289"
+  },
+  "evidence_rules": {
+    "pcv008_remains_terminal_no_result_no_reconstruction": true,
+    "pcv009_pcv010_pcv011_pcv012_are_terminal_control_plane_only": true,
+    "pcv013_is_terminal_no_rerun_extension_reclassification_reconstruction_or_row_reuse": true,
+    "pcv013_initial_conditioning_and_block0_local_gate_passed": true,
+    "pcv013_absolute_admission_failed_before_any_timed_block": true,
+    "pcv013_failure_invalidates_that_absolute_admission_contract_not_the_timing_hypothesis": true,
+    "pcv012_local_gates_recovered_mse_stability_but_cross_block_drift_association_persisted": true,
+    "no_device_state_or_timing_cause_is_established": true,
+    "a_future_measurement_must_use_new_design_seeds_and_output": true,
+    "a_future_measurement_may_change_only_comparison_pairing_granularity_relative_to_the_preserved_workload": true,
+    "future_pairing_must_be_adjacent_order_balanced_and_analyzed_as_matched_pairs": true,
+    "future_control_must_not_override_gpu_clocks_or_modify_path1": true,
+    "other_hybrid_routes_require_existing_immutable_completion_evidence": true,
+    "no_h19_or_official_hands": true
+  },
+  "candidate_order": [
+    "PCV014_NEW_REPORTING_ONLY_WITHIN_CYCLE_INTERLEAVED_MATCHED_PAIR_GPU_TIMING",
+    "ALREADY_COMPLETE_HYBRID_PREREQUISITE_ONLY_IF_NEW_IMMUTABLE_EVIDENCE_SUPPORTS_IT",
+    "ROUTE_EXHAUSTION_IF_NO_CAUSALLY_SUPPORTED_HYBRID_PREREQUISITE_REMAINS"
+  ],
+  "selection_rule": "SELECT_PCV014_IFF_PCV013_PASSES_ITS_FULL_INDEPENDENT_AUDIT,ITS_INITIAL_AND_BLOCK0_LOCAL_GATES_PASS,ITS_ABSOLUTE_ADMISSION_FAILS_BEFORE_ANY_TIMED_BLOCK,PCV012_ALREADY_SHOWED_LOCAL_GATE_STABILITY_RECOVERY_WITH_CROSS_BLOCK_DRIFT_ASSOCIATION,A_NEW_PROSPECTIVE_MEASUREMENT_CAN_PRESERVE_THE_EXACT_SOURCE_FULL_PPO_WORKLOAD_TOTAL_TIMED_UPDATES_CUDA_EVENT_TIMER_DEVICE_TELEMETRY_PHASE_AWARE_PATH1_RESOURCE_CONTRACT_AND_THRESHOLDS_WHILE_CHANGING_ONLY_THE_COMPARISON_UNIT_TO_ADJACENT_ORDER_BALANCED_MSE_SMOOTHL1_MATCHED_PAIRS_WITH_NO_CLOCK_OVERRIDE,AND_NO_OTHER_HYBRID_PREREQUISITE_HAS_NEW_IMMUTABLE_COMPLETION_EVIDENCE;OTHERWISE_SELECT_THE_COMPLETE_ALTERNATIVE_OR_ROUTE_EXHAUSTION",
+  "required_result_fields": [
+    "selected_next",
+    "causal_reason",
+    "route_exhausted",
+    "behavior_launch_authority",
+    "pcv013_terminal_closure",
+    "pcv014_novelty_requirements",
+    "official_hands"
+  ],
+  "official_hands": 0,
+  "behavior_launch_authority": "NONE_REPORTING_ONLY",
+  "strength_claim": "FORBIDDEN"
+}

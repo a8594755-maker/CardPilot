@@ -1,0 +1,37 @@
+{
+  "schema_version": "v5.hybrid.h9.reporting_correction.v1",
+  "event_id": "v5-hybrid-h9-startup-health-adapter-correction-20260714",
+  "classification": "CENSURE_H9_HEALTH_ADAPTER_WINDOW_IDENTITY_OMISSION",
+  "recorded_at": "2026-07-14T17:52:00Z",
+  "scope": "REPORTING_AND_WATCHER_CONTROL_PLANE_ONLY",
+  "incident": {
+    "run_id": "v5_hybrid_h9_control_catchmse_same33834_20m_r1_20260714",
+    "trainer_pid": 49380,
+    "symptom": "Frozen v5_monitor parsed zero latest_train.log rows because the vhcatch compatibility adapter admitted only h8_window_arm identities while the correct H9 manifest has h8_window_arm=none and h9_window_arm=control.",
+    "pre_correction_health_status_sha256": "a076b9d0bf60542308d3893eed9d4a2ace0950d09eff52cfada9130124210d30",
+    "pre_correction_health_log_sha256": "455ca5601b58deb56647df6673b4df23fac259655bbaf2d7e85dae27ce9dabeb",
+    "pre_correction_rearm_status_sha256": "ca6985eec686509c6a66428b253595fa7537f807c657a8f1da424b661c6b340f",
+    "observed_health": "WARN_NO_PARSED_ITERATIONS",
+    "trainer_stderr_bytes": 0,
+    "protocol_state": "ARM_RUNNING_GUARDS_PASS",
+    "resource_isolation_violations": 0
+  },
+  "correction": {
+    "tool": "scripts/alpha_holdem/v5_health_watch.py",
+    "corrected_tool_sha256": "d248cf419b2230f5b866c5accbfa783d30265fc3704482cbe7882562d08a1661",
+    "change": "Admit h9_window_arm control/treatment to the existing reporting-only vhcatch token adapter; training logs, manifests, checkpoints and trainer are not rewritten.",
+    "test": "scripts/alpha_holdem/test_v5_health_watch_h8_compat.py",
+    "test_sha256": "4cf8cff3c08987530a76bf6b0eab7546eec841c47e1f0ad60bd8cf666f05988c",
+    "tests": "22/22 PASS including exact H9 identity fixture",
+    "recovery": "Stop only the four already-running H9-specific watcher processes, then invoke the unchanged canonical idempotent v5_rearm_watchers.ps1 so the full watcher set is recreated without duplicate H9 instances. Trainer remains untouched."
+  },
+  "unchanged": {
+    "behavior": true,
+    "trainer_pid": 49380,
+    "design_lock_sha256": "30071df4fa72ddf9c4244eace4e9ed4cbe8186d7e3c53d93fde0f2044687d81e",
+    "registered_gate": true,
+    "source_checkpoint": true,
+    "official_hands": 0,
+    "strength_authority": "NONE"
+  }
+}

@@ -96,3 +96,42 @@ EZ-GTO/
 
 # Playwright test results
 test-results/
+
+# Local agent state and disposable verification worktrees
+.claude/settings.local.json
+.claude/launch.json
+.claude/scheduled_tasks.lock
+.claude/worktrees/
+.test_tmp/
+agent-tools/
+
+# Local research archives and third-party/scratch workbenches
+data/archive/
+workbench/
+
+# Runtime coordination files
+*.lock
+
+# High-volume generated research evidence. Keep compact summaries, records, and
+# reproducible scripts in Git; preserve raw per-hand/per-state payloads locally.
+reports/_tmp_*/
+reports/**/*.jsonl
+reports/**/*.jsonl.gz
+reports/**/*.jsonl.partial
+reports/**/*.signal
+reports/**/*.err
+reports/**/manifest.json
+reports/h11_mirror_001_prepare_failed_wrong_out_20260715.json
+reports/v5_lrft_f8r1_preregistration_audit_b35078ee7ad2ab123d5f9b0770538793_20260723.json
+reports/v5_lrft_f8r4_preregistration_audit_165822f101c1da7589cb3a605d16abbc_20260723.json
+
+# Large local artifacts — keep out of git snapshots (AI-harness `git add -A`/`git status`
+# was hashing ~23GB repeatedly, stealing CPU from the trainer main loop; 2026-07-07)
+data/phase2/
+tmp/
+*.zip
+# Model checkpoints & caches accidentally under scripts/ (never commit weights)
+scripts/alpha_holdem/models/
+__pycache__/
+# Bulky historical eval dumps (summaries at eval_logs/ root are kept)
+eval_logs/path_b/

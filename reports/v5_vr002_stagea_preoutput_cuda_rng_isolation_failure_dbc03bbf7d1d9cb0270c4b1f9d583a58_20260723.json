@@ -1,0 +1,66 @@
+{
+  "schema_version": "v5.vr002.stagea_preoutput_failure.v1",
+  "recorded_at": "2026-07-23T11:17:00-04:00",
+  "status": "VR002_STAGEA_PREOUTPUT_CUDA_RNG_ISOLATION_ASSERT_FAILURE_NO_SCIENCE_NO_RERUN",
+  "identity_sha256": "dbc03bbf7d1d9cb0270c4b1f9d583a586b82c23a655de48a4fb2139ac00a3fb1",
+  "token": "dbc03bbf7d1d9cb0270c4b1f9d583a58",
+  "classification": "PREOUTPUT_CONTROL_PLANE_FAILURE",
+  "scientific_authority": "NONE",
+  "implementation_audit_sha256": "b4c8ce596bc935874a19d90c5f0018e11c36234f5da09cf13349f5ef4febfc42",
+  "frozen_implementation_sha256": {
+    "core": "63e600bf4e7dd447e514849f223dc160c5b4808ca716d173c22981ac7ff488ef",
+    "trainer": "868032be3c94f58915921acf0a95a7c6684469797a8c54cf5c1fffd94a4cf432",
+    "launcher": "77c2ccb9e596afd9c03d57040c816784f53638ff0c9ef586e14e9097d5d2490a",
+    "implementation_auditor": "40938dc3e87b7b852e10f0a19dceb261be83bad12100205c69a4d78912f84f22",
+    "window_auditor": "68c45035bedaa0b1405c84535ad05d2a755da602d21780679968e4a147ecedf2"
+  },
+  "invocation": {
+    "mode": "StageA",
+    "launcher": "scripts/alpha_holdem/v5_vr002_launcher_dbc03bbf7d1d9cb0270c4b1f9d583a58.ps1",
+    "observed_exit_code": 1,
+    "observed_elapsed_seconds": 5.2
+  },
+  "failure": {
+    "exception": "RuntimeError",
+    "message": "Q operation changed global CUDA RNG state",
+    "call_chain": [
+      "trainer.main",
+      "qcore.make_q_critic_isolated",
+      "qcore.assert_torch_rng_states_equal"
+    ],
+    "root_cause": "torch.manual_seed(Q_INIT_SEED) seeded CPU and every CUDA generator, while fork_rng(devices=[]) restored only the CPU default generator."
+  },
+  "execution_census": {
+    "output_root": "models/alpha_holdem_v5_hybrid/v5_vr002_dbc03bbf7d1d9cb0270c4b1f9d583a58_20260723",
+    "directory_entries_below_root": 1,
+    "only_entry": "vrpo_stagea",
+    "files": 0,
+    "file_bytes": 0,
+    "checkpoint": 0,
+    "metrics_rows": 0,
+    "trace_rows": 0,
+    "provenance_rows": 0,
+    "manifest": 0,
+    "workers_started": 0,
+    "complete_training_hands": 0,
+    "scientific_rows": 0,
+    "network_calls": 0,
+    "slumbot_hands": 0
+  },
+  "runtime_progress": {
+    "source_actor_and_optimizer_loaded_on_gpu": true,
+    "pool_loaded": false,
+    "q_optimizer_created": false,
+    "shared_memory_created": false,
+    "worker_processes_created": false,
+    "behavior_changed": false
+  },
+  "governance": {
+    "never_repair_mutate_rerun_extend_or_reclassify_vr002": true,
+    "preserve_empty_output_root": true,
+    "quick5k_required": false,
+    "critic_hypothesis_falsified": false,
+    "critic_family_exhausted": false,
+    "one_fresh_same_science_correction_permitted": true
+  }
+}

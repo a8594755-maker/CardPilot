@@ -1,0 +1,34 @@
+{
+  "schema_version": "v5.hybrid.h13.prearm_infrastructure_incident.v1",
+  "incident_at": "2026-07-16T21:22:43.848934Z",
+  "classification": "H13_CONTROL_PERF_CAL_FAIL_CLOSED_TRANSIENT_PATH1_WORKER_TURNOVER_NO_ARM_LAUNCH",
+  "design_lock_sha256": "c65f998f32d10ee8f0b105abe684723dfcacedaa9de39b149c1efcfbde5ec1c4",
+  "preflight_sha256": "867ee60cb6c7ef0fac04b4f4387c8fb3864b7685feeb5751d2404fc94c26272f",
+  "failed_perf_cal": {
+    "preserved_path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h13_control_perf_cal_failed_path1_turnover_20260716_3f8544872f1dcf9c64bbbf7913f91829cd3f882c20754fb9cff1fc0e417bed9f.json",
+    "sha256": "3f8544872f1dcf9c64bbbf7913f91829cd3f882c20754fb9cff1fc0e417bed9f",
+    "overall": "FAIL_CLOSED",
+    "error": "Path-1 worker count 5 != 6"
+  },
+  "cause": "One existing coordinator-owned Path-1 worker completed or exited between the passing preflight and the instantaneous PERF-CAL provenance snapshot;the unchanged coordinator automatically replaced it.",
+  "recovery_evidence": {
+    "path1_coordinator_pid": 37656,
+    "configured_workers": 6,
+    "replacement_worker_pid": 39988,
+    "replacement_created_at_local": "2026-07-16T17:23:01-04:00",
+    "stable_worker_counts_over_three_checks": [6, 6, 6],
+    "path1_restart": false,
+    "path1_expansion": false,
+    "gpu_use": false
+  },
+  "h13_state": {
+    "active_window_activated": false,
+    "trainer_launched": false,
+    "training_progress_hands": 0,
+    "behavior_change": false,
+    "official_hands": 0
+  },
+  "disposition": "PRESERVE_FAILED_ARTIFACT_READ_ONLY_AND_RETRY_IDENTICAL_LOCKED_PREARM_PERF_CAL_AFTER_EXISTING_SIX_WORKER_STATE_IS_STABLE",
+  "changed_registration_or_gate": false,
+  "strength_claim": "FORBIDDEN"
+}

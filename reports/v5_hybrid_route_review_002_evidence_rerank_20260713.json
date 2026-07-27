@@ -1,0 +1,54 @@
+{
+  "behavior_launch_authorized": false,
+  "candidate_permissions_source": {
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_route_review_001_result_20260713.json",
+    "sha256": "ed533d0f22911b491b2873f2d75e587e17af6102e8cdf8228d210d448c3675f7"
+  },
+  "checked_at": "2026-07-13T09:08:00+00:00",
+  "classification": "PASS_CURRENT_EVIDENCE_RERANK_SELECT_H6_PREREGISTRATION_ONLY",
+  "evidence_matrix": {
+    "H3": {
+      "eligible_for_behavior_preregistration": false,
+      "evidence": [
+        "adapter_v2_terminal_artifact_sha256:2efe8fa27e0f43b81ac550c39d87dc4c9e6b77821eafc28b312330a0b7ae07c5",
+        "adapter_v3_terminal_artifact_sha256:c1c2aaa8f75ddf7d61aa097caf5f0d39fe6dfc58b157fdcf952b15fe6c48b715"
+      ],
+      "reason": "Path-1 states/actions are not deployment-executable in exact v5.5 under the frozen adapter gates; engineering-only permission remains."
+    },
+    "H4": {
+      "eligible_for_behavior_preregistration": false,
+      "evidence": [
+        "result_sha256:de60e08500d282f6a554dfda1d2bcb98667e035a8c078cb22900f946d3e40cb9",
+        "audit_sha256:c264268a1a8374a8ec3fe8cdfd6d3f3f11451f34e5f82339e287e17139349e7"
+      ],
+      "reason": "Terminal INCONCLUSIVE with authority NO_CANDIDATE_NO_LAUNCH under the immutable Holm rule."
+    },
+    "H5": {
+      "eligible_for_behavior_preregistration": false,
+      "evidence": [
+        "readiness_sha256:5512061eb5f3e2f15c282fc866339134a18c8c324a83b9e5f82e264392c07341"
+      ],
+      "reason": "FAIL_CLOSED_H5_PREREQUISITES_INCOMPLETE for exact200bb/full-HUNL legality,integration and latency."
+    },
+    "H6": {
+      "eligible_for_preregistration_draft": true,
+      "evidence": [
+        "readiness_sha256:8d0ce3dcf7b129cec092ca7d9bc61d80bc39214f9a393cd316b3dac2b1389b13",
+        "roadmap_sha256:692ce824a347157d618c407de3af357cbde11f54ca2ecbd5a67f6307dcf50bba"
+      ],
+      "reason": "Exact H2 control shows KL p95 0.035325 and147/1216 rows above the pre-existing0.03 threshold while the trainer lacks KL early-stop; this supports the smallest upstream single-variable same-start test."
+    }
+  },
+  "h1_h2_consecutive_no_progress": true,
+  "next": {
+    "candidate": "H6_KL_EARLY_STOP_ONLY",
+    "permission": "DRAFT_PREREGISTRATION_IMPLEMENT_VALIDATE_ONLY",
+    "required_design": "same-start controlled replay; target_kl=0.03 is the sole behavior variable; fixed endpoint and gates; no entropy schedule/value rescale bundled"
+  },
+  "official_hands_authorized": 0,
+  "overall": "PASS_ROUTE_REVIEW",
+  "route_exhausted": false,
+  "schema_version": "v5.hybrid.route_review_002.evidence_rerank.v1",
+  "selection_rule": "Eliminate candidates whose own frozen readiness/result withholds behavior-preregistration permission; among remaining candidates choose the smallest upstream single-variable mechanism with same-start evidence support.",
+  "strength_claim": "FORBIDDEN"
+}

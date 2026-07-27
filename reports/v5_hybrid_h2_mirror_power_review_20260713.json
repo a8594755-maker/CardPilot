@@ -1,0 +1,79 @@
+{
+  "schema_version": "v5.hybrid.h2.mirror_power_review.v1",
+  "experiment_id": "H2",
+  "status": "PASS_AMEND_BEFORE_REGISTRATION",
+  "scope": "prospective sample-size review only; no H2 result has been observed and no launch is authorized",
+  "reviewed_at": "2026-07-13T04:55:00+00:00",
+  "draft_binding": {
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_hybrid_h2_preregistration_draft_20260713.json",
+    "sha256": "b450ccb93de36c08fa064cc938693ef7c499942e6a7bfa080144997fe2ef5ca2",
+    "status": "DRAFT_NO_LAUNCH",
+    "original_pairs": 20000,
+    "noninferiority_margin_bb100": -20.0
+  },
+  "primary_precision_reference": {
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_from_zero\\v5_zero_l6_exp004_pre001_exp002_multienv_exp003_boundedk_r1_20260709\\v5_exp003_judgment_gate24900.json",
+    "sha256": "28d13411e0328ce4dcd871541ef87de003cad18181d498d428177a6609fec5e1",
+    "role": "pre_vs_native",
+    "pairs": 25000,
+    "ci95_halfwidth_bb100": 15.761442583779761,
+    "validity_scope": "valid native 25k-pair precision reference only; EXP-003 remains terminal INCONCLUSIVE and is not reopened"
+  },
+  "secondary_precision_context": {
+    "path": "C:\\Users\\a8594\\CardPilot\\reports\\v5_mirror_ood_recheck_20260709.json",
+    "sha256": "3fc93d25e6e556c864e96b7cd82fd4c98d554fbe8e2fade544ccd3e63d8b9377",
+    "rows": [
+      {
+        "label": "EXP-004 step-1",
+        "pairs": 5000,
+        "ci95_halfwidth_bb100": 17.548,
+        "use": "precision context only",
+        "effect_validity": "RETRO_SUSPECT_OOD; never used as effect evidence"
+      },
+      {
+        "label": "stable001 recovery",
+        "pairs": 10000,
+        "ci95_halfwidth_bb100": 9.513,
+        "use": "precision context only",
+        "effect_validity": "INVALID_OR_QUARANTINED; never used as effect evidence"
+      }
+    ]
+  },
+  "method": {
+    "scaling": "projected_halfwidth(n) = observed_halfwidth * sqrt(observed_pairs / n)",
+    "planning_null": "true treatment-control delta = 0 bb/100",
+    "approximate_pass_probability": "Normal approximation for P(estimated delta - projected halfwidth >= -20 | true delta=0)",
+    "limitation": "planning calculation only; the registered cluster bootstrap remains the judgment estimator"
+  },
+  "projections": [
+    {
+      "pairs": 20000,
+      "projected_ci95_halfwidth_bb100": 17.621828520395734,
+      "projected_standard_error_bb100": 8.990728836936599,
+      "approximate_noninferiority_pass_probability_at_true_zero": 0.6043079678925849,
+      "classification": "UNDERPOWERED_FOR_FIXED_WINDOW"
+    },
+    {
+      "pairs": 40000,
+      "projected_ci95_halfwidth_bb100": 12.46051444367833,
+      "projected_standard_error_bb100": 6.357405328407311,
+      "approximate_noninferiority_pass_probability_at_true_zero": 0.8821765141692877,
+      "classification": "ACCEPTABLE_FIXED_WINDOW"
+    }
+  ],
+  "decision": {
+    "action": "AMEND_FINAL_PREREGISTRATION_TO_40000_COMMON_DEAL_PAIRS",
+    "registered_pairs": 40000,
+    "seed": 2026071403,
+    "noninferiority_ci95_lower_bb100": -20.0,
+    "adaptive_extension_allowed": false,
+    "second_seed_allowed": false,
+    "later_checkpoint_substitution_allowed": false,
+    "reason": "20k was prospectively identified as underpowered before registration; 40k materially improves fixed-window power while retaining bounded cost"
+  },
+  "authority": {
+    "h2_launch": "NONE",
+    "official_slumbot_hands": 0,
+    "strength_claim": "FORBIDDEN"
+  }
+}

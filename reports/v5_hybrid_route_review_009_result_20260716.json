@@ -1,0 +1,134 @@
+{
+  "schema_version": "v5.hybrid.route_review.result.v9.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-009",
+  "checked_at": "2026-07-16T20:58:00Z",
+  "overall": "PASS_ROUTE_REVIEW",
+  "registration_sha256": "05d693e3162b16101fbf6a3c02cdfe4eb6691922c476df5b4082692c3244fa17",
+  "registration_audit_v2_sha256": "02a382abd29e1cd302654aa4156a4aaf269fc59183a08027053bff02fe916550",
+  "registration_audit": "PASS_39_OF_39",
+  "trigger_verified": true,
+  "evidence_matrix": {
+    "H11": {
+      "terminal": "H11_FAIL_PROTOCOL_ABORT_FIRST60_THROUGHPUT",
+      "clean_control_source_available": true,
+      "control_iteration": 35051,
+      "control_hands": 576021901,
+      "control_checkpoint_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+      "treatment_endpoint": false,
+      "method_effect_evidence": "NONE",
+      "throughput_diagnosis_sha256": "8e92b23f9d2984b1cbc2f83bf797f1a5962476e558064ebcda2c3b4d5261c6bd"
+    },
+    "H12": {
+      "terminal": "H12_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+      "judgment_sha256": "fbb927b2c37365325c4a72c4bce71e595d9bf2f66dfffa4edcd646d2f568d6dc",
+      "terminal_audit_sha256": "3eca05fd8c73227f143ea495e94df66d08f31668f6fd98b26482ec422d448eb3",
+      "control_training_progress_hands": 0,
+      "control_endpoint": false,
+      "treatment_launched": false,
+      "method_effect_evidence": "NONE",
+      "root_causes": [
+        "health watcher failed instead of waiting for not-yet-created startup log",
+        "protocol watcher misclassified exact identity-bound ordered-rearm supervisor",
+        "canonical rearm returned process exit0 despite survival_pass=false",
+        "launcher trusted rearm exit code without requiring survival_pass=true"
+      ]
+    },
+    "CAL_EXT_002": {
+      "terminal": "CAL_EXT_002_FAIL_CLOSED_UNEXPECTED_SELECTOR_PROMOTION_FAILURES",
+      "completion_sha256": "89baf334e35cf699b75f0845a3c1dea70335ddbe4ee81e219a15048dc4e9b9d7",
+      "completion_audit_sha256": "e5dc2487ce8c0e4d0712a79c3b1bde6f41d488ed857ad1504068a5cd0aafaba3",
+      "official_hands": 5000,
+      "bb_per_100": -146.17260000000002,
+      "ci95": [-238.59789051053525, -53.7473094894648],
+      "level": "L0",
+      "unexpected_promotion_failures": [
+        "selector_replay_played_postflop_aggression",
+        "selector_replay_greedy_postflop_aggression"
+      ],
+      "played_postflop_raise_allin_max": 0.8894444444444445,
+      "greedy_postflop_raise_allin_max": 0.8894444444444444,
+      "promotion_or_formal100k_authorized": false
+    },
+    "external_comparison": {
+      "cal_ext_001_h8_bb100": -207.1804,
+      "cal_ext_002_h11_bb100": -146.17260000000002,
+      "point_delta_bb100": 61.007799999999975,
+      "candidate_ci_and_baseline_ci_overlap": true,
+      "method_or_checkpoint_improvement_inference": "FORBIDDEN_UNPAIRED_WIDE_CI",
+      "latest_official_strength": "L0"
+    },
+    "research_review": {
+      "loss_inference_sha256": "36640298be3a5ed958d082b03104c589eb00c0a31d7f2e68eccbcc89c8736dab",
+      "research_review_sha256": "e9244236ec5a7861de9c2ac1fedbd5d45ad19085deff36dae23f05ed46e30acd",
+      "loss_evidence": "OBSERVATIONAL_ASSOCIATIONAL_ONLY",
+      "action_regret": "MISSING",
+      "action_specific_intervention": false,
+      "critic_reward_mechanism_supported": true,
+      "w1_permission": "IGNORED_W1_TERMINAL_CLOSED",
+      "official_missing_in_generic_review": "SCHEMA_ADAPTER_LIMITATION_SUPERSEDED_BY_CAL_COMPLETION_AUDIT_52_OF_52"
+    },
+    "alternatives": {
+      "W1": "TERMINAL_CLOSED_NEVER_REOPEN",
+      "EXP005_C": "TERMINAL_CLOSED_NEVER_REOPEN",
+      "action_specific_aggression_tuning": "FORBIDDEN_NO_COUNTERFACTUAL_REGRET",
+      "opponent_pool": "DEFERRED_H4_NO_FROZEN_CANDIDATE",
+      "cfr_distillation": "DEFERRED_PATH1_INCOMPLETE_AND_TRAINING_INELIGIBLE",
+      "play_time_resolving": "DEFERRED_H5_PREREQUISITES_INCOMPLETE"
+    },
+    "Path1": {
+      "coordinator_pid": 37656,
+      "workers": 6,
+      "priority": "BelowNormal",
+      "gpu": false,
+      "policy": "UNCHANGED_DIAGNOSTIC_ONLY_NO_TOUCH"
+    }
+  },
+  "decision": {
+    "selected_next": "H13_CLEAN_ROBUST_VALUE_HEAD_CATCHUP_AFTER_H12_CONTROL_PLANE_FIX",
+    "route_exhausted": false,
+    "source": {
+      "run_id": "v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715",
+      "checkpoint_path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715/h11_control_endpoint.pt",
+      "checkpoint_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+      "iteration": 35051,
+      "hands": 576021901,
+      "role": "CLEAN_MAIN_LINE_SOURCE_NOT_STRENGTH_CANDIDATE"
+    },
+    "single_variable": {
+      "name": "catchup_value_loss",
+      "control": "MSE",
+      "treatment": "SmoothL1 beta=1.0 raw critic-v1 bb unit",
+      "standard_ppo_critic_loss": "MSE_UNCHANGED"
+    },
+    "window": {
+      "fresh_same_start": true,
+      "control_hands": 20000000,
+      "treatment_hands": 20000000,
+      "sequential_control_then_treatment": true,
+      "no_extension": true,
+      "no_second_seed": true,
+      "no_later_endpoint": true,
+      "h11_h12_partial_reuse": "FORBIDDEN"
+    },
+    "scientific_gates": "UNCHANGED_FROM_H11_AND_H12",
+    "mandatory_prelaunch_control_plane_gate": [
+      "startup-log missing state is PENDING until frozen deadline",
+      "exact ordered-rearm supervisor identity is allowlisted without broad observer exemption",
+      "canonical rearm returns nonzero on survival_pass=false",
+      "launcher requires rearm exit0 and survival_pass=true",
+      "adversarial regression reproduces both H12 incident triggers before fix and passes after fix",
+      "implementation audit,preregistration,design lock,preflight and canonical rearm independently PASS"
+    ],
+    "rationale": "H11 and H12 are terminal but neither estimated the registered MSE-versus-SmoothL1 method effect. CAL-EXT-002 confirms severe external weakness and high postflop aggression only observationally;without action regret it cannot justify action-specific tuning. Critic/reward mechanism evidence remains the smallest upstream support,and the exact clean H11 control source remains available. Therefore one new H13 is selected only after all four H12 control-plane defects are prospectively repaired and adversarially tested."
+  },
+  "candidate_dispositions": {
+    "resume_h11_or_h12": "FORBIDDEN",
+    "declare_smoothl1_method_fail": "REJECTED_NO_METHOD_EFFECT_ESTIMATE",
+    "tune_postflop_aggression": "REJECTED_NO_COUNTERFACTUAL_ACTION_REGRET",
+    "reopen_w1_or_exp005c": "FORBIDDEN_TERMINAL",
+    "route_exhaustion": "FALSE_CLEAN_CRITIC_WINDOW_AND_OTHER_HYBRID_PREREQUISITES_REMAIN"
+  },
+  "behavior_launch_authorized": "NONE_UNTIL_H13_CONTROL_PLANE_REPAIR_IMPLEMENTATION_AUDIT_PREREGISTRATION_DESIGN_LOCK_PREFLIGHT_AND_CANONICAL_REARM_PASS",
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

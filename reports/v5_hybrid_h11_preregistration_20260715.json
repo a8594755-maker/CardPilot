@@ -1,0 +1,146 @@
+{
+  "schema_version": "v5.hybrid.h11.preregistration.v1",
+  "experiment_id": "H11",
+  "status": "REGISTERED_NO_LAUNCH",
+  "registered_at": "2026-07-15T07:52:00Z",
+  "route_review": {
+    "result_path": "reports/v5_hybrid_route_review_007_result_20260715.json",
+    "result_sha256": "e53d7e72a53317ce88501d12c877f96d4c1dc2ec7edcd497c786ef7524403c93",
+    "audit_sha256": "e24338f58f8eb434aefa406f81fcc3aed5146226c35d4fb9de5bc876b2165ff9",
+    "selected_next": "H11_CLEAN_RERUN_ROBUST_VALUE_HEAD_CATCHUP_AFTER_CONTROL_PLANE_GATE",
+    "route_exhausted": false
+  },
+  "hypothesis": "The H8 catch-up calibration failure may be caused by quadratic leverage from extreme clipped-return residuals. Replacing only catch-up MSE with canonical SmoothL1 beta1.0 will improve frozen-holdout calibration while preserving actor/trunk isolation, KL stopping and internal mirror performance. H9 and H10 supplied no treatment or method evidence because both terminated before a valid control endpoint; their partial outcomes are forbidden.",
+  "single_variable": {
+    "name": "catchup_value_loss",
+    "control": "MSE",
+    "treatment": "SmoothL1",
+    "treatment_beta_raw_bb": 1.0,
+    "standard_ppo_critic_loss_both_arms": "MSE",
+    "beta_selection": "unchanged canonical SmoothL1 default; no holdout,H9/H10 partial-outcome or CAL score search"
+  },
+  "source": {
+    "run_id": "v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714",
+    "checkpoint_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h8_treatment_kles003_vhcatch_same32617_20m_r1_20260714\\h8_treatment_endpoint.pt",
+    "checkpoint_sha256": "7c388ec68114d497f775157def3c0b3abc82db7ee25baf7e7cb7e9e916f66438",
+    "iteration": 33834,
+    "hands": 556011085,
+    "optimizer_preserved": true,
+    "role": "CONTROLLED_TRAINING_SOURCE_NOT_EXTERNAL_MODEL_CANDIDATE"
+  },
+  "forbidden_sources": [
+    {
+      "path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h9_control_catchmse_same33834_20m_r1_20260714/latest.pt",
+      "sha256": "ea4620ed0c9b73c5f4f6e9dc4429dd97af74ae5a4ee4e1df772cbd80a3aea80b",
+      "reason": "partial terminal H9 control"
+    },
+    {
+      "path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h10_control_catchmse_same33834_20m_r1_20260715/latest.pt",
+      "sha256": "a3d68a7aba28a8d640e9ff9037b74d450439cadb7fdb341d8ec4c343f84b8252",
+      "reason": "partial terminal H10 control"
+    },
+    {
+      "path": "models/bench_v55_cal_ext_001_h8_treatment_greedy_quick5k_20260715_checkpoint.pt",
+      "sha256": "7c388ec68114d497f775157def3c0b3abc82db7ee25baf7e7cb7e9e916f66438",
+      "reason": "benchmark copy is evidence-only;canonical H8 path required"
+    }
+  ],
+  "arms": {
+    "order": ["control", "treatment"],
+    "actual_hands_each": 20000000,
+    "minimum_endpoint_hands": 576011085,
+    "maximum_overshoot_hands": 50000,
+    "control_run_id": "v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715",
+    "treatment_run_id": "v5_hybrid_h11_treatment_catchsmoothl1b1_same33834_20m_r1_20260715",
+    "fresh_same_start": true,
+    "adaptive_extension": false,
+    "second_seed": false,
+    "later_endpoint": false,
+    "h9_or_h10_outcome_reuse": false
+  },
+  "frozen_common_config": {
+    "target_kl": 0.03,
+    "value_head_catchup_after_kl_stop": true,
+    "critic_contract": "critic_v1",
+    "value_coef": 0.5,
+    "ppo_epochs": 4,
+    "mini_batch_size": 1024,
+    "lr": 0.0003,
+    "gamma": 0.999,
+    "entropy_coef": 0.05,
+    "entropy_floor": 0.3,
+    "workers": 22,
+    "rollout_mode": "multi",
+    "rollout_envs_per_worker": 16,
+    "inference_min_batch_slots": 256,
+    "inference_batch_deadline_us": 1000,
+    "fixed_training_deal_stream": true,
+    "worker_seed_base": 73000,
+    "opponent_assignment": "per-iteration",
+    "pool_strategy": "loss-kbest",
+    "k_best": 5,
+    "self_play_fraction": 0.2,
+    "preflop_action_prior_coef": 0.01,
+    "postflop_action_prior_coef": 0.02,
+    "optimizer_reset": false
+  },
+  "resource_isolation": {
+    "evaluation_during_arm": "FORBIDDEN",
+    "slumbot_during_arm": "FORBIDDEN",
+    "mirror_or_calibration_during_arm": "FORBIDDEN",
+    "path1_existing_job": "MAY_CONTINUE_EXISTING_BELOWNORMAL_NO_RESTART_EXPANSION_OR_NEW_WORKERS",
+    "evaluation_start": "AFTER_BOTH_ENDPOINTS_FROZEN_PASS_AND_NO_TRAINER_ACTIVE",
+    "workspace_active_window_sentinel": "REQUIRED_BEFORE_CONTROL_LAUNCH_UNTIL_TERMINAL_WINDOW",
+    "parent_or_delegated_observer_commands": "FORBIDDEN_WHILE_EITHER_ARM_ACTIVE_INCLUDING_FILE_READ_HASH_PROCESS_LIST",
+    "allowed_project_processes": "EXACT_LOCKED_H11_LIFECYCLE_PLUS_EXISTING_PATH1_ONLY",
+    "full_trigger_provenance": ["pid", "parent_pid", "creation_time", "executable", "command_line", "command_line_sha256"],
+    "abort_terminalization": "MUST_SUPPORT_CONTROL_OR_TREATMENT_PROTOCOL_ABORT",
+    "violation_classification": "H11_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+    "planner_behavior": "MUST_FAIL_CLOSED_ON_ACTIVE_WINDOW_SENTINEL_AND_PRINT_NO_LAUNCH_COMMAND"
+  },
+  "offline_requirements": [
+    "H11 control MSE mode is bitwise equivalent to validated H10/H9/H8 catch-up implementation.",
+    "Forced-trigger SmoothL1 changes only value-head parameters and value-head optimizer state;actor/trunk,buffers,non-value optimizer and RNG remain exact.",
+    "SmoothL1 beta is exactly1.0 in raw critic-v1 bb units and applies only to catch-up minibatches.",
+    "H11 CLI/checkpoint identity is distinct and rejects H9/H10 partial checkpoints and the CAL benchmark-copy path.",
+    "Protocol tests preserve full trigger provenance and exact evaluator/Slumbot/mirror/project-process detection.",
+    "Active-window tests terminalize a valid protocol judgment from either control or treatment without requiring treatment activation.",
+    "No-observer active-arm contract is frozen in goal/handoff and launch tooling before control start.",
+    "Independent implementation audit,immutable design lock,preflight and canonical watcher rearm all pass before control launch."
+  ],
+  "gates": {
+    "endpoint_mse_primary_reduction_point_min": 0.075,
+    "endpoint_mse_primary_ci95_lower_min": 0.0,
+    "source_anchor_degradation_point_max": 0.05,
+    "source_anchor_degradation_ci95_upper_max": 0.10,
+    "kl_p95_max": 0.03,
+    "kl_fraction_above_0_03_max": 0.06044407894736842,
+    "early_stop_trigger_fraction_min": 0.05,
+    "first60_hps_ratio_min": 0.85,
+    "full_hps_ratio_min": 0.85,
+    "entropy_median_last200_min": 0.3,
+    "entropy_treatment_minus_control_min": -0.1,
+    "mirror_pairs": 40000,
+    "mirror_treatment_control_ci95_lower_min_bb100": -20.0,
+    "mirror_treatment_source_ci95_lower_min_bb100": -20.0
+  },
+  "judgment": {
+    "pass": "Every identity,isolation,robust-loss accounting,critic-MSE point+CI,source-anchor guard,KL,mirror,throughput,entropy and health gate passes.",
+    "fail": "A valid registered protocol abort other than observer ambiguity,a clearly adverse fixed-sample result,or any complete-window deterministic mandatory gate fails.",
+    "inconclusive": "A resource-isolation/provenance incident or valid fixed-sample statistical ambiguity;no extension allowed.",
+    "route_review_after_fail_or_inconclusive": true
+  },
+  "post_window_external_policy": {
+    "during_arms_official_hands": 0,
+    "method_pass_next": "exact H11 treatment endpoint greedy-direct quick5k",
+    "promotion20k": "ONLY_AFTER_NEW_ENDPOINT_QUICK5K_HAS_NO_SUPPORTED_CATASTROPHIC_REGRESSION_AND_ALL_QUALITY_GATES_PASS",
+    "formal100k": "ONLY_AFTER_EXACT_PROMOTION20K_STRONG_GATE"
+  },
+  "holdout": "reports/h1_cal_001_attempt2_20260712 FORBIDDEN_HOLDOUT_ONLY;never training or beta selection",
+  "authority": {
+    "implementation_and_control_plane": "AUTHORIZED_AUTONOMOUSLY",
+    "launch": "BLOCKED_UNTIL_IMPLEMENTATION_AUDIT_DESIGN_LOCK_PREFLIGHT_AND_CANONICAL_REARM_PASS",
+    "official_hands": 0,
+    "strength_claim": "FORBIDDEN"
+  }
+}

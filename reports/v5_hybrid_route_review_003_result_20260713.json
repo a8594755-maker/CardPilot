@@ -1,0 +1,60 @@
+{
+  "schema_version": "v5.hybrid.route_review.result.v3",
+  "design_id": "HYBRID-ROUTE-REVIEW-003",
+  "checked_at": "2026-07-13T09:50:00+00:00",
+  "overall": "PASS_ROUTE_REVIEW",
+  "registration_sha256": "e1e1dad8c44233527fbd2ebb65725748378b3d93bf6a482e848de393b6c68908",
+  "trigger_verified": true,
+  "h6_terminal_status": "FAIL_PROTOCOL_ABORT_NO_METHOD_JUDGMENT",
+  "h6_reclassification_forbidden": true,
+  "evidence": {
+    "registered_effective_hps": {
+      "control": 2239.1865727859677,
+      "treatment": 1147.971883117638,
+      "ratio": 0.5126736186566829,
+      "minimum": 0.85
+    },
+    "first60_log_decomposition_means": {
+      "control_hps": 5441.25,
+      "treatment_hps": 2638.5666666666666,
+      "hps_ratio": 0.4849192128034306,
+      "control_collect_seconds": 3.0816666666666666,
+      "treatment_collect_seconds": 6.483333333333333,
+      "collect_time_ratio": 2.103839913466739,
+      "control_ppo_seconds": 3.973333333333333,
+      "treatment_ppo_seconds": 7.3933333333333335,
+      "ppo_time_ratio": 1.8607382550335572,
+      "inference_batch_size_ratio": 1.0468853241318552
+    },
+    "h6_early_stop_triggers_first61": 1,
+    "h6_mean_epochs_completed_first61": 3.9508196721311477,
+    "asymmetric_workload": {
+      "control_historical_concurrent_h6_mirror": false,
+      "h6_treatment_concurrent_control_mirror": true,
+      "partial_mirror_rows": 6738,
+      "partial_mirror_sha256": "9cec4bf18e79c688e0b8e2c5315db576365a4da8cbeacc5cccea6f080d019c73",
+      "priority": "BelowNormal",
+      "inference": "Associational but prospectively correctable resource asymmetry; it cannot change H6 FAIL."
+    },
+    "implementation_audit": "PASS_BITWISE_DISABLED_AND_FORCED_TRIGGER",
+    "endpoint_efficacy": "UNMEASURED_BY_PROTOCOL"
+  },
+  "decision": {
+    "selected_next": "H7_FRESH_CONTEMPORANEOUS_AB_WITH_EVALUATIONS_DEFERRED",
+    "rationale": "H6 did not answer the KL method question. Its only early-stop trigger reduced completed update work, while both collection and PPO wall time nearly doubled and a CPU evaluator existed only beside treatment. The smallest valid repair is a new prospective A/B with fresh same-start control and treatment under identical no-evaluation trainer conditions, followed by frozen endpoint measurements.",
+    "requirements": [
+      "H6 remains terminal and is never extended or reclassified.",
+      "Fresh H7 control and treatment each run fixed20M from exact gate31400 with identical current code and resource contract.",
+      "No mirror, holdout inference, Path-1 QA expansion, or other evaluator may start while either H7 trainer arm is active.",
+      "All endpoint evaluations start only after both exact endpoints are frozen.",
+      "One behavior variable remains ppo_target_kl0 versus0.03; thresholds are frozen before launch.",
+      "First60 and full-window throughput compare only contemporaneous H7 arms.",
+      "No official Slumbot hands."
+    ]
+  },
+  "route_exhausted": false,
+  "route_exhaustion_reason": "KL method effect is unmeasured and multiple other HYBRID families remain available.",
+  "behavior_launch_authorized": "ONLY_AFTER_SEPARATE_H7_PREREGISTRATION_DESIGN_LOCK_PREFLIGHT_AND_CANONICAL_REARM_PASS",
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

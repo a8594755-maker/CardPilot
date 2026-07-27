@@ -1,0 +1,35 @@
+{
+  "schema_version": "v5.hybrid.route_review.preregistration.v21.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-021",
+  "registered_at": "2026-07-19T20:23:00Z",
+  "status": "REGISTERED_REPORTING_ONLY",
+  "trigger": {
+    "pcv009_classification": "PCV009_PASS_PHASE_AWARE_PATH1_IDENTITY_CONTRACT",
+    "pcv009_result_sha256": "76d6064dd64f06d0118e30f95689facaf6f6c63e63221e44a906deabf98f5852",
+    "pcv009_audit_sha256": "aa24783ac67d71d407ac76ea6939e53c8d007a3151ab4ffa59cf0c350896a46e"
+  },
+  "evidence_rules": {
+    "pcv008_remains_terminal_no_result_no_rerun_no_reconstruction": true,
+    "pcv009_is_control_plane_evidence_only": true,
+    "pcv009_must_pass_all_registered_identity_gates": true,
+    "a_future_measurement_must_use_a_new_design_id_seed_and_output": true,
+    "future_measurement_may_change_only_the_resource_identity_contract_relative_to_pcv008": true,
+    "pcv008_timing_values_must_not_be_recovered_or_ingested": true,
+    "h3_h4_h5_require_existing_immutable_completion_evidence": true,
+    "no_h19_or_official_hands": true
+  },
+  "candidate_order": [
+    "PCV010_NEW_REPORTING_ONLY_ORDER_BALANCED_GPU_TIMING_WITH_PHASE_AWARE_PATH1_IDENTITY",
+    "H3_CFR_BC_ONLY_IF_EXISTING_ASSET_AND_BRIDGE_COMPLETION_IS_IMMUTABLY_PASS",
+    "H4_OR_H5_ONLY_IF_EXISTING_PREREQUISITES_ARE_IMMUTABLY_PASS",
+    "ROUTE_EXHAUSTION_IF_NO_CAUSALLY_SUPPORTED_HYBRID_PREREQUISITE_REMAINS"
+  ],
+  "selection_rule": "SELECT_PCV010_IFF_PCV009_PASSES_ITS_FULL_INDEPENDENT_AUDIT,PCV008_FAILED_ONLY_AT_THE_SUPERSEDED_SOLVE_ONLY_RESOURCE_IDENTITY_PREDICATE_BEFORE_RESULT_WRITE,A_NEW_SEED_AND_OUTPUT_CAN_PRESERVE_THE_PCV008_ORDER_BALANCED_TIMING_DESIGN_WHILE_REPLACING_ONLY_THAT_PREDICATE_WITH_THE_PCV009_PHASE_AWARE_CONTRACT,AND_NO_OTHER_HYBRID_PREREQUISITE_HAS_NEW_IMMUTABLE_COMPLETION_EVIDENCE;OTHERWISE_SELECT_THE_COMPLETE_ALTERNATIVE_OR_ROUTE_EXHAUSTION",
+  "required_result_fields": [
+    "selected_next", "causal_reason", "route_exhausted", "behavior_launch_authority",
+    "pcv008_terminal_closure", "pcv010_novelty_requirements", "official_hands"
+  ],
+  "official_hands": 0,
+  "behavior_launch_authority": "NONE_REPORTING_ONLY",
+  "strength_claim": "FORBIDDEN"
+}

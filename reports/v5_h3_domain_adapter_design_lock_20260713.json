@@ -1,0 +1,100 @@
+{
+  "schema_version": "v5.hybrid.h3.domain_adapter.design_lock.v1",
+  "design_id": "H3-DOMAIN-ADAPTER-001",
+  "status": "LOCKED_OFFLINE_DESIGN_IMPLEMENTATION_PENDING",
+  "locked_at": "2026-07-13T06:04:00+00:00",
+  "authority": "standing DRIVE_TO_L5 campaign authorization; H3 engineering prerequisites only",
+  "purpose": "convert corrected Path-1 200bb SRP actor strategies into deterministic AlphaHoldem v5.5 actor-only supervision without misrepresenting synthetic states as deployment-reachable",
+  "frozen_evidence": {
+    "path1_successor_asset_lock_sha256": "ddc57ea13d9bd02cdc41f40832aa08b07b82b03267d1540b4745abb3b60174d4",
+    "path1_original_protocol_abort_audit_sha256": "db2fef9c70b44d3f7b0af437c9e68b5615451326e59dac393a1e1b9ab79096d5",
+    "phase0_action_bridge_sha256": "bfe8c59b14d7f7937804cb0ea4b78c79ace3f185182b7f989d2a87cc936144d7",
+    "phase1_bridge_report_sha256": "40440b0cdd875b08a3e052dbf8162cc7aa8399630156f00e935bf736c8ee500f",
+    "phase1_bridge_audit_sha256": "11d7286c6767f24ebf35403e27f7210acf3a6046cb62ac66484733734dc3b79a",
+    "converter_sha256": "692cd75f4b0e93537f4edb86a7df13c3332b92c01e14ad834869190bd7e975b4",
+    "environment_v55_sha256": "3ab591176a8119d21ac11e043bdfef72bd30b8842e34a9fea45cdd36b945f9de"
+  },
+  "input_contract": {
+    "asset_directory": "C:\\Users\\a8594\\CardPilot\\data\\cfr\\pipeline_v3_hu_srp_200bb_legalallin_v2",
+    "required_board_status": "QA_PASS_CONVERGENCE_AND_ZERO_ILLEGAL_POST_ALLIN_ROWS",
+    "quarantined_original_assets_forbidden": true,
+    "selection_seed": 20260712,
+    "selection_method": "isomorphism_multiplicity_weighted_texture_stratified_v1",
+    "representatives_per_bucket": 1,
+    "representative_selection": "seed-keyed deterministic and worker-order-independent",
+    "required_source_fields": [
+      "board_id",
+      "info_set_key",
+      "player",
+      "history_key",
+      "bucket_identity",
+      "hole_cards",
+      "board_cards",
+      "cfr_actions",
+      "cfr_probabilities",
+      "source_file_sha256",
+      "source_row_ordinal"
+    ]
+  },
+  "primary_adapter_contract": {
+    "entry_state": {
+      "pot_bb": 5.0,
+      "stacks_bb": [197.5, 197.5],
+      "full_game_stack_normalizer_bb": 200.0,
+      "synthetic_preflop_history": [
+        {"player": 1, "action": "RAISE_TO", "amount_bb": 2.5},
+        {"player": 0, "action": "CALL"}
+      ],
+      "deployment_reachable": false,
+      "required_provenance_label": "SYNTHETIC_PATH1_SRP_ENTRY_OOD_NOT_DEPLOYMENT_REACHABLE"
+    },
+    "observation_encoder": "exact scripts/alpha_holdem/environment_v55.py card_info/action_info/extra_info",
+    "legal_mask": "actual deployment v5.5 six-size cap999 mask at the reconstructed realised state",
+    "target_mapping": "fold->0; check/call->1; bet/raise mass coalesced to closest v5.5 pot-fraction slot2..7 by exact realised amount; all-in->8",
+    "target_mass_tolerance": 1e-9,
+    "unsupported_target_mass_tolerance": 0.0,
+    "critic_target": "FORBIDDEN_MISSING_REGISTERED_PATH1_VALUE_TARGET",
+    "actor_only": true
+  },
+  "reachability_sensitivity_contract": {
+    "purpose": "diagnostic transfer-risk measurement only",
+    "lower_reachable_neighbor": {"pot_bb": 4.0, "stacks_bb": [198.0, 198.0]},
+    "upper_reachable_neighbor": {"pot_bb": 6.0, "stacks_bb": [197.0, 197.0]},
+    "may_enter_h3_training": false,
+    "may_change_primary_teacher_target": false,
+    "future_training_use_requires_separate_preregistration": true
+  },
+  "offline_validation_gates": {
+    "first_corrected_board_smoke": {
+      "required_complete_boards": 1,
+      "all_rows_source_identity_bound": true,
+      "all_rows_deterministic_on_repeat": true,
+      "all_rows_required_ood_label": true,
+      "all_rows_tensor_shapes": {"card_info": [6, 4, 13], "action_info": [25, 4, 5], "extra_info": [2], "legal_mask": [9]},
+      "all_rows_target_mass_within_tolerance": true,
+      "all_rows_zero_unsupported_target_mass": true
+    },
+    "h3_preregistration_gate": {
+      "required_complete_qa_pass_boards": 600,
+      "all_source_and_output_manifests_identity_bound": true,
+      "texture_and_isomorphism_weight_coverage_report_required": true,
+      "duplicate_and_card_conflict_count": 0,
+      "missing_or_malformed_row_count": 0,
+      "critic_supervision_rows": 0,
+      "domain_transfer_risk_report_required": true
+    }
+  },
+  "fail_closed_rules": [
+    "never relabel the synthetic pot5 entry as v5.5 reachable",
+    "never ingest original quarantined Path-1 boards",
+    "never accept a QA-fail corrected board",
+    "never renormalize away unsupported target mass; fail the row and audit",
+    "never use reachable-neighbor diagnostics as training rows under this lock",
+    "never supervise the critic from Path-1 policy probabilities",
+    "never launch H3 behavior from this engineering lock"
+  ],
+  "h3_preregistration_authorized": false,
+  "behavior_launch_authorized": false,
+  "official_hands_authorized": 0,
+  "strength_claim": "FORBIDDEN"
+}

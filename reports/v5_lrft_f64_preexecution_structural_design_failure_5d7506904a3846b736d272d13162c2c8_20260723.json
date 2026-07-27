@@ -1,0 +1,79 @@
+{
+  "schema_version": "v5.lrft_f64.preexecution_structural_design_failure.v1",
+  "identity": "5d7506904a3846b736d272d13162c2c8c995e36fa6fefbdf88029027a60c8f6b",
+  "status": "LRFT_F64_PREEXECUTION_STRUCTURAL_DESIGN_FAILURE_NO_IMPLEMENTATION_NO_RERUN",
+  "classification": "SCIENTIFIC_DESIGN_CONTRADICTION_DISCOVERED_BEFORE_OUTPUT",
+  "frozen_authority": {
+    "agents_sha256_at_detection": "9ffd7afecd7ef07d7ffbd89ac1d8cea9392bb8ae0f3b9b113e69beba5d2cb51e",
+    "preregistration_sha256": "69f98d90d3b11db67240f2247e2639ed759d0f7254b03e7a726d4136e4c15fbf",
+    "preimplementation_audit_c1_sha256": "d568be9aaa8df0ef6af52bef377e4dff398b8db1bf05ce443271e931bd0f7dda",
+    "ledger_sha256_before_failure_entry": "a672c6f81ba4b99a7a8b80c8c0d8cb6abffed892f81aecea813dc14046597e3a"
+  },
+  "contradictions": [
+    {
+      "id": "F64-SD1-CANDIDATE-ESTIMAND-UNDEFINED",
+      "finding": "The registered root-average output defines a policy only for the selected source learner hole, while E0/E1 draw full joint deals and do not define candidate behavior for other actor holes.",
+      "consequence": "Held-out uplift and sampled-BR profiles are not unique probability laws.",
+      "required_future_resolution": "Separate source-hole-conditional value evaluation from full-joint sampled-BR evaluation and define a complete candidate root table with explicit H11 fallback."
+    },
+    {
+      "id": "F64-SD2-SBR-UTILITY-AND-MAPS-UNDEFINED",
+      "finding": "The registered sampled-BR-gap formula does not state that the two terms use player0 and player1 utility respectively and does not enumerate the H11/candidate by BR-player fit/eval maps.",
+      "consequence": "The second zero-sum term can have the wrong sign and the fit/eval workload cannot be reconstructed.",
+      "required_future_resolution": "Use E[u0(BR0,sigma1)]+E[u1(sigma0,BR1)], freeze four profile-player BR maps per selected profile, and score each only on its disjoint evaluation split."
+    },
+    {
+      "id": "F64-SD3-CENSUS-RNG-UNBOUND",
+      "finding": "The 262144-hand deck permutations, player policy uniforms, counter mapping and selection-hash namespace have no identity-bound seeds or exact conversion rule.",
+      "consequence": "The learner-reached root population and selected 64 roots are not reproducible.",
+      "required_future_resolution": "Freeze identity-derived SHA256 counter namespaces, unbiased deck shuffling, policy-uniform conversion and selection hashing before census."
+    },
+    {
+      "id": "F64-SD4-RESOURCE-WORK-NOT-IDENTIFIABLE",
+      "finding": "Evaluation roles are not enumerated and the registration omits exact upper counts for canonical census calls, likelihood calls, profile replays and two-player BR fit/eval.",
+      "consequence": "The mandated exact-work resource projection cannot be independently audited.",
+      "required_future_resolution": "Freeze a role table and exact upper formulas/counts for every model call, traversal, continuation and serialized record."
+    },
+    {
+      "id": "F64-SD5-CANONICAL-PROBABILITY-MATH-AMBIGUOUS",
+      "finding": "The registration says legal-mask softmax and CPU-float64 log probability but does not define whether float32 softmax or float64 logits-logsumexp is authoritative or how the sampling CDF is formed.",
+      "consequence": "Root generation and history likelihood can again implement numerically different behavior policies, repeating the I00 failure mechanism.",
+      "required_future_resolution": "Freeze one logits-to-probability-to-CDF routine, runtime versions and final-CDF rule used by both generation and likelihood."
+    },
+    {
+      "id": "F64-SD6-ROOT-AVERAGE-STREAM-AMBIGUOUS",
+      "finding": "The registered Hajek root average does not identify which of the two independent traverser samples updates the acting player's root table.",
+      "consequence": "Snapshot policy identity is not unique.",
+      "required_future_resolution": "Use only the root actor's own traversal draw and require equality to an independently recomputed visit-sampled reference."
+    }
+  ],
+  "why_preimplementation_audit_pass_does_not_save_design": "The C1 audit checked registered text predicates and hashes. It did not independently instantiate the estimands, role table or exact probability laws. The later red-team review is stronger contradictory evidence and freezes the registration before implementation.",
+  "observed_absence": {
+    "runner_path_exists": false,
+    "implementation_auditor_path_exists": false,
+    "output_root_exists": false,
+    "resource_admission_rows": 0,
+    "census_hands": 0,
+    "selected_roots": 0,
+    "belief_rows": 0,
+    "solver_traversals": 0,
+    "leaf_outcomes": 0,
+    "teacher_rows": 0,
+    "checkpoints": 0,
+    "model_or_network_calls": 0,
+    "slumbot_hands": 0,
+    "official_hands": 0
+  },
+  "judgment": {
+    "never": [
+      "implement",
+      "repair",
+      "execute",
+      "reclassify as control-plane failure",
+      "infer teacher feasibility or infeasibility",
+      "infer route exhaustion"
+    ],
+    "scientific_authority": "It proves only that this exact F64 registration is undefined and cannot be executed.",
+    "route_effect": "The exact-V5.5 teacher family remains open. Re-rank within the family to a materially revised F64R1 registration that uniquely fixes all six contradictions before implementation."
+  }
+}

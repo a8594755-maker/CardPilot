@@ -1,24 +1,49 @@
 // In-memory regret and strategy storage for CFR+
 // Uses Float32Array for memory efficiency and GC-friendliness.
 
+// A single V8 Map caps at ~16.7M (2^24) entries. Deep (200bb) trees exceed this
+// per board, so we shard each store across SHARD_COUNT Maps keyed by a hash of the
+// info-set key. Behaviour is otherwise identical (same keys → same arrays).
+const SHARD_COUNT = 16; // must be a power of two
+const SHARD_MASK = SHARD_COUNT - 1;
+
+/** djb2 string hash, masked to the shard count. */
+function shardIndex(key: string): number {
+  let h = 5381;
+  for (let i = 0; i < key.length; i++) {
+    h = (h * 33) ^ key.charCodeAt(i);
+  }
+  return (h >>> 0) & SHARD_MASK;
+}
+
 export class InfoSetStore {
   // regretSum[infoSetKey] = Float32Array of cumulative regrets per action
   // strategySum[infoSetKey] = Float32Array of cumulative strategy weights
-  private regrets = new Map<string, Float32Array>();
-  private strategies = new Map<string, Float32Array>();
+  // Sharded across SHARD_COUNT Maps to bypass the 16.7M single-Map limit.
+  private regretShards: Array<Map<string, Float32Array>> = Array.from(
+    { length: SHARD_COUNT },
+    () => new Map<string, Float32Array>(),
+  );
+  private strategyShards: Array<Map<string, Float32Array>> = Array.from(
+    { length: SHARD_COUNT },
+    () => new Map<string, Float32Array>(),
+  );
 
   get size(): number {
-    return this.regrets.size;
+    let n = 0;
+    for (const shard of this.regretShards) n += shard.size;
+    return n;
   }
 
   /**
    * Get or create regret array for this info-set.
    */
   getRegret(key: string, numActions: number): Float32Array {
-    let arr = this.regrets.get(key);
+    const shard = this.regretShards[shardIndex(key)];
+    let arr = shard.get(key);
     if (!arr) {
       arr = new Float32Array(numActions);
-      this.regrets.set(key, arr);
+      shard.set(key, arr);
     }
     return arr;
   }
@@ -27,10 +52,11 @@ export class InfoSetStore {
    * Get or create strategy-sum array for this info-set.
    */
   getStrategySum(key: string, numActions: number): Float32Array {
-    let arr = this.strategies.get(key);
+    const shard = this.strategyShards[shardIndex(key)];
+    let arr = shard.get(key);
     if (!arr) {
       arr = new Float32Array(numActions);
-      this.strategies.set(key, arr);
+      shard.set(key, arr);
     }
     return arr;
   }
@@ -143,13 +169,15 @@ export class InfoSetStore {
     numActions: number;
     averageStrategy: Float32Array;
   }> {
-    for (const [key, stratSum] of this.strategies) {
-      const numActions = stratSum.length;
-      yield {
-        key,
-        numActions,
-        averageStrategy: this.getAverageStrategy(key, numActions),
-      };
+    for (const shard of this.strategyShards) {
+      for (const [key, stratSum] of shard) {
+        const numActions = stratSum.length;
+        yield {
+          key,
+          numActions,
+          averageStrategy: this.getAverageStrategy(key, numActions),
+        };
+      }
     }
   }
 
@@ -158,14 +186,14 @@ export class InfoSetStore {
    */
   estimateMemoryBytes(): number {
     let bytes = 0;
-    for (const arr of this.regrets.values()) {
-      bytes += arr.byteLength;
+    for (const shard of this.regretShards) {
+      for (const arr of shard.values()) bytes += arr.byteLength;
     }
-    for (const arr of this.strategies.values()) {
-      bytes += arr.byteLength;
+    for (const shard of this.strategyShards) {
+      for (const arr of shard.values()) bytes += arr.byteLength;
     }
     // Rough overhead for Map entries and string keys
-    bytes += this.regrets.size * 100;
+    bytes += this.size * 100;
     return bytes;
   }
 }

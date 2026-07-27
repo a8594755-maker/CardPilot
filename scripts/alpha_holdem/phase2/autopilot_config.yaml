@@ -1,0 +1,294 @@
+version: 1
+
+project:
+  name: "CardPilot Phase 2 — Population PPO with KL-to-anchor"
+  goal: "general strong 200bb HUNL poker agent"
+  slumbot_is_milestone: true
+
+current:
+  champion_reference: "models/bc/v3_anchor_5M_d1_light/best.pt"
+  failed_run: "models/ppo/rl1_5M_run1"
+  diagnosis: "value_head_cold_start"
+  active_stage_hint: "bootstrap"
+
+budgets:
+  max_hands_without_user: 5000000
+  max_runtime_hours_without_user: 8
+  max_autonomous_experiments: 3
+  slumbot_proxy_mix_cap: 0.05
+
+# Pre-approved runway. Activate only after autopilot smoke passes.
+# When `active: true`, the autopilot may execute stages that otherwise
+# would be ASK_USER, up to the budget here. Each completed run-stage with
+# category=experiment counts against experiments_used.
+runway:
+  active: false
+  approved_at: null
+  approved_until: null
+  experiments_budget: 3
+  experiments_used: 0
+  max_hands_per_experiment: 5000000
+  max_runtime_hours_per_experiment: 8
+  goal: "Find whether value-head warmup fixes the RL-1 failure and whether a warm-critic RL run can match or improve BC anchor without collapse."
+  not_allowed:
+    - action_abstraction_change
+    - environment_reward_observation_change
+    - proxy_mix_above_5_percent
+    - artifact_deletion_or_overwrite
+    - champion_promotion
+    - claim_level2_or_above
+    - run_above_5M_hands
+
+must_ask_user:
+  - env_change
+  - action_abstraction_change
+  - reward_change
+  - observation_change
+  - proxy_mix_above_5_percent
+  - champion_promotion
+  - delete_artifacts
+  - run_above_5M
+  - claim_level2_or_above
+  - code_change_to_trainer
+
+# Hard-stop gates evaluated against a stage's metrics_file after a run.
+# A triggered hard stop forces decision=STOP regardless of pass gates.
+hard_stops:
+  - id: fold_collapse
+    field: "extra.final_action_mix.0"
+    op: ">"
+    threshold: 0.92
+    reason: "fold rate > 92% — policy collapsed to fold"
+  - id: preflop_allin_collapse
+    field: "extra.final_action_mix.8"
+    op: ">"
+    threshold: 0.15
+    reason: "all-in rate > 15% — over-aggressive"
+  - id: anchor_kl_blowup
+    field: "extra.final_anchor_kl"
+    op: ">"
+    threshold: 5
+    reason: "anchor_kl > 5 — policy drifted too far from anchor"
+  - id: slumbot_below_floor
+    field: "slumbot_bb100"
+    op: "<"
+    threshold: -68
+    reason: "Slumbot bb/100 below fold floor (-68)"
+
+# Stages are evaluated by id. The state machine starts at `bootstrap` and
+# advances to next_pass / next_fail based on gate evaluation results.
+#
+# Stage kinds:
+#   - decision_only: no command; returns the configured decision and
+#     optionally advances to `next`.
+#   - command: shell command; gates evaluated from `metrics_file` after run.
+#
+# Gate operator suffixes on `pass` map dict keys:
+#   key_lt   → field < threshold
+#   key_gt   → field > threshold
+#   key_lte  → field <= threshold
+#   key_gte  → field >= threshold
+#   key_eq   → field == threshold
+stages:
+  - id: bootstrap
+    description: "Initial state. Explains current project status, then advances to first diagnostic."
+    decision_only: true
+    decision: CONTINUE
+    next: rl1_per_position_analysis
+
+  - id: rl1_per_position_analysis
+    description: "Per-opponent SB/BB and per-street action-mix diff: RL-1 5M vs BC anchor."
+    command: "python scripts/alpha_holdem/phase2/compare_rl1_vs_bc.py"
+    expected_runtime_minutes: 1
+    category: diagnostic
+    pass:
+      report_file_exists: "reports/rl1_vs_bc_diff.md"
+    pass_next: rl1_history_analysis
+    fail_next: ask_user_diagnostic_failed
+
+  - id: rl1_history_analysis
+    description: "Iteration-by-iteration value_loss / KL / mix evolution from RL-1 history.json."
+    command: "python scripts/alpha_holdem/phase2/analyze_rl1_history.py"
+    expected_runtime_minutes: 1
+    category: diagnostic
+    pass:
+      report_file_exists: "reports/rl1_5M_history_analysis.md"
+    pass_next: value_warmup_smoke
+    fail_next: ask_user_diagnostic_failed
+
+  - id: value_warmup_smoke
+    description: "Value-head warmup smoke. Freeze policy_head, train trunk+value_head on 20k self-play hands with KL preservation."
+    command: >-
+      python scripts/alpha_holdem/phase2/train_value_warmup.py
+      --anchor-ckpt models/bc/v3_anchor_5M_d1_light/best.pt
+      --rollout-hands 20000 --num-envs 256 --epochs 60
+      --minibatch-size 1024 --lr 5e-4
+      --mode value_plus_trunk --policy-kl-coef 30.0
+      --out models/ppo/warm_critic_autopilot_smoke
+    expected_runtime_minutes: 5
+    estimated_hands: 20000
+    category: smoke
+    metrics_file: "models/ppo/warm_critic_autopilot_smoke/report.json"
+    pass:
+      final_value_loss_lt: 50
+      final_policy_kl_drift_lt: 0.2
+      policy_head_unchanged_eq: true
+    pass_next: wire_warmup_ckpt_into_ppo
+    fail_next: investigate_warmup_failure
+
+  - id: wire_warmup_ckpt_into_ppo
+    description: "Add --warmup-ckpt support to train_population_ppo.py so it can load value_head + trunk from the warmup smoke output."
+    decision_only: true
+    decision: ASK_USER
+    reason: "Code change to train_population_ppo.py is required (must_ask_user.code_change_to_trainer). Once wired, autopilot can run warm_critic_ppo_smoke under the runway."
+    next: warm_critic_ppo_smoke
+
+  - id: warm_critic_ppo_smoke
+    description: "Warm-critic PPO smoke at 500k hands. Verifies that warmed critic prevents the RL-1 cold-start collapse."
+    command: >-
+      python scripts/alpha_holdem/phase2/train_population_ppo.py
+      --anchor-ckpt models/bc/v3_anchor_5M_d1_light/best.pt
+      --warmup-ckpt models/ppo/warm_critic_autopilot_smoke/warmup.pt
+      --opponent-mix "self=0.10,heuristic_v3=0.175,heuristic_v2=0.05,heuristic_v3_1=0.05,scripted_aggro=0.175,scripted_station=0.10,scripted_jammer=0.10,proxy:models/proxy/slumbot_public_v2/best.pt=0.05,pathb10m=0.05,v4_final=0.05,fold=0.034,call=0.033,random=0.033"
+      --rollout-steps 256 --num-envs 256 --ppo-epochs 2 --minibatch-size 1024
+      --lr 3e-5 --entropy-coef 0.01 --anchor-kl-coef 0.05 --target-kl 0.03
+      --eps-clip 0.2 --value-coef 0.5 --max-grad-norm 1.0
+      --gamma 0.999 --gae-lambda 0.95
+      --total-hands 500000 --hands-per-iter 50000
+      --checkpoint-at "250000,500000"
+      --out models/ppo/warm_critic_500k_smoke
+    expected_runtime_minutes: 180
+    estimated_hands: 500000
+    category: smoke
+    metrics_file: "models/ppo/warm_critic_500k_smoke/manifest.json"
+    requires_runway: true
+    pass:
+      "extra.final_action_mix.0_lt": 0.92
+      "extra.final_action_mix.8_lt": 0.15
+      "extra.hard_stop_reason_eq": null
+    pass_next: internal_eval_warm_critic
+    fail_next: diagnose_warm_critic_failure
+
+  - id: internal_eval_warm_critic
+    description: "Internal eval matrix on warm-critic checkpoint (8 opponents, 20.4k hands each, no Slumbot)."
+    command: >-
+      python scripts/alpha_holdem/phase2/eval_matrix.py
+      --candidates models/ppo/warm_critic_500k_smoke/final.pt
+      --opponents fold call random heuristic_v3 scripted_aggro scripted_station scripted_jammer pathb10m
+      --hands-quick 20400 --seed 42
+      --out reports/phase2/warm_critic_500k_eval
+    expected_runtime_minutes: 30
+    category: eval
+    metrics_file: "reports/phase2/warm_critic_500k_eval/matrix.json"
+    pass:
+      report_file_exists: "reports/phase2/warm_critic_500k_eval/report.md"
+    pass_next: ask_user_for_rl2_5M
+    fail_next: ask_user_eval_failed
+
+  - id: ask_user_for_rl2_5M
+    description: "Warm-critic chain complete. Full RL-2 5M training requires user approval (>5M hands threshold)."
+    decision_only: true
+    decision: ASK_USER
+    reason: "Full RL-2 5M would consume the 5M-hand-without-user budget and the 8-hour runtime budget. Even with the runway pre-approval, the third experiment must be confirmed because it is the promotion candidate."
+    next: warm_critic_1500k_scale
+
+  # ---- 2026-05-30: user approved Option A scale test (1.5M, NOT 5M).
+  # Same hyperparams as 500k smoke. Tighter trainer-side hard stops added.
+  - id: warm_critic_1500k_scale
+    description: "Warm-critic PPO scale test: 1.5M hands. Same lr/mix/anchor_kl as 500k. Verifies the +4 bb/100 vs BC trend holds when scaled."
+    command: >-
+      python scripts/alpha_holdem/phase2/train_population_ppo.py
+      --anchor-ckpt models/bc/v3_anchor_5M_d1_light/best.pt
+      --warmup-ckpt models/ppo/warm_critic_autopilot_smoke/warmup.pt
+      --opponent-mix "self=0.10,heuristic_v3=0.175,heuristic_v2=0.05,heuristic_v3_1=0.05,scripted_aggro=0.175,scripted_station=0.10,scripted_jammer=0.10,proxy:models/proxy/slumbot_public_v2/best.pt=0.05,pathb10m=0.05,v4_final=0.05,fold=0.034,call=0.033,random=0.033"
+      --rollout-steps 256 --num-envs 256 --ppo-epochs 2 --minibatch-size 1024
+      --lr 3e-5 --entropy-coef 0.01 --anchor-kl-coef 0.05 --target-kl 0.03
+      --eps-clip 0.2 --value-coef 0.5 --max-grad-norm 1.0
+      --gamma 0.999 --gae-lambda 0.95
+      --total-hands 1500000 --hands-per-iter 50000
+      --checkpoint-at "750000,1500000"
+      --out models/ppo/warm_critic_1500k_scale
+    expected_runtime_minutes: 480
+    estimated_hands: 1500000
+    category: experiment
+    requires_runway: true
+    metrics_file: "models/ppo/warm_critic_1500k_scale/manifest.json"
+    pass:
+      "extra.final_action_mix.0_lt": 0.92
+      "extra.final_action_mix.8_lt": 0.15
+      "extra.hard_stop_reason_eq": null
+    pass_next: warm_critic_1500k_internal_eval
+    fail_next: diagnose_warm_critic_1500k_failure
+
+  - id: warm_critic_1500k_internal_eval
+    description: "Internal eval matrix on 1.5M warm-critic ckpt vs 8 opponents."
+    command: >-
+      python scripts/alpha_holdem/phase2/eval_matrix.py
+      --candidates models/ppo/warm_critic_1500k_scale/final.pt
+      --opponents fold call random heuristic_v3 scripted_aggro scripted_station scripted_jammer pathb10m
+      --hands-quick 20400 --seed 42
+      --out reports/phase2/warm_critic_1500k_eval
+    expected_runtime_minutes: 30
+    category: eval
+    metrics_file: "reports/phase2/warm_critic_1500k_eval/matrix.json"
+    pass:
+      report_file_exists: "reports/phase2/warm_critic_1500k_eval/report.md"
+    pass_next: warm_critic_1500k_slumbot_bench
+    fail_next: ask_user_eval_failed
+
+  - id: warm_critic_1500k_slumbot_bench
+    description: "Slumbot 20.4k bench on 1.5M warm-critic ckpt. The critical gate for deciding whether 5M is worthwhile."
+    command: >-
+      python scripts/alpha_holdem/phase2/eval_matrix.py
+      --candidates models/ppo/warm_critic_1500k_scale/final.pt
+      --opponents slumbot
+      --hands-quick 20400 --seed 42
+      --out reports/phase2/warm_critic_1500k_slumbot
+    expected_runtime_minutes: 90
+    category: eval
+    pass:
+      report_file_exists: "reports/phase2/warm_critic_1500k_slumbot/report.md"
+    pass_next: ask_user_for_rl2_after_scale
+    fail_next: ask_user_slumbot_bench_failed
+
+  - id: ask_user_for_rl2_after_scale
+    description: "1.5M scale test complete. Decision rule (per user 2026-05-30): if 2M improves or ties BC vs Slumbot within CI AND keeps internal gains → ask for full 5M approval. If loses Slumbot badly or collapses action mix → diagnose, do not continue. If mixed → report position/street breakdown."
+    decision_only: true
+    decision: ASK_USER
+    reason: "1.5M warm-critic scale test + benches complete. Per the user's decision rule, the next step (full RL-2 5M or diagnostic deep-dive) depends on the Slumbot result and internal-gain persistence. Awaiting user direction."
+
+  - id: diagnose_warm_critic_1500k_failure
+    description: "1.5M warm-critic scale test failed pass gates or hit a hard stop."
+    decision_only: true
+    decision: ASK_USER
+    reason: "1.5M scale test failed gates or hit a hard stop. Per the user's decision rule: do not continue; diagnose. Needs human triage."
+
+  - id: ask_user_slumbot_bench_failed
+    description: "Slumbot bench did not produce expected report (API issue or timeout)."
+    decision_only: true
+    decision: ASK_USER
+    reason: "Slumbot bench did not produce the expected report file. Needs human inspection of the bench logs."
+
+  - id: investigate_warmup_failure
+    description: "Value-head warmup smoke failed pass gates. Human inspection required to choose remediation."
+    decision_only: true
+    decision: ASK_USER
+    reason: "Warmup smoke gates failed. Possible causes: insufficient epochs, KL coefficient too high, returns distribution issue. Needs human triage."
+
+  - id: diagnose_warm_critic_failure
+    description: "Warm-critic PPO smoke failed pass gates or hit a hard stop."
+    decision_only: true
+    decision: ASK_USER
+    reason: "Warm-critic 500k smoke failed. Possible causes: warmup didn't transfer, hyperparams need tuning, deeper architectural issue."
+
+  - id: ask_user_diagnostic_failed
+    description: "A diagnostic stage produced unexpected results."
+    decision_only: true
+    decision: ASK_USER
+    reason: "Diagnostic gate failed — file not produced or unreadable. Needs human inspection."
+
+  - id: ask_user_eval_failed
+    description: "Internal eval did not produce expected report."
+    decision_only: true
+    decision: ASK_USER
+    reason: "eval_matrix.py did not produce the expected report file. Needs human inspection."

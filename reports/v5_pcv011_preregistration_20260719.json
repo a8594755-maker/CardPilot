@@ -1,0 +1,109 @@
+{
+  "schema_version": "v5.pcv011.preregistration.v1",
+  "design_id": "PCV011",
+  "registered_at": "2026-07-19T21:52:00Z",
+  "status": "REGISTERED_REPORTING_ONLY_NO_TRAINER",
+  "route_review": {
+    "result_sha256": "fd6447e423a1311454291eb010ef9df4e882484b61ea21b89438a4aea067380b",
+    "audit_sha256": "6e110af8707fb5226dbcc1408e007c6bc63f681b0fba1ff3eeca5a2a3d46ba6f",
+    "selected_next": "PCV011_NEW_REPORTING_ONLY_THERMAL_STEADY_STATE_GPU_TIMING_REPLICATION"
+  },
+  "source": {
+    "path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_endpoint.pt",
+    "sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "iteration": 35051,
+    "hands": 576021901
+  },
+  "novel_identity": {
+    "transition_seed": 2026071987,
+    "update_seed": 2026971987,
+    "conditioning_seed_base": 2027971987,
+    "output": "reports/v5_pcv011_result_20260719.json",
+    "pcv010_measurement_input": "FORBIDDEN"
+  },
+  "preserved_measurement": {
+    "rows": 4096,
+    "mini_batch_size": 1024,
+    "ppo_epochs": 4,
+    "target_kl": 1e-12,
+    "old_log_prob_offset": 10.0,
+    "timer": "torch.cuda.Event_with_synchronize",
+    "blocks": 8,
+    "warmup_updates_per_mode_per_block": 2,
+    "timed_updates_per_mode_per_block": 12,
+    "order_sequence": [
+      "MSE_FIRST", "SMOOTH_L1_FIRST", "SMOOTH_L1_FIRST", "MSE_FIRST",
+      "SMOOTH_L1_FIRST", "MSE_FIRST", "MSE_FIRST", "SMOOTH_L1_FIRST"
+    ],
+    "same_seed_within_block_and_update_index": true,
+    "device_telemetry_before_after_each_block": true,
+    "order_associated_threshold": "ABS_LOG_ORDER_EFFECT_GE_LOG_1P01_FOR_EITHER_MODE",
+    "device_excursion_threshold": "TEMPERATURE_RANGE_GE_5C_OR_SM_CLOCK_RANGE_GE_100MHZ_OR_POWER_RANGE_GE_30W",
+    "mse_stability_reference": 0.9443019963767163,
+    "mse_stability_target": 0.95
+  },
+  "sole_control_plane_correction": {
+    "name": "BOUNDED_PREMEASUREMENT_THERMAL_STEADY_STATE_CONDITIONING",
+    "workload": "ALTERNATING_MSE_AND_SMOOTH_L1_FULL_PPO_UPDATES_ON_THE_SAME_NEW_TRANSITIONS",
+    "minimum_seconds": 60,
+    "maximum_seconds": 180,
+    "telemetry_interval_seconds": 5,
+    "steady_samples": 4,
+    "steady_envelope": {
+      "temperature_range_c_max": 3.0,
+      "sm_clock_range_mhz_max": 100.0,
+      "memory_clock_range_mhz_max": 100.0,
+      "power_range_w_max": 30.0,
+      "single_pstate": true,
+      "single_gpu_uuid": true
+    },
+    "stop_rule": "AFTER_MINIMUM_SECONDS_STOP_AT_FIRST_FOUR_SAMPLE_WINDOW_PASS_OTHERWISE_FAIL_CLOSED_AT_MAXIMUM_SECONDS",
+    "gpu_clock_override": false,
+    "measurement_semantics_changed": false
+  },
+  "resource_contract": {
+    "phase_aware_snapshot_before_and_after_conditioning": true,
+    "phase_aware_snapshot_before_and_after_each_block": true,
+    "coordinator_pid": 23720,
+    "coordinator_create_time": 1784302339.7041352,
+    "coordinator_command_sha256": "efaf227352c6620b4f12dd5f06ac67d98d834feb11384b167170618dc1cf9e99",
+    "configured_logical_loops": 6,
+    "allowed_roles": ["SOLVE_WORKER", "QA_200BB_BOARD", "CONHOST_IGNORED"],
+    "active_work_min": 1,
+    "active_work_max": 6,
+    "node_priority": "BelowNormal",
+    "descendant_gpu_pid_matches": 0
+  },
+  "completion_gates": {
+    "source_identity": true,
+    "new_seed_and_output_identity": true,
+    "conditioning_envelope_pass_before_measurement": true,
+    "exact_measurement_shape": true,
+    "all_updates_forced_shape": true,
+    "all_timing_finite_positive": true,
+    "all_device_telemetry_complete": true,
+    "all_phase_aware_resource_snapshots_pass": true,
+    "path1_mutation": false,
+    "gpu_clock_override": false,
+    "trainer_started": false,
+    "checkpoint_written": false,
+    "official_hands": 0
+  },
+  "interpretation": {
+    "pass": "MEASUREMENT_COMPLETE_ROUTE_REVIEW023_ONLY",
+    "conditioning_fail": "PCV011_FAIL_CLOSED_STEADY_STATE_ENVELOPE_NO_MEASUREMENT",
+    "measurement_fail": "PCV011_FAIL_CLOSED_ROUTE_REVIEW023_ONLY",
+    "supported": "STEADY_STATE_ASSOCIATION_SUPPORTED_IFF_CONDITIONING_AND_MEASUREMENT_ENVELOPES_PASS_AND_MSE_STABILITY_GE_0_95",
+    "not_supported": "STEADY_STATE_DID_NOT_RECOVER_STABILITY_IFF_CONDITIONING_AND_MEASUREMENT_ENVELOPES_PASS_AND_MSE_STABILITY_LT_0_95",
+    "unresolved": "IN_MEASUREMENT_DEVICE_EXCURSION_PERSISTS_IFF_CONDITIONING_PASSES_BUT_MEASUREMENT_EXCURSION_THRESHOLD_IS_CROSSED",
+    "causal_method_behavior_or_strength_inference": "FORBIDDEN",
+    "automatic_h19_launch": false
+  },
+  "resource_policy": {
+    "path1": "READ_ONLY_NO_SIGNAL_NO_RESTART_NO_REPAIR_NO_EXPANSION",
+    "gpu": "SHORT_REPORTING_ONLY_SAFE_NO_TRAINER_BOUNDARY_NO_CLOCK_OVERRIDE",
+    "trainer_evaluator_mirror_slumbot": "FORBIDDEN"
+  },
+  "official_hands": 0,
+  "behavior_launch_authority": "NONE"
+}

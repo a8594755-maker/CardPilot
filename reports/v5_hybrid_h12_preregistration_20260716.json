@@ -1,0 +1,195 @@
+{
+  "schema_version": "v5.hybrid.h12.preregistration.v1",
+  "experiment_id": "H12",
+  "status": "REGISTERED_NO_LAUNCH",
+  "registered_at": "2026-07-16T19:36:00Z",
+  "route_review": {
+    "result_path": "reports/v5_hybrid_route_review_008_result_20260716.json",
+    "result_sha256": "f118c73e4721a2c06731798aaf63fc4762dd63d513c97fa5fa6674f959a1bffe",
+    "audit_path": "reports/v5_hybrid_route_review_008_audit_20260716.json",
+    "audit_sha256": "042f5247367e17e5656d6be4334cf12d47ea7a907233d076765a80088935832e",
+    "selected_next": "H12_RESOURCE_MATCHED_ROBUST_VALUE_HEAD_CATCHUP_AFTER_PERF_CAL_AND_CONTROL_PLANE_REPAIR",
+    "route_exhausted": false
+  },
+  "hypothesis": "H11 correctly failed its throughput protocol but supplied no SmoothL1 method-effect estimate: its approximately 0.69 paired ratio was also present on rows with zero catch-up epochs, while isolated value-head loss work was non-inferior. After prospectively repairing endpoint-health and dependency-order control-plane defects and requiring resource-matched pre-arm calibration, replacing only catch-up MSE with SmoothL1 beta1.0 may improve frozen endpoint calibration while preserving actor/trunk isolation, KL stopping, throughput and mirror performance.",
+  "single_variable": {
+    "name": "catchup_value_loss",
+    "control": "MSE",
+    "treatment": "SmoothL1",
+    "treatment_beta_raw_bb": 1.0,
+    "standard_ppo_critic_loss_both_arms": "MSE",
+    "beta_selection": "unchanged canonical SmoothL1 default; no holdout,H11 partial-outcome,CAL or official-score search"
+  },
+  "source": {
+    "run_id": "v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715",
+    "checkpoint_path": "C:\\Users\\a8594\\CardPilot\\models\\alpha_holdem_v5_hybrid\\v5_hybrid_h11_control_catchmse_same33834_20m_r1_20260715\\h11_control_endpoint.pt",
+    "checkpoint_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "iteration": 35051,
+    "hands": 576021901,
+    "optimizer_preserved": true,
+    "role": "CONTROLLED_TRAINING_SOURCE_NOT_EXTERNAL_MODEL_CANDIDATE"
+  },
+  "forbidden_sources": [
+    {
+      "path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h11_treatment_catchsmoothl1b1_same33834_20m_r1_20260715/latest.pt",
+      "sha256": "a428afda1e9f8aa29848992b52e186317c5188a5aba54c126a97cf11158b089d",
+      "reason": "partial terminal H11 treatment"
+    },
+    {
+      "path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h9_control_catchmse_same33834_20m_r1_20260714/latest.pt",
+      "sha256": "ea4620ed0c9b73c5f4f6e9dc4429dd97af74ae5a4ee4e1df772cbd80a3aea80b",
+      "reason": "partial terminal H9 control"
+    },
+    {
+      "path": "models/alpha_holdem_v5_hybrid/v5_hybrid_h10_control_catchmse_same33834_20m_r1_20260715/latest.pt",
+      "sha256": "a3d68a7aba28a8d640e9ff9037b74d450439cadb7fdb341d8ec4c343f84b8252",
+      "reason": "partial terminal H10 control"
+    },
+    {
+      "path": "models/bench_v55_cal_ext_001_h8_treatment_greedy_quick5k_20260715_checkpoint.pt",
+      "sha256": "7c388ec68114d497f775157def3c0b3abc82db7ee25baf7e7cb7e9e916f66438",
+      "reason": "benchmark copy is evidence-only; exact H11-control source path required"
+    }
+  ],
+  "arms": {
+    "order": ["control", "treatment"],
+    "actual_hands_each": 20000000,
+    "minimum_endpoint_hands": 596021901,
+    "maximum_overshoot_hands": 50000,
+    "control_run_id": "v5_hybrid_h12_control_catchmse_same35051_20m_r1_20260716",
+    "treatment_run_id": "v5_hybrid_h12_treatment_catchsmoothl1b1_same35051_20m_r1_20260716",
+    "fresh_same_start": true,
+    "adaptive_extension": false,
+    "second_seed": false,
+    "later_endpoint": false,
+    "h9_h10_h11_partial_outcome_reuse": false
+  },
+  "frozen_common_config": {
+    "target_kl": 0.03,
+    "value_head_catchup_after_kl_stop": true,
+    "critic_contract": "critic_v1",
+    "value_coef": 0.5,
+    "ppo_epochs": 4,
+    "mini_batch_size": 1024,
+    "lr": 0.0003,
+    "gamma": 0.999,
+    "entropy_coef": 0.05,
+    "entropy_floor": 0.3,
+    "workers": 22,
+    "rollout_mode": "multi",
+    "rollout_envs_per_worker": 16,
+    "inference_min_batch_slots": 256,
+    "inference_batch_deadline_us": 1000,
+    "fixed_training_deal_stream": true,
+    "worker_seed_base": 73000,
+    "opponent_assignment": "per-iteration",
+    "pool_strategy": "loss-kbest",
+    "k_best": 5,
+    "self_play_fraction": 0.2,
+    "preflop_action_prior_coef": 0.01,
+    "postflop_action_prior_coef": 0.02,
+    "optimizer_reset": false
+  },
+  "performance_calibration": {
+    "required_immediately_before_each_arm": true,
+    "tool_path": "scripts/alpha_holdem/v5_hybrid_h12_perf_cal.py",
+    "tool_sha256": "6cf85f048a3ad9d6775c3b85b3db6010b0f320b350ac831771b6da3d9aa99daa",
+    "audit_tool_path": "scripts/alpha_holdem/v5_hybrid_h12_perf_cal_audit.py",
+    "audit_tool_sha256": "534c9ae233fc5cfafb849efd5085ed52173788ff8d599857fade9fda9c85437a",
+    "source_sha256": "96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13",
+    "seed": 2026071601,
+    "batch_size": 1024,
+    "warmup_steps": 10,
+    "timed_steps": 40,
+    "repeats": 3,
+    "device": "cuda",
+    "work": "value_head_only_forward_backward_optimizer",
+    "order": "alternating_mse_smoothl1",
+    "loss_throughput_ratio_min": 0.95,
+    "treatment_common_mse_control_baseline_ratio_min": 0.95,
+    "control_artifact": "reports/v5_hybrid_h12_control_perf_cal_20260716.json",
+    "control_audit_artifact": "reports/v5_hybrid_h12_control_perf_cal_audit_20260716.json",
+    "treatment_artifact": "reports/v5_hybrid_h12_treatment_perf_cal_20260716.json",
+    "treatment_audit_artifact": "reports/v5_hybrid_h12_treatment_perf_cal_audit_20260716.json",
+    "offline_smoke_path": "reports/v5_hybrid_h12_perf_cal_offline_smoke_20260716.json",
+    "offline_smoke_sha256": "245c2ac84f0570252571d36c753a9d5822ec85dc53f980283013277b1b66525a",
+    "offline_audit_path": "reports/v5_hybrid_h12_perf_cal_offline_smoke_audit_v2_20260716.json",
+    "offline_audit_sha256": "9a7d85c0e9d1e6c20bcf71679cac27588c5ef22700dada91139e1d75d17c2fb7",
+    "offline_smoke_role": "IMPLEMENTATION_READINESS_ONLY_NOT_ARM_GATE",
+    "failure_action": "FAIL_CLOSED_NO_ARM_LAUNCH"
+  },
+  "control_plane": {
+    "health_producer_path": "scripts/alpha_holdem/v5_hybrid_h12_health_watch.py",
+    "health_producer_sha256": "4531d422c453fe8b2f22b82e7d25df687015533b7139312ac0ed493e892b6e8f",
+    "ordered_rearm_path": "scripts/alpha_holdem/v5_hybrid_h12_ordered_rearm.py",
+    "ordered_rearm_sha256": "24d1aef90397271f801d1384047d13472c336e2725afb4a13eaa5eb293201941",
+    "canonical_rearm_path": "scripts/alpha_holdem/v5_rearm_watchers.ps1",
+    "canonical_rearm_sha256": "e6ad4dfc6d014ab2ca511041e436c646d2c233aaf72ed059032935200b4a94ae",
+    "control_stage_order": [["health", "protocol"], ["endpoint"], ["treatment_launch", "completion"]],
+    "treatment_stage_order": [["health", "protocol"], ["endpoint"], ["completion"]],
+    "stale_mutable_status_policy": "PRESERVE_THEN_REMOVE_BEFORE_DEPENDENT_WATCHER_START",
+    "status_identity": "DESIGN_LOCK_SHA_AND_ARM_STATE_REQUIRED",
+    "unexpected_watcher_exit": "FAIL_CLOSED_AND_TERMINATE_ACTIVE_H12_TRAINER"
+  },
+  "resource_isolation": {
+    "evaluation_during_arm": "FORBIDDEN",
+    "slumbot_during_arm": "FORBIDDEN",
+    "mirror_or_calibration_during_arm": "FORBIDDEN_EXCEPT_EXACT_PRE_ARM_PERF_CAL_BEFORE_SENTINEL_OR_TRAINER",
+    "path1_existing_job": "MAY_CONTINUE_EXISTING_BELOWNORMAL_NO_RESTART_EXPANSION_OR_NEW_WORKERS",
+    "evaluation_start": "AFTER_BOTH_ENDPOINTS_FROZEN_PASS_AND_NO_TRAINER_ACTIVE",
+    "workspace_active_window_sentinel": "REQUIRED_BEFORE_CONTROL_LAUNCH_UNTIL_TERMINAL_WINDOW",
+    "parent_or_delegated_observer_commands": "FORBIDDEN_WHILE_EITHER_ARM_ACTIVE_INCLUDING_FILE_READ_HASH_PROCESS_LIST",
+    "allowed_project_processes": "EXACT_LOCKED_H12_LIFECYCLE_PLUS_EXISTING_PATH1_ONLY",
+    "full_trigger_provenance": ["pid", "parent_pid", "creation_time", "executable", "command_line", "command_line_sha256"],
+    "abort_terminalization": "MUST_SUPPORT_CONTROL_OR_TREATMENT_PROTOCOL_ABORT",
+    "violation_classification": "H12_INCONCLUSIVE_RESOURCE_ISOLATION_VIOLATION",
+    "planner_behavior": "MUST_FAIL_CLOSED_ON_ACTIVE_WINDOW_SENTINEL_AND_PRINT_NO_LAUNCH_COMMAND"
+  },
+  "offline_requirements": [
+    "H12 control MSE mode is bitwise equivalent to validated H11 control behavior.",
+    "Forced-trigger SmoothL1 changes only value-head parameters and value-head optimizer state;actor/trunk,buffers,non-value optimizer and RNG remain exact.",
+    "SmoothL1 beta is exactly1.0 in raw critic-v1 bb units and applies only to catch-up minibatches.",
+    "H12 CLI/checkpoint identity is distinct and rejects H9/H10/H11 partial checkpoints and the CAL benchmark-copy path.",
+    "Exact pre-arm PERF-CAL and its independent audit PASS before creating the active sentinel or trainer.",
+    "Exact health producer and dependency-ordered rearm bind the immutable design lock and fail closed on watcher loss.",
+    "Independent implementation audit,immutable design lock,preflight and canonical watcher rearm all pass before control launch."
+  ],
+  "gates": {
+    "endpoint_mse_primary_reduction_point_min": 0.075,
+    "endpoint_mse_primary_ci95_lower_min": 0.0,
+    "source_anchor_degradation_point_max": 0.05,
+    "source_anchor_degradation_ci95_upper_max": 0.1,
+    "kl_p95_max": 0.03,
+    "kl_fraction_above_0_03_max": 0.06044407894736842,
+    "early_stop_trigger_fraction_min": 0.05,
+    "first60_hps_ratio_min": 0.85,
+    "full_hps_ratio_min": 0.85,
+    "entropy_median_last200_min": 0.3,
+    "entropy_treatment_minus_control_min": -0.1,
+    "mirror_pairs": 40000,
+    "mirror_treatment_control_ci95_lower_min_bb100": -20.0,
+    "mirror_treatment_source_ci95_lower_min_bb100": -20.0
+  },
+  "judgment": {
+    "pass": "Every identity,isolation,PERF-CAL,robust-loss accounting,critic-MSE point+CI,source-anchor guard,KL,mirror,throughput,entropy and health gate passes.",
+    "fail": "A valid registered protocol abort other than observer ambiguity,a clearly adverse fixed-sample result,or any complete-window deterministic mandatory gate fails.",
+    "inconclusive": "A resource-isolation/provenance incident or valid fixed-sample statistical ambiguity;no extension allowed.",
+    "route_review_after_fail_or_inconclusive": true
+  },
+  "post_window_external_policy": {
+    "during_arms_official_hands": 0,
+    "current_external_debt_hands": 20010816,
+    "expected_post_h12_debt_hands": 40010816,
+    "method_pass_next": "exact H12 treatment endpoint greedy-direct quick5k;may satisfy CAL-EXT-002",
+    "cal_ext_002_before_h13": "MANDATORY_REGARDLESS_OF_H12_VERDICT_UNLESS_EXACT_H12_PASS_QUICK5K_ALREADY_SATISFIES",
+    "promotion20k": "ONLY_AFTER_NEW_ENDPOINT_QUICK5K_HAS_NO_SUPPORTED_CATASTROPHIC_REGRESSION_AND_ALL_QUALITY_GATES_PASS",
+    "formal100k": "ONLY_AFTER_EXACT_PROMOTION20K_STRONG_GATE"
+  },
+  "holdout": "reports/h1_cal_001_attempt2_20260712 FORBIDDEN_HOLDOUT_ONLY;never training or beta selection",
+  "authority": {
+    "implementation_and_control_plane": "AUTHORIZED_AUTONOMOUSLY",
+    "launch": "BLOCKED_UNTIL_IMPLEMENTATION_AUDIT_DESIGN_LOCK_PREFLIGHT_EXACT_CONTROL_PERF_CAL_AND_CANONICAL_REARM_PASS",
+    "official_hands": 0,
+    "strength_claim": "FORBIDDEN"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": "v5.hybrid.route_review.result.v15.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-015",
+  "checked_at": "2026-07-19T16:47:00Z",
+  "overall": "PASS_ROUTE_REVIEW",
+  "registration_sha256": "b4d311fb730460207b7e4af6b54fac9b56a33867da17c57affaebe33d86f3060",
+  "registration_audit_sha256": "afcf679134eb728b58e07036ec0be78c0b2eb4331f953fdf2b758adce7bf8fa4",
+  "evidence_matrix": {
+    "h16": {"verdict":"FAIL","trainer_started":false,"method_inference":"NONE"},
+    "pcv005": {
+      "primary_verdict":"FAIL",
+      "huber_over_smooth_l1_ratio":0.9948549346900355,
+      "trigger_component":"PASS",
+      "equivalence_component":"PASS",
+      "original_smooth_l1_over_mse_ratio":1.008650302411051,
+      "original_smooth_l1_full_update_gate":"PASS",
+      "mse_stability_gate":"PASS"
+    },
+    "campaign":{"clean_h11_source_available":true,"latest_official_level":"L0","external_debt_hands":0,"path1":"UNCHANGED"}
+  },
+  "decision": {
+    "selected_next":"H17_CORRECTED_DETERMINISTIC_TRIGGER_SAME_SCIENCE_BASELINE_SMOOTHL1_KERNEL",
+    "reason":"PCV005_PRIMARY_HUBER_SPEED_GATE_FAILED_BUT_ITS_VALID_FROZEN_COMPONENTS_PROVE_OFFSET10_TRIGGER_STABILITY_AND_THE_ORIGINAL_SMOOTHL1_FULL_UPDATE_RATIO_1.00865_EXCEEDS_THE_0.85_ARM_FLOOR",
+    "adopt_huber":false,
+    "h17_science":"EXACT_H11_SOURCE_FRESH_FIXED20M_MSE_CONTROL_VS_ORIGINAL_SMOOTHL1_BETA1_TREATMENT",
+    "h17_prearm":"OFFSET10_DETERMINISTIC_TRIGGER;FULL_UPDATE_RATIO_AT_LEAST0.85;MSE_STABILITY_AT_LEAST0.95;IDENTITY_PASS",
+    "route_exhausted":false,
+    "authority":"SEPARATE_H17_PREREGISTRATION_ONLY"
+  },
+  "closures":{"h16_pcv005":"TERMINAL_NO_REOPEN","huber_candidate":"REJECTED_DO_NOT_ADOPT"},
+  "official_hands":0,
+  "strength_claim":"FORBIDDEN"
+}

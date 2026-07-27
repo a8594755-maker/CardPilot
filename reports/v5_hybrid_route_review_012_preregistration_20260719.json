@@ -1,0 +1,47 @@
+{
+  "schema_version": "v5.hybrid.route_review.preregistration.v12.v1",
+  "design_id": "HYBRID-ROUTE-REVIEW-012",
+  "registered_at": "2026-07-19T15:25:00Z",
+  "status": "REGISTERED_REPORTING_ONLY_NO_LAUNCH",
+  "trigger": {
+    "cpv003_result_sha256": "573ba096333e6166f3e7f7344353c1dab120ea4aea3b16072ac846fccd9d120d",
+    "cpv003_audit_sha256": "429276e4761d25c1314c85032cc57a2c409b2bae8496fa2345d3040b6b895421",
+    "cpv003_diagnosis_sha256": "7e23c5b31682807eb48bc49fcacf183805fd8a8c3a88d43939dac669f1083e16",
+    "cpv003_terminal": "CPV003_FAIL_REGISTERED_GATE",
+    "route_review_required": true
+  },
+  "frozen_truth": {
+    "cpv003_verdict": "TERMINAL_FAIL_CLOSED_NEVER_REOPEN_OR_RECLASSIFY",
+    "h12": "TERMINAL_INCONCLUSIVE_NEVER_REOPEN",
+    "h13": "TERMINAL_INCONCLUSIVE_NEVER_REOPEN",
+    "h14": "TERMINAL_INCONCLUSIVE_PARTIAL_FORBIDDEN_NEVER_REOPEN",
+    "clean_future_source": "H11_CONTROL_ITER35051_HANDS576021901_SHA96A007",
+    "official_strength": "L0",
+    "latest_official": "5000_GREEDY_DIRECT_-146.1726_CI_-238.5979_-53.7473",
+    "path1": "EXISTING_EXACT_ASSET_JOB_ONLY_NO_RESTART_NO_EXPANSION_NO_GPU_NO_TRAINING_INGESTION"
+  },
+  "estimand": "Select the smallest causally supported route after CPV003 terminally failed only its executed sequential-cleanup observation predicate.",
+  "candidate_order": [
+    "CPV004_CORRECTED_FINAL_CLEANUP_OBSERVATION_GATE",
+    "DIAG_ACTION_REGRET_HARNESS_PREREQUISITE",
+    "OPPONENT_POOL_OR_CFR_DISTILLATION_WHEN_ASSET_ELIGIBLE",
+    "ROUTE_EXHAUSTION_ESCALATION"
+  ],
+  "decision_rule": [
+    "Never reopen,reclassify or rerun CPV003 under its old registration.",
+    "If CPV003 passed every non-cleanup gate,had zero final tagged survivors in all20 cycles,and the only failure was counting not-yet-cleaned siblings in intermediate snapshots,select a separately registered CPV004.",
+    "CPV004 may change only the cleanup observation point:per-child snapshots remain diagnostic and the registered zero-survivor gate is evaluated once after the complete cleanup sequence.",
+    "CPV004 retains20 cycles,seed2026071903,five roles,readiness deadline,eight-field identity,four adversarial tokens,supervisor exit/PID reuse classifications,15-second cleanup deadline,injected readiness failure and all prohibitions.",
+    "Only terminal CPV004 PASS may permit a separate H15 preregistration;FAIL or INCONCLUSIVE requires Route Review013.",
+    "Do not launch trainer,evaluator,mirror,Slumbot or use GPU or official hands in Route Review012 or CPV004.",
+    "Select route exhaustion only if no prospectively correctable hybrid engineering prerequisite remains."
+  ],
+  "output_contract": {
+    "verdicts": ["PASS_ROUTE_REVIEW", "FAIL_CLOSED_ROUTE_REVIEW"],
+    "must_name_selected_next": true,
+    "must_state_route_exhausted": true,
+    "behavior_launch_authority": "NONE_REVIEW_ONLY",
+    "official_hands_authority": 0,
+    "strength_claim": "FORBIDDEN"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "schema_version": "v5.hybrid.h3.bridge_street_schema_correction.v1",
+  "corrected_at": "2026-07-13T06:44:30+00:00",
+  "overall": "PASS_CORRECTED_BEFORE_FIRST_BOARD_TRIGGER",
+  "defect": "the v2 bridge exporter's strict source audit and the optional strict QA utility accepted only R-prefixed keys even though the solver's frozen format contains F, T and R info-set keys",
+  "evidence_sha256": "3110bbec4b3416274b6d5b92c9ee36f2d6d0ef47695f2a38ff782083bd9586d1",
+  "impact": {
+    "qa_pass_boards_before_correction": 0,
+    "smoke_runs_started": 0,
+    "bridge_or_adapter_rows_generated": 0,
+    "h3_behavior_or_official_hands_affected": false
+  },
+  "corrections": {
+    "bridge_exporter": {
+      "old_sha256": "f66412ee1282f4719b5d1ca74fa091646851ce1a2196b3fd6a4126f37677bd13",
+      "new_sha256": "e58dc2e5f6aad140368ed10d52654fd06b73058a53db0bd980200414579c548c",
+      "test_sha256": "80e56df91832ada5676efd85a3af0bc5a6ef8c55da6cd680c5da8a9dcbb98234",
+      "tests": "PASS_6_OF_6_EXPORTER_PLUS_3_OF_3_ACTION_MAPPING",
+      "key_contract": "F_OR_T_OR_R_PREFIX_ONLY"
+    },
+    "strict_qa_utility": {
+      "new_sha256": "8551ccb0977dd4d050f15c5cd0fc142279f54b3e64bc199f8d4ee0c9bdf5e3fe",
+      "test_sha256": "68f43e90e38c0bec15a99944cfe29fefe4ba30673b14e5e7c8d53c6d4003fdb6",
+      "tests": "PASS_4_OF_4"
+    },
+    "smoke_supervisor": {
+      "old_pid": 41060,
+      "new_pid": 11124,
+      "new_sha256": "0785587fbc005078bf9ded6783574ccfa6033aac7b36d3f4596d45606c8f0d08",
+      "tests": "PASS_13_OF_13",
+      "state": "WAITING_FIRST_QA_PASS_BOARD",
+      "stderr_bytes": 0
+    }
+  },
+  "design_lock_v2_sha256": "cab56df24be190a8486b4036a73ce4a028062e186e01764083f5c9f2f4f4088a",
+  "design_lock_changed": false,
+  "reason_lock_unchanged": "v2 requires strict identity/QA but does not freeze an R-only key prefix; F/T/R is the solver's existing source schema",
+  "trainer_touched": false,
+  "path1_solver_touched": false,
+  "gpu_touched": false,
+  "h3_preregistration_authorized": false,
+  "behavior_launch_authorized": false,
+  "official_hands_authorized": 0
+}

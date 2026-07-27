@@ -1,0 +1,48 @@
+{
+  "schema_version": "v5.hybrid.h14.control_plane_repair.v1",
+  "checked_at": "2026-07-17T16:28:00Z",
+  "overall": "PASS_PROSPECTIVE_REPAIR_NO_LAUNCH",
+  "authority": {
+    "route_review_result_sha256": "1c4ad93ce51350bb38374a81d7c1f5d53c70ea1f9f3b7400933f434f7268b3a7",
+    "route_review_audit_sha256": "401e7f5044b32d1d545317bde1e49eeadf611e505374e40f7c04b3175c96aac6",
+    "h14_preregistration_sha256": "822b0de748eea8fa360cfdf64b09677fd159cb01179e3cd8620e6527b70fa35d",
+    "h14_preregistration_audit_sha256": "5c5850ef39f918a42d68b93074283bef336c9b51bca8158d66ca7628bec33659",
+    "h13_incident_sha256": "cad2d325faad44b12604f7b8d930408dc80716cf10aaa2c1c30430b80346172d",
+    "h13_terminal_audit_sha256": "e061add072023f8a474780fe6300bea12988d18d7f0150c0d334086b564a9fb5"
+  },
+  "root_cause": "H13 protocol watcher allowed the exact ordered-rearm supervisor but omitted the exact health-watcher child that supervisor launched",
+  "repair": {
+    "scope": "H14_ONLY_PROSPECTIVE_CONTROL_PLANE",
+    "mutable_registry": "h14_lifecycle_allow_registry.json",
+    "registry_writer": "v5_hybrid_h14_ordered_rearm.py",
+    "registry_reader": "v5_hybrid_h14_protocol_watch.py",
+    "exact_roles": ["health", "protocol", "endpoint", "treatment_launch", "completion"],
+    "entry_binding": ["pid", "parent_pid", "script_sha256", "command_line_sha256", "design_lock_sha256"],
+    "publication_order": "planned command entry before spawn;exact PID entry immediately after spawn",
+    "planned_entry_deadline_seconds": 5.0,
+    "script_hash_must_match_design_lock_tools": true,
+    "broad_process_class_allowlist": false,
+    "unregistered_sibling_or_command_mismatch": "FAIL_CLOSED_FULL_PROVENANCE",
+    "startup_log_pending_deadline_seconds": 180,
+    "canonical_rearm_nonzero_on_survival_fail": true,
+    "launcher_requires_exit_zero_and_survival_true": true,
+    "dead_parent_python_spawn_preflight": "MUST_BE_ZERO",
+    "path1_preflight": "PID23720_EXACTLY_SIX_BELOWNORMAL_CPU_WORKERS"
+  },
+  "implementation": {
+    "protocol_watch_sha256": "2de7bf43bff434c31ce68106de0031e0d2ae8002148cee5feadbecd56681c79d",
+    "ordered_rearm_sha256": "2fc84a624a7020284b73f10468d2eba8c9782257993d1f91e054e4990d8a32e8",
+    "canonical_rearm_sha256": "a42ea13fa00e863f09fb8a47b2a53be40efb61366076131b5ec9b3ef77ed5887",
+    "trainer_sha256": "ed49c6e4678c58feb02c2c61b697e9a970f7062cab4513f89123e8cef858bb0c",
+    "adversarial_test_sha256": "6e95454b950068e68b810d4bf6f881252bad32de0250f4dea5b0c68832304347",
+    "implementation_audit_sha256": "3050ae523e97e9b3b038a16c4bfe8494f0c2dde1731e91036d8ba3d5d84569e3",
+    "implementation_audit": "PASS_H14_IMPLEMENTATION_23_OF_23",
+    "focused_exact_role_tests": "PASS_25_OF_25",
+    "all_prelock_h14_tests_excluding_lock_dependent_judge_contract": "PASS_36_OF_36"
+  },
+  "scientific_behavior_change": false,
+  "h13_disposition": "TERMINAL_UNCHANGED_NEVER_REOPEN",
+  "launch_authority": "NONE_REPAIR_REQUIRES_INDEPENDENT_AUDIT_DESIGN_LOCK_PREFLIGHT_PERF_CAL_REARM",
+  "official_hands": 0,
+  "strength_claim": "FORBIDDEN"
+}
