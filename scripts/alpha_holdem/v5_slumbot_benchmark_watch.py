@@ -101,6 +101,8 @@ def plan_args(args: argparse.Namespace) -> argparse.Namespace:
         no_require_quality_gate=args.no_require_quality_gate,
         max_health_age_seconds=args.max_health_age_seconds,
         no_health_age_check=args.no_health_age_check,
+        terminal_endpoint_status_json=args.terminal_endpoint_status_json,
+        terminal_protocol_status_json=args.terminal_protocol_status_json,
         policy_mode=args.policy_mode,
         temperature=args.temperature,
         guarded_allin_max_spr=args.guarded_allin_max_spr,
@@ -476,7 +478,8 @@ def run_benchmark_direct(args: argparse.Namespace, plan: dict[str, Any], frozen_
         line = f"{now_iso()} {message}"
         print(line, flush=True)
         direct_log.parent.mkdir(parents=True, exist_ok=True)
-        direct_log.open("a", encoding="utf-8").write(line + "\n")
+        with direct_log.open("a", encoding="utf-8") as handle:
+            handle.write(line + "\n")
 
     started = time.time()
     sessions: list[dict[str, Any]] = []
@@ -520,6 +523,11 @@ def run_benchmark_direct(args: argparse.Namespace, plan: dict[str, Any], frozen_
             }
         )
         log_direct(f"session {index} started pid={proc.pid} priority={priority.get('status')} result={paths['result_json']}")
+        if not args.no_direct_low_priority and priority.get("status") != "PASS":
+            failures.append(
+                f"session {index} BelowNormal priority setup failed: {priority}"
+            )
+            break
 
     if failures:
         terminate_sessions(sessions)
@@ -605,8 +613,20 @@ def run_benchmark_direct(args: argparse.Namespace, plan: dict[str, Any], frozen_
         run_dir = str(plan.get("run_dir") or args.run_dir or "")
         if run_dir:
             promotion_cmd.extend(["--run-dir", run_dir])
+        if args.terminal_endpoint_status_json:
+            promotion_cmd.extend(["--terminal-endpoint-status-json", args.terminal_endpoint_status_json])
+        if args.terminal_protocol_status_json:
+            promotion_cmd.extend(["--terminal-protocol-status-json", args.terminal_protocol_status_json])
         derived["promotion_gate"] = run_capture(promotion_cmd, promotion_txt)
-        if derived["promotion_gate"]["returncode"] != 0 or not promotion_json.exists() or not promotion_md.exists():
+        promotion_summary = load_json(promotion_json) if promotion_json.exists() else None
+        accepted, acceptance_detail = promotion_gate_artifact_acceptable(
+            str(plan.get("stage") or args.stage),
+            derived["promotion_gate"]["returncode"],
+            promotion_summary,
+        )
+        derived["promotion_gate"]["artifact_accepted"] = accepted
+        derived["promotion_gate"]["acceptance_detail"] = acceptance_detail
+        if not accepted or not promotion_json.exists() or not promotion_md.exists():
             failures.append("promotion gate failed or missing")
 
     if not failures:
@@ -697,6 +717,26 @@ def run_benchmark(args: argparse.Namespace, plan: dict[str, Any], frozen_checkpo
     return run_benchmark_direct(args, plan, frozen_checkpoint)
 
 
+def promotion_gate_artifact_acceptable(
+    stage: str,
+    returncode: int,
+    summary: dict[str, Any] | None,
+) -> tuple[bool, str]:
+    """Separate quick-screen artifact validity from a deliberately failed promotion gate."""
+    if summary is None:
+        return False, "promotion summary missing or unreadable"
+    failed = {
+        str(item.get("name"))
+        for item in (summary.get("checks") or [])
+        if item.get("status") == "FAIL"
+    }
+    if returncode == 0 and not failed:
+        return True, "promotion audit PASS"
+    if stage == "quick5k" and failed == {"promotion_hands"}:
+        return True, "quick5k promotion_hands block is expected; metadata/artifacts PASS"
+    return False, f"unexpected promotion audit failures={sorted(failed)} returncode={returncode}"
+
+
 def benchmark_policy_summary(args: argparse.Namespace) -> dict[str, Any]:
     return {
         "policy_mode": args.policy_mode,
@@ -722,6 +762,8 @@ def run_preflight(args: argparse.Namespace, plan: dict[str, Any], frozen_checkpo
         out_dir=str(preflight_dir),
         out_json="",
         out_md="",
+        terminal_endpoint_status_json=args.terminal_endpoint_status_json,
+        terminal_protocol_status_json=args.terminal_protocol_status_json,
     )
     summary = build_preflight(preflight_args)
     write_json(preflight_json, summary)
@@ -841,6 +883,10 @@ def rerun_promotion_gate_with_selector(
     run_dir = str(plan.get("run_dir") or args.run_dir or "")
     if run_dir:
         cmd.extend(["--run-dir", run_dir])
+    if args.terminal_endpoint_status_json:
+        cmd.extend(["--terminal-endpoint-status-json", args.terminal_endpoint_status_json])
+    if args.terminal_protocol_status_json:
+        cmd.extend(["--terminal-protocol-status-json", args.terminal_protocol_status_json])
 
     started = time.time()
     proc = subprocess.run(
@@ -854,8 +900,11 @@ def rerun_promotion_gate_with_selector(
         check=False,
     )
     summary = load_json(promotion_json) if promotion_json.exists() else None
+    accepted, acceptance_detail = promotion_gate_artifact_acceptable(
+        str(plan.get("stage") or args.stage), proc.returncode, summary
+    )
     return {
-        "status": "PASS" if summary is not None else "FAIL",
+        "status": "PASS" if accepted else "FAIL",
         "promotion_gate_returncode": proc.returncode,
         "promotion_gate_overall": (summary or {}).get("overall"),
         "selector_replay_clean": ((summary or {}).get("decisions") or {}).get("selector_replay_clean"),
@@ -864,6 +913,7 @@ def rerun_promotion_gate_with_selector(
         "promotion_json": str(promotion_json),
         "promotion_md": str(promotion_md),
         "summary": summary,
+        "acceptance_detail": acceptance_detail,
         "output_tail": proc.stdout[-4000:],
         "checked_at": now_iso(),
     }
@@ -1011,6 +1061,8 @@ def main() -> int:
     parser.add_argument("--no-require-quality-gate", action="store_true", help="Allow promotion/formal planning even when scorecard quality gate is WARN/FAIL.")
     parser.add_argument("--max-health-age-seconds", type=int, default=600)
     parser.add_argument("--no-health-age-check", action="store_true")
+    parser.add_argument("--terminal-endpoint-status-json", default="", help="Fail-closed frozen endpoint PASS evidence for a finished run.")
+    parser.add_argument("--terminal-protocol-status-json", default="", help="Matching finished protocol PASS evidence for a finished run.")
     parser.add_argument("--sleep-seconds", type=float, default=300.0)
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--dry-run", action="store_true", help="Do not launch even if READY.")

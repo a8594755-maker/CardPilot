@@ -59,6 +59,8 @@ def join_names(names: list[str]) -> str:
 def evidence_target_note(internal: dict[str, Any]) -> str:
     if internal.get("state") == "NOT_SCHEDULED":
         return " No scheduled internal probe for this target."
+    if internal.get("state") == "QUARANTINED_TARGET_CHECKPOINT_MISMATCH":
+        return " Target-named internal probe artifact is quarantined local-only because its embedded checkpoint does not match the gate target."
     return ""
 
 
@@ -72,6 +74,46 @@ def target_from_gate_name(path: Path) -> int | None:
         return int(name[len(prefix) : -len(suffix)])
     except ValueError:
         return None
+
+
+def strict_identity_int(value: Any) -> int | None:
+    """Accept only unambiguous positive integer identity fields."""
+
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value if value > 0 else None
+    if isinstance(value, str):
+        text = value.strip()
+        if text and text.isascii() and text.isdecimal():
+            parsed = int(text)
+            return parsed if parsed > 0 else None
+    return None
+
+
+def gate_checkpoint_identity(gate: dict[str, Any]) -> tuple[int | None, str | None, str | None]:
+    """Read a gate checkpoint identity without masking conflicting fields."""
+
+    checkpoint = gate.get("checkpoint") if isinstance(gate.get("checkpoint"), dict) else {}
+    top_present = "checkpoint_iteration" in gate
+    nested_present = "iteration" in checkpoint
+    top_value = strict_identity_int(gate.get("checkpoint_iteration")) if top_present else None
+    nested_value = strict_identity_int(checkpoint.get("iteration")) if nested_present else None
+    if top_present and nested_present:
+        if top_value is None or nested_value is None:
+            return None, None, "checkpoint_iteration or checkpoint.iteration is not an integer"
+        if top_value != nested_value:
+            return None, None, "checkpoint_iteration conflicts with checkpoint.iteration"
+        return top_value, "checkpoint_iteration+checkpoint.iteration", None
+    if top_present:
+        if top_value is None:
+            return None, None, "checkpoint_iteration is not an integer"
+        return top_value, "checkpoint_iteration", None
+    if nested_present:
+        if nested_value is None:
+            return None, None, "checkpoint.iteration is not an integer"
+        return nested_value, "checkpoint.iteration", None
+    return None, None, "checkpoint iteration is missing"
 
 
 def infer_target_iteration(run_dir: Path, requested: int | None) -> int | None:
@@ -97,6 +139,23 @@ def summarize_gate(run_dir: Path, target_iteration: int | None) -> dict[str, Any
     checkpoint = gate.get("checkpoint") if isinstance(gate.get("checkpoint"), dict) else {}
     live = gate.get("latest") or gate.get("live_log") or {}
     checks = gate.get("checks") if isinstance(gate.get("checks"), list) else []
+    raw_overall = gate.get("overall", "MISSING" if gate.get("_missing") else "UNKNOWN")
+    reported_target = strict_identity_int(gate.get("target_iteration"))
+    checkpoint_iteration, checkpoint_source, checkpoint_problem = gate_checkpoint_identity(gate)
+    identity_reason = checkpoint_problem
+    if identity_reason is None and reported_target != target_iteration:
+        identity_reason = (
+            f"target_iteration {reported_target!r} does not match filename target {target_iteration}"
+        )
+    if identity_reason is None and checkpoint_iteration != target_iteration:
+        identity_reason = (
+            f"checkpoint iteration {checkpoint_iteration!r} does not match filename target {target_iteration}"
+        )
+    effective_overall = raw_overall
+    if raw_overall == "PASS" and identity_reason is not None:
+        # Preserve the raw artifact but never grant it PASS authority inside a
+        # post-gate review when its filename/target/checkpoint disagree.
+        effective_overall = "QUARANTINED_GATE_IDENTITY"
     nonpass = [
         {
             "name": check.get("name"),
@@ -107,11 +166,12 @@ def summarize_gate(run_dir: Path, target_iteration: int | None) -> dict[str, Any
         if check.get("status") != "PASS"
     ]
     return {
-        "overall": gate.get("overall", "MISSING" if gate.get("_missing") else "UNKNOWN"),
+        "overall": effective_overall,
+        "artifact_overall": raw_overall,
         "target_iteration": target_iteration,
         "path": str(gate_path),
         "checked_at": gate.get("checked_at"),
-        "checkpoint_iteration": gate.get("checkpoint_iteration") or checkpoint.get("iteration"),
+        "checkpoint_iteration": checkpoint_iteration,
         "checkpoint_hands": gate.get("checkpoint_hands") or checkpoint.get("total_hands"),
         "live_iteration": gate.get("live_iteration") or live.get("iteration"),
         "live_hands": gate.get("live_hands") or live.get("hands"),
@@ -120,6 +180,14 @@ def summarize_gate(run_dir: Path, target_iteration: int | None) -> dict[str, Any
         "remaining_live_iterations": gate.get("remaining_live_iterations"),
         "remaining_checkpoint_iterations": gate.get("remaining_checkpoint_iterations"),
         "nonpass_checks": nonpass,
+        "identity": {
+            "status": "PASS" if identity_reason is None else "QUARANTINED",
+            "filename_iteration": target_iteration,
+            "target_iteration": reported_target,
+            "checkpoint_iteration": checkpoint_iteration,
+            "checkpoint_source": checkpoint_source,
+            "reason": identity_reason,
+        },
     }
 
 
@@ -149,10 +217,28 @@ def summarize_internal_probe(run_dir: Path, target_iteration: int | None) -> dic
     latest_iter = pick(l6, "score_progression", "latest_internal_probe_iteration")
     target_is_latest_l6 = target_iteration is not None and latest_iter == target_iteration
     target_probe = summarize_target_internal_probe(run_dir, target_iteration)
+    target_probe_state = target_probe.get("state") if isinstance(target_probe, dict) else None
+    target_probe_valid = target_probe_state == "VALID"
+    target_probe_quarantined = target_probe_state == "QUARANTINED_TARGET_CHECKPOINT_MISMATCH"
     if target_iteration is not None and not scheduled_target:
         state = "NOT_SCHEDULED"
+    elif target_probe_quarantined:
+        # A target-named artifact whose embedded checkpoint is different is
+        # diagnostic history only.  A watcher completion bit or L6 summary may
+        # not relabel it as evidence for this gate.
+        state = "QUARANTINED_TARGET_CHECKPOINT_MISMATCH"
     elif target_completed or target_is_latest_l6:
-        state = "COMPLETED"
+        # Completion metadata alone is not an evidence bundle.  Require an
+        # exact target/checkpoint match in the frozen probe artifact.
+        if not target_probe_valid:
+            state = "PENDING_TARGET_PROBE_IDENTITY"
+        elif not target_is_latest_l6:
+            # The exact target probe may finish between dashboard/L6 aggregate
+            # refreshes.  Never attach an older checkpoint's verdict/deltas to
+            # this gate merely because the watcher completion bit is current.
+            state = "PENDING_L6_AGGREGATE_IDENTITY"
+        else:
+            state = "COMPLETED"
     else:
         state = latest_readiness.get("overall", "PENDING")
     return {
@@ -165,11 +251,24 @@ def summarize_internal_probe(run_dir: Path, target_iteration: int | None) -> dic
         "latest_readiness_target": latest_readiness.get("target_iteration"),
         "latest_readiness_overall": latest_readiness.get("overall"),
         "latest_l6_iteration": latest_iter,
-        "latest_l6_hands": pick(l6, "score_progression", "latest_internal_probe_hands"),
-        "latest_l6_verdict": pick(l6, "score_progression", "latest_internal_verdict"),
-        "latest_l6_delta_mean_bb100": pick(l6, "score_progression", "latest_internal_delta_mean_bb100"),
-        "latest_l6_delta_lower_bb100": pick(l6, "score_progression", "latest_internal_delta_lower_bb100"),
+        "latest_l6_identity": "MATCH" if target_is_latest_l6 else "STALE_OR_MISSING",
+        "latest_l6_hands": (
+            pick(l6, "score_progression", "latest_internal_probe_hands") if target_is_latest_l6 else None
+        ),
+        "latest_l6_verdict": (
+            pick(l6, "score_progression", "latest_internal_verdict") if target_is_latest_l6 else None
+        ),
+        "latest_l6_delta_mean_bb100": (
+            pick(l6, "score_progression", "latest_internal_delta_mean_bb100") if target_is_latest_l6 else None
+        ),
+        "latest_l6_delta_lower_bb100": (
+            pick(l6, "score_progression", "latest_internal_delta_lower_bb100") if target_is_latest_l6 else None
+        ),
         "target_probe": target_probe,
+        "target_probe_identity": target_probe_state,
+        "quarantined_target_probes": (
+            target_probe.get("quarantined_artifacts") if isinstance(target_probe, dict) else []
+        ),
     }
 
 
@@ -179,8 +278,45 @@ def summarize_target_internal_probe(run_dir: Path, target_iteration: int | None)
     paths = sorted(run_dir.glob(f"internal_strength_probe_iter{target_iteration}_*h.json"))
     if not paths:
         return None
-    path = paths[-1]
-    probe = load_json(path)
+    valid: list[tuple[Path, dict[str, Any], int]] = []
+    quarantined: list[dict[str, Any]] = []
+    for path in paths:
+        probe = load_json(path)
+        checkpoint_iteration = pick(probe, "checkpoint", "iteration")
+        strict_checkpoint_iteration = (
+            checkpoint_iteration
+            if isinstance(checkpoint_iteration, int) and not isinstance(checkpoint_iteration, bool)
+            else None
+        )
+        if strict_checkpoint_iteration != target_iteration:
+            if strict_checkpoint_iteration is None:
+                reason = "embedded checkpoint.iteration is missing or not an integer"
+            else:
+                reason = (
+                    f"embedded checkpoint.iteration {strict_checkpoint_iteration} "
+                    f"does not match target iteration {target_iteration}"
+                )
+            quarantined.append(
+                {
+                    "path": str(path),
+                    "filename_iteration": target_iteration,
+                    "checkpoint_iteration": checkpoint_iteration,
+                    "reason": reason,
+                }
+            )
+            continue
+        valid.append((path, probe, strict_checkpoint_iteration))
+
+    if not valid:
+        return {
+            "state": "QUARANTINED_TARGET_CHECKPOINT_MISMATCH",
+            "target_iteration": target_iteration,
+            "path": None,
+            "rows": [],
+            "quarantined_artifacts": quarantined,
+        }
+
+    path, probe, checkpoint_iteration = valid[-1]
     results = probe.get("results") if isinstance(probe.get("results"), list) else []
     trends = probe.get("trends") if isinstance(probe.get("trends"), dict) else {}
     rows = []
@@ -205,12 +341,14 @@ def summarize_target_internal_probe(run_dir: Path, target_iteration: int | None)
             }
         )
     return {
+        "state": "VALID",
         "path": str(path),
         "checked_at": probe.get("checked_at"),
-        "checkpoint_iteration": pick(probe, "checkpoint", "iteration"),
+        "checkpoint_iteration": checkpoint_iteration,
         "checkpoint_hands": pick(probe, "checkpoint", "total_hands"),
         "hands_per_match": probe.get("hands_per_match"),
         "rows": rows,
+        "quarantined_artifacts": quarantined,
     }
 
 
@@ -238,17 +376,39 @@ def build_review(run_dir: Path, target_iteration: int | None = None) -> dict[str
         and isinstance(gate.get("live_iteration"), int)
         and int(gate.get("live_iteration") or 0) >= int(target)
     )
-    gate_due = gate["overall"] != "PASS" and (gate_checkpoint_ready or gate_live_ready)
+    gate_quarantined = gate["overall"] == "QUARANTINED_GATE_IDENTITY"
+    gate_due = gate["overall"] != "PASS" and (gate_checkpoint_ready or gate_live_ready) and not gate_quarantined
+    internal_quarantined = internal["state"] == "QUARANTINED_TARGET_CHECKPOINT_MISMATCH"
     internal_incomplete = internal["state"] not in {"COMPLETED", "NOT_SCHEDULED"}
-    internal_due = internal_incomplete and gate_checkpoint_ready
-    if gate["overall"] != "PASS":
+    internal_due = internal_incomplete and gate_checkpoint_ready and not internal_quarantined and not gate_quarantined
+    if gate_quarantined:
+        blockers.append(
+            {
+                "name": "gate_identity",
+                "detail": (
+                    f"gate_{target} raw PASS has a filename/target/checkpoint identity mismatch; "
+                    "it is quarantined and cannot satisfy this post-gate review"
+                ),
+            }
+        )
+    elif gate["overall"] != "PASS":
         blockers.append(
             {
                 "name": "gate",
                 "detail": f"gate_{target} is {gate['overall']}; wait for checkpoint/live iteration readiness",
             }
         )
-    if internal_incomplete:
+    if internal_quarantined:
+        blockers.append(
+            {
+                "name": "internal_probe_identity",
+                "detail": (
+                    f"target-named internal probe {target} has an embedded checkpoint mismatch; "
+                    "it is quarantined local-only and cannot satisfy this post-gate review"
+                ),
+            }
+        )
+    elif internal_incomplete:
         blockers.append(
             {
                 "name": "internal_probe",
@@ -278,7 +438,19 @@ def build_review(run_dir: Path, target_iteration: int | None = None) -> dict[str
             }
         )
 
-    if gate_due or internal_due:
+    if gate_quarantined:
+        overall = "QUARANTINED_GATE_IDENTITY"
+        recommendation = (
+            "Keep the mismatched PASS gate artifact as historical diagnostics only; do not use it for gate evidence, "
+            "restart, cutover, promotion, or strength claims. A correctly target-bound gate is required."
+        )
+    elif internal_quarantined:
+        overall = "QUARANTINED_INTERNAL_PROBE_IDENTITY"
+        recommendation = (
+            "Keep the mismatched internal probe as local-only history; do not use it for gate evidence, "
+            "restart, cutover, promotion, or strength claims. A correctly target-bound probe is required."
+        )
+    elif gate_due or internal_due:
         overall = "DUE_EVIDENCE_REFRESH"
         due_items = []
         if gate_due:
@@ -406,6 +578,7 @@ def write_markdown(summary: dict[str, Any], path: Path) -> None:
     preflop = summary["preflop_probe"]
     delta = summary["checkpoint_delta"]
     internal = summary["internal_probe"]
+    gate_identity = gate.get("identity") if isinstance(gate.get("identity"), dict) else {}
     target_probe = internal.get("target_probe") or {}
     target_rows = target_probe.get("rows") if isinstance(target_probe.get("rows"), list) else []
     trend = summary["slumbot_trend"]
@@ -421,6 +594,7 @@ def write_markdown(summary: dict[str, Any], path: Path) -> None:
         "Gate and training:",
         "",
         f"- Gate: `{gate['overall']}`; checkpoint iter/hands `{gate.get('checkpoint_iteration')}` / `{gate.get('checkpoint_hands')}`",
+        f"- Gate identity: `{gate_identity.get('status')}`; reason `{gate_identity.get('reason')}`",
         f"- Live iter/hands: `{gate.get('live_iteration')}` / `{gate.get('live_hands')}`",
         f"- Health: `{health['overall']}`; latest iter/hands `{health['iteration']}` / `{health['hands']}`; entropy `{fmt(health['entropy'])}`; value loss `{fmt(health['value_loss'])}`",
         "",
@@ -429,6 +603,7 @@ def write_markdown(summary: dict[str, Any], path: Path) -> None:
         f"- Preflop probe: `{preflop['overall']}` at checkpoint `{preflop['checkpoint_iteration']}` / `{preflop['checkpoint_hands']}`; warnings `{preflop['warning_count']}`",
         f"- Checkpoint delta: `{delta['overall']}`; latest probe iter `{delta['latest_probe_iteration']}`; warning delta `{fmt(delta['warning_delta'])}`",
         f"- Internal probe: `{internal['state']}`; scheduled `{internal.get('scheduled')}`; latest L6 iter `{internal['latest_l6_iteration']}`; verdict `{internal['latest_l6_verdict']}`; delta mean/lower `{fmt(internal['latest_l6_delta_mean_bb100'])}` / `{fmt(internal['latest_l6_delta_lower_bb100'])}`",
+        f"- Internal target identity: `{internal.get('target_probe_identity')}`; quarantined artifacts `{len(internal.get('quarantined_target_probes') or [])}`",
     ]
     if target_rows:
         formatted = []
@@ -438,6 +613,16 @@ def write_markdown(summary: dict[str, Any], path: Path) -> None:
             )
         lines.append(f"- Internal target rows: {'; '.join(formatted)}")
         lines.append(f"- Internal target artifact: `{target_probe.get('path')}`")
+    quarantined_target_probes = internal.get("quarantined_target_probes") or []
+    if quarantined_target_probes:
+        lines.append(
+            "- Quarantined internal target artifacts: "
+            + "; ".join(
+                f"`{item.get('path')}` ({item.get('reason')})"
+                for item in quarantined_target_probes
+                if isinstance(item, dict)
+            )
+        )
     lines.extend(
         [
             "",

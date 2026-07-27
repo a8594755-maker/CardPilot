@@ -52,7 +52,13 @@ class Sample:
     label: int           # 0..8
 
 
-def slumbot_move_to_slot(move: str, amount: int, state: dict, mask: np.ndarray) -> int | None:
+def slumbot_move_to_slot(
+    move: str,
+    amount: int,
+    state: dict,
+    mask: np.ndarray,
+    raise_action_mapping: str,
+) -> int | None:
     """Map ('b', amt) / 'k' / 'c' / 'f' to the closest legal action slot 0-8.
     Returns None if the chosen action is illegal in the encoded table."""
     if move == 'f':
@@ -61,20 +67,29 @@ def slumbot_move_to_slot(move: str, amount: int, state: dict, mask: np.ndarray) 
         return 1 if mask[1] > 0 else None
     if move == 'b':
         c = compute_commitments(state)
-        pot = max(c['pot'], 1)
         # All-in detection: bet amount maxed against remaining street stack
         max_target = STACK_SIZE - (c['hero_total'] - c['hero_street'])
         if amount >= max_target - 1 and mask[8] > 0:
             return 8
-        pot_frac = amount / pot
-        slot = closest_raise_slot(pot_frac)
-        if mask[slot] > 0:
-            return slot
-        # Fall back to any legal raise slot closest to chosen size
-        candidates = [s for s in range(2, 9) if mask[s] > 0]
+        _, slot_to_increment = build_action_table(
+            state,
+            raise_action_mapping,
+        )
+        candidates = [
+            slot
+            for slot in range(2, 8)
+            if mask[slot] > 0
+            and isinstance(slot_to_increment[slot], str)
+            and slot_to_increment[slot].startswith('b')
+        ]
         if not candidates:
             return None
-        return min(candidates, key=lambda s: abs(s - slot))
+        return min(
+            candidates,
+            key=lambda slot: abs(
+                int(slot_to_increment[slot][1:]) - int(amount)
+            ),
+        )
     return None
 
 
@@ -96,10 +111,27 @@ class SlumbotDataset(Dataset):
         }
 
 
-def build_sample(row: dict, obs_version: str = 'v55') -> Sample | None:
+def build_sample(
+    row: dict,
+    obs_version: str = 'v55',
+    raise_action_mapping: str = 'legacy_total_over_pot',
+) -> Sample | None:
+    # Dump files contain both players' decisions.  Only ``who == "opp"`` is
+    # a Slumbot action.  Treating hero rows as labels while still encoding
+    # Slumbot's hole cards/perspective silently teaches a mixture of Slumbot
+    # and the data-collection policy.
+    # Current dumps contain both players and identify them with ``who``.
+    # Legacy mimic corpora are already opponent-only and omit that field.
+    if 'who' in row and row.get('who') != 'opp':
+        return None
     opp_hole = row.get('opp_hole')
     if not opp_hole:
         return None  # mimic needs Slumbot's hole cards
+    if (
+        'mover_pos' in row
+        and int(row.get('mover_pos', -1)) != int(row.get('opp_pos', -2))
+    ):
+        return None
     action_str_before = row.get('action_str_before', '')
     state = parse_action(action_str_before)
     if 'error' in state:
@@ -113,7 +145,7 @@ def build_sample(row: dict, obs_version: str = 'v55') -> Sample | None:
     c = compute_commitments(state)
     stacks = [STACK_SIZE - c['hero_total'], STACK_SIZE - c['opp_total']]
     extra_t = encode_extra(stacks)
-    mask, _ = build_action_table(state)
+    mask, _ = build_action_table(state, raise_action_mapping)
     if mask.sum() == 0:
         return None
 
@@ -122,6 +154,7 @@ def build_sample(row: dict, obs_version: str = 'v55') -> Sample | None:
         int(row.get('action_amount', 0)),
         state,
         mask,
+        raise_action_mapping,
     )
     if label is None:
         return None
@@ -132,7 +165,12 @@ def build_sample(row: dict, obs_version: str = 'v55') -> Sample | None:
                   label=int(label))
 
 
-def load_jsonl_samples(paths: list[Path], obs_version: str, limit: int | None = None) -> list[Sample]:
+def load_jsonl_samples(
+    paths: list[Path],
+    obs_version: str,
+    raise_action_mapping: str,
+    limit: int | None = None,
+) -> list[Sample]:
     samples: list[Sample] = []
     seen = 0
     kept = 0
@@ -146,7 +184,11 @@ def load_jsonl_samples(paths: list[Path], obs_version: str, limit: int | None = 
                     row = json.loads(line)
                 except json.JSONDecodeError:
                     continue
-                s = build_sample(row, obs_version=obs_version)
+                s = build_sample(
+                    row,
+                    obs_version=obs_version,
+                    raise_action_mapping=raise_action_mapping,
+                )
                 if s is not None:
                     samples.append(s)
                     kept += 1
@@ -189,6 +231,15 @@ def main():
     parser.add_argument('--val-fraction', type=float, default=0.05)
     parser.add_argument('--device', default='cuda' if torch.cuda.is_available() else 'cpu')
     parser.add_argument('--obs-version', choices=('v4', 'v55'), default='v55')
+    parser.add_argument(
+        '--raise-action-mapping',
+        choices=(
+            'legacy_total_over_pot',
+            'preflop_pot_fraction_v2',
+            'pot_fraction_v2',
+        ),
+        default='legacy_total_over_pot',
+    )
     parser.add_argument('--limit', type=int, default=None)
     args = parser.parse_args()
 
@@ -199,7 +250,12 @@ def main():
         return 1
 
     print(f'Reading from {len(paths)} JSONL files in {data_dir}', flush=True)
-    samples = load_jsonl_samples(paths, args.obs_version, limit=args.limit)
+    samples = load_jsonl_samples(
+        paths,
+        args.obs_version,
+        args.raise_action_mapping,
+        limit=args.limit,
+    )
     if not samples:
         print('No valid samples extracted.', flush=True)
         return 1
@@ -269,12 +325,24 @@ def main():
     if best_state is not None:
         ckpt = {
             'model': best_state,
-            'version': 'slumbot_mimic_v1',
+            'version': 'slumbot_mimic_opponent_only_v2',
             'obs_version': args.obs_version,
             'num_actions': NUM_ACTIONS,
+            'norm_layer': 'bn',
             'val_loss': best_val_loss,
             'train_samples': len(train),
             'val_samples': len(val),
+            'action_space_version': (
+                '9slot_pot_fraction_v2'
+                if args.raise_action_mapping == 'pot_fraction_v2'
+                else (
+                    '9slot_preflop_pot_fraction_v2'
+                    if args.raise_action_mapping
+                    == 'preflop_pot_fraction_v2'
+                    else '9slot_v5'
+                )
+            ),
+            'raise_action_mapping': args.raise_action_mapping,
         }
         torch.save(ckpt, out_path)
         print(f'Saved {out_path} (val_loss={best_val_loss:.4f})', flush=True)

@@ -25,6 +25,7 @@ sys.path.insert(0, str(THIS_DIR))
 
 from v5_monitor import LOG_RE, parse_log
 from v5_next_action_queue import (
+    EXP003_CI_PRECISION_FAILED,
     EXP003_NATIVE_MIRROR_TARGET_HANDS,
     exp003_mirror_bundle_status,
 )
@@ -52,6 +53,9 @@ DEFAULT_BASELINE_AUDIT_SHA256 = "66bc083a2f9c933f7a738b2fdc52c94296100a3ceb1fcb4
 DEFAULT_TRAINER_SHA256 = "8b951a43e3b86f6eb38600a69c33ce793c3b4658047325ac06d6e11f6a0b8b31"
 DEFAULT_REVIEW_SHA256 = "163f45ed6ee76bdc62d8f1df5dbf865845799b53769c8b58cf0bb1fc2c3b1bf6"
 DEFAULT_TRACE_SHA256 = "253abc2859e94c68c8440c2255aaddf2ec4c0a3a8eeace486d3e2c95a2ed38ef"
+DEFAULT_EVALUATOR_SHA256 = "2f9e81eae19e0da37da0d9be05dafbf820e812ac8366604cd2ad13f6aa7f0013"
+PRE_SHA256 = "60d3b7ffbfe750cc8c0d1e4dfcd80a308d6a3f406a4b5e5265b9d9563d8877d5"
+NATIVE_SHA256 = "47318cf20388f0f2cfdc63d9d76bd6c5519d39de54ab0e24589fcb1f90fc8f63"
 
 
 def now_iso() -> str:
@@ -318,11 +322,159 @@ def artifact_guard(path: Path, expected_sha256: str) -> dict[str, Any]:
     }
 
 
+def model_input_guard(bundle: dict[str, Any]) -> dict[str, Any]:
+    roles = bundle.get("roles") if isinstance(bundle.get("roles"), dict) else {}
+    freeze = bundle.get("freeze") if isinstance(bundle.get("freeze"), dict) else {}
+    post_sha = str(freeze.get("archive_sha256") or "").lower()
+    specifications = [
+        ("pre_vs_native", "candidate", PRE_SHA256),
+        ("pre_vs_native", "anchor", NATIVE_SHA256),
+        ("post_vs_native", "candidate", post_sha),
+        ("post_vs_native", "anchor", NATIVE_SHA256),
+        ("post_vs_pre_direct", "candidate", post_sha),
+        ("post_vs_pre_direct", "anchor", PRE_SHA256),
+    ]
+    cache: dict[str, str] = {}
+    checks: list[dict[str, Any]] = []
+    for role_name, side, expected in specifications:
+        record = roles.get(role_name) if isinstance(roles.get(role_name), dict) else {}
+        path_text = str(record.get(f"{side}_path") or "")
+        claimed = str(record.get(f"{side}_sha256") or "").lower()
+        path = Path(path_text)
+        if path_text and path.is_file():
+            if str(path) not in cache:
+                cache[str(path)] = sha256_file(path)
+            actual = cache[str(path)]
+        else:
+            actual = ""
+        passed = bool(expected and claimed == expected and actual == expected)
+        checks.append(
+            {
+                "role": role_name,
+                "side": side,
+                "path": path_text,
+                "expected_sha256": expected,
+                "claimed_sha256": claimed,
+                "actual_sha256": actual,
+                "status": "PASS" if passed else "FAIL",
+            }
+        )
+    return {"status": "PASS" if all(row["status"] == "PASS" for row in checks) else "FAIL", "checks": checks}
+
+
+def legacy_preflight_contract_guard(
+    bundle: dict[str, Any],
+    roles: dict[str, Any],
+    ci_precision_failed_roles: list[str],
+) -> dict[str, Any]:
+    """Validate the one legacy exception without treating it as launcher proof."""
+
+    contract = bundle.get("legacy_preflight_contract")
+    legacy_roles = sorted(
+        name
+        for name, record in roles.items()
+        if isinstance(record, dict) and record.get("legacy_inconclusive_only") is True
+    )
+    if contract is None:
+        return {
+            "status": "NOT_APPLICABLE" if not legacy_roles else "FAIL",
+            "legacy_roles": legacy_roles,
+            "reason": "no legacy role" if not legacy_roles else "legacy role lacks queue-verified preflight contract",
+        }
+    if not isinstance(contract, dict):
+        return {"status": "FAIL", "legacy_roles": legacy_roles, "reason": "legacy preflight contract is not an object"}
+    pre = roles.get("pre_vs_native") if isinstance(roles.get("pre_vs_native"), dict) else {}
+    post = roles.get("post_vs_native") if isinstance(roles.get("post_vs_native"), dict) else {}
+    pre_companions = pre.get("companion_paths") if isinstance(pre.get("companion_paths"), dict) else {}
+    post_companions = post.get("companion_paths") if isinstance(post.get("companion_paths"), dict) else {}
+    required = (
+        legacy_roles == ["pre_vs_native"]
+        and ci_precision_failed_roles == ["post_vs_native"]
+        and contract.get("schema_version") == "v5.exp003.pre_vs_native.legacy_preflight_contract.v1"
+        and contract.get("role") == "pre_vs_native"
+        and contract.get("candidate_iteration") == CUTOVER_ITERATION
+        and contract.get("candidate_hands") == CUTOVER_HANDS
+        and str(contract.get("candidate_sha256") or "").lower() == PRE_SHA256
+        and str(contract.get("anchor_sha256") or "").lower() == NATIVE_SHA256
+        and contract.get("result_path") == pre.get("path")
+        and contract.get("provenance_path") == pre_companions.get("legacy_provenance")
+        and contract.get("audit_path") == pre_companions.get("legacy_provenance_audit")
+        and bool(contract.get("provenance_sha256"))
+        and bool(contract.get("audit_sha256"))
+        and contract.get("post_vs_native_result_path") == post.get("path")
+        and contract.get("post_vs_native_candidate_iteration") == post.get("candidate_iteration")
+        and contract.get("post_vs_native_candidate_hands") == post.get("candidate_hands")
+        and contract.get("post_vs_native_candidate_sha256") == post.get("candidate_sha256")
+        and contract.get("post_vs_native_contention_reaudit_path") == post_companions.get("contention_reaudit")
+        and bool(contract.get("post_vs_native_contention_reaudit_sha256"))
+        and contract.get("required_ci_precision_failed_roles") == ["post_vs_native"]
+        and contract.get("inconclusive_only") is True
+        and contract.get("requires_post_vs_native_ci_failure") is True
+        and contract.get("forbids_review_ready") is True
+        and contract.get("forbids_additional_pairs") is True
+        and contract.get("normal_launcher_evidence") is False
+        and pre.get("launcher_evidence_ok") is False
+        and pre.get("judgmentable") is False
+        and pre.get("usable") is False
+        and post.get("launcher_evidence_ok") is True
+        and post.get("judgmentable") is True
+        and post.get("ci_precision_failed") is True
+    )
+    if not required:
+        return {"status": "FAIL", "legacy_roles": legacy_roles, "reason": "legacy preflight contract fields do not bind the allowed role1/role2 state"}
+    hashed_paths = (
+        (contract["provenance_path"], contract["provenance_sha256"]),
+        (contract["audit_path"], contract["audit_sha256"]),
+        (contract["post_vs_native_contention_reaudit_path"], contract["post_vs_native_contention_reaudit_sha256"]),
+    )
+    for path_text, expected_sha in hashed_paths:
+        path = Path(str(path_text))
+        if not path.is_file() or sha256_file(path) != str(expected_sha):
+            return {"status": "FAIL", "legacy_roles": legacy_roles, "reason": f"legacy contract companion hash mismatch: {path}"}
+    return {"status": "PASS", "legacy_roles": legacy_roles, "contract": contract}
+
+
 def build_judgment(args: argparse.Namespace) -> dict[str, Any]:
     run_dir = Path(args.run_dir).resolve()
     bundle = exp003_mirror_bundle_status(run_dir, EXP003_NATIVE_MIRROR_TARGET_HANDS)
-    if bundle.get("status") != "REVIEW_READY":
-        raise RuntimeError(f"EXP-003 bundle is not REVIEW_READY: {bundle.get('status')} {bundle.get('detail')}")
+    measurement_status = str(bundle.get("status") or "").upper()
+    if measurement_status not in {"REVIEW_READY", EXP003_CI_PRECISION_FAILED}:
+        raise RuntimeError(
+            "EXP-003 bundle is not judgmentable: "
+            f"{bundle.get('status')} {bundle.get('detail')}"
+        )
+    roles = bundle.get("roles") if isinstance(bundle.get("roles"), dict) else {}
+    expected_roles = {"pre_vs_native", "post_vs_native", "post_vs_pre_direct"}
+    ci_precision_failed_roles = sorted(
+        name
+        for name in expected_roles
+        if isinstance(roles.get(name), dict)
+        and bool(roles[name].get("ci_precision_failed"))
+    )
+    legacy_contract = legacy_preflight_contract_guard(bundle, roles, ci_precision_failed_roles)
+    if measurement_status == EXP003_CI_PRECISION_FAILED:
+        nonjudgmentable = sorted(
+            name
+            for name in expected_roles
+            if not isinstance(roles.get(name), dict)
+            or not bool(roles[name].get("judgmentable"))
+        )
+        legacy_exception = legacy_contract["status"] == "PASS"
+        allowed_nonjudgmentable = ["pre_vs_native"] if legacy_exception else []
+        if (
+            nonjudgmentable != allowed_nonjudgmentable
+            or not ci_precision_failed_roles
+            or (legacy_contract["status"] == "FAIL")
+        ):
+            raise RuntimeError(
+                "EXP-003 CI precision state lacks a complete structurally valid bundle: "
+                f"nonjudgmentable_roles={nonjudgmentable}, "
+                f"ci_precision_failed_roles={ci_precision_failed_roles}, "
+                f"legacy_contract={legacy_contract}"
+            )
+    model_inputs = model_input_guard(bundle)
+    if model_inputs["status"] != "PASS":
+        raise RuntimeError(f"EXP-003 model input integrity failed: {json.dumps(model_inputs, sort_keys=True)}")
     freeze = bundle["freeze"]
     candidate_iteration = int(freeze["archive_iteration"])
     candidate_hands = int(freeze["archive_hands"])
@@ -381,7 +533,16 @@ def build_judgment(args: argparse.Namespace) -> dict[str, Any]:
     baseline_audit = baseline_run / "v5_throughput_audit.json"
     review_path = REPO_ROOT / "reports" / "v5_exp003_bounded_k_adversarial_review_20260709.md"
     trace_path = REPO_ROOT / "tmp" / "exp003_bounded_validation_20260709_0945" / "det_a" / "trace.txt"
-    trainer_path = REPO_ROOT / "scripts" / "alpha_holdem" / "train_v5.py"
+    trainer_path = (
+        run_dir
+        / "exp003_judgment_inputs"
+        / "train_v5_pinned_8b951a43e3b86f6eb38600a69c33ce793c3b4658047325ac06d6e11f6a0b8b31.py"
+    )
+    evaluator_path = (
+        run_dir
+        / "exp003_judgment_inputs"
+        / "v5_mirror_eval_pinned_2f9e81eae19e0da37da0d9be05dafbf820e812ac8366604cd2ad13f6aa7f0013.py"
+    )
 
     hard_checks = [
         check("candidate_gate_streak", gates["status"] == "PASS", json.dumps(gates, sort_keys=True)),
@@ -398,15 +559,44 @@ def build_judgment(args: argparse.Namespace) -> dict[str, Any]:
     reference_artifacts = {
         "baseline_throughput_audit": artifact_guard(baseline_audit, DEFAULT_BASELINE_AUDIT_SHA256),
         "trainer": artifact_guard(trainer_path, DEFAULT_TRAINER_SHA256),
+        "mirror_evaluator": artifact_guard(evaluator_path, DEFAULT_EVALUATOR_SHA256),
         "offline_adversarial_review": artifact_guard(review_path, DEFAULT_REVIEW_SHA256),
         "offline_determinism_trace": artifact_guard(trace_path, DEFAULT_TRACE_SHA256),
     }
-    for name, result in reference_artifacts.items():
-        hard_checks.append(check(name, result["status"] == "PASS", json.dumps(result, sort_keys=True)))
+    failed_reference_artifacts = {
+        name: result for name, result in reference_artifacts.items() if result["status"] != "PASS"
+    }
+    if failed_reference_artifacts:
+        raise RuntimeError(
+            "EXP-003 reference artifact integrity failed: "
+            + json.dumps(failed_reference_artifacts, sort_keys=True)
+        )
 
     hard_guard_status = "PASS" if all(row["status"] == "PASS" for row in hard_checks if row["hard"]) else "FAIL"
     effect_statuses = [effects["native_axis"]["status"], effects["direct_causal"]["status"]]
-    if hard_guard_status == "FAIL" or "REGRESSION" in effect_statuses or value_support["status"] == "REGRESSION" or shape_status == "COLLAPSE":
+    ci_precision_gate = {
+        "status": "FAIL" if measurement_status == EXP003_CI_PRECISION_FAILED else "PASS",
+        "failed_roles": ci_precision_failed_roles,
+        "target_ci95_halfwidth_bb100": 20.0,
+        "rule": (
+            "The fixed 25k-pair precision gate failed; this frozen measurement may only be recorded "
+            "as INCONCLUSIVE and cannot be extended or substituted."
+            if measurement_status == EXP003_CI_PRECISION_FAILED
+            else "All registered mirror roles passed the fixed 25k-pair precision gate."
+        ),
+        "legacy_inconclusive_roles": legacy_contract.get("legacy_roles", []),
+    }
+    if measurement_status == EXP003_CI_PRECISION_FAILED:
+        # The protocol fixes both the sample size and checkpoint.  A precision
+        # failure is evidence about measurement resolution, not causal effect,
+        # so it must close the window as explicit INCONCLUSIVE rather than turn
+        # a broad interval into ADOPT or ROLLBACK.
+        decision = "INCONCLUSIVE"
+        reason = (
+            "complete structurally valid fixed-window bundle failed the registered CI precision gate "
+            f"for roles: {', '.join(ci_precision_failed_roles)}"
+        )
+    elif hard_guard_status == "FAIL" or "REGRESSION" in effect_statuses or value_support["status"] == "REGRESSION" or shape_status == "COLLAPSE":
         decision = "ROLLBACK"
         reason = "hard abort guard or statistically significant registered regression"
     elif effect_statuses == ["PASS", "PASS"] and value_support["status"] == "PASS" and shape_status == "PASS":
@@ -426,7 +616,7 @@ def build_judgment(args: argparse.Namespace) -> dict[str, Any]:
         "checked_at": now_iso(),
         "experiment_id": "EXP-003",
         "claim_scope": "method_judgment_only_not_slumbot_not_l5_l6",
-        "measurement_status": "REVIEW_READY",
+        "measurement_status": measurement_status,
         "decision": decision,
         "decision_valid": True,
         "decision_reason": reason,
@@ -436,6 +626,9 @@ def build_judgment(args: argparse.Namespace) -> dict[str, Any]:
         "candidate_checkpoint_sha256": freeze["archive_sha256"],
         "registered_target_hands": EXP003_NATIVE_MIRROR_TARGET_HANDS,
         "effects": effects,
+        "ci_precision_gate": ci_precision_gate,
+        "legacy_inconclusive_roles": legacy_contract.get("legacy_roles", []),
+        "legacy_preflight_contract": legacy_contract.get("contract"),
         "hard_guards": {"status": hard_guard_status, "checks": hard_checks},
         "method_support": method_support,
         "throughput": {
@@ -449,6 +642,7 @@ def build_judgment(args: argparse.Namespace) -> dict[str, Any]:
         "gate_guard": gates,
         "config_guard": config,
         "reference_artifacts": reference_artifacts,
+        "model_input_guard": model_inputs,
         "mirror_artifact_sha256": role_artifacts,
         "bundle": bundle,
         "next_rule": (
@@ -464,9 +658,11 @@ def write_markdown(result: dict[str, Any], path: Path) -> None:
     direct = result["effects"]["direct_causal"]
     value = result["method_support"]["value_loss"]
     shape = result["method_support"]["postflop_raise_plus_allin"]
+    ci_precision = result.get("ci_precision_gate") if isinstance(result.get("ci_precision_gate"), dict) else {}
     lines = [
         "# EXP-003 Fixed-Window Judgment",
         "",
+        f"- Measurement status: `{result.get('measurement_status')}`",
         f"- Decision: `{result['decision']}`",
         f"- Reason: {result['decision_reason']}",
         f"- Candidate iter/hands: `{result['candidate_checkpoint_iteration']}` / `{result['candidate_checkpoint_hands']:,}`",
@@ -477,6 +673,7 @@ def write_markdown(result: dict[str, Any], path: Path) -> None:
         f"- Effective h/s ratio: `{result['throughput']['ratio']:.4f}` (minimum `{result['throughput']['minimum_ratio']}`)",
         f"- Value-loss pre-minus-post: `{value['pre_minus_post']:+.3f}` CI `[{value['ci95_lower']:+.3f}, {value['ci95_upper']:+.3f}]` -> `{value['status']}`",
         f"- Postflop raise+all-in mean: `{shape['mean']}` -> `{shape['status']}`",
+        f"- Fixed CI precision gate: `{ci_precision.get('status')}`; failed roles: `{', '.join(ci_precision.get('failed_roles') or []) or 'none'}`",
         "",
         "This is an EXP-003 method judgment only. It is not Slumbot evidence and cannot support V4, L5, or L6 strength claims.",
     ]

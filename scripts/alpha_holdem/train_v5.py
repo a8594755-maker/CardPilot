@@ -53,6 +53,7 @@ Typical resume from V4 final:
 """
 
 import argparse
+import copy
 import hashlib
 import json
 import os
@@ -77,11 +78,14 @@ from torch.distributions import Categorical
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from alpha_holdem.network import AlphaHoldemNet, count_parameters
+from alpha_holdem.network_hybrid_h1 import AlphaHoldemNet, CRITIC_V1, CRITIC_V2, count_parameters
 from alpha_holdem.environment import NUM_ACTIONS
 
 # Reuse V4 PPO + GAE math (unchanged in V5.0; V5.2 introduces all-in EV / pot-norm value)
-from alpha_holdem.train_mp3 import compute_gae, trinal_clip_ppo_update
+from alpha_holdem.train_mp3_hybrid_h1 import compute_gae, trinal_clip_ppo_update
+from v5_hybrid_h1_critic import migrate_v1_checkpoint_to_v2
+from v5_hybrid_h2_targets import H2_MAX_RUNOUTS, H2_TARGET_SEED, h2_showdown_critic_target_pairs
+from v5_exp_w1_value_warmup import run_value_head_warmup, sha256_path, write_immutable_report
 
 # ===========================================================
 # Shared Memory Layout
@@ -89,9 +93,13 @@ from alpha_holdem.train_mp3 import compute_gae, trinal_clip_ppo_update
 
 CARD_SIZE = 6 * 4 * 13       # 312
 ACTION_SIZE = 25 * 4 * 5     # 500
-EXTRA_SIZE = 2
+BASE_EXTRA_SIZE = 2
+# Preserve the legacy two normalized-stack values and append the player's
+# public HU seat: 0=BB/OOP, 1=SB/button/IP. Networks without a position
+# adapter slice the first two values, so their policy output is unchanged.
+EXTRA_SIZE = 3
 MASK_SIZE = NUM_ACTIONS       # 9
-OBS_SIZE = CARD_SIZE + ACTION_SIZE + EXTRA_SIZE + MASK_SIZE  # 823
+OBS_SIZE = CARD_SIZE + ACTION_SIZE + EXTRA_SIZE + MASK_SIZE  # 824
 RESULT_SIZE = 3  # action_idx, log_prob, value
 
 IDLE = 0
@@ -99,6 +107,390 @@ WAITING = 1
 READY = 2
 
 HERO_MODEL_ID = -1  # request_model_id sentinel for "use hero model"
+
+
+def pack_position_extra(
+    legacy_extra: np.ndarray,
+    *,
+    player: int,
+) -> np.ndarray:
+    """Append the engine's fixed HU seat (P0=BB, P1=SB)."""
+    base = np.asarray(legacy_extra, dtype=np.float32).reshape(-1)
+    if base.shape != (BASE_EXTRA_SIZE,):
+        raise ValueError(
+            f'legacy extra_info must have shape ({BASE_EXTRA_SIZE},), '
+            f'got {base.shape}'
+        )
+    if int(player) not in (0, 1):
+        raise ValueError('player must be 0 or 1')
+    return np.concatenate(
+        (
+            base,
+            np.asarray([float(int(player))], dtype=np.float32),
+        )
+    )
+
+
+def linear_decay_group_lrs(progress: float, base_lrs) -> list[float]:
+    """Preserve each optimizer group's LR ratio during the second-half decay."""
+    if progress < 0.5:
+        return [float(value) for value in base_lrs]
+    decay_frac = min(1.0, max(0.0, (float(progress) - 0.5) / 0.5))
+    factor = 1.0 - decay_frac * (1.0 - 1.0 / 3.0)
+    return [float(value) * factor for value in base_lrs]
+
+
+def heuristic_v4_preflop_action(env, player: int, legal_mask) -> int:
+    """Return the deterministic v4 range action for an engine preflop state."""
+    from alpha_holdem.heuristic_policy_v4 import choose_action
+    from deep_cfr.game_state import ActionType
+
+    state = env.state
+    if state is None or int(state.street) != 0:
+        raise ValueError('heuristic_v4_preflop_action requires a live preflop state')
+
+    ranks = '23456789TJQKA'
+    suits = 'cdhs'
+
+    def card_string(card: int) -> str:
+        return ranks[int(card) // 4] + suits[int(card) % 4]
+
+    def action_code(action) -> str:
+        if action.type == ActionType.FOLD:
+            return 'f'
+        if action.type == ActionType.CHECK:
+            return 'k'
+        if action.type == ActionType.CALL:
+            return 'c'
+        return 'b'
+
+    street_actions = [
+        [
+            (action_code(action), int(who), float(action.amount))
+            for who, action in actions
+        ]
+        for actions in state.get_actions_by_street()
+    ]
+    committed = state.street_committed
+    payload = {
+        'st': 0,
+        'to_call': max(float(committed[1 - player] - committed[player]), 0.0),
+        'street_actions': street_actions,
+        'total_last_bet_to': max(float(committed[0]), float(committed[1])),
+    }
+    hole_cards = [card_string(card) for card in state.hole_cards[player]]
+    return int(choose_action(
+        hole_cards,
+        [],
+        payload,
+        int(player),
+        legal_mask,
+    ))
+
+
+def pokerskill_preflop_action(env, player: int, legal_mask) -> int:
+    """Deterministic 200bb HU preflop teacher on the corrected size grid."""
+    from alpha_holdem.heuristic_policy_v3 import _hand_notation
+    from alpha_holdem.heuristic_policy_v4 import PREFLOP_PERCENTILE
+    from deep_cfr.game_state import ActionType
+
+    state = env.state
+    if state is None or int(state.street) != 0:
+        raise ValueError('pokerskill_preflop_action requires live preflop')
+
+    ranks = '23456789TJQKA'
+    suits = 'cdhs'
+
+    def card_string(card: int) -> str:
+        return ranks[int(card) // 4] + suits[int(card) % 4]
+
+    def action_code(action) -> str:
+        if action.type == ActionType.FOLD:
+            return 'f'
+        if action.type == ActionType.CHECK:
+            return 'k'
+        if action.type == ActionType.CALL:
+            return 'c'
+        return 'b'
+
+    def pick(*slots: int) -> int:
+        for slot in slots:
+            if (
+                0 <= int(slot) < len(legal_mask)
+                and bool(legal_mask[int(slot)] > 0)
+            ):
+                return int(slot)
+        legal = np.flatnonzero(np.asarray(legal_mask) > 0)
+        return int(legal[0]) if len(legal) else 0
+
+    hole_cards = [
+        card_string(card)
+        for card in state.hole_cards[int(player)]
+    ]
+    percentile = float(
+        PREFLOP_PERCENTILE[_hand_notation(hole_cards)]
+    )
+    actions = [
+        (action_code(action), int(who))
+        for who, action in state.get_actions_by_street()[0]
+    ]
+    action_count = len(actions)
+    hero_is_sb = int(player) == 1
+
+    if hero_is_sb and action_count == 0:
+        if percentile < 0.65:
+            return pick(5, 6, 7, 1)
+        if percentile < 0.935:
+            return pick(1, 0)
+        return pick(0, 1)
+
+    if not hero_is_sb and action_count == 1:
+        if actions[0][0] == 'c':
+            return pick(7, 6, 5, 1) if percentile < 0.32 else pick(1, 0)
+        if actions[0][0] == 'b':
+            if percentile < 0.19:
+                return pick(7, 6, 5, 1, 0)
+            if percentile < 0.72:
+                return pick(1, 0)
+            return pick(0, 1)
+
+    if hero_is_sb and action_count == 2:
+        if percentile < 0.08:
+            return pick(7, 6, 1, 0)
+        if percentile < 0.45:
+            return pick(1, 0)
+        return pick(0, 1)
+
+    if percentile < 0.06:
+        return pick(7, 6, 1, 0)
+    if percentile < 0.25:
+        return pick(1, 0)
+    return pick(0, 1)
+
+
+LG002_RECOVERY_TOKEN = '2320b32682e51ba0e3781407b92d3d75'
+LG002_RECOVERY_PREREG_SHA256 = 'ef41b731de6ad74f93d01cbb2f4ce245bcde9323335e331a6c31f0daf3e9eda9'
+LG002_RECOVERY_ASSIGNMENT_SEED = 2026072203
+LG002_RECOVERY_SOURCE_SHA256 = '96a007039b0baa29f0c39b0bd7adc67d8ca0733a41a261203f52430e60b5ca13'
+LG002_RECOVERY_CHECKPOINT_ORDER = (109, 115, 120, 129, 103)
+LG002_RECOVERY_MEMBER_STATE_SHA256 = {
+    103: 'cdec36f3deb27470a61c586b6491cd5de44aa3a99194b026a6e491a3121335a1',
+    109: 'aee38c625bf0faada6b163f23aeb4cc539d67f7cbe46dc234aa4f46b18960953',
+    115: 'ed92c7724486e446c13e5d4c623327d4288c68652964b7b4f35c0d2a7630d0c1',
+    120: '86c3d7bacce72dd5749c21deaad3865c7313c9f118860cbc7e9b8b378070494e',
+    129: '9d008780ac3cd259579131532df9775b53b4e3c95c7b0f12f2aac70bc915b255',
+}
+LG002_RECOVERY_CONDITIONAL_WEIGHTS = {
+    'control_uniform': {103: 0.2, 109: 0.2, 115: 0.2, 120: 0.2, 129: 0.2},
+    'treatment_diversity': {
+        103: 0.151331630996897,
+        109: 0.272679451627751,
+        115: 0.062503368673781,
+        120: 0.325118010944971,
+        129: 0.1883675377566,
+    },
+}
+
+
+def lg002_state_dict_sha256(state_dict) -> str:
+    """Canonical tensor-state identity used by the frozen LG002 registration."""
+    digest = hashlib.sha256()
+    for name in sorted(state_dict):
+        tensor = state_dict[name].detach().cpu().contiguous()
+        metadata = json.dumps(
+            [name, str(tensor.dtype), list(tensor.shape)],
+            sort_keys=True, separators=(',', ':'), ensure_ascii=True,
+        ).encode('utf-8')
+        digest.update(len(metadata).to_bytes(8, 'big'))
+        digest.update(metadata)
+        digest.update(tensor.numpy().tobytes(order='C'))
+    return digest.hexdigest()
+
+
+def lg002_assignment_u64(absolute_iteration: int,
+                          token: str = LG002_RECOVERY_TOKEN,
+                          seed: int = LG002_RECOVERY_ASSIGNMENT_SEED) -> int:
+    payload = f'LG002R_ASSIGNMENT_V1|{token}|{int(seed)}|{int(absolute_iteration)}'
+    return int.from_bytes(hashlib.sha256(payload.encode('utf-8')).digest()[:8], 'big')
+
+
+def lg002_select_from_u64(arm: str, u64: int, pool_snapshots):
+    """Pure frozen selector; consumes no module or process RNG state."""
+    if arm not in LG002_RECOVERY_CONDITIONAL_WEIGHTS:
+        raise ValueError(f'unknown LG002 recovery arm: {arm}')
+    if not 0 <= int(u64) < (1 << 64):
+        raise ValueError('LG002 assignment u64 outside uint64 range')
+    ids = [int(snapshot.get('id')) for snapshot in pool_snapshots]
+    if tuple(ids) != LG002_RECOVERY_CHECKPOINT_ORDER or len(set(ids)) != len(ids):
+        raise ValueError(f'LG002 frozen pool identity/order mismatch: {ids}')
+
+    unit = int(u64) / float(1 << 64)
+    weights = LG002_RECOVERY_CONDITIONAL_WEIGHTS[arm]
+    selected_member_id = None
+    local_index = HERO_MODEL_ID
+    conditional_unit = None
+    if unit >= 0.2:
+        conditional_unit = (unit - 0.2) / 0.8
+        cumulative = 0.0
+        for member_id in sorted(weights):
+            cumulative += weights[member_id]
+            if conditional_unit < cumulative:
+                selected_member_id = member_id
+                break
+        if selected_member_id is None:
+            # Float round-off at the mathematical upper endpoint maps to the last bin.
+            selected_member_id = max(weights)
+        local_index = ids.index(selected_member_id)
+
+    return local_index, {
+        'assignment_rule': 'LG002R_ASSIGNMENT_V1',
+        'assignment_seed': LG002_RECOVERY_ASSIGNMENT_SEED,
+        'u64': int(u64),
+        'unit_interval': unit,
+        'conditional_unit_interval': conditional_unit,
+        'arm': arm,
+        'self_probability': 0.2,
+        'conditional_weights_by_member_id': {str(k): v for k, v in sorted(weights.items())},
+        'selected_kind': 'self_play' if local_index == HERO_MODEL_ID else 'pool_snapshot',
+        'selected_local_index': int(local_index),
+        'selected_member_id': selected_member_id,
+        'selected_member_state_sha256': (
+            None if selected_member_id is None
+            else LG002_RECOVERY_MEMBER_STATE_SHA256[selected_member_id]
+        ),
+    }
+
+
+def lg002_select_opponent(arm: str, absolute_iteration: int, pool_snapshots):
+    return lg002_select_from_u64(
+        arm, lg002_assignment_u64(absolute_iteration), pool_snapshots,
+    )
+
+
+def lg002_enrich_provenance_record(record: dict, assignment: dict) -> dict:
+    enriched = dict(record)
+    enriched.pop('record_sha256', None)
+    enriched['schema_version'] = 'v5.lg002.recovery.opponent_assignment_provenance.v1'
+    enriched['lg002_recovery'] = {
+        'registration_sha256': LG002_RECOVERY_PREREG_SHA256,
+        'registration_token': LG002_RECOVERY_TOKEN,
+        **assignment,
+    }
+    canonical = json.dumps(
+        enriched, sort_keys=True, separators=(',', ':'), ensure_ascii=False,
+    )
+    enriched['record_sha256'] = hashlib.sha256(canonical.encode('utf-8')).hexdigest()
+    return enriched
+
+
+def build_group_opponent_assignments(worker_count: int, pool_size: int,
+                                     group_count: int = 5,
+                                     self_play_fraction: float = 0.2,
+                                     rng=None):
+    """Build EXP-005 balanced per-group opponent assignments.
+
+    Worker membership is reshuffled on every call, groups differ in size by at
+    most one, and a rounded fraction of groups is forced to hero self-play.
+    Pool groups receive distinct snapshots whenever the pool is large enough.
+    The returned metadata is intentionally testable and can be logged without
+    exposing mutable shared-memory state.
+    """
+    if worker_count <= 0:
+        raise ValueError('worker_count must be positive')
+    if pool_size <= 0:
+        raise ValueError('pool_size must be positive')
+    if group_count <= 0:
+        raise ValueError('group_count must be positive')
+    if not 0.0 <= self_play_fraction <= 1.0:
+        raise ValueError('self_play_fraction must be in [0, 1]')
+
+    rng = rng or random
+    group_count = min(int(group_count), int(worker_count))
+    worker_ids = list(range(int(worker_count)))
+    rng.shuffle(worker_ids)
+    groups = [worker_ids[i::group_count] for i in range(group_count)]
+
+    self_play_group_count = int(round(group_count * self_play_fraction))
+    self_play_group_count = max(0, min(group_count, self_play_group_count))
+    self_play_groups = set(rng.sample(range(group_count), self_play_group_count))
+    pool_groups = [i for i in range(group_count) if i not in self_play_groups]
+
+    if len(pool_groups) <= pool_size:
+        pool_opponents = rng.sample(range(pool_size), len(pool_groups))
+    else:
+        pool_opponents = [rng.randrange(pool_size) for _ in pool_groups]
+    pool_assignment = dict(zip(pool_groups, pool_opponents))
+
+    assignments = np.empty(worker_count, dtype=np.int64)
+    group_metadata = []
+    for group_id, members in enumerate(groups):
+        opponent_id = HERO_MODEL_ID if group_id in self_play_groups else pool_assignment[group_id]
+        assignments[members] = opponent_id
+        group_metadata.append({
+            'group_id': group_id,
+            'workers': list(members),
+            'opponent_id': int(opponent_id),
+        })
+
+    metadata = {
+        'group_count': group_count,
+        'groups': group_metadata,
+        'self_play_group_count': self_play_group_count,
+        'self_play_worker_count': int(np.sum(assignments == HERO_MODEL_ID)),
+        'distinct_pool_opponents': len(set(int(x) for x in assignments if int(x) >= 0)),
+    }
+    return assignments, metadata
+
+
+def build_assignment_provenance_record(*, run_id: str, applies_to_iteration: int,
+                                       total_hands: int, assignment_mode: str,
+                                       assignments, pool_snapshots,
+                                       group_metadata=None,
+                                       worker_seed_base=None,
+                                       previous_record_sha256: str | None = None):
+    """Build one hash-chained, reporting-only opponent assignment record."""
+    refs = []
+    for local_index, snapshot in enumerate(pool_snapshots):
+        refs.append({
+            'local_index': int(local_index),
+            'snapshot_id': int(snapshot.get('id')),
+            'snapshot_hands': int(snapshot.get('hands') or 0),
+            'snapshot_iteration': snapshot.get('iteration'),
+        })
+    workers = []
+    for worker_id, local_index_raw in enumerate(assignments):
+        local_index = int(local_index_raw)
+        if local_index == HERO_MODEL_ID:
+            opponent = {'kind': 'self_play', 'local_index': HERO_MODEL_ID}
+        else:
+            if local_index < 0 or local_index >= len(refs):
+                raise ValueError(f'assignment local index {local_index} outside pool size {len(refs)}')
+            ref = refs[local_index]
+            opponent = {
+                'kind': 'pool_snapshot',
+                'local_index': local_index,
+                'snapshot_id': ref['snapshot_id'],
+                'snapshot_hands': ref['snapshot_hands'],
+                'snapshot_iteration': ref['snapshot_iteration'],
+            }
+        workers.append({'worker_id': int(worker_id), 'opponent': opponent})
+    record = {
+        'schema_version': 'v5.opponent_assignment_provenance.v1',
+        'run_id': str(run_id),
+        'applies_to_iteration': int(applies_to_iteration),
+        'total_hands_before_iteration': int(total_hands),
+        'assignment_mode': str(assignment_mode),
+        'worker_seed_base': worker_seed_base,
+        'worker_count': len(workers),
+        'pool_size': len(refs),
+        'pool_snapshot_refs': refs,
+        'workers': workers,
+        'group_metadata': group_metadata,
+        'previous_record_sha256': previous_record_sha256,
+    }
+    canonical = json.dumps(record, sort_keys=True, separators=(',', ':'), ensure_ascii=False)
+    record['record_sha256'] = hashlib.sha256(canonical.encode('utf-8')).hexdigest()
+    return record
 
 
 def action_mix(transitions) -> dict:
@@ -213,6 +605,8 @@ def transition_digest(t) -> str:
         int(t[4]), float(t[5]), float(t[6]), float(t[7]),
         float(t[8]), float(t[9]),
     ) + struct.pack('<2d', float(t[10]), marker))
+    if len(t) > 12:
+        h.update(struct.pack('<d', float(t[12])))
     return h.hexdigest()
 
 
@@ -242,6 +636,12 @@ def exp003_metrics_template() -> dict:
         'allin_ev_runouts': 0,
         'allin_ev_skipped_hands': 0,
         'allin_ev_skipped_runouts': 0,
+        'h2_showdown_hands': 0,
+        'h2_critic_target_rows': 0,
+        'h2_critic_target_unique_boards': 0,
+        'h2_critic_target_runouts': 0,
+        'h2_critic_target_exact_rows': 0,
+        'h2_critic_target_sampled_rows': 0,
     }
 
 
@@ -282,6 +682,17 @@ def exp003_reset_env_with_deck(env, deck):
         state.board = [deck[4], deck[5], deck[6]]
     env._legal_calls_this_hand = 0
     return env._get_obs()
+
+
+def fixed_training_deck(worker_seed: int, env_index: int, deal_index: int) -> list[int]:
+    """Deterministic per-worker/env/deal deck for controlled same-start arms."""
+    if worker_seed is None:
+        raise ValueError('fixed training deal stream requires worker_seed')
+    material = f'v5.fixed.training.deal.v1:{int(worker_seed)}:{int(env_index)}:{int(deal_index)}'
+    seed = int.from_bytes(hashlib.sha256(material.encode('utf-8')).digest()[:16], 'big')
+    deck = list(range(52))
+    random.Random(seed).shuffle(deck)
+    return deck
 
 
 @lru_cache(maxsize=200000)
@@ -444,6 +855,11 @@ def worker_process_v5(
     mirror_self_play_deals=False,
     allin_runout_ev=False,
     allin_runout_ev_max_runouts=EXP003_DEFAULT_ALLIN_RUNOUT_EV_MAX_RUNOUTS,
+    fixed_training_deal_stream=False,
+    showdown_ev_value_targets=False,
+    showdown_ev_value_target_max_runouts=H2_MAX_RUNOUTS,
+    showdown_ev_value_target_seed=H2_TARGET_SEED,
+    hero_preflop_strategy='model',
 ):
     """
     Persistent self-play worker.
@@ -473,6 +889,26 @@ def worker_process_v5(
             'starting_stack': starting_stack,
             'raise_cap_per_street': 1,
             'action_history_style': 'v4',
+        }
+    elif env_version == 'v55v4obs':
+        from alpha_holdem.environment_v55 import HUNLEnvironment
+        env_kwargs = {
+            'starting_stack': starting_stack,
+            'action_history_style': 'v4',
+        }
+    elif env_version == 'v55pfv2v4obs':
+        from alpha_holdem.environment_v55 import HUNLEnvironment
+        env_kwargs = {
+            'starting_stack': starting_stack,
+            'action_history_style': 'v4',
+            'raise_action_mapping': 'pot_fraction_v2',
+        }
+    elif env_version == 'v55preflopv2v4obs':
+        from alpha_holdem.environment_v55 import HUNLEnvironment
+        env_kwargs = {
+            'starting_stack': starting_stack,
+            'action_history_style': 'v4',
+            'raise_action_mapping': 'preflop_pot_fraction_v2',
         }
     else:
         from alpha_holdem.environment_v55 import HUNLEnvironment
@@ -510,6 +946,8 @@ def worker_process_v5(
     local_transitions = []
     local_metrics = exp003_metrics_template()
     pending_mirror_deck = None
+    pending_mirror_identity = None
+    source_deal_index = 0
 
     try:
         while not stop_event.is_set():
@@ -520,14 +958,26 @@ def worker_process_v5(
                 current_opp_id = -1
                 obs = exp003_reset_env_with_deck(env, pending_mirror_deck)
                 pending_mirror_deck = None
+                deal_identity = pending_mirror_identity
+                pending_mirror_identity = None
                 local_metrics['mirror_replay_hands'] += 1
             else:
                 current_opp_id = int(assigned_buf[0])
-                obs = env.reset()
+                if fixed_training_deal_stream:
+                    deal_index = source_deal_index
+                    obs = exp003_reset_env_with_deck(
+                        env, fixed_training_deck(worker_seed, 0, deal_index)
+                    )
+                    source_deal_index += 1
+                    deal_identity = f'w{worker_id}:e0:d{deal_index}'
+                else:
+                    obs = env.reset()
+                    deal_identity = f'w{worker_id}:e0:runtime{hands_played}'
                 if mirror_self_play_deals and current_opp_id == -1:
                     mirror_deck = exp003_mirrored_deck_from_env(env)
                     if mirror_deck is not None:
                         pending_mirror_deck = mirror_deck
+                        pending_mirror_identity = f'{deal_identity}:mirror'
                         local_metrics['mirror_source_hands'] += 1
             is_self_play = (current_opp_id == -1)
 
@@ -549,7 +999,10 @@ def worker_process_v5(
 
                 ci = obs['card_info'].flatten()
                 ai = obs['action_info'].flatten()
-                ei = obs['extra_info']
+                ei = pack_position_extra(
+                    obs['extra_info'],
+                    player=player,
+                )
                 lm = obs['legal_mask']
 
                 obs_buf[:CARD_SIZE] = ci
@@ -580,13 +1033,32 @@ def worker_process_v5(
                     legal = _np.where(lm > 0)[0]
                     if len(legal) > 0:
                         action_idx = int(_random.choice(legal))
+                if (
+                    is_hero
+                    and hero_preflop_strategy in (
+                        'heuristic-v4',
+                        'pokerskill-v1',
+                    )
+                    and env.state is not None
+                    and int(env.state.street) == 0
+                ):
+                    action_idx = (
+                        pokerskill_preflop_action(env, player, lm)
+                        if hero_preflop_strategy == 'pokerskill-v1'
+                        else heuristic_v4_preflop_action(env, player, lm)
+                    )
 
                 # V5.0: collect for both players when self-play, else only hero
                 acted_by_trainable_model = is_self_play or is_hero
                 if acted_by_trainable_model:
+                    row_board = (
+                        tuple(env.state.board)
+                        if showdown_ev_value_targets and env.state is not None
+                        else None
+                    )
                     hand_buffers[player].append((
                         ci.copy(), ai.copy(), ei.copy(), lm.copy(),
-                        action_idx, log_prob, value,
+                        action_idx, log_prob, value, row_board,
                     ))
 
                 last_actor = player
@@ -631,6 +1103,20 @@ def worker_process_v5(
             # transition per poker hand so total_hands stays aligned with the
             # paper's hand count even when collecting both players' trajectories.
             counted_hand = False
+            h2_hand_has_target = False
+            committed = (chips[0], chips[1])
+            h2_target_cache = (
+                h2_showdown_critic_target_pairs(
+                    env.state,
+                    row_boards=[row[7] or () for buf in hand_buffers.values() for row in buf],
+                    deal_identity=deal_identity,
+                    committed=committed,
+                    max_runouts=showdown_ev_value_target_max_runouts,
+                    target_seed=showdown_ev_value_target_seed,
+                )
+                if showdown_ev_value_targets else {}
+            )
+            h2_counted_boards = set()
             for p in (0, 1):
                 buf = hand_buffers[p]
                 if not buf:
@@ -638,12 +1124,14 @@ def worker_process_v5(
                 pr = rewards_per_player.get(p, 0.0)
                 p_chips = chips[p]
                 v_chips = chips[1 - p]
-                for i, (ci_s, ai_s, ei_s, lm_s, act, lp, val) in enumerate(buf):
+                for i, row in enumerate(buf):
+                    ci_s, ai_s, ei_s, lm_s, act, lp, val = row[:7]
+                    row_board = row[7] if len(row) > 7 else None
                     is_last = (i == len(buf) - 1)
                     hand_marker = 1.0 if is_last and not counted_hand else 0.0
                     if hand_marker:
                         counted_hand = True
-                    local_transitions.append((
+                    transition = (
                         ci_s, ai_s, ei_s, lm_s, act, lp,
                         pr if is_last else 0.0,
                         val,
@@ -651,7 +1139,33 @@ def worker_process_v5(
                         p_chips,
                         v_chips,
                         hand_marker,
-                    ))
+                    )
+                    if showdown_ev_value_targets:
+                        board_key = tuple(row_board or ())
+                        target = h2_target_cache[board_key]
+                        target_bb = float('nan') if target is None else float(target['target_bb'][p])
+                        transition = transition + (target_bb,)
+                        if target is not None:
+                            h2_hand_has_target = True
+                            local_metrics['h2_critic_target_rows'] += 1
+                            if board_key not in h2_counted_boards:
+                                h2_counted_boards.add(board_key)
+                                local_metrics['h2_critic_target_unique_boards'] += 1
+                                local_metrics['h2_critic_target_runouts'] += int(target['runouts'])
+                                if target['exhaustive']:
+                                    local_metrics['h2_critic_target_exact_rows'] += 1
+                                else:
+                                    local_metrics['h2_critic_target_sampled_rows'] += 1
+                    else:
+                        transition = transition + (float('nan'),)
+                    # Player 0 is BB/OOP and player 1 is BTN/SB/IP in the
+                    # native HUNL engine. Keep this as training metadata only;
+                    # it does not change the deployed observation contract.
+                    transition = transition + (float(p),)
+                    local_transitions.append(transition)
+
+            if h2_hand_has_target:
+                local_metrics['h2_showdown_hands'] += 1
 
             hands_played += 1
 
@@ -707,6 +1221,11 @@ def worker_process_v5_multi(
     mirror_self_play_deals=False,
     allin_runout_ev=False,
     allin_runout_ev_max_runouts=EXP003_DEFAULT_ALLIN_RUNOUT_EV_MAX_RUNOUTS,
+    fixed_training_deal_stream=False,
+    showdown_ev_value_targets=False,
+    showdown_ev_value_target_max_runouts=H2_MAX_RUNOUTS,
+    showdown_ev_value_target_seed=H2_TARGET_SEED,
+    hero_preflop_strategy='model',
 ):
     """
     EXP-002 multi-env worker. Owns M environments; slot s = worker_id*M + e.
@@ -744,6 +1263,26 @@ def worker_process_v5_multi(
             'raise_cap_per_street': 1,
             'action_history_style': 'v4',
         }
+    elif env_version == 'v55v4obs':
+        from alpha_holdem.environment_v55 import HUNLEnvironment
+        env_kwargs = {
+            'starting_stack': starting_stack,
+            'action_history_style': 'v4',
+        }
+    elif env_version == 'v55pfv2v4obs':
+        from alpha_holdem.environment_v55 import HUNLEnvironment
+        env_kwargs = {
+            'starting_stack': starting_stack,
+            'action_history_style': 'v4',
+            'raise_action_mapping': 'pot_fraction_v2',
+        }
+    elif env_version == 'v55preflopv2v4obs':
+        from alpha_holdem.environment_v55 import HUNLEnvironment
+        env_kwargs = {
+            'starting_stack': starting_stack,
+            'action_history_style': 'v4',
+            'raise_action_mapping': 'preflop_pot_fraction_v2',
+        }
     else:
         from alpha_holdem.environment_v55 import HUNLEnvironment
         env_kwargs = {'starting_stack': starting_stack}
@@ -779,7 +1318,8 @@ def worker_process_v5_multi(
 
     class _Slot:
         __slots__ = ('env', 'obs', 'buffers', 'last_actor', 'hands_played',
-                     'current_opp', 'pending', 'terminal_reward', 'mirror_deck')
+                     'current_opp', 'pending', 'terminal_reward', 'mirror_deck',
+                     'mirror_identity', 'deal_identity', 'deal_index')
 
     slots = []
     for _e in range(M):
@@ -793,6 +1333,9 @@ def worker_process_v5_multi(
         s.pending = None
         s.terminal_reward = 0.0
         s.mirror_deck = None
+        s.mirror_identity = None
+        s.deal_identity = None
+        s.deal_index = 0
         slots.append(s)
 
     local_transitions = []
@@ -805,14 +1348,26 @@ def worker_process_v5_multi(
             s.current_opp = -1
             s.obs = exp003_reset_env_with_deck(s.env, s.mirror_deck)
             s.mirror_deck = None
+            s.deal_identity = s.mirror_identity
+            s.mirror_identity = None
             local_metrics['mirror_replay_hands'] += 1
         else:
             s.current_opp = int(assigned_buf[0])
-            s.obs = s.env.reset()
+            if fixed_training_deal_stream:
+                deal_index = s.deal_index
+                s.obs = exp003_reset_env_with_deck(
+                    s.env, fixed_training_deck(worker_seed, e, deal_index)
+                )
+                s.deal_index += 1
+                s.deal_identity = f'w{worker_id}:e{e}:d{deal_index}'
+            else:
+                s.obs = s.env.reset()
+                s.deal_identity = f'w{worker_id}:e{e}:runtime{s.hands_played}'
             if mirror_self_play_deals and s.current_opp == -1:
                 mirror_deck = exp003_mirrored_deck_from_env(s.env)
                 if mirror_deck is not None:
                     s.mirror_deck = mirror_deck
+                    s.mirror_identity = f'{s.deal_identity}:mirror'
                     local_metrics['mirror_source_hands'] += 1
         s.buffers = {0: [], 1: []}
         s.last_actor = None
@@ -829,7 +1384,10 @@ def worker_process_v5_multi(
 
         ci = o['card_info'].flatten()
         ai = o['action_info'].flatten()
-        ei = o['extra_info']
+        ei = pack_position_extra(
+            o['extra_info'],
+            player=player,
+        )
         lm = o['legal_mask']
 
         row = obs_buf[e]
@@ -840,11 +1398,16 @@ def worker_process_v5_multi(
 
         collect = is_self_play or is_hero
         if collect:
+            row_board = (
+                tuple(s.env.state.board)
+                if showdown_ev_value_targets and s.env.state is not None
+                else None
+            )
             s.pending = (player, is_hero, collect,
-                         ci.copy(), ai.copy(), ei.copy(), lm.copy())
+                         ci.copy(), ai.copy(), ei.copy(), lm.copy(), row_board)
         else:
             # Non-trainable decision: only lm is needed (epsilon fallback).
-            s.pending = (player, is_hero, collect, None, None, None, lm.copy())
+            s.pending = (player, is_hero, collect, None, None, None, lm.copy(), None)
         request_buf[e] = req
         status_buf[e] = WAITING
 
@@ -860,6 +1423,20 @@ def worker_process_v5_multi(
             rewards_per_player[1 - s.last_actor] = -s.terminal_reward
 
         counted_hand = False
+        h2_hand_has_target = False
+        committed = (chips[0], chips[1])
+        h2_target_cache = (
+            h2_showdown_critic_target_pairs(
+                env.state,
+                row_boards=[row[7] or () for buf in s.buffers.values() for row in buf],
+                deal_identity=s.deal_identity,
+                committed=committed,
+                max_runouts=showdown_ev_value_target_max_runouts,
+                target_seed=showdown_ev_value_target_seed,
+            )
+            if showdown_ev_value_targets else {}
+        )
+        h2_counted_boards = set()
         for p in (0, 1):
             buf = s.buffers[p]
             if not buf:
@@ -867,12 +1444,14 @@ def worker_process_v5_multi(
             pr = rewards_per_player.get(p, 0.0)
             p_chips = chips[p]
             v_chips = chips[1 - p]
-            for i, (ci_s, ai_s, ei_s, lm_s, act, lp, val) in enumerate(buf):
+            for i, row in enumerate(buf):
+                ci_s, ai_s, ei_s, lm_s, act, lp, val = row[:7]
+                row_board = row[7] if len(row) > 7 else None
                 is_last = (i == len(buf) - 1)
                 hand_marker = 1.0 if is_last and not counted_hand else 0.0
                 if hand_marker:
                     counted_hand = True
-                local_transitions.append((
+                transition = (
                     ci_s, ai_s, ei_s, lm_s, act, lp,
                     pr if is_last else 0.0,
                     val,
@@ -880,7 +1459,30 @@ def worker_process_v5_multi(
                     p_chips,
                     v_chips,
                     hand_marker,
-                ))
+                )
+                if showdown_ev_value_targets:
+                    board_key = tuple(row_board or ())
+                    target = h2_target_cache[board_key]
+                    target_bb = float('nan') if target is None else float(target['target_bb'][p])
+                    transition = transition + (target_bb,)
+                    if target is not None:
+                        h2_hand_has_target = True
+                        local_metrics['h2_critic_target_rows'] += 1
+                        if board_key not in h2_counted_boards:
+                            h2_counted_boards.add(board_key)
+                            local_metrics['h2_critic_target_unique_boards'] += 1
+                            local_metrics['h2_critic_target_runouts'] += int(target['runouts'])
+                            if target['exhaustive']:
+                                local_metrics['h2_critic_target_exact_rows'] += 1
+                            else:
+                                local_metrics['h2_critic_target_sampled_rows'] += 1
+                else:
+                    transition = transition + (float('nan'),)
+                # Player 0 is BB/OOP and player 1 is BTN/SB/IP.
+                transition = transition + (float(p),)
+                local_transitions.append(transition)
+        if h2_hand_has_target:
+            local_metrics['h2_showdown_hands'] += 1
         s.hands_played += 1
         hands_since_send += 1
         return True
@@ -902,7 +1504,7 @@ def worker_process_v5_multi(
                 value = float(result_buf[e, 2])
                 status_buf[e] = IDLE
 
-                (player, is_hero, collect, ci, ai, ei, lm) = s.pending
+                (player, is_hero, collect, ci, ai, ei, lm, row_board) = s.pending
                 s.pending = None
 
                 eps = epsilon_value.value
@@ -910,10 +1512,28 @@ def worker_process_v5_multi(
                     legal = _np.where(lm > 0)[0]
                     if len(legal) > 0:
                         action_idx = int(_random.choice(legal))
+                if (
+                    is_hero
+                    and hero_preflop_strategy in (
+                        'heuristic-v4',
+                        'pokerskill-v1',
+                    )
+                    and s.env.state is not None
+                    and int(s.env.state.street) == 0
+                ):
+                    action_idx = (
+                        pokerskill_preflop_action(s.env, player, lm)
+                        if hero_preflop_strategy == 'pokerskill-v1'
+                        else heuristic_v4_preflop_action(
+                            s.env,
+                            player,
+                            lm,
+                        )
+                    )
 
                 if collect:
                     s.buffers[player].append((ci, ai, ei, lm,
-                                              action_idx, log_prob, value))
+                                              action_idx, log_prob, value, row_board))
                 s.last_actor = player
                 pre_board = tuple(s.env.state.board) if allin_runout_ev and s.env.state is not None else None
                 obs, reward, done = s.env.step(action_idx)
@@ -991,6 +1611,8 @@ def run_inference_v5(
     num_slots: int,           # EXP-002: W in single mode, W*M in multi mode
     device: str,
     batch_size_log: list,  # caller's list to push observed batch sizes for metrics
+    hero_value_output_scale: float = 1.0,
+    hero_policy_mode: str = 'sample',
 ) -> int:
     """
     V5.0: build group masks via vectorized numpy ops, slice flat obs view directly.
@@ -1025,12 +1647,18 @@ def run_inference_v5(
         logits, values = model(cards_t, actions_t, extras_t, masks_t)
         probs = F.softmax(logits, dim=-1)
         dist = Categorical(probs)
-        sampled = dist.sample()
+        sampled = (
+            torch.argmax(probs, dim=-1)
+            if int(mid) == HERO_MODEL_ID and hero_policy_mode == 'greedy'
+            else dist.sample()
+        )
         log_probs = dist.log_prob(sampled)
 
         s_np = sampled.cpu().numpy()
         lp_np = log_probs.cpu().numpy()
         v_np = values.squeeze(-1).cpu().numpy()
+        if int(mid) == HERO_MODEL_ID and hero_value_output_scale != 1.0:
+            v_np = v_np * float(hero_value_output_scale)
 
         for i, w in enumerate(sel):
             r_off = int(w) * RESULT_SIZE
@@ -1220,13 +1848,128 @@ def main():
     parser.add_argument('--total-hands', type=int, default=2_700_000_000,
                         help='V5 target hands. Default matches the AlphaHoldem paper scale.')
     parser.add_argument('--starting-stack', type=float, default=200.0)
-    parser.add_argument('--env-version', choices=('v55', 'v4', 'v55cap1', 'v55cap1v4obs'), default='v55',
+    parser.add_argument('--env-version', choices=('v55', 'v4', 'v55cap1', 'v55cap1v4obs', 'v55v4obs', 'v55pfv2v4obs', 'v55preflopv2v4obs'), default='v55',
                         help='Training environment. v55 fixes the legacy V4/V5 action-history and raise-cap bugs.')
+    parser.add_argument('--norm-layer', choices=('bn', 'gn'), default='bn',
+                        help='Network normalization. Use gn for GN BC/imitation checkpoints.')
     parser.add_argument('--lr', type=float, default=3e-4)
     parser.add_argument('--ppo-epochs', type=int, default=4)
+    parser.add_argument('--ppo-target-kl', type=float, default=0.0,
+                        help='H6: after each completed PPO epoch, skip remaining epochs when '
+                             'that epoch mean approx_kl is strictly greater than this value. '
+                             '0 disables early-stop and preserves baseline behavior.')
+    parser.add_argument('--source-policy-kl-coef', type=float, default=0.0,
+                        help='Discovery mode: forward-KL regularization toward the exact '
+                             'resume policy on rollout states. Requires --resume.')
+    parser.add_argument(
+        '--policy-postflop-only',
+        action='store_true',
+        help=(
+            'Apply PPO policy and entropy gradients only to postflop rows. '
+            'Source-policy KL covers both postflop seats; dedicated/frozen '
+            'preflop parameters preserve preflop behavior.'
+        ),
+    )
+    parser.add_argument(
+        '--policy-position-only',
+        choices=('all', 'bb', 'sb'),
+        default='all',
+        help=(
+            'Optional postflop PPO seat filter. bb selects player 0 (OOP), '
+            'sb selects player 1 (BTN/IP). Requires --policy-postflop-only; '
+            'source-policy KL continues to anchor both postflop seats.'
+        ),
+    )
+    parser.add_argument(
+        '--head-only-training',
+        action='store_true',
+        help=(
+            'Freeze the shared card/action/extra trunk and any dedicated '
+            'preflop head; update only the postflop policy head and value '
+            'head. This prevents postflop PPO from changing preflop logits '
+            'through shared features.'
+        ),
+    )
+    parser.add_argument(
+        '--postflop-adapter-hidden',
+        type=int,
+        default=0,
+        help='Add a zero-initialized residual postflop policy adapter of this width.',
+    )
+    parser.add_argument(
+        '--position-adapter-hidden',
+        type=int,
+        default=0,
+        help=(
+            'Add two zero-initialized residual policy experts of this width, '
+            'selected by the public HU seat feature (0=BB, 1=SB).'
+        ),
+    )
+    parser.add_argument(
+        '--adapter-only-training',
+        action='store_true',
+        help=(
+            'Freeze the source representation and policy heads; update only the '
+            'postflop residual adapter and value head.'
+        ),
+    )
+    parser.add_argument(
+        '--position-adapter-only-training',
+        action='store_true',
+        help=(
+            'Freeze the source actor; update only the two position residual '
+            'experts and value head.'
+        ),
+    )
+    parser.add_argument(
+        '--hero-preflop-strategy',
+        choices=('model', 'heuristic-v4', 'pokerskill-v1'),
+        default='model',
+        help=(
+            'Rollout policy for designated-hero preflop decisions. '
+            'heuristic-v4 supplies position- and hand-dependent ranges; combine '
+            'it with --policy-postflop-only and --preflop-teacher-coef > 0.'
+        ),
+    )
+    parser.add_argument(
+        '--preflop-teacher-coef',
+        type=float,
+        default=0.0,
+        help=(
+            'Cross-entropy coefficient on preflop rollout actions, used to '
+            'distill a deterministic hero preflop teacher into the model.'
+        ),
+    )
+    parser.add_argument(
+        '--separate-preflop-head',
+        action='store_true',
+        help=(
+            'Use a dedicated preflop policy head on detached trunk features. '
+            'This lets the preflop teacher change greedy preflop play without '
+            'rewriting the source postflop policy or its shared features.'
+        ),
+    )
+    parser.add_argument(
+        '--preflop-head-lr',
+        type=float,
+        default=0.0,
+        help=(
+            'Optional learning rate for the dedicated preflop head. '
+            '0 uses --lr. Requires --separate-preflop-head when positive.'
+        ),
+    )
     parser.add_argument('--mini-batch-size', type=int, default=1024)
     parser.add_argument('--epsilon', type=float, default=0.0)
     parser.add_argument('--gamma', type=float, default=0.999)
+    parser.add_argument(
+        '--gae-lambda',
+        type=float,
+        default=0.95,
+        help=(
+            'GAE lambda. Use 1.0 for Monte-Carlo actor advantages when adapting '
+            'a policy whose inherited critic is untrained or stale.'
+        ),
+    )
     parser.add_argument('--delta1', type=float, default=3.0)
     parser.add_argument('--entropy-coef', type=float, default=0.05)
     parser.add_argument('--entropy-floor', type=float, default=0.3)
@@ -1258,12 +2001,31 @@ def main():
                              'lowest Trinal-Clip selection loss; latest preserves FIFO recency for ablations.')
     parser.add_argument('--pool-history-limit', type=int, default=200,
                         help='Metadata-only candidate history entries to retain in checkpoints/manifests.')
+    parser.add_argument('--fixed-opponent-checkpoint', default='',
+                        help='Discovery mode: replace the historical pool with one frozen opponent '
+                             'checkpoint. May be mixed with hero self-play through '
+                             '--self-play-fraction.')
+    parser.add_argument('--fixed-opponent-checkpoints', nargs='+', default=[],
+                        help='Discovery mode: frozen opponent ensemble. May be combined with '
+                             '--fixed-opponent-checkpoint and hero self-play.')
+    parser.add_argument('--hero-policy-mode', choices=('sample', 'greedy'), default='sample',
+                        help='Hero action selection during rollout. Training normally samples; '
+                             'greedy with lr=0 provides a fast local fixed-opponent screen.')
+    parser.add_argument('--archive-checkpoint-every', type=int, default=0,
+                        help='Also save checkpoint_iterXXXXXX.pt every N PPO updates. '
+                             '0 disables archival checkpoints.')
     parser.add_argument('--self-play-fraction', type=float, default=0.2,
                         help='Probability of hero-vs-hero instead of a pool opponent.')
-    parser.add_argument('--opponent-assignment', choices=('per-iteration', 'per-worker'),
+    parser.add_argument('--opponent-assignment', choices=('per-iteration', 'per-group', 'per-worker'),
                         default='per-iteration',
                         help='per-iteration keeps all workers on one sampled mode/snapshot for larger '
-                             'inference batches; per-worker is the original independent sampler.')
+                             'inference batches; per-group is EXP-005 balanced group mixtures; '
+                             'per-worker is the original independent sampler.')
+    parser.add_argument('--opponent-groups', type=int, default=5,
+                        help='EXP-005: balanced worker groups used by --opponent-assignment per-group.')
+    parser.add_argument('--opponent-assignment-provenance-file', default='',
+                        help='Reporting-only hash-chained JSONL of the actual worker opponent '
+                             'assignment applied to every iteration. EXP005-C arms require it.')
     parser.add_argument('--rollout-mode', choices=('single', 'multi'), default='single',
                         help='EXP-002: single preserves the original one-env-per-worker path; '
                              'multi runs --rollout-envs-per-worker envs per worker with batched requests.')
@@ -1278,6 +2040,9 @@ def main():
     parser.add_argument('--worker-seed-base', type=int, default=None,
                         help='EXP-002: if set, worker i seeds random/numpy with base+i in BOTH rollout '
                              'modes. Required for the deterministic equivalence gate.')
+    parser.add_argument('--fixed-training-deal-stream', action='store_true',
+                        help='Controlled-arm mode: derive each source deck from '
+                             '(worker_seed, env_index, deal_index). Requires worker seed base.')
     parser.add_argument('--trace-transitions-file', default=None,
                         help='EXP-002 debug: write one sha256 digest per transition in arrival order '
                              '(equivalence testing only; adds overhead).')
@@ -1296,6 +2061,156 @@ def main():
                              'exact missing-board runout count exceeds K, sample K deterministic '
                              'runouts instead of skipping replacement. Set 0 only for explicit '
                              'exhaustive enumeration; default 200 is the live-cutover-safe mode.')
+    parser.add_argument('--showdown-ev-value-targets', action='store_true',
+                        help='H2: replace only eligible critic returns with deterministic '
+                             'all-showdown K-runout line-value targets. Actor rewards and '
+                             'advantages remain unchanged.')
+    parser.add_argument('--showdown-ev-value-target-max-runouts', type=int, default=H2_MAX_RUNOUTS)
+    parser.add_argument('--showdown-ev-value-target-seed', type=int, default=H2_TARGET_SEED)
+    parser.add_argument('--h2-window-arm', choices=('none', 'control', 'treatment'), default='none')
+    parser.add_argument('--h2-preregistration', default='')
+    parser.add_argument('--h2-preregistration-sha256', default='')
+    parser.add_argument('--h2-design-lock', default='')
+    parser.add_argument('--h2-design-lock-sha256', default='')
+    parser.add_argument('--h6-window-arm', choices=('none', 'treatment'), default='none')
+    parser.add_argument('--h6-preregistration', default='')
+    parser.add_argument('--h6-preregistration-sha256', default='')
+    parser.add_argument('--h6-design-lock', default='')
+    parser.add_argument('--h6-design-lock-sha256', default='')
+    parser.add_argument('--h7-window-arm', choices=('none', 'control', 'treatment'), default='none')
+    parser.add_argument('--h7-preregistration', default='')
+    parser.add_argument('--h7-preregistration-sha256', default='')
+    parser.add_argument('--h7-design-lock', default='')
+    parser.add_argument('--h7-design-lock-sha256', default='')
+    parser.add_argument('--h8-window-arm', choices=('none', 'control', 'treatment'), default='none')
+    parser.add_argument('--h8-value-head-catchup-after-kl-stop', action='store_true')
+    parser.add_argument('--h8-preregistration', default='')
+    parser.add_argument('--h8-preregistration-sha256', default='')
+    parser.add_argument('--h8-design-lock', default='')
+    parser.add_argument('--h8-design-lock-sha256', default='')
+    parser.add_argument('--h9-window-arm', choices=('none', 'control', 'treatment'), default='none')
+    parser.add_argument('--h9-catchup-loss', choices=('mse', 'smooth_l1'), default='mse')
+    parser.add_argument('--h9-catchup-smooth-l1-beta', type=float, default=1.0)
+    parser.add_argument('--h9-preregistration', default='')
+    parser.add_argument('--h9-preregistration-sha256', default='')
+    parser.add_argument('--h9-design-lock', default='')
+    parser.add_argument('--h9-design-lock-sha256', default='')
+    parser.add_argument('--h10-window-arm', choices=('none', 'control', 'treatment'), default='none')
+    parser.add_argument('--h10-catchup-loss', choices=('mse', 'smooth_l1'), default='mse')
+    parser.add_argument('--h10-catchup-smooth-l1-beta', type=float, default=1.0)
+    parser.add_argument('--h10-preregistration', default='')
+    parser.add_argument('--h10-preregistration-sha256', default='')
+    parser.add_argument('--h10-design-lock', default='')
+    parser.add_argument('--h10-design-lock-sha256', default='')
+    parser.add_argument('--h11-window-arm', choices=('none', 'control', 'treatment'), default='none')
+    parser.add_argument('--h11-catchup-loss', choices=('mse', 'smooth_l1'), default='mse')
+    parser.add_argument('--h11-catchup-smooth-l1-beta', type=float, default=1.0)
+    parser.add_argument('--h11-preregistration', default='')
+    parser.add_argument('--h11-preregistration-sha256', default='')
+    parser.add_argument('--h11-design-lock', default='')
+    parser.add_argument('--h11-design-lock-sha256', default='')
+    parser.add_argument('--h12-window-arm', choices=('none', 'control', 'treatment'), default='none')
+    parser.add_argument('--h12-catchup-loss', choices=('mse', 'smooth_l1'), default='mse')
+    parser.add_argument('--h12-catchup-smooth-l1-beta', type=float, default=1.0)
+    parser.add_argument('--h12-preregistration', default='')
+    parser.add_argument('--h12-preregistration-sha256', default='')
+    parser.add_argument('--h12-design-lock', default='')
+    parser.add_argument('--h12-design-lock-sha256', default='')
+    parser.add_argument('--h13-window-arm', choices=('none', 'control', 'treatment'), default='none')
+    parser.add_argument('--h13-catchup-loss', choices=('mse', 'smooth_l1'), default='mse')
+    parser.add_argument('--h13-catchup-smooth-l1-beta', type=float, default=1.0)
+    parser.add_argument('--h13-preregistration', default='')
+    parser.add_argument('--h13-preregistration-sha256', default='')
+    parser.add_argument('--h13-design-lock', default='')
+    parser.add_argument('--h13-design-lock-sha256', default='')
+    parser.add_argument('--h14-window-arm', choices=('none', 'control', 'treatment'), default='none')
+    parser.add_argument('--h14-catchup-loss', choices=('mse', 'smooth_l1'), default='mse')
+    parser.add_argument('--h14-catchup-smooth-l1-beta', type=float, default=1.0)
+    parser.add_argument('--h14-preregistration', default='')
+    parser.add_argument('--h14-preregistration-sha256', default='')
+    parser.add_argument('--h14-design-lock', default='')
+    parser.add_argument('--h14-design-lock-sha256', default='')
+    parser.add_argument('--h15-window-arm', choices=('none', 'control', 'treatment'), default='none')
+    parser.add_argument('--h15-catchup-loss', choices=('mse', 'smooth_l1'), default='mse')
+    parser.add_argument('--h15-catchup-smooth-l1-beta', type=float, default=1.0)
+    parser.add_argument('--h15-preregistration', default='')
+    parser.add_argument('--h15-preregistration-sha256', default='')
+    parser.add_argument('--h15-design-lock', default='')
+    parser.add_argument('--h15-design-lock-sha256', default='')
+    parser.add_argument('--h16-window-arm', choices=('none', 'control', 'treatment'), default='none')
+    parser.add_argument('--h16-catchup-loss', choices=('mse', 'smooth_l1'), default='mse')
+    parser.add_argument('--h16-catchup-smooth-l1-beta', type=float, default=1.0)
+    parser.add_argument('--h16-preregistration', default='')
+    parser.add_argument('--h16-preregistration-sha256', default='')
+    parser.add_argument('--h16-design-lock', default='')
+    parser.add_argument('--h16-design-lock-sha256', default='')
+    parser.add_argument('--h17-window-arm', choices=('none', 'control', 'treatment'), default='none')
+    parser.add_argument('--h17-catchup-loss', choices=('mse', 'smooth_l1'), default='mse')
+    parser.add_argument('--h17-catchup-smooth-l1-beta', type=float, default=1.0)
+    parser.add_argument('--h17-preregistration', default='')
+    parser.add_argument('--h17-preregistration-sha256', default='')
+    parser.add_argument('--h17-design-lock', default='')
+    parser.add_argument('--h17-design-lock-sha256', default='')
+    parser.add_argument('--h18-window-arm', choices=('none', 'control', 'treatment'), default='none')
+    parser.add_argument('--h18-catchup-loss', choices=('mse', 'smooth_l1'), default='mse')
+    parser.add_argument('--h18-catchup-smooth-l1-beta', type=float, default=1.0)
+    parser.add_argument('--h18-preregistration', default='')
+    parser.add_argument('--h18-preregistration-sha256', default='')
+    parser.add_argument('--h18-design-lock', default='')
+    parser.add_argument('--h18-design-lock-sha256', default='')
+    parser.add_argument(
+        '--lg002-recovery-arm',
+        choices=('none', 'control_uniform', 'treatment_diversity'),
+        default='none',
+    )
+    parser.add_argument('--lg002-recovery-preregistration', default='')
+    parser.add_argument('--lg002-recovery-preregistration-sha256', default='')
+    parser.add_argument('--lg002-recovery-contract-probe', action='store_true')
+    parser.add_argument('--exp-w1-value-warmup-epochs', type=int, default=0,
+                        help='EXP-W1 single variable: extra value-head-only epochs on the first '
+                             'normal rollout batch. 0 is the exact control arm.')
+    parser.add_argument('--exp-w1-value-warmup-at-iteration', type=int, default=0)
+    parser.add_argument('--exp-w1-value-warmup-heldout-fraction', type=float, default=0.20)
+    parser.add_argument('--exp-w1-value-warmup-min-relative-mse-reduction', type=float, default=0.02)
+    parser.add_argument('--exp-w1-value-warmup-split-seed', type=int, default=2026071101)
+    parser.add_argument('--exp-w1-value-warmup-report', default='',
+                        help='Immutable treatment gate artifact. Required when warmup is enabled.')
+    parser.add_argument('--exp-w1-design-lock', default='')
+    parser.add_argument('--exp-w1-design-lock-sha256', default='')
+    parser.add_argument('--critic-contract', choices=(CRITIC_V1, CRITIC_V2), default=CRITIC_V1)
+    parser.add_argument('--h1-effective-stack-divisor', type=float, default=200.0)
+    parser.add_argument('--h1-critic-init-seed', type=int, default=2026071102)
+    parser.add_argument('--value-coef', type=float, default=0.5)
+    parser.add_argument(
+        '--autonomous-critic-v2-reset',
+        action='store_true',
+        help=(
+            'Discovery-mode critic_v1 to critic_v2 migration: copy the actor '
+            'exactly, initialize a fresh normalized critic_v2, and require a '
+            'fresh optimizer. This bypasses legacy preregistration artifacts.'
+        ),
+    )
+    parser.add_argument(
+        '--autonomous-critic-v2-continue',
+        action='store_true',
+        help=(
+            'Discovery-mode continuation from an existing critic_v2 checkpoint. '
+            'Load actor and critic weights exactly while allowing either a fresh '
+            'or preserved optimizer without legacy H1 governance artifacts.'
+        ),
+    )
+    parser.add_argument(
+        '--critic-head-only-gradient',
+        action='store_true',
+        help=(
+            'Train the value head while blocking critic-loss gradients from '
+            'the shared policy trunk. Actor losses still update the full '
+            'trainable policy network.'
+        ),
+    )
+    parser.add_argument('--h1-preregistration', default='')
+    parser.add_argument('--h1-preregistration-sha256', default='')
+    parser.add_argument('--h1-migration-report', default='')
     parser.add_argument('--snapshot-every', type=int, default=200)
     parser.add_argument('--save-interval', type=int, default=100)
     parser.add_argument('--run-id', default=None,
@@ -1317,6 +2232,15 @@ def main():
     parser.add_argument('--reset-hand-counter', action='store_true', default=False,
                         help='Start total_hands at 0 even if resume ckpt has higher (for V5 fresh schedule)')
     args = parser.parse_args()
+    fixed_opponent_paths = [
+        path for path in (
+            ([args.fixed_opponent_checkpoint] if args.fixed_opponent_checkpoint else [])
+            + list(args.fixed_opponent_checkpoints)
+        )
+        if path
+    ]
+    fixed_opponent_active = bool(fixed_opponent_paths)
+    lg002_recovery_active = args.lg002_recovery_arm != 'none'
     try:
         args.postflop_action_prior_target_values = parse_action_prior_target(args.postflop_action_prior_target)
         args.preflop_action_prior_target_values = parse_action_prior_target(args.preflop_action_prior_target)
@@ -1337,18 +2261,1201 @@ def main():
 
     if args.rollout_envs_per_worker < 1:
         parser.error('--rollout-envs-per-worker must be >= 1')
+    if not 0.0 <= args.self_play_fraction <= 1.0:
+        parser.error('--self-play-fraction must be in [0, 1]')
     if args.rollout_mode == 'single' and args.rollout_envs_per_worker != 1:
         parser.error('--rollout-mode single requires --rollout-envs-per-worker 1 '
                      '(use --rollout-mode multi for M > 1)')
     if args.allin_runout_ev_max_runouts < 0:
         parser.error('--allin-runout-ev-max-runouts must be >= 0')
+    if args.showdown_ev_value_target_max_runouts <= 0:
+        parser.error('--showdown-ev-value-target-max-runouts must be > 0')
+    if args.showdown_ev_value_targets:
+        if not args.fixed_training_deal_stream or args.worker_seed_base != 73000:
+            parser.error('H2 showdown targets require exact fixed deal stream and worker-seed-base 73000')
+        if args.showdown_ev_value_target_max_runouts != H2_MAX_RUNOUTS:
+            parser.error(f'H2 showdown targets require exact max runouts {H2_MAX_RUNOUTS}')
+        if args.showdown_ev_value_target_seed != H2_TARGET_SEED:
+            parser.error(f'H2 showdown targets require exact target seed {H2_TARGET_SEED}')
+        if args.critic_contract != CRITIC_V1 or args.value_coef != 0.5:
+            parser.error('H2 showdown targets require critic_v1 and value_coef 0.5')
+        if args.opponent_assignment != 'per-iteration':
+            parser.error('H2 showdown targets require per-iteration opponent assignment')
+        if not args.opponent_assignment_provenance_file:
+            parser.error('H2 showdown targets require assignment provenance')
+    if args.h2_window_arm != 'none':
+        expected_enabled = args.h2_window_arm == 'treatment'
+        if bool(args.showdown_ev_value_targets) != expected_enabled:
+            parser.error('H2 arm identity and showdown-target flag disagree')
+        for label, path_value, hash_value in (
+            ('preregistration', args.h2_preregistration, args.h2_preregistration_sha256),
+            ('design lock', args.h2_design_lock, args.h2_design_lock_sha256),
+        ):
+            if not path_value or not hash_value:
+                parser.error(f'H2 {args.h2_window_arm} requires {label} path and SHA256')
+            bound_path = Path(path_value)
+            if not bound_path.is_file() or sha256_path(bound_path) != hash_value.lower():
+                parser.error(f'H2 immutable {label} identity/hash mismatch')
+        if not args.resume or not args.allow_resume or not args.reset_optimizer:
+            parser.error('H2 arms require --resume --allow-resume with optimizer reset')
+        if not args.fixed_training_deal_stream or args.worker_seed_base != 73000:
+            parser.error('H2 arms require fixed deal stream and worker-seed-base 73000')
+        if args.opponent_assignment != 'per-iteration' or not args.opponent_assignment_provenance_file:
+            parser.error('H2 arms require per-iteration assignment provenance')
+    if args.ppo_target_kl < 0.0:
+        parser.error('--ppo-target-kl must be >= 0')
+    if args.source_policy_kl_coef < 0.0:
+        parser.error('--source-policy-kl-coef must be >= 0')
+    if args.source_policy_kl_coef > 0.0 and not args.resume:
+        parser.error('positive --source-policy-kl-coef requires --resume')
+    if args.policy_position_only != 'all' and not args.policy_postflop_only:
+        parser.error(
+            '--policy-position-only bb/sb requires --policy-postflop-only'
+        )
+    if args.preflop_teacher_coef < 0.0:
+        parser.error('--preflop-teacher-coef must be >= 0')
+    if args.preflop_head_lr < 0.0:
+        parser.error('--preflop-head-lr must be >= 0')
+    if args.preflop_head_lr > 0.0 and not args.separate_preflop_head:
+        parser.error('positive --preflop-head-lr requires --separate-preflop-head')
+    if args.postflop_adapter_hidden < 0:
+        parser.error('--postflop-adapter-hidden must be >= 0')
+    if args.position_adapter_hidden < 0:
+        parser.error('--position-adapter-hidden must be >= 0')
+    if args.adapter_only_training and args.postflop_adapter_hidden <= 0:
+        parser.error('--adapter-only-training requires --postflop-adapter-hidden > 0')
+    if (
+        args.position_adapter_only_training
+        and args.position_adapter_hidden <= 0
+    ):
+        parser.error(
+            '--position-adapter-only-training requires '
+            '--position-adapter-hidden > 0'
+        )
+    exclusive_training_modes = sum(
+        bool(value)
+        for value in (
+            args.adapter_only_training,
+            args.position_adapter_only_training,
+            args.head_only_training,
+        )
+    )
+    if exclusive_training_modes > 1:
+        parser.error(
+            '--adapter-only-training, --position-adapter-only-training and '
+            '--head-only-training are mutually exclusive'
+        )
+    if args.hero_preflop_strategy != 'model':
+        if not args.policy_postflop_only:
+            parser.error(
+                '--hero-preflop-strategy teacher requires '
+                '--policy-postflop-only'
+            )
+        if args.preflop_teacher_coef <= 0.0:
+            parser.error(
+                '--hero-preflop-strategy teacher requires '
+                '--preflop-teacher-coef > 0'
+            )
+        if args.self_play_fraction > 0.0:
+            parser.error(
+                '--hero-preflop-strategy teacher requires '
+                '--self-play-fraction 0 so all trainable preflop rows carry '
+                'teacher actions'
+            )
+    if args.archive_checkpoint_every < 0:
+        parser.error('--archive-checkpoint-every must be >= 0')
+    # Discovery training may use ordinary PPO KL early stopping without a
+    # historical H6-H14 governance identity.  The arm-specific branches below
+    # still enforce their exact legacy contracts when explicitly selected.
+    if args.h6_window_arm == 'treatment':
+        if args.ppo_target_kl != 0.03:
+            parser.error('H6 treatment requires exact --ppo-target-kl 0.03')
+        if args.h2_window_arm != 'none' or args.showdown_ev_value_targets:
+            parser.error('H6 must not bundle or reopen H2')
+        for label, path_value, hash_value in (
+            ('preregistration', args.h6_preregistration, args.h6_preregistration_sha256),
+            ('design lock', args.h6_design_lock, args.h6_design_lock_sha256),
+        ):
+            if not path_value or not hash_value:
+                parser.error(f'H6 treatment requires {label} path and SHA256')
+            bound_path = Path(path_value)
+            if not bound_path.is_file() or sha256_path(bound_path) != hash_value.lower():
+                parser.error(f'H6 immutable {label} identity/hash mismatch')
+        if not args.resume or not args.allow_resume or not args.reset_optimizer:
+            parser.error('H6 treatment requires --resume --allow-resume with optimizer reset')
+        if not args.fixed_training_deal_stream or args.worker_seed_base != 73000:
+            parser.error('H6 treatment requires fixed deal stream and worker-seed-base 73000')
+        if args.opponent_assignment != 'per-iteration' or not args.opponent_assignment_provenance_file:
+            parser.error('H6 treatment requires per-iteration assignment provenance')
+        if args.critic_contract != CRITIC_V1 or args.value_coef != 0.5:
+            parser.error('H6 treatment requires critic_v1 and value_coef 0.5')
+        if args.h7_window_arm != 'none' or args.h8_window_arm != 'none' or args.h9_window_arm != 'none' or args.h10_window_arm != 'none':
+            parser.error('H6/H7/H8/H9/H10 identities are mutually exclusive')
+    if args.h7_window_arm != 'none':
+        expected_target = 0.03 if args.h7_window_arm == 'treatment' else 0.0
+        if args.ppo_target_kl != expected_target:
+            parser.error(f'H7 {args.h7_window_arm} requires exact --ppo-target-kl {expected_target}')
+        if (
+            args.h2_window_arm != 'none'
+            or args.h6_window_arm != 'none'
+            or args.h8_window_arm != 'none'
+            or args.h9_window_arm != 'none'
+            or args.h10_window_arm != 'none'
+            or args.showdown_ev_value_targets
+        ):
+            parser.error('H7 must not bundle or reopen H2/H6/H8/H9/H10')
+        for label, path_value, hash_value in (
+            ('preregistration', args.h7_preregistration, args.h7_preregistration_sha256),
+            ('design lock', args.h7_design_lock, args.h7_design_lock_sha256),
+        ):
+            if not path_value or not hash_value:
+                parser.error(f'H7 {args.h7_window_arm} requires {label} path and SHA256')
+            bound_path = Path(path_value)
+            if not bound_path.is_file() or sha256_path(bound_path) != hash_value.lower():
+                parser.error(f'H7 immutable {label} identity/hash mismatch')
+        if not args.resume or not args.allow_resume or not args.reset_optimizer:
+            parser.error('H7 arms require --resume --allow-resume with optimizer reset')
+        if not args.fixed_training_deal_stream or args.worker_seed_base != 73000:
+            parser.error('H7 arms require fixed deal stream and worker-seed-base 73000')
+        if args.opponent_assignment != 'per-iteration' or not args.opponent_assignment_provenance_file:
+            parser.error('H7 arms require per-iteration assignment provenance')
+        if args.critic_contract != CRITIC_V1 or args.value_coef != 0.5:
+            parser.error('H7 arms require critic_v1 and value_coef 0.5')
+    if (
+        args.h8_window_arm == 'none'
+        and args.h9_window_arm == 'none'
+        and args.h10_window_arm == 'none'
+        and args.h11_window_arm == 'none'
+        and args.h12_window_arm == 'none'
+        and args.h13_window_arm == 'none'
+        and args.h14_window_arm == 'none'
+        and args.h15_window_arm == 'none'
+        and args.h16_window_arm == 'none'
+        and args.h17_window_arm == 'none'
+        and args.h18_window_arm == 'none'
+        and not lg002_recovery_active
+        and args.h8_value_head_catchup_after_kl_stop
+    ):
+        parser.error('value-head catch-up flag requires a registered H8/H9/H10/H11/H12/H13/H14/H15/H16/H17/H18 arm')
+    if args.h8_window_arm != 'none':
+        if args.ppo_target_kl != 0.03:
+            parser.error('H8 arms require exact --ppo-target-kl 0.03')
+        expected_catchup = args.h8_window_arm == 'treatment'
+        if bool(args.h8_value_head_catchup_after_kl_stop) != expected_catchup:
+            parser.error(
+                f'H8 {args.h8_window_arm} value-head catch-up identity mismatch'
+            )
+        if (
+            args.h2_window_arm != 'none'
+            or args.h6_window_arm != 'none'
+            or args.h7_window_arm != 'none'
+            or args.h9_window_arm != 'none'
+            or args.h10_window_arm != 'none'
+            or args.showdown_ev_value_targets
+        ):
+            parser.error('H8 must not bundle or reopen H2/H6/H7/H9/H10/showdown targets')
+        for label, path_value, hash_value in (
+            ('preregistration', args.h8_preregistration, args.h8_preregistration_sha256),
+            ('design lock', args.h8_design_lock, args.h8_design_lock_sha256),
+        ):
+            if not path_value or not hash_value:
+                parser.error(f'H8 {args.h8_window_arm} requires {label} path and SHA256')
+            bound_path = Path(path_value)
+            if not bound_path.is_file() or sha256_path(bound_path) != hash_value.lower():
+                parser.error(f'H8 immutable {label} identity/hash mismatch')
+        try:
+            h8_prereg = json.loads(Path(args.h8_preregistration).read_text(encoding='utf-8-sig'))
+            h8_arm = h8_prereg['arms'][args.h8_window_arm]
+            h8_source = h8_prereg['source']
+        except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            parser.error(f'H8 preregistration content invalid: {exc}')
+        if h8_prereg.get('experiment_id') != 'H8' or h8_prereg.get('status') != 'REGISTERED_NO_LAUNCH':
+            parser.error('H8 preregistration authority mismatch')
+        if args.run_id != h8_arm.get('run_id') or args.total_hands != int(h8_arm.get('target_endpoint_hands', -1)):
+            parser.error('H8 arm run_id or fixed endpoint mismatch')
+        if not args.resume or not args.allow_resume or args.reset_optimizer:
+            parser.error('H8 arms require --resume --allow-resume and --no-reset-optimizer')
+        resume_path = Path(args.resume).resolve()
+        if (
+            resume_path != Path(h8_source.get('path', '')).resolve()
+            or sha256_path(resume_path) != h8_source.get('sha256', '').lower()
+        ):
+            parser.error('H8 exact source checkpoint identity/hash mismatch')
+        if not args.fixed_training_deal_stream or args.worker_seed_base != 73000:
+            parser.error('H8 arms require fixed deal stream and worker-seed-base 73000')
+        if args.opponent_assignment != 'per-iteration' or not args.opponent_assignment_provenance_file:
+            parser.error('H8 arms require per-iteration assignment provenance')
+        if args.critic_contract != CRITIC_V1 or args.value_coef != 0.5:
+            parser.error('H8 arms require critic_v1 and value_coef 0.5')
+        if args.ppo_epochs != 4:
+            parser.error('H8 arms require exactly four maximum PPO epochs')
+        if not args.mirror_self_play_deals or not args.allin_runout_ev or args.allin_runout_ev_max_runouts != 200:
+            parser.error('H8 arms require the frozen EXP-003 retained configuration')
+        if (
+            args.preflop_action_prior_coef != 0.01
+            or args.postflop_action_prior_coef != 0.02
+            or args.preflop_sb_open_action_prior_coef != 0.0
+            or args.preflop_bb_vs_open_action_prior_coef != 0.0
+        ):
+            parser.error('H8 arms require frozen 0.01/0.02 generic priors only')
+        if args.reset_hand_counter:
+            parser.error('H8 arms must preserve the source hand counter')
+    if args.h9_window_arm == 'none':
+        if args.h9_catchup_loss != 'mse' or args.h9_catchup_smooth_l1_beta != 1.0:
+            parser.error('H9 catch-up loss options require a registered H9 arm')
+    else:
+        if args.h8_window_arm != 'none' or args.h7_window_arm != 'none' or args.h6_window_arm != 'none' or args.h2_window_arm != 'none' or args.h10_window_arm != 'none':
+            parser.error('H9 must not bundle or reopen H2/H6/H7/H8/H10')
+        if args.showdown_ev_value_targets:
+            parser.error('H9 must not bundle showdown target behavior')
+        if args.ppo_target_kl != 0.03 or not args.h8_value_head_catchup_after_kl_stop:
+            parser.error('H9 arms require target-KL0.03 and value-head catch-up enabled')
+        expected_loss = 'mse' if args.h9_window_arm == 'control' else 'smooth_l1'
+        if args.h9_catchup_loss != expected_loss or args.h9_catchup_smooth_l1_beta != 1.0:
+            parser.error(f'H9 {args.h9_window_arm} catch-up loss identity mismatch')
+        for label, path_value, hash_value in (
+            ('preregistration', args.h9_preregistration, args.h9_preregistration_sha256),
+            ('design lock', args.h9_design_lock, args.h9_design_lock_sha256),
+        ):
+            if not path_value or not hash_value:
+                parser.error(f'H9 {args.h9_window_arm} requires {label} path and SHA256')
+            bound_path = Path(path_value)
+            if not bound_path.is_file() or sha256_path(bound_path) != hash_value.lower():
+                parser.error(f'H9 immutable {label} identity/hash mismatch')
+        try:
+            h9_prereg = json.loads(Path(args.h9_preregistration).read_text(encoding='utf-8-sig'))
+            h9_source = h9_prereg['source']
+            h9_arms = h9_prereg['arms']
+        except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            parser.error(f'H9 preregistration content invalid: {exc}')
+        if h9_prereg.get('experiment_id') != 'H9' or h9_prereg.get('status') != 'REGISTERED_NO_LAUNCH':
+            parser.error('H9 preregistration authority mismatch')
+        run_key = 'control_run_id' if args.h9_window_arm == 'control' else 'treatment_run_id'
+        if args.run_id != h9_arms.get(run_key) or args.total_hands != int(h9_arms.get('minimum_endpoint_hands', -1)):
+            parser.error('H9 arm run_id or fixed endpoint mismatch')
+        if not args.resume or not args.allow_resume or args.reset_optimizer:
+            parser.error('H9 arms require --resume --allow-resume and --no-reset-optimizer')
+        resume_path = Path(args.resume).resolve()
+        if (
+            resume_path != Path(h9_source.get('checkpoint_path', '')).resolve()
+            or sha256_path(resume_path) != h9_source.get('checkpoint_sha256', '').lower()
+        ):
+            parser.error('H9 exact source checkpoint identity/hash mismatch')
+        if not args.fixed_training_deal_stream or args.worker_seed_base != 73000:
+            parser.error('H9 arms require fixed deal stream and worker-seed-base73000')
+        if args.opponent_assignment != 'per-iteration' or not args.opponent_assignment_provenance_file:
+            parser.error('H9 arms require per-iteration assignment provenance')
+        if args.critic_contract != CRITIC_V1 or args.value_coef != 0.5 or args.ppo_epochs != 4:
+            parser.error('H9 arms require critic_v1,value_coef0.5 and four PPO epochs')
+        if not args.mirror_self_play_deals or not args.allin_runout_ev or args.allin_runout_ev_max_runouts != 200:
+            parser.error('H9 arms require the frozen retained EXP-003 configuration')
+        if (
+            args.preflop_action_prior_coef != 0.01
+            or args.postflop_action_prior_coef != 0.02
+            or args.preflop_sb_open_action_prior_coef != 0.0
+            or args.preflop_bb_vs_open_action_prior_coef != 0.0
+        ):
+            parser.error('H9 arms require frozen0.01/0.02 generic priors only')
+        if args.reset_hand_counter:
+            parser.error('H9 arms must preserve the source hand counter')
+    if args.h10_window_arm == 'none':
+        if args.h10_catchup_loss != 'mse' or args.h10_catchup_smooth_l1_beta != 1.0:
+            parser.error('H10 catch-up loss options require a registered H10 arm')
+    else:
+        if any(arm != 'none' for arm in (
+            args.h2_window_arm, args.h6_window_arm, args.h7_window_arm,
+            args.h8_window_arm, args.h9_window_arm, args.h11_window_arm,
+            args.h12_window_arm,
+        )):
+            parser.error('H10 must not bundle or reopen H2/H6/H7/H8/H9/H11/H12')
+        if args.showdown_ev_value_targets:
+            parser.error('H10 must not bundle showdown target behavior')
+        if args.ppo_target_kl != 0.03 or not args.h8_value_head_catchup_after_kl_stop:
+            parser.error('H10 arms require target-KL0.03 and value-head catch-up enabled')
+        expected_loss = 'mse' if args.h10_window_arm == 'control' else 'smooth_l1'
+        if args.h10_catchup_loss != expected_loss or args.h10_catchup_smooth_l1_beta != 1.0:
+            parser.error(f'H10 {args.h10_window_arm} catch-up loss identity mismatch')
+        for label, path_value, hash_value in (
+            ('preregistration', args.h10_preregistration, args.h10_preregistration_sha256),
+            ('design lock', args.h10_design_lock, args.h10_design_lock_sha256),
+        ):
+            if not path_value or not hash_value:
+                parser.error(f'H10 {args.h10_window_arm} requires {label} path and SHA256')
+            bound_path = Path(path_value)
+            if not bound_path.is_file() or sha256_path(bound_path) != hash_value.lower():
+                parser.error(f'H10 immutable {label} identity/hash mismatch')
+        try:
+            h10_prereg = json.loads(Path(args.h10_preregistration).read_text(encoding='utf-8-sig'))
+            h10_lock = json.loads(Path(args.h10_design_lock).read_text(encoding='utf-8-sig'))
+            h10_source = h10_prereg['source']
+            h10_arms = h10_prereg['arms']
+        except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            parser.error(f'H10 immutable registration content invalid: {exc}')
+        if h10_prereg.get('experiment_id') != 'H10' or h10_prereg.get('status') != 'REGISTERED_NO_LAUNCH':
+            parser.error('H10 preregistration authority mismatch')
+        if h10_lock.get('design_id') != 'H10' or h10_lock.get('status') != 'LOCKED':
+            parser.error('H10 design-lock authority mismatch')
+        run_key = 'control_run_id' if args.h10_window_arm == 'control' else 'treatment_run_id'
+        if args.run_id != h10_arms.get(run_key) or args.total_hands != int(h10_arms.get('minimum_endpoint_hands', -1)):
+            parser.error('H10 arm run_id or fixed endpoint mismatch')
+        if not args.resume or not args.allow_resume or args.reset_optimizer:
+            parser.error('H10 arms require --resume --allow-resume and --no-reset-optimizer')
+        resume_path = Path(args.resume).resolve()
+        canonical_source = Path(h10_source.get('checkpoint_path', '')).resolve()
+        if resume_path != canonical_source or sha256_path(resume_path) != h10_source.get('checkpoint_sha256', '').lower():
+            parser.error('H10 exact canonical source checkpoint identity/hash mismatch')
+        forbidden_paths = {
+            Path(item.get('path', '')).resolve()
+            for item in h10_prereg.get('forbidden_sources', [])
+            if item.get('path')
+        }
+        if resume_path in forbidden_paths:
+            parser.error('H10 forbidden H9/CAL source path')
+        if not args.fixed_training_deal_stream or args.worker_seed_base != 73000:
+            parser.error('H10 arms require fixed deal stream and worker-seed-base73000')
+        if args.opponent_assignment != 'per-iteration' or not args.opponent_assignment_provenance_file:
+            parser.error('H10 arms require per-iteration assignment provenance')
+        if args.critic_contract != CRITIC_V1 or args.value_coef != 0.5 or args.ppo_epochs != 4:
+            parser.error('H10 arms require critic_v1,value_coef0.5 and four PPO epochs')
+        if not args.mirror_self_play_deals or not args.allin_runout_ev or args.allin_runout_ev_max_runouts != 200:
+            parser.error('H10 arms require the frozen retained EXP-003 configuration')
+        if (
+            args.preflop_action_prior_coef != 0.01
+            or args.postflop_action_prior_coef != 0.02
+            or args.preflop_sb_open_action_prior_coef != 0.0
+            or args.preflop_bb_vs_open_action_prior_coef != 0.0
+        ):
+            parser.error('H10 arms require frozen0.01/0.02 generic priors only')
+        if args.reset_hand_counter:
+            parser.error('H10 arms must preserve the source hand counter')
+    if args.h11_window_arm == 'none':
+        if args.h11_catchup_loss != 'mse' or args.h11_catchup_smooth_l1_beta != 1.0:
+            parser.error('H11 catch-up loss options require a registered H11 arm')
+    else:
+        if any(arm != 'none' for arm in (
+            args.h2_window_arm, args.h6_window_arm, args.h7_window_arm,
+            args.h8_window_arm, args.h9_window_arm, args.h10_window_arm,
+            args.h12_window_arm,
+        )):
+            parser.error('H11 must not bundle or reopen H2/H6/H7/H8/H9/H10/H12')
+        if args.showdown_ev_value_targets:
+            parser.error('H11 must not bundle showdown target behavior')
+        if args.ppo_target_kl != 0.03 or not args.h8_value_head_catchup_after_kl_stop:
+            parser.error('H11 arms require target-KL0.03 and value-head catch-up enabled')
+        expected_loss = 'mse' if args.h11_window_arm == 'control' else 'smooth_l1'
+        if args.h11_catchup_loss != expected_loss or args.h11_catchup_smooth_l1_beta != 1.0:
+            parser.error(f'H11 {args.h11_window_arm} catch-up loss identity mismatch')
+        for label, path_value, hash_value in (
+            ('preregistration', args.h11_preregistration, args.h11_preregistration_sha256),
+            ('design lock', args.h11_design_lock, args.h11_design_lock_sha256),
+        ):
+            if not path_value or not hash_value:
+                parser.error(f'H11 {args.h11_window_arm} requires {label} path and SHA256')
+            bound_path = Path(path_value)
+            if not bound_path.is_file() or sha256_path(bound_path) != hash_value.lower():
+                parser.error(f'H11 immutable {label} identity/hash mismatch')
+        try:
+            h11_prereg = json.loads(Path(args.h11_preregistration).read_text(encoding='utf-8-sig'))
+            h11_lock = json.loads(Path(args.h11_design_lock).read_text(encoding='utf-8-sig'))
+            h11_source = h11_prereg['source']
+            h11_arms = h11_prereg['arms']
+        except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            parser.error(f'H11 immutable registration content invalid: {exc}')
+        if h11_prereg.get('experiment_id') != 'H11' or h11_prereg.get('status') != 'REGISTERED_NO_LAUNCH':
+            parser.error('H11 preregistration authority mismatch')
+        if h11_lock.get('design_id') != 'H11' or h11_lock.get('status') != 'LOCKED':
+            parser.error('H11 design-lock authority mismatch')
+        run_key = 'control_run_id' if args.h11_window_arm == 'control' else 'treatment_run_id'
+        if args.run_id != h11_arms.get(run_key) or args.total_hands != int(h11_arms.get('minimum_endpoint_hands', -1)):
+            parser.error('H11 arm run_id or fixed endpoint mismatch')
+        if not args.resume or not args.allow_resume or args.reset_optimizer:
+            parser.error('H11 arms require --resume --allow-resume and --no-reset-optimizer')
+        resume_path = Path(args.resume).resolve()
+        canonical_source = Path(h11_source.get('checkpoint_path', '')).resolve()
+        if resume_path != canonical_source or sha256_path(resume_path) != h11_source.get('checkpoint_sha256', '').lower():
+            parser.error('H11 exact canonical source checkpoint identity/hash mismatch')
+        forbidden_paths = {
+            Path(item.get('path', '')).resolve()
+            for item in h11_prereg.get('forbidden_sources', [])
+            if item.get('path')
+        }
+        if resume_path in forbidden_paths:
+            parser.error('H11 forbidden H9/H10/CAL source path')
+        if not args.fixed_training_deal_stream or args.worker_seed_base != 73000:
+            parser.error('H11 arms require fixed deal stream and worker-seed-base73000')
+        if args.opponent_assignment != 'per-iteration' or not args.opponent_assignment_provenance_file:
+            parser.error('H11 arms require per-iteration assignment provenance')
+        if args.critic_contract != CRITIC_V1 or args.value_coef != 0.5 or args.ppo_epochs != 4:
+            parser.error('H11 arms require critic_v1,value_coef0.5 and four PPO epochs')
+        if not args.mirror_self_play_deals or not args.allin_runout_ev or args.allin_runout_ev_max_runouts != 200:
+            parser.error('H11 arms require the frozen retained EXP-003 configuration')
+        if (
+            args.preflop_action_prior_coef != 0.01
+            or args.postflop_action_prior_coef != 0.02
+            or args.preflop_sb_open_action_prior_coef != 0.0
+            or args.preflop_bb_vs_open_action_prior_coef != 0.0
+        ):
+            parser.error('H11 arms require frozen0.01/0.02 generic priors only')
+        if args.reset_hand_counter:
+            parser.error('H11 arms must preserve the source hand counter')
+    if args.h12_window_arm == 'none':
+        if args.h12_catchup_loss != 'mse' or args.h12_catchup_smooth_l1_beta != 1.0:
+            parser.error('H12 catch-up loss options require a registered H12 arm')
+    else:
+        if any(arm != 'none' for arm in (
+            args.h2_window_arm, args.h6_window_arm, args.h7_window_arm,
+            args.h8_window_arm, args.h9_window_arm, args.h10_window_arm,
+            args.h11_window_arm,
+        )):
+            parser.error('H12 must not bundle or reopen H2/H6/H7/H8/H9/H10/H11')
+        if args.showdown_ev_value_targets:
+            parser.error('H12 must not bundle showdown target behavior')
+        if args.ppo_target_kl != 0.03 or not args.h8_value_head_catchup_after_kl_stop:
+            parser.error('H12 arms require target-KL0.03 and value-head catch-up enabled')
+        expected_loss = 'mse' if args.h12_window_arm == 'control' else 'smooth_l1'
+        if args.h12_catchup_loss != expected_loss or args.h12_catchup_smooth_l1_beta != 1.0:
+            parser.error(f'H12 {args.h12_window_arm} catch-up loss identity mismatch')
+        for label, path_value, hash_value in (
+            ('preregistration', args.h12_preregistration, args.h12_preregistration_sha256),
+            ('design lock', args.h12_design_lock, args.h12_design_lock_sha256),
+        ):
+            if not path_value or not hash_value:
+                parser.error(f'H12 {args.h12_window_arm} requires {label} path and SHA256')
+            bound_path = Path(path_value)
+            if not bound_path.is_file() or sha256_path(bound_path) != hash_value.lower():
+                parser.error(f'H12 immutable {label} identity/hash mismatch')
+        try:
+            h12_prereg = json.loads(Path(args.h12_preregistration).read_text(encoding='utf-8-sig'))
+            h12_lock = json.loads(Path(args.h12_design_lock).read_text(encoding='utf-8-sig'))
+            h12_source = h12_prereg['source']
+            h12_arms = h12_prereg['arms']
+        except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            parser.error(f'H12 immutable registration content invalid: {exc}')
+        if h12_prereg.get('experiment_id') != 'H12' or h12_prereg.get('status') != 'REGISTERED_NO_LAUNCH':
+            parser.error('H12 preregistration authority mismatch')
+        if h12_lock.get('design_id') != 'H12' or h12_lock.get('status') != 'LOCKED':
+            parser.error('H12 design-lock authority mismatch')
+        run_key = 'control_run_id' if args.h12_window_arm == 'control' else 'treatment_run_id'
+        if args.run_id != h12_arms.get(run_key) or args.total_hands != int(h12_arms.get('minimum_endpoint_hands', -1)):
+            parser.error('H12 arm run_id or fixed endpoint mismatch')
+        if not args.resume or not args.allow_resume or args.reset_optimizer:
+            parser.error('H12 arms require --resume --allow-resume and --no-reset-optimizer')
+        resume_path = Path(args.resume).resolve()
+        canonical_source = Path(h12_source.get('checkpoint_path', '')).resolve()
+        if resume_path != canonical_source or sha256_path(resume_path) != h12_source.get('checkpoint_sha256', '').lower():
+            parser.error('H12 exact canonical source checkpoint identity/hash mismatch')
+        forbidden_paths = {
+            Path(item.get('path', '')).resolve()
+            for item in h12_prereg.get('forbidden_sources', [])
+            if item.get('path')
+        }
+        if resume_path in forbidden_paths:
+            parser.error('H12 forbidden H9/H10/H11/CAL source path')
+        if not args.fixed_training_deal_stream or args.worker_seed_base != 73000:
+            parser.error('H12 arms require fixed deal stream and worker-seed-base73000')
+        if args.opponent_assignment != 'per-iteration' or not args.opponent_assignment_provenance_file:
+            parser.error('H12 arms require per-iteration assignment provenance')
+        if args.critic_contract != CRITIC_V1 or args.value_coef != 0.5 or args.ppo_epochs != 4:
+            parser.error('H12 arms require critic_v1,value_coef0.5 and four PPO epochs')
+        if not args.mirror_self_play_deals or not args.allin_runout_ev or args.allin_runout_ev_max_runouts != 200:
+            parser.error('H12 arms require the frozen retained EXP-003 configuration')
+        if (
+            args.preflop_action_prior_coef != 0.01
+            or args.postflop_action_prior_coef != 0.02
+            or args.preflop_sb_open_action_prior_coef != 0.0
+            or args.preflop_bb_vs_open_action_prior_coef != 0.0
+        ):
+            parser.error('H12 arms require frozen0.01/0.02 generic priors only')
+        if args.reset_hand_counter:
+            parser.error('H12 arms must preserve the source hand counter')
+    if args.h13_window_arm == 'none':
+        if args.h13_catchup_loss != 'mse' or args.h13_catchup_smooth_l1_beta != 1.0:
+            parser.error('H13 catch-up loss options require a registered H13 arm')
+    else:
+        if any(arm != 'none' for arm in (
+            args.h2_window_arm, args.h6_window_arm, args.h7_window_arm,
+            args.h8_window_arm, args.h9_window_arm, args.h10_window_arm,
+            args.h11_window_arm, args.h12_window_arm,
+        )):
+            parser.error('H13 must not bundle or reopen H2/H6/H7/H8/H9/H10/H11/H12')
+        if args.showdown_ev_value_targets:
+            parser.error('H13 must not bundle showdown target behavior')
+        if args.ppo_target_kl != 0.03 or not args.h8_value_head_catchup_after_kl_stop:
+            parser.error('H13 arms require target-KL0.03 and value-head catch-up enabled')
+        expected_loss = 'mse' if args.h13_window_arm == 'control' else 'smooth_l1'
+        if args.h13_catchup_loss != expected_loss or args.h13_catchup_smooth_l1_beta != 1.0:
+            parser.error(f'H13 {args.h13_window_arm} catch-up loss identity mismatch')
+        for label, path_value, hash_value in (
+            ('preregistration', args.h13_preregistration, args.h13_preregistration_sha256),
+            ('design lock', args.h13_design_lock, args.h13_design_lock_sha256),
+        ):
+            if not path_value or not hash_value:
+                parser.error(f'H13 {args.h13_window_arm} requires {label} path and SHA256')
+            bound_path = Path(path_value)
+            if not bound_path.is_file() or sha256_path(bound_path) != hash_value.lower():
+                parser.error(f'H13 immutable {label} identity/hash mismatch')
+        try:
+            h13_prereg = json.loads(Path(args.h13_preregistration).read_text(encoding='utf-8-sig'))
+            h13_lock = json.loads(Path(args.h13_design_lock).read_text(encoding='utf-8-sig'))
+            h13_source = h13_prereg['source']
+            h13_arms = h13_prereg['arms']
+        except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            parser.error(f'H13 immutable registration content invalid: {exc}')
+        if h13_prereg.get('experiment_id') != 'H13' or h13_prereg.get('status') != 'REGISTERED_NO_LAUNCH':
+            parser.error('H13 preregistration authority mismatch')
+        if h13_lock.get('design_id') != 'H13' or h13_lock.get('status') != 'LOCKED':
+            parser.error('H13 design-lock authority mismatch')
+        run_key = 'control_run_id' if args.h13_window_arm == 'control' else 'treatment_run_id'
+        if args.run_id != h13_arms.get(run_key) or args.total_hands != int(h13_arms.get('minimum_endpoint_hands', -1)):
+            parser.error('H13 arm run_id or fixed endpoint mismatch')
+        if not args.resume or not args.allow_resume or args.reset_optimizer:
+            parser.error('H13 arms require --resume --allow-resume and --no-reset-optimizer')
+        resume_path = Path(args.resume).resolve()
+        canonical_source = Path(h13_source.get('checkpoint_path', '')).resolve()
+        if resume_path != canonical_source or sha256_path(resume_path) != h13_source.get('checkpoint_sha256', '').lower():
+            parser.error('H13 exact canonical source checkpoint identity/hash mismatch')
+        normalized_resume = str(resume_path).replace('\\', '/').lower()
+        if any(token in normalized_resume for token in (
+            'v5_hybrid_h9_', 'v5_hybrid_h10_', 'v5_hybrid_h11_treatment_',
+            'v5_hybrid_h12_', 'cal-ext-', 'cal_ext_', 'benchmark',
+        )):
+            parser.error('H13 forbidden H9/H10/H11/CAL source path')
+        if not args.fixed_training_deal_stream or args.worker_seed_base != 73000:
+            parser.error('H13 arms require fixed deal stream and worker-seed-base73000')
+        if args.opponent_assignment != 'per-iteration' or not args.opponent_assignment_provenance_file:
+            parser.error('H13 arms require per-iteration assignment provenance')
+    if args.h14_window_arm == 'none':
+        if args.h14_catchup_loss != 'mse' or args.h14_catchup_smooth_l1_beta != 1.0:
+            parser.error('H14 catch-up loss options require a registered H14 arm')
+    else:
+        if any(arm != 'none' for arm in (
+            args.h2_window_arm, args.h6_window_arm, args.h7_window_arm,
+            args.h8_window_arm, args.h9_window_arm, args.h10_window_arm,
+            args.h11_window_arm, args.h12_window_arm, args.h13_window_arm,
+        )):
+            parser.error('H14 must not bundle or reopen H2/H6/H7/H8/H9/H10/H11/H12/H13')
+        if args.showdown_ev_value_targets:
+            parser.error('H14 must not bundle showdown target behavior')
+        if args.ppo_target_kl != 0.03 or not args.h8_value_head_catchup_after_kl_stop:
+            parser.error('H14 arms require target-KL0.03 and value-head catch-up enabled')
+        expected_loss = 'mse' if args.h14_window_arm == 'control' else 'smooth_l1'
+        if args.h14_catchup_loss != expected_loss or args.h14_catchup_smooth_l1_beta != 1.0:
+            parser.error(f'H14 {args.h14_window_arm} catch-up loss identity mismatch')
+        for label, path_value, hash_value in (
+            ('preregistration', args.h14_preregistration, args.h14_preregistration_sha256),
+            ('design lock', args.h14_design_lock, args.h14_design_lock_sha256),
+        ):
+            if not path_value or not hash_value:
+                parser.error(f'H14 {args.h14_window_arm} requires {label} path and SHA256')
+            bound_path = Path(path_value)
+            if not bound_path.is_file() or sha256_path(bound_path) != hash_value.lower():
+                parser.error(f'H14 immutable {label} identity/hash mismatch')
+        try:
+            h14_prereg = json.loads(Path(args.h14_preregistration).read_text(encoding='utf-8-sig'))
+            h14_lock = json.loads(Path(args.h14_design_lock).read_text(encoding='utf-8-sig'))
+            h14_source = h14_prereg['source']
+            h14_arms = h14_prereg['arms']
+        except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            parser.error(f'H14 immutable registration content invalid: {exc}')
+        if h14_prereg.get('experiment_id') != 'H14' or h14_prereg.get('status') != 'REGISTERED_NO_LAUNCH':
+            parser.error('H14 preregistration authority mismatch')
+        if h14_lock.get('design_id') != 'H14' or h14_lock.get('status') != 'LOCKED':
+            parser.error('H14 design-lock authority mismatch')
+        run_key = 'control_run_id' if args.h14_window_arm == 'control' else 'treatment_run_id'
+        if args.run_id != h14_arms.get(run_key) or args.total_hands != int(h14_arms.get('minimum_endpoint_hands', -1)):
+            parser.error('H14 arm run_id or fixed endpoint mismatch')
+        if not args.resume or not args.allow_resume or args.reset_optimizer:
+            parser.error('H14 arms require --resume --allow-resume and --no-reset-optimizer')
+        resume_path = Path(args.resume).resolve()
+        canonical_source = Path(h14_source.get('checkpoint_path', '')).resolve()
+        if resume_path != canonical_source or sha256_path(resume_path) != h14_source.get('checkpoint_sha256', '').lower():
+            parser.error('H14 exact canonical source checkpoint identity/hash mismatch')
+        normalized_resume = str(resume_path).replace('\\', '/').lower()
+        if any(token in normalized_resume for token in (
+            'v5_hybrid_h9_', 'v5_hybrid_h10_', 'v5_hybrid_h11_treatment_',
+            'v5_hybrid_h12_', 'v5_hybrid_h13_', 'cal-ext-', 'cal_ext_', 'benchmark',
+        )):
+            parser.error('H14 forbidden H9/H10/H11/H12/H13/CAL source path')
+        if not args.fixed_training_deal_stream or args.worker_seed_base != 73000:
+            parser.error('H14 arms require fixed deal stream and worker-seed-base73000')
+        if args.opponent_assignment != 'per-iteration' or not args.opponent_assignment_provenance_file:
+            parser.error('H14 arms require per-iteration assignment provenance')
+        if args.critic_contract != CRITIC_V1 or args.value_coef != 0.5 or args.ppo_epochs != 4:
+            parser.error('H13 arms require critic_v1,value_coef0.5 and four PPO epochs')
+        if not args.mirror_self_play_deals or not args.allin_runout_ev or args.allin_runout_ev_max_runouts != 200:
+            parser.error('H13 arms require the frozen retained EXP-003 configuration')
+        if (
+            args.preflop_action_prior_coef != 0.01
+            or args.postflop_action_prior_coef != 0.02
+            or args.preflop_sb_open_action_prior_coef != 0.0
+            or args.preflop_bb_vs_open_action_prior_coef != 0.0
+        ):
+            parser.error('H13 arms require frozen0.01/0.02 generic priors only')
+        if args.reset_hand_counter:
+            parser.error('H13 arms must preserve the source hand counter')
+    if args.h15_window_arm == 'none':
+        if args.h15_catchup_loss != 'mse' or args.h15_catchup_smooth_l1_beta != 1.0:
+            parser.error('H15 catch-up loss options require a registered H15 arm')
+    else:
+        if any(arm != 'none' for arm in (
+            args.h2_window_arm, args.h6_window_arm, args.h7_window_arm,
+            args.h8_window_arm, args.h9_window_arm, args.h10_window_arm,
+            args.h11_window_arm, args.h12_window_arm, args.h13_window_arm,
+            args.h14_window_arm,
+        )):
+            parser.error('H15 must not bundle or reopen H2/H6/H7/H8/H9/H10/H11/H12/H13/H14')
+        if args.showdown_ev_value_targets:
+            parser.error('H15 must not bundle showdown target behavior')
+        if args.ppo_target_kl != 0.03 or not args.h8_value_head_catchup_after_kl_stop:
+            parser.error('H15 arms require target-KL0.03 and value-head catch-up enabled')
+        expected_loss = 'mse' if args.h15_window_arm == 'control' else 'smooth_l1'
+        if args.h15_catchup_loss != expected_loss or args.h15_catchup_smooth_l1_beta != 1.0:
+            parser.error(f'H15 {args.h15_window_arm} catch-up loss identity mismatch')
+        for label, path_value, hash_value in (
+            ('preregistration', args.h15_preregistration, args.h15_preregistration_sha256),
+            ('design lock', args.h15_design_lock, args.h15_design_lock_sha256),
+        ):
+            if not path_value or not hash_value:
+                parser.error(f'H15 {args.h15_window_arm} requires {label} path and SHA256')
+            bound_path = Path(path_value)
+            if not bound_path.is_file() or sha256_path(bound_path) != hash_value.lower():
+                parser.error(f'H15 immutable {label} identity/hash mismatch')
+        try:
+            h15_prereg = json.loads(Path(args.h15_preregistration).read_text(encoding='utf-8-sig'))
+            h15_lock = json.loads(Path(args.h15_design_lock).read_text(encoding='utf-8-sig'))
+            h15_source = h15_prereg['source']
+            h15_arms = h15_prereg['arms']
+        except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            parser.error(f'H15 immutable registration content invalid: {exc}')
+        if h15_prereg.get('experiment_id') != 'H15' or h15_prereg.get('status') != 'REGISTERED_NO_LAUNCH':
+            parser.error('H15 preregistration authority mismatch')
+        if h15_lock.get('design_id') != 'H15' or h15_lock.get('status') != 'LOCKED':
+            parser.error('H15 design-lock authority mismatch')
+        run_key = 'control_run_id' if args.h15_window_arm == 'control' else 'treatment_run_id'
+        if args.run_id != h15_arms.get(run_key) or args.total_hands != int(h15_arms.get('minimum_endpoint_hands', -1)):
+            parser.error('H15 arm run_id or fixed endpoint mismatch')
+        if not args.resume or not args.allow_resume or args.reset_optimizer:
+            parser.error('H15 arms require --resume --allow-resume and --no-reset-optimizer')
+        resume_path = Path(args.resume).resolve()
+        canonical_source = Path(h15_source.get('checkpoint_path', '')).resolve()
+        if resume_path != canonical_source or sha256_path(resume_path) != h15_source.get('checkpoint_sha256', '').lower():
+            parser.error('H15 exact canonical source checkpoint identity/hash mismatch')
+        normalized_resume = str(resume_path).replace('\\', '/').lower()
+        if any(token in normalized_resume for token in (
+            'v5_hybrid_h9_', 'v5_hybrid_h10_', 'v5_hybrid_h11_treatment_',
+            'v5_hybrid_h12_', 'v5_hybrid_h13_', 'v5_hybrid_h14_',
+            'cal-ext-', 'cal_ext_', 'benchmark',
+        )):
+            parser.error('H15 forbidden H9/H10/H11/H12/H13/CAL source path (H14 terminal partial also forbidden)')
+        if not args.fixed_training_deal_stream or args.worker_seed_base != 73000:
+            parser.error('H15 arms require fixed deal stream and worker-seed-base73000')
+        if args.opponent_assignment != 'per-iteration' or not args.opponent_assignment_provenance_file:
+            parser.error('H15 arms require per-iteration assignment provenance')
+        if args.critic_contract != CRITIC_V1 or args.value_coef != 0.5 or args.ppo_epochs != 4:
+            parser.error('H15 arms require critic_v1,value_coef0.5 and four PPO epochs')
+        if not args.mirror_self_play_deals or not args.allin_runout_ev or args.allin_runout_ev_max_runouts != 200:
+            parser.error('H15 arms require the frozen retained EXP-003 configuration')
+        if (
+            args.preflop_action_prior_coef != 0.01
+            or args.postflop_action_prior_coef != 0.02
+            or args.preflop_sb_open_action_prior_coef != 0.0
+            or args.preflop_bb_vs_open_action_prior_coef != 0.0
+        ):
+            parser.error('H15 arms require frozen0.01/0.02 generic priors only')
+        if args.reset_hand_counter:
+            parser.error('H15 arms must preserve the source hand counter')
+    if args.h16_window_arm == 'none':
+        if args.h16_catchup_loss != 'mse' or args.h16_catchup_smooth_l1_beta != 1.0:
+            parser.error('H16 catch-up loss options require a registered H16 arm')
+    else:
+        if any(arm != 'none' for arm in (
+            args.h2_window_arm, args.h6_window_arm, args.h7_window_arm,
+            args.h8_window_arm, args.h9_window_arm, args.h10_window_arm,
+            args.h11_window_arm, args.h12_window_arm, args.h13_window_arm,
+            args.h14_window_arm, args.h15_window_arm, args.h17_window_arm,
+        )):
+            parser.error('H16 must not bundle or reopen H2/H6/H7/H8/H9/H10/H11/H12/H13/H14/H15')
+        if args.showdown_ev_value_targets:
+            parser.error('H16 must not bundle showdown target behavior')
+        if args.ppo_target_kl != 0.03 or not args.h8_value_head_catchup_after_kl_stop:
+            parser.error('H16 arms require target-KL0.03 and value-head catch-up enabled')
+        expected_loss = 'mse' if args.h16_window_arm == 'control' else 'smooth_l1'
+        if args.h16_catchup_loss != expected_loss or args.h16_catchup_smooth_l1_beta != 1.0:
+            parser.error(f'H16 {args.h16_window_arm} catch-up loss identity mismatch')
+        for label, path_value, hash_value in (
+            ('preregistration', args.h16_preregistration, args.h16_preregistration_sha256),
+            ('design lock', args.h16_design_lock, args.h16_design_lock_sha256),
+        ):
+            if not path_value or not hash_value:
+                parser.error(f'H16 {args.h16_window_arm} requires {label} path and SHA256')
+            bound_path = Path(path_value)
+            if not bound_path.is_file() or sha256_path(bound_path) != hash_value.lower():
+                parser.error(f'H16 immutable {label} identity/hash mismatch')
+        try:
+            h16_prereg = json.loads(Path(args.h16_preregistration).read_text(encoding='utf-8-sig'))
+            h16_lock = json.loads(Path(args.h16_design_lock).read_text(encoding='utf-8-sig'))
+            h16_source = h16_prereg['source']
+            h16_arms = h16_prereg['arms']
+        except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            parser.error(f'H16 immutable registration content invalid: {exc}')
+        if h16_prereg.get('experiment_id') != 'H16' or h16_prereg.get('status') != 'REGISTERED_NO_LAUNCH':
+            parser.error('H16 preregistration authority mismatch')
+        if h16_lock.get('design_id') != 'H16' or h16_lock.get('status') != 'LOCKED':
+            parser.error('H16 design-lock authority mismatch')
+        run_key = 'control_run_id' if args.h16_window_arm == 'control' else 'treatment_run_id'
+        if args.run_id != h16_arms.get(run_key) or args.total_hands != int(h16_arms.get('minimum_endpoint_hands', -1)):
+            parser.error('H16 arm run_id or fixed endpoint mismatch')
+        if not args.resume or not args.allow_resume or args.reset_optimizer:
+            parser.error('H16 arms require --resume --allow-resume and --no-reset-optimizer')
+        resume_path = Path(args.resume).resolve()
+        canonical_source = Path(h16_source.get('checkpoint_path', '')).resolve()
+        if resume_path != canonical_source or sha256_path(resume_path) != h16_source.get('checkpoint_sha256', '').lower():
+            parser.error('H16 exact canonical source checkpoint identity/hash mismatch')
+        normalized_resume = str(resume_path).replace('\\', '/').lower()
+        if any(token in normalized_resume for token in (
+            'v5_hybrid_h9_', 'v5_hybrid_h10_', 'v5_hybrid_h11_treatment_',
+            'v5_hybrid_h12_', 'v5_hybrid_h13_', 'v5_hybrid_h14_', 'v5_hybrid_h15_',
+            'cal-ext-', 'cal_ext_', 'benchmark',
+        )):
+            parser.error('H16 forbidden H9/H10/H11/H12/H13/H14/H15/CAL source path')
+        if not args.fixed_training_deal_stream or args.worker_seed_base != 73000:
+            parser.error('H16 arms require fixed deal stream and worker-seed-base73000')
+        if args.opponent_assignment != 'per-iteration' or not args.opponent_assignment_provenance_file:
+            parser.error('H16 arms require per-iteration assignment provenance')
+        if args.critic_contract != CRITIC_V1 or args.value_coef != 0.5 or args.ppo_epochs != 4:
+            parser.error('H16 arms require critic_v1,value_coef0.5 and four PPO epochs')
+        if not args.mirror_self_play_deals or not args.allin_runout_ev or args.allin_runout_ev_max_runouts != 200:
+            parser.error('H16 arms require the frozen retained EXP-003 configuration')
+        if (
+            args.preflop_action_prior_coef != 0.01
+            or args.postflop_action_prior_coef != 0.02
+            or args.preflop_sb_open_action_prior_coef != 0.0
+            or args.preflop_bb_vs_open_action_prior_coef != 0.0
+        ):
+            parser.error('H16 arms require frozen0.01/0.02 generic priors only')
+        if args.reset_hand_counter:
+            parser.error('H16 arms must preserve the source hand counter')
+    if args.h17_window_arm == 'none':
+        if args.h17_catchup_loss != 'mse' or args.h17_catchup_smooth_l1_beta != 1.0:
+            parser.error('H17 catch-up loss options require a registered H17 arm')
+    else:
+        if any(arm != 'none' for arm in (
+            args.h2_window_arm, args.h6_window_arm, args.h7_window_arm,
+            args.h8_window_arm, args.h9_window_arm, args.h10_window_arm,
+            args.h11_window_arm, args.h12_window_arm, args.h13_window_arm,
+            args.h14_window_arm, args.h15_window_arm, args.h16_window_arm,
+            args.h18_window_arm,
+        )):
+            parser.error('H17 must not bundle or reopen H2/H6/H7/H8/H9/H10/H11/H12/H13/H14/H15/H16')
+        if args.showdown_ev_value_targets:
+            parser.error('H17 must not bundle showdown target behavior')
+        if args.ppo_target_kl != 0.03 or not args.h8_value_head_catchup_after_kl_stop:
+            parser.error('H17 arms require target-KL0.03 and value-head catch-up enabled')
+        expected_loss = 'mse' if args.h17_window_arm == 'control' else 'smooth_l1'
+        if args.h17_catchup_loss != expected_loss or args.h17_catchup_smooth_l1_beta != 1.0:
+            parser.error(f'H17 {args.h17_window_arm} catch-up loss identity mismatch')
+        for label, path_value, hash_value in (
+            ('preregistration', args.h17_preregistration, args.h17_preregistration_sha256),
+            ('design lock', args.h17_design_lock, args.h17_design_lock_sha256),
+        ):
+            if not path_value or not hash_value:
+                parser.error(f'H17 {args.h17_window_arm} requires {label} path and SHA256')
+            bound_path = Path(path_value)
+            if not bound_path.is_file() or sha256_path(bound_path) != hash_value.lower():
+                parser.error(f'H17 immutable {label} identity/hash mismatch')
+        try:
+            h17_prereg = json.loads(Path(args.h17_preregistration).read_text(encoding='utf-8-sig'))
+            h17_lock = json.loads(Path(args.h17_design_lock).read_text(encoding='utf-8-sig'))
+            h17_source = h17_prereg['source']
+            h17_arms = h17_prereg['arms']
+        except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            parser.error(f'H17 immutable registration content invalid: {exc}')
+        if h17_prereg.get('experiment_id') != 'H17' or h17_prereg.get('status') != 'REGISTERED_NO_LAUNCH':
+            parser.error('H17 preregistration authority mismatch')
+        if h17_lock.get('design_id') != 'H17' or h17_lock.get('status') != 'LOCKED':
+            parser.error('H17 design-lock authority mismatch')
+        run_key = 'control_run_id' if args.h17_window_arm == 'control' else 'treatment_run_id'
+        if args.run_id != h17_arms.get(run_key) or args.total_hands != int(h17_arms.get('minimum_endpoint_hands', -1)):
+            parser.error('H17 arm run_id or fixed endpoint mismatch')
+        if not args.resume or not args.allow_resume or args.reset_optimizer:
+            parser.error('H17 arms require --resume --allow-resume and --no-reset-optimizer')
+        resume_path = Path(args.resume).resolve()
+        canonical_source = Path(h17_source.get('checkpoint_path', '')).resolve()
+        if resume_path != canonical_source or sha256_path(resume_path) != h17_source.get('checkpoint_sha256', '').lower():
+            parser.error('H17 exact canonical source checkpoint identity/hash mismatch')
+        normalized_resume = str(resume_path).replace('\\', '/').lower()
+        if any(token in normalized_resume for token in (
+            'v5_hybrid_h9_', 'v5_hybrid_h10_', 'v5_hybrid_h11_treatment_',
+            'v5_hybrid_h12_', 'v5_hybrid_h13_', 'v5_hybrid_h14_', 'v5_hybrid_h15_',
+            'v5_hybrid_h16_', 'cal-ext-', 'cal_ext_', 'benchmark',
+        )):
+            parser.error('H17 forbidden H9/H10/H11/H12/H13/H14/H15/H16/CAL source path')
+        if not args.fixed_training_deal_stream or args.worker_seed_base != 73000:
+            parser.error('H17 arms require fixed deal stream and worker-seed-base73000')
+        if args.opponent_assignment != 'per-iteration' or not args.opponent_assignment_provenance_file:
+            parser.error('H17 arms require per-iteration assignment provenance')
+        if args.critic_contract != CRITIC_V1 or args.value_coef != 0.5 or args.ppo_epochs != 4:
+            parser.error('H17 arms require critic_v1,value_coef0.5 and four PPO epochs')
+        if not args.mirror_self_play_deals or not args.allin_runout_ev or args.allin_runout_ev_max_runouts != 200:
+            parser.error('H17 arms require the frozen retained EXP-003 configuration')
+        if (
+            args.preflop_action_prior_coef != 0.01
+            or args.postflop_action_prior_coef != 0.02
+            or args.preflop_sb_open_action_prior_coef != 0.0
+            or args.preflop_bb_vs_open_action_prior_coef != 0.0
+        ):
+            parser.error('H17 arms require frozen0.01/0.02 generic priors only')
+        if args.reset_hand_counter:
+            parser.error('H17 arms must preserve the source hand counter')
+    if args.h18_window_arm == 'none':
+        if args.h18_catchup_loss != 'mse' or args.h18_catchup_smooth_l1_beta != 1.0:
+            parser.error('H18 catch-up loss options require a registered H18 arm')
+    else:
+        if any(arm != 'none' for arm in (
+            args.h2_window_arm, args.h6_window_arm, args.h7_window_arm,
+            args.h8_window_arm, args.h9_window_arm, args.h10_window_arm,
+            args.h11_window_arm, args.h12_window_arm, args.h13_window_arm,
+            args.h14_window_arm, args.h15_window_arm, args.h16_window_arm,
+            args.h17_window_arm,
+        )):
+            parser.error('H18 must not bundle or reopen H2/H6/H7/H8/H9/H10/H11/H12/H13/H14/H15/H16/H17')
+        if args.showdown_ev_value_targets:
+            parser.error('H18 must not bundle showdown target behavior')
+        if args.ppo_target_kl != 0.03 or not args.h8_value_head_catchup_after_kl_stop:
+            parser.error('H18 arms require target-KL0.03 and value-head catch-up enabled')
+        expected_loss = 'mse' if args.h18_window_arm == 'control' else 'smooth_l1'
+        if args.h18_catchup_loss != expected_loss or args.h18_catchup_smooth_l1_beta != 1.0:
+            parser.error(f'H18 {args.h18_window_arm} catch-up loss identity mismatch')
+        for label, path_value, hash_value in (
+            ('preregistration', args.h18_preregistration, args.h18_preregistration_sha256),
+            ('design lock', args.h18_design_lock, args.h18_design_lock_sha256),
+        ):
+            if not path_value or not hash_value:
+                parser.error(f'H18 {args.h18_window_arm} requires {label} path and SHA256')
+            bound_path = Path(path_value)
+            if not bound_path.is_file() or sha256_path(bound_path) != hash_value.lower():
+                parser.error(f'H18 immutable {label} identity/hash mismatch')
+        try:
+            h18_prereg = json.loads(Path(args.h18_preregistration).read_text(encoding='utf-8-sig'))
+            h18_lock = json.loads(Path(args.h18_design_lock).read_text(encoding='utf-8-sig'))
+            h18_source = h18_prereg['source']
+            h18_arms = h18_prereg['arms']
+        except (OSError, KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            parser.error(f'H18 immutable registration content invalid: {exc}')
+        if h18_prereg.get('experiment_id') != 'H18' or h18_prereg.get('status') != 'REGISTERED_NO_LAUNCH':
+            parser.error('H18 preregistration authority mismatch')
+        if h18_lock.get('design_id') != 'H18' or h18_lock.get('status') != 'LOCKED':
+            parser.error('H18 design-lock authority mismatch')
+        run_key = 'control_run_id' if args.h18_window_arm == 'control' else 'treatment_run_id'
+        if args.run_id != h18_arms.get(run_key) or args.total_hands != int(h18_arms.get('minimum_endpoint_hands', -1)):
+            parser.error('H18 arm run_id or fixed endpoint mismatch')
+        if not args.resume or not args.allow_resume or args.reset_optimizer:
+            parser.error('H18 arms require --resume --allow-resume and --no-reset-optimizer')
+        resume_path = Path(args.resume).resolve()
+        canonical_source = Path(h18_source.get('checkpoint_path', '')).resolve()
+        if resume_path != canonical_source or sha256_path(resume_path) != h18_source.get('checkpoint_sha256', '').lower():
+            parser.error('H18 exact canonical source checkpoint identity/hash mismatch')
+        normalized_resume = str(resume_path).replace('\\', '/').lower()
+        if any(token in normalized_resume for token in (
+            'v5_hybrid_h9_', 'v5_hybrid_h10_', 'v5_hybrid_h11_treatment_',
+            'v5_hybrid_h12_', 'v5_hybrid_h13_', 'v5_hybrid_h14_', 'v5_hybrid_h15_',
+            'v5_hybrid_h16_', 'v5_hybrid_h17_', 'cal-ext-', 'cal_ext_', 'benchmark',
+        )):
+            parser.error('H18 forbidden H9/H10/H11/H12/H13/H14/H15/H16/H17/CAL source path')
+        if not args.fixed_training_deal_stream or args.worker_seed_base != 73000:
+            parser.error('H18 arms require fixed deal stream and worker-seed-base73000')
+        if args.opponent_assignment != 'per-iteration' or not args.opponent_assignment_provenance_file:
+            parser.error('H18 arms require per-iteration assignment provenance')
+        if args.critic_contract != CRITIC_V1 or args.value_coef != 0.5 or args.ppo_epochs != 4:
+            parser.error('H18 arms require critic_v1,value_coef0.5 and four PPO epochs')
+        if not args.mirror_self_play_deals or not args.allin_runout_ev or args.allin_runout_ev_max_runouts != 200:
+            parser.error('H18 arms require the frozen retained EXP-003 configuration')
+        if (
+            args.preflop_action_prior_coef != 0.01
+            or args.postflop_action_prior_coef != 0.02
+            or args.preflop_sb_open_action_prior_coef != 0.0
+            or args.preflop_bb_vs_open_action_prior_coef != 0.0
+        ):
+            parser.error('H18 arms require frozen0.01/0.02 generic priors only')
+        if args.reset_hand_counter:
+            parser.error('H18 arms must preserve the source hand counter')
     if args.inference_min_batch_slots > args.workers * args.rollout_envs_per_worker:
         parser.error(f'--inference-min-batch-slots ({args.inference_min_batch_slots}) '
                      f'exceeds total slots W*M='
                      f'{args.workers * args.rollout_envs_per_worker}; it could never be met '
                      f'and every serve would wait for the deadline.')
+    if args.fixed_training_deal_stream and args.worker_seed_base is None:
+        parser.error('--fixed-training-deal-stream requires --worker-seed-base')
+    if args.exp_w1_value_warmup_epochs < 0:
+        parser.error('--exp-w1-value-warmup-epochs must be >= 0')
+    if args.exp_w1_value_warmup_at_iteration > 0:
+        if not args.exp_w1_design_lock or not args.exp_w1_design_lock_sha256:
+            parser.error('EXP-W1 arms require design-lock path and expected SHA256')
+        lock_path = Path(args.exp_w1_design_lock)
+        if (
+            not lock_path.exists()
+            or sha256_path(lock_path) != args.exp_w1_design_lock_sha256.lower()
+        ):
+            parser.error('EXP-W1 immutable design-lock identity/hash mismatch')
+    if args.exp_w1_value_warmup_epochs > 0:
+        if not args.resume or args.reset_optimizer:
+            parser.error('EXP-W1 treatment requires --resume, --allow-resume and --no-reset-optimizer')
+        if not args.fixed_training_deal_stream or args.worker_seed_base is None:
+            parser.error('EXP-W1 treatment requires a fixed training deal stream and worker seed base')
+        if args.opponent_assignment != 'per-iteration':
+            parser.error('EXP-W1 treatment requires per-iteration opponent assignment')
+        if not args.opponent_assignment_provenance_file:
+            parser.error('EXP-W1 treatment requires assignment provenance')
+        if args.exp_w1_value_warmup_at_iteration <= 0:
+            parser.error('EXP-W1 treatment requires an exact positive warmup iteration')
+        if not 0.05 <= args.exp_w1_value_warmup_heldout_fraction <= 0.5:
+            parser.error('EXP-W1 heldout fraction must be in [0.05, 0.5]')
+        if not 0.0 < args.exp_w1_value_warmup_min_relative_mse_reduction < 1.0:
+            parser.error('EXP-W1 minimum relative MSE reduction must be in (0, 1)')
+        if not args.exp_w1_value_warmup_report:
+            parser.error('EXP-W1 treatment requires an immutable report path')
+    if not 0.0 <= args.gae_lambda <= 1.0:
+        parser.error('--gae-lambda must be in [0, 1]')
 
-    run_id = args.run_id or f"v5_zero_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"
+    if args.autonomous_critic_v2_reset and args.critic_contract != CRITIC_V2:
+        parser.error('--autonomous-critic-v2-reset requires --critic-contract critic_v2')
+    if args.autonomous_critic_v2_continue and args.critic_contract != CRITIC_V2:
+        parser.error('--autonomous-critic-v2-continue requires --critic-contract critic_v2')
+    if args.autonomous_critic_v2_reset and args.autonomous_critic_v2_continue:
+        parser.error(
+            '--autonomous-critic-v2-reset and '
+            '--autonomous-critic-v2-continue are mutually exclusive'
+        )
+    if args.critic_contract == CRITIC_V2:
+        if args.h1_effective_stack_divisor != 200.0:
+            parser.error('H1 critic_v2 requires exact --h1-effective-stack-divisor 200')
+        if args.h1_critic_init_seed != 2026071102:
+            parser.error('H1 critic_v2 requires exact initialization seed 2026071102')
+        if args.value_coef != 1.0:
+            parser.error('H1 critic_v2 requires exact --value-coef 1.0')
+        if args.autonomous_critic_v2_reset:
+            if not args.resume or not args.allow_resume:
+                parser.error(
+                    'autonomous critic_v2 mode requires --resume and --allow-resume'
+                )
+            if args.exp_w1_value_warmup_epochs != 0 or args.exp_w1_value_warmup_at_iteration != 0:
+                parser.error('autonomous critic_v2 reset cannot combine with EXP-W1 warmup')
+        elif args.autonomous_critic_v2_continue:
+            if not args.resume or not args.allow_resume:
+                parser.error(
+                    'autonomous critic_v2 continuation requires '
+                    '--resume and --allow-resume'
+                )
+            if (
+                args.exp_w1_value_warmup_epochs != 0
+                or args.exp_w1_value_warmup_at_iteration != 0
+            ):
+                parser.error(
+                    'autonomous critic_v2 continuation cannot combine '
+                    'with EXP-W1 warmup'
+                )
+        else:
+            if not args.resume or args.reset_optimizer:
+                parser.error('H1 critic_v2 requires --resume --allow-resume --no-reset-optimizer')
+            if args.exp_w1_value_warmup_epochs != 0 or args.exp_w1_value_warmup_at_iteration != 0:
+                parser.error('H1 must not reopen EXP-W1 warmup')
+            if not args.fixed_training_deal_stream or args.worker_seed_base != 73000:
+                parser.error('H1 requires exact fixed deal stream and worker-seed-base 73000')
+            if args.opponent_assignment != 'per-iteration':
+                parser.error('H1 requires per-iteration opponent assignment')
+            if not args.h1_preregistration or not args.h1_preregistration_sha256:
+                parser.error('H1 requires preregistration path and SHA256')
+            prereg = Path(args.h1_preregistration)
+            if not prereg.is_file() or sha256_path(prereg) != args.h1_preregistration_sha256.lower():
+                parser.error('H1 preregistration identity/hash mismatch')
+            if not args.h1_migration_report:
+                parser.error('H1 critic_v2 requires a migration report path')
+    else:
+        if args.value_coef < 0.0:
+            parser.error('--value-coef must be >= 0')
+        if args.critic_head_only_gradient and args.value_coef <= 0.0:
+            parser.error('--critic-head-only-gradient requires --value-coef > 0')
+
+    lg002_contract = None
+    if args.lg002_recovery_contract_probe and not lg002_recovery_active:
+        parser.error('LG002 recovery contract probe requires an active LG002 arm')
+    if lg002_recovery_active:
+        workspace = Path(__file__).resolve().parents[2]
+        expected_preregistration = (
+            workspace / 'reports'
+            / f'v5_lg002_recovery_preregistration_{LG002_RECOVERY_TOKEN}_20260722.json'
+        ).resolve()
+        preregistration_path = Path(args.lg002_recovery_preregistration)
+        if not preregistration_path.is_absolute() or preregistration_path.resolve() != expected_preregistration:
+            parser.error('LG002 recovery preregistration must use the canonical absolute Windows path')
+        if (
+            args.lg002_recovery_preregistration_sha256.lower() != LG002_RECOVERY_PREREG_SHA256
+            or not expected_preregistration.is_file()
+            or sha256_path(expected_preregistration) != LG002_RECOVERY_PREREG_SHA256
+        ):
+            parser.error('LG002 recovery preregistration identity/hash mismatch')
+        try:
+            lg002_prereg = json.loads(expected_preregistration.read_text(encoding='utf-8-sig'))
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            parser.error(f'LG002 recovery preregistration content invalid: {exc}')
+        if (
+            lg002_prereg.get('schema_version') != 'v5.lg002.recovery.preregistration.v1'
+            or lg002_prereg.get('registration_token') != LG002_RECOVERY_TOKEN
+            or lg002_prereg.get('design_id')
+            != 'LG002_RECOVERY_ACTUAL_TRAIN_V5_FROZEN_DIVERSITY_WEIGHTED_LEAGUE'
+        ):
+            parser.error('LG002 recovery preregistration authority mismatch')
+
+        legacy_arms = [
+            args.h2_window_arm, args.h6_window_arm, args.h7_window_arm,
+            args.h8_window_arm, args.h9_window_arm, args.h10_window_arm,
+            args.h11_window_arm, args.h12_window_arm, args.h13_window_arm,
+            args.h14_window_arm, args.h15_window_arm, args.h16_window_arm,
+            args.h17_window_arm, args.h18_window_arm,
+        ]
+        legacy_paths = [
+            value
+            for prefix in ('h2', 'h6', 'h7', 'h8', 'h9', 'h10', 'h11', 'h12',
+                           'h13', 'h14', 'h15', 'h16', 'h17', 'h18')
+            for value in (
+                getattr(args, f'{prefix}_preregistration'),
+                getattr(args, f'{prefix}_preregistration_sha256'),
+                getattr(args, f'{prefix}_design_lock'),
+                getattr(args, f'{prefix}_design_lock_sha256'),
+            )
+        ]
+        if any(arm != 'none' for arm in legacy_arms) or any(legacy_paths):
+            parser.error('LG002 recovery forbids every legacy H2/H6-H18 arm identity and path')
+        if any((args.h1_preregistration, args.h1_preregistration_sha256,
+                args.h1_migration_report, args.exp_w1_design_lock,
+                args.exp_w1_design_lock_sha256, args.exp_w1_value_warmup_report)):
+            parser.error('LG002 recovery forbids H1 and EXP-W1 identities')
+        if args.exp_w1_value_warmup_epochs != 0 or args.exp_w1_value_warmup_at_iteration != 0:
+            parser.error('LG002 recovery forbids EXP-W1 warmup behavior')
+        if args.showdown_ev_value_targets:
+            parser.error('LG002 recovery forbids H2 showdown target behavior')
+
+        exact_common = {
+            'device': 'cuda', 'workers': 22, 'hands_per_iter': 16384, 'starting_stack': 200.0,
+            'env_version': 'v55', 'lr': 0.0003, 'ppo_epochs': 4,
+            'ppo_target_kl': 0.03, 'mini_batch_size': 1024, 'epsilon': 0.0,
+            'gamma': 0.999, 'entropy_coef': 0.05, 'entropy_floor': 0.3,
+            'k_best': 5, 'pool_strategy': 'loss-kbest', 'pool_history_limit': 200,
+            'self_play_fraction': 0.2,
+            'opponent_assignment': 'per-iteration', 'opponent_groups': 5,
+            'rollout_mode': 'multi', 'rollout_envs_per_worker': 16,
+            'inference_min_batch_slots': 256, 'inference_batch_deadline_us': 1000.0,
+            'worker_seed_base': 73000, 'allin_runout_ev_max_runouts': 200,
+            'preflop_action_prior_coef': 0.01, 'postflop_action_prior_coef': 0.02,
+            'preflop_sb_open_action_prior_coef': 0.0,
+            'preflop_bb_vs_open_action_prior_coef': 0.0,
+            'critic_contract': CRITIC_V1, 'value_coef': 0.5,
+            'snapshot_every': 200, 'save_interval': 1, 'seed': 20260703,
+            'max_runtime_seconds': 10800.0,
+        }
+        mismatches = {
+            name: {'actual': getattr(args, name), 'expected': expected}
+            for name, expected in exact_common.items()
+            if getattr(args, name) != expected
+        }
+        if mismatches:
+            parser.error(f'LG002 recovery common training mismatch: {mismatches}')
+        if not all((args.fixed_training_deal_stream, args.mirror_self_play_deals,
+                    args.allin_runout_ev, args.h8_value_head_catchup_after_kl_stop)):
+            parser.error('LG002 recovery retained deal/EV/MSE-catchup flags are incomplete')
+        if not args.resume or not args.allow_resume or args.reset_optimizer or args.reset_hand_counter:
+            parser.error('LG002 recovery requires exact resume with optimizer and hand counter preserved')
+        if not args.opponent_assignment_provenance_file:
+            parser.error('LG002 recovery requires hash-chained assignment provenance')
+        if args.overwrite or args.trace_transitions_file or args.validate_stream:
+            parser.error('LG002 recovery forbids overwrite, trace and validation debug behavior')
+        if args.total_hands not in (581021901, 596021901):
+            parser.error('LG002 recovery target hands are outside frozen Stage A/Stage B endpoints')
+
+        source_path = Path(args.resume)
+        registered_source = Path(lg002_prereg['source_checkpoint']['path']).resolve()
+        if (
+            not source_path.is_absolute()
+            or source_path.resolve() != registered_source
+            or sha256_path(source_path) != LG002_RECOVERY_SOURCE_SHA256
+        ):
+            parser.error('LG002 recovery exact source checkpoint identity/hash mismatch')
+        checkpoint = torch.load(source_path, map_location='cpu', weights_only=False)
+        if (
+            int(checkpoint.get('iteration', -1)) != 35051
+            or int(checkpoint.get('total_hands', -1)) != 576021901
+            or 'model' not in checkpoint
+            or 'optimizer' not in checkpoint
+        ):
+            parser.error('LG002 recovery source model/optimizer/hand/iteration contract mismatch')
+        snapshots = checkpoint.get('pool_snapshots') or []
+        snapshot_ids = tuple(int(row.get('id', -1)) for row in snapshots)
+        if snapshot_ids != LG002_RECOVERY_CHECKPOINT_ORDER:
+            parser.error(f'LG002 recovery frozen pool order mismatch: {snapshot_ids}')
+        for row in snapshots:
+            member_id = int(row['id'])
+            if lg002_state_dict_sha256(row['state_dict']) != LG002_RECOVERY_MEMBER_STATE_SHA256[member_id]:
+                parser.error(f'LG002 recovery frozen member state mismatch: {member_id}')
+
+        output_root = Path(lg002_prereg['fresh_paths']['output_root']).resolve()
+        for label, raw_path in (
+            ('run-dir', args.run_dir), ('out', args.out),
+            ('provenance', args.opponent_assignment_provenance_file),
+        ):
+            path = Path(raw_path or '')
+            if not path.is_absolute():
+                parser.error(f'LG002 recovery {label} must be an absolute Windows child path')
+            try:
+                path.resolve().relative_to(output_root)
+            except ValueError:
+                parser.error(f'LG002 recovery {label} escapes the registered output root')
+
+        lg002_contract = {
+            'registration_token': LG002_RECOVERY_TOKEN,
+            'registration_sha256': LG002_RECOVERY_PREREG_SHA256,
+            'source_checkpoint_sha256': LG002_RECOVERY_SOURCE_SHA256,
+            'source_iteration': 35051,
+            'source_total_hands': 576021901,
+            'pool_checkpoint_order': list(LG002_RECOVERY_CHECKPOINT_ORDER),
+            'member_state_sha256': {
+                str(k): v for k, v in sorted(LG002_RECOVERY_MEMBER_STATE_SHA256.items())
+            },
+            'conditional_weights': {
+                str(k): v for k, v in sorted(
+                    LG002_RECOVERY_CONDITIONAL_WEIGHTS[args.lg002_recovery_arm].items()
+                )
+            },
+            'assignment_seed': LG002_RECOVERY_ASSIGNMENT_SEED,
+            'pool_mutation_disabled': True,
+        }
+        if args.lg002_recovery_contract_probe:
+            if output_root.exists():
+                parser.error('LG002 recovery zero-output probe requires absent registered output root')
+            probe_iterations = (35052, 35053, 35054, 35055)
+            probe = {
+                'schema_version': 'v5.lg002.recovery.contract_probe.v1',
+                'status': 'PASS',
+                'arm': args.lg002_recovery_arm,
+                'contract': lg002_contract,
+                'selector_samples': [
+                    {
+                        'absolute_iteration': absolute_iteration,
+                        **lg002_select_opponent(
+                            args.lg002_recovery_arm, absolute_iteration, snapshots,
+                        )[1],
+                    }
+                    for absolute_iteration in probe_iterations
+                ],
+                'target_kl': args.ppo_target_kl,
+                'value_head_catchup': args.h8_value_head_catchup_after_kl_stop,
+                'value_head_catchup_loss': 'mse',
+                'global_rng_consumption': 0,
+                'files_written': 0,
+                'gpu_initialized': False,
+            }
+            print(json.dumps(probe, sort_keys=True, separators=(',', ':')))
+            return
+    run_id = args.run_id or f"v5_hybrid_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"
     run_dir = Path(args.run_dir or Path('models') / 'alpha_holdem_v5_from_zero' / run_id)
     run_dir.mkdir(parents=True, exist_ok=True)
     args.run_id = run_id
@@ -1372,18 +3479,109 @@ def main():
     if device == 'cuda':
         print(f'GPU: {torch.cuda.get_device_name(0)}')
 
-    model = AlphaHoldemNet(num_actions=NUM_ACTIONS).to(device)
+    model = AlphaHoldemNet(
+        num_actions=NUM_ACTIONS,
+        norm_layer=args.norm_layer,
+        critic_contract=args.critic_contract,
+        critic_init_seed=args.h1_critic_init_seed,
+        separate_preflop_head=args.separate_preflop_head,
+        postflop_adapter_hidden=args.postflop_adapter_hidden,
+        position_adapter_hidden=args.position_adapter_hidden,
+    ).to(device)
     dc = torch.zeros(1, 6, 4, 13, device=device)
     da = torch.zeros(1, 25, 4, 5, device=device)
-    de = torch.zeros(1, 2, device=device)
+    de = torch.zeros(1, EXTRA_SIZE, device=device)
     model(dc, da, de)
     print(f'Parameters: {count_parameters(model):,}')
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    if args.position_adapter_only_training:
+        trainable_prefixes = ('position_policy_adapters.', 'value_head.')
+        for name, parameter in model.named_parameters():
+            parameter.requires_grad = name.startswith(trainable_prefixes)
+        trainable_count = sum(
+            parameter.numel()
+            for parameter in model.parameters()
+            if parameter.requires_grad
+        )
+        optimizer = torch.optim.Adam(
+            [
+                parameter
+                for parameter in model.parameters()
+                if parameter.requires_grad
+            ],
+            lr=args.lr,
+        )
+        print(
+            f'Position-adapter-only training: {trainable_count:,} trainable '
+            'parameters (seat residual experts + value head)'
+        )
+    elif args.adapter_only_training:
+        trainable_prefixes = ('postflop_policy_adapter.', 'value_head.')
+        for name, parameter in model.named_parameters():
+            parameter.requires_grad = name.startswith(trainable_prefixes)
+        trainable_count = sum(
+            parameter.numel()
+            for parameter in model.parameters()
+            if parameter.requires_grad
+        )
+        optimizer = torch.optim.Adam(
+            [
+                parameter
+                for parameter in model.parameters()
+                if parameter.requires_grad
+            ],
+            lr=args.lr,
+        )
+        print(
+            f'Adapter-only training: {trainable_count:,} trainable parameters '
+            '(postflop residual adapter + value head)'
+        )
+    elif args.head_only_training:
+        trainable_prefixes = ('policy_head.', 'value_head.')
+        for name, parameter in model.named_parameters():
+            parameter.requires_grad = name.startswith(trainable_prefixes)
+        trainable_count = sum(
+            parameter.numel()
+            for parameter in model.parameters()
+            if parameter.requires_grad
+        )
+        optimizer = torch.optim.Adam(
+            [
+                parameter
+                for parameter in model.parameters()
+                if parameter.requires_grad
+            ],
+            lr=args.lr,
+        )
+        print(
+            f'Head-only training: {trainable_count:,} trainable parameters '
+            '(policy_head + value_head)'
+        )
+    elif args.separate_preflop_head and args.preflop_head_lr > 0.0:
+        preflop_parameters = list(model.preflop_policy_head.parameters())
+        preflop_parameter_ids = {id(parameter) for parameter in preflop_parameters}
+        shared_parameters = [
+            parameter
+            for parameter in model.parameters()
+            if id(parameter) not in preflop_parameter_ids
+        ]
+        optimizer = torch.optim.Adam(
+            [
+                {'params': shared_parameters, 'lr': args.lr},
+                {'params': preflop_parameters, 'lr': args.preflop_head_lr},
+            ],
+            lr=args.lr,
+        )
+        print(
+            f'Dedicated preflop-head learning rate: '
+            f'{args.preflop_head_lr:g} (shared={args.lr:g})'
+        )
+    else:
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     pool = OpponentPool(k=args.k_best, strategy=args.pool_strategy, history_limit=args.pool_history_limit)
 
     goal_spec = {
-        'project': 'AlphaHoldem V5 from zero',
+        'project': 'AlphaHoldem HYBRID H1',
         'reference': {
             'paper': 'Zhao et al., AlphaHoldem: High-Performance Artificial Intelligence for Heads-Up No-Limit Poker via End-to-End Reinforcement Learning, AAAI 2022',
             'aaai_url': 'https://ojs.aaai.org/index.php/AAAI/article/view/20394',
@@ -1467,17 +3665,194 @@ def main():
                     'otherwise deterministic bounded-K runout EV.'
                 ),
             },
+            'h1_critic_contract': {
+                'contract': args.critic_contract,
+                'effective_stack_divisor': args.h1_effective_stack_divisor if args.critic_contract == CRITIC_V2 else 1.0,
+                'value_coef': args.value_coef,
+                'critic_init_seed': args.h1_critic_init_seed,
+                'popart': False,
+                'value_gradient_to_shared_trunk': args.critic_contract != CRITIC_V2,
+                'route': 'HYBRID',
+                'official_hands_authorized': 0,
+            },
+            'h2_showdown_critic_targets': {
+                'enabled': bool(args.showdown_ev_value_targets),
+                'scope': 'critic_return_only_for_nonfold_showdown_rows_before_complete_river',
+                'max_runouts': int(args.showdown_ev_value_target_max_runouts),
+                'target_seed': int(args.showdown_ev_value_target_seed),
+                'actor_rewards_unchanged': True,
+                'actor_gae_advantages_unchanged': True,
+                'estimand': 'conditional line value holding terminal committed chips fixed',
+                'counterfactual_action_ev': False,
+                'official_hands_authorized': 0,
+            },
+            'h6_ppo_kl_early_stop': {
+                'enabled': args.h6_window_arm == 'treatment',
+                'target_kl': float(args.ppo_target_kl),
+                'comparison': 'strict_greater_than_epoch_mean',
+                'ppo_epochs_max': int(args.ppo_epochs),
+                'official_hands_authorized': 0,
+            },
+            'h7_contemporaneous_ppo_kl_early_stop': {
+                'arm': args.h7_window_arm,
+                'enabled': args.h7_window_arm == 'treatment',
+                'target_kl': float(args.ppo_target_kl),
+                'resource_isolation': 'no_endpoint_evaluation_while_either_arm_trainer_active',
+                'official_hands_authorized': 0,
+            },
+            'h8_value_head_only_catchup': {
+                'arm': args.h8_window_arm,
+                'enabled': bool(args.h8_value_head_catchup_after_kl_stop),
+                'target_kl': float(args.ppo_target_kl),
+                'optimizer_preserved': not bool(args.reset_optimizer),
+                'actor_update_after_kl_stop': False,
+                'resource_isolation': 'no_endpoint_evaluation_while_either_arm_trainer_active',
+                'official_hands_authorized': 0,
+            },
+            'h9_robust_value_head_catchup': {
+                'arm': args.h9_window_arm,
+                'catchup_loss': args.h9_catchup_loss,
+                'smooth_l1_beta_raw_bb': float(args.h9_catchup_smooth_l1_beta),
+                'standard_ppo_critic_loss': 'mse',
+                'target_kl': float(args.ppo_target_kl),
+                'official_hands_authorized': 0,
+            },
+            'h10_clean_robust_value_head_catchup': {
+                'arm': args.h10_window_arm,
+                'catchup_loss': args.h10_catchup_loss,
+                'smooth_l1_beta_raw_bb': float(args.h10_catchup_smooth_l1_beta),
+                'standard_ppo_critic_loss': 'mse',
+                'target_kl': float(args.ppo_target_kl),
+                'source_policy': 'canonical_h8_only_h9_partial_and_cal_copy_forbidden',
+                'official_hands_authorized': 0,
+            },
+            'h11_clean_robust_value_head_catchup': {
+                'arm': args.h11_window_arm,
+                'catchup_loss': args.h11_catchup_loss,
+                'smooth_l1_beta_raw_bb': float(args.h11_catchup_smooth_l1_beta),
+                'standard_ppo_critic_loss': 'mse',
+                'target_kl': float(args.ppo_target_kl),
+                'source_policy': 'canonical_h8_only_h9_h10_partial_and_cal_copy_forbidden',
+                'active_arm_observer_policy': 'no_parent_or_delegated_commands',
+                'official_hands_authorized': 0,
+            },
+            'h12_resource_matched_robust_value_head_catchup': {
+                'arm': args.h12_window_arm,
+                'catchup_loss': args.h12_catchup_loss,
+                'smooth_l1_beta_raw_bb': float(args.h12_catchup_smooth_l1_beta),
+                'standard_ppo_critic_loss': 'mse',
+                'target_kl': float(args.ppo_target_kl),
+                'source_policy': 'exact_h11_control_only_h9_h10_h11_partials_and_cal_copy_forbidden',
+                'pre_arm_perf_calibration': 'required_loss_and_common_mse_ratio_min_0.95',
+                'active_arm_observer_policy': 'no_parent_or_delegated_commands',
+                'official_hands_authorized': 0,
+            },
+            'h13_clean_robust_value_head_catchup': {
+                'arm': args.h13_window_arm,
+                'catchup_loss': args.h13_catchup_loss,
+                'smooth_l1_beta_raw_bb': float(args.h13_catchup_smooth_l1_beta),
+                'standard_ppo_critic_loss': 'mse',
+                'target_kl': float(args.ppo_target_kl),
+                'source_policy': 'exact_h11_control_only_all_terminal_partials_and_cal_copies_forbidden',
+                'pre_arm_perf_calibration': 'required_loss_and_common_mse_ratio_min_0.95',
+                'active_arm_observer_policy': 'no_parent_or_delegated_commands',
+                'official_hands_authorized': 0,
+            },
+            'h14_clean_robust_value_head_catchup': {
+                'arm': args.h14_window_arm,
+                'catchup_loss': args.h14_catchup_loss,
+                'smooth_l1_beta_raw_bb': float(args.h14_catchup_smooth_l1_beta),
+                'standard_ppo_critic_loss': 'mse',
+                'target_kl': float(args.ppo_target_kl),
+                'source_policy': 'exact_h11_control_only_all_terminal_partials_and_cal_copies_forbidden',
+                'pre_arm_perf_calibration': 'required_loss_and_common_mse_ratio_min_0.95',
+                'active_arm_observer_policy': 'no_parent_or_delegated_commands',
+                'official_hands_authorized': 0,
+            },
+            'h15_cpv004_validated_robust_value_head_catchup': {
+                'arm': args.h15_window_arm,
+                'catchup_loss': args.h15_catchup_loss,
+                'smooth_l1_beta_raw_bb': float(args.h15_catchup_smooth_l1_beta),
+                'standard_ppo_critic_loss': 'mse',
+                'target_kl': float(args.ppo_target_kl),
+                'source_policy': 'exact_h11_control_only_all_terminal_partials_cal_copies_and_cpv_dummy_assets_forbidden',
+                'lifecycle_prerequisite': 'CPV004_PASS',
+                'pre_arm_perf_calibration': 'required_loss_and_common_mse_ratio_min_0.95',
+                'active_arm_observer_policy': 'no_parent_or_delegated_commands',
+                'official_hands_authorized': 0,
+            },
+            'h16_representative_perf_cal_robust_value_head_catchup': {
+                'arm': args.h16_window_arm,
+                'catchup_loss': args.h16_catchup_loss,
+                'smooth_l1_beta_raw_bb': float(args.h16_catchup_smooth_l1_beta),
+                'standard_ppo_critic_loss': 'mse',
+                'target_kl': float(args.ppo_target_kl),
+                'source_policy': 'exact_h11_control_only_all_terminal_partials_cal_copies_and_cpv_dummy_assets_forbidden',
+                'pre_arm_perf_calibration': 'representative_full_ppo_update_ratio_min_0.85_and_mse_stability_min_0.95',
+                'active_arm_observer_policy': 'no_parent_or_delegated_commands',
+                'official_hands_authorized': 0,
+            },
+            'h17_deterministic_trigger_robust_value_head_catchup': {
+                'arm': args.h17_window_arm,
+                'catchup_loss': args.h17_catchup_loss,
+                'smooth_l1_beta_raw_bb': float(args.h17_catchup_smooth_l1_beta),
+                'standard_ppo_critic_loss': 'mse',
+                'target_kl': float(args.ppo_target_kl),
+                'source_policy': 'exact_h11_control_only_all_terminal_partials_cal_copies_and_pcv_assets_forbidden',
+                'pre_arm_perf_calibration': 'offset10_full_ppo_update_ratio_min_0.85_and_mse_stability_min_0.95',
+                'active_arm_observer_policy': 'no_parent_or_delegated_commands',
+                'official_hands_authorized': 0,
+            },
+            'h18_tolerance_gpu_event_robust_value_head_catchup': {
+                'arm': args.h18_window_arm,
+                'catchup_loss': args.h18_catchup_loss,
+                'smooth_l1_beta_raw_bb': float(args.h18_catchup_smooth_l1_beta),
+                'standard_ppo_critic_loss': 'mse',
+                'target_kl': float(args.ppo_target_kl),
+                'source_policy': 'exact_h11_control_only_all_terminal_partials_cal_copies_and_pcv_assets_forbidden',
+                'pre_arm_perf_calibration': 'offset10_cuda_event_ratio_min_0.85_mse_stability_min_0.95_model_tol_1e-6_optimizer_tol_1e-8',
+                'active_arm_observer_policy': 'no_parent_or_delegated_commands',
+                'official_hands_authorized': 0,
+            },
+            'exp_w1_value_head_warmup': {
+                'epochs': int(args.exp_w1_value_warmup_epochs),
+                'at_iteration': int(args.exp_w1_value_warmup_at_iteration),
+                'heldout_fraction': float(args.exp_w1_value_warmup_heldout_fraction),
+                'minimum_relative_mse_reduction': float(
+                    args.exp_w1_value_warmup_min_relative_mse_reduction
+                ),
+                'status': 'control_disabled' if args.exp_w1_value_warmup_epochs == 0 else 'treatment_pending',
+            },
         },
     }
 
-    obs_version = 'v4' if args.env_version in ('v4', 'v55cap1v4obs') else 'v55'
+    obs_version = (
+        'v4'
+        if args.env_version in (
+            'v4',
+            'v55cap1v4obs',
+            'v55v4obs',
+            'v55pfv2v4obs',
+            'v55preflopv2v4obs',
+        )
+        else 'v55'
+    )
     resume_source = args.resume
     lineage_parent_checkpoint = args.resume
     fresh_from_zero_lineage = not bool(args.resume)
     lineage_root_run_id = args.run_id
+    exp_w1_warmup_state = {
+        'status': 'DISABLED' if args.exp_w1_value_warmup_epochs == 0 else 'PENDING',
+        'epochs': int(args.exp_w1_value_warmup_epochs),
+        'at_iteration': int(args.exp_w1_value_warmup_at_iteration),
+        'report_path': args.exp_w1_value_warmup_report or None,
+        'report_sha256': None,
+    }
+    assignment_provenance_last_sha = None
+    assignment_provenance_last_iteration = None
 
     def checkpoint_payload() -> dict:
-        return {
+        payload = {
             'model': model.state_dict(),
             'optimizer': optimizer.state_dict(),
             'total_hands': total_hands,
@@ -1496,10 +3871,119 @@ def main():
             'lineage_parent_checkpoint': lineage_parent_checkpoint,
             'env_version': args.env_version,
             'obs_version': obs_version,
-            'action_space_version': '9slot_v5',
+            'action_space_version': (
+                '9slot_pot_fraction_v2'
+                if args.env_version == 'v55pfv2v4obs'
+                else (
+                    '9slot_preflop_pot_fraction_v2'
+                    if args.env_version == 'v55preflopv2v4obs'
+                    else '9slot_v5'
+                )
+            ),
+            'raise_action_mapping': (
+                'pot_fraction_v2'
+                if args.env_version == 'v55pfv2v4obs'
+                else (
+                    'preflop_pot_fraction_v2'
+                    if args.env_version == 'v55preflopv2v4obs'
+                    else 'legacy_total_over_pot'
+                )
+            ),
             'starting_stack_bb': args.starting_stack,
             'actual_hand_accounting': True,
+            'critic_contract': args.critic_contract,
+            'norm_layer': args.norm_layer,
+            'separate_preflop_head': bool(args.separate_preflop_head),
+            'postflop_adapter_hidden': int(args.postflop_adapter_hidden),
+            'position_adapter_hidden': int(args.position_adapter_hidden),
+            'adapter_only_training': bool(args.adapter_only_training),
+            'position_adapter_only_training': bool(
+                args.position_adapter_only_training
+            ),
+            'effective_stack_divisor': args.h1_effective_stack_divisor if args.critic_contract == CRITIC_V2 else 1.0,
+            'value_coef': args.value_coef,
+            'h2_showdown_ev_value_targets': bool(args.showdown_ev_value_targets),
+            'h2_showdown_ev_value_target_max_runouts': int(args.showdown_ev_value_target_max_runouts),
+            'h2_showdown_ev_value_target_seed': int(args.showdown_ev_value_target_seed),
+            'h2_window_arm': args.h2_window_arm,
+            'h2_preregistration_sha256': args.h2_preregistration_sha256 or None,
+            'h2_design_lock_sha256': args.h2_design_lock_sha256 or None,
+            'h6_window_arm': args.h6_window_arm,
+            'h6_preregistration_sha256': args.h6_preregistration_sha256 or None,
+            'h6_design_lock_sha256': args.h6_design_lock_sha256 or None,
+            'h7_window_arm': args.h7_window_arm,
+            'h7_preregistration_sha256': args.h7_preregistration_sha256 or None,
+            'h7_design_lock_sha256': args.h7_design_lock_sha256 or None,
+            'h8_window_arm': args.h8_window_arm,
+            'h8_value_head_catchup_after_kl_stop': bool(
+                args.h8_value_head_catchup_after_kl_stop
+            ),
+            'h8_preregistration_sha256': args.h8_preregistration_sha256 or None,
+            'h8_design_lock_sha256': args.h8_design_lock_sha256 or None,
+            'h9_window_arm': args.h9_window_arm,
+            'h9_catchup_loss': args.h9_catchup_loss,
+            'h9_catchup_smooth_l1_beta': float(args.h9_catchup_smooth_l1_beta),
+            'h9_preregistration_sha256': args.h9_preregistration_sha256 or None,
+            'h9_design_lock_sha256': args.h9_design_lock_sha256 or None,
+            'h10_window_arm': args.h10_window_arm,
+            'h10_catchup_loss': args.h10_catchup_loss,
+            'h10_catchup_smooth_l1_beta': float(args.h10_catchup_smooth_l1_beta),
+            'h10_preregistration_sha256': args.h10_preregistration_sha256 or None,
+            'h10_design_lock_sha256': args.h10_design_lock_sha256 or None,
+            'h11_window_arm': args.h11_window_arm,
+            'h11_catchup_loss': args.h11_catchup_loss,
+            'h11_catchup_smooth_l1_beta': float(args.h11_catchup_smooth_l1_beta),
+            'h11_preregistration_sha256': args.h11_preregistration_sha256 or None,
+            'h11_design_lock_sha256': args.h11_design_lock_sha256 or None,
+            'h12_window_arm': args.h12_window_arm,
+            'h12_catchup_loss': args.h12_catchup_loss,
+            'h12_catchup_smooth_l1_beta': float(args.h12_catchup_smooth_l1_beta),
+            'h12_preregistration_sha256': args.h12_preregistration_sha256 or None,
+            'h12_design_lock_sha256': args.h12_design_lock_sha256 or None,
+            'h13_window_arm': args.h13_window_arm,
+            'h13_catchup_loss': args.h13_catchup_loss,
+            'h13_catchup_smooth_l1_beta': float(args.h13_catchup_smooth_l1_beta),
+            'h13_preregistration_sha256': args.h13_preregistration_sha256 or None,
+            'h13_design_lock_sha256': args.h13_design_lock_sha256 or None,
+            'h14_window_arm': args.h14_window_arm,
+            'h14_catchup_loss': args.h14_catchup_loss,
+            'h14_catchup_smooth_l1_beta': float(args.h14_catchup_smooth_l1_beta),
+            'h14_preregistration_sha256': args.h14_preregistration_sha256 or None,
+            'h14_design_lock_sha256': args.h14_design_lock_sha256 or None,
+            'h15_window_arm': args.h15_window_arm,
+            'h15_catchup_loss': args.h15_catchup_loss,
+            'h15_catchup_smooth_l1_beta': float(args.h15_catchup_smooth_l1_beta),
+            'h15_preregistration_sha256': args.h15_preregistration_sha256 or None,
+            'h15_design_lock_sha256': args.h15_design_lock_sha256 or None,
+            'h16_window_arm': args.h16_window_arm,
+            'h16_catchup_loss': args.h16_catchup_loss,
+            'h16_catchup_smooth_l1_beta': float(args.h16_catchup_smooth_l1_beta),
+            'h16_preregistration_sha256': args.h16_preregistration_sha256 or None,
+            'h16_design_lock_sha256': args.h16_design_lock_sha256 or None,
+            'h17_window_arm': args.h17_window_arm,
+            'h17_catchup_loss': args.h17_catchup_loss,
+            'h17_catchup_smooth_l1_beta': float(args.h17_catchup_smooth_l1_beta),
+            'h17_preregistration_sha256': args.h17_preregistration_sha256 or None,
+            'h17_design_lock_sha256': args.h17_design_lock_sha256 or None,
+            'h18_window_arm': args.h18_window_arm,
+            'h18_catchup_loss': args.h18_catchup_loss,
+            'h18_catchup_smooth_l1_beta': float(args.h18_catchup_smooth_l1_beta),
+            'h18_preregistration_sha256': args.h18_preregistration_sha256 or None,
+            'h18_design_lock_sha256': args.h18_design_lock_sha256 or None,
+            'ppo_target_kl': float(args.ppo_target_kl),
+            'route_identity': 'HYBRID',
+            'h1_preregistration_sha256': args.h1_preregistration_sha256 or None,
+            'exp_w1_value_warmup': exp_w1_warmup_state,
         }
+        if lg002_recovery_active:
+            payload['lg002_recovery'] = {
+                **lg002_contract,
+                'arm': args.lg002_recovery_arm,
+                'assignment_provenance_tail_sha256': assignment_provenance_last_sha,
+                'pool_membership_frozen': True,
+                'new_snapshot_addition_disabled': True,
+            }
+        return payload
 
     manifest_path = run_dir / 'run_manifest.json'
 
@@ -1530,12 +4014,186 @@ def main():
         ))
         lineage_root_run_id = ckpt.get('lineage_root_run_id') or ckpt.get('run_id') or args.run_id
         lineage_parent_checkpoint = args.resume
-        model.load_state_dict(ckpt['model'])
-        if not args.reset_optimizer:
-            optimizer.load_state_dict(ckpt['optimizer'])
-            print('Loaded checkpoint optimizer state')
+        source_critic_contract = str(
+            ckpt.get('critic_contract')
+            or (ckpt.get('config') or {}).get('critic_contract')
+            or CRITIC_V1
+        )
+        if args.critic_contract == CRITIC_V2 and source_critic_contract == CRITIC_V1:
+            if args.autonomous_critic_v2_continue:
+                raise RuntimeError(
+                    'autonomous critic_v2 continuation requires a critic_v2 source'
+                )
+            if args.autonomous_critic_v2_reset:
+                if not args.reset_optimizer:
+                    raise RuntimeError(
+                        'autonomous critic_v1->critic_v2 migration requires '
+                        '--reset-optimizer'
+                    )
+                source_actor = {
+                    name: value
+                    for name, value in ckpt['model'].items()
+                    if not name.startswith('value_head.')
+                }
+                target_state = model.state_dict()
+                target_actor_keys = {
+                    name
+                    for name in target_state
+                    if not name.startswith('value_head.')
+                }
+                if set(source_actor) != target_actor_keys:
+                    missing = sorted(target_actor_keys - set(source_actor))
+                    extra = sorted(set(source_actor) - target_actor_keys)
+                    raise RuntimeError(
+                        'autonomous critic_v2 actor keys mismatch: '
+                        f'missing={missing[:5]} extra={extra[:5]}'
+                    )
+                for name, value in source_actor.items():
+                    if target_state[name].shape != value.shape:
+                        raise RuntimeError(
+                            f'autonomous critic_v2 actor shape mismatch: {name}'
+                        )
+                loaded = model.load_state_dict(source_actor, strict=False)
+                expected_missing = {
+                    name
+                    for name in target_state
+                    if name.startswith('value_head.')
+                }
+                if (
+                    set(loaded.missing_keys) != expected_missing
+                    or loaded.unexpected_keys
+                ):
+                    raise RuntimeError(
+                        'autonomous critic_v2 load mismatch: '
+                        f'missing={loaded.missing_keys} '
+                        f'unexpected={loaded.unexpected_keys}'
+                    )
+                current = model.state_dict()
+                changed_actor = [
+                    name
+                    for name in sorted(target_actor_keys)
+                    if not torch.equal(
+                        current[name].detach().cpu(),
+                        source_actor[name].detach().cpu(),
+                    )
+                ]
+                if changed_actor:
+                    raise RuntimeError(
+                        'autonomous critic_v2 actor copy is not bitwise exact: '
+                        f'{changed_actor[:5]}'
+                    )
+                print(
+                    'Autonomous critic_v1->critic_v2 actor-exact migration PASS; '
+                    'fresh optimizer and critic'
+                )
+            else:
+                migration = migrate_v1_checkpoint_to_v2(
+                    model=model, optimizer=optimizer, checkpoint=ckpt, device=device,
+                )
+                migration.update({
+                    'source_checkpoint': str(Path(args.resume).resolve()),
+                    'source_checkpoint_sha256': sha256_path(Path(args.resume)),
+                    'preregistration_sha256': args.h1_preregistration_sha256.lower(),
+                    'critic_init_seed': args.h1_critic_init_seed,
+                    'effective_stack_divisor': args.h1_effective_stack_divisor,
+                    'value_coef': args.value_coef,
+                })
+                migration_path = Path(args.h1_migration_report)
+                migration_path.parent.mkdir(parents=True, exist_ok=True)
+                with migration_path.open('x', encoding='utf-8', newline='\n') as handle:
+                    json.dump(migration, handle, indent=2, sort_keys=True)
+                    handle.write('\n')
+                print('H1 critic_v1->critic_v2 actor/optimizer migration PASS')
         else:
-            print('V5.0: optimizer reset (fresh Adam moments)')
+            if source_critic_contract != args.critic_contract:
+                raise RuntimeError(
+                    f'critic contract mismatch source={source_critic_contract} target={args.critic_contract}'
+                )
+            source_has_preflop_head = (
+                'preflop_policy_head.weight' in ckpt['model']
+                and 'preflop_policy_head.bias' in ckpt['model']
+            )
+            adding_preflop_head = (
+                args.separate_preflop_head and not source_has_preflop_head
+            )
+            source_has_postflop_adapter = (
+                'postflop_policy_adapter.0.weight' in ckpt['model']
+            )
+            adding_postflop_adapter = (
+                args.postflop_adapter_hidden > 0
+                and not source_has_postflop_adapter
+            )
+            source_has_position_adapter = (
+                'position_policy_adapters.0.0.weight' in ckpt['model']
+            )
+            adding_position_adapter = (
+                args.position_adapter_hidden > 0
+                and not source_has_position_adapter
+            )
+            if (
+                adding_preflop_head
+                or adding_postflop_adapter
+                or adding_position_adapter
+            ):
+                load_result = model.load_state_dict(ckpt['model'], strict=False)
+                expected_missing = set()
+                if adding_preflop_head:
+                    expected_missing.update({
+                        'preflop_policy_head.weight',
+                        'preflop_policy_head.bias',
+                    })
+                if adding_postflop_adapter:
+                    expected_missing.update({
+                        'postflop_policy_adapter.0.weight',
+                        'postflop_policy_adapter.0.bias',
+                        'postflop_policy_adapter.2.weight',
+                        'postflop_policy_adapter.2.bias',
+                    })
+                if adding_position_adapter:
+                    expected_missing.update({
+                        f'position_policy_adapters.{seat}.{layer}.{parameter}'
+                        for seat in (0, 1)
+                        for layer in (0, 2)
+                        for parameter in ('weight', 'bias')
+                    })
+                if set(load_result.missing_keys) != expected_missing or load_result.unexpected_keys:
+                    raise RuntimeError(
+                        'unexpected state mismatch while adding policy adapters: '
+                        f'missing={load_result.missing_keys}, '
+                        f'unexpected={load_result.unexpected_keys}'
+                    )
+                if adding_preflop_head:
+                    with torch.no_grad():
+                        model.preflop_policy_head.weight.copy_(model.policy_head.weight)
+                        model.preflop_policy_head.bias.copy_(model.policy_head.bias)
+                    print('Initialized separate preflop head from exact source policy head')
+                if adding_postflop_adapter:
+                    print('Initialized zero residual postflop policy adapter')
+                if adding_position_adapter:
+                    print(
+                        'Initialized zero residual BB/SB position policy '
+                        'adapters'
+                    )
+            else:
+                model.load_state_dict(ckpt['model'])
+            if not args.reset_optimizer:
+                if (
+                    adding_preflop_head
+                    or adding_postflop_adapter
+                    or adding_position_adapter
+                ):
+                    raise RuntimeError(
+                        'adding a policy head/adapter requires --reset-optimizer'
+                    )
+                optimizer.load_state_dict(ckpt['optimizer'])
+                print('Loaded checkpoint optimizer state')
+            else:
+                print('Optimizer reset (fresh Adam moments)')
+        # Terminal EXP-W1 state is never imported into H1 authority.
+        exp_w1_warmup_state = {
+            'status': 'DISABLED', 'epochs': 0, 'at_iteration': 0,
+            'report_path': None, 'report_sha256': None,
+        }
 
         if not args.reset_hand_counter:
             total_hands = ckpt.get('total_hands', 0)
@@ -1564,6 +4222,48 @@ def main():
             f'fresh_from_zero_lineage={fresh_from_zero_lineage})'
         )
 
+    if fixed_opponent_active:
+        pool = OpponentPool(
+            k=len(fixed_opponent_paths),
+            strategy='latest',
+            history_limit=len(fixed_opponent_paths),
+        )
+        for fixed_path_text in fixed_opponent_paths:
+            fixed_path = Path(fixed_path_text).resolve()
+            if not fixed_path.is_file():
+                raise FileNotFoundError(fixed_path)
+            fixed_checkpoint = torch.load(
+                fixed_path, map_location='cpu', weights_only=False
+            )
+            fixed_norm_layer = str(fixed_checkpoint.get('norm_layer', 'bn'))
+            pool.add(
+                fixed_checkpoint['model'],
+                hands=int(fixed_checkpoint.get('total_hands') or 0),
+                iteration=fixed_checkpoint.get('iteration'),
+                selection_loss=0.0,
+                score_components={
+                    'kind': 'fixed_external_opponent',
+                    'checkpoint': str(fixed_path),
+                    'checkpoint_sha256': sha256_path(fixed_path),
+                    'norm_layer': fixed_norm_layer,
+                },
+            )
+            print(
+                f'Fixed opponent loaded: {fixed_path} '
+                f'(norm={fixed_norm_layer})'
+            )
+
+    reference_policy = None
+    if args.source_policy_kl_coef > 0.0:
+        reference_policy = copy.deepcopy(model).to(device)
+        reference_policy.eval()
+        for parameter in reference_policy.parameters():
+            parameter.requires_grad_(False)
+        print(
+            f'Source-policy KL enabled: coef={args.source_policy_kl_coef:g} '
+            f'(frozen exact resume actor)'
+        )
+
     if not args.resume:
         init_path = run_dir / 'init.pt'
         if args.overwrite or not init_path.exists():
@@ -1586,7 +4286,24 @@ def main():
                 'lineage_parent_checkpoint': None,
                 'env_version': args.env_version,
                 'obs_version': obs_version,
-                'action_space_version': '9slot_v5',
+                'action_space_version': (
+                    '9slot_pot_fraction_v2'
+                    if args.env_version == 'v55pfv2v4obs'
+                    else (
+                        '9slot_preflop_pot_fraction_v2'
+                        if args.env_version == 'v55preflopv2v4obs'
+                        else '9slot_v5'
+                    )
+                ),
+                'raise_action_mapping': (
+                    'pot_fraction_v2'
+                    if args.env_version == 'v55pfv2v4obs'
+                    else (
+                        'preflop_pot_fraction_v2'
+                        if args.env_version == 'v55preflopv2v4obs'
+                        else 'legacy_total_over_pot'
+                    )
+                ),
                 'starting_stack_bb': args.starting_stack,
                 'actual_hand_accounting': True,
             }, init_path)
@@ -1601,6 +4318,7 @@ def main():
 
     log_path = str(out_path.with_suffix('.log'))
     train_log_path = str(out_path.with_name(out_path.stem + '_train.log'))
+    h1_metrics_jsonl_path = run_dir / 'h1_training_metrics.jsonl'
 
     # EXP-002: request/obs/result/status shm are sized per SLOT (W*M); the
     # opponent assignment stays per WORKER (read once per hand, as before).
@@ -1643,7 +4361,12 @@ def main():
                       child_conn, stop_event, epsilon_val, args.starting_stack,
                       args.env_version, w_seed,
                       args.mirror_self_play_deals, args.allin_runout_ev,
-                      args.allin_runout_ev_max_runouts),
+                      args.allin_runout_ev_max_runouts,
+                      args.fixed_training_deal_stream,
+                      args.showdown_ev_value_targets,
+                      args.showdown_ev_value_target_max_runouts,
+                      args.showdown_ev_value_target_seed,
+                      args.hero_preflop_strategy),
                 daemon=True,
             )
         else:
@@ -1654,7 +4377,12 @@ def main():
                       child_conn, stop_event, epsilon_val, args.starting_stack,
                       args.env_version, w_seed,
                       args.mirror_self_play_deals, args.allin_runout_ev,
-                      args.allin_runout_ev_max_runouts),
+                      args.allin_runout_ev_max_runouts,
+                      args.fixed_training_deal_stream,
+                      args.showdown_ev_value_targets,
+                      args.showdown_ev_value_target_max_runouts,
+                      args.showdown_ev_value_target_seed,
+                      args.hero_preflop_strategy),
                 daemon=True,
             )
         p.start()
@@ -1670,17 +4398,37 @@ def main():
     print(f'Run dir: {run_dir}')
     print(f'Target: {args.total_hands:,} hands')
     print(f'Environment: {args.env_version} (obs={obs_version})')
-    print(f'PPO: eps_clip=0.2, delta1={args.delta1}, gamma={args.gamma}')
+    print(
+        f'PPO: eps_clip=0.2, delta1={args.delta1}, gamma={args.gamma}, '
+        f'gae_lambda={args.gae_lambda}'
+    )
+    print(
+        f'Hero preflop: strategy={args.hero_preflop_strategy} '
+        f'teacher_coef={args.preflop_teacher_coef:g} '
+        f'policy_postflop_only={args.policy_postflop_only} '
+        f'policy_position_only={args.policy_position_only}'
+    )
     print(
         f'EXP-003 variance reduction: mirror_self_play_deals={args.mirror_self_play_deals} '
         f'allin_runout_ev={args.allin_runout_ev} '
         f'allin_runout_ev_max_runouts={args.allin_runout_ev_max_runouts}'
     )
     print(
+        f'H2 critic targets: enabled={args.showdown_ev_value_targets} '
+        f'max_runouts={args.showdown_ev_value_target_max_runouts} '
+        f'target_seed={args.showdown_ev_value_target_seed} actor_reward_and_gae_unchanged=True'
+    )
+    print(
         f'V5: fresh_from_zero={not bool(args.resume)}, epsilon={args.epsilon}, '
         f'both-player collect=ON, pool={pool.description()}'
     )
-    print(f'Opponent assignment: {args.opponent_assignment} (self_play_fraction={args.self_play_fraction})')
+    assignment_detail = (
+        f', groups={args.opponent_groups}' if args.opponent_assignment == 'per-group' else ''
+    )
+    print(
+        f'Opponent assignment: {args.opponent_assignment}'
+        f'{assignment_detail} (self_play_fraction={args.self_play_fraction})'
+    )
     print('-' * 80)
 
     # Build opp_models from pool
@@ -1688,9 +4436,53 @@ def main():
     def rebuild_opp_models():
         opp_models.clear()
         for snap in pool.snapshots:
-            m = AlphaHoldemNet(num_actions=NUM_ACTIONS).to(device)
+            snapshot_state = snap['state_dict']
+            recorded_norm = (snap.get('score_components') or {}).get(
+                'norm_layer'
+            )
+            if recorded_norm in {'bn', 'gn'}:
+                opponent_norm = recorded_norm
+            else:
+                # Historical pools can contain BN opponents inside a GN hero
+                # checkpoint.  BatchNorm is unambiguously identified by its
+                # running-stat buffers; GroupNorm has no such state.
+                opponent_norm = (
+                    'bn'
+                    if any(
+                        key.endswith('running_mean')
+                        or key.endswith('running_var')
+                        for key in snapshot_state
+                    )
+                    else args.norm_layer
+                )
+            m = AlphaHoldemNet(
+                num_actions=NUM_ACTIONS,
+                norm_layer=opponent_norm,
+                critic_contract=(
+                    CRITIC_V2
+                    if 'value_head.0.weight' in snapshot_state
+                    else CRITIC_V1
+                ),
+                separate_preflop_head=(
+                    'preflop_policy_head.weight' in snapshot_state
+                ),
+                postflop_adapter_hidden=(
+                    int(snapshot_state['postflop_policy_adapter.0.weight'].shape[0])
+                    if 'postflop_policy_adapter.0.weight' in snapshot_state
+                    else 0
+                ),
+                position_adapter_hidden=(
+                    int(
+                        snapshot_state[
+                            'position_policy_adapters.0.0.weight'
+                        ].shape[0]
+                    )
+                    if 'position_policy_adapters.0.0.weight' in snapshot_state
+                    else 0
+                ),
+            ).to(device)
             m(dc, da, de)
-            m.load_state_dict(snap['state_dict'])
+            m.load_state_dict(snapshot_state)
             m.eval()
             opp_models.append(m)
     rebuild_opp_models()
@@ -1708,26 +4500,104 @@ def main():
     cum_decisions = 0
     cum_inferences = 0
 
+    assignment_provenance_fh = None
+    if args.opponent_assignment_provenance_file:
+        provenance_path = Path(args.opponent_assignment_provenance_file)
+        provenance_path.parent.mkdir(parents=True, exist_ok=True)
+        if provenance_path.exists() and provenance_path.stat().st_size > 0:
+            last_line = next(
+                (line for line in reversed(provenance_path.read_text(encoding='utf-8').splitlines()) if line.strip()),
+                None,
+            )
+            if last_line is None:
+                raise RuntimeError('assignment provenance file is non-empty but has no JSON record')
+            last_record = json.loads(last_line)
+            assignment_provenance_last_sha = last_record.get('record_sha256')
+            assignment_provenance_last_iteration = int(last_record.get('applies_to_iteration'))
+            if not assignment_provenance_last_sha:
+                raise RuntimeError('assignment provenance tail has no record_sha256')
+        assignment_provenance_fh = open(provenance_path, 'a', encoding='utf-8', buffering=1)
+
     def assign_opponents():
         """Assign hero-vs-hero or pool opponents. Main writes assigned_np; workers only read."""
+        nonlocal assignment_provenance_last_sha, assignment_provenance_last_iteration
+        group_metadata = None
+        lg002_assignment = None
         if pool.size() == 0:
             assigned_np[:] = -1
-            return
-
-        if args.opponent_assignment == 'per-iteration':
+            group_metadata = [{
+                'group_id': 0,
+                'workers': list(range(W)),
+                'opponent_id': HERO_MODEL_ID,
+            }]
+        elif args.opponent_assignment == 'per-iteration':
             # Preserve the long-run self-play/pool mix while keeping each rollout
             # iteration on one requested model so GPU inference remains batched.
-            if random.random() < args.self_play_fraction:
+            if lg002_recovery_active:
+                selected_local_index, lg002_assignment = lg002_select_opponent(
+                    args.lg002_recovery_arm, int(iteration) + 1, pool.snapshots,
+                )
+                assigned_np[:] = selected_local_index
+            elif random.random() < args.self_play_fraction:
                 assigned_np[:] = -1
             else:
                 assigned_np[:] = random.randint(0, pool.size() - 1)
-            return
+            group_metadata = [{
+                'group_id': 0,
+                'workers': list(range(W)),
+                'opponent_id': int(assigned_np[0]),
+            }]
+        elif args.opponent_assignment == 'per-group':
+            assignments, group_summary = build_group_opponent_assignments(
+                worker_count=W,
+                pool_size=pool.size(),
+                group_count=args.opponent_groups,
+                self_play_fraction=args.self_play_fraction,
+                rng=random,
+            )
+            assigned_np[:] = assignments
+            group_metadata = group_summary['groups']
+        else:
+            for w in range(W):
+                if random.random() < args.self_play_fraction:
+                    assigned_np[w] = -1
+                else:
+                    assigned_np[w] = random.randint(0, pool.size() - 1)
+            group_metadata = [
+                {'group_id': int(w), 'workers': [int(w)], 'opponent_id': int(assigned_np[w])}
+                for w in range(W)
+            ]
 
-        for w in range(W):
-            if random.random() < args.self_play_fraction:
-                assigned_np[w] = -1
-            else:
-                assigned_np[w] = random.randint(0, pool.size() - 1)
+        if assignment_provenance_fh is not None:
+            applies_to_iteration = int(iteration) + 1
+            if (
+                assignment_provenance_last_iteration is not None
+                and applies_to_iteration <= assignment_provenance_last_iteration
+            ):
+                raise RuntimeError(
+                    f'assignment provenance iteration {applies_to_iteration} is not after '
+                    f'tail {assignment_provenance_last_iteration}'
+                )
+            record = build_assignment_provenance_record(
+                run_id=args.run_id,
+                applies_to_iteration=applies_to_iteration,
+                total_hands=total_hands,
+                assignment_mode=args.opponent_assignment,
+                assignments=assigned_np.tolist(),
+                pool_snapshots=pool.snapshots,
+                group_metadata=group_metadata,
+                worker_seed_base=args.worker_seed_base,
+                previous_record_sha256=assignment_provenance_last_sha,
+            )
+            if lg002_recovery_active:
+                record = lg002_enrich_provenance_record(record, lg002_assignment)
+            assignment_provenance_fh.write(
+                json.dumps(record, sort_keys=True, separators=(',', ':'), ensure_ascii=False) + '\n'
+            )
+            assignment_provenance_fh.flush()
+            os.fsync(assignment_provenance_fh.fileno())
+            assignment_provenance_last_sha = record['record_sha256']
+            assignment_provenance_last_iteration = applies_to_iteration
 
     assign_opponents()
 
@@ -1735,6 +4605,17 @@ def main():
     if args.trace_transitions_file:
         Path(args.trace_transitions_file).parent.mkdir(parents=True, exist_ok=True)
         trace_fh = open(args.trace_transitions_file, 'w')
+
+    if (
+        args.separate_preflop_head
+        and args.preflop_head_lr > 0.0
+        and len(optimizer.param_groups) == 2
+    ):
+        optimizer_group_base_lrs = [args.lr, args.preflop_head_lr]
+    else:
+        optimizer_group_base_lrs = [
+            args.lr for _ in optimizer.param_groups
+        ]
 
     try:
         model.eval()
@@ -1766,6 +4647,11 @@ def main():
                     model, opp_models,
                     obs_np, result_np, status_np, request_np,
                     NUM_SLOTS, device, inference_batch_sizes,
+                    hero_value_output_scale=(
+                        args.h1_effective_stack_divisor
+                        if args.critic_contract == CRITIC_V2 else 1.0
+                    ),
+                    hero_policy_mode=args.hero_policy_mode,
                 )
                 cum_inferences += n_inf
                 last_inference_t += time.time() - t_inf
@@ -1816,12 +4702,48 @@ def main():
                 # V5.0 LR schedule: linear decay over V5's own training span.
                 # Start lr = args.lr (default 1e-4 ~= V4 end LR), decay to lr/3 in 2nd half.
                 if progress >= 0.5:
-                    decay_frac = (progress - 0.5) / 0.5
-                    new_lr = args.lr * (1 - decay_frac * (1 - 1/3))
-                    for pg in optimizer.param_groups:
+                    new_group_lrs = linear_decay_group_lrs(
+                        progress,
+                        optimizer_group_base_lrs,
+                    )
+                    for pg, new_lr in zip(
+                        optimizer.param_groups,
+                        new_group_lrs,
+                    ):
                         pg['lr'] = new_lr
 
                 t1 = time.time()
+                if (
+                    args.exp_w1_value_warmup_epochs > 0
+                    and exp_w1_warmup_state.get('status') == 'PENDING'
+                ):
+                    if iteration != args.exp_w1_value_warmup_at_iteration:
+                        raise RuntimeError(
+                            f'EXP-W1 warmup missed exact iteration: live={iteration} '
+                            f'locked={args.exp_w1_value_warmup_at_iteration}'
+                        )
+                    warmup_result = run_value_head_warmup(
+                        model=model,
+                        optimizer=optimizer,
+                        transitions=iter_transitions,
+                        device=device,
+                        compute_gae_fn=compute_gae,
+                        epochs=args.exp_w1_value_warmup_epochs,
+                        mini_batch_size=args.mini_batch_size,
+                        gamma=args.gamma,
+                        heldout_fraction=args.exp_w1_value_warmup_heldout_fraction,
+                        min_relative_mse_reduction=args.exp_w1_value_warmup_min_relative_mse_reduction,
+                        split_seed=args.exp_w1_value_warmup_split_seed,
+                    )
+                    warmup_result['run_id'] = args.run_id
+                    warmup_result['iteration'] = int(iteration)
+                    warmup_result['starting_hands'] = int(total_hands)
+                    report_path = Path(args.exp_w1_value_warmup_report)
+                    report_sha = write_immutable_report(report_path, warmup_result)
+                    exp_w1_warmup_state = dict(warmup_result)
+                    exp_w1_warmup_state.update({'report_path': str(report_path), 'report_sha256': report_sha})
+                    if warmup_result['status'] != 'PASS':
+                        raise RuntimeError('EXP-W1 value-head warmup gate FAIL; refusing PPO continuation')
                 mix = action_mix(iter_transitions)
                 phase_mix = action_mix_by_phase(iter_transitions)
                 stats = trinal_clip_ppo_update(
@@ -1830,6 +4752,11 @@ def main():
                     mini_batch_size=args.mini_batch_size,
                     delta1=args.delta1,
                     gamma=args.gamma,
+                    gae_lambda=args.gae_lambda,
+                    critic_contract=args.critic_contract,
+                    effective_stack_divisor=args.h1_effective_stack_divisor,
+                    value_coef=args.value_coef,
+                    critic_head_only_gradient=args.critic_head_only_gradient,
                     entropy_coef=args.entropy_coef,
                     entropy_floor=args.entropy_floor,
                     action_prior_coef=args.postflop_action_prior_coef,
@@ -1841,12 +4768,66 @@ def main():
                     preflop_sb_open_action_prior_target=args.preflop_sb_open_action_prior_target_values,
                     preflop_bb_vs_open_action_prior_coef=args.preflop_bb_vs_open_action_prior_coef,
                     preflop_bb_vs_open_action_prior_target=args.preflop_bb_vs_open_action_prior_target_values,
+                    target_kl=args.ppo_target_kl,
+                    reference_policy=reference_policy,
+                    reference_policy_kl_coef=args.source_policy_kl_coef,
+                    policy_postflop_only=args.policy_postflop_only,
+                    policy_position_only=args.policy_position_only,
+                    preflop_teacher_coef=args.preflop_teacher_coef,
+                    value_head_catchup=args.h8_value_head_catchup_after_kl_stop,
+                    value_head_catchup_loss=(
+                        args.h18_catchup_loss
+                        if args.h18_window_arm != 'none'
+                        else args.h17_catchup_loss
+                        if args.h17_window_arm != 'none'
+                        else args.h16_catchup_loss
+                        if args.h16_window_arm != 'none'
+                        else args.h15_catchup_loss
+                        if args.h15_window_arm != 'none'
+                        else args.h14_catchup_loss
+                        if args.h14_window_arm != 'none'
+                        else args.h13_catchup_loss
+                        if args.h13_window_arm != 'none'
+                        else args.h12_catchup_loss
+                        if args.h12_window_arm != 'none'
+                        else args.h11_catchup_loss
+                        if args.h11_window_arm != 'none'
+                        else args.h10_catchup_loss
+                        if args.h10_window_arm != 'none'
+                        else args.h9_catchup_loss
+                    ),
+                    value_head_catchup_smooth_l1_beta=(
+                        args.h18_catchup_smooth_l1_beta
+                        if args.h18_window_arm != 'none'
+                        else args.h17_catchup_smooth_l1_beta
+                        if args.h17_window_arm != 'none'
+                        else args.h16_catchup_smooth_l1_beta
+                        if args.h16_window_arm != 'none'
+                        else args.h15_catchup_smooth_l1_beta
+                        if args.h15_window_arm != 'none'
+                        else args.h14_catchup_smooth_l1_beta
+                        if args.h14_window_arm != 'none'
+                        else args.h13_catchup_smooth_l1_beta
+                        if args.h13_window_arm != 'none'
+                        else args.h12_catchup_smooth_l1_beta
+                        if args.h12_window_arm != 'none'
+                        else args.h11_catchup_smooth_l1_beta
+                        if args.h11_window_arm != 'none'
+                        else args.h10_catchup_smooth_l1_beta
+                        if args.h10_window_arm != 'none'
+                        else args.h9_catchup_smooth_l1_beta
+                    ),
                 )
                 ppo_time = time.time() - t1
-                selection_loss = selection_loss_from_stats(stats)
+                # Keep loss-kbest in raw-BB-equivalent units.
+                selection_stats = dict(stats)
+                selection_stats['value_loss'] = stats['value_loss_raw_bb_equivalent']
+                selection_loss = selection_loss_from_stats(selection_stats)
                 score_components = {
                     'policy_loss': float(stats['policy_loss']),
-                    'value_loss': float(stats['value_loss']),
+                    'value_loss': float(stats['value_loss_raw_bb_equivalent']),
+                    'normalized_value_loss': float(stats['value_loss']),
+                    'critic_contract': args.critic_contract,
                     'entropy': float(stats['entropy']),
                     'action_prior_loss': float(stats.get('action_prior_loss', 0.0)),
                     'action_prior_coef': float(stats.get('action_prior_coef', 0.0)),
@@ -1858,7 +4839,9 @@ def main():
                     'preflop_sb_open_action_prior_coef': float(stats.get('preflop_sb_open_action_prior_coef', 0.0)),
                     'preflop_bb_vs_open_action_prior_loss': float(stats.get('preflop_bb_vs_open_action_prior_loss', 0.0)),
                     'preflop_bb_vs_open_action_prior_coef': float(stats.get('preflop_bb_vs_open_action_prior_coef', 0.0)),
-                    'formula': 'policy_loss + 0.5*log1p(value_loss)',
+                    'preflop_teacher_loss': float(stats.get('preflop_teacher_loss', 0.0)),
+                    'preflop_teacher_coef': float(stats.get('preflop_teacher_coef', 0.0)),
+                    'formula': f'policy_loss + {args.value_coef:g}*log1p(value_loss)',
                 }
 
                 total_hands += iter_hands
@@ -1904,9 +4887,15 @@ def main():
                     f"rew={avg_rew:+.3f} "
                     f"rew100={rew100:+.3f} "
                     f"ploss={stats['policy_loss']:.4f} "
-                    f"vloss={stats['value_loss']:.4f} "
+                    f"vloss={stats['value_loss']:.6f} "
+                    f"vloss_bb2={stats['value_loss_raw_bb_equivalent']:.4f} "
                     f"ent={stats['entropy']:.4f} "
                     f"kl={stats.get('approx_kl', 0.0):.4f} "
+                    f"refkl={stats.get('reference_policy_kl', 0.0):.4f} "
+                    f"pft={stats.get('preflop_teacher_loss', 0.0):.4f} "
+                    f"ep={stats.get('ppo_epochs_completed', args.ppo_epochs)}/{args.ppo_epochs} "
+                    f"klstop={int(bool(stats.get('kl_early_stop_triggered', False)))} "
+                    f"vhcatch={stats.get('value_head_catchup_epochs', 0)} "
                     f"clipfrac={stats.get('clip_frac', 0.0):.3f} "
                     f"d1bite={stats.get('delta1_bite_frac', 0.0):.3f} "
                     f"{action_prior_log}"
@@ -1931,6 +4920,36 @@ def main():
                 print(log_line)
                 with open(train_log_path, 'a') as f:
                     f.write(log_line + '\n')
+                with h1_metrics_jsonl_path.open('a', encoding='utf-8', newline='\n') as f:
+                    f.write(json.dumps({
+                        'schema_version': 'v5.hybrid.h1.training_metric.v1',
+                        'recorded_at': datetime.now(timezone.utc).isoformat(),
+                        'run_id': args.run_id, 'iteration': iteration, 'hands': total_hands,
+                        'hands_per_second': h_per_s, 'entropy': float(stats['entropy']),
+                        'reward_per_hand': float(avg_rew),
+                        'reward_window_100': float(rew100),
+                        'terminal_trajectories': int(iter_terminal_trajectories),
+                        'critic_contract': args.critic_contract, 'value_coef': args.value_coef,
+                        'approx_kl': float(stats.get('approx_kl', 0.0)),
+                        'reference_policy_kl': float(stats.get('reference_policy_kl', 0.0)),
+                        'reference_policy_kl_coef': float(
+                            stats.get('reference_policy_kl_coef', args.source_policy_kl_coef)
+                        ),
+                        'clip_frac': float(stats.get('clip_frac', 0.0)),
+                        'ppo_epochs_completed': int(stats.get('ppo_epochs_completed', args.ppo_epochs)),
+                        'kl_early_stop_triggered': bool(stats.get('kl_early_stop_triggered', False)),
+                        'kl_early_stop_epoch': int(stats.get('kl_early_stop_epoch', 0)),
+                        'ppo_target_kl': float(stats.get('ppo_target_kl', args.ppo_target_kl)),
+                        'value_head_catchup_enabled': bool(stats.get('value_head_catchup_enabled', False)),
+                        'value_head_catchup_loss_mode': stats.get('value_head_catchup_loss_mode', 'mse'),
+                        'value_head_catchup_smooth_l1_beta': stats.get('value_head_catchup_smooth_l1_beta', 1.0),
+                        'value_head_catchup_epochs': int(stats.get('value_head_catchup_epochs', 0)),
+                        'value_head_catchup_minibatches': int(stats.get('value_head_catchup_minibatches', 0)),
+                        'value_head_catchup_loss': float(stats.get('value_head_catchup_loss', 0.0)),
+                        'value_head_catchup_actor_state_unchanged': bool(
+                            stats.get('value_head_catchup_actor_state_unchanged', True)
+                        ),
+                    }, sort_keys=True) + '\n')
                 write_manifest(
                     'running',
                     total_hands=total_hands,
@@ -1941,6 +4960,16 @@ def main():
                         'reward_window_100': rew100,
                         'policy_loss': stats['policy_loss'],
                         'value_loss': stats['value_loss'],
+                        'value_loss_raw_bb_equivalent': stats['value_loss_raw_bb_equivalent'],
+                        'critic_contract': args.critic_contract,
+                        'effective_stack_divisor': stats['effective_stack_divisor'],
+                        'value_coef': args.value_coef,
+                        'reference_policy_kl': stats.get('reference_policy_kl', 0.0),
+                        'reference_policy_kl_coef': stats.get(
+                            'reference_policy_kl_coef', args.source_policy_kl_coef
+                        ),
+                        'h2_critic_target_override_rows': stats.get('h2_critic_target_override_rows', 0),
+                        'h2_critic_target_override_fraction': stats.get('h2_critic_target_override_fraction', 0.0),
                         'entropy': stats['entropy'],
                         'action_prior_loss': stats.get('action_prior_loss', 0.0),
                         'action_prior_coef': stats.get('action_prior_coef', 0.0),
@@ -1953,6 +4982,19 @@ def main():
                         'preflop_bb_vs_open_action_prior_loss': stats.get('preflop_bb_vs_open_action_prior_loss', 0.0),
                         'preflop_bb_vs_open_action_prior_coef': stats.get('preflop_bb_vs_open_action_prior_coef', 0.0),
                         'approx_kl': stats.get('approx_kl', 0.0),
+                        'ppo_epochs_completed': stats.get('ppo_epochs_completed', args.ppo_epochs),
+                        'kl_early_stop_triggered': stats.get('kl_early_stop_triggered', False),
+                        'kl_early_stop_epoch': stats.get('kl_early_stop_epoch', 0),
+                        'ppo_target_kl': stats.get('ppo_target_kl', args.ppo_target_kl),
+                        'value_head_catchup_enabled': stats.get('value_head_catchup_enabled', False),
+                        'value_head_catchup_loss_mode': stats.get('value_head_catchup_loss_mode', 'mse'),
+                        'value_head_catchup_smooth_l1_beta': stats.get('value_head_catchup_smooth_l1_beta', 1.0),
+                        'value_head_catchup_epochs': stats.get('value_head_catchup_epochs', 0),
+                        'value_head_catchup_minibatches': stats.get('value_head_catchup_minibatches', 0),
+                        'value_head_catchup_loss': stats.get('value_head_catchup_loss', 0.0),
+                        'value_head_catchup_actor_state_unchanged': stats.get(
+                            'value_head_catchup_actor_state_unchanged', True
+                        ),
                         'clip_frac': stats.get('clip_frac', 0.0),
                         'delta1_bite_frac': stats.get('delta1_bite_frac', 0.0),
                         'ratio_p50': stats.get('ratio_p50', 0.0),
@@ -1974,7 +5016,11 @@ def main():
                 )
 
                 # Snapshot
-                if iteration % args.snapshot_every == 0:
+                if (
+                    iteration % args.snapshot_every == 0
+                    and not lg002_recovery_active
+                    and not fixed_opponent_active
+                ):
                     snap = pool.add(
                         {k: v.cpu() for k, v in model.state_dict().items()},
                         hands=total_hands,
@@ -1989,14 +5035,34 @@ def main():
                         f"size={pool.size()} strategy={pool.strategy} "
                         f"active_ids={pool.active_ids()}"
                     )
+                elif iteration % args.snapshot_every == 0:
+                    reason = (
+                        'fixed external opponent'
+                        if fixed_opponent_active
+                        else 'LG002 frozen membership'
+                    )
+                    print(f'  [Pool] {reason}: snapshot addition disabled')
 
                 # Save
                 if iteration % args.save_interval == 0:
                     torch.save(checkpoint_payload(), args.out)
                     print(f'  [Save] {args.out} ({total_hands:,} hands)')
+                if (
+                    args.archive_checkpoint_every > 0
+                    and iteration % args.archive_checkpoint_every == 0
+                ):
+                    archive_dir = run_dir / 'checkpoints'
+                    archive_dir.mkdir(parents=True, exist_ok=True)
+                    archive_path = archive_dir / (
+                        f'checkpoint_iter{iteration:06d}_hands{total_hands:012d}.pt'
+                    )
+                    torch.save(checkpoint_payload(), archive_path)
+                    print(f'  [Archive] {archive_path}')
 
-                # Reset for next iter
-                assign_opponents()
+                # Reset for next iter. Do not emit provenance for an assignment
+                # that will never be consumed after the fixed actual-hand budget.
+                if total_hands < args.total_hands:
+                    assign_opponents()
                 iter_transitions = []
                 iter_reward = 0.0
                 iter_hands = 0
@@ -2012,15 +5078,22 @@ def main():
     except KeyboardInterrupt:
         print('\nInterrupted.')
     finally:
+        if assignment_provenance_fh is not None:
+            assignment_provenance_fh.flush()
+            assignment_provenance_fh.close()
         if trace_fh is not None:
             trace_fh.flush()
             trace_fh.close()
         stop_event.set()
-        time.sleep(1)
+        time.sleep(0.25)
+        shutdown_deadline = time.monotonic() + 5.0
         for p in procs:
-            p.join(timeout=5)
+            p.join(timeout=max(0.0, shutdown_deadline - time.monotonic()))
+        for p in procs:
             if p.is_alive():
                 p.terminate()
+        for p in procs:
+            p.join(timeout=1.0)
         for shm in (obs_shm, result_shm, status_shm, assigned_shm, request_shm):
             shm.close()
             shm.unlink()

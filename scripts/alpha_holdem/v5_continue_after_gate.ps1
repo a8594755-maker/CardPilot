@@ -8,6 +8,11 @@
 param(
     [string]$Repo = "C:\Users\a8594\CardPilot",
     [string]$SourceRunDir = "models\alpha_holdem_v5_from_zero\v5_zero_l6_fixedenv_20260703_1445",
+    [string]$SourceCheckpointPath = "",
+    [string]$DesignLockPath = "",
+    [string]$ExpectedDesignLockSha256 = "",
+    [ValidateSet("", "control", "treatment")]
+    [string]$DesignArm = "",
     [int]$TargetIteration = 1600,
     [int]$ExpectedPoolSnapshots = 5,
     [object]$RequireCurrentPoolSnapshot = $true,
@@ -21,6 +26,12 @@ param(
     [double]$StartingStack = 200.0,
     [string]$EnvVersion = "v55",
     [double]$Lr = 3e-4,
+    [int]$PpoEpochs = 4,
+    [int]$MiniBatchSize = 1024,
+    [double]$Epsilon = 0.0,
+    [int]$Seed = 20260703,
+    [int]$WorkerSeedBase = -1,
+    [switch]$FixedTrainingDealStream,
     [double]$Gamma = 0.999,
     [double]$Delta1 = 3.0,
     [double]$EntropyCoef = 0.05,
@@ -38,6 +49,8 @@ param(
     [int]$PoolHistoryLimit = 200,
     [double]$SelfPlayFraction = 0.2,
     [string]$OpponentAssignment = "per-iteration",
+    [int]$OpponentGroups = 5,
+    [string]$OpponentAssignmentProvenanceFile = "",
     [int]$SnapshotEvery = 200,
     [int]$SaveInterval = 100,
     [string]$RolloutMode = "",
@@ -48,6 +61,20 @@ param(
     [switch]$MirrorSelfPlayDeals,
     [switch]$AllinRunoutEv,
     [int]$AllinRunoutEvMaxRunouts = -1,
+    [int]$ExpW1ValueWarmupEpochs = 0,
+    [int]$ExpW1ValueWarmupAtIteration = 0,
+    [double]$ExpW1ValueWarmupHeldoutFraction = 0.20,
+    [double]$ExpW1ValueWarmupMinRelativeMseReduction = 0.02,
+    [int]$ExpW1ValueWarmupSplitSeed = 2026071101,
+    [string]$ExpW1ValueWarmupReport = "",
+    [ValidateSet("", "critic_v1", "critic_v2")]
+    [string]$H1CriticContract = "",
+    [double]$H1EffectiveStackDivisor = 200.0,
+    [int]$H1CriticInitSeed = 2026071102,
+    [double]$H1ValueCoef = 0.5,
+    [string]$H1PreregistrationPath = "",
+    [string]$H1PreregistrationSha256 = "",
+    [string]$H1MigrationReport = "",
     [string]$TrainerCopySource = "",
     [string]$ArchiveCurrentTrainerAs = "",
     [switch]$SkipGateCheck,
@@ -240,7 +267,11 @@ if (-not (Test-Path -LiteralPath $sourceRunDirAbs)) {
     throw "Source run dir not found: $sourceRunDirAbs"
 }
 
-$sourceCheckpoint = Join-Path $sourceRunDirAbs "latest.pt"
+$sourceCheckpoint = if ([string]::IsNullOrWhiteSpace($SourceCheckpointPath)) {
+    Join-Path $sourceRunDirAbs "latest.pt"
+} else {
+    Resolve-RepoPath $SourceCheckpointPath
+}
 if (-not (Test-Path -LiteralPath $sourceCheckpoint)) {
     throw "Source checkpoint not found: $sourceCheckpoint"
 }
@@ -341,6 +372,10 @@ $trainArgs = @(
     "--starting-stack", "$StartingStack",
     "--env-version", $EnvVersion,
     "--lr", "$Lr",
+    "--ppo-epochs", "$PpoEpochs",
+    "--mini-batch-size", "$MiniBatchSize",
+    "--epsilon", "$Epsilon",
+    "--seed", "$Seed",
     "--gamma", "$Gamma",
     "--delta1", "$Delta1",
     "--entropy-coef", "$EntropyCoef",
@@ -358,6 +393,7 @@ $trainArgs = @(
     "--pool-history-limit", "$PoolHistoryLimit",
     "--self-play-fraction", "$SelfPlayFraction",
     "--opponent-assignment", $OpponentAssignment,
+    "--opponent-groups", "$OpponentGroups",
     "--snapshot-every", "$SnapshotEvery",
     "--save-interval", "$SaveInterval",
     "--resume", $sourceCheckpoint,
@@ -366,6 +402,19 @@ $trainArgs = @(
     "--run-id", $NewRunId,
     "--run-dir", $newRunDirAbs
 )
+if ($WorkerSeedBase -ge 0) {
+    $trainArgs += @("--worker-seed-base", "$WorkerSeedBase")
+}
+if ($FixedTrainingDealStream) {
+    $trainArgs += "--fixed-training-deal-stream"
+}
+if ([string]::IsNullOrWhiteSpace($OpponentAssignmentProvenanceFile) -and -not [string]::IsNullOrWhiteSpace($DesignLockPath)) {
+    $OpponentAssignmentProvenanceFile = Join-Path $newRunDirAbs "opponent_assignment_provenance.jsonl"
+}
+if (-not [string]::IsNullOrWhiteSpace($OpponentAssignmentProvenanceFile)) {
+    $OpponentAssignmentProvenanceFile = Resolve-RepoPath $OpponentAssignmentProvenanceFile
+    $trainArgs += @("--opponent-assignment-provenance-file", $OpponentAssignmentProvenanceFile)
+}
 if (-not [string]::IsNullOrWhiteSpace($RolloutMode)) {
     $trainArgs += @("--rollout-mode", $RolloutMode)
 }
@@ -389,6 +438,150 @@ if ($AllinRunoutEv) {
 }
 if ($AllinRunoutEvMaxRunouts -ge 0) {
     $trainArgs += @("--allin-runout-ev-max-runouts", "$AllinRunoutEvMaxRunouts")
+}
+if ($ExpW1ValueWarmupAtIteration -gt 0) {
+    if ([string]::IsNullOrWhiteSpace($DesignLockPath) -or [string]::IsNullOrWhiteSpace($ExpectedDesignLockSha256)) {
+        throw "EXP-W1 planned config requires immutable design-lock path and SHA"
+    }
+    $expW1LockForTrainer = Resolve-RepoPath $DesignLockPath
+    $trainArgs += @(
+        "--exp-w1-design-lock", $expW1LockForTrainer,
+        "--exp-w1-design-lock-sha256", $ExpectedDesignLockSha256,
+        "--exp-w1-value-warmup-epochs", "$ExpW1ValueWarmupEpochs",
+        "--exp-w1-value-warmup-at-iteration", "$ExpW1ValueWarmupAtIteration",
+        "--exp-w1-value-warmup-heldout-fraction", "$ExpW1ValueWarmupHeldoutFraction",
+        "--exp-w1-value-warmup-min-relative-mse-reduction", "$ExpW1ValueWarmupMinRelativeMseReduction",
+        "--exp-w1-value-warmup-split-seed", "$ExpW1ValueWarmupSplitSeed"
+    )
+    if (-not [string]::IsNullOrWhiteSpace($ExpW1ValueWarmupReport)) {
+        $ExpW1ValueWarmupReport = Resolve-RepoPath $ExpW1ValueWarmupReport
+        $trainArgs += @("--exp-w1-value-warmup-report", $ExpW1ValueWarmupReport)
+    }
+}
+
+if (-not [string]::IsNullOrWhiteSpace($H1CriticContract)) {
+    if ([string]::IsNullOrWhiteSpace($DesignLockPath) -or [string]::IsNullOrWhiteSpace($ExpectedDesignLockSha256)) { throw "H1 critic contract requires immutable design-lock path and SHA" }
+    if ([string]::IsNullOrWhiteSpace($H1PreregistrationPath) -or [string]::IsNullOrWhiteSpace($H1PreregistrationSha256)) { throw "H1 critic contract requires preregistration path and SHA" }
+    $h1PreregForTrainer = Resolve-RepoPath $H1PreregistrationPath
+    $trainArgs += @("--critic-contract", $H1CriticContract, "--h1-effective-stack-divisor", "$H1EffectiveStackDivisor", "--h1-critic-init-seed", "$H1CriticInitSeed", "--value-coef", "$H1ValueCoef", "--h1-preregistration", $h1PreregForTrainer, "--h1-preregistration-sha256", $H1PreregistrationSha256)
+    if (-not [string]::IsNullOrWhiteSpace($H1MigrationReport)) { $H1MigrationReport = Resolve-RepoPath $H1MigrationReport; $trainArgs += @("--h1-migration-report", $H1MigrationReport) }
+}$plannedConfig = [ordered]@{
+    device = $Device
+    workers = $Workers
+    hands_per_iter = $HandsPerIter
+    total_hands = $TotalHands
+    starting_stack = $StartingStack
+    env_version = $EnvVersion
+    lr = $Lr
+    ppo_epochs = $PpoEpochs
+    mini_batch_size = $MiniBatchSize
+    epsilon = $Epsilon
+    seed = $Seed
+    worker_seed_base = $(if ($WorkerSeedBase -ge 0) { $WorkerSeedBase } else { $null })
+    fixed_training_deal_stream = [bool]$FixedTrainingDealStream
+    gamma = $Gamma
+    delta1 = $Delta1
+    entropy_coef = $EntropyCoef
+    entropy_floor = $EntropyFloor
+    postflop_action_prior_coef = $PostflopActionPriorCoef
+    postflop_action_prior_target = $PostflopActionPriorTarget
+    preflop_action_prior_coef = $PreflopActionPriorCoef
+    preflop_action_prior_target = $PreflopActionPriorTarget
+    preflop_sb_open_action_prior_coef = $PreflopSbOpenActionPriorCoef
+    preflop_sb_open_action_prior_target = $PreflopSbOpenActionPriorTarget
+    preflop_bb_vs_open_action_prior_coef = $PreflopBbVsOpenActionPriorCoef
+    preflop_bb_vs_open_action_prior_target = $PreflopBbVsOpenActionPriorTarget
+    k_best = $KBest
+    pool_strategy = $PoolStrategy
+    pool_history_limit = $PoolHistoryLimit
+    self_play_fraction = $SelfPlayFraction
+    opponent_assignment = $OpponentAssignment
+    opponent_groups = $OpponentGroups
+    snapshot_every = $SnapshotEvery
+    save_interval = $SaveInterval
+    rollout_mode = $RolloutMode
+    rollout_envs_per_worker = $RolloutEnvsPerWorker
+    inference_min_batch_slots = $InferenceMinBatchSlots
+    inference_batch_deadline_us = $InferenceBatchDeadlineUs
+    mirror_self_play_deals = [bool]$MirrorSelfPlayDeals
+    allin_runout_ev = [bool]$AllinRunoutEv
+    allin_runout_ev_max_runouts = $AllinRunoutEvMaxRunouts
+    reset_optimizer = $false
+    assignment_provenance_schema = "v5.opponent_assignment_provenance.v1"
+}
+if ($ExpW1ValueWarmupAtIteration -gt 0) {
+    # Runtime lock identity is passed to the trainer and persisted in its manifest,
+    # but cannot be embedded inside the lock's own expected_config (self-hash cycle).
+    $plannedConfig.exp_w1_value_warmup_epochs = $ExpW1ValueWarmupEpochs
+    $plannedConfig.exp_w1_value_warmup_at_iteration = $ExpW1ValueWarmupAtIteration
+    $plannedConfig.exp_w1_value_warmup_heldout_fraction = $ExpW1ValueWarmupHeldoutFraction
+    $plannedConfig.exp_w1_value_warmup_min_relative_mse_reduction = $ExpW1ValueWarmupMinRelativeMseReduction
+    $plannedConfig.exp_w1_value_warmup_split_seed = $ExpW1ValueWarmupSplitSeed
+    $plannedConfig.exp_w1_value_warmup_report = $ExpW1ValueWarmupReport
+}
+if (-not [string]::IsNullOrWhiteSpace($H1CriticContract)) {
+    $plannedConfig.critic_contract = $H1CriticContract
+    $plannedConfig.h1_effective_stack_divisor = $H1EffectiveStackDivisor
+    $plannedConfig.h1_critic_init_seed = $H1CriticInitSeed
+    $plannedConfig.value_coef = $H1ValueCoef
+    $plannedConfig.h1_preregistration = $h1PreregForTrainer
+    $plannedConfig.h1_preregistration_sha256 = $H1PreregistrationSha256
+    $plannedConfig.h1_migration_report = $H1MigrationReport
+}$plannedConfigJson = $plannedConfig | ConvertTo-Json -Compress
+$plannedConfigBase64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($plannedConfigJson))
+
+if ($Execute -and (
+    [string]::IsNullOrWhiteSpace($DesignLockPath) -or
+    [string]::IsNullOrWhiteSpace($ExpectedDesignLockSha256) -or
+    [string]::IsNullOrWhiteSpace($DesignArm)
+)) {
+    throw "Execute requires -DesignLockPath, -ExpectedDesignLockSha256, and -DesignArm; refusing trainer launch"
+}
+$inlineWatcherRequested = (
+    $StartNextGateWatcher -or $StartGateSequenceWatcher -or $StartThroughputWatcher -or
+    $StartHealthWatcher -or $StartDashboardWatcher -or $StartEvalCadenceWatcher -or
+    $StartSlumbotQuick5kWatcher -or $StartSlumbotPromotion20kWatcher -or
+    $StartSlumbotFormal100kWatcher -or $StartInternalStrengthWatcher -or
+    $StartCheckpointArchiveWatcher
+)
+if (-not [string]::IsNullOrWhiteSpace($DesignLockPath) -and $inlineWatcherRequested) {
+    throw "Design-locked cutover forbids inline watcher launch; use canonical v5_rearm_watchers.ps1 after trainer start"
+}
+if (-not [string]::IsNullOrWhiteSpace($DesignLockPath)) {
+    if ([string]::IsNullOrWhiteSpace($ExpectedDesignLockSha256) -or [string]::IsNullOrWhiteSpace($DesignArm)) {
+        throw "Design lock validation requires expected SHA256 and arm identity"
+    }
+    $designLockAbs = Resolve-RepoPath $DesignLockPath
+    $ledgerAbs = Resolve-RepoPath "reports\v5_experiment_ledger.md"
+    $trainerAbs = Resolve-RepoPath "scripts/alpha_holdem/train_v5.py"
+    if (-not [string]::IsNullOrWhiteSpace($TrainerCopySource)) {
+
+        $trainerAbs = Resolve-RepoPath $TrainerCopySource
+        if (-not (Test-Path -LiteralPath $trainerAbs)) {
+            throw "Design-lock trainer copy source not found: $trainerAbs"
+        }
+    }
+    $safeRunId = $NewRunId -replace '[^A-Za-z0-9_.-]', '_'
+    $preflightOut = Resolve-RepoPath ("reports\v5_cutover_design_lock_preflight_{0}.json" -f $safeRunId)
+    Write-Step "verifying immutable cutover design lock"
+    if (-not [string]::IsNullOrWhiteSpace($H1CriticContract)) {
+        & $Python "scripts\alpha_holdem\v5_hybrid_h1_design_lock.py" "verify" "--lock" $designLockAbs "--expected-sha" $ExpectedDesignLockSha256 "--arm" $DesignArm "--planned-config-base64" $plannedConfigBase64 "--out" $preflightOut
+    } else {
+        & $Python "scripts\alpha_holdem\v5_cutover_design_lock_verify.py" `
+            "--design-lock" $designLockAbs `
+            "--expected-lock-sha256" $ExpectedDesignLockSha256 `
+            "--ledger" $ledgerAbs `
+            "--source-checkpoint" $sourceCheckpoint `
+            "--trainer-script" $trainerAbs `
+            "--new-run-id" $NewRunId `
+            "--design-arm" $DesignArm `
+            "--provenance-path" $OpponentAssignmentProvenanceFile `
+            "--planned-config-base64" $plannedConfigBase64 `
+            "--out-json" $preflightOut
+    }
+    if ($LASTEXITCODE -ne 0) {
+        throw "immutable design-lock preflight failed; refusing trainer launch"
+    }
 }
 
 Write-Step "continuation command:"
@@ -414,6 +607,7 @@ if (-not $Execute) {
         "-File", "scripts\alpha_holdem\v5_continue_after_gate.ps1",
         "-Repo", $Repo,
         "-SourceRunDir", $sourceRunDirAbs,
+        "-SourceCheckpointPath", $sourceCheckpoint,
         "-TargetIteration", "$TargetIteration",
         "-ExpectedPoolSnapshots", "$ExpectedPoolSnapshots",
         "-NewRunId", $NewRunId,
@@ -426,6 +620,11 @@ if (-not $Execute) {
         "-StartingStack", "$StartingStack",
         "-EnvVersion", $EnvVersion,
         "-Lr", "$Lr",
+        "-PpoEpochs", "$PpoEpochs",
+        "-MiniBatchSize", "$MiniBatchSize",
+        "-Epsilon", "$Epsilon",
+        "-Seed", "$Seed",
+        "-WorkerSeedBase", "$WorkerSeedBase",
         "-Gamma", "$Gamma",
         "-Delta1", "$Delta1",
         "-EntropyCoef", "$EntropyCoef",
@@ -443,13 +642,12 @@ if (-not $Execute) {
         "-PoolHistoryLimit", "$PoolHistoryLimit",
         "-SelfPlayFraction", "$SelfPlayFraction",
         "-OpponentAssignment", $OpponentAssignment,
+        "-OpponentGroups", "$OpponentGroups",
+        "-OpponentAssignmentProvenanceFile", $OpponentAssignmentProvenanceFile,
         "-SnapshotEvery", "$SnapshotEvery",
         "-SaveInterval", "$SaveInterval",
         "-Execute",
         "-StopOldTraining",
-        "-StartNextGateWatcher",
-        "-StartGateSequenceWatcher",
-        "-StartHealthWatcher",
         "-PreflopCallWarnAfterIter", "$PreflopCallWarnAfterIter",
         "-PreflopCallWarn", "$PreflopCallWarn",
         "-PreflopCallFail", "$PreflopCallFail",
@@ -458,17 +656,19 @@ if (-not $Execute) {
         "-PreflopAllinWarn", "$PreflopAllinWarn",
         "-PreflopAllinFail", "$PreflopAllinFail",
         "-StderrRecentMinutes", "$StderrRecentMinutes",
-        "-StartThroughputWatcher",
-        "-StartDashboardWatcher",
-        "-StartEvalCadenceWatcher",
-        "-StartSlumbotQuick5kWatcher",
-        "-StartSlumbotPromotion20kWatcher",
-        "-StartSlumbotFormal100kWatcher",
-        "-StartInternalStrengthWatcher",
-        "-StartCheckpointArchiveWatcher",
         "-OutputDir", $OutputDir,
         "-ReportPath", $ReportPath
     )
+    if (-not [string]::IsNullOrWhiteSpace($DesignLockPath)) {
+        $cutoverArgs += @(
+            "-DesignLockPath", $DesignLockPath,
+            "-ExpectedDesignLockSha256", $ExpectedDesignLockSha256,
+            "-DesignArm", $DesignArm
+        )
+    }
+    if ($FixedTrainingDealStream) {
+        $cutoverArgs += "-FixedTrainingDealStream"
+    }
     if (-not [string]::IsNullOrWhiteSpace($RolloutMode)) {
         $cutoverArgs += @("-RolloutMode", $RolloutMode)
     }
@@ -493,7 +693,20 @@ if (-not $Execute) {
     if ($AllinRunoutEvMaxRunouts -ge 0) {
         $cutoverArgs += @("-AllinRunoutEvMaxRunouts", "$AllinRunoutEvMaxRunouts")
     }
+    if ($ExpW1ValueWarmupAtIteration -gt 0) {
+        $cutoverArgs += @(
+            "-ExpW1ValueWarmupEpochs", "$ExpW1ValueWarmupEpochs",
+            "-ExpW1ValueWarmupAtIteration", "$ExpW1ValueWarmupAtIteration",
+            "-ExpW1ValueWarmupHeldoutFraction", "$ExpW1ValueWarmupHeldoutFraction",
+            "-ExpW1ValueWarmupMinRelativeMseReduction", "$ExpW1ValueWarmupMinRelativeMseReduction",
+            "-ExpW1ValueWarmupSplitSeed", "$ExpW1ValueWarmupSplitSeed"
+        )
+        if (-not [string]::IsNullOrWhiteSpace($ExpW1ValueWarmupReport)) {
+            $cutoverArgs += @("-ExpW1ValueWarmupReport", $ExpW1ValueWarmupReport)
+        }
+    }
     if (-not [string]::IsNullOrWhiteSpace($TrainerCopySource)) {
+
         $cutoverArgs += @("-TrainerCopySource", $TrainerCopySource)
     }
     if (-not [string]::IsNullOrWhiteSpace($ArchiveCurrentTrainerAs)) {
@@ -585,6 +798,20 @@ if (-not [string]::IsNullOrWhiteSpace($TrainerCopySource)) {
     $newTrainerHash = (Get-FileHash -LiteralPath $liveTrainerPath -Algorithm SHA256).Hash
     Write-Step "archived live trainer to $archiveTrainerAbs sha256=$oldTrainerHash"
     Write-Step "copied trainer source $trainerCopySourceAbs sha256=$copySourceHash to live train_v5.py sha256=$newTrainerHash"
+    if (-not [string]::IsNullOrWhiteSpace($DesignLockPath)) {
+        $postCopyOut = Resolve-RepoPath ("reports/v5_cutover_design_lock_postcopy_{0}.json" -f $safeRunId)
+        if (-not [string]::IsNullOrWhiteSpace($H1CriticContract)) {
+            $h1Lock = Get-Content -LiteralPath $designLockAbs -Raw | ConvertFrom-Json
+            $liveTrainerSha = (Get-FileHash -LiteralPath $liveTrainerPath -Algorithm SHA256).Hash.ToLowerInvariant()
+            if ($liveTrainerSha -ne ([string]$h1Lock.trainer_sha256).ToLowerInvariant()) { throw "H1 post-copy live train_v5.py SHA does not equal locked trainer SHA" }
+            & $Python "scripts/alpha_holdem/v5_hybrid_h1_design_lock.py" "verify" "--lock" $designLockAbs "--expected-sha" $ExpectedDesignLockSha256 "--arm" $DesignArm "--planned-config-base64" $plannedConfigBase64 "--out" $postCopyOut
+        } else {
+            & $Python "scripts/alpha_holdem/v5_cutover_design_lock_verify.py" "--design-lock" $designLockAbs "--expected-lock-sha256" $ExpectedDesignLockSha256 "--ledger" $ledgerAbs "--source-checkpoint" $sourceCheckpoint "--trainer-script" $liveTrainerPath "--new-run-id" $NewRunId "--design-arm" $DesignArm "--provenance-path" $OpponentAssignmentProvenanceFile "--planned-config-base64" $plannedConfigBase64 "--out-json" $postCopyOut
+        }
+        if ($LASTEXITCODE -ne 0) {
+            throw "post-copy immutable design-lock verification failed; refusing trainer launch"
+        }
+    }
 }
 
 $stdoutPath = Join-Path $newRunDirAbs "console.out.log"

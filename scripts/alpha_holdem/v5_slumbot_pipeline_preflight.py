@@ -210,6 +210,16 @@ def build_preflight(args: argparse.Namespace) -> dict[str, Any]:
         run_dir=run_dir,
         min_promotion_hands=20_000,
         expected_stack_bb=200.0,
+        terminal_endpoint_status_path=(
+            Path(args.terminal_endpoint_status_json)
+            if getattr(args, "terminal_endpoint_status_json", "")
+            else None
+        ),
+        terminal_protocol_status_path=(
+            Path(args.terminal_protocol_status_json)
+            if getattr(args, "terminal_protocol_status_json", "")
+            else None
+        ),
     )
     promotion_json.write_text(json.dumps(promotion, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     write_promotion_markdown(promotion_md, promotion)
@@ -224,10 +234,13 @@ def build_preflight(args: argparse.Namespace) -> dict[str, Any]:
         "starting_stack_bb": {"PASS"},
         "actual_hand_accounting": {"PASS"},
         "fresh_from_zero_lineage": {"PASS"},
-        "health_status": {"PASS", "WARN"},
         "ci_json": {"PASS"},
         "hand_artifacts": {"PASS"},
     }
+    if getattr(args, "terminal_endpoint_status_json", "") or getattr(args, "terminal_protocol_status_json", ""):
+        required_promotion_statuses["terminal_endpoint_health"] = {"PASS"}
+    else:
+        required_promotion_statuses["health_status"] = {"PASS", "WARN"}
     bad = [
         name
         for name, accepted in required_promotion_statuses.items()
@@ -330,6 +343,8 @@ def main() -> int:
     parser.add_argument("--out-dir", default="")
     parser.add_argument("--out-json", default="")
     parser.add_argument("--out-md", default="")
+    parser.add_argument("--terminal-endpoint-status-json", default="")
+    parser.add_argument("--terminal-protocol-status-json", default="")
     args = parser.parse_args()
 
     summary = build_preflight(args)

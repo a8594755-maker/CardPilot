@@ -213,7 +213,23 @@ def _find_closest_raise(legal: list[Action], target_frac: float, pot: float) -> 
 # the second state.legal_actions() call in step().
 # ===========================================================
 
-def build_action_table(state: HUNLGameState) -> tuple[np.ndarray, list]:
+def _raise_over_pot_fraction(state: HUNLGameState, action: Action) -> float:
+    """Recover the engine bet-size fraction from a BET/RAISE action."""
+    player = int(state.current_player)
+    committed = float(state.street_committed[player])
+    opponent_committed = float(state.street_committed[1 - player])
+    to_call = max(opponent_committed - committed, 0.0)
+    additional = max(float(action.amount) - committed, 0.0)
+    if to_call <= 0.0:
+        return additional / max(float(state.pot), 1e-9)
+    raise_over = max(additional - to_call, 0.0)
+    return raise_over / max(float(state.pot) + to_call, 1e-9)
+
+
+def build_action_table(
+    state: HUNLGameState,
+    raise_action_mapping: str = "legacy_total_over_pot",
+) -> tuple[np.ndarray, list]:
     """
     Build legal-action mask AND slot-to-Action table in a single pass.
 
@@ -228,6 +244,14 @@ def build_action_table(state: HUNLGameState) -> tuple[np.ndarray, list]:
     if not legal:
         return mask, slot_to_action
 
+    if raise_action_mapping not in {
+        "legacy_total_over_pot",
+        "preflop_pot_fraction_v2",
+        "pot_fraction_v2",
+    }:
+        raise ValueError(f"unknown raise action mapping: {raise_action_mapping}")
+
+    slot_distance = [float("inf")] * NUM_ACTIONS
     for action in legal:
         if action.type == ActionType.FOLD:
             mask[0] = 1.0
@@ -244,19 +268,26 @@ def build_action_table(state: HUNLGameState) -> tuple[np.ndarray, list]:
         elif action.type in (ActionType.BET, ActionType.RAISE):
             pot = state.pot
             if pot > 0:
-                frac = action.amount / pot
+                use_corrected_fraction = (
+                    raise_action_mapping == "pot_fraction_v2"
+                    or (
+                        raise_action_mapping == "preflop_pot_fraction_v2"
+                        and state.street == Street.PREFLOP
+                    )
+                )
+                if use_corrected_fraction:
+                    frac = _raise_over_pot_fraction(state, action)
+                else:
+                    frac = action.amount / pot
                 slot = _closest_raise_slot(frac)
             else:
                 slot = 2  # default smallest
             mask[slot] = 1.0
             # Prefer the closest match if multiple raises map to same slot
-            if slot_to_action[slot] is None:
+            distance = abs(float(frac) - RAISE_FRACTIONS[slot - 2])
+            if slot_to_action[slot] is None or distance < slot_distance[slot]:
                 slot_to_action[slot] = action
-            else:
-                cur = slot_to_action[slot]
-                target = RAISE_FRACTIONS[slot - 2] * max(state.pot, 1.0) if 2 <= slot <= 7 else action.amount
-                if abs(action.amount - target) < abs(cur.amount - target):
-                    slot_to_action[slot] = action
+                slot_distance[slot] = distance
 
     # Fallback: if nothing legal somehow, allow check/call as no-op
     if mask.sum() == 0:
@@ -296,17 +327,44 @@ class HUNLEnvironmentV55:
         bet_sizes: Optional[BetSizeConfig] = None,
         raise_cap_per_street: int = RAISE_CAP_UNLIMITED,
         action_history_style: str = "v55",
+        raise_action_mapping: str = "legacy_total_over_pot",
     ):
         self.starting_stack = starting_stack
         self.small_blind = small_blind
         self.big_blind = big_blind
+        self.raise_cap_per_street = raise_cap_per_street
+        if raise_action_mapping not in {
+            "legacy_total_over_pot",
+            "preflop_pot_fraction_v2",
+            "pot_fraction_v2",
+        }:
+            raise ValueError(
+                f"unknown raise action mapping: {raise_action_mapping}"
+            )
+        self.raise_action_mapping = raise_action_mapping
+        self._override_bet_sizes = (
+            bet_sizes is not None
+            or raise_action_mapping in {
+                "preflop_pot_fraction_v2",
+                "pot_fraction_v2",
+            }
+        )
         self.bet_sizes = bet_sizes or BetSizeConfig(
-            preflop=[],
+            # 0.33 would produce an illegal sub-minimum opening raise from
+            # the posted blinds. The remaining five fractions produce
+            # 2.0/2.34/2.5/3.0/4.0 BB opens and map to distinct slots 3..7.
+            preflop=(
+                [0.50, 0.67, 0.75, 1.00, 1.50]
+                if raise_action_mapping in {
+                    "preflop_pot_fraction_v2",
+                    "pot_fraction_v2",
+                }
+                else []
+            ),
             flop=RAISE_FRACTIONS,
             turn=RAISE_FRACTIONS,
             river=RAISE_FRACTIONS,
         )
-        self.raise_cap_per_street = raise_cap_per_street
         if action_history_style not in ("v55", "v4"):
             raise ValueError(f"unknown action_history_style: {action_history_style}")
         self.action_history_style = action_history_style
@@ -325,6 +383,8 @@ class HUNLEnvironmentV55:
         else:
             cfg = GameConfig.full_200bb()
         cfg.raise_cap_per_street = self.raise_cap_per_street
+        if self._override_bet_sizes:
+            cfg.bet_sizes = self.bet_sizes
         return cfg
 
     def reset(self) -> dict:
@@ -353,7 +413,10 @@ class HUNLEnvironmentV55:
         action = self.last_action_table[action_idx]
         if action is None:
             # Fallback: cache miss (shouldn't happen if caller respects mask)
-            mask, table = build_action_table(self.state)
+            mask, table = build_action_table(
+                self.state,
+                self.raise_action_mapping,
+            )
             self._legal_calls_this_hand += 1
             action = table[action_idx]
             if action is None:
@@ -374,7 +437,10 @@ class HUNLEnvironmentV55:
         player = self.state.current_player
 
         # V5.5: single legal_actions() call serves both mask and slot table
-        mask, slot_to_action = build_action_table(self.state)
+        mask, slot_to_action = build_action_table(
+            self.state,
+            self.raise_action_mapping,
+        )
         self._legal_calls_this_hand += 1
         self.last_action_table = slot_to_action
         if self.action_history_style == "v4":

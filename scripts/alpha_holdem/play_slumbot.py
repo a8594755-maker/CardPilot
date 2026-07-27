@@ -187,10 +187,16 @@ def encode_action_history(
             t[ch, 0, 0] = is_hero
 
             if obs_version == 'v4':
-                # Legacy AlphaHoldem evaluation treated all Slumbot "b" actions
-                # as BET and normalized by total_last_bet_to.
-                atype = {'f': 0, 'k': 1, 'c': 2, 'b': 3}.get(act, 1)
-                denom = max(state['total_last_bet_to'], 1)
+                # Match the legacy training encoder: Action.amount is zero for
+                # folds/checks/calls, bet/raise stores total street commitment,
+                # and all amounts are normalized by the current pot.
+                if act == 'b':
+                    atype = 4 if prior_bet_to > 0 else 3
+                    prior_bet_to = amt
+                else:
+                    atype = {'f': 0, 'k': 1, 'c': 2}.get(act, 1)
+                denom = pot
+                encoded_amount = amt if act == 'b' else 0
             else:
                 # Match deep_cfr.game_state.ActionType:
                 # FOLD=0, CHECK=1, CALL=2, BET=3, RAISE=4. Slumbot encodes both
@@ -201,10 +207,11 @@ def encode_action_history(
                 else:
                     atype = {'f': 0, 'k': 1, 'c': 2}.get(act, 1)
                 denom = pot
+                encoded_amount = amt
 
             t[ch, 1, min(atype, 4)] = 1.0
-            if amt > 0:
-                t[ch, 2, 0] = min(amt / denom, 2.0) / 2.0
+            if encoded_amount > 0:
+                t[ch, 2, 0] = min(encoded_amount / denom, 2.0) / 2.0
             t[ch, 3, 0] = 1.0  # slot filled
     # Channel 24: current player indicator
     t[24, 0, 0] = 1.0 if current_pos == client_pos else 0.0
@@ -215,9 +222,12 @@ def encode_extra(stacks_remaining: list, starting: float = STACK_SIZE) -> np.nda
     return np.array([stacks_remaining[0] / starting, stacks_remaining[1] / starting], dtype=np.float32)
 
 
-def compute_legal_mask(state: dict) -> np.ndarray:
+def compute_legal_mask(
+    state: dict,
+    raise_action_mapping: str = "legacy_total_over_pot",
+) -> np.ndarray:
     """9-slot legal actions: [fold, check/call, 6 raise sizes, allin]."""
-    mask, _ = build_action_table(state)
+    mask, _ = build_action_table(state, raise_action_mapping)
     return mask
     mask = np.zeros(NUM_ACTIONS, dtype=np.float32)
     last_bet_size = state['last_bet_size']
@@ -245,6 +255,7 @@ def compute_legal_mask(state: dict) -> np.ndarray:
 
 RAISE_FRACTIONS = [0.33, 0.50, 0.67, 0.75, 1.00, 1.50]
 PREFLOP_RAISE_FRACTIONS = [0.50, 1.00, 1.50]
+PREFLOP_RAISE_FRACTIONS_V2 = [0.50, 0.67, 0.75, 1.00, 1.50]
 
 
 def closest_raise_slot(pot_frac: float) -> int:
@@ -291,8 +302,19 @@ def compute_commitments(state: dict) -> dict:
     }
 
 
-def build_action_table(state: dict) -> tuple[np.ndarray, list[str | None]]:
+def build_action_table(
+    state: dict,
+    raise_action_mapping: str = "legacy_total_over_pot",
+) -> tuple[np.ndarray, list[str | None]]:
     """Mirror V5.5's sparse legal-mask + slot-to-action table for Slumbot."""
+    if raise_action_mapping not in {
+        "legacy_total_over_pot",
+        "preflop_pot_fraction_v2",
+        "pot_fraction_v2",
+    }:
+        raise ValueError(
+            f"unknown raise action mapping: {raise_action_mapping}"
+        )
     mask = np.zeros(NUM_ACTIONS, dtype=np.float32)
     slot_to_incr: list[str | None] = [None] * NUM_ACTIONS
     slot_dist = [float('inf')] * NUM_ACTIONS
@@ -318,7 +340,17 @@ def build_action_table(state: dict) -> tuple[np.ndarray, list[str | None]]:
     if max_target <= street_bet:
         return mask, slot_to_incr
 
-    fractions = PREFLOP_RAISE_FRACTIONS if state['st'] == 0 else RAISE_FRACTIONS
+    if state['st'] == 0:
+        fractions = (
+            PREFLOP_RAISE_FRACTIONS_V2
+            if raise_action_mapping in {
+                "preflop_pot_fraction_v2",
+                "pot_fraction_v2",
+            }
+            else PREFLOP_RAISE_FRACTIONS
+        )
+    else:
+        fractions = RAISE_FRACTIONS
     pot_after_call = pot + to_call
     min_bet_size = max(last_bet_size, BIG_BLIND)
     min_target = street_bet + min_bet_size
@@ -332,9 +364,20 @@ def build_action_table(state: dict) -> tuple[np.ndarray, list[str | None]]:
         if target >= max_target:
             continue
 
-        slot = closest_raise_slot(target / pot)
-        wanted = RAISE_FRACTIONS[slot - 2] * pot
-        dist = abs(target - wanted)
+        use_corrected_fraction = (
+            raise_action_mapping == "pot_fraction_v2"
+            or (
+                raise_action_mapping == "preflop_pot_fraction_v2"
+                and int(state['st']) == 0
+            )
+        )
+        if use_corrected_fraction:
+            slot = closest_raise_slot(frac)
+            dist = abs(frac - RAISE_FRACTIONS[slot - 2])
+        else:
+            slot = closest_raise_slot(target / pot)
+            wanted = RAISE_FRACTIONS[slot - 2] * pot
+            dist = abs(target - wanted)
         if dist < slot_dist[slot]:
             mask[slot] = 1.0
             slot_to_incr[slot] = f'b{target}'
@@ -345,8 +388,12 @@ def build_action_table(state: dict) -> tuple[np.ndarray, list[str | None]]:
     return mask, slot_to_incr
 
 
-def action_idx_to_incr(action_idx: int, state: dict) -> str:
-    _, slot_to_incr = build_action_table(state)
+def action_idx_to_incr(
+    action_idx: int,
+    state: dict,
+    raise_action_mapping: str = "legacy_total_over_pot",
+) -> str:
+    _, slot_to_incr = build_action_table(state, raise_action_mapping)
     if 0 <= action_idx < len(slot_to_incr) and slot_to_incr[action_idx] is not None:
         return slot_to_incr[action_idx]
 
@@ -430,6 +477,34 @@ def resolve_obs_version(ckpt: dict, requested: str) -> str:
     return 'v4'
 
 
+def current_street_index(state: dict) -> int:
+    """Read the current street from live or synthetic parsed state."""
+    return int(state.get('st', state.get('street', 0)))
+
+
+class ProbabilityEnsemblePolicy(torch.nn.Module):
+    """One greedy policy formed by averaging frozen member probabilities."""
+
+    def __init__(self, models):
+        super().__init__()
+        if len(models) < 2:
+            raise ValueError('probability ensemble requires at least two models')
+        self.models = torch.nn.ModuleList(models)
+        self.policy_logit_bias = None
+
+    def forward(self, card, action_inp, extra, legal_mask=None):
+        probabilities = []
+        values = []
+        for model in self.models:
+            logits, value = model(card, action_inp, extra, legal_mask)
+            probabilities.append(F.softmax(logits, dim=-1))
+            values.append(value)
+        mean_probability = torch.stack(probabilities, dim=0).mean(dim=0)
+        ensemble_logits = mean_probability.clamp_min(1e-12).log()
+        ensemble_value = torch.stack(values, dim=0).mean(dim=0)
+        return ensemble_logits, ensemble_value
+
+
 # ═══════════════════════════════════════════════════════════
 # Play loop
 # ═══════════════════════════════════════════════════════════
@@ -485,6 +560,408 @@ def is_unopened_preflop_start(state: dict) -> bool:
     )
 
 
+def preflop_logit_bias_context(state: dict) -> str | None:
+    """Return the checkpoint-bias context for the two first preflop decisions."""
+    if is_unopened_preflop_start(state):
+        return 'sb_open'
+    street_actions = state.get('street_actions') or [[] for _ in range(4)]
+    preflop_actions = street_actions[0]
+    if (
+        int(state.get('st', 0)) == 0
+        and int(state.get('pos', -1)) == 0
+        and len(preflop_actions) == 1
+        and str(preflop_actions[0][0]) == 'b'
+        and int(preflop_actions[0][1]) == 1
+    ):
+        return 'bb_vs_open'
+    return None
+
+
+def apply_checkpoint_policy_logit_bias(
+    logits: torch.Tensor,
+    model,
+    state: dict,
+) -> torch.Tensor:
+    """Apply a frozen checkpoint-owned bias as part of direct model inference."""
+    config = getattr(model, 'policy_logit_bias', None)
+    if not isinstance(config, dict):
+        return logits
+    context = preflop_logit_bias_context(state)
+    values = config.get(context) if context else None
+    if not isinstance(values, (list, tuple)) or len(values) != logits.shape[-1]:
+        return logits
+    bias = torch.as_tensor(values, dtype=logits.dtype, device=logits.device)
+    return logits + bias.unsqueeze(0)
+
+
+def checkpoint_preflop_range_override(
+    model,
+    hole_cards: list,
+    state: dict,
+    client_pos: int,
+    legal_mask: torch.Tensor,
+    source_action: int,
+) -> int:
+    """Apply checkpoint-owned, hand-range-specific preflop overrides.
+
+    Rules are evaluated in order and only replace the configured source action.
+    This keeps the default model path unchanged outside explicitly listed hand
+    percentile bands and contexts.
+    """
+    config = getattr(model, 'policy_range_override', None)
+    if not isinstance(config, dict) or int(state.get('st', 0)) != 0:
+        return int(source_action)
+    context = preflop_logit_bias_context(state)
+    if context == 'sb_open' and int(client_pos) != 1:
+        return int(source_action)
+    if context == 'bb_vs_open' and int(client_pos) != 0:
+        return int(source_action)
+    rules = config.get(context) if context else None
+    if not isinstance(rules, list):
+        return int(source_action)
+
+    from heuristic_policy_v3 import _hand_notation
+    from heuristic_policy_v4 import PREFLOP_PERCENTILE
+
+    percentile = float(PREFLOP_PERCENTILE[_hand_notation(hole_cards)])
+    for rule in rules:
+        if not isinstance(rule, dict):
+            continue
+        minimum = float(rule.get('percentile_min', 0.0))
+        maximum = float(rule.get('percentile_max', 1.0))
+        replace = int(rule.get('replace_action', source_action))
+        selected = int(rule.get('force_action', source_action))
+        if (
+            minimum <= percentile < maximum
+            and int(source_action) == replace
+            and 0 <= selected < legal_mask.shape[-1]
+            and bool(legal_mask[0, selected].item() > 0.0)
+        ):
+            return selected
+    return int(source_action)
+
+
+def checkpoint_preflop_strategy_override(
+    model,
+    hole_cards: list,
+    state: dict,
+    client_pos: int,
+    legal_mask: torch.Tensor,
+    source_action: int,
+) -> dict | None:
+    """Return a deterministic checkpoint-owned preflop action and sizing."""
+    profile = getattr(model, 'preflop_strategy_profile', None)
+    if (
+        profile not in {
+            'pokerskill_v1',
+            'pokerskill_sb_v1',
+            'pokerskill_sb_bbsize_v1',
+            'pokerskill_sb_jamguard_v2',
+            'pokerskill_v2',
+        }
+        or int(state.get('st', 0)) != 0
+    ):
+        return None
+
+    from heuristic_policy_v3 import _hand_notation
+
+    notation = _hand_notation(hole_cards)
+    ranks = '23456789TJQKA'
+    high, low = notation[0], notation[1]
+    suited = notation.endswith('s')
+    pair = len(notation) == 2
+    high_index = ranks.index(high)
+    low_index = ranks.index(low)
+
+    context = preflop_logit_bias_context(state)
+    street_actions = state.get('street_actions') or [[] for _ in range(4)]
+    preflop_actions = street_actions[0]
+    if (
+        context is None
+        and int(client_pos) == 0
+        and len(street_actions[0]) == 1
+        and str(street_actions[0][0][0]) == 'c'
+        and int(street_actions[0][0][1]) == 1
+    ):
+        context = 'bb_vs_limp'
+    if preflop_actions:
+        last_action = preflop_actions[-1]
+        last_move = str(last_action[0])
+        last_amount = int(last_action[2]) if len(last_action) > 2 else 0
+        if last_move == 'b' and last_amount >= STACK_SIZE:
+            context = 'facing_jam'
+        elif (
+            context is None
+            and int(client_pos) == 1
+            and len(preflop_actions) == 2
+            and last_move == 'b'
+        ):
+            context = (
+                'sb_vs_limp_raise'
+                if str(preflop_actions[0][0]) == 'c'
+                else 'sb_vs_3bet'
+            )
+        elif (
+            context is None
+            and int(client_pos) == 0
+            and len(preflop_actions) == 3
+            and last_move == 'b'
+        ):
+            context = 'bb_vs_4bet'
+
+    def legal(slot: int) -> bool:
+        return (
+            0 <= slot < legal_mask.shape[-1]
+            and bool(legal_mask[0, slot].item() > 0.0)
+        )
+
+    def passive(slot: int, increment: str) -> dict | None:
+        if not legal(slot):
+            return None
+        return {
+            'slot': int(slot),
+            'increment': increment,
+            'context': context,
+            'hand': notation,
+        }
+
+    def raise_to(target: int) -> dict | None:
+        if not (legal(7) or legal(8)):
+            return None
+        commitments = compute_commitments(state)
+        prior_street_commitment = (
+            int(commitments['hero_total']) - int(commitments['hero_street'])
+        )
+        maximum = STACK_SIZE - prior_street_commitment
+        minimum = int(state['street_last_bet_to']) + max(
+            int(state['last_bet_size']), BIG_BLIND
+        )
+        target = min(max(int(target), minimum), maximum)
+        if target >= maximum:
+            return {
+                'slot': 8,
+                'increment': f'b{maximum}',
+                'context': context,
+                'hand': notation,
+            }
+        return {
+            'slot': 7,
+            'increment': f'b{target}',
+            'context': context,
+            'hand': notation,
+        }
+
+    if profile == 'pokerskill_sb_jamguard_v2' and context == 'facing_jam':
+        if notation in {'AA', 'KK'}:
+            return passive(1, 'c')
+        return passive(0, 'f')
+
+    if profile == 'pokerskill_v2':
+        from heuristic_policy_v4 import PREFLOP_PERCENTILE
+
+        percentile = float(PREFLOP_PERCENTILE[notation])
+        if context == 'sb_open':
+            if percentile < 0.65:
+                return raise_to(250)
+            if percentile < 0.935:
+                return passive(1, 'c')
+            return passive(0, 'f')
+        if context == 'bb_vs_open':
+            if percentile < 0.19:
+                return raise_to(900)
+            if percentile < 0.72:
+                return passive(1, 'c')
+            return passive(0, 'f')
+        if context == 'bb_vs_limp':
+            if percentile < 0.32:
+                return raise_to(500)
+            return passive(1, 'k')
+        if context == 'sb_vs_3bet':
+            if percentile < 0.08:
+                return raise_to(2400)
+            if percentile < 0.45:
+                return passive(1, 'c')
+            return passive(0, 'f')
+        if context == 'sb_vs_limp_raise':
+            if percentile < 0.08:
+                return raise_to(1200)
+            if percentile < 0.45:
+                return passive(1, 'c')
+            return passive(0, 'f')
+        if context == 'bb_vs_4bet':
+            if percentile < 0.03:
+                return raise_to(9000)
+            if percentile < 0.13:
+                return passive(1, 'c')
+            return passive(0, 'f')
+        if context == 'facing_jam':
+            if percentile < 0.025:
+                return passive(1, 'c')
+            return passive(0, 'f')
+        if len(preflop_actions) >= 2:
+            if percentile < 0.03:
+                return raise_to(9000)
+            if percentile < 0.13:
+                return passive(1, 'c')
+            return passive(0, 'f')
+        return None
+
+    if context == 'sb_open':
+        if notation in {'82o', '72o', '62o', '52o', '42o', '32o'}:
+            return passive(0, 'f')
+        open_offsuit = (
+            pair
+            or (
+                not suited
+                and (
+                    (high == 'A' and low_index >= ranks.index('3'))
+                    or (high == 'K' and low_index >= ranks.index('3'))
+                    or (high == 'Q' and low_index >= ranks.index('4'))
+                    or (high == 'J' and low_index >= ranks.index('3'))
+                    or (high == 'T' and low_index >= ranks.index('3'))
+                    or (high == '9' and low_index >= ranks.index('2'))
+                    or (high == '8' and low_index >= ranks.index('4'))
+                    or (high == '7' and low_index >= ranks.index('4'))
+                    or (high == '6' and low_index >= ranks.index('3'))
+                    or notation in {'54o', '43o'}
+                )
+            )
+        )
+        open_suited = (
+            suited
+            and (
+                high == 'A'
+                or (high_index >= ranks.index('J') and low_index >= ranks.index('3'))
+                or (
+                    high_index - low_index <= 2
+                    and low_index >= ranks.index('3')
+                )
+            )
+        )
+        if open_offsuit or open_suited:
+            return raise_to(250)
+        return passive(1, 'c')
+
+    if profile in {'pokerskill_sb_v1', 'pokerskill_sb_jamguard_v2'}:
+        return None
+
+    if profile == 'pokerskill_sb_bbsize_v1':
+        if int(source_action) != 7:
+            return None
+        if context == 'bb_vs_open':
+            return raise_to(900)
+        if context == 'bb_vs_limp':
+            return raise_to(500)
+        return None
+
+    if context == 'bb_vs_open':
+        three_bet = {
+            'AA', 'KK', 'QQ', 'JJ', 'TT',
+            'AKs', 'AQs', 'AJs', 'ATs', 'A5s', 'A2s',
+            'KQs', 'KJs', 'KTs', 'QJs',
+            'T9s', '98s', '87s', '76s', '65s', '86s', '97s',
+        }
+        call = {
+            '99', '88', '77', '66', '55', '44', '33', '22',
+            'A8s', 'A7s', 'A6s', 'A4s', 'A3s',
+            'K9s', 'K8s', 'K7s', 'K6s', 'K5s', 'K4s', 'K3s', 'K2s',
+            'Q9s', 'Q8s', 'Q7s', 'Q6s', 'Q5s', 'Q4s', 'Q3s',
+            'J9s', 'J8s', 'J7s', 'J6s', 'J5s', 'J4s', 'J3s', 'J2s',
+            'T8s', 'T7s', 'T6s', 'T5s', 'T4s', 'T3s', 'T2s',
+            '54s', '43s',
+            'ATo', 'A9o', 'A8o', 'A7o',
+            'KJo', 'KTo', 'K9o', 'QJo', 'QTo', 'Q9o',
+        }
+        if notation in three_bet:
+            return raise_to(900)
+        if notation in call:
+            return passive(1, 'c')
+        return passive(0, 'f')
+
+    if context == 'bb_vs_limp':
+        raise_hands = {
+            'AA', 'KK', 'QQ', 'JJ', 'TT', '99', '88', '77', '66',
+            '55', '44', '33', '22',
+            'AKs', 'AQs', 'AJs', 'ATs', 'A9s', 'A7s', 'A6s', 'A5s',
+            'A4s', 'A3s', 'A2s',
+            'KQs', 'KJs', 'KTs', 'QJs', 'QTs', 'JTs',
+            'AKo', 'AQo', 'AJo', 'ATo', 'KQo',
+            'T9s', '98s', '87s', '76s', '65s', '54s',
+            '97s', '86s', '75s', '64s',
+        }
+        if notation in raise_hands:
+            return raise_to(500)
+        return passive(1, 'k')
+
+    return None
+
+
+def checkpoint_context_action_override(
+    model,
+    hole_cards: list,
+    board: list,
+    state: dict,
+    client_pos: int,
+    legal_mask: torch.Tensor,
+    source_action: int,
+) -> int:
+    """Apply compact street/position/strength rules owned by a checkpoint."""
+    config = getattr(model, 'policy_context_override', None)
+    rules = config.get('rules') if isinstance(config, dict) else None
+    if not isinstance(rules, list):
+        return int(source_action)
+    street = int(state.get('st', 0))
+    commitments = compute_commitments(state)
+    facing = int(float(commitments.get('to_call', 0.0)) > 0.0)
+    to_call = float(commitments.get('to_call', 0.0))
+    pot = max(float(commitments.get('pot', 0.0)), 1.0)
+    to_call_pot_fraction = to_call / pot
+    to_call_bb = to_call / float(BIG_BLIND)
+    strength = None
+    if street > 0:
+        from heuristic_policy_v3 import _eval_postflop
+        strength = int(_eval_postflop(hole_cards, board))
+    for rule in rules:
+        if not isinstance(rule, dict):
+            continue
+        rule_street = int(rule.get('street', -1))
+        rule_position = int(rule.get('position', -1))
+        rule_facing = int(rule.get('facing', -1))
+        rule_strength = int(rule.get('strength', -1))
+        minimum_call_fraction = float(
+            rule.get('min_to_call_pot_fraction', float('-inf'))
+        )
+        maximum_call_fraction = float(
+            rule.get('max_to_call_pot_fraction', float('inf'))
+        )
+        minimum_call_bb = float(
+            rule.get('min_to_call_bb', float('-inf'))
+        )
+        maximum_call_bb = float(
+            rule.get('max_to_call_bb', float('inf'))
+        )
+        replace = int(rule.get('replace_action', source_action))
+        selected = int(rule.get('force_action', source_action))
+        if (
+            rule_street == street
+            and (rule_position == -1 or rule_position == int(client_pos))
+            and (rule_facing == -1 or rule_facing == facing)
+            and (
+                rule_strength == -1
+                or (strength is not None and rule_strength == strength)
+            )
+            and minimum_call_fraction <= to_call_pot_fraction
+            and to_call_pot_fraction < maximum_call_fraction
+            and minimum_call_bb <= to_call_bb
+            and to_call_bb < maximum_call_bb
+            and int(source_action) == replace
+            and 0 <= selected < legal_mask.shape[-1]
+            and bool(legal_mask[0, selected].item() > 0.0)
+        ):
+            return selected
+    return int(source_action)
+
+
 @torch.no_grad()
 def preflop_callguard_action(
     probs: torch.Tensor,
@@ -537,6 +1014,8 @@ def decide_action(
     device: str,
     greedy: bool = True,
     temperature: float = 1.0,
+    preflop_epsilon: float = 0.30,
+    epsilon_streets: tuple[int, ...] = (0,),
     obs_version: str = 'v55',
     policy_mode: str = 'greedy',
     guarded_allin_max_spr: float = 2.0,
@@ -544,8 +1023,13 @@ def decide_action(
     callguard_min_prob: float = 0.20,
     callguard_ratio: float = 0.65,
     callguard_include_open: bool = False,
-) -> int:
+    return_info: bool = False,
+) -> int | tuple[int, dict]:
     """AlphaHoldem picks action (0-8)."""
+    if hasattr(model, 'model_for_state'):
+        model, obs_version = model.model_for_state(state, int(client_pos))
+    elif hasattr(model, 'model_for_position'):
+        model, obs_version = model.model_for_position(int(client_pos))
     current_pos = state['pos']
     st = state['st']
 
@@ -558,26 +1042,88 @@ def decide_action(
 
     c = compute_commitments(state)
     stacks = [STACK_SIZE - c['hero_total'], STACK_SIZE - c['opp_total']]
-    extra_t = torch.tensor(encode_extra(stacks), device=device).unsqueeze(0)
+    extra_values = encode_extra(stacks)
+    if int(getattr(model, 'position_adapter_hidden', 0)) > 0:
+        extra_values = np.concatenate(
+            [
+                extra_values,
+                np.asarray([float(client_pos)], dtype=np.float32),
+            ]
+        )
+    extra_t = torch.tensor(extra_values, device=device).unsqueeze(0)
 
-    mask = compute_legal_mask(state)
+    raise_action_mapping = getattr(
+        model,
+        'raise_action_mapping',
+        'legacy_total_over_pot',
+    )
+    mask = compute_legal_mask(state, raise_action_mapping)
     mask_t = torch.tensor(mask, device=device).unsqueeze(0)
 
     # Heuristic policy short-circuit: bypass encoded-tensor forward and decide
     # from high-level state (hole_cards, board, position, facing_bet).
     if hasattr(model, 'decide') and callable(getattr(model, 'decide')):
         state_with_call = {**state, 'to_call': int(c['to_call'])}
-        return int(model.decide(hole_cards, board, state_with_call, client_pos, mask))
+        selected = int(model.decide(
+            hole_cards, board, state_with_call, client_pos, mask
+        ))
+        if not return_info:
+            return selected
+        return selected, {
+            'policy_mode': 'heuristic',
+            'temperature': float(temperature),
+            'preflop_epsilon': float(preflop_epsilon),
+            'legal_mask': [float(value) for value in mask],
+            'behavior_probs': None,
+            'behavior_action_probability': 1.0,
+            'greedy_action_slot': selected,
+        }
 
     logits, _ = model(card_t, action_t, extra_t, mask_t)
-    if policy_mode not in ('greedy', 'greedy-guarded', 'preflop-callguard') or not greedy:
+    logits = apply_checkpoint_policy_logit_bias(logits, model, state)
+    if policy_mode not in ('greedy', 'greedy-guarded', 'preflop-callguard', 'preflop-epsilon', 'street-epsilon') or not greedy:
         logits = logits / max(float(temperature), 1e-6)
     probs = F.softmax(logits, dim=-1)
+    greedy_action = int(torch.argmax(probs, dim=-1).item())
+    range_override_action = checkpoint_preflop_range_override(
+        model,
+        hole_cards,
+        state,
+        client_pos,
+        mask_t,
+        greedy_action,
+    )
+    context_override_action = checkpoint_context_action_override(
+        model,
+        hole_cards,
+        board,
+        state,
+        client_pos,
+        mask_t,
+        range_override_action,
+    )
+    behavior_probs = probs
+    direct_increment = None
 
     if policy_mode == 'greedy' and greedy:
-        return int(torch.argmax(probs, dim=-1).item())
+        selected = context_override_action
+        profile_override = checkpoint_preflop_strategy_override(
+            model,
+            hole_cards,
+            state,
+            client_pos,
+            mask_t,
+            context_override_action,
+        )
+        if profile_override is not None:
+            selected = int(profile_override['slot'])
+            direct_increment = str(profile_override['increment'])
+        behavior_probs = F.one_hot(
+            torch.tensor([selected], device=probs.device),
+            num_classes=probs.shape[-1],
+        ).to(probs.dtype)
 
-    if policy_mode == 'greedy-guarded':
+    elif policy_mode == 'greedy-guarded':
         probs = guarded_action_probs(
             probs,
             mask_t,
@@ -585,31 +1131,42 @@ def decide_action(
             allin_max_spr=guarded_allin_max_spr,
             allin_min_prob=guarded_allin_min_prob,
         )
-        return int(torch.argmax(probs, dim=-1).item())
+        selected = int(torch.argmax(probs, dim=-1).item())
+        behavior_probs = F.one_hot(
+            torch.tensor([selected], device=probs.device),
+            num_classes=probs.shape[-1],
+        ).to(probs.dtype)
 
-    if policy_mode == 'preflop-callguard':
+    elif policy_mode == 'preflop-callguard':
         if is_unopened_preflop_start(state) and not callguard_include_open:
-            return int(torch.argmax(probs, dim=-1).item())
-        probs = guarded_action_probs(
-            probs,
-            mask_t,
-            state,
-            allin_max_spr=guarded_allin_max_spr,
-            allin_min_prob=guarded_allin_min_prob,
-        )
-        callguard_action = preflop_callguard_action(
-            probs,
-            mask_t,
-            state,
-            call_min_prob=callguard_min_prob,
-            call_ratio=callguard_ratio,
-            include_open=callguard_include_open,
-        )
-        if callguard_action is not None:
-            return int(callguard_action)
-        return int(torch.argmax(probs, dim=-1).item())
+            selected = greedy_action
+        else:
+            probs = guarded_action_probs(
+                probs,
+                mask_t,
+                state,
+                allin_max_spr=guarded_allin_max_spr,
+                allin_min_prob=guarded_allin_min_prob,
+            )
+            callguard_action = preflop_callguard_action(
+                probs,
+                mask_t,
+                state,
+                call_min_prob=callguard_min_prob,
+                call_ratio=callguard_ratio,
+                include_open=callguard_include_open,
+            )
+            selected = (
+                int(callguard_action)
+                if callguard_action is not None
+                else int(torch.argmax(probs, dim=-1).item())
+            )
+        behavior_probs = F.one_hot(
+            torch.tensor([selected], device=probs.device),
+            num_classes=probs.shape[-1],
+        ).to(probs.dtype)
 
-    if policy_mode == 'guarded':
+    elif policy_mode == 'guarded':
         probs = guarded_action_probs(
             probs,
             mask_t,
@@ -617,19 +1174,81 @@ def decide_action(
             allin_max_spr=guarded_allin_max_spr,
             allin_min_prob=guarded_allin_min_prob,
         )
+        behavior_probs = probs
+        from torch.distributions import Categorical
+        selected = int(Categorical(probs).sample().item())
     elif policy_mode == 'preflop-mixed':
         if int(state.get('st', 0)) != 0:
-            return int(torch.argmax(probs, dim=-1).item())
-        probs = guarded_action_probs(
-            probs,
-            mask_t,
-            state,
-            allin_max_spr=guarded_allin_max_spr,
-            allin_min_prob=guarded_allin_min_prob,
+            selected = greedy_action
+            behavior_probs = F.one_hot(
+                torch.tensor([selected], device=probs.device),
+                num_classes=probs.shape[-1],
+            ).to(probs.dtype)
+        else:
+            probs = guarded_action_probs(
+                probs,
+                mask_t,
+                state,
+                allin_max_spr=guarded_allin_max_spr,
+                allin_min_prob=guarded_allin_min_prob,
+            )
+            behavior_probs = probs
+            from torch.distributions import Categorical
+            selected = int(Categorical(probs).sample().item())
+    elif policy_mode in ('preflop-epsilon', 'street-epsilon'):
+        explored_streets = (
+            (0,) if policy_mode == 'preflop-epsilon' else epsilon_streets
         )
+        if int(state.get('st', 0)) not in explored_streets:
+            selected = greedy_action
+            behavior_probs = F.one_hot(
+                torch.tensor([selected], device=probs.device),
+                num_classes=probs.shape[-1],
+            ).to(probs.dtype)
+        else:
+            epsilon = min(max(float(preflop_epsilon), 0.0), 1.0)
+            exploration_mask = mask_t.clone()
+            commitments = compute_commitments(state)
+            pot_after_call = max(
+                float(commitments.get('pot', 0.0) + commitments.get('to_call', 0.0)),
+                1.0,
+            )
+            spr = float(commitments.get('stack', 0.0)) / pot_after_call
+            if (
+                exploration_mask.shape[-1] > 8
+                and spr > float(guarded_allin_max_spr)
+                and bool(exploration_mask[0, :8].sum().item() > 0.0)
+            ):
+                exploration_mask[0, 8] = 0.0
+            uniform = exploration_mask / exploration_mask.sum(
+                dim=-1, keepdim=True
+            ).clamp_min(1.0)
+            source = F.one_hot(
+                torch.tensor([greedy_action], device=probs.device),
+                num_classes=probs.shape[-1],
+            ).to(probs.dtype)
+            behavior_probs = (1.0 - epsilon) * source + epsilon * uniform
+            from torch.distributions import Categorical
+            selected = int(Categorical(behavior_probs).sample().item())
+    else:
+        from torch.distributions import Categorical
+        selected = int(Categorical(probs).sample().item())
+        behavior_probs = probs
 
-    from torch.distributions import Categorical
-    return int(Categorical(probs).sample().item())
+    if not return_info:
+        return selected
+    behavior_values = behavior_probs[0].detach().cpu().tolist()
+    return selected, {
+        'policy_mode': str(policy_mode),
+        'temperature': float(temperature),
+        'preflop_epsilon': float(preflop_epsilon),
+        'legal_mask': [float(value) for value in mask],
+        'behavior_probs': [float(value) for value in behavior_values],
+        'behavior_action_probability': float(behavior_values[selected]),
+        'greedy_action_slot': greedy_action,
+        'direct_increment': direct_increment,
+        'raise_action_mapping': raise_action_mapping,
+    }
 
 
 def _walk_action_string(action_str: str) -> list[tuple]:
@@ -688,6 +1307,7 @@ def dump_hand_records(
     board: list,
     winnings: int,
     hand_idx: int,
+    hero_decision_trace: dict[str, dict] | None = None,
 ) -> None:
     """Walk completed hand's action_str and append one JSONL row per Slumbot decision."""
     if dump_fp is None:
@@ -724,7 +1344,27 @@ def dump_hand_records(
             'winnings_hero': winnings,
             'showdown': opp_hole is not None,
         }
+        if is_hero_move and hero_decision_trace is not None:
+            decision = hero_decision_trace.get(prefix)
+            if decision is not None:
+                record.update({
+                    'policy_action_slot': int(decision['selected_action_slot']),
+                    'policy_mode': decision['policy_mode'],
+                    'policy_temperature': float(decision['temperature']),
+                    'policy_preflop_epsilon': float(
+                        decision['preflop_epsilon']
+                    ),
+                    'policy_legal_mask': decision['legal_mask'],
+                    'policy_behavior_probs': decision['behavior_probs'],
+                    'policy_behavior_action_probability': float(
+                        decision['behavior_action_probability']
+                    ),
+                    'policy_greedy_action_slot': int(
+                        decision['greedy_action_slot']
+                    ),
+                })
         dump_fp.write(json.dumps(record) + '\n')
+    dump_fp.flush()
 
 
 def play_hand(
@@ -734,6 +1374,8 @@ def play_hand(
     verbose: bool = False,
     greedy: bool = True,
     temperature: float = 1.0,
+    preflop_epsilon: float = 0.30,
+    epsilon_streets: tuple[int, ...] = (0,),
     obs_version: str = 'v55',
     policy_mode: str = 'greedy',
     guarded_allin_max_spr: float = 2.0,
@@ -750,6 +1392,7 @@ def play_hand(
     last_hero_hole: list = []
     last_board: list = []
     last_client_pos = 0
+    hero_decision_trace: dict[str, dict] = {}
 
     while True:
         action_str = r.get('action', '')
@@ -769,6 +1412,7 @@ def play_hand(
             dump_hand_records(
                 dump_fp, final_action, final_client_pos,
                 final_hero_hole, opp_hole, final_board, winnings, hand_idx,
+                hero_decision_trace,
             )
             return token, winnings
 
@@ -794,10 +1438,12 @@ def play_hand(
                 return token, -state.get('total_last_bet_to', 0)
 
         # AlphaHoldem decides
-        action_idx = decide_action(
+        action_idx, decision_info = decide_action(
             model, hole_cards, board, state, client_pos, device,
             greedy=greedy,
             temperature=temperature,
+            preflop_epsilon=preflop_epsilon,
+            epsilon_streets=epsilon_streets,
             obs_version=obs_version,
             policy_mode=policy_mode,
             guarded_allin_max_spr=guarded_allin_max_spr,
@@ -805,8 +1451,23 @@ def play_hand(
             callguard_min_prob=callguard_min_prob,
             callguard_ratio=callguard_ratio,
             callguard_include_open=callguard_include_open,
+            return_info=True,
         )
-        incr = action_idx_to_incr(action_idx, state)
+        hero_decision_trace[action_str] = {
+            **decision_info,
+            'selected_action_slot': int(action_idx),
+        }
+        incr = (
+            decision_info.get('direct_increment')
+            or action_idx_to_incr(
+                action_idx,
+                state,
+                decision_info.get(
+                    'raise_action_mapping',
+                    'legacy_total_over_pot',
+                ),
+            )
+        )
 
         if verbose:
             print(f'  Street {state["st"]} | action history: "{action_str}"')
@@ -836,10 +1497,14 @@ def main():
     parser.add_argument('--greedy', action='store_true', default=True)
     parser.add_argument('--sample', action='store_true',
                         help='Sample from the policy instead of taking argmax')
-    parser.add_argument('--policy-mode', choices=('greedy', 'greedy-guarded', 'preflop-callguard', 'sample', 'guarded', 'preflop-mixed'), default='greedy',
+    parser.add_argument('--policy-mode', choices=('greedy', 'greedy-guarded', 'preflop-callguard', 'sample', 'guarded', 'preflop-mixed', 'preflop-epsilon', 'street-epsilon'), default='greedy',
                         help='Action selection for model strategy. --sample is kept as an alias for policy-mode=sample.')
     parser.add_argument('--temperature', type=float, default=1.0,
                         help='Sampling temperature when policy-mode is sample or guarded.')
+    parser.add_argument('--preflop-epsilon', type=float, default=0.30,
+                        help='Uniform legal-action exploration fraction for policy-mode=preflop-epsilon.')
+    parser.add_argument('--epsilon-streets', default='0',
+                        help='Comma-separated streets (0=preflop,...,3=river) explored by policy-mode=street-epsilon.')
     parser.add_argument('--guarded-allin-max-spr', type=float, default=2.0,
                         help='Guarded selector suppresses all-in above this SPR unless model confidence is high.')
     parser.add_argument('--guarded-allin-min-prob', type=float, default=0.65,
@@ -858,11 +1523,35 @@ def main():
                         help='Write benchmark summary statistics to this JSON path.')
     parser.add_argument('--hand-results-jsonl', default=None,
                         help='Write one JSONL row per successful hand for exact CI/audit replay.')
-    parser.add_argument('--strategy', choices=['model', 'fold', 'call', 'random', 'heuristic', 'heuristic_v2', 'heuristic_v3', 'heuristic_v3_1'], default='model',
+    parser.add_argument('--strategy', choices=['model', 'ensemble', 'seat_hybrid', 'postflop_hybrid', 'sb_preflop_hybrid', 'sb_open_hybrid', 'postflop_heuristic_v3', 'preflop_heuristic_v4', 'preflop_heuristic_v4_nolimp', 'fold', 'call', 'random', 'heuristic', 'heuristic_v2', 'heuristic_v3', 'heuristic_v3_1', 'heuristic_v4'], default='model',
                         help='Action policy. model=trained NN (default). fold/call/random=fixed baselines. '
                              'heuristic=v1. heuristic_v2=BB flat-call. heuristic_v3=polarized BB (1.5x raise). '
-                             'heuristic_v3_1=v3 + BB jam-first sizing (diagnostic for fold-equity hypothesis).')
+                             'heuristic_v3_1=v3 + BB jam-first sizing (diagnostic for fold-equity hypothesis). '
+                             'heuristic_v4=wide positional ranges + OOP flop defense. '
+                             'ensemble=greedy over the mean probabilities of frozen checkpoints. '
+                             'seat_hybrid=separate frozen SB and BB checkpoints. '
+                             'postflop_hybrid=fallback checkpoint preflop, primary checkpoint postflop. '
+                             'sb_preflop_hybrid=fallback checkpoint only for SB preflop, primary checkpoint otherwise. '
+                             'sb_open_hybrid=fallback checkpoint only for the unopened SB root action. '
+                             'postflop_heuristic_v3=fallback checkpoint preflop, heuristic-v3 postflop. '
+                             'preflop_heuristic_v4=heuristic-v4 preflop, checkpoint postflop. '
+                             'preflop_heuristic_v4_nolimp=same hybrid with bottom-range SB open-limps folded.')
+    parser.add_argument('--ensemble-models', default=None,
+                        help='Comma-separated checkpoints for strategy=ensemble.')
+    parser.add_argument('--sb-model', default=None,
+                        help='SB checkpoint for strategy=seat_hybrid.')
+    parser.add_argument('--bb-model', default=None,
+                        help='BB checkpoint for strategy=seat_hybrid.')
+    parser.add_argument('--fallback-model', default=None,
+                        help='Preflop checkpoint for strategy=postflop_hybrid.')
     args = parser.parse_args()
+    epsilon_streets = tuple(sorted({
+        int(value.strip())
+        for value in str(args.epsilon_streets).split(',')
+        if value.strip()
+    }))
+    if any(street < 0 or street > 3 for street in epsilon_streets):
+        raise SystemExit('--epsilon-streets values must be between 0 and 3')
 
     device = args.device
     print(f'Device: {device}')
@@ -892,22 +1581,414 @@ def main():
             value = torch.zeros(B, 1, device=card.device)
             return logits, value
 
+    def load_checkpoint_model(path):
+        checkpoint = torch.load(path, map_location=device, weights_only=False)
+        norm = checkpoint.get('norm_layer', 'bn')
+        model_state = checkpoint.get('model', {})
+        separate_preflop_head = bool(
+            checkpoint.get('separate_preflop_head')
+            or (checkpoint.get('config') or {}).get('separate_preflop_head')
+            or 'preflop_policy_head.weight' in model_state
+        )
+        preflop_adapter_hidden = int(
+            checkpoint.get('preflop_adapter_hidden')
+            or (checkpoint.get('config') or {}).get('preflop_adapter_hidden')
+            or (
+                model_state['preflop_policy_adapter.0.weight'].shape[0]
+                if 'preflop_policy_adapter.0.weight' in model_state
+                else 0
+            )
+        )
+        preflop_raw_adapter_hidden = int(
+            checkpoint.get('preflop_raw_adapter_hidden')
+            or (checkpoint.get('config') or {}).get(
+                'preflop_raw_adapter_hidden'
+            )
+            or (
+                model_state[
+                    'preflop_raw_policy_adapter.0.weight'
+                ].shape[0]
+                if 'preflop_raw_policy_adapter.0.weight' in model_state
+                else 0
+            )
+        )
+        preflop_raw_action_scale = float(
+            checkpoint.get('preflop_raw_action_scale')
+            or (checkpoint.get('config') or {}).get(
+                'preflop_raw_action_scale'
+            )
+            or 1.0
+        )
+        preflop_raw_gate = str(
+            checkpoint.get('preflop_raw_gate')
+            or (checkpoint.get('config') or {}).get('preflop_raw_gate')
+            or 'none'
+        )
+        flop_adapter_hidden = int(
+            checkpoint.get('flop_adapter_hidden')
+            or (checkpoint.get('config') or {}).get('flop_adapter_hidden')
+            or (
+                model_state['flop_policy_adapter.0.weight'].shape[0]
+                if 'flop_policy_adapter.0.weight' in model_state
+                else 0
+            )
+        )
+        postflop_adapter_hidden = int(
+            checkpoint.get('postflop_adapter_hidden')
+            or (checkpoint.get('config') or {}).get('postflop_adapter_hidden')
+            or (
+                model_state['postflop_policy_adapter.0.weight'].shape[0]
+                if 'postflop_policy_adapter.0.weight' in model_state
+                else 0
+            )
+        )
+        position_adapter_hidden = int(
+            checkpoint.get('position_adapter_hidden')
+            or (checkpoint.get('config') or {}).get(
+                'position_adapter_hidden'
+            )
+            or (
+                model_state[
+                    'position_policy_adapters.0.0.weight'
+                ].shape[0]
+                if 'position_policy_adapters.0.0.weight' in model_state
+                else 0
+            )
+        )
+        critic_contract = str(
+            checkpoint.get('critic_contract')
+            or (checkpoint.get('config') or {}).get('critic_contract')
+            or 'critic_v1'
+        )
+        net = AlphaHoldemNet(
+            num_actions=NUM_ACTIONS,
+            norm_layer=norm,
+            separate_preflop_head=separate_preflop_head,
+            preflop_adapter_hidden=preflop_adapter_hidden,
+            preflop_raw_adapter_hidden=preflop_raw_adapter_hidden,
+            preflop_raw_action_scale=preflop_raw_action_scale,
+            preflop_raw_gate=preflop_raw_gate,
+            flop_adapter_hidden=flop_adapter_hidden,
+            postflop_adapter_hidden=postflop_adapter_hidden,
+            position_adapter_hidden=position_adapter_hidden,
+            critic_contract=critic_contract,
+        ).to(device)
+        net.eval()
+        net(
+            torch.zeros(2, 6, 4, 13, device=device),
+            torch.zeros(2, 25, 4, 5, device=device),
+            torch.zeros(
+                2,
+                3 if position_adapter_hidden > 0 else 2,
+                device=device,
+            ),
+        )
+        net.load_state_dict(checkpoint['model'])
+        net.policy_logit_bias = checkpoint.get('policy_logit_bias')
+        net.policy_range_override = checkpoint.get('policy_range_override')
+        net.policy_context_override = checkpoint.get('policy_context_override')
+        net.preflop_strategy_profile = checkpoint.get(
+            'preflop_strategy_profile'
+        )
+        net.raise_action_mapping = checkpoint.get(
+            'raise_action_mapping',
+            (
+                'pot_fraction_v2'
+                if checkpoint.get('action_space_version')
+                == '9slot_pot_fraction_v2'
+                else 'legacy_total_over_pot'
+            ),
+        )
+        net.eval()
+        return net, checkpoint, norm
+
+    class _SeatHybridPolicy(torch.nn.Module):
+        def __init__(self, sb_model, bb_model, sb_obs_version, bb_obs_version):
+            super().__init__()
+            self.sb_model = sb_model
+            self.bb_model = bb_model
+            self.sb_obs_version = sb_obs_version
+            self.bb_obs_version = bb_obs_version
+
+        def model_for_position(self, client_pos):
+            if int(client_pos) == 1:
+                return self.sb_model, self.sb_obs_version
+            return self.bb_model, self.bb_obs_version
+
+    class _PostflopHybridPolicy(torch.nn.Module):
+        def __init__(
+            self,
+            postflop_model,
+            preflop_model,
+            postflop_obs_version,
+            preflop_obs_version,
+        ):
+            super().__init__()
+            self.postflop_model = postflop_model
+            self.preflop_model = preflop_model
+            self.postflop_obs_version = postflop_obs_version
+            self.preflop_obs_version = preflop_obs_version
+
+        def model_for_state(self, state, client_pos):
+            # parse_action exposes the current street as ``st``.  Accept the
+            # verbose alias for synthetic callers, but never silently default a
+            # real postflop state to preflop.
+            street = current_street_index(state)
+            if street == 0:
+                return self.preflop_model, self.preflop_obs_version
+            return self.postflop_model, self.postflop_obs_version
+
+    class _SBPreflopHybridPolicy(torch.nn.Module):
+        def __init__(
+            self,
+            base_model,
+            sb_preflop_model,
+            base_obs_version,
+            sb_preflop_obs_version,
+            open_only=False,
+        ):
+            super().__init__()
+            self.base_model = base_model
+            self.sb_preflop_model = sb_preflop_model
+            self.base_obs_version = base_obs_version
+            self.sb_preflop_obs_version = sb_preflop_obs_version
+            self.open_only = bool(open_only)
+
+        def model_for_state(self, state, client_pos):
+            use_sb_preflop = (
+                current_street_index(state) == 0
+                and int(client_pos) == 1
+                and (not self.open_only or is_unopened_preflop_start(state))
+            )
+            if use_sb_preflop:
+                return self.sb_preflop_model, self.sb_preflop_obs_version
+            return self.base_model, self.base_obs_version
+
     if args.strategy == 'model':
         print(f'Loading model from {args.model}...')
-        # Peek at checkpoint metadata to pick the right norm layer before constructing
-        # the model (BN ckpt has running_mean/var keys; GN ckpt does not — strict load
-        # would fail with the wrong norm layer).
-        ckpt = torch.load(args.model, map_location=device, weights_only=False)
-        ckpt_norm = ckpt.get('norm_layer', 'bn')
-        model = AlphaHoldemNet(num_actions=NUM_ACTIONS, norm_layer=ckpt_norm).to(device)
-        # Build lazy trunk in eval mode (avoids BN B=1 crash).
+        model, ckpt, ckpt_norm = load_checkpoint_model(args.model)
+    elif args.strategy == 'ensemble':
+        ensemble_paths = [
+            value.strip()
+            for value in str(args.ensemble_models or '').split(',')
+            if value.strip()
+        ]
+        if len(ensemble_paths) < 2:
+            raise SystemExit(
+                'strategy=ensemble requires at least two --ensemble-models'
+            )
+        members = []
+        member_checkpoints = []
+        member_norms = []
+        member_obs_versions = []
+        for path in ensemble_paths:
+            member, member_checkpoint, member_norm = load_checkpoint_model(path)
+            if getattr(member, 'policy_logit_bias', None) is not None:
+                raise SystemExit(
+                    'strategy=ensemble does not support checkpoint logit bias: '
+                    f'{path}'
+                )
+            members.append(member)
+            member_checkpoints.append(member_checkpoint)
+            member_norms.append(member_norm)
+            member_obs_versions.append(
+                resolve_obs_version(member_checkpoint, 'auto')
+            )
+        if len(set(member_obs_versions)) != 1:
+            raise SystemExit(
+                'strategy=ensemble requires one shared observation version; '
+                f'got {member_obs_versions}'
+            )
+        model = ProbabilityEnsemblePolicy(members).to(device)
         model.eval()
-        dc = torch.zeros(2, 6, 4, 13, device=device)
-        da = torch.zeros(2, 25, 4, 5, device=device)
-        de = torch.zeros(2, 2, device=device)
-        model(dc, da, de)
-
-        model.load_state_dict(ckpt['model'])
+        ckpt = {
+            'env_version': 'probability_ensemble',
+            'obs_version': member_obs_versions[0],
+            'ensemble_models': ensemble_paths,
+            'ensemble_method': 'mean_probability_then_greedy',
+        }
+        ckpt_norm = ','.join(str(value) for value in member_norms)
+        print(
+            'Strategy: PROBABILITY ENSEMBLE '
+            f'obs={member_obs_versions[0]} members={ensemble_paths}'
+        )
+    elif args.strategy == 'seat_hybrid':
+        if not args.sb_model or not args.bb_model:
+            raise SystemExit('strategy=seat_hybrid requires --sb-model and --bb-model')
+        sb_model, sb_ckpt, sb_norm = load_checkpoint_model(args.sb_model)
+        bb_model, bb_ckpt, bb_norm = load_checkpoint_model(args.bb_model)
+        sb_obs = resolve_obs_version(sb_ckpt, 'auto')
+        bb_obs = resolve_obs_version(bb_ckpt, 'auto')
+        model = _SeatHybridPolicy(sb_model, bb_model, sb_obs, bb_obs).to(device)
+        ckpt = {
+            'env_version': 'seat_hybrid',
+            # The wrapper overrides this per position inside decide_action.
+            # A valid fallback keeps the shared result/report path compatible.
+            'obs_version': 'v4',
+            'sb_model': str(args.sb_model),
+            'bb_model': str(args.bb_model),
+        }
+        ckpt_norm = f'sb={sb_norm},bb={bb_norm}'
+        print(
+            f'Strategy: SEAT HYBRID SB={args.sb_model} ({sb_obs}) '
+            f'BB={args.bb_model} ({bb_obs})'
+        )
+    elif args.strategy == 'postflop_hybrid':
+        if not args.model or not args.fallback_model:
+            raise SystemExit(
+                'strategy=postflop_hybrid requires --model and --fallback-model'
+            )
+        postflop_model, postflop_ckpt, postflop_norm = load_checkpoint_model(
+            args.model
+        )
+        preflop_model, preflop_ckpt, preflop_norm = load_checkpoint_model(
+            args.fallback_model
+        )
+        postflop_obs = resolve_obs_version(postflop_ckpt, 'auto')
+        preflop_obs = resolve_obs_version(preflop_ckpt, 'auto')
+        model = _PostflopHybridPolicy(
+            postflop_model,
+            preflop_model,
+            postflop_obs,
+            preflop_obs,
+        ).to(device)
+        ckpt = {
+            'env_version': 'postflop_hybrid',
+            'obs_version': preflop_obs,
+            'postflop_model': str(args.model),
+            'preflop_model': str(args.fallback_model),
+        }
+        ckpt_norm = f'postflop={postflop_norm},preflop={preflop_norm}'
+        print(
+            f'Strategy: POSTFLOP HYBRID preflop={args.fallback_model} '
+            f'({preflop_obs}) postflop={args.model} ({postflop_obs})'
+        )
+    elif args.strategy == 'sb_preflop_hybrid':
+        if not args.model or not args.fallback_model:
+            raise SystemExit(
+                'strategy=sb_preflop_hybrid requires --model and '
+                '--fallback-model'
+            )
+        base_model, base_ckpt, base_norm = load_checkpoint_model(args.model)
+        sb_preflop_model, sb_preflop_ckpt, sb_preflop_norm = (
+            load_checkpoint_model(args.fallback_model)
+        )
+        base_obs = resolve_obs_version(base_ckpt, 'auto')
+        sb_preflop_obs = resolve_obs_version(sb_preflop_ckpt, 'auto')
+        model = _SBPreflopHybridPolicy(
+            base_model,
+            sb_preflop_model,
+            base_obs,
+            sb_preflop_obs,
+        ).to(device)
+        ckpt = {
+            'env_version': 'sb_preflop_hybrid',
+            'obs_version': base_obs,
+            'base_model': str(args.model),
+            'sb_preflop_model': str(args.fallback_model),
+        }
+        ckpt_norm = f'base={base_norm},sb_preflop={sb_preflop_norm}'
+        print(
+            f'Strategy: SB-PREFLOP HYBRID sb_preflop={args.fallback_model} '
+            f'({sb_preflop_obs}) base={args.model} ({base_obs})'
+        )
+    elif args.strategy == 'sb_open_hybrid':
+        if not args.model or not args.fallback_model:
+            raise SystemExit(
+                'strategy=sb_open_hybrid requires --model and '
+                '--fallback-model'
+            )
+        base_model, base_ckpt, base_norm = load_checkpoint_model(args.model)
+        sb_open_model, sb_open_ckpt, sb_open_norm = load_checkpoint_model(
+            args.fallback_model
+        )
+        base_obs = resolve_obs_version(base_ckpt, 'auto')
+        sb_open_obs = resolve_obs_version(sb_open_ckpt, 'auto')
+        model = _SBPreflopHybridPolicy(
+            base_model,
+            sb_open_model,
+            base_obs,
+            sb_open_obs,
+            open_only=True,
+        ).to(device)
+        ckpt = {
+            'env_version': 'sb_open_hybrid',
+            'obs_version': base_obs,
+            'base_model': str(args.model),
+            'sb_open_model': str(args.fallback_model),
+        }
+        ckpt_norm = f'base={base_norm},sb_open={sb_open_norm}'
+        print(
+            f'Strategy: SB-OPEN HYBRID sb_open={args.fallback_model} '
+            f'({sb_open_obs}) base={args.model} ({base_obs})'
+        )
+    elif args.strategy == 'postflop_heuristic_v3':
+        if not args.fallback_model:
+            raise SystemExit(
+                'strategy=postflop_heuristic_v3 requires --fallback-model'
+            )
+        from heuristic_policy_v3 import HeuristicV3Policy
+        preflop_model, preflop_ckpt, preflop_norm = load_checkpoint_model(
+            args.fallback_model
+        )
+        preflop_obs = resolve_obs_version(preflop_ckpt, 'auto')
+        postflop_model = HeuristicV3Policy().to(device)
+        model = _PostflopHybridPolicy(
+            postflop_model,
+            preflop_model,
+            'v4',
+            preflop_obs,
+        ).to(device)
+        ckpt = {
+            'env_version': 'postflop_heuristic_v3',
+            'obs_version': preflop_obs,
+            'postflop_policy': 'heuristic_v3',
+            'preflop_model': str(args.fallback_model),
+        }
+        ckpt_norm = f'postflop=heuristic_v3,preflop={preflop_norm}'
+        print(
+            f'Strategy: BC PREFLOP + HEURISTIC-V3 POSTFLOP '
+            f'preflop={args.fallback_model} ({preflop_obs})'
+        )
+    elif args.strategy in ('preflop_heuristic_v4', 'preflop_heuristic_v4_nolimp'):
+        if not args.model:
+            raise SystemExit(
+                'strategy=preflop_heuristic_v4 requires --model'
+            )
+        from heuristic_policy_v4 import (
+            HeuristicV4NoLimpPolicy,
+            HeuristicV4Policy,
+        )
+        postflop_model, postflop_ckpt, postflop_norm = load_checkpoint_model(
+            args.model
+        )
+        postflop_obs = resolve_obs_version(postflop_ckpt, 'auto')
+        preflop_model = (
+            HeuristicV4NoLimpPolicy()
+            if args.strategy == 'preflop_heuristic_v4_nolimp'
+            else HeuristicV4Policy()
+        ).to(device)
+        model = _PostflopHybridPolicy(
+            postflop_model,
+            preflop_model,
+            postflop_obs,
+            'v4',
+        ).to(device)
+        ckpt = {
+            'env_version': args.strategy,
+            'obs_version': 'v4',
+            'preflop_policy': (
+                'heuristic_v4_nolimp'
+                if args.strategy == 'preflop_heuristic_v4_nolimp'
+                else 'heuristic_v4'
+            ),
+            'postflop_model': str(args.model),
+        }
+        ckpt_norm = f'preflop=heuristic_v4,postflop={postflop_norm}'
+        print(
+            f'Strategy: {args.strategy} + CHECKPOINT POSTFLOP '
+            f'postflop={args.model} ({postflop_obs})'
+        )
     elif args.strategy == 'heuristic':
         from heuristic_policy import HeuristicPolicy
         ckpt = {'env_version': 'v4'}
@@ -932,6 +2013,12 @@ def main():
         ckpt_norm = 'n/a'
         model = HeuristicV3_1Policy().to(device)
         print(f'Strategy: HEURISTIC v3.1 (v3 + BB jam-first sizing; diagnostic for fold-equity hypothesis)')
+    elif args.strategy == 'heuristic_v4':
+        from heuristic_policy_v4 import HeuristicV4Policy
+        ckpt = {'env_version': 'v4'}
+        ckpt_norm = 'n/a'
+        model = HeuristicV4Policy().to(device)
+        print('Strategy: HEURISTIC v4 (wide positional preflop ranges + OOP flop defense)')
     else:
         # Baseline strategies — no checkpoint load. Slot map (vec_game_state):
         #   0=fold, 1=check/call, 2..7=raise sizes, 8=all-in.
@@ -983,6 +2070,18 @@ def main():
             f'allin_spr>{args.guarded_allin_max_spr:g}/'
             f'allin_p<{args.guarded_allin_min_prob:g}/'
             'postflop=greedy'
+        )
+    elif policy_mode == 'preflop-epsilon':
+        mode = (
+            f'preflop-epsilon/epsilon={args.preflop_epsilon:g}/'
+            f'allin_spr>{args.guarded_allin_max_spr:g}/'
+            'postflop=greedy'
+        )
+    elif policy_mode == 'street-epsilon':
+        mode = (
+            f'street-epsilon/streets={",".join(map(str, epsilon_streets))}/'
+            f'epsilon={args.preflop_epsilon:g}/'
+            f'allin_spr>{args.guarded_allin_max_spr:g}'
         )
     else:
         mode = f'sample/temp={args.temperature:g}'
@@ -1058,6 +2157,8 @@ def main():
                 verbose=args.verbose,
                 greedy=greedy,
                 temperature=args.temperature,
+                preflop_epsilon=args.preflop_epsilon,
+                epsilon_streets=epsilon_streets,
                 obs_version=obs_version,
                 policy_mode=policy_mode,
                 guarded_allin_max_spr=args.guarded_allin_max_spr,
@@ -1091,7 +2192,20 @@ def main():
         if (h + 1) % 100 == 0:
             n = len(hand_winnings)
             avg_bb = (total_chips / n) / BIG_BLIND
-            print(f'  [{h+1:5d}] avg {avg_bb:+.3f} BB/hand ({avg_bb*1000:+.1f} mbb/hand) | {total_chips:+d} chips')
+            std_bb = (
+                float(np.std(hand_winnings, ddof=1)) / BIG_BLIND
+                if n > 1
+                else 0.0
+            )
+            ci95_bb_per_100 = 1.96 * std_bb / math.sqrt(n) * 100.0
+            bb_per_100 = avg_bb * 100.0
+            print(
+                f'  [{h+1:5d}] avg {avg_bb:+.3f} BB/hand '
+                f'({bb_per_100:+.2f} bb/100, 95% CI '
+                f'[{bb_per_100-ci95_bb_per_100:+.2f}, '
+                f'{bb_per_100+ci95_bb_per_100:+.2f}]) | '
+                f'{total_chips:+d} chips'
+            )
 
     if dump_fp is not None:
         dump_fp.close()

@@ -14,12 +14,21 @@ L5, and L6 claims.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import torch
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -58,6 +67,78 @@ def approx_equal(value: Any, expected: float, tolerance: float = 1e-6) -> bool:
 
 def add_check(checks: list[dict[str, str]], name: str, status: str, detail: str) -> None:
     checks.append({"name": name, "status": status, "detail": detail})
+
+
+def validate_terminal_endpoint_health(
+    *,
+    checkpoint_path: Path,
+    checkpoint: dict[str, Any],
+    run_dir: Path,
+    endpoint_status_path: Path,
+    protocol_status_path: Path,
+) -> tuple[bool, str, dict[str, Any]]:
+    """Bind a frozen benchmark copy to a finished endpoint without live health."""
+    endpoint = load_json(endpoint_status_path)
+    protocol = load_json(protocol_status_path)
+    manifest = load_json(run_dir / "run_manifest.json")
+    errors: list[str] = []
+    if endpoint.get("_missing") or endpoint.get("_load_error"):
+        errors.append("endpoint status missing or unreadable")
+    if protocol.get("_missing") or protocol.get("_load_error"):
+        errors.append("protocol status missing or unreadable")
+    if manifest.get("_missing") or manifest.get("_load_error"):
+        errors.append("run manifest missing or unreadable")
+    if manifest.get("status") != "finished":
+        errors.append(f"manifest status {manifest.get('status')!r} is not finished")
+    if endpoint.get("overall") != "PASS" or endpoint.get("state") != "ARM_ENDPOINT_FROZEN":
+        errors.append("endpoint is not ARM_ENDPOINT_FROZEN/PASS")
+    if protocol.get("overall") != "PASS" or protocol.get("state") != "ARM_FINISHED_GUARDS_PASS":
+        errors.append("protocol is not ARM_FINISHED_GUARDS_PASS/PASS")
+
+    endpoint_checkpoint = Path(str(endpoint.get("checkpoint_path") or ""))
+    endpoint_sha = ""
+    if not endpoint_checkpoint.is_file():
+        errors.append("endpoint checkpoint path missing")
+    else:
+        endpoint_sha = sha256_file(endpoint_checkpoint)
+    candidate_sha = sha256_file(checkpoint_path) if checkpoint_path.is_file() else ""
+    if endpoint.get("checkpoint_sha256") != endpoint_sha:
+        errors.append("endpoint checkpoint SHA256 mismatch")
+    if not candidate_sha or candidate_sha != endpoint_sha:
+        errors.append("frozen benchmark checkpoint SHA256 mismatch")
+
+    expected_iter = int(checkpoint.get("iteration") or 0)
+    expected_hands = int(checkpoint.get("total_hands") or 0)
+    if int(endpoint.get("iteration") or 0) != expected_iter:
+        errors.append("endpoint iteration mismatch")
+    if int(endpoint.get("hands") or 0) != expected_hands:
+        errors.append("endpoint hands mismatch")
+    if int(manifest.get("iteration") or 0) != expected_iter:
+        errors.append("manifest iteration mismatch")
+    if int(manifest.get("total_hands") or 0) != expected_hands:
+        errors.append("manifest hands mismatch")
+    if endpoint.get("run_id") != checkpoint.get("run_id"):
+        errors.append("endpoint run_id mismatch")
+    if manifest.get("run_id") != checkpoint.get("run_id"):
+        errors.append("manifest run_id mismatch")
+    if protocol.get("arm") != endpoint.get("arm"):
+        errors.append("endpoint/protocol arm mismatch")
+
+    payload = {
+        "endpoint_status_path": str(endpoint_status_path),
+        "protocol_status_path": str(protocol_status_path),
+        "endpoint_checkpoint_path": str(endpoint_checkpoint),
+        "endpoint_checkpoint_sha256": endpoint_sha,
+        "benchmark_checkpoint_sha256": candidate_sha,
+        "manifest_status": manifest.get("status"),
+        "endpoint_state": endpoint.get("state"),
+        "protocol_state": protocol.get("state"),
+        "iteration": expected_iter,
+        "training_hands": expected_hands,
+        "errors": errors,
+    }
+    detail = "terminal endpoint/protocol identity PASS" if not errors else "; ".join(errors)
+    return not errors, detail, payload
 
 
 def float_rate(value: Any) -> float:
@@ -211,6 +292,8 @@ def evaluate(
     selector_postflop_greedy_fail: float = 0.85,
     selector_postflop_mass_warn: float = 0.75,
     selector_postflop_mass_fail: float = 0.85,
+    terminal_endpoint_status_path: Path | None = None,
+    terminal_protocol_status_path: Path | None = None,
 ) -> dict[str, Any]:
     now = datetime.now(timezone.utc)
     checkpoint = load_checkpoint(checkpoint_path)
@@ -282,7 +365,28 @@ def evaluate(
         )
 
     health_overall = health.get("overall")
-    if not run_dir:
+    terminal_evidence: dict[str, Any] | None = None
+    terminal_paths_supplied = bool(terminal_endpoint_status_path or terminal_protocol_status_path)
+    if terminal_paths_supplied:
+        if not run_dir or not terminal_endpoint_status_path or not terminal_protocol_status_path or not checkpoint_ready:
+            add_check(
+                checks,
+                "terminal_endpoint_health",
+                "FAIL",
+                "run_dir, readable checkpoint and both terminal status paths are required",
+            )
+        else:
+            terminal_ok, terminal_detail, terminal_evidence = validate_terminal_endpoint_health(
+                checkpoint_path=checkpoint_path,
+                checkpoint=checkpoint,
+                run_dir=run_dir,
+                endpoint_status_path=terminal_endpoint_status_path,
+                protocol_status_path=terminal_protocol_status_path,
+            )
+            add_check(checks, "terminal_endpoint_health", "PASS" if terminal_ok else "FAIL", terminal_detail)
+            if terminal_ok:
+                health_overall = "TERMINAL_ENDPOINT_PASS"
+    elif not run_dir:
         add_check(checks, "health_status", "WARN", "no run_dir provided; health not verified")
     elif health.get("_missing"):
         add_check(checks, "health_status", "FAIL", f"missing health_status.json in {run_dir}")
@@ -385,6 +489,7 @@ def evaluate(
             "fresh_from_zero_lineage": fresh_from_zero_lineage(checkpoint) if checkpoint_ready else None,
         },
         "health_overall": health_overall,
+        "terminal_endpoint_evidence": terminal_evidence,
         "preflop_guardrail": {
             "overall": preflop_overall,
             "path": str(run_dir / "v5_preflop_probe_latest.json") if run_dir else None,
@@ -489,6 +594,8 @@ def main() -> int:
     parser.add_argument("--selector-postflop-greedy-fail", type=float, default=0.85)
     parser.add_argument("--selector-postflop-mass-warn", type=float, default=0.75)
     parser.add_argument("--selector-postflop-mass-fail", type=float, default=0.85)
+    parser.add_argument("--terminal-endpoint-status-json", default="")
+    parser.add_argument("--terminal-protocol-status-json", default="")
     args = parser.parse_args()
 
     summary = evaluate(
@@ -504,6 +611,8 @@ def main() -> int:
         selector_postflop_greedy_fail=args.selector_postflop_greedy_fail,
         selector_postflop_mass_warn=args.selector_postflop_mass_warn,
         selector_postflop_mass_fail=args.selector_postflop_mass_fail,
+        terminal_endpoint_status_path=Path(args.terminal_endpoint_status_json) if args.terminal_endpoint_status_json else None,
+        terminal_protocol_status_path=Path(args.terminal_protocol_status_json) if args.terminal_protocol_status_json else None,
     )
 
     print(f"overall={summary['overall']}")

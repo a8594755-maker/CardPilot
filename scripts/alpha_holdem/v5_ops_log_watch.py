@@ -27,6 +27,7 @@ COMPLETED_REVIEW_STATES = {
     "REVIEW_COMPLETE",
 }
 EXP003_JUDGMENT_TARGET_HANDS = 408_064_575
+EXP003_TERMINAL_DECISIONS = {"ADOPT", "ROLLBACK", "INCONCLUSIVE"}
 
 
 def now_iso() -> str:
@@ -179,6 +180,68 @@ def fmt_float(value: Any, digits: int = 3) -> str | None:
         return None
 
 
+def exp003_terminal_note(run_dir: Path) -> str | None:
+    """Return the exact terminal EXP-003 judgment, or fail closed on conflicts."""
+
+    search_dirs: list[Path] = []
+    pending = [run_dir.resolve()]
+    seen: set[Path] = set()
+    while pending and len(seen) < 16:
+        current = pending.pop(0)
+        if current in seen:
+            continue
+        seen.add(current)
+        search_dirs.append(current)
+        manifest = load_json(current / "run_manifest.json")
+        config = manifest.get("config") if isinstance(manifest.get("config"), dict) else {}
+        for raw in (
+            manifest.get("lineage_parent_checkpoint"),
+            config.get("resume"),
+            manifest.get("resume"),
+        ):
+            if not raw:
+                continue
+            checkpoint = Path(str(raw))
+            if not checkpoint.is_absolute():
+                checkpoint = (Path.cwd() / checkpoint).resolve()
+            parent = checkpoint.parent
+            if parent.exists() and parent not in seen:
+                pending.append(parent)
+
+    judgments: list[tuple[Path, dict[str, Any]]] = []
+    for directory in search_dirs:
+        for path in sorted(directory.glob("v5_exp003_judgment_gate*.json")):
+            payload = load_json(path)
+            decision = payload.get("decision")
+            if payload.get("decision_valid") is True and decision in EXP003_TERMINAL_DECISIONS:
+                judgments.append((path, payload))
+    if not judgments:
+        return None
+
+    identities = {
+        (
+            str(payload.get("decision")),
+            payload.get("candidate_checkpoint_iteration"),
+            payload.get("candidate_checkpoint_hands"),
+        )
+        for _, payload in judgments
+    }
+    if len(identities) != 1:
+        paths = ", ".join(as_rel(path) for path, _ in judgments)
+        return (
+            "EXP-003 has conflicting valid terminal judgment artifacts; fail closed and "
+            f"resolve their exact identity before any method action ({paths})"
+        )
+
+    path, payload = judgments[0]
+    return (
+        f"EXP-003 method judgment is terminally `{payload['decision']}` at frozen "
+        f"checkpoint {payload.get('candidate_checkpoint_iteration')} / "
+        f"{payload.get('candidate_checkpoint_hands'):,}; do not rerun, add pairs, change "
+        f"seeds, or substitute a later checkpoint; judgment `{as_rel(path)}`"
+    )
+
+
 def exp004_note(review: dict[str, Any], exp004_target_hands: int | None) -> str:
     if not exp004_target_hands:
         return "EXP-004 status not inferred by ops watcher."
@@ -271,7 +334,8 @@ def build_gate_row(
             if internal_delta_mean is not None and internal_delta_lower is not None
             else ""
         )
-        target_text = (
+        terminal_text = exp003_terminal_note(review_path.parent)
+        target_text = terminal_text or (
             f"fixed EXP-003 causal mirror bundle remains blocked until checkpoint hands "
             f">={EXP003_JUDGMENT_TARGET_HANDS:,} ({remaining:,} checkpoint hands remaining)"
             if remaining is not None and remaining > 0

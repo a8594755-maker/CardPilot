@@ -114,6 +114,74 @@ class OpsLogWatchTest(unittest.TestCase):
         self.assertNotIn("EXP-002 cutover remains blocked", appended)
         self.assertTrue(raw.endswith((appended + "\n").encode("utf-8")))
 
+    def test_terminal_exp003_judgment_suppresses_stale_eligibility_instruction(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            run_dir = root / "v5_exp003_run"
+            run_dir.mkdir()
+            target = 29_500
+            review_path = run_dir / f"v5_post_gate_review_{target}.json"
+            review_path.write_text(
+                json.dumps(completed_review(target, 484_734_368)), encoding="utf-8"
+            )
+            judgment_path = run_dir / "v5_exp003_judgment_gate24900.json"
+            judgment_path.write_text(
+                json.dumps(
+                    {
+                        "decision": "INCONCLUSIVE",
+                        "decision_valid": True,
+                        "candidate_checkpoint_iteration": 24_900,
+                        "candidate_checkpoint_hands": 409_058_520,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            ledger = root / "ledger.md"
+
+            status = scan_once(run_dir, ledger, None, dry_run=False)
+
+        appended = status["appended"][0]["row"]
+        self.assertIn("terminally `INCONCLUSIVE`", appended)
+        self.assertIn("do not rerun, add pairs, change seeds", appended)
+        self.assertNotIn("bundle is eligible", appended)
+        self.assertNotIn("follow the registered three-role protocol", appended)
+
+    def test_continuation_inherits_terminal_exp003_judgment_from_lineage_parent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            parent = root / "v5_exp003_parent"
+            parent.mkdir()
+            judgment_path = parent / "v5_exp003_judgment_gate24900.json"
+            judgment_path.write_text(
+                json.dumps(
+                    {
+                        "decision": "INCONCLUSIVE",
+                        "decision_valid": True,
+                        "candidate_checkpoint_iteration": 24_900,
+                        "candidate_checkpoint_hands": 409_058_520,
+                    }
+                ),
+                encoding="utf-8",
+            )
+            run_dir = root / "v5_exp003_exp005_continuation"
+            run_dir.mkdir()
+            (run_dir / "run_manifest.json").write_text(
+                json.dumps({"lineage_parent_checkpoint": str(parent / "frozen.pt")}),
+                encoding="utf-8",
+            )
+            target = 31_500
+            (run_dir / f"v5_post_gate_review_{target}.json").write_text(
+                json.dumps(completed_review(target, 517_633_535)), encoding="utf-8"
+            )
+            ledger = root / "ledger.md"
+
+            status = scan_once(run_dir, ledger, None, dry_run=False)
+
+        appended = status["appended"][0]["row"]
+        self.assertIn("terminally `INCONCLUSIVE`", appended)
+        self.assertNotIn("bundle is eligible", appended)
+        self.assertNotIn("follow the registered three-role protocol", appended)
+
 
 if __name__ == "__main__":
     unittest.main()

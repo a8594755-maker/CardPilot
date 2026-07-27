@@ -58,6 +58,17 @@ class LatestCompletedPostGateReviewTest(unittest.TestCase):
 
         self.assertEqual(review, {})
 
+    def test_quarantined_probe_review_is_not_reported_as_completed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp)
+            self.write_review(run_dir, 8600, "REVIEW_REQUIRED_NO_AUTO_RESTART")
+            self.write_review(run_dir, 8700, "QUARANTINED_INTERNAL_PROBE_IDENTITY")
+            self.write_review(run_dir, 8800, "QUARANTINED_GATE_IDENTITY")
+
+            review = latest_completed_post_gate_review(run_dir)
+
+        self.assertEqual(review["target_iteration"], 8600)
+
 
 class GateAliasTest(unittest.TestCase):
     def test_build_gate_aliases_prefers_status_detail(self):

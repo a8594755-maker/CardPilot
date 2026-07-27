@@ -49,6 +49,21 @@ def load_json(path: Path) -> dict[str, Any]:
     return obj if isinstance(obj, dict) else {}
 
 
+def exp003_bundle_mutex_status(run_dir: Path) -> dict[str, Any]:
+    lock_path = run_dir / "v5_exp003_bundle_watch.lock"
+    status_path = run_dir / "v5_exp003_bundle_watch_status.json"
+    status = load_json(status_path)
+    running = str(status.get("overall") or "").upper() == "RUNNING"
+    return {
+        "busy": lock_path.exists() or running,
+        "lock_path": str(lock_path),
+        "lock_exists": lock_path.exists(),
+        "status_path": str(status_path),
+        "bundle_overall": status.get("overall"),
+        "bundle_state": status.get("state"),
+    }
+
+
 def target_m(target_hands: int) -> int:
     return int(target_hands) // 1_000_000
 
@@ -120,10 +135,18 @@ def stage_targets(cadence: dict[str, Any], args: argparse.Namespace) -> list[dic
     return sorted(items, key=lambda item: (int(item.get("target_hands") or 0), priority.get(str(item.get("stage")), 99)))
 
 
-def benchmark_plan_args(args: argparse.Namespace, stage: str, target_hands: int, tag: str) -> argparse.Namespace:
+def benchmark_plan_args(
+    args: argparse.Namespace,
+    stage: str,
+    target_hands: int,
+    tag: str,
+    *,
+    checkpoint: str = "",
+    promotion_gate_json: str = "",
+) -> argparse.Namespace:
     return argparse.Namespace(
         run_dir=args.run_dir,
-        checkpoint="",
+        checkpoint=checkpoint,
         stage=stage,
         tag=tag,
         output_dir=args.output_dir,
@@ -132,7 +155,7 @@ def benchmark_plan_args(args: argparse.Namespace, stage: str, target_hands: int,
         min_training_hands=target_hands,
         allow_early=False,
         allow_existing_output=False,
-        promotion_gate_json="",
+        promotion_gate_json=promotion_gate_json,
         no_require_promotion20k=False,
         no_require_quality_gate=False,
         max_health_age_seconds=args.max_health_age_seconds,
@@ -144,10 +167,28 @@ def clean_tag(run_id: str, stage: str, target_hands: int) -> str:
     return f"v5_{run_id}_{target_m(target_hands)}M_{stage}_cadence"
 
 
-def runnable_plan(args: argparse.Namespace, item: dict[str, Any], tag: str) -> dict[str, Any]:
+def runnable_plan(args: argparse.Namespace, item: dict[str, Any], tag: str, run_id: str) -> dict[str, Any]:
     stage = str(item.get("stage"))
     target_hands = int(item.get("target_hands") or 0)
-    return evaluate_benchmark_plan(benchmark_plan_args(args, stage, target_hands, tag))
+    checkpoint = ""
+    promotion_gate_json = ""
+    if stage == "formal100k":
+        promotion_tag = clean_tag(run_id, "promotion20k", target_hands)
+        gate_path = Path(args.output_dir) / f"bench_v55_{promotion_tag}_promotion_gate.json"
+        promotion_gate_json = str(gate_path)
+        gate = load_json(gate_path)
+        if not gate.get("_missing") and not gate.get("_load_error"):
+            checkpoint = str(gate.get("checkpoint_path") or "")
+    return evaluate_benchmark_plan(
+        benchmark_plan_args(
+            args,
+            stage,
+            target_hands,
+            tag,
+            checkpoint=checkpoint,
+            promotion_gate_json=promotion_gate_json,
+        )
+    )
 
 
 def plan_preview_paths(run_dir: Path, stage: str, target_hands: int) -> tuple[Path, Path]:
@@ -322,9 +363,10 @@ def command_for_launch(
     target_hands: int,
     tag: str,
     run_dir: Path,
+    plan: dict[str, Any] | None = None,
 ) -> list[str]:
     key = schedule_key(stage, target_hands)
-    return [
+    cmd = [
         args.python,
         "-X",
         "utf8",
@@ -353,13 +395,50 @@ def command_for_launch(
         "--append-report",
         args.append_report,
     ]
+    if stage == "formal100k" and plan:
+        checkpoint_path = str(plan.get("checkpoint_path") or "")
+        prerequisite = plan.get("promotion20k_prerequisite") or {}
+        promotion_gate_json = str(prerequisite.get("path") or "")
+        if checkpoint_path:
+            cmd.extend(["--checkpoint", checkpoint_path])
+        if promotion_gate_json:
+            cmd.extend(["--promotion-gate-json", promotion_gate_json])
+    return cmd
 
 
-def launch_due(args: argparse.Namespace, item: dict[str, Any], tag: str) -> dict[str, Any]:
+def launch_due(
+    args: argparse.Namespace,
+    item: dict[str, Any],
+    tag: str,
+    plan: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     stage = str(item.get("stage"))
     target_hands = int(item.get("target_hands") or 0)
     run_dir = Path(args.run_dir)
-    cmd = command_for_launch(args, stage=stage, target_hands=target_hands, tag=tag, run_dir=run_dir)
+    cmd = command_for_launch(
+        args,
+        stage=stage,
+        target_hands=target_hands,
+        tag=tag,
+        run_dir=run_dir,
+        plan=plan,
+    )
+    mutex = exp003_bundle_mutex_status(run_dir)
+    if mutex["busy"]:
+        return {
+            "key": schedule_key(stage, target_hands),
+            "stage": stage,
+            "target_hands": target_hands,
+            "tag": tag,
+            "started_at": now_iso(),
+            "finished_at": now_iso(),
+            "elapsed_seconds": 0.0,
+            "returncode": None,
+            "status": "DEFERRED_EXP003_BUNDLE_MUTEX",
+            "command": cmd,
+            "output_tail": "",
+            "exp003_bundle_mutex": mutex,
+        }
     started_at = now_iso()
     started = time.time()
     proc = subprocess.run(
@@ -469,10 +548,13 @@ def main() -> int:
                 active_launches.append({"key": key, **active_launch})
                 continue
             tag = clean_tag(str(cadence.get("run_id") or run_dir.name), stage, target_hands)
-            plan = runnable_plan(args, item, tag)
+            plan = runnable_plan(args, item, tag, str(cadence.get("run_id") or run_dir.name))
             candidates.append({"key": key, "item": item, "tag": tag, "plan": plan})
 
+        bundle_mutex = exp003_bundle_mutex_status(run_dir)
         launchable = next((row for row in candidates if (row.get("plan") or {}).get("overall") == "READY"), None)
+        if bundle_mutex["busy"]:
+            launchable = None
         next_external_eval = cadence.get("next_external_eval") if isinstance(cadence.get("next_external_eval"), dict) else None
         plan_preview = write_next_external_plan_preview(args, cadence=cadence, next_external_eval=next_external_eval)
         next_external_eval_remaining_checkpoint_hands = (next_external_eval or {}).get("remaining_checkpoint_hands")
@@ -491,6 +573,8 @@ def main() -> int:
             candidates=candidates,
             next_external_eval=next_external_eval,
         )
+        if bundle_mutex["busy"]:
+            overall = "BLOCKED_EXP003_BUNDLE_MUTEX"
         progress_aliases = build_progress_aliases(cadence)
         latest = {
             "checked_at": now_iso(),
@@ -506,6 +590,7 @@ def main() -> int:
             "candidate_count": len(candidates),
             "launchable_key": launchable_key,
             "active_launches": active_launches,
+            "exp003_bundle_mutex": bundle_mutex,
             "next_external_plan_preview": plan_preview,
             "next_external_plan_preview_status": plan_preview.get("status"),
             "next_external_plan_preview_json": plan_preview.get("out_json"),
@@ -576,11 +661,16 @@ def main() -> int:
                 history.append({"key": key, "status": "DRY_RUN_READY", "checked_at": now_iso()})
                 log(f"dry-run launchable key={key}")
             else:
-                result = launch_due(args, launchable["item"], str(launchable["tag"]))
+                result = launch_due(
+                    args,
+                    launchable["item"],
+                    str(launchable["tag"]),
+                    plan=launchable.get("plan"),
+                )
                 history.append(result)
                 if result["status"] == "PASS":
                     completed.add(key)
-                else:
+                elif result["status"] != "DEFERRED_EXP003_BUNDLE_MUTEX":
                     failed.add(key)
                 write_json(
                     status_path,

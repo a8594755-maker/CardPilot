@@ -28,6 +28,7 @@ sys.path.insert(0, str(SCRIPT_DIR.parent))
 from alpha_holdem.environment_v55 import NUM_ACTIONS
 from alpha_holdem.network import AlphaHoldemNet
 from alpha_holdem.play_slumbot import (
+    apply_checkpoint_policy_logit_bias,
     action_idx_to_incr,
     build_action_table,
     compute_commitments,
@@ -89,7 +90,16 @@ def load_model(checkpoint_path: Path, device: str) -> tuple[AlphaHoldemNet, dict
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     if not isinstance(checkpoint, dict):
         raise TypeError(f"checkpoint is {type(checkpoint).__name__}, not dict")
-    model = AlphaHoldemNet(num_actions=NUM_ACTIONS, norm_layer=str(checkpoint.get("norm_layer", "bn"))).to(device)
+    separate_preflop_head = bool(
+        checkpoint.get("separate_preflop_head")
+        or (checkpoint.get("config") or {}).get("separate_preflop_head")
+        or "preflop_policy_head.weight" in checkpoint.get("model", {})
+    )
+    model = AlphaHoldemNet(
+        num_actions=NUM_ACTIONS,
+        norm_layer=str(checkpoint.get("norm_layer", "bn")),
+        separate_preflop_head=separate_preflop_head,
+    ).to(device)
     model.eval()
     with torch.no_grad():
         model(
@@ -98,6 +108,7 @@ def load_model(checkpoint_path: Path, device: str) -> tuple[AlphaHoldemNet, dict
             torch.zeros(2, 2, device=device),
         )
     model.load_state_dict(checkpoint["model"])
+    model.policy_logit_bias = checkpoint.get("policy_logit_bias")
     model.eval()
     return model, checkpoint
 
@@ -175,6 +186,7 @@ def evaluate_case(
                 torch.from_numpy(extras).to(device),
                 mask_tensor,
             )
+            logits = apply_checkpoint_policy_logit_bias(logits, model, state)
             probs = F.softmax(logits, dim=-1).cpu().numpy()
             guarded_probs_t = guarded_action_probs(
                 F.softmax(logits / max(float(guarded_temperature), 1e-6), dim=-1),

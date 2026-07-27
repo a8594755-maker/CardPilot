@@ -59,6 +59,16 @@ def fmt(value: Any) -> str:
     return str(value)
 
 
+def fmt_count(value: Any) -> str:
+    """Format an optional integer count without crashing reporting-only audits."""
+    if value is None:
+        return "unknown"
+    try:
+        return f"{int(value):,}"
+    except (TypeError, ValueError, OverflowError):
+        return "unknown"
+
+
 def check(status: str, key: str, requirement: str, evidence: str, action: str = "") -> dict[str, str]:
     return {
         "status": status,
@@ -184,7 +194,7 @@ def build_audit(run_dir: Path, output_dir: Path) -> dict[str, Any]:
             hand_status,
             "training_scale",
             "Meaningful baseline around 1B hands; paper-scale target around 2.7B hands.",
-            f"live_hands={live_hands:,}, checkpoint_hands={checkpoint_hands:,}, target_total={cfg.get('total_hands'):,}",
+            f"live_hands={live_hands:,}, checkpoint_hands={checkpoint_hands:,}, target_total={fmt_count(cfg.get('total_hands'))}",
             "Continue scheduled training; do not infer strength from hand count alone.",
         )
     )

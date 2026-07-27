@@ -74,8 +74,50 @@ def load_checkpoint(path: Path) -> dict[str, Any]:
     return obj
 
 
-def init_model(state_dict: dict[str, torch.Tensor], norm_layer: str, device: str) -> AlphaHoldemNet:
-    model = AlphaHoldemNet(num_actions=NUM_ACTIONS, norm_layer=norm_layer).to(device)
+def init_model(
+    state_dict: dict[str, torch.Tensor],
+    norm_layer: str,
+    device: str,
+    preflop_raw_action_scale: float = 1.0,
+    preflop_raw_gate: str = "none",
+    critic_contract: str = "critic_v1",
+) -> AlphaHoldemNet:
+    separate_preflop_head = (
+        "preflop_policy_head.weight" in state_dict
+        and "preflop_policy_head.bias" in state_dict
+    )
+    preflop_adapter_hidden = (
+        int(state_dict["preflop_policy_adapter.0.weight"].shape[0])
+        if "preflop_policy_adapter.0.weight" in state_dict
+        else 0
+    )
+    preflop_raw_adapter_hidden = (
+        int(state_dict["preflop_raw_policy_adapter.0.weight"].shape[0])
+        if "preflop_raw_policy_adapter.0.weight" in state_dict
+        else 0
+    )
+    flop_adapter_hidden = (
+        int(state_dict["flop_policy_adapter.0.weight"].shape[0])
+        if "flop_policy_adapter.0.weight" in state_dict
+        else 0
+    )
+    postflop_adapter_hidden = (
+        int(state_dict["postflop_policy_adapter.0.weight"].shape[0])
+        if "postflop_policy_adapter.0.weight" in state_dict
+        else 0
+    )
+    model = AlphaHoldemNet(
+        num_actions=NUM_ACTIONS,
+        norm_layer=norm_layer,
+        separate_preflop_head=separate_preflop_head,
+        preflop_adapter_hidden=preflop_adapter_hidden,
+        preflop_raw_adapter_hidden=preflop_raw_adapter_hidden,
+        preflop_raw_action_scale=preflop_raw_action_scale,
+        preflop_raw_gate=preflop_raw_gate,
+        flop_adapter_hidden=flop_adapter_hidden,
+        postflop_adapter_hidden=postflop_adapter_hidden,
+        critic_contract=critic_contract,
+    ).to(device)
     # Lazy-init trunk before loading the full state dict.
     with torch.no_grad():
         model(
@@ -132,12 +174,18 @@ def evaluate_match(
     starting_stack: float,
     policy_mode: str,
     temperature: float,
+    action_history_style: str,
+    raise_action_mapping: str,
 ) -> dict[str, Any]:
     random.seed(seed)
     np.random.seed(seed % (2**32 - 1))
     torch.manual_seed(seed)
     rng = random.Random(seed + 17)
-    env = HUNLEnvironment(starting_stack=starting_stack)
+    env = HUNLEnvironment(
+        starting_stack=starting_stack,
+        action_history_style=action_history_style,
+        raise_action_mapping=raise_action_mapping,
+    )
 
     hand_rewards: list[float] = []
     wins = losses = draws = 0
@@ -229,8 +277,7 @@ def candidate_entries(checkpoint: dict[str, Any], max_pool_snapshots: int, inclu
             )
 
     latest_hands = int(checkpoint.get("total_hands") or 0)
-    latest_duplicate = any(item["hands"] == latest_hands for item in entries)
-    if include_latest and "model" in checkpoint and not latest_duplicate:
+    if include_latest and "model" in checkpoint:
         entries.append(
             {
                 "label": f"latest_iter{checkpoint.get('iteration', 'na')}_{latest_hands // 1_000_000}M",
@@ -319,6 +366,17 @@ def evaluate(args: argparse.Namespace) -> dict[str, Any]:
         device = "cpu"
 
     norm_layer = str(checkpoint.get("norm_layer", "bn"))
+    obs_version = str(checkpoint.get("obs_version") or "v55").lower()
+    action_history_style = "v4" if obs_version == "v4" else "v55"
+    raise_action_mapping = str(
+        checkpoint.get("raise_action_mapping")
+        or (
+            "preflop_pot_fraction_v2"
+            if checkpoint.get("action_space_version")
+            == "9slot_preflop_pot_fraction_v2"
+            else "legacy_total_over_pot"
+        )
+    )
     candidates = candidate_entries(
         checkpoint,
         max_pool_snapshots=args.max_pool_snapshots,
@@ -327,24 +385,153 @@ def evaluate(args: argparse.Namespace) -> dict[str, Any]:
     if not candidates:
         raise RuntimeError("no candidate state_dicts found in checkpoint or pool_snapshots")
 
-    selected_opponents = args.opponents or list(OPPONENTS)
+    selected_opponents = list(args.opponents or list(OPPONENTS))
+    opponent_policies: dict[str, OpponentPolicy] = dict(OPPONENTS)
+    checkpoint_opponent_model: AlphaHoldemNet | None = None
+    checkpoint_opponent_path: Path | None = None
+    if args.checkpoint_opponent:
+        checkpoint_opponent_path = Path(args.checkpoint_opponent)
+        opponent_checkpoint = load_checkpoint(checkpoint_opponent_path)
+        opponent_state = opponent_checkpoint.get("model")
+        if not isinstance(opponent_state, dict):
+            raise RuntimeError(
+                f"checkpoint opponent has no model state_dict: "
+                f"{checkpoint_opponent_path}"
+            )
+        opponent_obs_version = str(
+            opponent_checkpoint.get("obs_version") or "v55"
+        ).lower()
+        opponent_action_history_style = (
+            "v4" if opponent_obs_version == "v4" else "v55"
+        )
+        opponent_raise_action_mapping = str(
+            opponent_checkpoint.get("raise_action_mapping")
+            or (
+                "preflop_pot_fraction_v2"
+                if opponent_checkpoint.get("action_space_version")
+                == "9slot_preflop_pot_fraction_v2"
+                else "legacy_total_over_pot"
+            )
+        )
+        if opponent_action_history_style != action_history_style:
+            raise RuntimeError(
+                "candidate and checkpoint opponent use different observation "
+                f"styles: {action_history_style} vs "
+                f"{opponent_action_history_style}"
+            )
+        if opponent_raise_action_mapping != raise_action_mapping:
+            raise RuntimeError(
+                "candidate and checkpoint opponent use different action "
+                f"mappings: {raise_action_mapping} vs "
+                f"{opponent_raise_action_mapping}"
+            )
+        opponent_norm_layer = (
+            "bn"
+            if any(key.endswith("running_mean") for key in opponent_state)
+            else str(opponent_checkpoint.get("norm_layer", "bn"))
+        )
+        checkpoint_opponent_model = init_model(
+            opponent_state,
+            norm_layer=opponent_norm_layer,
+            device=device,
+            critic_contract=str(
+                opponent_checkpoint.get("critic_contract")
+                or (opponent_checkpoint.get("config") or {}).get(
+                    "critic_contract"
+                )
+                or "critic_v1"
+            ),
+            preflop_raw_action_scale=float(
+                opponent_checkpoint.get("preflop_raw_action_scale")
+                or (opponent_checkpoint.get("config") or {}).get(
+                    "preflop_raw_action_scale"
+                )
+                or 1.0
+            ),
+            preflop_raw_gate=str(
+                opponent_checkpoint.get("preflop_raw_gate")
+                or (opponent_checkpoint.get("config") or {}).get(
+                    "preflop_raw_gate"
+                )
+                or "none"
+            ),
+        )
+        checkpoint_opponent_label = (
+            f"checkpoint:{checkpoint_opponent_path.stem}"
+        )
+
+        def checkpoint_opponent_policy(
+            obs: dict[str, Any],
+            rng: random.Random,
+        ) -> int:
+            del rng
+            assert checkpoint_opponent_model is not None
+            return model_action(
+                checkpoint_opponent_model,
+                obs,
+                device,
+                policy_mode=args.checkpoint_opponent_policy_mode,
+                temperature=args.checkpoint_opponent_temperature,
+            )
+
+        opponent_policies[checkpoint_opponent_label] = (
+            checkpoint_opponent_policy
+        )
+        if args.checkpoint_opponent_only:
+            selected_opponents = [checkpoint_opponent_label]
+        else:
+            selected_opponents.append(checkpoint_opponent_label)
     results: list[dict[str, Any]] = []
 
     for cand_index, cand in enumerate(candidates):
-        model = init_model(cand["state_dict"], norm_layer=norm_layer, device=device)
+        candidate_norm_layer = (
+            "bn"
+            if any(
+                key.endswith("running_mean")
+                for key in cand["state_dict"]
+            )
+            else norm_layer
+        )
+        model = init_model(
+            cand["state_dict"],
+            norm_layer=candidate_norm_layer,
+            device=device,
+            critic_contract=str(
+                checkpoint.get("critic_contract")
+                or (checkpoint.get("config") or {}).get("critic_contract")
+                or "critic_v1"
+            ),
+            preflop_raw_action_scale=float(
+                checkpoint.get("preflop_raw_action_scale")
+                or (checkpoint.get("config") or {}).get(
+                    "preflop_raw_action_scale"
+                )
+                or 1.0
+            ),
+            preflop_raw_gate=str(
+                checkpoint.get("preflop_raw_gate")
+                or (checkpoint.get("config") or {}).get("preflop_raw_gate")
+                or "none"
+            ),
+        )
         for opp_index, opponent_name in enumerate(selected_opponents):
-            if opponent_name not in OPPONENTS:
-                raise ValueError(f"unknown opponent {opponent_name!r}; choices: {sorted(OPPONENTS)}")
+            if opponent_name not in opponent_policies:
+                raise ValueError(
+                    f"unknown opponent {opponent_name!r}; choices: "
+                    f"{sorted(opponent_policies)}"
+                )
             seed = int(args.seed) + opp_index * 10_000
             stats = evaluate_match(
                 model,
-                OPPONENTS[opponent_name],
+                opponent_policies[opponent_name],
                 args.hands,
                 seed=seed,
                 device=device,
                 starting_stack=args.starting_stack,
                 policy_mode=args.policy_mode,
                 temperature=args.temperature,
+                action_history_style=action_history_style,
+                raise_action_mapping=raise_action_mapping,
             )
             results.append(
                 {
@@ -358,6 +545,11 @@ def evaluate(args: argparse.Namespace) -> dict[str, Any]:
                 }
             )
         del model
+        if device == "cuda":
+            torch.cuda.empty_cache()
+
+    if checkpoint_opponent_model is not None:
+        del checkpoint_opponent_model
         if device == "cuda":
             torch.cuda.empty_cache()
 
@@ -377,6 +569,8 @@ def evaluate(args: argparse.Namespace) -> dict[str, Any]:
         "policy_mode": args.policy_mode,
         "temperature": args.temperature,
         "seed": args.seed,
+        "action_history_style": action_history_style,
+        "raise_action_mapping": raise_action_mapping,
         "checkpoint": {
             "iteration": checkpoint.get("iteration"),
             "total_hands": int(checkpoint.get("total_hands") or 0),
@@ -391,6 +585,16 @@ def evaluate(args: argparse.Namespace) -> dict[str, Any]:
             for cand in candidates
         ],
         "opponents": selected_opponents,
+        "checkpoint_opponent_path": (
+            str(checkpoint_opponent_path)
+            if checkpoint_opponent_path is not None
+            else None
+        ),
+        "checkpoint_opponent_policy_mode": (
+            args.checkpoint_opponent_policy_mode
+            if checkpoint_opponent_path is not None
+            else None
+        ),
         "results": results,
         "trends": summarize_trends(results),
         "notes": notes,
@@ -402,6 +606,30 @@ def main() -> None:
     parser.add_argument("--checkpoint", required=True, help="Path to V5 latest.pt checkpoint")
     parser.add_argument("--hands", type=int, default=500, help="Hands per candidate/opponent match")
     parser.add_argument("--opponents", nargs="+", default=["call-station", "aggressive"], choices=sorted(OPPONENTS))
+    parser.add_argument(
+        "--checkpoint-opponent",
+        default=None,
+        help=(
+            "Optional frozen network checkpoint used as an additional local "
+            "opponent. Candidate and opponent must share observation and "
+            "action-mapping contracts."
+        ),
+    )
+    parser.add_argument(
+        "--checkpoint-opponent-only",
+        action="store_true",
+        help="Evaluate only against --checkpoint-opponent, not scripted opponents.",
+    )
+    parser.add_argument(
+        "--checkpoint-opponent-policy-mode",
+        choices=["greedy", "sample"],
+        default="greedy",
+    )
+    parser.add_argument(
+        "--checkpoint-opponent-temperature",
+        type=float,
+        default=1.0,
+    )
     parser.add_argument("--max-pool-snapshots", type=int, default=5)
     parser.add_argument("--no-latest", action="store_true", help="Do not include checkpoint['model'] as an extra candidate")
     parser.add_argument("--device", default="cpu", choices=["cpu", "cuda"])

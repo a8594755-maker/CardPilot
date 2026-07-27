@@ -181,7 +181,33 @@ def main():
     # Load model — peek at checkpoint norm_layer (default bn for legacy ckpts).
     ckpt = torch.load(args.model, map_location=device, weights_only=False)
     ckpt_norm = ckpt.get('norm_layer', 'bn')
-    model = AlphaHoldemNet(num_actions=NUM_ACTIONS, norm_layer=ckpt_norm).to(device)
+    model_state = ckpt['model']
+    separate_preflop_head = 'preflop_policy_head.weight' in model_state
+    preflop_adapter_hidden = (
+        int(model_state['preflop_policy_adapter.0.weight'].shape[0])
+        if 'preflop_policy_adapter.0.weight' in model_state else 0
+    )
+    preflop_raw_adapter_hidden = (
+        int(model_state['preflop_raw_policy_adapter.0.weight'].shape[0])
+        if 'preflop_raw_policy_adapter.0.weight' in model_state else 0
+    )
+    flop_adapter_hidden = (
+        int(model_state['flop_policy_adapter.0.weight'].shape[0])
+        if 'flop_policy_adapter.0.weight' in model_state else 0
+    )
+    postflop_adapter_hidden = (
+        int(model_state['postflop_policy_adapter.0.weight'].shape[0])
+        if 'postflop_policy_adapter.0.weight' in model_state else 0
+    )
+    model = AlphaHoldemNet(
+        num_actions=NUM_ACTIONS,
+        norm_layer=ckpt_norm,
+        separate_preflop_head=separate_preflop_head,
+        preflop_adapter_hidden=preflop_adapter_hidden,
+        preflop_raw_adapter_hidden=preflop_raw_adapter_hidden,
+        flop_adapter_hidden=flop_adapter_hidden,
+        postflop_adapter_hidden=postflop_adapter_hidden,
+    ).to(device)
     model.eval()
     dummy_c = torch.zeros(2, 6, 4, 13, device=device)
     dummy_a = torch.zeros(2, 25, 4, 5, device=device)

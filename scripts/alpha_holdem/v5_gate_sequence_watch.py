@@ -4,7 +4,9 @@ Watch a sequence of V5 checkpoint/pool gates.
 
 This is read-only with respect to training. It reuses v5_gate_watch's gate
 evaluator, writes the normal per-gate status JSON/Markdown, appends PASS gates
-to the launch report, then advances to the next target iteration.
+to the launch report, then advances to the next target iteration.  A target
+skipped by a later checkpoint is recorded as STALE_CHECKPOINT and advanced
+without a PASS report.
 """
 
 from __future__ import annotations
@@ -19,6 +21,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 
 from v5_gate_watch import (  # noqa: E402
+    STALE_CHECKPOINT,
     append_report_if_pass,
     evaluate_gate,
     expected_stored_pool_snapshots,
@@ -105,6 +108,8 @@ def run_gate(args: argparse.Namespace, target_iteration: int) -> str:
                 appended = append_report_if_pass(Path(args.append_report), target_iteration, summary)
                 print(f"gate={target_iteration} report_appended={appended}", flush=True)
             return "PASS"
+        if overall == STALE_CHECKPOINT:
+            return STALE_CHECKPOINT
         if overall in {"FAIL", "WARN"}:
             return overall
 
@@ -151,7 +156,7 @@ def main() -> int:
             return 0
 
         result = run_gate(args, target)
-        if result == "PASS":
+        if result in {"PASS", STALE_CHECKPOINT}:
             target += args.step
             continue
         if result == "PENDING":

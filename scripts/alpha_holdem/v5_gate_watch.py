@@ -7,7 +7,7 @@ specific gate such as iteration 600 / pool_snapshots 3.
 
 Exit codes:
   0: gate passed
-  1: gate reached but failed checks, or checkpoint could not be loaded after grace
+  1: gate reached but failed checks, was skipped by a later checkpoint, or checkpoint could not be loaded after grace
   2: gate is still pending
 """
 
@@ -25,6 +25,9 @@ from typing import Any
 import torch
 
 from v5_monitor import parse_log
+
+
+STALE_CHECKPOINT = "STALE_CHECKPOINT"
 
 
 def refresh_health_status(run_dir: Path, python: str) -> dict[str, Any]:
@@ -102,6 +105,18 @@ def approx_equal(a: Any, b: float, tolerance: float = 1e-6) -> bool:
         return False
 
 
+def strict_iteration_identity(value: Any) -> int | None:
+    """Accept only a real integer for checkpoint/gate identity.
+
+    Python's ``int()`` truncates floats and accepts booleans, which could turn
+    a later checkpoint such as 24900.9 into a false PASS for gate 24900.
+    Identity fields therefore deliberately reject bools, floats, strings, and
+    all other coercible values.
+    """
+
+    return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+
 def fresh_from_zero_lineage(checkpoint: dict[str, Any]) -> bool:
     """Return whether a checkpoint belongs to the V5 random-init lineage.
 
@@ -159,7 +174,11 @@ def evaluate_gate(
     pool = pool_snapshots(checkpoint)
     checkpoint_ready = not checkpoint.get("_missing") and not checkpoint.get("_load_error")
     checkpoint_age = file_age_seconds(checkpoint_path, now)
-    live_reached = latest is not None and int(latest["iteration"]) >= target_iteration
+    latest_iteration_raw = latest.get("iteration") if isinstance(latest, dict) else None
+    latest_iteration = strict_iteration_identity(latest_iteration_raw)
+    ckpt_iteration_raw = checkpoint.get("iteration")
+    ckpt_iteration = strict_iteration_identity(ckpt_iteration_raw)
+    live_reached = latest_iteration is not None and latest_iteration >= target_iteration
 
     checks: list[dict[str, str]] = []
 
@@ -168,10 +187,12 @@ def evaluate_gate(
 
     if latest is None:
         add("training_log", "PENDING", "No parsed latest_train.log rows")
-    elif int(latest["iteration"]) >= target_iteration:
-        add("live_iteration", "PASS", f"latest log iteration {latest['iteration']} >= {target_iteration}")
+    elif latest_iteration is None:
+        add("live_iteration", "FAIL", f"latest log iteration {latest_iteration_raw!r} is not a strict integer")
+    elif latest_iteration >= target_iteration:
+        add("live_iteration", "PASS", f"latest log iteration {latest_iteration} >= {target_iteration}")
     else:
-        add("live_iteration", "PENDING", f"latest log iteration {latest['iteration']} < {target_iteration}")
+        add("live_iteration", "PENDING", f"latest log iteration {latest_iteration} < {target_iteration}")
 
     if checkpoint.get("_missing"):
         status = "FAIL" if live_reached else "PENDING"
@@ -179,7 +200,13 @@ def evaluate_gate(
     elif checkpoint.get("_load_error"):
         load_error = str(checkpoint["_load_error"])
         in_grace = checkpoint_age is not None and checkpoint_age <= checkpoint_load_grace_seconds
-        if live_reached and in_grace:
+        if not live_reached:
+            add(
+                "checkpoint_load",
+                "PENDING",
+                f"{load_error}; live target not reached, treating concurrent latest.pt write as transient",
+            )
+        elif in_grace:
             add(
                 "checkpoint_load",
                 "PENDING",
@@ -190,13 +217,23 @@ def evaluate_gate(
     else:
         add("checkpoint_load", "PASS", "latest.pt loaded")
 
-    ckpt_iteration = checkpoint.get("iteration")
     if not checkpoint_ready:
         add("checkpoint_iteration", "PENDING", "checkpoint unavailable")
-    elif ckpt_iteration is None:
+    elif ckpt_iteration_raw is None:
         add("checkpoint_iteration", "PENDING", "checkpoint iteration missing")
-    elif int(ckpt_iteration) >= target_iteration:
-        add("checkpoint_iteration", "PASS", f"checkpoint iteration {ckpt_iteration} >= {target_iteration}")
+    elif ckpt_iteration is None:
+        add("checkpoint_iteration", "FAIL", f"checkpoint iteration {ckpt_iteration_raw!r} is not a strict integer")
+    elif ckpt_iteration == target_iteration:
+        add("checkpoint_iteration", "PASS", f"checkpoint iteration {ckpt_iteration} == target {target_iteration}")
+    elif ckpt_iteration > target_iteration:
+        add(
+            "checkpoint_iteration",
+            STALE_CHECKPOINT,
+            (
+                f"checkpoint iteration {ckpt_iteration} advanced past target {target_iteration}; "
+                "a later checkpoint cannot verify this gate"
+            ),
+        )
     else:
         add("checkpoint_iteration", "PENDING", f"checkpoint iteration {ckpt_iteration} < {target_iteration}")
 
@@ -213,7 +250,7 @@ def evaluate_gate(
         total_hands = checkpoint.get("total_hands")
         if not checkpoint_ready:
             add("pool_current_snapshot", "PENDING", "checkpoint unavailable")
-        elif ckpt_iteration is None or int(ckpt_iteration) < target_iteration:
+        elif ckpt_iteration is None or ckpt_iteration < target_iteration:
             add("pool_current_snapshot", "PENDING", "target checkpoint not reached")
         elif total_hands is None:
             add("pool_current_snapshot", "FAIL", "checkpoint total_hands missing")
@@ -316,7 +353,9 @@ def evaluate_gate(
     else:
         add("health_status", "PENDING", "health_status.json missing or unreadable")
 
-    if any(c["status"] == "FAIL" for c in checks):
+    if any(c["status"] == STALE_CHECKPOINT for c in checks):
+        overall = STALE_CHECKPOINT
+    elif any(c["status"] == "FAIL" for c in checks):
         overall = "FAIL"
     elif any(c["status"] == "PENDING" for c in checks):
         overall = "PENDING"
@@ -325,11 +364,12 @@ def evaluate_gate(
     else:
         overall = "PASS"
 
-    latest_iteration = latest.get("iteration") if isinstance(latest, dict) else None
     latest_hands = latest.get("hands") if isinstance(latest, dict) else None
     checkpoint_hands = checkpoint.get("total_hands")
-    live_reached_target = latest_iteration is not None and int(latest_iteration) >= int(target_iteration)
-    checkpoint_reached_target = ckpt_iteration is not None and int(ckpt_iteration) >= int(target_iteration)
+    live_reached_target = latest_iteration is not None and latest_iteration >= target_iteration
+    checkpoint_reached_target = ckpt_iteration is not None and ckpt_iteration >= target_iteration
+    checkpoint_exact_target = ckpt_iteration is not None and ckpt_iteration == target_iteration
+    checkpoint_advanced_past_target = ckpt_iteration is not None and ckpt_iteration > target_iteration
 
     return {
         "run_dir": str(run_dir),
@@ -340,16 +380,21 @@ def evaluate_gate(
         "expected_pool_snapshots": expected_pool_snapshots,
         "overall": overall,
         "live_iteration": latest_iteration,
+        "live_iteration_raw": latest_iteration_raw,
         "live_hands": latest_hands,
         "checkpoint_iteration": ckpt_iteration,
+        "checkpoint_iteration_raw": ckpt_iteration_raw,
         "checkpoint_hands": checkpoint_hands,
         "live_reached_target": live_reached_target,
         "checkpoint_reached_target": checkpoint_reached_target,
+        "checkpoint_exact_target": checkpoint_exact_target,
+        "checkpoint_advanced_past_target": checkpoint_advanced_past_target,
+        "pass_eligible": overall == "PASS" and checkpoint_exact_target,
         "remaining_live_iterations": (
-            max(0, int(target_iteration) - int(latest_iteration)) if latest_iteration is not None else None
+            max(0, target_iteration - latest_iteration) if latest_iteration is not None else None
         ),
         "remaining_checkpoint_iterations": (
-            max(0, int(target_iteration) - int(ckpt_iteration)) if ckpt_iteration is not None else None
+            max(0, target_iteration - ckpt_iteration) if ckpt_iteration is not None else None
         ),
         "latest": latest,
         "checkpoint": {
@@ -428,7 +473,7 @@ def write_outputs(run_dir: Path, target_iteration: int, summary: dict[str, Any])
 
 
 def append_report_if_pass(report_path: Path, target_iteration: int, summary: dict[str, Any]) -> bool:
-    if summary.get("overall") != "PASS":
+    if not summary_is_exact_gate_pass(summary, target_iteration):
         return False
     if not report_path.exists():
         return False
@@ -487,6 +532,27 @@ def append_report_if_pass(report_path: Path, target_iteration: int, summary: dic
     ]
     report_path.write_text(report.rstrip() + "\n\n" + "\n".join(lines), encoding="utf-8")
     return True
+
+
+def summary_is_exact_gate_pass(summary: dict[str, Any], target_iteration: int) -> bool:
+    """Defend report appenders against a forged or stale PASS summary."""
+
+    if summary.get("overall") != "PASS":
+        return False
+    declared_target = strict_iteration_identity(summary.get("target_iteration"))
+    requested_target = strict_iteration_identity(target_iteration)
+    if declared_target is None or requested_target is None:
+        return False
+    checkpoint = summary.get("checkpoint") if isinstance(summary.get("checkpoint"), dict) else {}
+    values: list[int] = []
+    for value in (summary.get("checkpoint_iteration"), checkpoint.get("iteration")):
+        if value is None:
+            continue
+        parsed = strict_iteration_identity(value)
+        if parsed is None:
+            return False
+        values.append(parsed)
+    return bool(values) and declared_target == requested_target and all(value == requested_target for value in values)
 
 
 def main() -> int:
@@ -582,7 +648,7 @@ def main() -> int:
             f"pool_snapshots={checkpoint.get('pool_snapshots')}",
             flush=True,
         )
-        if overall in {"PASS", "FAIL", "WARN"}:
+        if overall in {"PASS", "FAIL", "WARN", STALE_CHECKPOINT}:
             if overall == "PASS" and args.append_report:
                 appended = append_report_if_pass(Path(args.append_report), args.target_iteration, summary)
                 print(f"report_appended={appended}", flush=True)
@@ -600,7 +666,7 @@ def main() -> int:
         return 1
     if summary["overall"] == "PASS":
         return 0
-    if summary["overall"] in {"FAIL", "WARN"}:
+    if summary["overall"] in {"FAIL", "WARN", STALE_CHECKPOINT}:
         return 1
     return 2
 

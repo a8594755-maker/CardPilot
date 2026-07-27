@@ -52,7 +52,12 @@ from v5_checkpoint_promotion_decision import write_markdown as write_checkpoint_
 from v5_post_gate_review import build_review as build_post_gate_review
 from v5_post_gate_review import write_markdown as write_post_gate_review_markdown
 
-POST_GATE_REFRESH_STATES = {"PENDING_EVIDENCE", "DUE_EVIDENCE_REFRESH"}
+POST_GATE_REFRESH_STATES = {
+    "PENDING_EVIDENCE",
+    "DUE_EVIDENCE_REFRESH",
+    "QUARANTINED_INTERNAL_PROBE_IDENTITY",
+    "QUARANTINED_GATE_IDENTITY",
+}
 
 
 def now_iso() -> str:

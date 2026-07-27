@@ -10,12 +10,130 @@ starting or stopping training.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import os
+import re
+import shutil
 import subprocess
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
+
+
+H8_LOG_ONLY_TOKEN = re.compile(r"\s+vhcatch=[01](?=\s)")
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(8 << 20), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def read_json_snapshot(
+    path: Path, attempts: int = 5, delay_seconds: float = 0.02
+) -> tuple[str | None, dict | None, int]:
+    """Read one internally consistent JSON snapshot across non-atomic producer writes."""
+    for attempt in range(1, max(1, attempts) + 1):
+        try:
+            raw = path.read_text(encoding="utf-8")
+            value = json.loads(raw)
+            if not isinstance(value, dict):
+                raise ValueError("JSON root is not an object")
+            return raw, value, attempt
+        except (OSError, UnicodeError, json.JSONDecodeError, ValueError):
+            if attempt < max(1, attempts):
+                time.sleep(max(0.0, delay_seconds))
+    return None, None, max(1, attempts)
+
+
+def prepare_monitor_run_dir(run_dir: Path) -> tuple[Path, dict | None]:
+    """Build a hybrid-window reporting-only log view for the frozen V5 monitor.
+
+    H8/H9 add ``vhcatch=0/1`` to the human-readable training line.  The frozen
+    monitor predates that token, so it otherwise reports zero parsed rows even
+    though the canonical structured metrics are healthy.  Only that token is
+    removed; the source log, manifest, stderr, and model artifacts are untouched.
+    """
+    manifest_path = run_dir / "run_manifest.json"
+    manifest_text, manifest, manifest_read_attempts = read_json_snapshot(manifest_path)
+    if manifest_text is None or manifest is None:
+        return run_dir, None
+    config = manifest.get("config") if isinstance(manifest.get("config"), dict) else {}
+    window = None
+    if config.get("h8_window_arm") in {"control", "treatment"}:
+        window = "H8"
+    elif config.get("h9_window_arm") in {"control", "treatment"}:
+        window = "H9"
+    if window is None:
+        return run_dir, None
+    source_log = run_dir / "latest_train.log"
+    if not source_log.is_file():
+        return run_dir, None
+    source_text = source_log.read_text(encoding="utf-8", errors="replace")
+    transformed_text, replacements = H8_LOG_ONLY_TOKEN.subn("", source_text)
+    compatibility_dir = run_dir / ".h8_health_compat"
+    compatibility_dir.mkdir(parents=True, exist_ok=True)
+    compatibility_log = compatibility_dir / "latest_train.log"
+    temporary_log = compatibility_log.with_suffix(".log.tmp")
+    temporary_log.write_text(transformed_text, encoding="utf-8")
+    source_stat = source_log.stat()
+    os.utime(temporary_log, (source_stat.st_atime, source_stat.st_mtime))
+    temporary_log.replace(compatibility_log)
+    compatibility_manifest = compatibility_dir / "run_manifest.json"
+    temporary_manifest = compatibility_manifest.with_suffix(".json.tmp")
+    temporary_manifest.write_text(manifest_text, encoding="utf-8")
+    temporary_manifest.replace(compatibility_manifest)
+    stderr = run_dir / "console.err.log"
+    if stderr.is_file():
+        shutil.copy2(stderr, compatibility_dir / "console.err.log")
+    else:
+        (compatibility_dir / "console.err.log").write_bytes(b"")
+    provenance = {
+        "schema_version": "v5.hybrid.health_log_adapter.v2",
+        "window": window,
+        "source_run_dir": str(run_dir.resolve()),
+        "source_log": str(source_log.resolve()),
+        "source_log_sha256": file_sha256(source_log),
+        "compatibility_log_sha256": file_sha256(compatibility_log),
+        "manifest_snapshot_sha256": file_sha256(compatibility_manifest),
+        "manifest_read_attempts": manifest_read_attempts,
+        "removed_token": "vhcatch=[01]",
+        "replacement_count": replacements,
+        "source_line_count": len(source_text.splitlines()),
+        "transformed_line_count": len(transformed_text.splitlines()),
+        "frozen_monitor_sha256": file_sha256(Path("scripts/alpha_holdem/v5_monitor.py")),
+    }
+    (compatibility_dir / "adapter_provenance.json").write_text(
+        json.dumps(provenance, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return compatibility_dir, provenance
+
+
+def publish_h8_health(run_dir: Path, monitor_dir: Path, provenance: dict) -> None:
+    source = monitor_dir / "health_status.json"
+    if not source.is_file():
+        raise FileNotFoundError(source)
+    health = json.loads(source.read_text(encoding="utf-8"))
+    health["run_dir"] = str(run_dir.resolve())
+    health["reporting_adapter"] = provenance
+    destination = run_dir / "health_status.json"
+    temporary = destination.with_suffix(".json.tmp")
+    temporary.write_text(json.dumps(health, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    temporary.replace(destination)
+    monitor_md = monitor_dir / "health_status.md"
+    if monitor_md.is_file():
+        text = monitor_md.read_text(encoding="utf-8").replace(
+            str(monitor_dir.resolve()), str(run_dir.resolve())
+        )
+        destination_md = run_dir / "health_status.md"
+        temporary_md = destination_md.with_suffix(".md.tmp")
+        temporary_md.write_text(text, encoding="utf-8")
+        temporary_md.replace(destination_md)
 
 
 def log(message: str, path: Path | None) -> None:
@@ -38,11 +156,12 @@ def load_health(run_dir: Path) -> dict:
 
 
 def run_monitor(python: str, run_dir: Path, args: argparse.Namespace) -> tuple[int, str]:
+    monitor_dir, adapter = prepare_monitor_run_dir(run_dir)
     cmd = [
         python,
         "scripts/alpha_holdem/v5_monitor.py",
         "--run-dir",
-        str(run_dir),
+        str(monitor_dir),
         "--preflop-call-warn-after-iter",
         str(args.preflop_call_warn_after_iter),
         "--preflop-call-warn",
@@ -67,6 +186,8 @@ def run_monitor(python: str, run_dir: Path, args: argparse.Namespace) -> tuple[i
         stderr=subprocess.STDOUT,
         check=False,
     )
+    if adapter is not None and (monitor_dir / "health_status.json").is_file():
+        publish_h8_health(run_dir, monitor_dir, adapter)
     return proc.returncode, proc.stdout.strip()
 
 

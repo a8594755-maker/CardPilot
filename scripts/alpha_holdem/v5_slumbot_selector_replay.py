@@ -64,7 +64,56 @@ def load_model(checkpoint_path: Path, device: str) -> tuple[AlphaHoldemNet, dict
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     if not isinstance(checkpoint, dict):
         raise TypeError(f"checkpoint is {type(checkpoint).__name__}, not dict")
-    model = AlphaHoldemNet(num_actions=NUM_ACTIONS, norm_layer=str(checkpoint.get("norm_layer", "bn"))).to(device)
+    state = checkpoint["model"]
+    config = checkpoint.get("config") or {}
+
+    def configured_int(name: str, state_key: str) -> int:
+        value = checkpoint.get(name) or config.get(name)
+        if value:
+            return int(value)
+        tensor = state.get(state_key)
+        return int(tensor.shape[0]) if tensor is not None else 0
+
+    model = AlphaHoldemNet(
+        num_actions=NUM_ACTIONS,
+        norm_layer=str(checkpoint.get("norm_layer", "bn")),
+        separate_preflop_head=bool(
+            checkpoint.get("separate_preflop_head")
+            or config.get("separate_preflop_head")
+            or "preflop_policy_head.weight" in state
+        ),
+        preflop_adapter_hidden=configured_int(
+            "preflop_adapter_hidden",
+            "preflop_policy_adapter.0.weight",
+        ),
+        preflop_raw_adapter_hidden=configured_int(
+            "preflop_raw_adapter_hidden",
+            "preflop_raw_policy_adapter.0.weight",
+        ),
+        preflop_raw_action_scale=float(
+            checkpoint.get("preflop_raw_action_scale")
+            or config.get("preflop_raw_action_scale")
+            or 1.0
+        ),
+        preflop_raw_gate=str(
+            checkpoint.get("preflop_raw_gate")
+            or config.get("preflop_raw_gate")
+            or "none"
+        ),
+        flop_adapter_hidden=configured_int(
+            "flop_adapter_hidden",
+            "flop_policy_adapter.0.weight",
+        ),
+        postflop_adapter_hidden=configured_int(
+            "postflop_adapter_hidden",
+            "postflop_policy_adapter.0.weight",
+        ),
+        critic_contract=str(
+            checkpoint.get("critic_contract")
+            or config.get("critic_contract")
+            or "critic_v1"
+        ),
+    ).to(device)
     model.eval()
     with torch.no_grad():
         model(
@@ -72,7 +121,21 @@ def load_model(checkpoint_path: Path, device: str) -> tuple[AlphaHoldemNet, dict
             torch.zeros(2, 25, 4, 5, device=device),
             torch.zeros(2, 2, device=device),
         )
-    model.load_state_dict(checkpoint["model"])
+    model.load_state_dict(state)
+    model.raise_action_mapping = checkpoint.get(
+        "raise_action_mapping",
+        (
+            "pot_fraction_v2"
+            if checkpoint.get("action_space_version")
+            == "9slot_pot_fraction_v2"
+            else (
+                "preflop_pot_fraction_v2"
+                if checkpoint.get("action_space_version")
+                == "9slot_preflop_pot_fraction_v2"
+                else "legacy_total_over_pot"
+            )
+        ),
+    )
     model.eval()
     return model, checkpoint
 
@@ -203,7 +266,13 @@ def forward_probs(
     c = compute_commitments(state)
     stacks = [STACK_SIZE - c["hero_total"], STACK_SIZE - c["opp_total"]]
     extra_t = torch.tensor(encode_extra(stacks), device=device).unsqueeze(0)
-    mask_t = torch.tensor(compute_legal_mask(state), device=device).unsqueeze(0)
+    mask_t = torch.tensor(
+        compute_legal_mask(
+            state,
+            getattr(model, "raise_action_mapping", "legacy_total_over_pot"),
+        ),
+        device=device,
+    ).unsqueeze(0)
     logits, _ = model(card_t, action_t, extra_t, mask_t)
     return F.softmax(logits, dim=-1), mask_t
 
@@ -369,7 +438,15 @@ def replay(args: argparse.Namespace) -> dict[str, Any]:
                 decisions: dict[str, dict[str, Any]] = {}
                 for name in policy_names:
                     slot = select_from_probs(name, probs, mask_t, state, args)
-                    incr = action_idx_to_incr(slot, state)
+                    incr = action_idx_to_incr(
+                        slot,
+                        state,
+                        getattr(
+                            model,
+                            "raise_action_mapping",
+                            "legacy_total_over_pot",
+                        ),
+                    )
                     cls = action_class_from_slot(slot)
                     decisions[name] = {"slot": slot, "incr": incr, "class": cls}
 

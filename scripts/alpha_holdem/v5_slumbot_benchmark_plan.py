@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import glob
+import hashlib
 import json
 import re
 from datetime import datetime, timezone
@@ -67,6 +68,72 @@ def load_checkpoint(path: Path) -> dict[str, Any]:
     if not isinstance(obj, dict):
         return {"_load_error": f"checkpoint is {type(obj).__name__}, not dict"}
     return obj
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def validate_terminal_endpoint_evidence(
+    *,
+    checkpoint_path: Path,
+    checkpoint: dict[str, Any],
+    manifest: dict[str, Any],
+    endpoint_status_path: Path,
+    protocol_status_path: Path,
+) -> tuple[bool, str, dict[str, Any]]:
+    """Fail closed on a stopped run unless exact endpoint/protocol evidence passes."""
+    endpoint = load_json(endpoint_status_path)
+    protocol = load_json(protocol_status_path)
+    errors: list[str] = []
+    if endpoint.get("_missing") or endpoint.get("_load_error"):
+        errors.append("endpoint status missing or unreadable")
+    if protocol.get("_missing") or protocol.get("_load_error"):
+        errors.append("protocol status missing or unreadable")
+    if manifest.get("status") != "finished":
+        errors.append(f"manifest status {manifest.get('status')!r} is not finished")
+    if endpoint.get("overall") != "PASS" or endpoint.get("state") != "ARM_ENDPOINT_FROZEN":
+        errors.append("endpoint is not ARM_ENDPOINT_FROZEN/PASS")
+    if protocol.get("overall") != "PASS" or protocol.get("state") != "ARM_FINISHED_GUARDS_PASS":
+        errors.append("protocol is not ARM_FINISHED_GUARDS_PASS/PASS")
+    try:
+        if Path(str(endpoint.get("checkpoint_path", ""))).resolve() != checkpoint_path.resolve():
+            errors.append("endpoint checkpoint path mismatch")
+    except (OSError, RuntimeError):
+        errors.append("endpoint checkpoint path invalid")
+    actual_sha = sha256_file(checkpoint_path) if checkpoint_path.is_file() else ""
+    if endpoint.get("checkpoint_sha256") != actual_sha:
+        errors.append("endpoint checkpoint SHA256 mismatch")
+    expected_iter = int(checkpoint.get("iteration") or 0)
+    expected_hands = int(checkpoint.get("total_hands") or 0)
+    if int(endpoint.get("iteration") or 0) != expected_iter:
+        errors.append("endpoint iteration mismatch")
+    if int(endpoint.get("hands") or 0) != expected_hands:
+        errors.append("endpoint hands mismatch")
+    if int(manifest.get("iteration") or 0) != expected_iter:
+        errors.append("manifest iteration mismatch")
+    if int(manifest.get("total_hands") or 0) != expected_hands:
+        errors.append("manifest hands mismatch")
+    if endpoint.get("run_id") != checkpoint.get("run_id"):
+        errors.append("endpoint run_id mismatch")
+    if protocol.get("arm") != endpoint.get("arm"):
+        errors.append("endpoint/protocol arm mismatch")
+    payload = {
+        "endpoint_status_path": str(endpoint_status_path),
+        "protocol_status_path": str(protocol_status_path),
+        "checkpoint_sha256": actual_sha,
+        "iteration": expected_iter,
+        "training_hands": expected_hands,
+        "manifest_status": manifest.get("status"),
+        "endpoint_state": endpoint.get("state"),
+        "protocol_state": protocol.get("state"),
+        "errors": errors,
+    }
+    return not errors, "terminal endpoint/protocol identity PASS" if not errors else "; ".join(errors), payload
 
 
 def fresh_from_zero_lineage(checkpoint: dict[str, Any]) -> bool:
@@ -217,7 +284,12 @@ def promotion_gate_paths(output_dir: Path, run_id: str, explicit_path: str = "")
     return sorted(set(found), key=lambda path: path.stat().st_mtime if path.exists() else 0.0, reverse=True)
 
 
-def evaluate_promotion20k_prerequisite(args: argparse.Namespace, output_dir: Path, run_id: str) -> dict[str, Any] | None:
+def evaluate_promotion20k_prerequisite(
+    args: argparse.Namespace,
+    output_dir: Path,
+    run_id: str,
+    checkpoint: dict[str, Any],
+) -> dict[str, Any] | None:
     """Return the formal100k promotion prerequisite decision.
 
     Formal 100k is expensive and is the only L5/L6-eligible stage. By default
@@ -256,21 +328,32 @@ def evaluate_promotion20k_prerequisite(args: argparse.Namespace, output_dir: Pat
             continue
         decisions = data.get("decisions") or {}
         slumbot = data.get("slumbot") or {}
+        gate_checkpoint = data.get("checkpoint") or {}
         strong = bool(decisions.get("promotion_20k_strong"))
         candidate = bool(decisions.get("promotion_20k_candidate"))
+        identity_matches = all(
+            gate_checkpoint.get(key) == checkpoint.get(key)
+            for key in ("run_id", "iteration", "total_hands")
+        )
         inspected.append(
             {
                 "path": str(path),
-                "status": "PASS" if strong else "FAIL",
+                "status": "PASS" if strong and identity_matches else "FAIL",
                 "promotion_20k_strong": strong,
                 "promotion_20k_candidate": candidate,
+                "checkpoint_identity_matches": identity_matches,
+                "checkpoint": {
+                    "run_id": gate_checkpoint.get("run_id"),
+                    "iteration": gate_checkpoint.get("iteration"),
+                    "total_hands": gate_checkpoint.get("total_hands"),
+                },
                 "hands": slumbot.get("hands"),
                 "bb_per_100": slumbot.get("bb_per_100"),
                 "lower_bound_bb_per_100": slumbot.get("lower_bound_bb_per_100"),
                 "milestone_level": slumbot.get("milestone_level"),
             }
         )
-        if strong:
+        if strong and identity_matches:
             return {
                 "required": True,
                 "status": "PASS",
@@ -283,7 +366,10 @@ def evaluate_promotion20k_prerequisite(args: argparse.Namespace, output_dir: Pat
     return {
         "required": True,
         "status": "FAIL",
-        "detail": "promotion20k gate exists but no promotion_20k_strong=True result was found",
+        "detail": (
+            "promotion20k gate exists but no promotion_20k_strong=True result "
+            "for the exact formal checkpoint identity was found"
+        ),
         "path": str(paths[0]) if paths else None,
         "promotion_gate": inspected[0] if inspected else None,
         "inspected_tail": inspected[:5],
@@ -376,8 +462,28 @@ def evaluate(args: argparse.Namespace) -> dict[str, Any]:
     health = load_json(run_dir / "health_status.json")
     checkpoint = load_checkpoint(checkpoint_path)
     checkpoint_ready = not checkpoint.get("_missing") and not checkpoint.get("_load_error")
+    terminal_evidence: dict[str, Any] | None = None
 
     checks: list[dict[str, str]] = []
+    sentinel_path = Path(getattr(args, "active_window_sentinel", "reports/v5_active_window.json"))
+    sentinel = load_json(sentinel_path)
+    active_window_block = bool(
+        not sentinel.get("_missing")
+        and not sentinel.get("_load_error")
+        and sentinel.get("active") is True
+        and sentinel.get("terminal") is not True
+    )
+    if active_window_block:
+        add_check(
+            checks,
+            "active_window_sentinel",
+            "FAIL",
+            f"active window {sentinel.get('design_id')!r}/{sentinel.get('state')!r}; Slumbot planning and command emission are forbidden",
+        )
+    elif sentinel.get("_load_error"):
+        add_check(checks, "active_window_sentinel", "FAIL", "active-window sentinel is unreadable")
+    else:
+        add_check(checks, "active_window_sentinel", "PASS", "no nonterminal active-window block")
     if run_dir.exists():
         add_check(checks, "run_dir", "PASS", f"exists: {run_dir}")
     else:
@@ -431,25 +537,41 @@ def evaluate(args: argparse.Namespace) -> dict[str, Any]:
             )
 
     health_overall = health.get("overall")
-    if health.get("_missing"):
-        add_check(checks, "health_status", "FAIL", f"missing: {run_dir / 'health_status.json'}")
-    elif health.get("_load_error"):
-        add_check(checks, "health_status", "FAIL", str(health["_load_error"]))
-    elif health_overall in {"PASS", "WARN"}:
-        add_check(checks, "health_status", "PASS" if health_overall == "PASS" else "WARN", f"health overall {health_overall}")
-    else:
-        add_check(checks, "health_status", "FAIL", f"health overall {health_overall!r}")
-
-    if not args.no_health_age_check and not health.get("_missing") and not health.get("_load_error"):
-        checked_at = parse_time(health.get("checked_at"))
-        if checked_at is None:
-            add_check(checks, "health_age", "WARN", "health checked_at missing or invalid")
+    terminal_endpoint_status_json = getattr(args, "terminal_endpoint_status_json", "")
+    terminal_protocol_status_json = getattr(args, "terminal_protocol_status_json", "")
+    terminal_paths_supplied = bool(terminal_endpoint_status_json or terminal_protocol_status_json)
+    if terminal_paths_supplied:
+        if not terminal_endpoint_status_json or not terminal_protocol_status_json or not checkpoint_ready:
+            add_check(checks, "terminal_endpoint_health", "FAIL", "both terminal status paths and a readable checkpoint are required")
         else:
-            age_seconds = (now - checked_at.astimezone(timezone.utc)).total_seconds()
-            if age_seconds <= args.max_health_age_seconds:
-                add_check(checks, "health_age", "PASS", f"health age {age_seconds:.0f}s <= {args.max_health_age_seconds}s")
+            terminal_ok, terminal_detail, terminal_evidence = validate_terminal_endpoint_evidence(
+                checkpoint_path=checkpoint_path,
+                checkpoint=checkpoint,
+                manifest=manifest,
+                endpoint_status_path=Path(terminal_endpoint_status_json),
+                protocol_status_path=Path(terminal_protocol_status_json),
+            )
+            add_check(checks, "terminal_endpoint_health", "PASS" if terminal_ok else "FAIL", terminal_detail)
+    else:
+        if health.get("_missing"):
+            add_check(checks, "health_status", "FAIL", f"missing: {run_dir / 'health_status.json'}")
+        elif health.get("_load_error"):
+            add_check(checks, "health_status", "FAIL", str(health["_load_error"]))
+        elif health_overall in {"PASS", "WARN"}:
+            add_check(checks, "health_status", "PASS" if health_overall == "PASS" else "WARN", f"health overall {health_overall}")
+        else:
+            add_check(checks, "health_status", "FAIL", f"health overall {health_overall!r}")
+
+        if not args.no_health_age_check and not health.get("_missing") and not health.get("_load_error"):
+            checked_at = parse_time(health.get("checked_at"))
+            if checked_at is None:
+                add_check(checks, "health_age", "WARN", "health checked_at missing or invalid")
             else:
-                add_check(checks, "health_age", "FAIL", f"health age {age_seconds:.0f}s > {args.max_health_age_seconds}s")
+                age_seconds = (now - checked_at.astimezone(timezone.utc)).total_seconds()
+                if age_seconds <= args.max_health_age_seconds:
+                    add_check(checks, "health_age", "PASS", f"health age {age_seconds:.0f}s <= {args.max_health_age_seconds}s")
+                else:
+                    add_check(checks, "health_age", "FAIL", f"health age {age_seconds:.0f}s > {args.max_health_age_seconds}s")
 
     checkpoint_hands = int(checkpoint.get("total_hands") or 0) if checkpoint_ready else 0
     manifest_hands = int(manifest.get("total_hands") or 0) if not manifest.get("_missing") and not manifest.get("_load_error") else 0
@@ -479,10 +601,7 @@ def evaluate(args: argparse.Namespace) -> dict[str, Any]:
 
     run_id = str(checkpoint.get("run_id") or manifest.get("run_id") or run_dir.name)
     iteration = checkpoint.get("iteration") if checkpoint_ready else manifest.get("iteration")
-    quality_gate = evaluate_quality_gate(args, run_dir, checkpoint, checkpoint_ready)
-    add_check(checks, "quality_gate", str(quality_gate["status"]), str(quality_gate["detail"]))
-
-    promotion20k_prerequisite = evaluate_promotion20k_prerequisite(args, output_dir, run_id)
+    promotion20k_prerequisite = evaluate_promotion20k_prerequisite(args, output_dir, run_id, checkpoint)
     if promotion20k_prerequisite is not None:
         add_check(
             checks,
@@ -490,6 +609,21 @@ def evaluate(args: argparse.Namespace) -> dict[str, Any]:
             str(promotion20k_prerequisite["status"]),
             str(promotion20k_prerequisite["detail"]),
         )
+
+    quality_gate = evaluate_quality_gate(args, run_dir, checkpoint, checkpoint_ready)
+    if args.stage == "formal100k" and promotion20k_prerequisite and promotion20k_prerequisite.get("status") == "PASS":
+        gate_data = load_json(Path(str(promotion20k_prerequisite.get("path") or "")))
+        gate_decisions = gate_data.get("decisions") or {}
+        gate_quality_clean = bool(gate_decisions.get("preflop_guardrail_clean"))
+        if gate_quality_clean:
+            quality_gate = {
+                "required": True,
+                "status": "PASS",
+                "detail": "exact-checkpoint strong promotion20k gate recorded a clean preflop guardrail",
+                "source": "promotion20k_prerequisite",
+                "promotion_gate_path": promotion20k_prerequisite.get("path"),
+            }
+    add_check(checks, "quality_gate", str(quality_gate["status"]), str(quality_gate["detail"]))
 
     tag = sanitize_tag(args.tag) if args.tag else build_default_tag(args.stage, run_id, iteration, total_hands)
     collisions = existing_outputs(output_dir, tag)
@@ -510,7 +644,7 @@ def evaluate(args: argparse.Namespace) -> dict[str, Any]:
         overall = "READY"
 
     policy = benchmark_policy_summary(args)
-    command = benchmark_command(
+    command = "" if active_window_block else benchmark_command(
         checkpoint_path=checkpoint_path,
         tag=tag,
         hands_per_session=hands_per_session,
@@ -554,6 +688,13 @@ def evaluate(args: argparse.Namespace) -> dict[str, Any]:
             "fresh_from_zero_lineage": fresh_from_zero_lineage(checkpoint) if checkpoint_ready else None,
         },
         "health_overall": health_overall,
+        "terminal_endpoint_evidence": terminal_evidence,
+        "active_window_sentinel": {
+            "path": str(sentinel_path),
+            "active_block": active_window_block,
+            "design_id": sentinel.get("design_id"),
+            "state": sentinel.get("state"),
+        },
         "manifest_total_hands": manifest_hands,
         "quality_gate": quality_gate,
         "promotion20k_prerequisite": promotion20k_prerequisite,
@@ -663,6 +804,9 @@ def main() -> int:
     parser.add_argument("--no-require-quality-gate", action="store_true", help="Allow promotion/formal planning even when scorecard quality gate is WARN/FAIL.")
     parser.add_argument("--max-health-age-seconds", type=int, default=600)
     parser.add_argument("--no-health-age-check", action="store_true")
+    parser.add_argument("--terminal-endpoint-status-json", default="", help="Fail-closed frozen endpoint PASS evidence for a finished run.")
+    parser.add_argument("--terminal-protocol-status-json", default="", help="Matching finished protocol PASS evidence for a finished run.")
+    parser.add_argument("--active-window-sentinel", default="reports/v5_active_window.json")
     parser.add_argument(
         "--policy-mode",
         choices=["greedy", "greedy-guarded", "preflop-callguard", "sample", "guarded", "preflop-mixed"],
@@ -684,8 +828,11 @@ def main() -> int:
     print(f"planned_hands={summary['planned_hands']}")
     print(f"min_training_hands={summary['min_training_hands']}")
     print(f"tag={summary['tag']}")
-    print("command:")
-    print(summary["command"])
+    if summary["command"]:
+        print("command:")
+        print(summary["command"])
+    else:
+        print("command_emission=BLOCKED")
 
     if args.out_json:
         out_json = Path(args.out_json)
